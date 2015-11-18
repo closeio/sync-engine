@@ -245,6 +245,10 @@ def modify_account(namespace_public_id):
 
 
 
+@app.route('/')
+def home():
+    return "Nylas ready.\n"
+
 @app.route('/logout')
 def logout():
     """ Utility function used to force browsers to reset cached HTTP Basic Auth

@@ -13,8 +13,8 @@ def parse_as_when(raw):
 
     """
     when_classes = [TimeSpan, Time, DateSpan, Date]
-    keys_for_type = {tuple(cls_.json_keys): cls_ for cls_ in when_classes}
-    given_keys = tuple(set(raw.keys()) - set('object'))
+    keys_for_type = {tuple(sorted(cls_.json_keys)): cls_ for cls_ in when_classes}
+    given_keys = tuple(sorted(set(raw.keys()) - set('object')))
     when_type = keys_for_type.get(given_keys)
     if when_type is None:
         raise ValueError("When object had invalid keys.")

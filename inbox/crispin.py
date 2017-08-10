@@ -432,10 +432,11 @@ class CrispinClient(object):
             "Missing required 'inbox' folder for account_id: {}".\
             format(self.account_id)
 
-        # Sync inbox folder first, then others.
+        # Sync inbox folder first, then sent, then others.
         to_sync = have_folders['inbox']
+        to_sync.extend(have_folders.get('sent', []))
         for role, folder_names in have_folders.items():
-            if role == 'inbox':
+            if role == 'inbox' or role == 'sent':
                 continue
             to_sync.extend(folder_names)
 

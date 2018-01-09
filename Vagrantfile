@@ -8,7 +8,7 @@
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = "ubuntu/precise64"
+  config.vm.box = "ubuntu/xenial64"
 
   config.vm.provider :virtualbox do |vbox, override|
     vbox.memory = 1024
@@ -16,7 +16,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.provider :vmware_fusion do |vmware, override|
-    override.vm.box = "hashicorp/precise64"
+    override.vm.box = "hashicorp/xenial64"
     vmware.vmx["memsize"] = "1024"
     vmware.vmx["numvcpus"] = "1"
   end

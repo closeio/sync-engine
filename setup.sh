@@ -181,9 +181,9 @@ color '35;1' 'Ensuring setuptools and pip versions...'
 pip install 'pyparsing==2.2.0'
 # If python-setuptools is actually the old 'distribute' fork of setuptools,
 # then the first 'pip install setuptools' will be a no-op.
-pip install 'pip==9.0.1' 'setuptools==34.3.1'
+pip install 'pip==9.0.1' 'setuptools==38.4.0'
 hash pip        # /usr/bin/pip might now be /usr/local/bin/pip
-pip install 'pip==9.0.1' 'setuptools==34.3.1'
+pip install 'pip==9.0.1' 'setuptools==38.4.0'
 
 # Doing pip upgrade setuptools leaves behind this problematic symlink
 rm -rf /usr/lib/python2.7/dist-packages/setuptools.egg-info
@@ -274,11 +274,9 @@ if ! $prod; then
         fi
     fi
 
-    mysqld_safe &
-    sleep 10
 
-    env NYLAS_ENV=dev bin/create-db
-    env NYLAS_ENV=dev bin/create-test-db
+    PYTHONPATH=`pwd` env NYLAS_ENV=dev bin/create-db
+    PYTHONPATH=`pwd` env NYLAS_ENV=dev bin/create-test-db
 fi
 
 if [[ $(mysql --version) != *"5.6"* ]]

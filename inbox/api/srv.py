@@ -15,6 +15,7 @@ from inbox.api.validation import (bounded_str, ValidatableArgument,
                                   strict_parse_args, limit)
 from inbox.api.validation import valid_public_id
 
+from metrics_api import app as metrics_api
 from ns_api import app as ns_api
 from ns_api import DEFAULT_LIMIT
 
@@ -252,5 +253,6 @@ def logout():
         {'WWW-Authenticate': 'Basic realm="API Access Token Required"'}))
 
 
+app.register_blueprint(metrics_api)
 app.register_blueprint(ns_api)
 app.register_blueprint(webhooks_api)  # /w/...

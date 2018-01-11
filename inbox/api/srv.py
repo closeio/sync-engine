@@ -45,8 +45,10 @@ for code in default_exceptions.iterkeys():
 @app.before_request
 def auth():
     """ Check for account ID on all non-root URLS """
-    if request.path in ('/accounts', '/accounts/', '/') \
-            or request.path.startswith('/w/'):
+    if request.path == '/' \
+            or request.path.startswith('/accounts') \
+            or request.path.startswith('/w/') \
+            or request.path.startswith('/metrics'):
         return
 
     if not request.authorization or not request.authorization.username:

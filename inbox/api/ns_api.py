@@ -250,6 +250,26 @@ def one_account():
 
 
 #
+# Sync status (enable/disable account)
+#
+@app.route('/status/', methods=['GET', 'PUT'])
+def status():
+    account = g.namespace.account
+    if request.method == 'PUT':
+        data = request.get_json(force=True)
+        if 'sync_should_run' in data:
+            if data['sync_should_run']:
+                sync_host = data.get('sync_host', None)
+                account.enable_sync(sync_host=sync_host)
+            else:
+                reason = data.get('disable_reason', None)
+                account.disable_sync(reason)
+    return g.encoder.jsonify({
+        'sync_status': account.sync_status,
+    })
+
+
+#
 # Threads
 #
 @app.route('/threads/')

@@ -225,6 +225,11 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
                 'starred': msg.is_starred,
                 'files': msg.api_attachment_metadata
             }
+            resp['headers'] = {
+                'Message-Id': msg.message_id_header,
+                'In-Reply-To': msg.in_reply_to,
+                'References': msg.references
+            }
             categories = format_categories(msg.categories)
             if obj.namespace.account.category_type == 'folder':
                 resp['folder'] = categories[0] if categories else None

@@ -92,6 +92,7 @@ class GenericAuthHandler(AuthHandler):
                 old_value = getattr(account, '_{}'.format(attribute), None)
                 new_value = response.get(attribute)
                 if (new_value and old_value and new_value != old_value):
+                    """
                     # Before updating the domain name, check if:
                     # 1/ they have the same parent domain
                     # 2/ they direct to the same IP.
@@ -102,6 +103,7 @@ class GenericAuthHandler(AuthHandler):
                             "If your IMAP/SMTP server has in fact changed, please "
                             "contact Nylas support to update it. More details here: "
                             "https://support.nylas.com/hc/en-us/articles/218006767")
+                    """
 
                     # If all those conditions are met, update the address.
                     setattr(account, '_{}'.format(attribute), new_value)

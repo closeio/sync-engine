@@ -4,8 +4,12 @@ from werkzeug.exceptions import default_exceptions, HTTPException
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.api.kellogs import APIEncoder
+from inbox.auth.generic import GenericAuthHandler
+from inbox.auth.gmail import GmailAuthHandler
 from nylas.logging import get_logger
 from inbox.models import Namespace, Account
+from inbox.models.backends.generic import GenericAccount
+from inbox.models.backends.gmail import GmailAccount, GOOGLE_EMAIL_SCOPE
 from inbox.models.session import global_session_scope
 from inbox.api.validation import (bounded_str, ValidatableArgument,
                                   strict_parse_args, limit)
@@ -91,7 +95,7 @@ def finish(response):
     return response
 
 
-@app.route('/accounts/')
+@app.route('/accounts/', methods=['GET'])
 def ns_all():
     """ Return all namespaces """
     # We do this outside the blueprint to support the case of an empty
@@ -117,6 +121,125 @@ def ns_all():
         namespaces = query.all()
         encoder = APIEncoder()
         return encoder.jsonify(namespaces)
+
+
+@app.route('/accounts/', methods=['POST'])
+def create_account():
+    """ Create a new account """
+    data = request.get_json(force=True)
+
+    auth_creds = None
+
+    provider = data.get('provider', 'custom')
+    email_address = data['email_address']
+
+    if data['type'] == 'generic':
+        auth_handler = GenericAuthHandler(provider)
+        account = auth_handler.create_account(email_address, {
+            'name': '',
+            'email': email_address,
+            'imap_server_host': data['imap_server_host'],
+            'imap_server_port': data['imap_server_port'],
+            'imap_username': data['imap_username'],
+            'imap_password': data['imap_password'],
+
+            # Make Nylas happy with dummy values
+            'smtp_server_host': 'localhost',
+            'smtp_server_port': 25,
+            'smtp_username': 'dummy',
+            'smtp_password': 'dummy',
+        })
+
+    elif data['type'] == 'gmail':
+        auth_handler = GmailAuthHandler(provider)
+        account = auth_handler.create_account(email_address, {
+            'name': '',
+            'email': email_address,
+            'refresh_token': data['refresh_token'],
+            'scope': GOOGLE_EMAIL_SCOPE,
+            'id_token': '',
+            'contacts': False,
+            'events': False,
+        })
+
+    else:
+        raise ValueError('Account type not supported.')
+
+    with global_session_scope() as db_session:
+        # By default, don't enable accounts so we have the ability to set a
+        # custom sync host.
+        account.sync_should_run = False
+        db_session.add(account)
+        db_session.commit()
+
+        encoder = APIEncoder()
+        return encoder.jsonify(account.namespace)
+
+@app.route('/accounts/<namespace_public_id>/', methods=['PUT'])
+def modify_account(namespace_public_id):
+    """ Modify an existing account """
+
+    data = request.get_json(force=True)
+
+    provider = data.get('provider', 'custom')
+    email_address = data['email_address']
+
+    with global_session_scope() as db_session:
+        namespace = db_session.query(Namespace) \
+            .filter(Namespace.public_id == namespace_public_id).one()
+        account = namespace.account
+
+        if isinstance(account, GenericAccount):
+            if 'refresh_token' in data:
+                raise InputError('Cannot change the refresh token on a password account.')
+
+            auth_handler = GenericAuthHandler(provider)
+            auth_handler.update_account(account, {
+                'name': '',
+                'email': email_address,
+                'imap_server_host': data['imap_server_host'],
+                'imap_server_port': data['imap_server_port'],
+                'imap_username': data['imap_username'],
+                'imap_password': data['imap_password'],
+
+                # Make Nylas happy with dummy values
+                'smtp_server_host': 'localhost',
+                'smtp_server_port': 25,
+                'smtp_username': 'dummy',
+                'smtp_password': 'dummy',
+            })
+
+        elif isinstance(account, GmailAccount):
+            auth_handler = GmailAuthHandler(provider)
+            if 'refresh_token' in data:
+                account = auth_handler.update_account(account, {
+                    'name': '',
+                    'email': email_address,
+                    'refresh_token': data['refresh_token'],
+                    'scope': GOOGLE_EMAIL_SCOPE,
+                    'id_token': '',
+                    'contacts': False,
+                    'events': False,
+                })
+            else:
+                if 'imap_server_host' in data or \
+                   'imap_server_port' in data or \
+                   'imap_username' in data or \
+                   'imap_password' in data:
+                    raise InputError('Cannot change IMAP fields on a Gmail account.')
+
+        else:
+            raise ValueError('Account type not supported.')
+
+        # By default, don't enable accounts so we have the ability to set a
+        # custom sync host.
+        account.disable_sync('modified-account')
+        db_session.add(account)
+        db_session.commit()
+
+        encoder = APIEncoder()
+        return encoder.jsonify(account.namespace)
+
 
 
 @app.route('/logout')

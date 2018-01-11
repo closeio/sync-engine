@@ -185,7 +185,8 @@ def before_remote_request():
             request.environ['log_context']['provider'] = \
                     g.namespace.account.provider
 
-        valid_account(g.namespace)
+        # Disable validation so we can perform requests on paused accounts.
+        # valid_account(g.namespace)
 
 
 @app.after_request

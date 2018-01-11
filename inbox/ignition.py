@@ -137,7 +137,7 @@ class EngineManager(object):
                 self._engine_zones[key] = zone
 
     def shard_key_for_id(self, id_):
-        return id_ >> 48
+        return 0
 
     def get_for_id(self, id_):
         return self.engines[self.shard_key_for_id(id_)]

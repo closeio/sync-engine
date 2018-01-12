@@ -266,8 +266,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
             msg.parsed_body = parsed
             msg._parse_metadata(parsed, body_string, received_date, account.id,
                                 folder_name, mid)
-        except (mime.DecodingError, AttributeError, RuntimeError,
-                TypeError) as e:
+        except Exception as e:
             parsed = None
             # Non-persisted instance attribute used by EAS.
             msg.parsed_body = ''

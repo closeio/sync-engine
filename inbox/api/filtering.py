@@ -24,9 +24,9 @@ def contact_subquery(db_session, namespace_id, email_address, field):
 
 
 def threads(namespace_id, subject, from_addr, to_addr, cc_addr, bcc_addr,
-            any_email, thread_public_id, started_before, started_after,
-            last_message_before, last_message_after, filename, in_, unread,
-            starred, limit, offset, view, db_session):
+            any_email, message_id_header, thread_public_id, started_before,
+            started_after, last_message_before, last_message_after, filename,
+            in_, unread, starred, limit, offset, view, db_session):
 
     if view == 'count':
         query = db_session.query(func.count(Thread.id))
@@ -84,6 +84,11 @@ def threads(namespace_id, subject, from_addr, to_addr, cc_addr, bcc_addr,
                     Contact.namespace_id == namespace_id)\
             .subquery()
         query = query.filter(Thread.id.in_(any_contact_query))
+
+    if message_id_header is not None:
+        message_id_query = db_session.query(Message.thread_id). \
+            filter(Message.message_id_header == message_id_header)
+        query = query.filter(Thread.id.in_(message_id_query))
 
     if filename is not None:
         files_query = db_session.query(Message.thread_id). \

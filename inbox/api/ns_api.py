@@ -282,6 +282,7 @@ def thread_query_api():
     g.parser.add_argument('bcc', type=bounded_str, location='args')
     g.parser.add_argument('any_email', type=comma_separated_email_list,
                           location='args')
+    g.parser.add_argument('message_id_header', type=bounded_str, location='args')
     g.parser.add_argument('started_before', type=timestamp, location='args')
     g.parser.add_argument('started_after', type=timestamp, location='args')
     g.parser.add_argument('last_message_before', type=timestamp,
@@ -306,6 +307,7 @@ def thread_query_api():
         cc_addr=args['cc'],
         bcc_addr=args['bcc'],
         any_email=args['any_email'],
+        message_id_header=args['message_id_header'],
         started_before=args['started_before'],
         started_after=args['started_after'],
         last_message_before=args['last_message_before'],

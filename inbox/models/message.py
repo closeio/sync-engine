@@ -620,6 +620,12 @@ Index('ix_message_namespace_id_message_id_header_subject',
       Message.namespace_id, Message.subject, Message.message_id_header,
       mysql_length={'subject': 191, 'message_id_header': 191})
 
+# For filtering messages by Message-Id via API (with namespace), and for
+# debugging purposes (without namespace).
+Index('ix_message_message_id_header_namespace_id',
+      Message.message_id_header, Message.namespace_id,
+      mysql_length={'message_id_header': 191})
+
 
 class MessageCategory(MailSyncBase):
     """ Mapping between messages and categories. """

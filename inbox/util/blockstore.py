@@ -81,8 +81,8 @@ def get_from_blockstore(data_sha256):
         value = _get_from_disk(data_sha256)
 
     if value is None:
-        # We don't store None values so if such is returned, it's an error.
-        log.error('No data returned!')
+        # The block may have expired.
+        log.warning('No data returned!')
         return value
 
     assert data_sha256 == sha256(value).hexdigest(), \
@@ -124,7 +124,7 @@ def _get_from_s3_bucket(data_sha256, bucket_name):
     key = bucket.get_key(data_sha256)
 
     if not key:
-        log.error('No key with name: {} returned!'.format(data_sha256))
+        log.warning('No key with name: {} returned!'.format(data_sha256))
         return
 
     return key.get_contents_as_string()
@@ -138,5 +138,5 @@ def _get_from_disk(data_sha256):
         with open(_data_file_path(data_sha256), 'rb') as f:
             return f.read()
     except IOError:
-        log.error('No file with name: {}!'.format(data_sha256))
+        log.warning('No file with name: {}!'.format(data_sha256))
         return

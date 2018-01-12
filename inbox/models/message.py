@@ -16,6 +16,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 
 from nylas.logging import get_logger
 log = get_logger()
+from inbox.config import config
 from inbox.util.html import plaintext2html, strip_tags
 from inbox.sqlalchemy_ext.util import JSON, json_field_too_long, bakery
 from inbox.util.addr import parse_mimepart_address_header
@@ -290,7 +291,8 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
                               folder_name=folder_name, account_id=account.id,
                               error=e)
                     msg._mark_error()
-            msg.calculate_body(html_parts, plain_parts)
+            store_body = config.get('STORE_MESSAGE_BODIES', True)
+            msg.calculate_body(html_parts, plain_parts, store_body=store_body)
 
             # Occasionally people try to send messages to way too many
             # recipients. In such cases, empty the field and treat as a parsing
@@ -450,15 +452,21 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
         if self.snippet is None:
             self.snippet = ''
 
-    def calculate_body(self, html_parts, plain_parts):
+    def calculate_body(self, html_parts, plain_parts, store_body=True):
         html_body = ''.join(html_parts).decode('utf-8').strip()
         plain_body = '\n'.join(plain_parts).decode('utf-8').strip()
         if html_body:
             self.snippet = self.calculate_html_snippet(html_body)
-            self.body = html_body
+            if store_body:
+                self.body = html_body
+            else:
+                self.body = u''
         elif plain_body:
             self.snippet = self.calculate_plaintext_snippet(plain_body)
-            self.body = plaintext2html(plain_body, False)
+            if store_body:
+                self.body = plaintext2html(plain_body, False)
+            else:
+                self.body = u''
         else:
             self.body = u''
             self.snippet = u''

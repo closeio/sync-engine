@@ -11,6 +11,7 @@ from inbox.util.stats import statsd_client
 
 # TODO: store AWS credentials in a better way.
 STORE_MSG_ON_S3 = config.get('STORE_MESSAGES_ON_S3', None)
+STORE_MESSAGE_ATTACHMENTS = config.get('STORE_MESSAGE_ATTACHMENTS', True)
 
 
 class Blob(object):
@@ -126,4 +127,5 @@ class Blob(object):
             log.warning('Not saving 0-length data blob')
             return
 
-        blockstore.save_to_blockstore(self.data_sha256, value)
+        if STORE_MESSAGE_ATTACHMENTS:
+            blockstore.save_to_blockstore(self.data_sha256, value)

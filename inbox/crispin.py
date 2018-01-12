@@ -641,13 +641,19 @@ class CrispinClient(object):
             fetch_result = self.conn.search(['ALL'])
         except imaplib.IMAP4.error as e:
             if e.message.find('UID SEARCH wrong arguments passed') >= 0:
-                # Mail2World servers fail for the otherwise valid command
-                # 'UID SEARCH ALL' but strangely pass for 'UID SEARCH ALL UID'
+                # Search query must not have parentheses for Mail2World servers
+                log.debug("Getting UIDs failed when using 'UID SEARCH "
+                          "(ALL)'. Switching to alternative 'UID SEARCH "
+                          "ALL", exception=e)
+                t = time.time()
+                fetch_result = self.conn._search(['ALL'], None)
+            elif e.message.find('UID SEARCH failed: Internal error') >= 0:
+                # Oracle Beehive fails for some folders
                 log.debug("Getting UIDs failed when using 'UID SEARCH "
                           "ALL'. Switching to alternative 'UID SEARCH "
-                          "ALL UID", exception=e)
+                          "1:*", exception=e)
                 t = time.time()
-                fetch_result = self.conn.search(['ALL', 'UID'])
+                fetch_result = self.conn.search(['1:*'])
             else:
                 raise
 

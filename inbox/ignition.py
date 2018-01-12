@@ -51,7 +51,8 @@ def engine(database_name, database_uri, pool_size=DB_POOL_SIZE,
                            pool_timeout=pool_timeout,
                            pool_recycle=3600,
                            max_overflow=max_overflow,
-                           connect_args={'charset': 'utf8mb4',
+                           connect_args={'binary_prefix': True,
+                                         'charset': 'utf8mb4',
                                          'waiter': gevent_waiter,
                                          'connect_timeout': 60})
 

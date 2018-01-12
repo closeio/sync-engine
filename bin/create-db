@@ -37,7 +37,8 @@ def main(target_hostname, host_ip):
                                  port=host['PORT'],
                                  database_name='')
             base_engine = sqlalchemy.create_engine(
-                base_uri, listeners=[ForceStrictMode()])
+                base_uri, listeners=[ForceStrictMode()],
+                connect_args={'binary_prefix': True})
 
             schema_name = shard['SCHEMA_NAME']
             print 'Setting up database: {}'.format(schema_name)

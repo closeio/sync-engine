@@ -2,6 +2,7 @@ import time
 import platform
 import random
 
+import gevent
 from gevent.lock import BoundedSemaphore
 from sqlalchemy import or_, and_
 from sqlalchemy.exc import OperationalError
@@ -59,7 +60,9 @@ class SyncService(object):
     """
 
     def __init__(self, process_identifier, process_number,
-                 poll_interval=SYNC_POLL_INTERVAL):
+                 poll_interval=SYNC_POLL_INTERVAL,
+                 exit_after_min=None, exit_after_max=None):
+        self.keep_running = True
         self.host = platform.node()
         self.process_number = process_number
         self.process_identifier = process_identifier
@@ -101,8 +104,14 @@ class SyncService(object):
         self._pending_avgs_provider = None
         self.last_unloaded_account = time.time()
 
+        if exit_after_min and exit_after_max:
+            exit_after = random.randint(exit_after_min*60, exit_after_max*60)
+            self.log.info('exit after', seconds=exit_after)
+            gevent.spawn_later(exit_after, self.stop)
+
+
     def run(self):
-        while True:
+        while self.keep_running:
             retry_with_logging(self._run_impl, self.log)
 
     def _run_impl(self):
@@ -113,8 +122,11 @@ class SyncService(object):
         # When the service first starts we should check the state of the world.
         self.poll({'queue_name': 'none'})
         event = None
-        while event is None:
+        while self.keep_running and event is None:
             event = self.queue_group.receive_event(timeout=self.poll_interval)
+
+        if not event:
+            return
 
         if shared_sync_event_queue_for_zone(self.zone).queue_name == event['queue_name']:
             self.poll_shared_queue(event)
@@ -273,6 +285,16 @@ class SyncService(object):
                                account_id=account_id)
                 return False
         return True
+
+    def stop(self, *args):
+        self.log.info('stopping mail sync process')
+        for k, v in self.email_sync_monitors.iteritems():
+            gevent.kill(v)
+        for k, v in self.contact_sync_monitors.iteritems():
+            gevent.kill(v)
+        for k, v in self.event_sync_monitors.iteritems():
+            gevent.kill(v)
+        self.keep_running = False
 
     def stop_sync(self, account_id):
         """

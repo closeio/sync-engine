@@ -217,8 +217,9 @@ class CrispinConnectionPool(object):
 
     def _new_raw_connection(self):
         """Returns a new, authenticated IMAPClient instance for the account."""
+        from inbox.auth.gmail import GmailAuthHandler
         with session_scope(self.account_id) as db_session:
-            if self.provider == 'gmail':
+            if isinstance(self.auth_handler, GmailAuthHandler):
                 account = db_session.query(GmailAccount).options(
                     joinedload(GmailAccount.auth_credentials)).get(
                     self.account_id)

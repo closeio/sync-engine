@@ -366,7 +366,7 @@ def create_imap_connection(host, port, ssl_required, use_timeout=True):
 
     """
     use_ssl = port == 993
-    timeout = 120 if use_timeout else None
+    timeout = 300 if use_timeout else None
 
     # TODO: certificate pinning for well known sites
     context = create_default_context()

@@ -5,6 +5,9 @@ import time
 import imaplib
 import imapclient
 
+# Prevent "got more than 1000000 bytes" errors for servers that send more data.
+imaplib._MAXLINE = 10000000
+
 # Even though RFC 2060 says that the date component must have two characters
 # (either two digits or space+digit), it seems that some IMAP servers only
 # return one digit. Fun times.

@@ -62,7 +62,7 @@ psutil==3.3.0
 pyopenssl>=0.15.1
 gevent_openssl==1.2
 backports.ssl==0.0.9
-git+https://github.com/mjs/imapclient.git@77047bafd9a82f3bb1faa5e909d776b7a2e1b432#egg=imapclient
+git+https://github.com/closeio/imapclient.git@cfd0f6c83b38b6fb8d38487f8ae5d1adf4ba2c58#egg=imapclient
 tldextract==1.7.5
 tox==2.3.1
 nylas==1.2.3

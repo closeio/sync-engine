@@ -111,7 +111,8 @@ class SyncbackService(gevent.Greenlet):
         # on shards it is reponsible for; shards are divided up between
         # running SyncbackServices.
         self.log = logger.new(component='syncback')
-        syncback_assignments = config.get("SYNCBACK_ASSIGNMENTS", {})
+        syncback_assignments = {int(k): v for k, v in
+                                config.get("SYNCBACK_ASSIGNMENTS", {}).items()}
         if syncback_id in syncback_assignments:
             self.keys = [key for key in engine_manager.engines
                          if key in syncback_assignments[syncback_id] and

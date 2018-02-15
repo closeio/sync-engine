@@ -439,8 +439,9 @@ class FolderSyncEngine(Greenlet):
                 filter_by(account_id=self.account_id,
                           folder_id=self.folder_id)
             }
-        common.remove_deleted_uids(self.account_id, self.folder_id,
-                                   invalid_uids)
+        with self.syncmanager_lock:
+            common.remove_deleted_uids(self.account_id, self.folder_id,
+                                       invalid_uids)
         self.uidvalidity = remote_uidvalidity
         self.highestmodseq = None
         self.uidnext = remote_uidnext
@@ -701,8 +702,9 @@ class FolderSyncEngine(Greenlet):
             if remote_uids and lastseenuid < max(remote_uids):
                 log.info('Downloading new UIDs before expunging')
                 self.get_new_uids(crispin_client)
-            common.remove_deleted_uids(self.account_id, self.folder_id,
-                                       expunged_uids)
+            with self.syncmanager_lock:
+                common.remove_deleted_uids(self.account_id, self.folder_id,
+                                           expunged_uids)
         self.highestmodseq = new_highestmodseq
 
     def generic_refresh_flags(self, crispin_client):
@@ -741,11 +743,13 @@ class FolderSyncEngine(Greenlet):
         log.debug('Changed flags refresh response, persisting changes',
                   max_uids=max_uids)
         expunged_uids = set(local_uids).difference(flags.keys())
-        common.remove_deleted_uids(self.account_id, self.folder_id,
-                                   expunged_uids)
-        with session_scope(self.namespace_id) as db_session:
-            common.update_metadata(self.account_id, self.folder_id,
-                                   self.folder_role, flags, db_session)
+        with self.syncmanager_lock:
+            common.remove_deleted_uids(self.account_id, self.folder_id,
+                                       expunged_uids)
+        with self.syncmanager_lock:
+            with session_scope(self.namespace_id) as db_session:
+                common.update_metadata(self.account_id, self.folder_id,
+                                       self.folder_role, flags, db_session)
         self.flags_fetch_results[max_uids] = (local_uids, flags)
 
     def check_uid_changes(self, crispin_client):

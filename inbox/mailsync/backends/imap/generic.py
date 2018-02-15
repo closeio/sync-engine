@@ -617,7 +617,10 @@ class FolderSyncEngine(Greenlet):
             log.warning('Error getting UIDNEXT', exc_info=True)
             remote_uidnext = None
         except imaplib.IMAP4.error as e:
-            if '[NONEXISTENT]' in e.message:
+            # TODO: match with CrispinClient.select_folder
+            if '[NONEXISTENT]' in e.message or \
+               'does not exist' in e.message or \
+               "doesn't exist" in e.message:
                 raise FolderMissingError()
             else:
                 raise e

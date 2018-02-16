@@ -27,6 +27,15 @@ def format_categories(categories):
             categories]
 
 
+def format_messagecategories(messagecategories):
+    if messagecategories is None:
+        return []
+    return [{'id': mc.category.public_id, 'name': mc.category.name or None,
+             'display_name': mc.category.api_display_name,
+             'created_timestamp': mc.created_at} for mc in
+            messagecategories]
+
+
 def format_phone_numbers(phone_numbers):
     formatted_phone_numbers = []
     for number in phone_numbers:
@@ -150,7 +159,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
             'events': [encode(e) for e in obj.events]
         }
 
-        categories = format_categories(obj.categories)
+        categories = format_messagecategories(obj.messagecategories)
         if obj.namespace.account.category_type == 'folder':
             resp['folder'] = categories[0] if categories else None
         else:
@@ -230,7 +239,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
                 'In-Reply-To': msg.in_reply_to,
                 'References': msg.references
             }
-            categories = format_categories(msg.categories)
+            categories = format_messagecategories(msg.messagecategories)
             if obj.namespace.account.category_type == 'folder':
                 resp['folder'] = categories[0] if categories else None
             else:

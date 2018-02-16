@@ -168,10 +168,13 @@ def format_transactions_after_pointer(namespace, pointer, db_session,
             # transaction. If successive modifies for a given record id appear
             # in the list of transactions, this will only keep the latest
             # one (which is what we want).
+            sorted_trxs = sorted(trxs, key=lambda t: t.id)
             latest_trxs = {(trx.record_id, trx.command): trx for trx in
-                           sorted(trxs, key=lambda t: t.id)}.values()
+                           sorted_trxs}
+            oldest_trxs = {(trx.record_id, trx.command): trx for trx in
+                           reversed(sorted_trxs)}
             # Load all referenced not-deleted objects.
-            ids_to_query = [trx.record_id for trx in latest_trxs
+            ids_to_query = [trx.record_id for trx in latest_trxs.values()
                             if trx.command != 'delete']
 
             object_cls = transaction_objects()[obj_type]
@@ -202,12 +205,15 @@ def format_transactions_after_pointer(namespace, pointer, db_session,
                 else:
                     objects = {obj.id: obj for obj in query}
 
-            for trx in latest_trxs:
+            for key, trx in latest_trxs.items():
+                oldest_trx = oldest_trxs[key]
                 delta = {
                     'object': trx.object_type,
                     'event': EVENT_NAME_FOR_COMMAND[trx.command],
                     'id': trx.object_public_id,
-                    'cursor': trx.public_id
+                    'cursor': trx.public_id,
+                    'start_timestamp': oldest_trx.created_at,
+                    'end_timestamp': trx.created_at,
                 }
                 if trx.command != 'delete':
                     obj = objects.get(trx.record_id)

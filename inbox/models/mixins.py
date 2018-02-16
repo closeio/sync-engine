@@ -137,7 +137,7 @@ class HasEmailAddress(object):
 
 
 class CreatedAtMixin(object):
-    created_at = Column(DateTime, default=datetime.utcnow,
+    created_at = Column(DateTime, server_default=func.now(),
                         nullable=False, index=True)
 
 

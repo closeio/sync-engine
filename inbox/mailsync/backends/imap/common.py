@@ -70,7 +70,16 @@ def update_message_metadata(session, account, message, is_draft):
 
     # XXX: This will overwrite local state if syncback actions are scheduled,
     # but the eventual state is correct.
-    message.categories = categories
+    # XXX: Don't just overwrite message categories but specifically add new
+    # ones and remove old ones. That way we don't re-create them, which both
+    # saves on database queries and also lets use rely on the message category
+    # creation timestamp to determine when the message was added to a category.
+    old_categories = [c for c in message.categories if c not in categories]
+    new_categories = [c for c in categories if c not in message.categories]
+    for category in old_categories:
+        message.categories.remove(category)
+    for category in new_categories:
+        message.categories.add(category)
 
     """
     if not message.categories_changes:

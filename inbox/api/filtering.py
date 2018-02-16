@@ -355,7 +355,8 @@ def messages_or_drafts(namespace_id, drafts, subject, from_addr, to_addr,
     # thread table. We should eventually try to simplify this.
     query += lambda q: q.options(
         contains_eager(Message.thread),
-        subqueryload(Message.messagecategories).joinedload('category'),
+        subqueryload(Message.messagecategories).joinedload('category',
+                                                           'created_at'),
         subqueryload(Message.parts).joinedload(Part.block),
         subqueryload(Message.events))
 

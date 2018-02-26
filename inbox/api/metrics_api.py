@@ -126,6 +126,7 @@ def index():
                 'sync_end_time': sync_status.get('sync_end_time'),
                 'sync_host': account.sync_host,
                 'progress': progress,
+                'throttled': account.throttled,
             })
 
         return APIEncoder().jsonify(data)

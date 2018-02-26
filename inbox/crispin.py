@@ -39,6 +39,7 @@ from inbox.util.concurrency import retry
 from inbox.util.itert import chunk
 from inbox.util.misc import or_none
 from inbox.basicauth import GmailSettingError
+from inbox.models import Account
 from inbox.models.session import session_scope
 from inbox.models.backends.imap import ImapAccount
 from inbox.models.backends.generic import GenericAccount
@@ -99,7 +100,7 @@ def _get_connection_pool(account_id, pool_size, pool_map, readonly):
         return pool_map[account_id]
 
 
-def connection_pool(account_id, pool_size=3, pool_map=dict()):
+def connection_pool(account_id, pool_size=None, pool_map=dict()):
     """ Per-account crispin connection pool.
 
     Use like this:
@@ -112,6 +113,14 @@ def connection_pool(account_id, pool_size=3, pool_map=dict()):
     none at all! It's up to the calling code to handle folder sessions
     properly. We don't reset to a certain select state because it's slow.
     """
+    # Pick the pool size based on whether the account is throttled.
+    if pool_size is None:
+        with session_scope(account_id) as db_session:
+            account = db_session.query(Account).get(account_id)
+            if account.throttled:
+                pool_size = 1
+            else:
+                pool_size = 3
     return _get_connection_pool(account_id, pool_size, pool_map, True)
 
 

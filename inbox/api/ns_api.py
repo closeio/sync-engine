@@ -251,7 +251,7 @@ def one_account():
 
 
 #
-# Sync status (enable/disable account)
+# Sync status (enable/disable account / throttling)
 #
 @app.route('/status/', methods=['GET', 'PUT'])
 def status():
@@ -265,8 +265,14 @@ def status():
             else:
                 reason = data.get('disable_reason', None)
                 account.disable_sync(reason)
+        if 'throttled' in data:
+            if data['throttled']:
+                account.throttled = True
+            else:
+                account.throttled = False
     return g.encoder.jsonify({
         'sync_status': account.sync_status,
+        'throttled': account.throttled,
     })
 
 

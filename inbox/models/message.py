@@ -8,7 +8,7 @@ from collections import defaultdict
 from flanker import mime
 from sqlalchemy import (Column, Integer, BigInteger, String, DateTime,
                         Boolean, Enum, Index, bindparam)
-from sqlalchemy.dialects.mysql import LONGBLOB
+from sqlalchemy.dialects.mysql import LONGBLOB, VARCHAR
 from sqlalchemy.orm import (relationship, backref, validates, joinedload,
                             subqueryload, load_only, synonym)
 from sqlalchemy.sql.expression import false
@@ -72,7 +72,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
         load_on_pending=True)
 
     # Do delete messages if their associated thread is deleted.
-    thread_id = Column(BigInteger, nullable=False)
+    thread_id = Column(BigInteger, index=True, nullable=False)
     _thread = relationship(
         'Thread',
         primaryjoin='foreign(Message.thread_id) == remote(Thread.id)',  # noqa
@@ -106,7 +106,8 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
     subject = Column(String(255), nullable=True, default='')
     received_date = Column(DateTime, nullable=False, index=True)
     size = Column(Integer, nullable=False)
-    data_sha256 = Column(String(255), nullable=True)
+    data_sha256 = Column(VARCHAR(64, charset='ascii'), nullable=True,
+                         index=True)
 
     is_read = Column(Boolean, server_default=false(), nullable=False)
     is_starred = Column(Boolean, server_default=false(), nullable=False)
@@ -193,7 +194,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
     # Whether this draft is a reply to an existing thread.
     is_reply = Column(Boolean)
 
-    reply_to_message_id = Column(BigInteger, nullable=True)
+    reply_to_message_id = Column(BigInteger, nullable=True, index=True)
     # The backref here is unused, but must be configured so that the child's
     # foreign key gets updated when the parent is deleted.
     reply_to_message = relationship(
@@ -608,8 +609,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
 
 # Need to explicitly specify the index length for table generation with MySQL
 # 5.6 when columns are too long to be fully indexed with utf8mb4 collation.
-Index('ix_message_subject', Message.subject, mysql_length=191)
-Index('ix_message_data_sha256', Message.data_sha256, mysql_length=191)
+Index('ix_message_subject', Message.subject, mysql_length=80)
 
 # For API querying performance.
 Index('ix_message_ns_id_is_draft_received_date', Message.namespace_id,
@@ -623,15 +623,11 @@ Index('ix_message_namespace_id_deleted_at', Message.namespace_id,
 Index('ix_message_namespace_id_is_created', Message.namespace_id,
       Message.is_created)
 
-Index('ix_message_namespace_id_message_id_header_subject',
-      Message.namespace_id, Message.subject, Message.message_id_header,
-      mysql_length={'subject': 191, 'message_id_header': 191})
-
 # For filtering messages by Message-Id via API (with namespace), and for
 # debugging purposes (without namespace).
 Index('ix_message_message_id_header_namespace_id',
       Message.message_id_header, Message.namespace_id,
-      mysql_length={'message_id_header': 191})
+      mysql_length={'message_id_header': 80})
 
 
 class MessageCategory(MailSyncBase):

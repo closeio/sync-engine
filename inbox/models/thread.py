@@ -31,7 +31,7 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
     API_OBJECT_NAME = 'thread'
 
     namespace_id = Column(ForeignKey(Namespace.id, ondelete='CASCADE'),
-                          nullable=False, index=True)
+                          nullable=False)
     namespace = relationship('Namespace',
                              backref=backref('threads', passive_deletes=True),
                              load_on_pending=True)
@@ -198,9 +198,13 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
 
 # Need to explicitly specify the index length for MySQL 5.6, because the
 # subject column is too long to be fully indexed with utf8mb4 collation.
-Index('ix_thread_subject', Thread.subject, mysql_length=191)
-Index('ix_cleaned_subject', Thread._cleaned_subject, mysql_length=191)
+Index('ix_thread_subject', Thread.subject, mysql_length=80)
 
 # For async deletion.
 Index('ix_thread_namespace_id_deleted_at', Thread.namespace_id,
       Thread.deleted_at)
+
+# For fetch_corresponding_thread.
+Index('ix_namespace_id__cleaned_subject',
+      Thread.namespace_id, Thread._cleaned_subject,
+      mysql_length={'_cleaned_subject': 80})

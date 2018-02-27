@@ -447,7 +447,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
         if self.received_date is None:
             self.received_date = datetime.datetime.utcnow()
         if self.body is None:
-            self.body = ''
+            self.body = None
         if self.snippet is None:
             self.snippet = ''
 
@@ -459,15 +459,15 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
             if store_body:
                 self.body = html_body
             else:
-                self.body = u''
+                self.body = None
         elif plain_body:
             self.snippet = self.calculate_plaintext_snippet(plain_body)
             if store_body:
                 self.body = plaintext2html(plain_body, False)
             else:
-                self.body = u''
+                self.body = None
         else:
-            self.body = u''
+            self.body = None
             self.snippet = u''
 
     def calculate_html_snippet(self, text):

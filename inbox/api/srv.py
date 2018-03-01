@@ -12,6 +12,7 @@ from inbox.models import Namespace, Account
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.gmail import GmailAccount, GOOGLE_EMAIL_SCOPE
 from inbox.models.session import global_session_scope
+from inbox.api.err import InputError
 from inbox.api.validation import (bounded_str, ValidatableArgument,
                                   strict_parse_args, limit)
 from inbox.api.validation import valid_public_id
@@ -134,8 +135,6 @@ def ns_all():
 def create_account():
     """ Create a new account """
     data = request.get_json(force=True)
-
-    auth_creds = None
 
     provider = data.get('provider', 'custom')
     email_address = data['email_address']

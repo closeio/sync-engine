@@ -29,6 +29,8 @@ from nylas.logging import get_logger, configure_logging
 from inbox.mailsync.service import SyncService
 from inbox.mailsync.frontend import SyncHTTPFrontend
 
+from inbox.util.logging_helper import reconfigure_logging
+
 # Set a default timeout for sockets.
 SOCKET_TIMEOUT = 2 * 60
 socket.setdefaulttimeout(SOCKET_TIMEOUT)
@@ -58,6 +60,8 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
     """ Launch the Nylas sync service. """
     level = os.environ.get('LOGLEVEL', inbox_config.get('LOGLEVEL'))
     configure_logging(log_level=level)
+    reconfigure_logging()
+
     os.environ["SENTRY_DSN"] = inbox_config.get("SENTRY_DSN", "")
 
     if config is not None:

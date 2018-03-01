@@ -1,3 +1,4 @@
+
 from flask import Flask, request, jsonify, make_response, g
 from flask.ext.restful import reqparse
 from werkzeug.exceptions import default_exceptions, HTTPException
@@ -21,11 +22,14 @@ from ns_api import DEFAULT_LIMIT
 
 from inbox.webhooks.gpush_notifications import app as webhooks_api
 
+from inbox.util.logging_helper import reconfigure_logging
+
 app = Flask(__name__)
 # Handle both /endpoint and /endpoint/ without redirecting.
 # Note that we need to set this *before* registering the blueprint.
 app.url_map.strict_slashes = False
 
+reconfigure_logging()
 
 def default_json_error(ex):
     """ Exception -> flask JSON responder """

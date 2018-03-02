@@ -12,7 +12,7 @@ from inbox.models import Namespace, Account
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.gmail import GmailAccount, GOOGLE_EMAIL_SCOPE
 from inbox.models.session import global_session_scope
-from inbox.api.err import InputError
+from inbox.api.err import APIException, InputError
 from inbox.api.validation import (bounded_str, ValidatableArgument,
                                   strict_parse_args, limit)
 from inbox.api.validation import valid_public_id
@@ -31,6 +31,13 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 
 reconfigure_logging()
+
+@app.errorhandler(APIException)
+def handle_input_error(error):
+    response = jsonify(message=error.message, type='invalid_request_error')
+    response.status_code = error.status_code
+    return response
+
 
 def default_json_error(ex):
     """ Exception -> flask JSON responder """

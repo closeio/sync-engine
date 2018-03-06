@@ -178,7 +178,12 @@ class SyncbackService(gevent.Greenlet):
                     statsd_client.incr('syncback.{}_failed.{}'.format(sync_state, account_id))
                 continue
 
-            if (namespace.id, log_entry.table_name, log_entry.record_id) in pending_moves:
+            # Make sure we don't execute more than one move action for the same
+            # message in the same batch. Since Nylas currently doesn't update
+            # the local UID state we should wait for sync to pick up changes.
+            move_key = (namespace.id, log_entry.table_name, log_entry.record_id)
+
+            if move_key in pending_moves:
                 self.log.debug('Temporarily skipping action',
                                  account_id=account_id,
                                  table_name=log_entry.table_name,
@@ -187,9 +192,9 @@ class SyncbackService(gevent.Greenlet):
                                  action=log_entry.action)
                 continue
 
+            pending_moves[move_key] = True
+
             # Check if there was a pending move action that recently completed.
-            # Since Nylas currently doesn't update the local UID state we
-            # should wait for sync to pick up changes.
             actionlog = db_session.query(ActionLog).filter(
                 ActionLog.namespace_id == namespace.id,
                 ActionLog.table_name == log_entry.table_name,
@@ -197,7 +202,6 @@ class SyncbackService(gevent.Greenlet):
                 ActionLog.action.in_(['change_labels', 'move']),
                 ActionLog.status == 'successful').order_by(desc(ActionLog.id)).first()
             if actionlog:
-                pending_moves[(namespace.id, log_entry.table_name, log_entry.record_id)] = True
                 age = (datetime.utcnow() - actionlog.updated_at).seconds
                 if age <= 90:
                     self.log.debug('Temporarily skipping action',

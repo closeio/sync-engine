@@ -154,6 +154,7 @@ class FolderSyncEngine(Greenlet):
             'initial uidinvalid': self.resync_uids,
             'poll': self.poll,
             'poll uidinvalid': self.resync_uids,
+            'finish': lambda: 'finish',
         }
 
         self.setup_heartbeats()
@@ -211,16 +212,21 @@ class FolderSyncEngine(Greenlet):
             # Check that we're not stuck in an endless uidinvalidity resync loop.
             if self.uidinvalid_count > MAX_UIDINVALID_RESYNCS:
                 log.error('Resynced more than MAX_UIDINVALID_RESYNCS in a'
-                          ' row. Stopping sync.')
+                          ' row. Stopping sync.', folder_name=self.folder_name)
 
-                with session_scope(self.namespace_id) as db_session:
-                    account = db_session.query(Account).get(self.account_id)
-                    account.disable_sync('Detected endless uidvalidity '
-                                         'resync loop')
-                    account.sync_state = 'stopped'
-                    db_session.commit()
-
-                raise MailsyncDone()
+                # Only stop syncing the entire account if the INBOX folder is
+                # failing. Otherwise simply stop syncing the folder.
+                if self.folder_name.lower() == 'inbox':
+                    with session_scope(self.namespace_id) as db_session:
+                        account = db_session.query(Account).get(self.account_id)
+                        account.disable_sync('Detected endless uidvalidity '
+                                             'resync loop')
+                        account.sync_state = 'stopped'
+                        db_session.commit()
+                    raise MailsyncDone()
+                else:
+                    self.state = 'finish'
+                    self.heartbeat_status.publish(state=self.state)
 
         except FolderMissingError:
             # Folder was deleted by monitor while its sync was running.

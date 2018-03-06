@@ -120,13 +120,12 @@ def parse_folder(request_data, db_session, namespace_id):
 
 def update_message_folder(message, db_session, category, optimistic):
     # STOPSHIP(emfree): what about sent/inbox duality?
-    if category not in message.categories:
-        if optimistic:
-            message.categories = [category]
-            message.categories_changes = True
+    if optimistic:
+        message.categories = [category]
+        message.categories_changes = True
 
-        schedule_action('move', message, message.namespace_id, db_session,
-                        destination=category.display_name)
+    schedule_action('move', message, message.namespace_id, db_session,
+                    destination=category.display_name)
 
 ### LABEL UPDATES ###
 

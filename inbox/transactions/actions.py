@@ -15,6 +15,7 @@ import gevent.event
 from gevent.queue import Queue
 import random
 from gevent.coros import BoundedSemaphore
+from sqlalchemy import desc
 import weakref
 
 from nylas.logging import get_logger
@@ -136,6 +137,7 @@ class SyncbackService(gevent.Greenlet):
         semaphore = None
         account_id = None
         last_task = None
+        pending_moves = {}
         for log_entry in log_entries:
             if log_entry is None:
                 self.log.error('Got no action, skipping')
@@ -175,6 +177,38 @@ class SyncbackService(gevent.Greenlet):
                     statsd_client.incr('syncback.{}_failed.total'.format(sync_state))
                     statsd_client.incr('syncback.{}_failed.{}'.format(sync_state, account_id))
                 continue
+
+            if (namespace.id, log_entry.table_name, log_entry.record_id) in pending_moves:
+                self.log.debug('Temporarily skipping action',
+                                 account_id=account_id,
+                                 table_name=log_entry.table_name,
+                                 record_id=log_entry.record_id,
+                                 action_log_id=log_entry.id,
+                                 action=log_entry.action)
+                continue
+
+            # Check if there was a pending move action that recently completed.
+            # Since Nylas currently doesn't update the local UID state we
+            # should wait for sync to pick up changes.
+            actionlog = db_session.query(ActionLog).filter(
+                ActionLog.namespace_id == namespace.id,
+                ActionLog.table_name == log_entry.table_name,
+                ActionLog.record_id == log_entry.record_id,
+                ActionLog.action.in_(['change_labels', 'move']),
+                ActionLog.status == 'successful').order_by(desc(ActionLog.id)).first()
+            if actionlog:
+                pending_moves[(namespace.id, log_entry.table_name, log_entry.record_id)] = True
+                age = (datetime.utcnow() - actionlog.updated_at).seconds
+                if age <= 90:
+                    self.log.debug('Temporarily skipping action',
+                                     age=age,
+                                     account_id=account_id,
+                                     table_name=log_entry.table_name,
+                                     record_id=log_entry.record_id,
+                                     action_log_id=log_entry.id,
+                                     action=log_entry.action,
+                                     other_action_id=actionlog.id)
+                    continue
 
             if semaphore is None:
                 semaphore = self.account_semaphores[account_id]

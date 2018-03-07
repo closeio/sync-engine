@@ -250,7 +250,7 @@ def _update_categories(db_session, message, synced_categories):
         # change - namely, a still 'pending' action or one that completed
         # recently.
         if (actionlog.status == 'pending' or
-                (now - actionlog.updated_at).seconds <= 90):
+                (now - actionlog.updated_at).total_seconds() <= 90):
             return
 
     # We completed the syncback action /long enough ago/ (on average and

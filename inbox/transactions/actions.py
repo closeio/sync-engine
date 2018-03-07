@@ -202,7 +202,7 @@ class SyncbackService(gevent.Greenlet):
                 ActionLog.action.in_(['change_labels', 'move']),
                 ActionLog.status == 'successful').order_by(desc(ActionLog.id)).first()
             if actionlog:
-                age = (datetime.utcnow() - actionlog.updated_at).seconds
+                age = (datetime.utcnow() - actionlog.updated_at).total_seconds()
                 if age <= 90:
                     self.log.debug('Temporarily skipping action',
                                      age=age,

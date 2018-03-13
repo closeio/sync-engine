@@ -80,14 +80,14 @@ def parse_flags(request_data):
 
 def update_message_flags(message, db_session, optimistic, unread=None,
                          starred=None):
-    if unread is not None and unread == message.is_read:
+    if unread is not None:
         if optimistic:
             message.is_read = not unread
 
         schedule_action('mark_unread', message, message.namespace_id,
                         db_session, unread=unread)
 
-    if starred is not None and starred != message.is_starred:
+    if starred is not None:
         if optimistic:
             message.is_starred = starred
 
@@ -194,7 +194,10 @@ def update_message_labels(message, db_session, added_categories,
         else:
             removed_labels.append(category.display_name)
 
-    if optimistic:
+    # XXX: Non-optimistic updates are buggy because if we don't update the
+    # state and can't supply added/removed labels we'll end up with
+    # inconsistencies.
+    if optimistic or True:
         # Optimistically update message state,
         # in a manner consistent with Gmail.
         for cat in added_categories:

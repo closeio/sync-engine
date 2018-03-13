@@ -8,7 +8,7 @@ talking to the same database backend things could go really badly.
 
 """
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import gevent
 import gevent.event
@@ -93,12 +93,18 @@ class SyncbackService(gevent.Greenlet):
 
     def __init__(self, syncback_id, process_number, total_processes, poll_interval=1,
                  retry_interval=30, num_workers=NUM_PARALLEL_ACCOUNTS,
-                 batch_size=10):
+                 batch_size=10, fetch_batch_size=200):
         self.process_number = process_number
         self.total_processes = total_processes
         self.poll_interval = poll_interval
         self.retry_interval = retry_interval
+
+        # Amount of log entries to fetch before merging/de-duplication.
+        self.fetch_batch_size = fetch_batch_size
+
+        # Amount of log entries to process in a batch.
         self.batch_size = batch_size
+
         self.keep_running = True
         self.workers = gevent.pool.Group()
         # Dictionary account_id -> semaphore to serialize action syncback for
@@ -132,12 +138,158 @@ class SyncbackService(gevent.Greenlet):
         self.running_action_ids = set()
         gevent.Greenlet.__init__(self)
 
-    def _batch_log_entries(self, db_session, log_entries):
+    def _has_recent_move_action(self, db_session, log_entries):
+        """
+        Determines if we recently completed a move action. Since Nylas doesn't
+        update local UID state after completing an action, we space
+        non-optimistic actions apart so the sync process can catch up.
+        """
+        if not log_entries:
+            return False
+
+        log_entry = log_entries[0]
+        action_log_ids = [l.id for l in log_entries]
+        # Check if there was a pending move action that recently completed.
+        threshold = datetime.utcnow() - timedelta(seconds=90)
+        actionlog = (db_session.query(ActionLog)
+            .filter(
+                ActionLog.namespace_id == log_entry.namespace.id,
+                ActionLog.table_name == log_entry.table_name,
+                ActionLog.record_id == log_entry.record_id,
+                ActionLog.action.in_(['change_labels', 'move']),
+                ActionLog.status == 'successful',
+                ActionLog.updated_at >= threshold)
+            .order_by(desc(ActionLog.id)).first())
+
+        if actionlog:
+            account_id = log_entries[0].namespace.account.id
+            self.log.debug('Temporarily skipping actions',
+                    account_id=account_id,
+                    table_name=log_entry.table_name,
+                    record_id=log_entry.record_id,
+                    action_log_ids=action_log_ids,
+                    action=log_entry.action,
+                    other_action_id=actionlog.id,
+                    other_action_updated_at=actionlog.updated_at.isoformat())
+            return True
+        else:
+            return False
+
+    def _tasks_for_log_entries(self, db_session, log_entries):
+        """
+        Return SyncbackTask for similar actions (same action & record).
+        """
+        if not log_entries:
+            return []
+
+        namespace = log_entries[0].namespace
+        account_id = namespace.account.id
+        semaphore = self.account_semaphores[account_id]
+
+        actions = set([l.action for l in log_entries])
+        assert len(actions) == 1
+        action = actions.pop()
+
+        record_ids = [l.record_id for l in log_entries]
+
+        log_entry_ids = [l.id for l in log_entries]
+
+        # XXX: Don't do this for change_labels because we use optimistic
+        # updates.
+        if (
+            action == 'move' and
+            self._has_recent_move_action(db_session, log_entries)
+        ):
+            return []
+
+        if action in ('move', 'mark_unread'):
+            extra_args = log_entries[-1].extra_args
+        elif action == 'change_labels':
+            added_labels = set()
+            removed_labels = set()
+            for log_entry in log_entries:
+                for label in log_entry.extra_args['added_labels']:
+                    if label in removed_labels:
+                        removed_labels.remove(label)
+                    else:
+                        added_labels.add(label)
+                for label in log_entry.extra_args['removed_labels']:
+                    if label in added_labels:
+                        added_labels.remove(label)
+                    else:
+                        removed_labels.add(label)
+            extra_args = {
+                'added_labels': list(added_labels),
+                'removed_labels': list(removed_labels),
+            }
+        else:
+            # Can't merge
+            tasks = [SyncbackTask(action_name=log_entry.action,
+                            semaphore=semaphore,
+                            action_log_ids=[log_entry.id],
+                            record_ids=[log_entry.record_id],
+                            account_id=account_id,
+                            provider=namespace.account.
+                            verbose_provider,
+                            service=self,
+                            retry_interval=self.retry_interval,
+                            extra_args=log_entry.extra_args)
+                    for log_entry in log_entries]
+            return tasks
+
+        task = SyncbackTask(action_name=action,
+                            semaphore=semaphore,
+                            action_log_ids=log_entry_ids,
+                            record_ids=record_ids,
+                            account_id=account_id,
+                            provider=namespace.account.
+                            verbose_provider,
+                            service=self,
+                            retry_interval=self.retry_interval,
+                            extra_args=extra_args)
+        return [task]
+
+    def _get_batch_task(self, db_session, log_entries):
+        """
+        Helper for _batch_log_entries that returns the batch task for the given
+        valid log entries.
+        """
+        if not log_entries:
+            return
+        namespace = log_entries[0].namespace
+        account_id = namespace.account.id
+        semaphore = self.account_semaphores[account_id]
+        grouper = defaultdict(list)  # Similar actions
+        group_keys = []  # Used for ordering
+
+        for log_entry in log_entries:
+            group_key = (log_entry.namespace.id,
+                         log_entry.table_name,
+                         log_entry.record_id,
+                         log_entry.action)
+            if group_key not in grouper:
+                group_keys.append(group_key)
+            grouper[group_key].append(log_entry)
+
         tasks = []
-        semaphore = None
+        for group_key in group_keys:
+            group_log_entries = grouper[group_key]
+            group_tasks = self._tasks_for_log_entries(db_session,
+                                                      group_log_entries)
+            tasks += group_tasks
+            if len(tasks) > self.batch_size:
+                break
+        if tasks:
+            return SyncbackBatchTask(semaphore, tasks[:self.batch_size],
+                                     account_id)
+
+    def _batch_log_entries(self, db_session, log_entries):
+        """
+        Batch action log entries together and return a batch task after
+        verifying we can process them.
+        """
+        valid_log_entries = []
         account_id = None
-        last_task = None
-        pending_moves = {}
         for log_entry in log_entries:
             if log_entry is None:
                 self.log.error('Got no action, skipping')
@@ -178,81 +330,21 @@ class SyncbackService(gevent.Greenlet):
                     statsd_client.incr('syncback.{}_failed.{}'.format(sync_state, account_id))
                 continue
 
-            # Make sure we don't execute more than one move action for the same
-            # message in the same batch. Since Nylas currently doesn't update
-            # the local UID state we should wait for sync to pick up changes.
-            move_key = (namespace.id, log_entry.table_name, log_entry.record_id)
+            valid_log_entries.append(log_entry)
 
-            if move_key in pending_moves:
-                self.log.debug('Temporarily skipping action',
-                                 account_id=account_id,
-                                 table_name=log_entry.table_name,
-                                 record_id=log_entry.record_id,
-                                 action_log_id=log_entry.id,
-                                 action=log_entry.action)
-                continue
-
-            pending_moves[move_key] = True
-
-            # Check if there was a pending move action that recently completed.
-            actionlog = db_session.query(ActionLog).filter(
-                ActionLog.namespace_id == namespace.id,
-                ActionLog.table_name == log_entry.table_name,
-                ActionLog.record_id == log_entry.record_id,
-                ActionLog.action.in_(['change_labels', 'move']),
-                ActionLog.status == 'successful').order_by(desc(ActionLog.id)).first()
-            if actionlog:
-                age = (datetime.utcnow() - actionlog.updated_at).total_seconds()
-                if age <= 90:
-                    self.log.debug('Temporarily skipping action',
-                                     age=age,
-                                     account_id=account_id,
-                                     table_name=log_entry.table_name,
-                                     record_id=log_entry.record_id,
-                                     action_log_id=log_entry.id,
-                                     action=log_entry.action,
-                                     other_action_id=actionlog.id)
-                    continue
-
-            if semaphore is None:
-                semaphore = self.account_semaphores[account_id]
-            else:
-                assert semaphore is self.account_semaphores[account_id]
-            task = SyncbackTask(action_name=log_entry.action,
-                                semaphore=semaphore,
-                                action_log_ids=[log_entry.id],
-                                record_ids=[log_entry.record_id],
-                                account_id=account_id,
-                                provider=namespace.account.
-                                verbose_provider,
-                                service=self,
-                                retry_interval=self.retry_interval,
-                                extra_args=log_entry.extra_args)
-            if last_task is None:
-                last_task = task
-            else:
-                merged_task = last_task.try_merge_with(task)
-                if merged_task is None:
-                    tasks.append(last_task)
-                    last_task = task
-                else:
-                    last_task = merged_task
-        if last_task is not None:
-            assert len(tasks) == 0 or last_task != tasks[-1]
-            tasks.append(last_task)
-
-        if len(tasks) == 0:
-            return None
-
-        for task in tasks:
+        batch_task = self._get_batch_task(db_session, valid_log_entries)
+        if not batch_task:
+            return
+        for task in batch_task.tasks:
             self.running_action_ids.update(task.action_log_ids)
             self.log.debug('Syncback added task',
                            process=self.process_number,
                            action_log_ids=task.action_log_ids,
                            num_actions=len(task.action_log_ids),
                            msg=task.action_name,
-                           task_count=self.task_queue.qsize())
-        return SyncbackBatchTask(semaphore, tasks, account_id)
+                           task_count=self.task_queue.qsize(),
+                           extra_args=task.extra_args)
+        return batch_task
 
     def _process_log(self):
         for key in self.keys:
@@ -280,7 +372,7 @@ class SyncbackService(gevent.Greenlet):
                         ActionLog.discriminator == 'actionlog',
                         ActionLog.status == 'pending',
                         ActionLog.namespace_id == ns_id).order_by(ActionLog.id).\
-                        limit(self.batch_size)
+                        limit(self.fetch_batch_size)
                     task = self._batch_log_entries(db_session, query.all())
                     if task is not None:
                         self.task_queue.put(task)
@@ -519,7 +611,7 @@ class SyncbackTask(object):
         if can_handle_multiple_records(self.action_name):
             func_args.append(records_to_process)
         else:
-            assert len(records_to_process) == 1
+            assert len(set(records_to_process)) == 1
             func_args.append(records_to_process[0])
 
         if self.extra_args:

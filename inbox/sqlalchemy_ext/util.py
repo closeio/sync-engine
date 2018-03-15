@@ -302,7 +302,9 @@ class ForceStrictMode(PoolListener):
 
     def connect(self, dbapi_con, connection_record):
         cur = dbapi_con.cursor()
-        cur.execute("SET SESSION sql_mode='TRADITIONAL'")
+        cur.execute("SET SESSION sql_mode='STRICT_TRANS_TABLES,STRICT_ALL_TABLES,"
+                    "NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,"
+                    "NO_ENGINE_SUBSTITUTION'")
         cur = None
 
 

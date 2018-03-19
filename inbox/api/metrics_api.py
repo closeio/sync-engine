@@ -45,25 +45,29 @@ def index():
         accounts = list(accounts)
 
         heartbeat = get_ping_status(account_ids=[acc.id for acc in accounts])
+        folder_sync_statuses = db_session.query(ImapFolderSyncStatus)
         if len(accounts) == 1:
-            folder_sync_statuses = db_session.query(ImapFolderSyncStatus). \
-                    filter(ImapFolderSyncStatus.account_id==accounts[0].id). \
-                    join(Folder)
-        else:
-            folder_sync_statuses = db_session.query(ImapFolderSyncStatus). \
-                    join(Folder)
+            folder_sync_statuses = folder_sync_statuses.filter(
+                ImapFolderSyncStatus.account_id==accounts[0].id)
+        folder_sync_statuses = folder_sync_statuses.join(Folder).with_entities(
+            ImapFolderSyncStatus.account_id,
+            ImapFolderSyncStatus.folder_id,
+            Folder.name,
+            ImapFolderSyncStatus.state,
+            ImapFolderSyncStatus._metrics
+        )
 
         data = []
 
         folder_data = defaultdict(dict)
 
         for folder_sync_status in folder_sync_statuses:
-            metrics = folder_sync_status.metrics
-            folder_data[folder_sync_status.account_id][folder_sync_status.folder_id] = {
+            account_id, folder_id, folder_name, state, metrics = folder_sync_status
+            folder_data[account_id][folder_id] = {
                 'remote_uid_count': metrics.get('remote_uid_count'),
                 'download_uid_count': metrics.get('download_uid_count'),
-                'state': folder_sync_status.state,
-                'name': folder_sync_status.folder.name,
+                'state': state,
+                'name': folder_name,
                 'alive': False,
                 'heartbeat_at': None,
                 'run_state': metrics.get('run_state'),

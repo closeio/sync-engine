@@ -83,7 +83,7 @@ def function_for_action(action):
     return EVENT_ACTION_FUNCTION_MAP[action]
 
 
-ACTION_MAX_NR_OF_RETRIES = 20
+ACTION_MAX_NR_OF_RETRIES = 5
 NUM_PARALLEL_ACCOUNTS = 500
 INVALID_ACCOUNT_GRACE_PERIOD = 60 * 60 * 2  # 2 hours
 
@@ -92,8 +92,8 @@ class SyncbackService(gevent.Greenlet):
     """Asynchronously consumes the action log and executes syncback actions."""
 
     def __init__(self, syncback_id, process_number, total_processes, poll_interval=1,
-                 retry_interval=30, num_workers=NUM_PARALLEL_ACCOUNTS,
-                 batch_size=10, fetch_batch_size=200):
+                 retry_interval=120, num_workers=NUM_PARALLEL_ACCOUNTS,
+                 batch_size=20, fetch_batch_size=1000):
         self.process_number = process_number
         self.total_processes = total_processes
         self.poll_interval = poll_interval
@@ -286,7 +286,8 @@ class SyncbackService(gevent.Greenlet):
     def _batch_log_entries(self, db_session, log_entries):
         """
         Batch action log entries together and return a batch task after
-        verifying we can process them.
+        verifying we can process them. All actions must belong to the same
+        account.
         """
         valid_log_entries = []
         account_id = None
@@ -330,6 +331,23 @@ class SyncbackService(gevent.Greenlet):
                     statsd_client.incr('syncback.{}_failed.{}'.format(sync_state, account_id))
                 continue
 
+            # If there is a recently failed action, don't execute any actions
+            # for this account.
+            if log_entry.retries > 0:
+                action_updated_age = (datetime.utcnow() -
+                                      log_entry.updated_at).total_seconds()
+
+                # TODO(T6974): We might want to do some kind of exponential
+                # backoff with jitter to avoid the thundering herd problem if a
+                # provider suddenly starts having issues for a short period of
+                # time.
+                if action_updated_age < self.retry_interval:
+                    self.log.info('Skipping tasks due to recently failed action',
+                                   account_id=account_id,
+                                   action_log_id=log_entry.id,
+                                   retries=log_entry.retries)
+                    return
+
             valid_log_entries.append(log_entry)
 
         batch_task = self._get_batch_task(db_session, valid_log_entries)
@@ -339,6 +357,7 @@ class SyncbackService(gevent.Greenlet):
             self.running_action_ids.update(task.action_log_ids)
             self.log.debug('Syncback added task',
                            process=self.process_number,
+                           account_id=account_id,
                            action_log_ids=task.action_log_ids,
                            num_actions=len(task.action_log_ids),
                            msg=task.action_name,
@@ -439,10 +458,16 @@ class SyncbackBatchTask(object):
         with self.semaphore:
             with self._crispin_client_or_none() as crispin_client:
                 log.debug("Syncback running batch of actions",
-                          num_actions=len(self.tasks))
+                          num_actions=len(self.tasks),
+                          account_id=self.account_id)
                 for task in self.tasks:
                     task.crispin_client = crispin_client
-                    task.execute_with_lock()
+                    if not task.execute_with_lock():
+                        log.info("Pausing syncback tasks due to error",
+                                 account_id=self.account_id)
+                        # Stop executing further actions for an account if any
+                        # failed.
+                        break
 
     def uses_crispin_client(self):
         return any([task.uses_crispin_client() for task in self.tasks])
@@ -534,6 +559,9 @@ class SyncbackTask(object):
                 statsd_client.timing(metric, latency * 1000)
 
     def execute_with_lock(self):
+        """
+        Process a task and return whether it executed successfully.
+        """
         self.log = logger.new(
             record_ids=self.record_ids, action_log_ids=self.action_log_ids,
             action=self.action_name, account_id=self.account_id,
@@ -545,50 +573,42 @@ class SyncbackTask(object):
         # actions as failed.
         records_to_process, action_ids_to_process = self._get_records_and_actions_to_process()
         if len(action_ids_to_process) == 0:
-            return
+            return True
 
-        for attempt in range(ACTION_MAX_NR_OF_RETRIES):
-            self.log.debug("executing action", attempt=attempt)
-            try:
-                before, after = self._execute_timed_action(records_to_process)
+        try:
+            before, after = self._execute_timed_action(records_to_process)
+            self.log.debug("executing action",
+                           action_log_ids=action_ids_to_process)
 
-                with session_scope(self.account_id) as db_session:
-                    action_log_entries = db_session.query(ActionLog). \
-                        filter(ActionLog.id.in_(action_ids_to_process))
+            with session_scope(self.account_id) as db_session:
+                action_log_entries = db_session.query(ActionLog). \
+                    filter(ActionLog.id.in_(action_ids_to_process))
 
+                for action_log_entry in action_log_entries:
+                    self._mark_action_as_successful(action_log_entry, before, after, db_session)
+                return True
+        except:
+            log_uncaught_errors(self.log, account_id=self.account_id,
+                                provider=self.provider)
+            with session_scope(self.account_id) as db_session:
+                action_log_entries = db_session.query(ActionLog). \
+                    filter(ActionLog.id.in_(action_ids_to_process))
+
+                marked_as_failed = False
+                for action_log_entry in action_log_entries:
+                    action_log_entry.retries += 1
+                    if action_log_entry.retries == ACTION_MAX_NR_OF_RETRIES:
+                        marked_as_failed = True
+
+                if marked_as_failed:
+                    self.log.debug("marking actions as failed",
+                                   action_log_ids=action_ids_to_process)
+                    # If we merged actions, fail them all at the same time.
                     for action_log_entry in action_log_entries:
-                        self._mark_action_as_successful(action_log_entry, before, after, db_session)
-                    return
-            except:
-                log_uncaught_errors(self.log, account_id=self.account_id,
-                                    provider=self.provider)
-                with session_scope(self.account_id) as db_session:
-                    action_log_entries = db_session.query(ActionLog). \
-                        filter(ActionLog.id.in_(action_ids_to_process))
+                        self._mark_action_as_failed(action_log_entry, db_session)
+                db_session.commit()
 
-                    marked_as_failed = False
-                    for action_log_entry in action_log_entries:
-                        action_log_entry.retries += 1
-                        if action_log_entry.retries == ACTION_MAX_NR_OF_RETRIES:
-                            marked_as_failed = True
-                            self._mark_action_as_failed(action_log_entry, db_session)
-                        # If we've merged SyncbackTasks then their corresponding
-                        # actions should all fail at the same time.
-                        assert (not marked_as_failed or
-                                action_log_entry.retries == ACTION_MAX_NR_OF_RETRIES)
-                        db_session.commit()
-                    if marked_as_failed:
-                        return
-
-            # Wait before retrying
-            self.log.info("Syncback task retrying action after sleeping",
-                          duration=self.retry_interval)
-
-            # TODO(T6974): We might want to do some kind of exponential
-            # backoff with jitter to avoid the thundering herd problem if a
-            # provider suddenly starts having issues for a short period of
-            # time.
-            gevent.sleep(self.retry_interval)
+                return False
 
     def _get_records_and_actions_to_process(self):
         records_to_process = []

@@ -640,7 +640,7 @@ class MessageCategory(MailSyncBase):
                         collection_class=set,
                         cascade="all, delete-orphan"))
 
-    category_id = Column(BigInteger, nullable=False)
+    category_id = Column(BigInteger, nullable=False, index=True)
     category = relationship(
         Category,
         primaryjoin='foreign(MessageCategory.category_id) == remote(Category.id)',  # noqa

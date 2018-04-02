@@ -14,9 +14,8 @@ from alembic import op
 
 
 def upgrade():
-    op.create_index('idx_namespace', 'transaction', ['namespace_id'],
-                    unique=False)
+    pass
 
 
 def downgrade():
-    op.drop_index('idx_namespace', table_name='transaction')
+    pass

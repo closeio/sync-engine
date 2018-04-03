@@ -201,6 +201,9 @@ def create_imap_message(db_session, account, folder, msg):
         relationships. All new objects are uncommitted.
 
     """
+    log.debug('creating message', account_id=account.id,
+                                  folder_name=folder.name,
+                                  mid=msg.uid)
     new_message = Message.create_from_synced(account=account, mid=msg.uid,
                                              folder_name=folder.name,
                                              received_date=msg.internaldate,

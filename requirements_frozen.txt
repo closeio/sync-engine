@@ -27,7 +27,7 @@ execnet==1.5.0
 faulthandler==2.3
 flake8==2.1.0
 flake8-pep3101==0.6
-git+https://github.com/nylas/flanker.git@27bab404c50b83b6cc8250caf767a66897c9d687#egg=flanker
+git+https://github.com/closeio/flanker.git@c86e8c2599497f234988acfcef726bbc3228c787#egg=flanker
 Flask==0.10.1
 Flask-RESTful==0.3.2
 freezegun==0.3.7

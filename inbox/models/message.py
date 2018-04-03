@@ -272,7 +272,8 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
             # Non-persisted instance attribute used by EAS.
             msg.parsed_body = ''
             log.error('Error parsing message metadata',
-                      folder_name=folder_name, account_id=account.id, error=e)
+                      folder_name=folder_name, account_id=account.id, error=e,
+                      mid=mid)
             msg._mark_error()
 
         if parsed is not None:
@@ -289,7 +290,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
                         TypeError, binascii.Error, UnicodeDecodeError) as e:
                     log.error('Error parsing message MIME parts',
                               folder_name=folder_name, account_id=account.id,
-                              error=e)
+                              error=e, mid=mid)
                     msg._mark_error()
             store_body = config.get('STORE_MESSAGE_BODIES', True)
             msg.calculate_body(html_parts, plain_parts, store_body=store_body)

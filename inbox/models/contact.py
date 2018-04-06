@@ -93,7 +93,7 @@ class MessageContactAssociation(MailSyncBase):
     [assoc.message for assoc in c.message_associations if assoc.field ==
     ...  'to_addr']
     """
-    contact_id = Column(BigInteger, primary_key=True)
+    contact_id = Column(BigInteger, primary_key=True, index=True)
     message_id = Column(ForeignKey(Message.id, ondelete='CASCADE'),
                         primary_key=True)
     field = Column(Enum('from_addr', 'to_addr',

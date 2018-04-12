@@ -87,19 +87,24 @@ ACTION_MAX_NR_OF_RETRIES = 5
 NUM_PARALLEL_ACCOUNTS = 500
 INVALID_ACCOUNT_GRACE_PERIOD = 60 * 60 * 2  # 2 hours
 
+# Max amount of actionlog entries to fetch for specific records to
+# deduplicate.
+MAX_DEDUPLICATION_BATCH_SIZE = 5000
+
 
 class SyncbackService(gevent.Greenlet):
     """Asynchronously consumes the action log and executes syncback actions."""
 
     def __init__(self, syncback_id, process_number, total_processes, poll_interval=1,
                  retry_interval=120, num_workers=NUM_PARALLEL_ACCOUNTS,
-                 batch_size=20, fetch_batch_size=1000):
+                 batch_size=20, fetch_batch_size=100):
         self.process_number = process_number
         self.total_processes = total_processes
         self.poll_interval = poll_interval
         self.retry_interval = retry_interval
 
-        # Amount of log entries to fetch before merging/de-duplication.
+        # Amount of log entries to fetch before merging/de-duplication to
+        # determine which records need to be processed.
         self.fetch_batch_size = fetch_batch_size
 
         # Amount of log entries to process in a batch.
@@ -175,7 +180,7 @@ class SyncbackService(gevent.Greenlet):
         else:
             return False
 
-    def _tasks_for_log_entries(self, db_session, log_entries):
+    def _tasks_for_log_entries(self, db_session, log_entries, has_more):
         """
         Return SyncbackTask for similar actions (same action & record).
         """
@@ -190,10 +195,6 @@ class SyncbackService(gevent.Greenlet):
         assert len(actions) == 1
         action = actions.pop()
 
-        record_ids = [l.record_id for l in log_entries]
-
-        log_entry_ids = [l.id for l in log_entries]
-
         # XXX: Don't do this for change_labels because we use optimistic
         # updates.
         if (
@@ -201,6 +202,25 @@ class SyncbackService(gevent.Greenlet):
             self._has_recent_move_action(db_session, log_entries)
         ):
             return []
+
+        if has_more and action in ('move', 'mark_unread', 'change_labels'):
+            # There may be more records to deduplicate.
+            self.log.debug('fetching more entries',
+                           account_id=account_id,
+                           action=action,
+                           record_id=log_entries[0].record_id)
+            log_entries = db_session.query(ActionLog).filter(
+                ActionLog.discriminator == 'actionlog',
+                ActionLog.status == 'pending',
+                ActionLog.namespace_id == namespace.id,
+                ActionLog.action == action,
+                ActionLog.record_id == log_entries[0].record_id).\
+                order_by(ActionLog.id).\
+                limit(MAX_DEDUPLICATION_BATCH_SIZE).all()
+
+        record_ids = [l.record_id for l in log_entries]
+
+        log_entry_ids = [l.id for l in log_entries]
 
         if action in ('move', 'mark_unread'):
             extra_args = log_entries[-1].extra_args
@@ -249,7 +269,7 @@ class SyncbackService(gevent.Greenlet):
                             extra_args=extra_args)
         return [task]
 
-    def _get_batch_task(self, db_session, log_entries):
+    def _get_batch_task(self, db_session, log_entries, has_more):
         """
         Helper for _batch_log_entries that returns the batch task for the given
         valid log entries.
@@ -275,7 +295,8 @@ class SyncbackService(gevent.Greenlet):
         for group_key in group_keys:
             group_log_entries = grouper[group_key]
             group_tasks = self._tasks_for_log_entries(db_session,
-                                                      group_log_entries)
+                                                      group_log_entries,
+                                                      has_more)
             tasks += group_tasks
             if len(tasks) > self.batch_size:
                 break
@@ -291,6 +312,9 @@ class SyncbackService(gevent.Greenlet):
         """
         valid_log_entries = []
         account_id = None
+
+        has_more = len(log_entries) == self.fetch_batch_size
+
         for log_entry in log_entries:
             if log_entry is None:
                 self.log.error('Got no action, skipping')
@@ -350,7 +374,7 @@ class SyncbackService(gevent.Greenlet):
 
             valid_log_entries.append(log_entry)
 
-        batch_task = self._get_batch_task(db_session, valid_log_entries)
+        batch_task = self._get_batch_task(db_session, valid_log_entries, has_more)
         if not batch_task:
             return
         for task in batch_task.tasks:
@@ -563,7 +587,9 @@ class SyncbackTask(object):
         Process a task and return whether it executed successfully.
         """
         self.log = logger.new(
-            record_ids=self.record_ids, action_log_ids=self.action_log_ids,
+            record_ids=list(set(self.record_ids)),
+            action_log_ids=self.action_log_ids[:100],
+            n_action_log_ids=len(self.action_log_ids),
             action=self.action_name, account_id=self.account_id,
             extra_args=self.extra_args)
 
@@ -584,8 +610,18 @@ class SyncbackTask(object):
                 action_log_entries = db_session.query(ActionLog). \
                     filter(ActionLog.id.in_(action_ids_to_process))
 
+                max_latency = max_func_latency = 0
                 for action_log_entry in action_log_entries:
-                    self._mark_action_as_successful(action_log_entry, before, after, db_session)
+                    latency, func_latency = self._mark_action_as_successful(
+                            action_log_entry, before, after, db_session)
+                    if latency > max_latency:
+                        max_latency = latency
+                    if func_latency > max_func_latency:
+                        max_func_latency = func_latency
+                self.log.info('syncback action completed',
+                              latency=max_latency,
+                              process=self.parent_service().process_number,
+                              func_latency=max_func_latency)
                 return True
         except:
             log_uncaught_errors(self.log, account_id=self.account_id,
@@ -648,11 +684,8 @@ class SyncbackTask(object):
         db_session.commit()
         latency = round((datetime.utcnow() - action_log_entry.created_at).total_seconds(), 2)
         func_latency = round((after - before).total_seconds(), 2)
-        self.log.info('syncback action completed',
-                      latency=latency,
-                      process=self.parent_service().process_number,
-                      func_latency=func_latency)
         self._log_to_statsd(action_log_entry.status, latency)
+        return (latency, func_latency)
 
     def _mark_action_as_failed(self, action_log_entry, db_session):
         self.log.critical('Max retries reached, giving up.', exc_info=True)

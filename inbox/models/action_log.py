@@ -1,7 +1,9 @@
 from sqlalchemy import (Column, BigInteger, Integer, Text, ForeignKey, Enum,
-                        Index, String)
+                        Index, String, desc)
 from sqlalchemy.orm import relationship
 
+from nylas.logging import get_logger
+log = get_logger()
 from inbox.sqlalchemy_ext.util import JSON
 from inbox.models.base import MailSyncBase
 from inbox.models.mixins import UpdatedAtMixin, DeletedAtMixin
@@ -13,6 +15,23 @@ def schedule_action(func_name, record, namespace_id, db_session, **kwargs):
     db_session.flush()
 
     account = db_session.query(Namespace).get(namespace_id).account
+
+    # Don't queue action if an existing pending action exists.
+    existing_log_entry = db_session.query(ActionLog).filter(
+        ActionLog.discriminator == 'actionlog',
+        ActionLog.status == 'pending',
+        ActionLog.namespace_id == namespace_id,
+        ActionLog.action == func_name,
+        ActionLog.record_id == record.id).\
+        order_by(desc(ActionLog.id)).first()
+    if existing_log_entry and existing_log_entry.extra_args == kwargs:
+        log.debug('action already exists', action_log_id=existing_log_entry.id,
+                                           account_id=account.id,
+                                           record_id=record.id,
+                                           action=func_name,
+                                           extra_args=kwargs)
+        return
+
     log_entry = account.actionlog_cls.create(
         action=func_name,
         table_name=record.__tablename__,
@@ -47,5 +66,5 @@ class ActionLog(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
                        'polymorphic_on': discriminator}
 
 
-Index('ix_actionlog_status_retries', ActionLog.status, ActionLog.retries)
-Index('idx_actionlog_status_type', ActionLog.status, ActionLog.discriminator)
+Index('ix_actionlog_status_namespace_id_record_id', ActionLog.status,
+      ActionLog.namespace_id, ActionLog.record_id)

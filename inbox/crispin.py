@@ -685,8 +685,15 @@ class CrispinClient(object):
 
         for uid in uid_set:
             try:
-                raw_messages.update(self.conn.fetch(
-                    uid, ['BODY.PEEK[]', 'INTERNALDATE', 'FLAGS']))
+                # Microsoft IMAP server returns a bunch of crap which could
+                # corrupt other UID data. Also we don't always get a message
+                # back at the first try.
+                for n in range(3):
+                    result = self.conn.fetch(
+                        uid, ['BODY.PEEK[]', 'INTERNALDATE', 'FLAGS'])
+                    if uid in result:
+                        raw_messages[uid] = result[uid]
+                        break
             except imapclient.IMAPClient.Error as e:
                 if ('[UNAVAILABLE] UID FETCH Server error '
                         'while fetching messages') in str(e):

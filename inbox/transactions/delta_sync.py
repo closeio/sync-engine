@@ -4,6 +4,7 @@ import collections
 from datetime import datetime
 
 from sqlalchemy import asc, desc, bindparam
+from sqlalchemy.orm.exc import NoResultFound
 from inbox.api.kellogs import APIEncoder, encode
 from inbox.models import Transaction, Message, Thread, Account, Namespace
 from inbox.models.session import session_scope
@@ -132,7 +133,11 @@ def format_transactions_after_pointer(namespace, pointer, db_session,
     if include_types is not None and 'metadata' in include_types:
         include_types.remove('metadata')
 
-    last_trx = _get_last_trx_id_for_namespace(namespace.id, db_session)
+    try:
+        last_trx = _get_last_trx_id_for_namespace(namespace.id, db_session)
+    except NoResultFound:
+        return ([], pointer)
+
     if last_trx == pointer:
         return ([], pointer)
 

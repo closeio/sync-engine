@@ -195,7 +195,7 @@ class FolderSyncEngine(Greenlet):
         # NOTE: The parent ImapSyncMonitor handler could kill us at any
         # time if it receives a shutdown command. The shutdown command is
         # equivalent to ctrl-c.
-        while True:
+        while self.state != 'finish':
             retry_with_logging(self._run_impl, account_id=self.account_id,
                                provider=self.provider_name, logger=log)
 

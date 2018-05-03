@@ -1816,7 +1816,7 @@ def sync_deltas():
             'deltas': deltas,
         }
         if deltas:
-            end_transaction = db_session.query(Transaction).get(end_pointer)
+            end_transaction = g.db_session.query(Transaction).get(end_pointer)
             response['cursor_end'] = deltas[-1]['cursor']
             response['timestamp'] = end_transaction.created_at
             return g.encoder.jsonify(response)

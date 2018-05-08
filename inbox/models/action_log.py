@@ -25,11 +25,6 @@ def schedule_action(func_name, record, namespace_id, db_session, **kwargs):
         ActionLog.record_id == record.id).\
         order_by(desc(ActionLog.id)).first()
     if existing_log_entry and existing_log_entry.extra_args == kwargs:
-        log.debug('action already exists', action_log_id=existing_log_entry.id,
-                                           account_id=account.id,
-                                           record_id=record.id,
-                                           action=func_name,
-                                           extra_args=kwargs)
         return
 
     log_entry = account.actionlog_cls.create(

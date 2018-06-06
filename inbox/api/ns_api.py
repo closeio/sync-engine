@@ -256,6 +256,11 @@ def one_account():
 @app.route('/status/', methods=['GET', 'PUT'])
 def status():
     account = g.namespace.account
+
+    # Don't allow resuming accounts marked for deletion.
+    if account.is_marked_for_deletion:
+        raise AccountDoesNotExistError()
+
     if request.method == 'PUT':
         data = request.get_json(force=True)
         if 'sync_should_run' in data:

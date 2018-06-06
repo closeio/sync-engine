@@ -131,6 +131,8 @@ def index():
                 'sync_host': account.sync_host,
                 'progress': progress,
                 'throttled': account.throttled,
+                'created_at': account.created_at,
+                'updated_at': account.updated_at,
             })
 
         return APIEncoder().jsonify(data)

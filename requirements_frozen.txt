@@ -55,6 +55,7 @@ itsdangerous==0.24
 Jinja2==2.10
 jmespath==0.9.3
 lazy-object-proxy==1.3.1
+git+https://github.com/closeio/limitlion.git@57a582d76f94ad80aca7a965dcce026207bb1a40#egg=limitlion
 lunatic-python-bugfix==1.1.1  # For Redis mocking in tests
 lxml==3.4.2
 Mako==1.0.7

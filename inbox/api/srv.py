@@ -12,7 +12,7 @@ from inbox.models import Namespace, Account
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.gmail import GmailAccount, GOOGLE_EMAIL_SCOPE
 from inbox.models.session import global_session_scope
-from inbox.api.err import APIException, InputError
+from inbox.api.err import APIException, InputError, NotFoundError
 from inbox.api.validation import (bounded_str, ValidatableArgument,
                                   strict_parse_args, limit)
 from inbox.api.validation import valid_public_id
@@ -253,6 +253,22 @@ def modify_account(namespace_public_id):
         encoder = APIEncoder()
         return encoder.jsonify(account.namespace)
 
+
+@app.route('/accounts/<namespace_public_id>/', methods=['DELETE'])
+def delete_account(namespace_public_id):
+    """ Mark an existing account for deletion. """
+    try:
+        with global_session_scope() as db_session:
+            namespace = db_session.query(Namespace) \
+                .filter(Namespace.public_id == namespace_public_id).one()
+            account = namespace.account
+            account.mark_for_deletion()
+            db_session.commit()
+    except NoResultFound:
+        raise NotFoundError("Couldn't find account `{0}` ".format(namespace_public_id))
+
+    encoder = APIEncoder()
+    return encoder.jsonify({})
 
 
 @app.route('/')

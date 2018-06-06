@@ -140,3 +140,45 @@ def _get_from_disk(data_sha256):
     except IOError:
         log.warning('No file with name: {}!'.format(data_sha256))
         return
+
+
+def _delete_from_s3_bucket(data_sha256_hashes, bucket_name):
+    data_sha256_hashes = filter(None, data_sha256_hashes)
+    if not data_sha256_hashes:
+        return None
+
+    assert 'AWS_ACCESS_KEY_ID' in config, 'Need AWS key!'
+    assert 'AWS_SECRET_ACCESS_KEY' in config, 'Need AWS secret!'
+    start = time.time()
+
+    # Boto pools connections at the class level
+    conn = S3Connection(config.get('AWS_ACCESS_KEY_ID'),
+                        config.get('AWS_SECRET_ACCESS_KEY'))
+    bucket = conn.get_bucket(bucket_name, validate=False)
+
+    bucket.delete_keys([key for key in data_sha256_hashes], quiet=True)
+
+    end = time.time()
+    latency_millis = (end - start) * 1000
+    statsd_client.timing('s3_blockstore.delete_latency', latency_millis)
+
+
+def _delete_from_disk(data_sha256):
+    if not data_sha256:
+        return None
+
+    try:
+        os.remove(_data_file_path(data_sha256))
+    except OSError:
+        log.warning('No file with name: {}!'.format(data_sha256))
+
+
+def delete_from_blockstore(*data_sha256_hashes):
+    log.info('deleting from blockstore', sha256=data_sha256_hashes)
+
+    if STORE_MSG_ON_S3:
+        _delete_from_s3_bucket(data_sha256_hashes,
+                               config.get('TEMP_MESSAGE_STORE_BUCKET_NAME'))
+    else:
+        for data_sha256 in data_sha256_hashes:
+            _delete_from_disk(data_sha256)

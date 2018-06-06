@@ -4,10 +4,16 @@ import gevent
 import requests
 import datetime
 from collections import OrderedDict
+from sqlalchemy import desc
 from sqlalchemy.orm.exc import NoResultFound
 
+import redis
+
+import limitlion
+
 from inbox.config import config
-from inbox.models import Account, Namespace
+from inbox.models import Account, Block, Message, Namespace
+from inbox.util.blockstore import delete_from_blockstore
 from inbox.util.stats import statsd_client
 from inbox.models.session import session_scope
 from nylas.logging.sentry import log_uncaught_errors
@@ -19,6 +25,14 @@ from nylas.logging import get_logger
 CHUNK_SIZE = 1000
 
 log = get_logger()
+
+# Use a single Redis instance for rate limiting.  Limits will be applied across
+# all db shards (same approach as the original check_throttle()).
+redis_limitlion = redis.Redis(config.get('THROTTLE_REDIS_HOSTNAME'),
+                              int(config.get('REDIS_PORT')),
+                              db=config.get('THROTTLE_REDIS_DB'))
+limitlion.throttle_configure(redis_limitlion)
+bulk_throttle = limitlion.throttle_wait('bulk', rps=10)
 
 
 def reconcile_message(new_message, session):
@@ -185,7 +199,7 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False):
     engine = engine_manager.get_for_id(namespace_id)
 
     for cls in filters:
-        _batch_delete(engine, cls, filters[cls], throttle=throttle,
+        _batch_delete(engine, cls, filters[cls], account_id, throttle=throttle,
                       dry_run=dry_run)
 
     # Use a single delete for the other tables. Rows from tables which contain
@@ -208,9 +222,8 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False):
         log.info('Performing bulk deletion', table=table)
         start = time.time()
 
-        if throttle and check_throttle():
-            log.info("Throttling deletion")
-            gevent.sleep(60)
+        if throttle:
+            bulk_throttle()
 
         if not dry_run:
             engine.execute(query.format(table, column, id_))
@@ -236,7 +249,7 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False):
                          time.time() - start_time)
 
 
-def _batch_delete(engine, table, column_id_filters, throttle=False,
+def _batch_delete(engine, table, column_id_filters, account_id, throttle=False,
                   dry_run=False):
     (column, id_) = column_id_filters
     count = engine.execute(
@@ -253,84 +266,90 @@ def _batch_delete(engine, table, column_id_filters, throttle=False,
              batches=batches)
     start = time.time()
 
-    query = 'DELETE FROM {} WHERE {}={} LIMIT 2000;'.format(table, column, id_)
-    log.info('Deletion query', query=query)
+    if table in ('message', 'block'):
+        query = ''
+    else:
+        query = 'DELETE FROM {} WHERE {}={} LIMIT {};'.format(table, column, id_, CHUNK_SIZE)
+
+    log.info('deleting', account_id=account_id, table=table)
 
     for i in range(0, batches):
-        if throttle and check_throttle():
-            log.info("Throttling deletion")
-            gevent.sleep(60)
-        if dry_run is False:
-            if table == "message":
+        if throttle:
+            bulk_throttle()
+
+        if table == 'block':
+            with session_scope(account_id) as db_session:
+                blocks = list(db_session.query(Block.id, Block.data_sha256)
+                                        .filter(Block.namespace_id == id_)
+                                        .limit(CHUNK_SIZE))
+            blocks = list(blocks)
+            block_ids = [b[0] for b in blocks]
+            block_hashes = [b[1] for b in blocks]
+
+            # XXX: We currently don't check for existing blocks.
+            if dry_run is False:
+                delete_from_blockstore(*block_hashes)
+
+            with session_scope(account_id) as db_session:
+                query = db_session.query(Block).filter(Block.id.in_(block_ids))
+                if dry_run is False:
+                    query.delete(synchronize_session=False)
+
+        elif table == 'message':
+            with session_scope(account_id) as db_session:
                 # messages must be order by the foreign key `received_date`
                 # otherwise MySQL will raise an error when deleting
                 # from the message table
-                query = ('DELETE FROM message WHERE {}={} '
-                         'ORDER BY received_date desc LIMIT 2000;'
-                         .format(column, id_))
-            engine.execute(query)
+                messages = list(db_session.query(Message.id, Message.data_sha256)
+                                          .filter(Message.namespace_id == id_)
+                                          .order_by(desc(Message.received_date))
+                                          .limit(CHUNK_SIZE))
+
+            message_ids = [m[0] for m in messages]
+            message_hashes = [m[1] for m in messages]
+
+            with session_scope(account_id) as db_session:
+                existing_hashes = list(db_session.query(Message.data_sha256)
+                            .filter(Message.data_sha256.in_(message_hashes))
+                            .filter(Message.namespace_id != id_)
+                            .distinct())
+            existing_hashes = [h[0] for h in existing_hashes]
+
+            remove_hashes = set(message_hashes) - set(existing_hashes)
+            if dry_run is False:
+                delete_from_blockstore(*list(remove_hashes))
+
+            with session_scope(account_id) as db_session:
+                query = db_session.query(Message).filter(Message.id.in_(message_ids))
+                if dry_run is False:
+                    query.delete(synchronize_session=False)
+
         else:
-            log.debug(query)
+            if dry_run is False:
+                engine.execute(query)
+            else:
+                log.debug(query)
 
     end = time.time()
     log.info('Completed batch deletion', time=end - start, table=table)
+
+    count = engine.execute(
+        'SELECT COUNT(*) FROM {} WHERE {}={};'.format(table, column, id_)).\
+        scalar()
+
+    if dry_run is False:
+        assert count == 0
 
 
 def check_throttle():
     """
     Returns True if deletions should be throttled and False otherwise.
 
-    The current logic throttles deletions if any production sync-mysql-node
-    slaves are over 10 seconds behind their master, or if the average CPU load
-    across the production sync-mysql-node fleet is above 70%.
-
     check_throttle is ignored entirely if the separate `throttle` flag is False
     (meaning that throttling is not done at all), but if throttling is enabled,
     this method determines when.
-
     """
-    # Ensure replica lag is not spiking
-    base_url = config["UMPIRE_BASE_URL"]
-    replica_lag_url = ("https://{}/check?metric=maxSeries(servers.prod."
-                       "sync-mysql-node.*.mysql.Seconds_Behind_Master)"
-                       "&max=10&min=0&range=300".format(base_url))
-
-    cpu_url = ('https://{}/check?metric=maxSeries(offset(scale(groupByNode('
-               'servers.prod.sync-mysql-node.*.cpu.cpu*.idle,3,'
-               '"averageSeries"),-1),100))&max=70&min=0&range=300'.
-               format(base_url))
-
-    replica_lag_status_code = requests.get(replica_lag_url).status_code
-    cpu_status_code = requests.get(cpu_url).status_code
-    if replica_lag_status_code != 200 or cpu_status_code != 200:
-        return True
-
-    # Stop deletion before backups are scheduled to start and resume
-    # when backups complete (~8.5 hours later but allow 9h just in case)
-    #
-    # Unifying this with the actual backup timing is tracked in
-    # https://phab.nylas.com/T6786
-    backup_start_hour_utc = 8  # CHANGE THIS if backups get rescheduled
-    backup_duration_hours = 9  # CHANGE THIS if backup length changes much
-    backup_end_hour_utc = (backup_start_hour_utc + backup_duration_hours) % 24
-    now = datetime.datetime.utcnow()
-    # We are trying to throttle during a specific backup window of
-    # <backup_duration_hours> hours, but the window may wrap around from one
-    # day to the next, making it difficult to do a naive hour comparison.
-    #
-    # Therefore we have to compare the current hour to the backup window in
-    # multiple chunks. First we compare to the part of the window in the same
-    # day as when the backup started, and then we compare to the part of the
-    # window in the next day.
-    if (now.hour >= backup_start_hour_utc and
-            now.hour < min(backup_start_hour_utc + backup_duration_hours, 24)):
-        return True
-    elif (backup_end_hour_utc <= backup_start_hour_utc and
-          now.hour < backup_end_hour_utc and
-          now.hour >= (backup_end_hour_utc - backup_duration_hours)):
-        return True
-    else:
-        return False
+    return True
 
 
 def purge_transactions(shard_id, days_ago=60, limit=1000, throttle=False,
@@ -353,9 +372,9 @@ def purge_transactions(shard_id, days_ago=60, limit=1000, throttle=False,
         # delete from rows until there are no more rows affected
         rowcount = 1
         while rowcount > 0:
-            while throttle and check_throttle():
-                log.info("Throttling deletion")
-                gevent.sleep(60)
+            if throttle:
+                bulk_throttle()
+
             with session_scope_by_shard_id(shard_id, versioned=False) as \
                     db_session:
                 if dry_run:

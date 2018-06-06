@@ -30,6 +30,7 @@ setup(
              'bin/inbox-console',
              'bin/inbox-auth',
              'bin/delete-account-data',
+             'bin/delete-marked-accounts',
              'bin/create-db',
              'bin/create-test-db',
              'bin/verify-db',

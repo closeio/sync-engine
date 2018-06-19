@@ -22,7 +22,9 @@ from inbox.models.session import session_scope_by_shard_id
 
 from nylas.logging import get_logger
 
-CHUNK_SIZE = 1000
+# Some tables have cascading deletes so the actual number of rows deleted
+# can be much larger than the CHUNK_SIZE.
+CHUNK_SIZE = 100
 
 log = get_logger()
 
@@ -32,7 +34,7 @@ redis_limitlion = redis.Redis(config.get('THROTTLE_REDIS_HOSTNAME'),
                               int(config.get('REDIS_PORT')),
                               db=config.get('THROTTLE_REDIS_DB'))
 limitlion.throttle_configure(redis_limitlion)
-bulk_throttle = limitlion.throttle_wait('bulk', rps=10)
+bulk_throttle = limitlion.throttle_wait('bulk', rps=.75, window=5)
 
 
 def reconcile_message(new_message, session):

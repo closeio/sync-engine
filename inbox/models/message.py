@@ -630,6 +630,9 @@ Index('ix_message_message_id_header_namespace_id',
       Message.message_id_header, Message.namespace_id,
       mysql_length={'message_id_header': 80})
 
+# Used by delete-accounts to find next batch to delete
+Index('ix_message_namespace_id_received_date', Message.namespace_id,
+      Message.received_date)
 
 class MessageCategory(MailSyncBase):
     """ Mapping between messages and categories. """

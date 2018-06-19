@@ -63,3 +63,6 @@ class ActionLog(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
 Index('ix_actionlog_status_namespace_id_record_id', ActionLog.status,
       ActionLog.namespace_id, ActionLog.record_id)
+
+Index('ix_actionlog_namespace_id_status_type',
+      ActionLog.namespace_id, ActionLog.status, ActionLog.discriminator)

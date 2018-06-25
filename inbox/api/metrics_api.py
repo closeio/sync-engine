@@ -24,7 +24,7 @@ def index():
                 namespace = db_session.query(Namespace).filter(
                         Namespace.public_id == request.args['namespace_id']).one()
             except NoResultFound:
-                raise NotFoundError("Couldn't find namespace {}".format(request.args['namespace_id']))
+                return APIEncoder().jsonify([])
         else:
             namespace = None
 

@@ -305,7 +305,8 @@ def _batch_delete(engine, table, column_id_filters, account_id, throttle=False,
                 messages = list(db_session.query(Message.id, Message.data_sha256)
                                           .filter(Message.namespace_id == id_)
                                           .order_by(desc(Message.received_date))
-                                          .limit(CHUNK_SIZE))
+                                          .limit(CHUNK_SIZE)
+                                          .with_hint(Message, 'use index (ix_message_namespace_id_received_date)'))
 
             message_ids = [m[0] for m in messages]
             message_hashes = [m[1] for m in messages]

@@ -759,8 +759,10 @@ class FolderSyncEngine(Greenlet):
                 self.flags_fetch_results[max_uids] == (local_uids, flags)):
             # If the flags fetch response is exactly the same as the last one
             # we got, then we don't need to persist any changes.
-            log.debug('Unchanged flags refresh response, '
-                      'not persisting changes', max_uids=max_uids)
+
+            # Stopped logging this to reduce overall logging volume
+            # log.debug('Unchanged flags refresh response, '
+            #          'not persisting changes', max_uids=max_uids)
             return
         log.debug('Changed flags refresh response, persisting changes',
                   max_uids=max_uids)

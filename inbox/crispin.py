@@ -376,6 +376,13 @@ class CrispinClient(object):
                'does not exist' in e.message or \
                "doesn't exist" in e.message:
                 raise FolderMissingError(folder)
+
+            if 'Access denied' in e.message:
+                # TODO: This is not the best exception name, but it does the
+                # expected thing here: We stop syncing the folder (but would
+                # attempt selecting the folder again later).
+                raise FolderMissingError(folder)
+
             # We can't assume that all errors here are caused by the folder
             # being deleted, as other connection errors could occur - but we
             # want to make sure we keep track of different providers'

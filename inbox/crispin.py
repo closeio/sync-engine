@@ -593,6 +593,7 @@ class CrispinClient(object):
             'inbox': 'inbox',
             'drafts': 'drafts',
             'draft': 'drafts',
+            u'Entwürfe': 'drafts',
             'junk': 'spam',
             'spam': 'spam',
             'archive': 'archive',

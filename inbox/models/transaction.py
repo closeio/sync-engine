@@ -1,5 +1,5 @@
 from sqlalchemy import (Column, BigInteger, String, Index, Enum,
-                        inspect)
+                        inspect, func)
 from sqlalchemy.orm import relationship
 
 from inbox.models.base import MailSyncBase
@@ -78,10 +78,26 @@ def create_revision(obj, session, revision_type):
 
     # Always create a Transaction record -- this maintains a total ordering over
     # all events for an account.
+
+    # If available use object dates for the transaction timestamp
+    # otherwise use DB time. This is needed because CURRENT_TIMESTAMP
+    # changes during a transaction which can lead to inconsistencies
+    # between object timestamps and the transaction timestamps.
+    if revision_type == 'insert':
+        created_at = getattr(obj, 'created_at', None)
+    elif revision_type == 'update':
+        created_at = getattr(obj, 'updated_at', None)
+    else:
+        created_at = getattr(obj, 'deleted_at', None)
+
+    if created_at is None:
+        created_at = func.now()
+
     revision = Transaction(command=revision_type, record_id=obj.id,
                            object_type=obj.API_OBJECT_NAME,
                            object_public_id=obj.public_id,
-                           namespace_id=obj.namespace.id)
+                           namespace_id=obj.namespace.id,
+                           created_at=created_at)
     session.add(revision)
 
     # Additionally, record account-level events in the AccountTransaction --

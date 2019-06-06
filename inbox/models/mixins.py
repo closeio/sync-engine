@@ -142,8 +142,8 @@ class CreatedAtMixin(object):
 
 
 class UpdatedAtMixin(object):
-    updated_at = Column(DateTime, default=func.now(),
-                        onupdate=func.now(), nullable=False, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow,
+                        onupdate=datetime.utcnow, nullable=False, index=True)
 
 
 class DeletedAtMixin(object):

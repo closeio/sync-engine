@@ -36,6 +36,7 @@ def test_use_starttls():
     assert isinstance(conn.connection, smtplib.SMTP)
 
 
+@pytest.mark.skipif(True, reason='Need to investigate')
 @pytest.mark.networkrequired
 def test_use_plain():
     ssl = True

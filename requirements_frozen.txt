@@ -48,7 +48,7 @@ hypothesis==1.10.3
 icalendar==3.9.1
 iconv==1.0
 idna==2.6
-git+https://github.com/closeio/imapclient.git@cfd0f6c83b38b6fb8d38487f8ae5d1adf4ba2c58#egg=imapclient
+git+https://github.com/closeio/imapclient.git@aca1b9b3624f28dca8fdf5e140704c8b7d57820f#egg=imapclient
 ipaddress==1.0.19
 ipython==1.0.0
 itsdangerous==0.24

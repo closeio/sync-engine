@@ -1,8 +1,9 @@
 from sqlalchemy import (Column, BigInteger, String, Index, Enum,
-                        inspect)
+                        inspect, func)
 from sqlalchemy.orm import relationship
 
 from inbox.models.base import MailSyncBase
+from inbox.models.category import EPOCH
 from inbox.models.mixins import HasPublicID, HasRevisions
 from inbox.models.namespace import Namespace
 
@@ -76,12 +77,30 @@ def create_revisions(session):
 def create_revision(obj, session, revision_type):
     assert revision_type in ('insert', 'update', 'delete')
 
+    # If available use object dates for the transaction timestamp
+    # otherwise use DB time. This is needed because CURRENT_TIMESTAMP
+    # changes during a transaction which can lead to inconsistencies
+    # between object timestamps and the transaction timestamps.
+    if revision_type == 'delete':
+        created_at = getattr(obj, 'deleted_at', None)
+        # Sometimes categories are deleted explicitly which leaves
+        # their deleted_at default value, EPOCH, when the
+        # transaction is created.
+        if created_at == EPOCH:
+            created_at = func.now()
+    else:
+        created_at = getattr(obj, 'updated_at', None)
+
+    if created_at is None:
+        created_at = func.now()
+
     # Always create a Transaction record -- this maintains a total ordering over
     # all events for an account.
     revision = Transaction(command=revision_type, record_id=obj.id,
                            object_type=obj.API_OBJECT_NAME,
                            object_public_id=obj.public_id,
-                           namespace_id=obj.namespace.id)
+                           namespace_id=obj.namespace.id,
+                           created_at=created_at)
     session.add(revision)
 
     # Additionally, record account-level events in the AccountTransaction --

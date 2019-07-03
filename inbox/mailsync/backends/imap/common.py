@@ -18,7 +18,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql.expression import func
 
 from inbox.contacts.process_mail import update_contacts_from_message
-from inbox.models import Account, Message, Folder, ActionLog
+from inbox.models import Account, Message, MessageCategory, Folder, ActionLog
 from inbox.models.backends.imap import ImapUid, ImapFolderInfo
 from inbox.models.session import session_scope
 from inbox.models.util import reconcile_message
@@ -68,6 +68,10 @@ def update_message_metadata(session, account, message, is_draft):
     if account.category_type == 'folder':
         categories = [_select_category(categories)] if categories else []
 
+    # Use a consistent time across creating categories, message updated_at
+    # and the subsequent transaction that may be created.
+    update_time = datetime.utcnow()
+
     # XXX: This will overwrite local state if syncback actions are scheduled,
     # but the eventual state is correct.
     # XXX: Don't just overwrite message categories but specifically add new
@@ -79,7 +83,26 @@ def update_message_metadata(session, account, message, is_draft):
     for category in old_categories:
         message.categories.remove(category)
     for category in new_categories:
-        message.categories.add(category)
+        # message.categories.add(category)
+        # Explicitly create association record so we can control the
+        # created_at value. Taken from
+        # https://docs.sqlalchemy.org/en/13/orm/extensions/
+        # associationproxy.html#simplifying-association-objects
+        MessageCategory(category=category, message=message,
+                        created_at=update_time)
+
+    # Update the message updated_at field so that it can be used in
+    # the transaction that will be created for category changes.
+    # Although no data actually changes for the message
+    # record in MySQL, Nylas expresses category changes as message changes
+    # in transactions. Since we are explicitly setting updated_at we should
+    # be able to assume even if message gets changed later in this
+    # transaction it will still use the time set here which will match the
+    # category change times. This will cause the message row to be updated
+    # even though only the categories may have changed and are stored in
+    # a different table.
+    if old_categories or new_categories:
+        message.updated_at = update_time
 
     """
     if not message.categories_changes:

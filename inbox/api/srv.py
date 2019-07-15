@@ -147,6 +147,7 @@ def create_account():
     email_address = data['email_address']
 
     sync_email = data.get('sync_email', True)
+    sync_calendar = data.get('sync_calendar', False)
 
     if data['type'] == 'generic':
         auth_handler = GenericAuthHandler(provider)
@@ -168,16 +169,17 @@ def create_account():
         })
 
     elif data['type'] == 'gmail':
+        scopes = data.get('scopes', GOOGLE_EMAIL_SCOPE)
         auth_handler = GmailAuthHandler(provider)
         account = auth_handler.create_account(email_address, {
             'name': '',
             'email': email_address,
             'refresh_token': data['refresh_token'],
-            'scope': GOOGLE_EMAIL_SCOPE,
+            'scope': scopes,
             'id_token': '',
             'contacts': False,
-            'events': False,
             'sync_email': sync_email,
+            'events': sync_calendar,
         })
 
     else:
@@ -207,6 +209,7 @@ def modify_account(namespace_public_id):
     email_address = data['email_address']
 
     sync_email = data.get('sync_email', True)
+    sync_calendar = data.get('sync_calendar', False)
 
     with global_session_scope() as db_session:
         namespace = db_session.query(Namespace) \
@@ -236,17 +239,18 @@ def modify_account(namespace_public_id):
             })
 
         elif isinstance(account, GmailAccount):
+            scopes = data.get('scopes', GOOGLE_EMAIL_SCOPE)
             auth_handler = GmailAuthHandler(provider)
             if 'refresh_token' in data:
                 account = auth_handler.update_account(account, {
                     'name': '',
                     'email': email_address,
                     'refresh_token': data['refresh_token'],
-                    'scope': GOOGLE_EMAIL_SCOPE,
+                    'scope': scopes,
                     'id_token': '',
                     'sync_email': sync_email,
                     'contacts': False,
-                    'events': False,
+                    'events': sync_calendar,
                 })
             else:
                 if 'imap_server_host' in data or \

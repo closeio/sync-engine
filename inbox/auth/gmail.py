@@ -137,8 +137,7 @@ class GmailAuthHandler(OAuthAuthHandler):
         account.sync_email = response.get('sync_email', True)
         account.sync_contacts = (account.sync_contacts or
                                  response.get('contacts', True))
-        account.sync_events = (account.sync_events or
-                               response.get('events', True))
+        account.sync_events = response.get('events', False)
 
         # These values are deprecated and should not be used, along
         # with the account's refresh_token. Access all these values

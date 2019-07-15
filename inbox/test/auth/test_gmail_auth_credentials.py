@@ -43,7 +43,7 @@ def account_with_multiple_auth_creds(db):
         'client_secret': 'client_secret_1',
         'scope': all_scopes,
         'sync_contacts': True,
-        'sync_events': True
+        'events': True
     }
 
     second_auth_args = {
@@ -52,7 +52,7 @@ def account_with_multiple_auth_creds(db):
         'client_secret': 'client_secret_2',
         'scope': GOOGLE_EMAIL_SCOPE,
         'sync_contacts': False,
-        'sync_events': False
+        'events': True
     }
 
     g = GmailAuthHandler('gmail')

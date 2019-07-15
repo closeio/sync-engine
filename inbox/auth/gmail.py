@@ -134,8 +134,7 @@ class GmailAuthHandler(OAuthAuthHandler):
         account.locale = response.get('locale')
         account.picture = response.get('picture')
         account.home_domain = response.get('hd')
-        account.sync_email = (account.sync_email or
-                              response.get('sync_email', True))
+        account.sync_email = response.get('sync_email', True)
         account.sync_contacts = (account.sync_contacts or
                                  response.get('contacts', True))
         account.sync_events = (account.sync_events or

@@ -146,6 +146,8 @@ def create_account():
     provider = data.get('provider', 'custom')
     email_address = data['email_address']
 
+    sync_email = data.get('sync_email', True)
+
     if data['type'] == 'generic':
         auth_handler = GenericAuthHandler(provider)
         account = auth_handler.create_account(email_address, {
@@ -161,6 +163,8 @@ def create_account():
             'smtp_server_port': 25,
             'smtp_username': 'dummy',
             'smtp_password': 'dummy',
+
+            'sync_email': sync_email,
         })
 
     elif data['type'] == 'gmail':
@@ -173,6 +177,7 @@ def create_account():
             'id_token': '',
             'contacts': False,
             'events': False,
+            'sync_email': sync_email,
         })
 
     else:
@@ -190,12 +195,18 @@ def create_account():
 
 @app.route('/accounts/<namespace_public_id>/', methods=['PUT'])
 def modify_account(namespace_public_id):
-    """ Modify an existing account """
+    """
+    Modify an existing account
+
+    This stops syncing an account until it is explicitly resumed.
+    """
 
     data = request.get_json(force=True)
 
     provider = data.get('provider', 'custom')
     email_address = data['email_address']
+
+    sync_email = data.get('sync_email', True)
 
     with global_session_scope() as db_session:
         namespace = db_session.query(Namespace) \
@@ -220,6 +231,8 @@ def modify_account(namespace_public_id):
                 'smtp_server_port': 25,
                 'smtp_username': 'dummy',
                 'smtp_password': 'dummy',
+
+                'sync_email': sync_email,
             })
 
         elif isinstance(account, GmailAccount):
@@ -231,6 +244,7 @@ def modify_account(namespace_public_id):
                     'refresh_token': data['refresh_token'],
                     'scope': GOOGLE_EMAIL_SCOPE,
                     'id_token': '',
+                    'sync_email': sync_email,
                     'contacts': False,
                     'events': False,
                 })

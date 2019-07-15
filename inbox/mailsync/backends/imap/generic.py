@@ -181,8 +181,25 @@ class FolderSyncEngine(Greenlet):
         # eagerly signal the sync status
         self.heartbeat_status.publish()
 
+        def start_sync(saved_folder_status):
+            # Ensure we don't cause an error if the folder was deleted.
+            sync_end_time = (
+                saved_folder_status.folder and
+                saved_folder_status.metrics.get('sync_end_time')
+            )
+            if sync_end_time:
+                sync_delay = datetime.utcnow() - sync_end_time
+                if sync_delay > timedelta(days=1):
+                    saved_folder_status.state = 'initial'
+                    log.info('switching to initial sync due to delay',
+                             folder_id=self.folder_id,
+                             account_id=self.account_id,
+                             sync_delay=sync_delay.total_seconds())
+
+            saved_folder_status.start_sync()
+
         try:
-            self.update_folder_sync_status(lambda s: s.start_sync())
+            self.update_folder_sync_status(start_sync)
         except IntegrityError:
             # The state insert failed because the folder ID ForeignKey
             # was no longer valid, ie. the folder for this engine was deleted
@@ -262,10 +279,10 @@ class FolderSyncEngine(Greenlet):
         # they are never out of sync.
         with session_scope(self.namespace_id) as db_session:
             try:
-                state = ImapFolderSyncStatus.state
                 saved_folder_status = db_session.query(ImapFolderSyncStatus)\
                     .filter_by(account_id=self.account_id, folder_id=self.folder_id)\
-                    .options(load_only(state)).one()
+                    .one()
+
             except NoResultFound:
                 saved_folder_status = ImapFolderSyncStatus(
                     account_id=self.account_id, folder_id=self.folder_id)

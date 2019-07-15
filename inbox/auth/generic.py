@@ -110,6 +110,8 @@ class GenericAuthHandler(AuthHandler):
 
         account.ssl_required = response.get('ssl_required', True)
 
+        account.sync_email = response.get('sync_email', True)
+
         # Ensure account has sync enabled after authing.
         account.enable_sync()
         return account

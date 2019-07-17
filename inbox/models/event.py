@@ -140,6 +140,8 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
     # stores the version number of the invite.
     sequence_number = Column(Integer, nullable=True)
 
+    visibility = Column(Enum('private', 'public'), nullable=True)
+
     discriminator = Column('type', String(30))
     __mapper_args__ = {'polymorphic_on': discriminator,
                        'polymorphic_identity': 'event'}
@@ -278,6 +280,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
         self.last_modified = event.last_modified
         self.message = event.message
         self.status = event.status
+        self.visibility = event.visibility
 
         if event.sequence_number is not None:
             self.sequence_number = event.sequence_number

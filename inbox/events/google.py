@@ -527,6 +527,8 @@ def parse_event_response(event, read_only_calendar):
     master_uid = event.get('recurringEventId')
     cancelled = (event.get('status') == 'cancelled')
 
+    visibility = event.get('visibility')
+
     return Event(uid=uid,
                  raw_data=raw_data,
                  title=title,
@@ -548,7 +550,8 @@ def parse_event_response(event, read_only_calendar):
                  cancelled=cancelled,
                  status=event_status,
                  sequence_number=sequence,
-                 source='local')
+                 source='local',
+                 visibility=visibility)
 
 
 def _dump_event(event):

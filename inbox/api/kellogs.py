@@ -288,6 +288,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
             'when': encode(obj.when),
             'busy': obj.busy,
             'status': obj.status,
+            'visibility': obj.visibility,
         }
         if isinstance(obj, RecurringEvent):
             resp['recurrence'] = {

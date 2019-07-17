@@ -1,3 +1,4 @@
+from gevent import sleep
 import pytest
 from datetime import datetime, timedelta
 
@@ -52,43 +53,91 @@ def watched_calendar(db, default_namespace):
     return calendar
 
 
-def test_should_update_logic(db, watched_account, watched_calendar):
+def test_should_update_logic_push(db, watched_account, watched_calendar):
+    """
+    Ensure we update calendars when a push notification is received, or when
+    the watch is expired.
+    """
     # Watch should be not-expired
     expiration = WATCH_EXPIRATION + 20 * 365 * 24 * 60 * 60 * 1000
     watched_account.new_calendar_list_watch(expiration)
     watched_calendar.new_event_watch(expiration)
 
-    ten_minutes = timedelta(minutes=10)
-    # Never synced - should update
-    assert watched_account.should_update_calendars(ten_minutes)
-    assert watched_calendar.should_update_events(ten_minutes)
+    zero = timedelta()
 
+    ten_minutes = timedelta(minutes=10)
     five_minutes_ago = datetime.utcnow() - timedelta(minutes=5)
+    fifteen_minutes_ago = datetime.utcnow() - timedelta(minutes=15)
+
+    # Never synced - should update
+    assert watched_account.should_update_calendars(ten_minutes, zero)
+    assert watched_calendar.should_update_events(ten_minutes, zero)
+
+    # Watch renewed - should update
     watched_account.last_calendar_list_sync = five_minutes_ago
     watched_calendar.last_synced = five_minutes_ago
-    assert not watched_account.should_update_calendars(ten_minutes)
-    assert not watched_calendar.should_update_events(ten_minutes)
+    assert watched_account.should_update_calendars(ten_minutes, zero)
+    assert watched_calendar.should_update_events(ten_minutes, zero)
 
+    # Updated recently and no webhook received - should not update
+    watched_account.gpush_calendar_list_last_ping = fifteen_minutes_ago
+    watched_calendar.gpush_last_ping = fifteen_minutes_ago
+    assert not watched_account.should_update_calendars(ten_minutes, zero)
+    assert not watched_calendar.should_update_events(ten_minutes, zero)
+
+    # Max time between syncs exceeded - should update
     four_minutes = timedelta(minutes=4)
-    assert watched_account.should_update_calendars(four_minutes)
-    assert watched_calendar.should_update_events(four_minutes)
+    assert watched_account.should_update_calendars(four_minutes, zero)
+    assert watched_calendar.should_update_events(four_minutes, zero)
 
+    # Received push notification - should update
     watched_account.handle_gpush_notification()
     watched_calendar.handle_gpush_notification()
-    assert watched_account.should_update_calendars(ten_minutes)
-    assert watched_calendar.should_update_events(ten_minutes)
+    assert watched_account.should_update_calendars(ten_minutes, zero)
+    assert watched_calendar.should_update_events(ten_minutes, zero)
 
+    # Just synced - should not update
     watched_account.last_calendar_list_sync = datetime.utcnow()
     watched_calendar.last_synced = datetime.utcnow()
-
-    assert not watched_account.should_update_calendars(ten_minutes)
-    assert not watched_calendar.should_update_events(ten_minutes)
+    assert not watched_account.should_update_calendars(ten_minutes, zero)
+    assert not watched_calendar.should_update_events(ten_minutes, zero)
 
     # If watch is expired, should always update
     watched_account.new_calendar_list_watch(WATCH_EXPIRATION)
     watched_calendar.new_event_watch(WATCH_EXPIRATION)
-    assert watched_account.should_update_calendars(ten_minutes)
-    assert watched_calendar.should_update_events(ten_minutes)
+    assert watched_account.should_update_calendars(ten_minutes, zero)
+    assert watched_calendar.should_update_events(ten_minutes, zero)
+
+
+def test_should_update_logic_no_push(db, default_account, calendar):
+    """
+    Ensure we update calendars with no push at the poll frequency.
+    """
+    assert default_account.needs_new_calendar_list_watch()
+    assert calendar.needs_new_watch()
+
+    now = datetime.utcnow()
+    ten_seconds_ago = now - timedelta(seconds=10)
+    one_minute_ago = now - timedelta(minutes=1)
+    poll_frequency = timedelta(seconds=30)
+    ten_minutes = timedelta(minutes=10)
+
+    # Never synced - should update
+    assert default_account.should_update_calendars(ten_minutes, poll_frequency)
+    assert calendar.should_update_events(ten_minutes, poll_frequency)
+
+    # Poll frequency exceeded - should update
+    default_account.last_calendar_list_sync = one_minute_ago
+    calendar.last_synced = one_minute_ago
+    assert default_account.should_update_calendars(ten_minutes, poll_frequency)
+    assert calendar.should_update_events(ten_minutes, poll_frequency)
+
+    # Updated recently - should not update
+    default_account.last_calendar_list_sync = ten_seconds_ago
+    calendar.last_synced = ten_seconds_ago
+    assert not default_account.should_update_calendars(ten_minutes,
+                                                       poll_frequency)
+    assert not calendar.should_update_events(ten_minutes, poll_frequency)
 
 
 def test_needs_new_watch_logic(db, watched_account, watched_calendar):
@@ -123,7 +172,7 @@ def test_calendar_update(db, webhooks_client, watched_account):
     calendar_path = CALENDAR_LIST_PATH.format(watched_account.public_id)
 
     before = datetime.utcnow() - timedelta(seconds=1)
-    assert watched_account.gpush_calendar_list_last_ping is None
+    watched_account.gpush_calendar_list_last_ping = datetime(2010, 1, 1)
 
     headers = UPDATE_HEADERS.copy()
     headers['X-Goog-Channel-Id'] = ACCOUNT_WATCH_UUID
@@ -150,7 +199,7 @@ def test_event_update(db, webhooks_client, watched_calendar):
     event_path = CALENDAR_PATH.format(watched_calendar.public_id)
 
     before = datetime.utcnow() - timedelta(seconds=1)
-    assert watched_calendar.gpush_last_ping is None
+    watched_calendar.gpush_last_ping = datetime(2010, 1, 1)
 
     headers = UPDATE_HEADERS.copy()
     headers['X-Goog-Channel-Id'] = CALENDAR_WATCH_UUID
@@ -160,13 +209,7 @@ def test_event_update(db, webhooks_client, watched_calendar):
     gpush_last_ping = watched_calendar.gpush_last_ping
     assert gpush_last_ping > before
 
-    # Test that gpush_last_ping is not updated if already recently updated
-    watched_calendar.gpush_last_ping = gpush_last_ping - timedelta(seconds=2)
-    gpush_last_ping = watched_calendar.gpush_last_ping
-    db.session.commit()
-    r = webhooks_client.post_data(event_path, {}, headers)
-    db.session.refresh(watched_calendar)
-    assert gpush_last_ping == watched_calendar.gpush_last_ping
+    sleep(1)
 
     # Test that gpush_last_ping *is* updated if last updated too long ago
     watched_calendar.gpush_last_ping = gpush_last_ping - timedelta(seconds=22)

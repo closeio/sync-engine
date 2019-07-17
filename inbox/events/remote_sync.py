@@ -20,8 +20,16 @@ from inbox.events.google import GoogleEventsProvider
 
 EVENT_SYNC_FOLDER_ID = -2
 EVENT_SYNC_FOLDER_NAME = 'Events'
+
+# Update frequency for accounts without push notifications
 POLL_FREQUENCY = config.get('CALENDAR_POLL_FREQUENCY', 300)
 
+# Update frequency for accounts with push notifications (accounts are only
+# updated if there was a recent push notification).
+PUSH_NOTIFICATION_POLL_FREQUENCY = 10
+
+# How often accounts with push notifications are synced even if there was no
+# push notification.
 MAX_TIME_WITHOUT_SYNC = timedelta(seconds=3600)
 
 
@@ -193,6 +201,20 @@ def handle_event_updates(namespace_id, calendar_id, events, log, db_session):
 
 class GoogleEventSync(EventSync):
 
+    def __init__(self, *args, **kwargs):
+        super(GoogleEventSync, self).__init__(*args, **kwargs)
+        with session_scope(self.namespace_id) as db_session:
+            account = db_session.query(Account).get(self.account_id)
+            if (
+                self.provider.push_notifications_enabled(account) and
+                kwargs.get('poll_frequency') is None
+            ):
+                # Run the sync loop more frequently if push notifications are
+                # enabled. Note that we'll only update the calendar if a
+                # Webhook was receicved recently, or if we haven't synced for
+                # too long.
+                self.poll_frequency = PUSH_NOTIFICATION_POLL_FREQUENCY
+
     def sync(self):
         """Query a remote provider for updates and persist them to the
         database. This function runs every `self.poll_frequency`.
@@ -261,12 +283,16 @@ class GoogleEventSync(EventSync):
     def _sync_data(self):
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(Account).get(self.account_id)
-            if account.should_update_calendars(MAX_TIME_WITHOUT_SYNC):
+            if (
+                account.should_update_calendars(
+                    MAX_TIME_WITHOUT_SYNC, timedelta(seconds=POLL_FREQUENCY))
+            ):
                 self._sync_calendar_list(account, db_session)
 
             stale_calendars = (
                 cal for cal in account.namespace.calendars
-                if cal.should_update_events(MAX_TIME_WITHOUT_SYNC)
+                if cal.should_update_events(MAX_TIME_WITHOUT_SYNC,
+                                            timedelta(seconds=POLL_FREQUENCY))
             )
             for cal in stale_calendars:
                 try:

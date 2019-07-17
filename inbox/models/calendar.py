@@ -62,6 +62,7 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
         """
         expiration = datetime.fromtimestamp(int(expiration) / 1000.)
         self.gpush_expiration = expiration
+        self.gpush_last_ping = datetime.utcnow()
 
     def handle_gpush_notification(self):
         self.gpush_last_ping = datetime.utcnow()
@@ -83,11 +84,14 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
             self.gpush_expiration < datetime.utcnow()
         )
 
-    def should_update_events(self, max_time_between_syncs):
+    def should_update_events(self, max_time_between_syncs, poll_frequency):
         """
         max_time_between_syncs: a timedelta object. The maximum amount of
         time we should wait until we sync, even if we haven't received
         any push notifications
+
+        poll_frequency: a timedelta object. Amount of time we should wait until
+        we sync if we don't have working push notifications.
         """
         if self.name == 'Emailed events':
             return False
@@ -95,13 +99,18 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
         if 'group.v.calendar.google.com' in self.uid:
             return False  # maybe?
 
+        now = datetime.utcnow()
+
         return (
             # Never synced
             self.last_synced is None or
-            # Push notifications channel is stale
-            self.needs_new_watch() or
+            # Push notifications channel is stale (and we didn't just sync it)
+            (
+                self.needs_new_watch() and
+                now > self.last_synced + poll_frequency
+            ) or
             # Too much time has passed not to sync
-            datetime.utcnow() > self.last_synced + max_time_between_syncs or
+            now > self.last_synced + max_time_between_syncs or
             # Events are stale, according to the push notifications
             (
                 self.gpush_last_ping is not None and

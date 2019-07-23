@@ -289,6 +289,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
             'busy': obj.busy,
             'status': obj.status,
             'visibility': obj.visibility,
+            'uid': obj.uid,
         }
         if isinstance(obj, RecurringEvent):
             resp['recurrence'] = {
@@ -297,6 +298,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
             }
         if isinstance(obj, RecurringEventOverride):
             resp['original_start_time'] = encode(obj.original_start_time)
+            resp['master_event_uid'] = obj.master_event_uid
             if obj.master:
                 resp['master_event_id'] = obj.master.public_id
         if isinstance(obj, InflatedEvent):

@@ -281,6 +281,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
             'title': obj.title,
             'description': obj.description,
             'owner': obj.owner,
+            'is_owner': obj.is_owner,
             'participants': [_format_participant_data(participant)
                              for participant in obj.participants],
             'read_only': obj.read_only,

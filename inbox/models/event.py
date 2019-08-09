@@ -2,6 +2,7 @@ import arrow
 from datetime import datetime
 from dateutil.parser import parse as date_parse
 import ast
+import json
 
 from sqlalchemy import (Column, String, ForeignKey, Text, Boolean, Integer,
                         DateTime, Enum, Index, event)
@@ -343,6 +344,13 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
             self.status = 'cancelled'
         else:
             self.status = 'confirmed'
+
+    @property
+    def calendar_event_link(self):
+        try:
+            return json.loads(self.raw_data)['htmlLink']
+        except (ValueError, KeyError):
+            return
 
     @classmethod
     def __new__(cls, *args, **kwargs):

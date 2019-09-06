@@ -2,10 +2,9 @@ from sqlalchemy import and_, or_, desc, asc, func, bindparam
 from sqlalchemy.orm import subqueryload, contains_eager
 from inbox.api.err import InputError
 from inbox.api.validation import valid_public_id
-from inbox.models import (Contact, Event, Calendar, Message,
-                          MessageContactAssociation, Thread,
-                          Block, Part, MessageCategory, Category,
-                          Metadata)
+from inbox.models import (Contact, Event, EventContactAssociation, Calendar,
+                          Message, MessageContactAssociation, Thread,
+                          Block, Part, MessageCategory, Category, Metadata)
 from inbox.models.event import RecurringEvent
 from inbox.sqlalchemy_ext.util import bakery
 from inbox.ignition import engine_manager
@@ -484,8 +483,9 @@ def recurring_events(filters, starts_before, starts_after, ends_before,
 
 
 def events(namespace_id, event_public_id, calendar_public_id, title,
-           description, location, busy, starts_before, starts_after,
-           ends_before, ends_after, limit, offset, view,
+           description, location, busy, title_email, description_email,
+           owner_email, participant_email, any_email, starts_before,
+           starts_after, ends_before, ends_after, limit, offset, view,
            expand_recurring, show_cancelled, db_session):
 
     query = db_session.query(Event)
@@ -527,6 +527,50 @@ def events(namespace_id, event_public_id, calendar_public_id, title,
                 (Event.discriminator == 'recurringeventoverride') |
                 ((Event.status != 'cancelled') & (Event.discriminator !=
                                                   'recurringeventoverride')))
+
+    if title_email is not None:
+        title_email_query = db_session.query(EventContactAssociation.event_id) \
+            .join(Contact, EventContactAssociation.contact_id == Contact.id)\
+            .filter(Contact.email_address == title_email,
+                    Contact.namespace_id == namespace_id,
+                    EventContactAssociation.field == 'title')\
+            .subquery()
+        event_criteria.append(Event.id.in_(title_email_query))
+
+    if description_email is not None:
+        description_email_query = db_session.query(EventContactAssociation.event_id) \
+            .join(Contact, EventContactAssociation.contact_id == Contact.id)\
+            .filter(Contact.email_address == description_email,
+                    Contact.namespace_id == namespace_id,
+                    EventContactAssociation.field == 'description')\
+            .subquery()
+        event_criteria.append(Event.id.in_(description_email_query))
+
+    if owner_email is not None:
+        owner_email_query = db_session.query(EventContactAssociation.event_id) \
+            .join(Contact, EventContactAssociation.contact_id == Contact.id)\
+            .filter(Contact.email_address == owner_email,
+                    Contact.namespace_id == namespace_id,
+                    EventContactAssociation.field == 'owner')\
+            .subquery()
+        event_criteria.append(Event.id.in_(owner_email_query))
+
+    if participant_email is not None:
+        participant_email_query = db_session.query(EventContactAssociation.event_id) \
+            .join(Contact, EventContactAssociation.contact_id == Contact.id)\
+            .filter(Contact.email_address == participant_email,
+                    Contact.namespace_id == namespace_id,
+                    EventContactAssociation.field == 'participant')\
+            .subquery()
+        event_criteria.append(Event.id.in_(participant_email_query))
+
+    if any_email is not None:
+        any_email_query = db_session.query(EventContactAssociation.event_id) \
+            .join(Contact, EventContactAssociation.contact_id == Contact.id)\
+            .filter(Contact.email_address == any_email,
+                    Contact.namespace_id == namespace_id)\
+            .subquery()
+        event_criteria.append(Event.id.in_(any_email_query))
 
     event_predicate = and_(*event_criteria)
     query = query.filter(event_predicate)

@@ -5,7 +5,7 @@ import re
 from inbox.api.validation import (
     get_recipients, get_attachments, get_thread, get_message)
 from inbox.api.err import InputError
-from inbox.contacts.process_mail import update_contacts_from_message
+from inbox.contacts.processing import update_contacts_from_message
 from inbox.models import Message, Part
 from inbox.models.action_log import schedule_action
 from inbox.sqlalchemy_ext.util import generate_public_id
@@ -191,7 +191,7 @@ def create_message_from_json(data, namespace, db_session, is_draft):
         for block in blocks:
             message.parts.append(block_to_part(block, message, namespace))
 
-        update_contacts_from_message(db_session, message, namespace)
+        update_contacts_from_message(db_session, message, namespace.id)
 
         if reply_to_message is not None:
             message.is_reply = True
@@ -281,7 +281,7 @@ def update_draft(db_session, account, draft, to_addr=None,
 
     # Remove previous message-contact associations, and create new ones.
     draft.contacts = []
-    update_contacts_from_message(db_session, draft, account.namespace)
+    update_contacts_from_message(db_session, draft, account.namespace.id)
 
     # The draft we're updating may or may not be one authored through the API:
     # - Ours: is_created = True, Message-Id = public_id+version

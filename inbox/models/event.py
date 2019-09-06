@@ -20,6 +20,7 @@ from inbox.models.message import Message
 from inbox.models.when import Time, TimeSpan, Date, DateSpan
 from email.utils import parseaddr
 from inbox.util.encoding import unicode_safe_truncate
+from inbox.util.addr import extract_emails_from_text
 
 from nylas.logging import get_logger
 log = get_logger()
@@ -351,6 +352,20 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
             return json.loads(self.raw_data)['htmlLink']
         except (ValueError, KeyError):
             return
+
+    @property
+    def emails_from_description(self):
+        if self.description:
+            return extract_emails_from_text(self.description)
+        else:
+            return []
+
+    @property
+    def emails_from_title(self):
+        if self.title:
+            return extract_emails_from_text(self.title)
+        else:
+            return []
 
     @classmethod
     def __new__(cls, *args, **kwargs):

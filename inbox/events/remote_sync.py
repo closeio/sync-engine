@@ -6,6 +6,7 @@ logger = get_logger()
 
 from inbox.basicauth import AccessNotEnabledError, OAuthError
 from inbox.config import config
+from inbox.contacts.processing import update_contacts_from_event
 from inbox.sync.base_sync import BaseSyncMonitor
 from inbox.models import Event, Calendar
 from inbox.models.event import RecurringEvent, RecurringEventOverride
@@ -182,11 +183,15 @@ def handle_event_updates(namespace_id, calendar_id, events, log, db_session):
             db_session.add(local_event)
             added_count += 1
 
+        db_session.flush()
+
+        local_event.contacts = []
+        update_contacts_from_event(db_session, local_event, namespace_id)
+
         # If we just updated/added a recurring event or override, make sure
         # we link it to the right master event.
         if isinstance(event, RecurringEvent) or \
                 isinstance(event, RecurringEventOverride):
-            db_session.flush()
             link_events(db_session, event)
 
         # Batch commits to avoid long transactions that may lock calendar rows.

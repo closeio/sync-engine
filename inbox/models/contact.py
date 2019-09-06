@@ -7,6 +7,7 @@ from inbox.sqlalchemy_ext.util import MAX_TEXT_CHARS
 from inbox.models.mixins import (HasPublicID, HasEmailAddress, HasRevisions,
                                  UpdatedAtMixin, DeletedAtMixin)
 from inbox.models.base import MailSyncBase
+from inbox.models.event import Event
 from inbox.models.message import Message
 from inbox.models.namespace import Namespace
 from inbox.util.encoding import unicode_safe_truncate
@@ -108,4 +109,23 @@ class MessageContactAssociation(MailSyncBase):
         backref=backref('message_associations', cascade='all, delete-orphan'))
     message = relationship(
         Message,
+        backref=backref('contacts', cascade='all, delete-orphan'))
+
+
+class EventContactAssociation(MailSyncBase):
+    """Association table between event participants and contacts."""
+    contact_id = Column(BigInteger, primary_key=True, index=True)
+    event_id = Column(ForeignKey(Event.id, ondelete='CASCADE'),
+                      primary_key=True)
+    field = Column(Enum('participant', 'title', 'description', 'owner'))
+    # Note: The `cascade` properties need to be a parameter of the backref
+    # here, and not of the relationship. Otherwise a sqlalchemy error is thrown
+    # when you try to delete an event or a contact.
+    contact = relationship(
+        Contact,
+        primaryjoin='foreign(EventContactAssociation.contact_id) == '
+                    'remote(Contact.id)',
+        backref=backref('event_associations', cascade='all, delete-orphan'))
+    event = relationship(
+        Event,
         backref=backref('contacts', cascade='all, delete-orphan'))

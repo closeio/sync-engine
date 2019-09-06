@@ -7,7 +7,8 @@ def load_models():
     from inbox.models.base import MailSyncBase
     from inbox.models.action_log import ActionLog
     from inbox.models.block import Block, Part
-    from inbox.models.contact import (MessageContactAssociation, Contact,
+    from inbox.models.contact import (EventContactAssociation,
+                                      MessageContactAssociation, Contact,
                                       PhoneNumber)
     from inbox.models.calendar import Calendar
     from inbox.models.data_processing import DataProcessingCache
@@ -25,7 +26,7 @@ def load_models():
     from inbox.models.metadata import Metadata
     exports = [Account, MailSyncBase, ActionLog, Block, Part,
                MessageContactAssociation, Contact, PhoneNumber, Calendar,
-               DataProcessingCache, Event, Folder,
+               DataProcessingCache, Event, EventContactAssociation, Folder,
                Message, Namespace, ContactSearchIndexCursor, Secret,
                Thread, Transaction, When, Time, TimeSpan, Date, DateSpan,
                Label, Category, MessageCategory, Metadata, AccountTransaction]

@@ -13,6 +13,7 @@ from flanker import mime
 from html2text import html2text
 from util import serialize_datetime, valid_base36
 from timezones import timezones_table
+from inbox.contacts.processing import update_contacts_from_event
 from inbox.models.event import Event, EVENT_STATUSES
 from inbox.events.util import MalformedEventError
 from inbox.util.addr import canonicalize_address
@@ -290,6 +291,9 @@ def process_invites(db_session, message, account, invites):
             # will be flushed to the db.
             event.calendar = account.emailed_events_calendar
             event.message = message
+
+            db_session.flush()
+            update_contacts_from_event(db_session, event, account.namespace.id)
         else:
             # This is an event we already have in the db.
             # Let's see if the version we have is older or newer.
@@ -310,6 +314,11 @@ def process_invites(db_session, message, account, invites):
                 existing_event.participants = []
                 for participant in merged_participants:
                     existing_event.participants.append(participant)
+
+                db_session.flush()
+                existing_event.contacts = []
+                update_contacts_from_event(db_session, existing_event,
+                                           account.namespace.id)
 
 
 def _cleanup_nylas_uid(uid):

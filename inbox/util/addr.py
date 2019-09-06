@@ -1,7 +1,14 @@
+import re
 import rfc822
 from flanker.addresslib import address
 from flanker.mime.message.headers.parsing import normalize
 from flanker.mime.message.headers.encodedword import decode
+
+
+# Note that technically `'` is also allowed in the local part, but nobody
+# uses it in practice, so we'd rather extract <a href='email@example.com'>
+# from HTML.
+EMAIL_FIND_RE = re.compile(r"[\w.!#$%&*+-/=?^_`{|}~]+@[\w.-]+\w", re.UNICODE)
 
 
 def valid_email(email_address):
@@ -45,3 +52,8 @@ def parse_mimepart_address_header(mimepart, header_name):
     # Return a list of lists because it makes it easier to compare an address
     # field to one which has been fetched from the db.
     return sorted(list(elem) for elem in addresses)
+
+
+def extract_emails_from_text(text):
+    emails = EMAIL_FIND_RE.findall(text)
+    return [email for email in emails if valid_email(email)]

@@ -19,6 +19,9 @@ def _get_contact_map(db_session, namespace_id, all_addresses):
     canonicalized_addresses = [canonicalize(addr) for _, addr in
                                all_addresses]
 
+    if not canonicalized_addresses:
+        return {}
+
     existing_contacts = db_session.query(Contact).filter(
         Contact._canonicalized_address.in_(canonicalized_addresses),
         Contact.namespace_id == namespace_id).all()
@@ -67,6 +70,9 @@ def update_contacts_from_message(db_session, message, namespace_id):
             if field is not None:
                 all_addresses.extend(field)
 
+        if not all_addresses:
+            return
+
         contact_map = _get_contact_map(db_session, namespace_id, all_addresses)
 
         # Now associate each contact to the message.
@@ -110,6 +116,9 @@ def update_contacts_from_event(db_session, event, namespace_id):
             + title_addrs
             + description_addrs
         )
+
+        if not all_addresses:
+            return
 
         contact_map = _get_contact_map(db_session, namespace_id, all_addresses)
 

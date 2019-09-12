@@ -279,7 +279,9 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
             'calendar_id': obj.calendar.public_id if obj.calendar else None,
             'message_id': obj.message.public_id if obj.message else None,
             'title': obj.title,
+            'email_addresses_from_title': obj.emails_from_title,
             'description': obj.description,
+            'email_addresses_from_description': obj.emails_from_description,
             'owner': obj.owner,
             'is_owner': obj.is_owner,
             'participants': [_format_participant_data(participant)

@@ -299,7 +299,15 @@ class GoogleEventSync(EventSync):
                 if cal.should_update_events(MAX_TIME_WITHOUT_SYNC,
                                             timedelta(seconds=POLL_FREQUENCY))
             )
-            for cal in stale_calendars:
+
+            # Sync user's primary calendar first. Note that the UID of the
+            # primary calendar corresponds to the user's account email address.
+            account_email = account.email_address
+            stale_calendars_sorted = sorted(
+                stale_calendars, key=lambda cal: cal.uid != account_email
+            )
+
+            for cal in stale_calendars_sorted:
                 try:
                     self._sync_calendar(cal, db_session)
                 except HTTPError as exc:

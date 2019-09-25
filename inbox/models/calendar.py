@@ -67,7 +67,7 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
     def handle_gpush_notification(self):
         self.gpush_last_ping = datetime.utcnow()
 
-    def needs_new_watch(self):
+    def can_sync(self):
         if self.name == 'Emailed events' and self.uid == 'inbox':
             # This is our own internal calendar
             return False
@@ -77,6 +77,12 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
         # If you try to watch Birthdays, you get a cryptic 'Missing Title'
         # error. Thanks, Google.
         if 'group.v.calendar.google.com' in self.uid:
+            return False
+
+        return True
+
+    def needs_new_watch(self):
+        if not self.can_sync():
             return False
 
         return (
@@ -93,11 +99,9 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
         poll_frequency: a timedelta object. Amount of time we should wait until
         we sync if we don't have working push notifications.
         """
-        if self.name == 'Emailed events':
-            return False
         # TODO: what do we do about calendars we cannot watch?
-        if 'group.v.calendar.google.com' in self.uid:
-            return False  # maybe?
+        if not self.can_sync():
+            return False
 
         now = datetime.utcnow()
 

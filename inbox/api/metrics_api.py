@@ -1,12 +1,14 @@
 from collections import defaultdict
 from flask import Blueprint, jsonify, request
 from operator import itemgetter
+from sqlalchemy.orm import joinedload, load_only, noload
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.api.err import NotFoundError
 from inbox.api.kellogs import APIEncoder
+from inbox.events.remote_sync import EVENT_SYNC_FOLDER_ID
 from inbox.heartbeat.status import get_ping_status
-from inbox.models import Folder, Account, Namespace
+from inbox.models import Calendar, Folder, Account, Namespace
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.imap import ImapAccount, ImapFolderSyncStatus
 from inbox.models.session import global_session_scope
@@ -15,6 +17,70 @@ app = Blueprint(
     'metrics_api',
     __name__,
     url_prefix='/metrics')
+
+
+def _get_calendar_data(db_session, namespace):
+    calendars = db_session.query(Calendar)
+    if namespace:
+        calendars = calendars.filter_by(namespace_id=namespace.id)
+
+    calendars = calendars.options(
+        joinedload(Calendar.namespace)
+        .load_only(Namespace.account_id)
+        .noload(Namespace.account))
+
+    calendar_data = defaultdict(list)
+    for calendar in calendars:
+        account_id = calendar.namespace.account_id
+
+        state = None
+        if calendar.can_sync():
+            if calendar.last_synced:
+                state = 'running'
+            else:
+                state = 'initial'
+
+        calendar_data[account_id].append({
+            'uid': calendar.uid,
+            'name': calendar.name,
+            'last_synced': calendar.last_synced,
+            'state': state,
+        })
+
+    return calendar_data
+
+
+def _get_folder_data(db_session, accounts):
+    folder_sync_statuses = db_session.query(ImapFolderSyncStatus)
+    # This assumes that the only cases for metrics we have is 1) fetching
+    # metrics for a specific account, and 2) fetching metrics for all accounts.
+    if len(accounts) == 1:
+        folder_sync_statuses = folder_sync_statuses.filter(
+            ImapFolderSyncStatus.account_id==accounts[0].id)
+    folder_sync_statuses = folder_sync_statuses.join(Folder).with_entities(
+        ImapFolderSyncStatus.account_id,
+        ImapFolderSyncStatus.folder_id,
+        Folder.name,
+        ImapFolderSyncStatus.state,
+        ImapFolderSyncStatus._metrics
+    )
+
+    folder_data = defaultdict(dict)
+
+    for folder_sync_status in folder_sync_statuses:
+        account_id, folder_id, folder_name, state, metrics = folder_sync_status
+        folder_data[account_id][folder_id] = {
+            'remote_uid_count': metrics.get('remote_uid_count'),
+            'download_uid_count': metrics.get('download_uid_count'),
+            'state': state,
+            'name': folder_name,
+            'alive': False,
+            'heartbeat_at': None,
+            'run_state': metrics.get('run_state'),
+            'sync_error': metrics.get('sync_error'),
+        }
+    return folder_data
+
 
 @app.route('/')
 def index():
@@ -44,51 +110,43 @@ def index():
 
         accounts = list(accounts)
 
+        folder_data = _get_folder_data(db_session, accounts)
+        calendar_data = _get_calendar_data(db_session, namespace)
         heartbeat = get_ping_status(account_ids=[acc.id for acc in accounts])
-        folder_sync_statuses = db_session.query(ImapFolderSyncStatus)
-        if len(accounts) == 1:
-            folder_sync_statuses = folder_sync_statuses.filter(
-                ImapFolderSyncStatus.account_id==accounts[0].id)
-        folder_sync_statuses = folder_sync_statuses.join(Folder).with_entities(
-            ImapFolderSyncStatus.account_id,
-            ImapFolderSyncStatus.folder_id,
-            Folder.name,
-            ImapFolderSyncStatus.state,
-            ImapFolderSyncStatus._metrics
-        )
 
         data = []
-
-        folder_data = defaultdict(dict)
-
-        for folder_sync_status in folder_sync_statuses:
-            account_id, folder_id, folder_name, state, metrics = folder_sync_status
-            folder_data[account_id][folder_id] = {
-                'remote_uid_count': metrics.get('remote_uid_count'),
-                'download_uid_count': metrics.get('download_uid_count'),
-                'state': state,
-                'name': folder_name,
-                'alive': False,
-                'heartbeat_at': None,
-                'run_state': metrics.get('run_state'),
-                'sync_error': metrics.get('sync_error'),
-            }
 
         for account in accounts:
             if account.id in heartbeat:
                 account_heartbeat = heartbeat[account.id]
                 account_folder_data = folder_data[account.id]
-                alive = bool(account_heartbeat.folders)
+                account_calendar_data = calendar_data[account.id]
+
+                events_alive = False
+
                 for folder_status in account_heartbeat.folders:
                     folder_status_id = int(folder_status.id)
                     if folder_status_id in account_folder_data:
-                        alive = alive and folder_status.alive
                         account_folder_data[folder_status_id].update({
                             'alive': folder_status.alive,
                             'heartbeat_at': folder_status.timestamp
                         })
+                    elif folder_status_id == EVENT_SYNC_FOLDER_ID:
+                        events_alive = folder_status.alive
 
-                initial_sync = any(f['state'] == 'initial' for f in account_folder_data.values())
+                email_alive = all(f['alive'] for f in account_folder_data.values())
+
+                alive = True
+                if account.sync_email and not email_alive:
+                    alive = False
+                if account.sync_events and not events_alive:
+                    alive = False
+
+                email_initial_sync = any(f['state'] == 'initial'
+                        for f in account_folder_data.values())
+                events_initial_sync = any(c['state'] == 'initial'
+                        for c in account_calendar_data)
+                initial_sync = email_initial_sync or events_initial_sync
 
                 total_uids = sum(f['remote_uid_count'] or 0 for f in account_folder_data.values())
                 remaining_uids = sum(f['download_uid_count'] or 0 for f in account_folder_data.values())
@@ -98,6 +156,8 @@ def index():
                     progress = None
             else:
                 alive = False
+                email_initial_sync = None
+                events_initial_sync = None
                 initial_sync = None
                 progress = None
 
@@ -111,8 +171,10 @@ def index():
                 else:
                     sync_status_str = 'running'
             elif is_running:
+                # Nylas is syncing, but not all heartbeats are reporting.
                 sync_status_str = 'delayed'
             else:
+                # Nylas is no longer syncing this account.
                 sync_status_str = 'dead'
 
             data.append({
@@ -120,14 +182,20 @@ def index():
                 'namespace_private_id': account.namespace.id,
                 'account_id': account.public_id,
                 'namespace_id': account.namespace.public_id,
+                'events_alive': events_alive,
+                'email_alive': email_alive,
                 'alive': alive,
+                'email_initial_sync': email_initial_sync,
+                'events_initial_sync': events_initial_sync,
                 'initial_sync': initial_sync,
                 'provider_name': account.provider,
                 'email_address': account.email_address,
                 'folders': sorted(folder_data[account.id].values(), key=itemgetter('name')),
+                'calendars': sorted(calendar_data[account.id], key=itemgetter('name')),
                 'sync_status': sync_status_str,
                 'sync_error': sync_status.get('sync_error'),
                 'sync_end_time': sync_status.get('sync_end_time'),
+                'sync_disabled_reason': sync_status.get('sync_disabled_reason'),
                 'sync_host': account.sync_host,
                 'progress': progress,
                 'throttled': account.throttled,

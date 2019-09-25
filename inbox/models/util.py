@@ -183,7 +183,7 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False):
 
     filters = OrderedDict()
     for table in ['message', 'block', 'thread', 'transaction', 'actionlog',
-                  'contact', 'event', 'dataprocessingcache']:
+                  'event', 'contact', 'dataprocessingcache']:
         filters[table] = ('namespace_id', namespace_id)
 
     if account_discriminator == 'easaccount':

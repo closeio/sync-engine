@@ -238,13 +238,8 @@ class Account(MailSyncBase, HasPublicID, HasEmailAddress, HasRunState,
         after trying to re-authorize / get new token.
 
         """
-        if scope == 'calendar':
-            self.sync_events = False
-        elif scope == 'contacts':
-            self.sync_contacts = False
-        else:
-            self.disable_sync(reason)
-            self.sync_state = 'invalid'
+        self.disable_sync(reason)
+        self.sync_state = 'invalid'
 
     def mark_for_deletion(self):
         """

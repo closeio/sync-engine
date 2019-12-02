@@ -192,6 +192,8 @@ def index():
                 'email_address': account.email_address,
                 'folders': sorted(folder_data[account.id].values(), key=itemgetter('name')),
                 'calendars': sorted(calendar_data[account.id], key=itemgetter('name')),
+                'sync_email': account.sync_email,
+                'sync_events': account.sync_events,
                 'sync_status': sync_status_str,
                 'sync_error': sync_status.get('sync_error'),
                 'sync_end_time': sync_status.get('sync_end_time'),

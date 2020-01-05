@@ -28,7 +28,11 @@ def resp(http_code, message=None, **kwargs):
     resp = kwargs
     if message:
         resp['message'] = message
-    return make_response(jsonify(resp), http_code)
+    if http_code == 204:
+        body = ''
+    else:
+        body = jsonify(resp)
+    return make_response(body, http_code)
 
 
 @app.before_request

@@ -7,11 +7,8 @@ from collections import OrderedDict
 from sqlalchemy import desc
 from sqlalchemy.orm.exc import NoResultFound
 
-import redis
-
 import limitlion
 
-from inbox.config import config
 from inbox.models import Account, Block, Message, Namespace
 from inbox.util.blockstore import delete_from_blockstore
 from inbox.util.stats import statsd_client
@@ -28,12 +25,8 @@ CHUNK_SIZE = 100
 
 log = get_logger()
 
-# Use a single Redis instance for rate limiting.  Limits will be applied across
-# all db shards (same approach as the original check_throttle()).
-redis_limitlion = redis.Redis(config.get('THROTTLE_REDIS_HOSTNAME'),
-                              int(config.get('REDIS_PORT')),
-                              db=config.get('THROTTLE_REDIS_DB'))
-limitlion.throttle_configure(redis_limitlion)
+# Use a single throttle instance for rate limiting.  Limits will be applied
+# across all db shards (same approach as the original check_throttle()).
 bulk_throttle = limitlion.throttle_wait('bulk', rps=.75, window=5)
 
 

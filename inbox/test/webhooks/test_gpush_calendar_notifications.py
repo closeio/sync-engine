@@ -1,3 +1,5 @@
+import limitlion
+import mock
 from gevent import sleep
 import pytest
 from datetime import datetime, timedelta
@@ -196,6 +198,7 @@ def test_calendar_update(db, webhooks_client, watched_account):
 
 
 def test_event_update(db, webhooks_client, watched_calendar):
+    limitlion.throttle = mock.Mock(return_value=(True, 1, 1))
     event_path = CALENDAR_PATH.format(watched_calendar.public_id)
 
     before = datetime.utcnow() - timedelta(seconds=1)
@@ -205,6 +208,7 @@ def test_event_update(db, webhooks_client, watched_calendar):
     headers['X-Goog-Channel-Id'] = CALENDAR_WATCH_UUID
     r = webhooks_client.post_data(event_path, {}, headers)
     assert r.status_code == 200
+    assert len(limitlion.throttle.mock_calls) == 1
     db.session.refresh(watched_calendar)
     gpush_last_ping = watched_calendar.gpush_last_ping
     assert gpush_last_ping > before

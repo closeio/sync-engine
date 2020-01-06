@@ -13,6 +13,7 @@ from inbox.models.session import global_session_scope
 from inbox.models.backends.gmail import GmailAccount
 from inbox.models import Calendar
 
+import limitlion
 
 app = Blueprint(
     'webhooks',
@@ -86,12 +87,16 @@ def event_update(calendar_public_id):
     request.environ['log_context']['calendar_public_id'] = calendar_public_id
     try:
         valid_public_id(calendar_public_id)
-        with global_session_scope() as db_session:
-            calendar = db_session.query(Calendar) \
-                .filter(Calendar.public_id == calendar_public_id) \
-                .one()
-            calendar.handle_gpush_notification()
-            db_session.commit()
+        allowed, tokens, sleep = limitlion.throttle(
+            'gcal:{}'.format(calendar_public_id), rps=.5
+        )
+        if allowed:
+            with global_session_scope() as db_session:
+                calendar = db_session.query(Calendar) \
+                    .filter(Calendar.public_id == calendar_public_id) \
+                    .one()
+                calendar.handle_gpush_notification()
+                db_session.commit()
         return resp(200)
     except ValueError:
         raise InputError('Invalid public ID')

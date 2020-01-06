@@ -1,6 +1,8 @@
+import limitlion
 import time
 import weakref
 import gevent
+import redis
 from socket import gethostname
 from urllib import quote_plus as urlquote
 from sqlalchemy import create_engine, event
@@ -229,3 +231,15 @@ def reset_invalid_autoincrements(engine, schema, key, dry_run=True):
                     engine.execute(reset_query)
                 reset.add(str(table))
     return reset
+
+
+# Probably not the best place for this but for now
+# we are using limitlion to protect the DBs so we
+# should be able to assume this will be loaded
+# before a DB is accessed.
+redis_limitlion = redis.Redis(
+    config.get("THROTTLE_REDIS_HOSTNAME"),
+    int(config.get("REDIS_PORT")),
+    db=config.get("THROTTLE_REDIS_DB"),
+)
+limitlion.throttle_configure(redis_limitlion)

@@ -79,6 +79,11 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
         if 'group.v.calendar.google.com' in self.uid:
             return False
 
+        # If you try to watch "Phases of the Moon", you get 400
+        # ("Push notifications are not supported by this resource.")
+        if self.uid == 'ht3jlfaac5lfd6263ulfh4tql8@group.calendar.google.com':
+            return False
+
         return True
 
     def needs_new_watch(self):

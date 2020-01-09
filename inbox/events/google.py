@@ -529,6 +529,13 @@ def parse_event_response(event, read_only_calendar):
 
     visibility = event.get('visibility')
 
+    # Rewrite some values documented in
+    # https://developers.google.com/calendar/v3/reference/events
+    if visibility == 'default':
+        visibility = None
+    elif visibility == 'confidential':
+        visibility = 'private'
+
     return Event(uid=uid,
                  raw_data=raw_data,
                  title=title,

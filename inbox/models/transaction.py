@@ -1,11 +1,16 @@
+import redis
 from sqlalchemy import (Column, BigInteger, String, Index, Enum,
                         inspect, func)
 from sqlalchemy.orm import relationship
 
+from inbox.config import config
+from inbox.ignition import redis_txn
 from inbox.models.base import MailSyncBase
 from inbox.models.category import EPOCH
 from inbox.models.mixins import HasPublicID, HasRevisions
 from inbox.models.namespace import Namespace
+
+TXN_REDIS_KEY = 'latest-txn-by-namespace'
 
 
 class Transaction(MailSyncBase, HasPublicID):
@@ -142,3 +147,27 @@ def increment_versions(session):
         if isinstance(obj, Metadata) and is_dirty(session, obj):
             # This issues SQL for an atomic increment.
             obj.version = Metadata.version + 1  # TODO what's going on here?
+
+
+def bump_redis_txn_id(session):
+    """
+    Called from post-flush hook to bump the latest id stored in redis
+    """
+    def get_namespace_public_id(namespace_id):
+        # the namespace was just used to create the transaction, so it should
+        # still be in the session. If not, a sql statement will be emitted.
+        namespace = session.query(Namespace).get(namespace_id)
+        assert namespace, "namespace for transaction doesn't exist"
+        return str(namespace.public_id)
+
+    mappings = {
+        get_namespace_public_id(obj.namespace_id): obj.id
+        for obj in session
+        if (
+            obj in session.new
+            and isinstance(obj, Transaction)
+            and obj.id
+        )
+    }
+    if mappings:
+        redis_txn.zadd(TXN_REDIS_KEY, **mappings)

@@ -243,3 +243,10 @@ redis_limitlion = redis.Redis(
     db=config.get("THROTTLE_REDIS_DB"),
 )
 limitlion.throttle_configure(redis_limitlion)
+
+# these are _required_. nylas shouldn't start if these aren't present.
+redis_txn = redis.Redis(
+    config["TXN_REDIS_HOSTNAME"],
+    int(config["REDIS_PORT"]),
+    db=config["TXN_REDIS_DB"],
+)

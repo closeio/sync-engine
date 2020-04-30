@@ -1,10 +1,10 @@
 from collections import defaultdict
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request
 from operator import itemgetter
-from sqlalchemy.orm import joinedload, load_only, noload
+from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
 
-from inbox.api.err import NotFoundError
+from inbox.api.err import InputError
 from inbox.api.kellogs import APIEncoder
 from inbox.events.remote_sync import EVENT_SYNC_FOLDER_ID
 from inbox.heartbeat.status import get_ping_status
@@ -12,6 +12,7 @@ from inbox.models import Calendar, Folder, Account, Namespace
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.imap import ImapAccount, ImapFolderSyncStatus
 from inbox.models.session import global_session_scope
+
 
 app = Blueprint(
     'metrics_api',
@@ -206,3 +207,36 @@ def index():
             })
 
         return APIEncoder().jsonify(data)
+
+
+@app.route('/global-deltas')
+def global_deltas():
+    """
+    Return the namespaces with recent transactions.
+
+    Also returns `txnid_start` and `txnid_end`, which can be fed back in as the
+    optional `txnid` parameter. `txnid` acts as a cursor, only returning
+    namespaces with transactions newer than the given `txnid`.
+    """
+    from inbox.ignition import redis_txn
+    from inbox.models.transaction import TXN_REDIS_KEY
+    txnid = request.args.get('txnid', '0')
+
+    try:
+        start_pointer = int(txnid)
+    except ValueError:
+        raise InputError('Invalid cursor parameter')
+
+    txns = redis_txn.zrangebyscore(
+        TXN_REDIS_KEY,
+        '({}'.format(start_pointer),  # don't include start pointer
+        "+inf",
+        withscores=True,
+        score_cast_func=int,
+    )
+    response = {
+        'txnid_start': start_pointer,
+        'txnid_end': max([t[1] for t in txns] or [start_pointer]),
+        'deltas': [t[0] for t in txns],
+    }
+    return APIEncoder().jsonify(response)

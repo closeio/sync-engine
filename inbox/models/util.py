@@ -4,12 +4,14 @@ import gevent
 import requests
 import datetime
 from collections import OrderedDict
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from sqlalchemy.orm.exc import NoResultFound
 
 import limitlion
 
+from inbox.ignition import redis_txn
 from inbox.models import Account, Block, Message, Namespace
+from inbox.models.transaction import Transaction, TXN_REDIS_KEY
 from inbox.util.blockstore import delete_from_blockstore
 from inbox.util.stats import statsd_client
 from inbox.models.session import session_scope
@@ -383,5 +385,24 @@ def purge_transactions(shard_id, days_ago=60, limit=1000, throttle=False,
                      rowcount=rowcount)
         log.info("Finished purging transaction table for shard",
                  shard_id=shard_id, date_delta=days_ago)
+    except Exception as e:
+        log.critical("Exception encountered during deletion", exception=e)
+
+    # remove old entries from the redis transaction zset
+    if dry_run:
+        # no dry run for removing things from a redis zset
+        return
+    try:
+        with session_scope_by_shard_id(shard_id, versioned=False) as db_session:
+            min_txn_id, = db_session.query(func.min(Transaction.id)).one()
+        redis_txn.zremrangebyscore(
+            TXN_REDIS_KEY,
+            "-inf",
+            "({}".format(min_txn_id) if min_txn_id is not None else "+inf",
+        )
+        log.info(
+            "Finished purging transaction entries from redis",
+            min_id=min_txn_id, date_delta=days_ago
+        )
     except Exception as e:
         log.critical("Exception encountered during deletion", exception=e)

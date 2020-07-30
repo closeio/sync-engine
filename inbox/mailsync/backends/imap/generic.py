@@ -347,8 +347,9 @@ class FolderSyncEngine(Greenlet):
         log.bind(state='poll')
         # Only log every 5 minutes to cut down on the volume of
         # this log statement
-        if time.time() - self.polling_logged_at > 60 * 5:
-            self.polling_logged_at = time.time()
+        timestamp = time.time()
+        if timestamp - self.polling_logged_at > 60 * 5:
+            self.polling_logged_at = timestamp
             log.debug('polling')
         self.poll_impl()
         return 'poll'

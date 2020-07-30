@@ -66,6 +66,7 @@ from datetime import datetime, timedelta
 from gevent import Greenlet
 import gevent
 import imaplib
+import time
 from sqlalchemy import func
 from sqlalchemy.orm import load_only
 from sqlalchemy.exc import IntegrityError
@@ -148,6 +149,7 @@ class FolderSyncEngine(Greenlet):
         self.last_fast_refresh = None
         self.flags_fetch_results = {}
         self.conn_pool = connection_pool(self.account_id)
+        self.polling_logged_at = 0
 
         self.state_handlers = {
             'initial': self.initial_sync,
@@ -343,7 +345,12 @@ class FolderSyncEngine(Greenlet):
     @retry_crispin
     def poll(self):
         log.bind(state='poll')
-        log.debug('polling')
+        # Only log every 5 minutes to cut down on the volume of
+        # this log statement
+        timestamp = time.time()
+        if timestamp - self.polling_logged_at > 60 * 5:
+            self.polling_logged_at = timestamp
+            log.debug('polling')
         self.poll_impl()
         return 'poll'
 

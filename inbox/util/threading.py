@@ -6,6 +6,7 @@ from inbox.util.misc import cleanup_subject
 
 
 MAX_THREAD_LENGTH = 500
+MAX_MESSAGES_SCANNED = 20000
 
 
 def fetch_corresponding_thread(db_session, namespace_id, message):
@@ -23,8 +24,17 @@ def fetch_corresponding_thread(db_session, namespace_id, message):
                 joinedload(Thread.messages).load_only(
                     'from_addr', 'to_addr', 'bcc_addr', 'cc_addr'))
 
+    num_messages_scanned = 0
     for thread in threads:
         for match in thread.messages:
+            # If we've scanned more than `MAX_MESSAGES_SCANNED`, give up and
+            # assume that a matching thread doesn't exist. We do this because
+            # the number of threads and messages we iterate over can get really
+            # out of hand for some transactional emails.
+            num_messages_scanned += 1
+            if num_messages_scanned > MAX_MESSAGES_SCANNED:
+                return
+
             # A lot of people BCC some address when sending mass
             # emails so ignore BCC.
             match_bcc = match.bcc_addr if match.bcc_addr else []

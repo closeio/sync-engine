@@ -15,6 +15,13 @@ MAX_MESSAGES_SCANNED = 20000
 def fetch_corresponding_thread(db_session, namespace_id, message):
     """fetch a thread matching the corresponding message. Returns None if
        there's no matching thread."""
+    # handle the case where someone is self-sending an email.
+    if not message.from_addr or not message.to_addr:
+        return None
+
+    message_from = [t[1] for t in message.from_addr]
+    message_to = [t[1] for t in message.to_addr]
+
     # FIXME: for performance reasons, we make the assumption that a reply
     # to a message always has a similar subject. This is only
     # right 95% of the time.
@@ -58,14 +65,8 @@ def fetch_corresponding_thread(db_session, namespace_id, message):
                 else:
                     return match.thread
 
-            # handle the case where someone is self-sending an email.
-            if not message.from_addr or not message.to_addr:
-                return
-
             match_from = [t[1] for t in match.from_addr]
             match_to = [t[1] for t in match.from_addr]
-            message_from = [t[1] for t in message.from_addr]
-            message_to = [t[1] for t in message.to_addr]
 
             if (len(message_to) == 1 and message_from == message_to and
                     match_from == match_to and message_to == match_from):
@@ -77,4 +78,4 @@ def fetch_corresponding_thread(db_session, namespace_id, message):
                 else:
                     return match.thread
 
-    return
+    return None

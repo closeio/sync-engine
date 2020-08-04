@@ -10,8 +10,11 @@ MAX_MESSAGES_SCANNED = 20000
 
 
 def fetch_corresponding_thread(db_session, namespace_id, message):
-    """fetch a thread matching the corresponding message. Returns None if
-       there's no matching thread."""
+    """
+    Fetch a thread matching the corresponding message.
+
+    Returns None if there's no matching thread.
+    """
     # FIXME: for performance reasons, we make the assumption that a reply
     # to a message always has a similar subject. This is only
     # right 95% of the time.
@@ -74,5 +77,3 @@ def fetch_corresponding_thread(db_session, namespace_id, message):
                     break
                 else:
                     return match.thread
-
-    return

@@ -18,6 +18,12 @@ def fetch_corresponding_thread(db_session, namespace_id, message):
     # FIXME: for performance reasons, we make the assumption that a reply
     # to a message always has a similar subject. This is only
     # right 95% of the time.
+
+    # Handle the case where someone is self-sending an email. None of the
+    # threads/messages would match such a message below, so we can bail early.
+    if not message.from_addr or not message.to_addr:
+        return None
+
     clean_subject = cleanup_subject(message.subject)
     threads = db_session.query(Thread). \
         filter(Thread.namespace_id == namespace_id,
@@ -36,7 +42,7 @@ def fetch_corresponding_thread(db_session, namespace_id, message):
             # out of hand for some transactional emails.
             num_messages_scanned += 1
             if num_messages_scanned > MAX_MESSAGES_SCANNED:
-                return
+                return None
 
             # A lot of people BCC some address when sending mass
             # emails so ignore BCC.
@@ -59,10 +65,6 @@ def fetch_corresponding_thread(db_session, namespace_id, message):
                 else:
                     return match.thread
 
-            # handle the case where someone is self-sending an email.
-            if not message.from_addr or not message.to_addr:
-                return
-
             match_from = [t[1] for t in match.from_addr]
             match_to = [t[1] for t in match.from_addr]
             message_from = [t[1] for t in message.from_addr]
@@ -77,3 +79,5 @@ def fetch_corresponding_thread(db_session, namespace_id, message):
                     break
                 else:
                     return match.thread
+
+    return None

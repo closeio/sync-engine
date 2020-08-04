@@ -27,10 +27,11 @@ def fetch_corresponding_thread(db_session, namespace_id, message):
     # right 95% of the time.
     clean_subject = cleanup_subject(message.subject)
 
-    # XXX: It is much faster to sort client-side by message date, we therefore
-    # use `contains_eager` and `outerjoin` instead of `joinedload` to fetch
-    # the messages by thread in no particular order. We also use a limit to
-    # avoid scanning too many / large threads.
+    # XXX: It is much faster to sort client-side by message date. We therefore
+    # use `contains_eager` and `outerjoin` to fetch the messages by thread in
+    # no particular order (as opposed to `joinedload`, which would use the
+    # order_by on the Message._thread backref).  We also use a limit to avoid
+    # scanning too many / large threads.
     threads = db_session.query(Thread). \
         filter(Thread.namespace_id == namespace_id,
                Thread._cleaned_subject == clean_subject). \

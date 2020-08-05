@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+from operator import attrgetter
+
+from inbox.models.message import Message
 from inbox.models.thread import Thread
 from sqlalchemy import desc
-from sqlalchemy.orm import joinedload, load_only
+from sqlalchemy.orm import contains_eager, load_only, outerjoin
 from inbox.util.misc import cleanup_subject
 
 
@@ -12,29 +15,36 @@ MAX_MESSAGES_SCANNED = 20000
 def fetch_corresponding_thread(db_session, namespace_id, message):
     """fetch a thread matching the corresponding message. Returns None if
        there's no matching thread."""
+    # handle the case where someone is self-sending an email.
+    if not message.from_addr or not message.to_addr:
+        return None
+
+    message_from = [t[1] for t in message.from_addr]
+    message_to = [t[1] for t in message.to_addr]
+
     # FIXME: for performance reasons, we make the assumption that a reply
     # to a message always has a similar subject. This is only
     # right 95% of the time.
     clean_subject = cleanup_subject(message.subject)
+
+    # XXX: It is much faster to sort client-side by message date. We therefore
+    # use `contains_eager` and `outerjoin` to fetch the messages by thread in
+    # no particular order (as opposed to `joinedload`, which would use the
+    # order_by on the Message._thread backref).  We also use a limit to avoid
+    # scanning too many / large threads.
     threads = db_session.query(Thread). \
         filter(Thread.namespace_id == namespace_id,
                Thread._cleaned_subject == clean_subject). \
+        outerjoin(Message, Thread.messages). \
         order_by(desc(Thread.id)). \
         options(load_only('id', 'discriminator'),
-                joinedload(Thread.messages).load_only(
-                    'from_addr', 'to_addr', 'bcc_addr', 'cc_addr'))
+                contains_eager(Thread.messages).load_only(
+                    'from_addr', 'to_addr', 'bcc_addr', 'cc_addr', 'received_date')). \
+        limit(MAX_MESSAGES_SCANNED)
 
-    num_messages_scanned = 0
     for thread in threads:
-        for match in thread.messages:
-            # If we've scanned more than `MAX_MESSAGES_SCANNED`, give up and
-            # assume that a matching thread doesn't exist. We do this because
-            # the number of threads and messages we iterate over can get really
-            # out of hand for some transactional emails.
-            num_messages_scanned += 1
-            if num_messages_scanned > MAX_MESSAGES_SCANNED:
-                return
-
+        messages = sorted(thread.messages, key=attrgetter('received_date'))
+        for match in messages:
             # A lot of people BCC some address when sending mass
             # emails so ignore BCC.
             match_bcc = match.bcc_addr if match.bcc_addr else []
@@ -51,28 +61,22 @@ def fetch_corresponding_thread(db_session, namespace_id, message):
             if len(match_emails & message_emails) >= 2:
                 # No need to loop through the rest of the messages
                 # in the thread
-                if len(thread.messages) >= MAX_THREAD_LENGTH:
+                if len(messages) >= MAX_THREAD_LENGTH:
                     break
                 else:
                     return match.thread
 
-            # handle the case where someone is self-sending an email.
-            if not message.from_addr or not message.to_addr:
-                return
-
             match_from = [t[1] for t in match.from_addr]
             match_to = [t[1] for t in match.from_addr]
-            message_from = [t[1] for t in message.from_addr]
-            message_to = [t[1] for t in message.to_addr]
 
             if (len(message_to) == 1 and message_from == message_to and
                     match_from == match_to and message_to == match_from):
                 # Check that we're not over max thread length in this case
                 # No need to loop through the rest of the messages
                 # in the thread.
-                if len(thread.messages) >= MAX_THREAD_LENGTH:
+                if len(messages) >= MAX_THREAD_LENGTH:
                     break
                 else:
                     return match.thread
 
-    return
+    return None

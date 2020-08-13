@@ -1,0 +1,27 @@
+version: "3.7"
+services:
+  redis:
+    image: redis:4.0.6
+    expose:
+      - 6379
+
+  mysql:
+    image: mysql:5.7.19
+    environment:
+      MYSQL_ROOT_PASSWORD: nylas_it
+      MYSQL_USER: inboxtest
+      MYSQL_PASSWORD: inboxtest
+      MYSQL_DATABASE: synctest
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+
+  nylas:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/src
+    depends_on:
+      - redis
+      - mysql
+

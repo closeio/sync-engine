@@ -70,3 +70,22 @@ def test_unicode_event_truncation(db, default_account):
     # the column is uft8-encoded.
     assert len(e.location) == 255
     assert len(e.title) == 1024
+
+
+def test_event_emails():
+    from inbox.models.event import Event
+    e = Event()
+
+    e.description = 'Email: test@example.com.'
+    assert e.emails_from_description == ['test@example.com']
+
+    e.description = '<a href="mailto:test@example.com">other@example.com</a>'
+    assert e.emails_from_description == ['test@example.com', 'other@example.com']
+
+    e.title = 'Email: title@example.com'
+    assert e.emails_from_title == ['title@example.com']
+
+    # We're not currently able to extract HTML-encoded email addresses from an
+    # HTML event.
+    #e.description = '<p>Email: t&#101;st@example.com</p>'
+    #assert e.emails_from_description == ['test@example.com']

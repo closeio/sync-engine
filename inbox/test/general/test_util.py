@@ -1,6 +1,7 @@
 # test_util.py --- test various utility functions.
 import socket
 from inbox.util.url import naked_domain, matching_subdomains
+from inbox.util.addr import extract_emails_from_text
 
 
 def test_naked_domain():
@@ -54,3 +55,14 @@ def test_matching_subdomains(monkeypatch):
     # Check that if the domains are the same, we're not doing an
     # IP address resolution.
     assert matching_subdomains('nylas.com', 'nylas.com') is True
+
+
+def test_extract_emails_from_text():
+    assert extract_emails_from_text('test@example.com') == ['test@example.com']
+    assert extract_emails_from_text('foo#test@ex-ample.com#foo') == ['foo#test@ex-ample.com']
+    assert extract_emails_from_text('email="test@example.com"') == ['test@example.com']
+    assert extract_emails_from_text('<a href="mailto:test@example.com">Email</a>') == ['test@example.com']
+    assert extract_emails_from_text('The email is test@example.com.') == ['test@example.com']
+    assert extract_emails_from_text(u'Email b\xe4r@foo.ex\xe4mple.com') == [u'b\xe4r@foo.ex\xe4mple.com']
+    assert extract_emails_from_text('Multiple\nfoo@example.com\nbar@example.com\nemails') == ['foo@example.com', 'bar@example.com']
+    assert extract_emails_from_text('Email <test@example.com>') == ['test@example.com']

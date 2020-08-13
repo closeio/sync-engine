@@ -14,15 +14,10 @@ jobs:
 
       - run:
           name: build nylas image
-          command: docker-compose build nylas && docker-compose down
+          command: docker-compose build nylas
 
       - run:
-          name: bring up mysql and redis
-          command: docker-compose up mysql redis
-          background: true
-
-      - run:
-          name: build image and run tests
+          name: run tests
           command: |
             docker-compose run nylas bash -ec '
               bin/wait-for-it.sh mysql:3306 \

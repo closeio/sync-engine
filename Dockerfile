@@ -1,10 +1,10 @@
-FROM circleci/python:2.7-jessie
+FROM circleci/python:2.7-buster
 
 USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
-    && apt-get install -y liblua5.2-dev mysql-client
+    && apt-get install -y liblua5.2-dev default-mysql-client
 
 WORKDIR /src
 COPY ./ ./

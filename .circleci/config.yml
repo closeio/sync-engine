@@ -22,15 +22,9 @@ jobs:
           background: true
 
       - run:
-          name: install dockerize
-          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
-          environment:
-            DOCKERIZE_VERSION: v0.3.0
-
-      - run:
-          name: Wait for db to come up
-          command: dockerize -wait tcp://mysql:3306 -timeout 1m
-
-      - run:
           name: build image and run tests
-          command: docker-compose run nylas bash -c "NYLAS_ENV=test py.test inbox/test/"
+          command: |
+            docker-compose run nylas bash -ec '
+              bin/wait-for-it.sh mysql:3306 \
+              && NYLAS_ENV=test py.test inbox/test/
+            '

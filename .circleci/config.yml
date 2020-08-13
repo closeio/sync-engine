@@ -18,7 +18,8 @@ jobs:
 
       - run:
           name: bring up mysql and redis
-          command: docker-compose up -d mysql redis
+          command: docker-compose up mysql redis
+          background: true
 
       - run:
           name: install dockerize

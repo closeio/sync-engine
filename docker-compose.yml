@@ -19,9 +19,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    volumes:
-      - .:/src
     depends_on:
       - redis
       - mysql
-

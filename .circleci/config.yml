@@ -16,6 +16,7 @@ jobs:
           name: run tests
           command: |
             docker-compose run nylas bash -ec '
-              bin/wait-for-it.sh mysql:3306 \
+              pip install -e . \
+              && bin/wait-for-it.sh mysql:3306 \
               && NYLAS_ENV=test py.test inbox/test/
             '

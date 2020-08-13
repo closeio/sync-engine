@@ -14,7 +14,7 @@ jobs:
 
       - run:
           name: build nylas image
-          command: docker-compose build nylas
+          command: docker-compose build nylas && docker-compose down
 
       - run:
           name: bring up mysql and redis

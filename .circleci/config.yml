@@ -37,3 +37,10 @@ jobs:
               && bin/wait-for-it.sh mysql:3306 \
               && NYLAS_ENV=test py.test inbox/test/
             '
+
+workflows:
+  version: 2
+  workflow:
+    jobs:
+      - static-code-analysis
+      - build

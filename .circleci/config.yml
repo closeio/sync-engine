@@ -1,36 +1,22 @@
 version: 2.1
 jobs:
   build:
-    docker:
-      - image: circleci/python:2.7-jessie
-      - image: mysql:5.7.19
-        environment:
-          MYSQL_ROOT_PASSWORD: nylas_it
-          MYSQL_USER: inboxtest
-          MYSQL_PASSWORD: inboxtest
-          MYSQL_DATABASE: synctest
-      - image: redis:4.0.6
+    machine:
+      image: ubuntu-1604:201903-01 
     working_directory: ~/inbox
 
     steps:
       - checkout
 
       - run:
-          name: install dependencies
-          command: |
-            DEBIAN_FRONTEND=noninteractive sudo apt-get update
-            DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --force-yes liblua5.2-dev mysql-client
-            virtualenv venv
-            . venv/bin/activate
-            pip install -r requirements_frozen.txt -e .
-
-      - run:
-          name: MySQL perms
-          command: |
-            mysql -h 127.0.0.1 -uroot -pnylas_it -e "GRANT ALL PRIVILEGES ON synctest_1.* TO 'inboxtest'@'%';"
+          name: build nylas image
+          command: docker-compose build nylas
 
       - run:
           name: run tests
           command: |
-            . venv/bin/activate
-            NYLAS_ENV=test py.test inbox/test/
+            docker-compose run nylas bash -ec '
+              pip install -e . \
+              && bin/wait-for-it.sh mysql:3306 \
+              && NYLAS_ENV=test py.test inbox/test/
+            '

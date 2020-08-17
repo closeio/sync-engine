@@ -1,7 +1,7 @@
 {
 "DATABASE_HOSTS": [
     {
-        "HOSTNAME": "127.0.0.1",
+        "HOSTNAME": "mysql",
         "PORT": 3306,
         "ZONE": "testzone",
         "SHARDS": [
@@ -19,9 +19,9 @@
     }
 ],
 "DATABASE_USERS": {
-    "127.0.0.1": {
-        "USER": "inboxtest",
-        "PASSWORD": "inboxtest"
+    "mysql": {
+        "USER": "root",
+        "PASSWORD": "nylas_it"
     }
 },
 
@@ -42,9 +42,9 @@
 "EVENT_QUEUE_REDIS_HOSTNAME": "mockredis",
 "EVENT_QUEUE_REDIS_DB": 1,
 
-"REDIS_SHARDS": ["127.0.0.1"],
+"REDIS_SHARDS": ["redis"],
 "REDIS_PORT": 6379,
-"TXN_REDIS_HOSTNAME": "127.0.0.1",
+"TXN_REDIS_HOSTNAME": "redis",
 "TXN_REDIS_DB": 1,
 "THROTTLE_REDIS_HOSTNAME": "doesntexist",
 

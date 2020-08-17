@@ -20,19 +20,27 @@ def create_test_db():
     from inbox.config import config
 
     database_hosts = config.get_required('DATABASE_HOSTS')
-    schemas = [(shard['SCHEMA_NAME'], host['HOSTNAME'])
-               for host in database_hosts for shard in host['SHARDS']]
+    database_users = config.get_required('DATABASE_USERS')
+    schemas = [
+        (
+            shard['SCHEMA_NAME'],
+            host['HOSTNAME'],
+            database_users[host['HOSTNAME']]['USER'],
+            database_users[host['HOSTNAME']]['PASSWORD'],
+        )
+        for host in database_hosts for shard in host['SHARDS']
+    ]
     # The various test databases necessarily have "test" in their name.
-    assert all(['test' in s for s, h in schemas])
+    assert all(['test' in s for s, h, u, p in schemas])
 
-    for name, host in schemas:
+    for name, host, user, password in schemas:
         cmd = 'DROP DATABASE IF EXISTS {name}; ' \
               'CREATE DATABASE IF NOT EXISTS {name} ' \
               'DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE ' \
               'utf8mb4_general_ci'.format(name=name)
 
-        subprocess.check_call('mysql -h {} -uinboxtest -pinboxtest '
-                              '-e "{}"'.format(host, cmd), shell=True)
+        subprocess.check_call('mysql -h {} -u{} -p{} '
+                              '-e "{}"'.format(host, user, password, cmd), shell=True)
 
 
 def setup_test_db():

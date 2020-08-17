@@ -1,5 +1,22 @@
 version: 2.1
 jobs:
+  static-code-analysis:
+    docker:
+      - image: circleci/python:3.6
+    working_directory: ~/code
+    steps:
+      - checkout
+
+      - run:
+          name: Prepare Environment
+          command: |
+            sudo -E pip install --no-deps -r requirements_lint.txt
+
+      - run:
+          name: black
+          when: always
+          command: black --check .
+
   build:
     machine:
       image: ubuntu-1604:201903-01 

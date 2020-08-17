@@ -7,16 +7,18 @@ Create Date: 2019-07-11 21:29:39.635787
 """
 
 # revision identifiers, used by Alembic.
-revision = '53b532fda984'
-down_revision = '69c4b13c806'
+revision = "53b532fda984"
+down_revision = "69c4b13c806"
 
 from alembic import op
 import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('event', sa.Column('visibility', sa.Enum('private', 'public'), nullable=True))
+    op.add_column(
+        "event", sa.Column("visibility", sa.Enum("private", "public"), nullable=True)
+    )
 
 
 def downgrade():
-    op.drop_column('event', 'visibility')
+    op.drop_column("event", "visibility")

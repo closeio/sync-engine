@@ -31,24 +31,25 @@ log = get_logger()
 def local_uids(account_id, session, folder_id, limit=None):
     q = bakery(lambda session: session.query(ImapUid.msg_uid))
     q += lambda q: q.filter(
-        ImapUid.account_id == bindparam('account_id'),
-        ImapUid.folder_id == bindparam('folder_id'))
+        ImapUid.account_id == bindparam("account_id"),
+        ImapUid.folder_id == bindparam("folder_id"),
+    )
     if limit:
         q += lambda q: q.order_by(desc(ImapUid.msg_uid))
-        q += lambda q: q.limit(bindparam('limit'))
-    results = q(session).params(account_id=account_id,
-                                folder_id=folder_id,
-                                limit=limit).all()
+        q += lambda q: q.limit(bindparam("limit"))
+    results = (
+        q(session).params(account_id=account_id, folder_id=folder_id, limit=limit).all()
+    )
     return {u for u, in results}
 
 
 def lastseenuid(account_id, session, folder_id):
     q = bakery(lambda session: session.query(func.max(ImapUid.msg_uid)))
     q += lambda q: q.filter(
-        ImapUid.account_id == bindparam('account_id'),
-        ImapUid.folder_id == bindparam('folder_id'))
-    res = q(session).params(account_id=account_id,
-                            folder_id=folder_id).one()[0]
+        ImapUid.account_id == bindparam("account_id"),
+        ImapUid.folder_id == bindparam("folder_id"),
+    )
+    res = q(session).params(account_id=account_id, folder_id=folder_id).one()[0]
     return res or 0
 
 
@@ -65,7 +66,7 @@ def update_message_metadata(session, account, message, is_draft):
     for i in uids:
         categories.update(i.categories)
 
-    if account.category_type == 'folder':
+    if account.category_type == "folder":
         categories = [_select_category(categories)] if categories else []
 
     # Use a consistent time across creating categories, message updated_at
@@ -88,8 +89,7 @@ def update_message_metadata(session, account, message, is_draft):
         # created_at value. Taken from
         # https://docs.sqlalchemy.org/en/13/orm/extensions/
         # associationproxy.html#simplifying-association-objects
-        MessageCategory(category=category, message=message,
-                        created_at=update_time)
+        MessageCategory(category=category, message=message, created_at=update_time)
 
     # Update the message updated_at field so that it can be used in
     # the transaction that will be created for category changes.
@@ -129,11 +129,12 @@ def update_metadata(account_id, folder_id, folder_role, new_flags, session):
     account = Account.get(account_id, session)
     change_count = 0
     for item in session.query(ImapUid).filter(
-            ImapUid.account_id == account_id,
-            ImapUid.msg_uid.in_(new_flags.keys()),
-            ImapUid.folder_id == folder_id):
+        ImapUid.account_id == account_id,
+        ImapUid.msg_uid.in_(new_flags.keys()),
+        ImapUid.folder_id == folder_id,
+    ):
         flags = new_flags[item.msg_uid].flags
-        labels = getattr(new_flags[item.msg_uid], 'labels', None)
+        labels = getattr(new_flags[item.msg_uid], "labels", None)
 
         # TODO(emfree) refactor so this is only ever relevant for Gmail.
         changed = item.update_flags(flags)
@@ -143,12 +144,12 @@ def update_metadata(account_id, folder_id, folder_role, new_flags, session):
 
         if changed:
             change_count += 1
-            is_draft = item.is_draft and (folder_role == 'drafts' or
-                                          folder_role == 'all')
+            is_draft = item.is_draft and (
+                folder_role == "drafts" or folder_role == "all"
+            )
             update_message_metadata(session, account, item.message, is_draft)
             session.commit()
-    log.info('Updated UID metadata', changed=change_count,
-             out_of=len(new_flags))
+    log.info("Updated UID metadata", changed=change_count, out_of=len(new_flags))
 
 
 def remove_deleted_uids(account_id, folder_id, uids):
@@ -170,10 +171,15 @@ def remove_deleted_uids(account_id, folder_id, uids):
         # Performance could perhaps be additionally improved by choosing a
         # sane balance, e.g., operating on 10 or 100 uids or something at once.
         with session_scope(account_id) as db_session:
-            imapuid = db_session.query(ImapUid).filter(
-                ImapUid.account_id == account_id,
-                ImapUid.folder_id == folder_id,
-                ImapUid.msg_uid == uid).first()
+            imapuid = (
+                db_session.query(ImapUid)
+                .filter(
+                    ImapUid.account_id == account_id,
+                    ImapUid.folder_id == folder_id,
+                    ImapUid.msg_uid == uid,
+                )
+                .first()
+            )
             if imapuid is None:
                 continue
             deleted_uid_count += 1
@@ -192,23 +198,27 @@ def remove_deleted_uids(account_id, folder_id, uids):
                         db_session.delete(thread)
                 else:
                     account = Account.get(account_id, db_session)
-                    update_message_metadata(db_session, account, message,
-                                            message.is_draft)
+                    update_message_metadata(
+                        db_session, account, message, message.is_draft
+                    )
                     if not message.imapuids:
                         # But don't outright delete messages. Just mark them as
                         # 'deleted' and wait for the asynchronous
                         # dangling-message-collector to delete them.
                         message.mark_for_deletion()
             db_session.commit()
-    log.info('Deleted expunged UIDs', count=deleted_uid_count)
+    log.info("Deleted expunged UIDs", count=deleted_uid_count)
 
 
 def get_folder_info(account_id, session, folder_name):
     try:
         # using .one() here may catch duplication bugs
-        return session.query(ImapFolderInfo).join(Folder).filter(
-            ImapFolderInfo.account_id == account_id,
-            Folder.name == folder_name).one()
+        return (
+            session.query(ImapFolderInfo)
+            .join(Folder)
+            .filter(ImapFolderInfo.account_id == account_id, Folder.name == folder_name)
+            .one()
+        )
     except NoResultFound:
         return None
 
@@ -224,13 +234,16 @@ def create_imap_message(db_session, account, folder, msg):
         relationships. All new objects are uncommitted.
 
     """
-    log.debug('creating message', account_id=account.id,
-                                  folder_name=folder.name,
-                                  mid=msg.uid)
-    new_message = Message.create_from_synced(account=account, mid=msg.uid,
-                                             folder_name=folder.name,
-                                             received_date=msg.internaldate,
-                                             body_string=msg.body)
+    log.debug(
+        "creating message", account_id=account.id, folder_name=folder.name, mid=msg.uid
+    )
+    new_message = Message.create_from_synced(
+        account=account,
+        mid=msg.uid,
+        folder_name=folder.name,
+        received_date=msg.internaldate,
+        body_string=msg.body,
+    )
 
     # Check to see if this is a copy of a message that was first created
     # by the Nylas API. If so, don't create a new object; just use the old one.
@@ -238,16 +251,18 @@ def create_imap_message(db_session, account, folder, msg):
     if existing_copy is not None:
         new_message = existing_copy
 
-    imapuid = ImapUid(account=account, folder=folder, msg_uid=msg.uid,
-                      message=new_message)
+    imapuid = ImapUid(
+        account=account, folder=folder, msg_uid=msg.uid, message=new_message
+    )
     imapuid.update_flags(msg.flags)
     if msg.g_labels is not None:
         imapuid.update_labels(msg.g_labels)
 
     # Update the message's metadata
     with db_session.no_autoflush:
-        is_draft = imapuid.is_draft and (folder.canonical_name == 'drafts' or
-                                         folder.canonical_name == 'all')
+        is_draft = imapuid.is_draft and (
+            folder.canonical_name == "drafts" or folder.canonical_name == "all"
+        )
         update_message_metadata(db_session, account, new_message, is_draft)
 
     update_contacts_from_message(db_session, new_message, account.namespace.id)
@@ -265,18 +280,25 @@ def _update_categories(db_session, message, synced_categories):
 
     # We make the simplifying assumption that only the latest syncback action
     # matters, since it reflects the current local state.
-    actionlog_id = db_session.query(func.max(ActionLog.id)).filter(
-        ActionLog.namespace_id == message.namespace_id,
-        ActionLog.table_name == 'message',
-        ActionLog.record_id == message.id,
-        ActionLog.action.in_(['change_labels', 'move'])).scalar()
+    actionlog_id = (
+        db_session.query(func.max(ActionLog.id))
+        .filter(
+            ActionLog.namespace_id == message.namespace_id,
+            ActionLog.table_name == "message",
+            ActionLog.record_id == message.id,
+            ActionLog.action.in_(["change_labels", "move"]),
+        )
+        .scalar()
+    )
     if actionlog_id is not None:
         actionlog = db_session.query(ActionLog).get(actionlog_id)
         # Do /not/ overwrite message.categories in case of a recent local
         # change - namely, a still 'pending' action or one that completed
         # recently.
-        if (actionlog.status == 'pending' or
-                (now - actionlog.updated_at).total_seconds() <= 90):
+        if (
+            actionlog.status == "pending"
+            or (now - actionlog.updated_at).total_seconds() <= 90
+        ):
             return
 
     # We completed the syncback action /long enough ago/ (on average and

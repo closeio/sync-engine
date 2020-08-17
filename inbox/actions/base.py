@@ -23,52 +23,58 @@ ACTIONS MUST BE IDEMPOTENT! We are going to have task workers guarantee
 at-least-once semantics.
 
 """
-from inbox.actions.backends.generic import (set_remote_unread,
-                                            set_remote_starred,
-                                            remote_move,
-                                            remote_save_draft,
-                                            remote_update_draft,
-                                            remote_delete_draft,
-                                            remote_save_sent,
-                                            remote_create_folder,
-                                            remote_update_folder,
-                                            remote_delete_folder,
-                                            remote_delete_sent)
-from inbox.actions.backends.gmail import (remote_change_labels,
-                                          remote_create_label,
-                                          remote_update_label,
-                                          remote_delete_label)
+from inbox.actions.backends.generic import (
+    set_remote_unread,
+    set_remote_starred,
+    remote_move,
+    remote_save_draft,
+    remote_update_draft,
+    remote_delete_draft,
+    remote_save_sent,
+    remote_create_folder,
+    remote_update_folder,
+    remote_delete_folder,
+    remote_delete_sent,
+)
+from inbox.actions.backends.gmail import (
+    remote_change_labels,
+    remote_create_label,
+    remote_update_label,
+    remote_delete_label,
+)
 
 from inbox.models import Message
 from inbox.models.session import session_scope
 from nylas.logging import get_logger
+
 log = get_logger()
 
 
 def can_handle_multiple_records(action_name):
-    return action_name == 'change_labels'
+    return action_name == "change_labels"
 
 
 def mark_unread(crispin_client, account_id, message_id, args):
-    unread = args['unread']
+    unread = args["unread"]
     set_remote_unread(crispin_client, account_id, message_id, unread)
 
 
 def mark_starred(crispin_client, account_id, message_id, args):
-    starred = args['starred']
+    starred = args["starred"]
     set_remote_starred(crispin_client, account_id, message_id, starred)
 
 
 def move(crispin_client, account_id, message_id, args):
-    destination = args['destination']
+    destination = args["destination"]
     remote_move(crispin_client, account_id, message_id, destination)
 
 
 def change_labels(crispin_client, account_id, message_ids, args):
-    added_labels = args['added_labels']
-    removed_labels = args['removed_labels']
-    remote_change_labels(crispin_client, account_id, message_ids,
-                         removed_labels, added_labels)
+    added_labels = args["added_labels"]
+    removed_labels = args["removed_labels"]
+    remote_change_labels(
+        crispin_client, account_id, message_ids, removed_labels, added_labels
+    )
 
 
 def create_folder(crispin_client, account_id, category_id):
@@ -76,10 +82,9 @@ def create_folder(crispin_client, account_id, category_id):
 
 
 def update_folder(crispin_client, account_id, category_id, args):
-    old_name = args['old_name']
-    new_name = args['new_name']
-    remote_update_folder(crispin_client, account_id, category_id,
-                         old_name, new_name)
+    old_name = args["old_name"]
+    new_name = args["new_name"]
+    remote_update_folder(crispin_client, account_id, category_id, old_name, new_name)
 
 
 def delete_folder(crispin_client, account_id, category_id):
@@ -91,10 +96,9 @@ def create_label(crispin_client, account_id, category_id):
 
 
 def update_label(crispin_client, account_id, category_id, args):
-    old_name = args['old_name']
-    new_name = args['new_name']
-    remote_update_label(crispin_client, account_id, category_id,
-                        old_name, new_name)
+    old_name = args["old_name"]
+    new_name = args["new_name"]
+    remote_update_label(crispin_client, account_id, category_id, old_name, new_name)
 
 
 def delete_label(crispin_client, account_id, category_id):
@@ -105,18 +109,23 @@ def save_draft(crispin_client, account_id, message_id, args):
     """ Sync a new draft back to the remote backend. """
     with session_scope(account_id) as db_session:
         message = db_session.query(Message).get(message_id)
-        version = args.get('version')
+        version = args.get("version")
         if message is None:
-            log.info('tried to save nonexistent message as draft',
-                     message_id=message_id, account_id=account_id)
+            log.info(
+                "tried to save nonexistent message as draft",
+                message_id=message_id,
+                account_id=account_id,
+            )
             return
         if not message.is_draft:
-            log.warning('tried to save non-draft message as draft',
-                        message_id=message_id,
-                        account_id=account_id)
+            log.warning(
+                "tried to save non-draft message as draft",
+                message_id=message_id,
+                account_id=account_id,
+            )
             return
         if version != message.version:
-            log.warning('tried to save outdated version of draft')
+            log.warning("tried to save outdated version of draft")
             return
 
     remote_save_draft(crispin_client, account_id, message_id)
@@ -126,24 +135,28 @@ def update_draft(crispin_client, account_id, message_id, args):
     """ Sync an updated draft back to the remote backend. """
     with session_scope(account_id) as db_session:
         message = db_session.query(Message).get(message_id)
-        version = args.get('version')
-        old_message_id_header = args.get('old_message_id_header')
+        version = args.get("version")
+        old_message_id_header = args.get("old_message_id_header")
 
         if message is None:
-            log.info('tried to save nonexistent message as draft',
-                     message_id=message_id, account_id=account_id)
+            log.info(
+                "tried to save nonexistent message as draft",
+                message_id=message_id,
+                account_id=account_id,
+            )
             return
         if not message.is_draft:
-            log.warning('tried to save non-draft message as draft',
-                        message_id=message_id,
-                        account_id=account_id)
+            log.warning(
+                "tried to save non-draft message as draft",
+                message_id=message_id,
+                account_id=account_id,
+            )
             return
         if version != message.version:
-            log.warning('tried to save outdated version of draft')
+            log.warning("tried to save outdated version of draft")
             return
 
-    remote_update_draft(crispin_client, account_id, message_id,
-                        old_message_id_header)
+    remote_update_draft(crispin_client, account_id, message_id, old_message_id_header)
 
 
 def delete_draft(crispin_client, account_id, draft_id, args):
@@ -153,11 +166,10 @@ def delete_draft(crispin_client, account_id, draft_id, args):
     "the backend.
 
     """
-    nylas_uid = args.get('nylas_uid')
-    message_id_header = args.get('message_id_header')
-    assert nylas_uid or message_id_header, 'Need at least one header value'
-    remote_delete_draft(crispin_client, account_id, nylas_uid,
-                        message_id_header)
+    nylas_uid = args.get("nylas_uid")
+    message_id_header = args.get("message_id_header")
+    assert nylas_uid or message_id_header, "Need at least one header value"
+    remote_delete_draft(crispin_client, account_id, nylas_uid, message_id_header)
 
 
 def save_sent_email(crispin_client, account_id, message_id):
@@ -172,6 +184,6 @@ def delete_sent_email(crispin_client, account_id, message_id, args):
     """
     Delete an email on the remote backend, in the sent folder.
     """
-    message_id_header = args.get('message_id_header')
-    assert message_id_header, 'Need the message_id_header'
+    message_id_header = args.get("message_id_header")
+    assert message_id_header, "Need the message_id_header"
     remote_delete_sent(crispin_client, account_id, message_id_header)

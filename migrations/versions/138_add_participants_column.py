@@ -9,8 +9,8 @@ from alembic import op
 from sqlalchemy.sql import text
 
 # revision identifiers, used by Alembic.
-revision = '5305d4ae30b4'
-down_revision = '1f746c93e8fd'
+revision = "5305d4ae30b4"
+down_revision = "1f746c93e8fd"
 
 
 def upgrade():

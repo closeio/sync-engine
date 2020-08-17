@@ -14,14 +14,19 @@ from inbox.models import Namespace
 from inbox.models.backends.gmail import GmailAccount
 
 from inbox.auth.gmail import GmailAuthHandler
-from inbox.basicauth import (OAuthError, UserRecoverableConfigError,
-                             GmailSettingError, ImapSupportDisabledError)
+from inbox.basicauth import (
+    OAuthError,
+    UserRecoverableConfigError,
+    GmailSettingError,
+    ImapSupportDisabledError,
+)
 
 from nylas.logging import get_logger
+
 log = get_logger()
 
-PROVIDER = 'gmail'  # Uses the default gmail provider info from providers.py
-AUTH_HANDLER_CLS = 'MockGmailAuthHandler'
+PROVIDER = "gmail"  # Uses the default gmail provider info from providers.py
+AUTH_HANDLER_CLS = "MockGmailAuthHandler"
 
 
 def raise_setting_error(folder):
@@ -37,15 +42,14 @@ def raise_oauth_error(e):
 
 
 fake_responses = {
-    'no_all_mail': raise_setting_error,
-    'no_trash': raise_setting_error,
-    'oauth_fail': raise_oauth_error,
-    'imap_disabled': raise_imap_disabled_error
+    "no_all_mail": raise_setting_error,
+    "no_trash": raise_setting_error,
+    "oauth_fail": raise_oauth_error,
+    "imap_disabled": raise_imap_disabled_error,
 }
 
 
 class MockGmailAuthHandler(GmailAuthHandler):
-
     def create_account(self, email_address, response):
         # Override create_account to persist the 'login hint' email_address
         # rather than the canonical email that is contained in response.

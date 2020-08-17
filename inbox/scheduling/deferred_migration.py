@@ -9,18 +9,19 @@ from inbox.util.concurrency import retry_with_logging
 from inbox.util.stats import statsd_client
 
 from nylas.logging import get_logger
+
 log = get_logger()
 
 
-DEFERRED_ACCOUNT_MIGRATION_COUNTER = 'sync:deferred_account_migration_counter'
-DEFERRED_ACCOUNT_MIGRATION_PQUEUE = 'sync:deferred_account_migration_pqueue'
-DEFERRED_ACCOUNT_MIGRATION_EVENT_QUEUE = 'sync:deferred_account_migration_event_queue'
-DEFERRED_ACCOUNT_MIGRATION_OBJ = 'sync:deferred_account_migration_objs:{}'
-DEFERRED_ACCOUNT_MIGRATION_OBJ_TTL = 60 * 60 * 24 * 7   # 1 week
+DEFERRED_ACCOUNT_MIGRATION_COUNTER = "sync:deferred_account_migration_counter"
+DEFERRED_ACCOUNT_MIGRATION_PQUEUE = "sync:deferred_account_migration_pqueue"
+DEFERRED_ACCOUNT_MIGRATION_EVENT_QUEUE = "sync:deferred_account_migration_event_queue"
+DEFERRED_ACCOUNT_MIGRATION_OBJ = "sync:deferred_account_migration_objs:{}"
+DEFERRED_ACCOUNT_MIGRATION_OBJ_TTL = 60 * 60 * 24 * 7  # 1 week
 
 
 class DeferredAccountMigration(object):
-    _redis_fields = ['deadline', 'account_id', 'desired_host', 'id']
+    _redis_fields = ["deadline", "account_id", "desired_host", "id"]
 
     def __init__(self, deadline, account_id, desired_host, id=None):
         self.deadline = float(deadline)
@@ -32,7 +33,10 @@ class DeferredAccountMigration(object):
         with session_scope(self.account_id) as db_session:
             account = db_session.query(Account).get(self.account_id)
             if account is None:
-                log.warning('Account not found when trying to execute DeferredAccountMigration', account_id=self.account_id)
+                log.warning(
+                    "Account not found when trying to execute DeferredAccountMigration",
+                    account_id=self.account_id,
+                )
                 return
             account.desired_sync_host = self.desired_host
             db_session.commit()
@@ -43,15 +47,22 @@ class DeferredAccountMigration(object):
             self.id = client.incr(DEFERRED_ACCOUNT_MIGRATION_COUNTER)
         p = client.pipeline()
         key = DEFERRED_ACCOUNT_MIGRATION_OBJ.format(self.id)
-        p.hmset(key, dict((field, getattr(self, field)) for field in self.__class__._redis_fields))
+        p.hmset(
+            key,
+            dict(
+                (field, getattr(self, field)) for field in self.__class__._redis_fields
+            ),
+        )
         p.expire(key, DEFERRED_ACCOUNT_MIGRATION_OBJ_TTL)
         p.zadd(DEFERRED_ACCOUNT_MIGRATION_PQUEUE, self.deadline, self.id)
-        p.rpush(DEFERRED_ACCOUNT_MIGRATION_EVENT_QUEUE, json.dumps({'id': self.id}))
+        p.rpush(DEFERRED_ACCOUNT_MIGRATION_EVENT_QUEUE, json.dumps({"id": self.id}))
         p.execute()
 
     @classmethod
     def try_load(cls, client, id):
-        values = client.hmget(DEFERRED_ACCOUNT_MIGRATION_OBJ.format(id), cls._redis_fields)
+        values = client.hmget(
+            DEFERRED_ACCOUNT_MIGRATION_OBJ.format(id), cls._redis_fields
+        )
         if values is None:
             return None
         return DeferredAccountMigration(*values)
@@ -59,7 +70,9 @@ class DeferredAccountMigration(object):
 
 class DeferredAccountMigrationExecutor(gevent.Greenlet):
     def __init__(self):
-        self.event_queue = event_queue.EventQueue(DEFERRED_ACCOUNT_MIGRATION_EVENT_QUEUE)
+        self.event_queue = event_queue.EventQueue(
+            DEFERRED_ACCOUNT_MIGRATION_EVENT_QUEUE
+        )
         self.redis = self.event_queue.redis
         gevent.Greenlet.__init__(self)
 
@@ -69,23 +82,29 @@ class DeferredAccountMigrationExecutor(gevent.Greenlet):
 
     def _run_impl(self):
         current_time = time.time()
-        timeout = event_queue.SOCKET_TIMEOUT - 2    # Minus 2 to give us some leeway.
+        timeout = event_queue.SOCKET_TIMEOUT - 2  # Minus 2 to give us some leeway.
         next_deferral = self._try_get_next_deferral()
         while next_deferral is not None:
             if next_deferral.deadline >= current_time:
-                timeout = int(min(max(next_deferral.deadline - current_time, 1), timeout))
-                log.info('Next deferral deadline is in the future, sleeping',
-                         deferral_id=next_deferral.id,
-                         deadline=next_deferral.deadline,
-                         desired_host=next_deferral.desired_host,
-                         account_id=next_deferral.account_id,
-                         timeout=timeout)
+                timeout = int(
+                    min(max(next_deferral.deadline - current_time, 1), timeout)
+                )
+                log.info(
+                    "Next deferral deadline is in the future, sleeping",
+                    deferral_id=next_deferral.id,
+                    deadline=next_deferral.deadline,
+                    desired_host=next_deferral.desired_host,
+                    account_id=next_deferral.account_id,
+                    timeout=timeout,
+                )
                 break
-            log.info('Executing deferral',
-                     deferral_id=next_deferral.id,
-                     deadline=next_deferral.deadline,
-                     desired_host=next_deferral.desired_host,
-                     account_id=next_deferral.account_id)
+            log.info(
+                "Executing deferral",
+                deferral_id=next_deferral.id,
+                deadline=next_deferral.deadline,
+                desired_host=next_deferral.desired_host,
+                account_id=next_deferral.account_id,
+            )
             next_deferral.execute(self.redis)
             self.redis.zrem(DEFERRED_ACCOUNT_MIGRATION_PQUEUE, next_deferral.id)
             next_deferral = self._try_get_next_deferral()

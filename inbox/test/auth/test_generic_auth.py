@@ -11,33 +11,33 @@ from inbox.basicauth import SettingUpdateError, ValidationError
 
 
 settings = {
-    'provider': 'custom',
-    'settings': {
-        'name': 'MyAOL',
-        'email': 'benbitdit@aol.com',
-        'imap_server_host': 'imap.aol.com',
-        'imap_server_port': 143,
-        'imap_username': 'benbitdit@aol.com',
-        'imap_password': 'IHate2Gmail',
-        'smtp_server_host': 'smtp.aol.com',
-        'smtp_server_port': 587,
-        'smtp_username': 'benbitdit@aol.com',
-        'smtp_password': 'IHate2Gmail'
-    }
+    "provider": "custom",
+    "settings": {
+        "name": "MyAOL",
+        "email": "benbitdit@aol.com",
+        "imap_server_host": "imap.aol.com",
+        "imap_server_port": 143,
+        "imap_username": "benbitdit@aol.com",
+        "imap_password": "IHate2Gmail",
+        "smtp_server_host": "smtp.aol.com",
+        "smtp_server_port": 587,
+        "smtp_username": "benbitdit@aol.com",
+        "smtp_password": "IHate2Gmail",
+    },
 }
 
 
 def test_create_account(db):
-    email = settings['settings']['email']
-    imap_host = settings['settings']['imap_server_host']
-    imap_port = settings['settings']['imap_server_port']
-    smtp_host = settings['settings']['smtp_server_host']
-    smtp_port = settings['settings']['smtp_server_port']
+    email = settings["settings"]["email"]
+    imap_host = settings["settings"]["imap_server_host"]
+    imap_port = settings["settings"]["imap_server_port"]
+    smtp_host = settings["settings"]["smtp_server_host"]
+    smtp_port = settings["settings"]["smtp_server_port"]
 
-    handler = GenericAuthHandler(settings['provider'])
+    handler = GenericAuthHandler(settings["provider"])
 
     # Create an authenticated account
-    account = handler.create_account(email, settings['settings'])
+    account = handler.create_account(email, settings["settings"])
     db.session.add(account)
     db.session.commit()
     # Verify its settings
@@ -47,39 +47,39 @@ def test_create_account(db):
     assert account.smtp_endpoint == (smtp_host, smtp_port)
     # Ensure that the emailed events calendar was created
     assert account._emailed_events_calendar is not None
-    assert account._emailed_events_calendar.name == 'Emailed events'
+    assert account._emailed_events_calendar.name == "Emailed events"
 
 
-@pytest.mark.skipif(True, reason='Need to investigate')
+@pytest.mark.skipif(True, reason="Need to investigate")
 def test_update_account(db):
-    email = settings['settings']['email']
-    imap_host = settings['settings']['imap_server_host']
-    imap_port = settings['settings']['imap_server_port']
-    smtp_host = settings['settings']['smtp_server_host']
-    smtp_port = settings['settings']['smtp_server_port']
+    email = settings["settings"]["email"]
+    imap_host = settings["settings"]["imap_server_host"]
+    imap_port = settings["settings"]["imap_server_port"]
+    smtp_host = settings["settings"]["smtp_server_host"]
+    smtp_port = settings["settings"]["smtp_server_port"]
 
-    handler = GenericAuthHandler(settings['provider'])
+    handler = GenericAuthHandler(settings["provider"])
 
     # Create an authenticated account
-    account = handler.create_account(email, settings['settings'])
+    account = handler.create_account(email, settings["settings"])
     db.session.add(account)
     db.session.commit()
     id_ = account.id
 
     # A valid update
     updated_settings = copy.deepcopy(settings)
-    updated_settings['settings']['name'] = 'Neu!'
-    account = handler.update_account(account, updated_settings['settings'])
+    updated_settings["settings"]["name"] = "Neu!"
+    account = handler.update_account(account, updated_settings["settings"])
     db.session.add(account)
     db.session.commit()
     account = db.session.query(Account).get(id_)
-    assert account.name == 'Neu!'
+    assert account.name == "Neu!"
 
     # Invalid updates
     for (attr, value, updated_settings) in generate_endpoint_updates(settings):
-        assert value in updated_settings['settings'].values()
+        assert value in updated_settings["settings"].values()
         with pytest.raises(SettingUpdateError):
-            account = handler.update_account(account, updated_settings['settings'])
+            account = handler.update_account(account, updated_settings["settings"])
         db.session.add(account)
         db.session.commit()
 
@@ -98,14 +98,14 @@ def test_update_account_with_different_subdomain(db, monkeypatch):
     # To test this we use Microsoft's Office365 setup, which
     # has mail.office365.com and outlook.office365.com point to
     # the same address.
-    email = settings['settings']['email']
-    settings['settings']['imap_server_host'] = 'outlook.office365.com'
-    settings['settings']['smtp_server_host'] = 'outlook.office365.com'
+    email = settings["settings"]["email"]
+    settings["settings"]["imap_server_host"] = "outlook.office365.com"
+    settings["settings"]["smtp_server_host"] = "outlook.office365.com"
 
-    handler = GenericAuthHandler(settings['provider'])
+    handler = GenericAuthHandler(settings["provider"])
 
     # Create an authenticated account
-    account = handler.create_account(email, settings['settings'])
+    account = handler.create_account(email, settings["settings"])
     db.session.add(account)
     db.session.commit()
     id_ = account.id
@@ -113,32 +113,32 @@ def test_update_account_with_different_subdomain(db, monkeypatch):
     def gethostbyname_patch(x):
         return "127.0.0.1"
 
-    monkeypatch.setattr(socket, 'gethostbyname', gethostbyname_patch)
+    monkeypatch.setattr(socket, "gethostbyname", gethostbyname_patch)
 
     # A valid update
     updated_settings = copy.deepcopy(settings)
-    updated_settings['settings']['imap_server_host'] = 'mail.office365.com'
-    updated_settings['settings']['smtp_server_host'] = 'mail.office365.com'
-    updated_settings['settings']['name'] = 'Neu!'
-    account = handler.update_account(account, updated_settings['settings'])
+    updated_settings["settings"]["imap_server_host"] = "mail.office365.com"
+    updated_settings["settings"]["smtp_server_host"] = "mail.office365.com"
+    updated_settings["settings"]["name"] = "Neu!"
+    account = handler.update_account(account, updated_settings["settings"])
     db.session.add(account)
     db.session.commit()
     account = db.session.query(Account).get(id_)
-    assert account.name == 'Neu!'
-    assert account._imap_server_host == 'mail.office365.com'
-    assert account._smtp_server_host == 'mail.office365.com'
+    assert account.name == "Neu!"
+    assert account._imap_server_host == "mail.office365.com"
+    assert account._smtp_server_host == "mail.office365.com"
 
 
 def test_update_account_when_no_server_provided(db):
-    email = settings['settings']['email']
-    imap_host = settings['settings']['imap_server_host']
-    imap_port = settings['settings']['imap_server_port']
-    smtp_host = settings['settings']['smtp_server_host']
-    smtp_port = settings['settings']['smtp_server_port']
+    email = settings["settings"]["email"]
+    imap_host = settings["settings"]["imap_server_host"]
+    imap_port = settings["settings"]["imap_server_port"]
+    smtp_host = settings["settings"]["smtp_server_host"]
+    smtp_port = settings["settings"]["smtp_server_port"]
 
-    handler = GenericAuthHandler(settings['provider'])
+    handler = GenericAuthHandler(settings["provider"])
 
-    account = handler.create_account(email, settings['settings'])
+    account = handler.create_account(email, settings["settings"])
     # On successful auth, the account's imap_server is stored.
     db.session.add(account)
     db.session.commit()
@@ -151,10 +151,10 @@ def test_update_account_when_no_server_provided(db):
     account = db.session.query(Account).get(id_)
 
     updated_settings = copy.deepcopy(settings)
-    del updated_settings['settings']['imap_server_host']
-    del updated_settings['settings']['smtp_server_host']
+    del updated_settings["settings"]["imap_server_host"]
+    del updated_settings["settings"]["smtp_server_host"]
 
-    account = handler.update_account(account, updated_settings['settings'])
+    account = handler.update_account(account, updated_settings["settings"])
     db.session.add(account)
     db.session.commit()
     account = db.session.query(Account).get(id_)
@@ -173,9 +173,9 @@ def test_update_account_when_no_server_provided(db):
     # if not provided.
     db.session.expire(account)
     account = db.session.query(Account).get(id_)
-    updated_settings['settings']['imap_server_host'] = u''
-    updated_settings['settings']['smtp_server_host'] = u''
-    account = handler.update_account(account, updated_settings['settings'])
+    updated_settings["settings"]["imap_server_host"] = u""
+    updated_settings["settings"]["smtp_server_host"] = u""
+    account = handler.update_account(account, updated_settings["settings"])
     db.session.add(account)
     db.session.commit()
     account = db.session.query(Account).get(id_)
@@ -188,26 +188,27 @@ def test_update_account_when_no_server_provided(db):
     assert acc_smtp_port == smtp_port
 
 
-@pytest.mark.usefixtures('mock_smtp_get_connection')
+@pytest.mark.usefixtures("mock_smtp_get_connection")
 def test_double_auth(db, mock_imapclient):
     settings = {
-        'provider': 'yahoo',
-        'settings': {
-            'name': 'Y.Y!',
-            'locale': 'fr',
-            'email': 'benbitdiddle1861@yahoo.com',
-            'password': 'EverybodyLovesIMAPv4'}
+        "provider": "yahoo",
+        "settings": {
+            "name": "Y.Y!",
+            "locale": "fr",
+            "email": "benbitdiddle1861@yahoo.com",
+            "password": "EverybodyLovesIMAPv4",
+        },
     }
-    email = settings['settings']['email']
-    password = settings['settings']['password']
+    email = settings["settings"]["email"]
+    password = settings["settings"]["password"]
     mock_imapclient._add_login(email, password)
 
-    handler = GenericAuthHandler(settings['provider'])
+    handler = GenericAuthHandler(settings["provider"])
 
     # First authentication, using a valid password, succeeds.
     valid_settings = copy.deepcopy(settings)
 
-    account = handler.create_account(email, valid_settings['settings'])
+    account = handler.create_account(email, valid_settings["settings"])
     assert handler.verify_account(account) is True
 
     db.session.add(account)
@@ -223,9 +224,9 @@ def test_double_auth(db, mock_imapclient):
 
     # Second auth using an invalid password should fail.
     invalid_settings = copy.deepcopy(settings)
-    invalid_settings['settings']['password'] = 'invalid_password'
+    invalid_settings["settings"]["password"] = "invalid_password"
     with pytest.raises(ValidationError):
-        account = handler.update_account(account, invalid_settings['settings'])
+        account = handler.update_account(account, invalid_settings["settings"])
         handler.verify_account(account)
 
     db.session.expire(account)
@@ -241,33 +242,34 @@ def test_double_auth(db, mock_imapclient):
 
 
 def test_parent_domain():
-    assert parent_domain('x.a.com') == 'a.com'
-    assert parent_domain('a.com') == 'a.com'
-    assert parent_domain('.com') == ''
-    assert parent_domain('test.google.com') == 'google.com'
+    assert parent_domain("x.a.com") == "a.com"
+    assert parent_domain("a.com") == "a.com"
+    assert parent_domain(".com") == ""
+    assert parent_domain("test.google.com") == "google.com"
 
-    assert parent_domain('smtp.example.a.com') == parent_domain('imap.example.a.com')
-    assert parent_domain('smtp.example.a.com') == parent_domain('imap.a.com')
+    assert parent_domain("smtp.example.a.com") == parent_domain("imap.example.a.com")
+    assert parent_domain("smtp.example.a.com") == parent_domain("imap.a.com")
 
-    assert parent_domain('company.co.uk') != parent_domain('evilcompany.co.uk')
+    assert parent_domain("company.co.uk") != parent_domain("evilcompany.co.uk")
 
 
-@pytest.mark.usefixtures('mock_smtp_get_connection')
+@pytest.mark.usefixtures("mock_smtp_get_connection")
 def test_successful_reauth_resets_sync_state(db, mock_imapclient):
     settings = {
-        'provider': 'yahoo',
-        'settings': {
-            'name': 'Y.Y!',
-            'locale': 'fr',
-            'email': 'benbitdiddle1861@yahoo.com',
-            'password': 'EverybodyLovesIMAPv4'}
+        "provider": "yahoo",
+        "settings": {
+            "name": "Y.Y!",
+            "locale": "fr",
+            "email": "benbitdiddle1861@yahoo.com",
+            "password": "EverybodyLovesIMAPv4",
+        },
     }
-    email = settings['settings']['email']
-    password = settings['settings']['password']
+    email = settings["settings"]["email"]
+    password = settings["settings"]["password"]
     mock_imapclient._add_login(email, password)
-    handler = GenericAuthHandler(settings['provider'])
+    handler = GenericAuthHandler(settings["provider"])
 
-    account = handler.create_account(email, settings['settings'])
+    account = handler.create_account(email, settings["settings"])
     assert handler.verify_account(account) is True
     # Brand new accounts have `sync_state`=None.
     assert account.sync_state is None
@@ -278,20 +280,20 @@ def test_successful_reauth_resets_sync_state(db, mock_imapclient):
     # causing the account to be in `sync_state`='invalid'.
     account.mark_invalid()
     db.session.commit()
-    assert account.sync_state == 'invalid'
+    assert account.sync_state == "invalid"
 
     # Verify the `sync_state` is reset to 'running' on a successful "re-auth".
-    account = handler.update_account(account, settings['settings'])
+    account = handler.update_account(account, settings["settings"])
     assert handler.verify_account(account) is True
-    assert account.sync_state == 'running'
+    assert account.sync_state == "running"
     db.session.add(account)
     db.session.commit()
 
 
 def generate_endpoint_updates(settings):
-    for key in ('imap_server_host', 'smtp_server_host'):
-        attr = '_{}'.format(key)
-        value = 'I.am.Malicious.{}'.format(key)
+    for key in ("imap_server_host", "smtp_server_host"):
+        attr = "_{}".format(key)
+        value = "I.am.Malicious.{}".format(key)
         updated_settings = copy.deepcopy(settings)
-        updated_settings['settings'][key] = value
+        updated_settings["settings"][key] = value
         yield (attr, value, updated_settings)

@@ -4,16 +4,30 @@ from dateutil.parser import parse as date_parse
 import ast
 import json
 
-from sqlalchemy import (Column, String, ForeignKey, Text, Boolean, Integer,
-                        DateTime, Enum, Index, event)
+from sqlalchemy import (
+    Column,
+    String,
+    ForeignKey,
+    Text,
+    Boolean,
+    Integer,
+    DateTime,
+    Enum,
+    Index,
+    event,
+)
 from sqlalchemy.orm import relationship, backref, validates, reconstructor
 from sqlalchemy.types import TypeDecorator
 from sqlalchemy.dialects.mysql import LONGTEXT
 
 from inbox.sqlalchemy_ext.util import MAX_TEXT_CHARS, BigJSON, MutableList
 from inbox.models.base import MailSyncBase
-from inbox.models.mixins import (HasPublicID, HasRevisions, UpdatedAtMixin,
-                                 DeletedAtMixin)
+from inbox.models.mixins import (
+    HasPublicID,
+    HasRevisions,
+    UpdatedAtMixin,
+    DeletedAtMixin,
+)
 from inbox.models.calendar import Calendar
 from inbox.models.namespace import Namespace
 from inbox.models.message import Message
@@ -23,6 +37,7 @@ from inbox.util.encoding import unicode_safe_truncate
 from inbox.util.addr import extract_emails_from_text
 
 from nylas.logging import get_logger
+
 log = get_logger()
 
 EVENT_STATUSES = ["confirmed", "tentative", "cancelled"]
@@ -33,17 +48,17 @@ RECURRENCE_MAX_LEN = 255
 REMINDER_MAX_LEN = 255
 OWNER_MAX_LEN = 1024
 MAX_LENS = {
-    'location': LOCATION_MAX_LEN,
-    'owner': OWNER_MAX_LEN,
-    'recurrence': MAX_TEXT_CHARS,
-    'reminders': REMINDER_MAX_LEN,
-    'title': TITLE_MAX_LEN,
-    'raw_data': MAX_TEXT_CHARS
+    "location": LOCATION_MAX_LEN,
+    "owner": OWNER_MAX_LEN,
+    "recurrence": MAX_TEXT_CHARS,
+    "reminders": REMINDER_MAX_LEN,
+    "title": TITLE_MAX_LEN,
+    "raw_data": MAX_TEXT_CHARS,
 }
 
 
 def time_parse(x):
-    return arrow.get(x).to('utc').naive
+    return arrow.get(x).to("utc").naive
 
 
 class FlexibleDateTime(TypeDecorator):
@@ -53,16 +68,16 @@ class FlexibleDateTime(TypeDecorator):
 
     def process_bind_param(self, value, dialect):
         if isinstance(value, arrow.arrow.Arrow):
-            value = value.to('utc').naive
+            value = value.to("utc").naive
         if isinstance(value, datetime):
-            value = arrow.get(value).to('utc').naive
+            value = arrow.get(value).to("utc").naive
         return value
 
     def process_result_value(self, value, dialect):
         if value is None:
             return value
         else:
-            return arrow.get(value).to('utc')
+            return arrow.get(value).to("utc")
 
     def compare_values(self, x, y):
         if isinstance(x, datetime) or isinstance(x, int):
@@ -73,42 +88,46 @@ class FlexibleDateTime(TypeDecorator):
         return x == y
 
 
-class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
-            DeletedAtMixin):
+class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin):
     """Data for events."""
-    API_OBJECT_NAME = 'event'
-    API_MODIFIABLE_FIELDS = ['title', 'description', 'location',
-                             'when', 'participants', 'busy']
 
-    namespace_id = Column(ForeignKey(Namespace.id, ondelete='CASCADE'),
-                          nullable=False)
+    API_OBJECT_NAME = "event"
+    API_MODIFIABLE_FIELDS = [
+        "title",
+        "description",
+        "location",
+        "when",
+        "participants",
+        "busy",
+    ]
+
+    namespace_id = Column(ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False)
 
     namespace = relationship(Namespace, load_on_pending=True)
 
-    calendar_id = Column(ForeignKey(Calendar.id, ondelete='CASCADE'),
-                         nullable=False)
+    calendar_id = Column(ForeignKey(Calendar.id, ondelete="CASCADE"), nullable=False)
     # Note that we configure a delete cascade, rather than
     # passive_deletes=True, in order to ensure that delete revisions are
     # created for events if their parent calendar is deleted.
-    calendar = relationship(Calendar,
-                            backref=backref('events', cascade='delete'),
-                            load_on_pending=True)
+    calendar = relationship(
+        Calendar, backref=backref("events", cascade="delete"), load_on_pending=True
+    )
 
     # A server-provided unique ID.
-    uid = Column(String(767, collation='ascii_general_ci'), nullable=False)
+    uid = Column(String(767, collation="ascii_general_ci"), nullable=False)
 
     # DEPRECATED
     # TODO(emfree): remove
-    provider_name = Column(String(64), nullable=False, default='DEPRECATED')
-    source = Column('source', Enum('local', 'remote'), default='local')
+    provider_name = Column(String(64), nullable=False, default="DEPRECATED")
+    source = Column("source", Enum("local", "remote"), default="local")
 
     raw_data = Column(Text, nullable=False)
 
     title = Column(String(TITLE_MAX_LEN), nullable=True)
     # The database column is named differently for legacy reasons.
-    owner = Column('owner2', String(OWNER_MAX_LEN), nullable=True)
+    owner = Column("owner2", String(OWNER_MAX_LEN), nullable=True)
 
-    description = Column('_description', LONGTEXT, nullable=True)
+    description = Column("_description", LONGTEXT, nullable=True)
     location = Column(String(LOCATION_MAX_LEN), nullable=True)
     busy = Column(Boolean, nullable=False, default=True)
     read_only = Column(Boolean, nullable=False)
@@ -119,37 +138,35 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
     all_day = Column(Boolean, nullable=False)
     is_owner = Column(Boolean, nullable=False, default=True)
     last_modified = Column(FlexibleDateTime, nullable=True)
-    status = Column('status', Enum(*EVENT_STATUSES),
-                    server_default='confirmed')
+    status = Column("status", Enum(*EVENT_STATUSES), server_default="confirmed")
 
     # This column is only used for events that are synced from iCalendar
     # files.
-    message_id = Column(ForeignKey(Message.id, ondelete='CASCADE'),
-                        nullable=True)
+    message_id = Column(ForeignKey(Message.id, ondelete="CASCADE"), nullable=True)
 
-    message = relationship(Message,
-                           backref=backref('events',
-                                           order_by='Event.last_modified',
-                                           cascade='all, delete-orphan'))
+    message = relationship(
+        Message,
+        backref=backref(
+            "events", order_by="Event.last_modified", cascade="all, delete-orphan"
+        ),
+    )
 
-    __table_args__ = (Index('ix_event_ns_uid_calendar_id',
-                            'namespace_id', 'uid', 'calendar_id'),)
+    __table_args__ = (
+        Index("ix_event_ns_uid_calendar_id", "namespace_id", "uid", "calendar_id"),
+    )
 
-    participants = Column(MutableList.as_mutable(BigJSON), default=[],
-                          nullable=True)
+    participants = Column(MutableList.as_mutable(BigJSON), default=[], nullable=True)
 
     # This is only used by the iCalendar invite code. The sequence number
     # stores the version number of the invite.
     sequence_number = Column(Integer, nullable=True)
 
-    visibility = Column(Enum('private', 'public'), nullable=True)
+    visibility = Column(Enum("private", "public"), nullable=True)
 
-    discriminator = Column('type', String(30))
-    __mapper_args__ = {'polymorphic_on': discriminator,
-                       'polymorphic_identity': 'event'}
+    discriminator = Column("type", String(30))
+    __mapper_args__ = {"polymorphic_on": discriminator, "polymorphic_identity": "event"}
 
-    @validates('reminders', 'recurrence', 'owner', 'location', 'title',
-               'raw_data')
+    @validates("reminders", "recurrence", "owner", "location", "title", "raw_data")
     def validate_length(self, key, value):
         if value is None:
             return None
@@ -159,8 +176,8 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
     def when(self):
         if self.all_day:
             # Dates are stored as DateTimes so transform to dates here.
-            start = arrow.get(self.start).to('utc').date()
-            end = arrow.get(self.end).to('utc').date()
+            start = arrow.get(self.start).to("utc").date()
+            end = arrow.get(self.end).to("utc").date()
             return Date(start) if start == end else DateSpan(start, end)
         else:
             start = self.start
@@ -169,19 +186,19 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
 
     @when.setter
     def when(self, when):
-        if 'time' in when:
-            self.start = self.end = time_parse(when['time'])
+        if "time" in when:
+            self.start = self.end = time_parse(when["time"])
             self.all_day = False
-        elif 'start_time' in when:
-            self.start = time_parse(when['start_time'])
-            self.end = time_parse(when['end_time'])
+        elif "start_time" in when:
+            self.start = time_parse(when["start_time"])
+            self.end = time_parse(when["end_time"])
             self.all_day = False
-        elif 'date' in when:
-            self.start = self.end = date_parse(when['date'])
+        elif "date" in when:
+            self.start = self.end = date_parse(when["date"])
             self.all_day = True
-        elif 'start_date' in when:
-            self.start = date_parse(when['start_date'])
-            self.end = date_parse(when['end_date'])
+        elif "start_date" in when:
+            self.start = date_parse(when["start_date"])
+            self.end = date_parse(when["end_date"])
             self.all_day = True
 
     def _merge_participant_attributes(self, left, right):
@@ -190,9 +207,9 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
             # Special cases:
             if right[attribute] is None:
                 continue
-            elif right[attribute] == '':
+            elif right[attribute] == "":
                 continue
-            elif right['status'] == 'noreply':
+            elif right["status"] == "noreply":
                 continue
             else:
                 left[attribute] = right[attribute]
@@ -217,18 +234,18 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
         # hash only if the email is None.
         self_hash = {}
         for participant in self.participants:
-            email = participant.get('email')
-            name = participant.get('name')
+            email = participant.get("email")
+            name = participant.get("name")
             if email is not None:
-                participant['email'] = participant['email'].lower()
+                participant["email"] = participant["email"].lower()
                 self_hash[email] = participant
             elif name is not None:
                 # We have a name without an email.
                 self_hash[name] = participant
 
         for participant in event.participants:
-            email = participant.get('email')
-            name = participant.get('name')
+            email = participant.get("email")
+            name = participant.get("name")
 
             # This is the tricky part --- we only want to store one entry per
             # participant --- we check if there's an email we already know, if
@@ -237,18 +254,18 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
             # always have an email address.
             # - karim
             if email is not None:
-                participant['email'] = participant['email'].lower()
+                participant["email"] = participant["email"].lower()
                 if email in self_hash:
-                    self_hash[email] =\
-                        self._merge_participant_attributes(self_hash[email],
-                                                           participant)
+                    self_hash[email] = self._merge_participant_attributes(
+                        self_hash[email], participant
+                    )
                 else:
                     self_hash[email] = participant
             elif name is not None:
                 if name in self_hash:
-                    self_hash[name] =\
-                        self._merge_participant_attributes(self_hash[name],
-                                                           participant)
+                    self_hash[name] = self._merge_participant_attributes(
+                        self_hash[name], participant
+                    )
                 else:
                     self_hash[name] = participant
 
@@ -289,15 +306,18 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
 
     @property
     def recurring(self):
-        if self.recurrence and self.recurrence != '':
+        if self.recurrence and self.recurrence != "":
             try:
                 r = ast.literal_eval(self.recurrence)
                 if isinstance(r, str):
                     r = [r]
                 return r
             except (ValueError, SyntaxError):
-                log.warn('Invalid RRULE entry for event', event_id=self.id,
-                         raw_rrule=self.recurrence)
+                log.warn(
+                    "Invalid RRULE entry for event",
+                    event_id=self.id,
+                    raw_rrule=self.recurrence,
+                )
                 return []
         return []
 
@@ -310,7 +330,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
         if len(parsed_owner) == 0:
             return None
 
-        if parsed_owner[1] == '':
+        if parsed_owner[1] == "":
             return None
 
         return parsed_owner[1]
@@ -322,7 +342,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
         if len(parsed_owner) == 0:
             return None
 
-        if parsed_owner[0] == '':
+        if parsed_owner[0] == "":
             return None
 
         return parsed_owner[0]
@@ -337,19 +357,19 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
 
     @property
     def cancelled(self):
-        return self.status == 'cancelled'
+        return self.status == "cancelled"
 
     @cancelled.setter
     def cancelled(self, is_cancelled):
         if is_cancelled:
-            self.status = 'cancelled'
+            self.status = "cancelled"
         else:
-            self.status = 'confirmed'
+            self.status = "confirmed"
 
     @property
     def calendar_event_link(self):
         try:
-            return json.loads(self.raw_data)['htmlLink']
+            return json.loads(self.raw_data)["htmlLink"]
         except (ValueError, KeyError):
             return
 
@@ -372,11 +392,11 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
         # Decide whether or not to instantiate a RecurringEvent/Override
         # based on the kwargs we get.
         cls_ = cls
-        recurrence = kwargs.get('recurrence')
-        master_event_uid = kwargs.get('master_event_uid')
+        recurrence = kwargs.get("recurrence")
+        master_event_uid = kwargs.get("master_event_uid")
         if recurrence and master_event_uid:
             raise ValueError("Event can't have both recurrence and master UID")
-        if recurrence and recurrence != '':
+        if recurrence and recurrence != "":
             cls_ = RecurringEvent
         if master_event_uid:
             cls_ = RecurringEventOverride
@@ -389,33 +409,35 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin,
                 del kwargs[k]
         super(Event, self).__init__(**kwargs)
 
+
 # For API querying performance - default sort order is event.start ASC
-Index('idx_namespace_id_started', Event.namespace_id, Event.start)
+Index("idx_namespace_id_started", Event.namespace_id, Event.start)
 
 
 class RecurringEvent(Event):
     """ Represents an individual one-off instance of a recurring event,
         including cancelled events.
     """
-    __mapper_args__ = {'polymorphic_identity': 'recurringevent'}
+
+    __mapper_args__ = {"polymorphic_identity": "recurringevent"}
     __table_args__ = None
 
-    id = Column(ForeignKey('event.id', ondelete='CASCADE'),
-                primary_key=True)
+    id = Column(ForeignKey("event.id", ondelete="CASCADE"), primary_key=True)
     rrule = Column(String(RECURRENCE_MAX_LEN))
     exdate = Column(Text)  # There can be a lot of exception dates
     until = Column(FlexibleDateTime, nullable=True)
     start_timezone = Column(String(35))
 
     def __init__(self, **kwargs):
-        self.start_timezone = kwargs.pop('original_start_tz', None)
-        kwargs['recurrence'] = repr(kwargs['recurrence'])
+        self.start_timezone = kwargs.pop("original_start_tz", None)
+        kwargs["recurrence"] = repr(kwargs["recurrence"])
         super(RecurringEvent, self).__init__(**kwargs)
         try:
             self.unwrap_rrule()
         except Exception as e:
-            log.error("Error parsing RRULE entry", event_id=self.id,
-                      error=e, exc_info=True)
+            log.error(
+                "Error parsing RRULE entry", event_id=self.id, error=e, exc_info=True
+            )
 
     # FIXME @karim: use an overrided property instead of a reconstructor.
     @reconstructor
@@ -423,27 +445,33 @@ class RecurringEvent(Event):
         try:
             self.unwrap_rrule()
         except Exception as e:
-            log.error("Error parsing stored RRULE entry", event_id=self.id,
-                      error=e, exc_info=True)
+            log.error(
+                "Error parsing stored RRULE entry",
+                event_id=self.id,
+                error=e,
+                exc_info=True,
+            )
 
     def inflate(self, start=None, end=None):
         # Convert a RecurringEvent into a series of InflatedEvents
         # by expanding its RRULE into a series of start times.
         from inbox.events.recurring import get_start_times
+
         occurrences = get_start_times(self, start, end)
         return [InflatedEvent(self, o) for o in occurrences]
 
     def unwrap_rrule(self):
         from inbox.events.util import parse_rrule_datetime
+
         # Unwraps the RRULE list of strings into RecurringEvent properties.
         for item in self.recurring:
-            if item.startswith('RRULE'):
+            if item.startswith("RRULE"):
                 self.rrule = item
-                if 'UNTIL' in item:
-                    for p in item.split(';'):
-                        if p.startswith('UNTIL'):
+                if "UNTIL" in item:
+                    for p in item.split(";"):
+                        if p.startswith("UNTIL"):
                             self.until = parse_rrule_datetime(p[6:])
-            elif item.startswith('EXDATE'):
+            elif item.startswith("EXDATE"):
                 self.exdate = item
 
     def all_events(self, start=None, end=None):
@@ -461,7 +489,8 @@ class RecurringEvent(Event):
         # may show up in a query for calendar A.
         # (https://phab.nylas.com/T3420)
         overrides = overrides.filter(
-            RecurringEventOverride.calendar_id == self.calendar_id)
+            RecurringEventOverride.calendar_id == self.calendar_id
+        )
 
         events = list(overrides)
         overridden_starts = [e.original_start_time for e in events]
@@ -489,19 +518,22 @@ class RecurringEventOverride(Event):
     """ Represents an individual one-off instance of a recurring event,
         including cancelled events.
     """
-    id = Column(ForeignKey('event.id', ondelete='CASCADE'),
-                primary_key=True)
-    __mapper_args__ = {'polymorphic_identity': 'recurringeventoverride',
-                       'inherit_condition': (id == Event.id)}
+
+    id = Column(ForeignKey("event.id", ondelete="CASCADE"), primary_key=True)
+    __mapper_args__ = {
+        "polymorphic_identity": "recurringeventoverride",
+        "inherit_condition": (id == Event.id),
+    }
     __table_args__ = None
 
-    master_event_id = Column(ForeignKey('event.id', ondelete='CASCADE'))
-    master_event_uid = Column(String(767, collation='ascii_general_ci'),
-                              index=True)
+    master_event_id = Column(ForeignKey("event.id", ondelete="CASCADE"))
+    master_event_uid = Column(String(767, collation="ascii_general_ci"), index=True)
     original_start_time = Column(FlexibleDateTime)
-    master = relationship(RecurringEvent, foreign_keys=[master_event_id],
-                          backref=backref('overrides', lazy="dynamic",
-                                          cascade='all, delete-orphan'))
+    master = relationship(
+        RecurringEvent,
+        foreign_keys=[master_event_id],
+        backref=backref("overrides", lazy="dynamic", cascade="all, delete-orphan"),
+    )
 
     def update(self, event):
         super(RecurringEventOverride, self).update(event)
@@ -517,9 +549,10 @@ class InflatedEvent(Event):
         These are transient objects that should never be committed to the
         database.
     """
-    __mapper_args__ = {'polymorphic_identity': 'inflatedevent'}
-    __tablename__ = 'event'
-    __table_args__ = {'extend_existing': True}
+
+    __mapper_args__ = {"polymorphic_identity": "inflatedevent"}
+    __tablename__ = "event"
+    __table_args__ = {"extend_existing": True}
 
     def __init__(self, event, instance_start):
         self.master = event
@@ -535,7 +568,7 @@ class InflatedEvent(Event):
     def set_start_end(self, start):
         # get the length from the master event
         length = self.master.length
-        self.start = start.to('utc')
+        self.start = start.to("utc")
         self.end = self.start + length
 
     def update(self, master):
@@ -559,4 +592,5 @@ def insert_warning(mapper, connection, target):
     log.warn("InflatedEvent {} shouldn't be committed".format(target))
     raise Exception("InflatedEvent should not be committed")
 
-event.listen(InflatedEvent, 'before_insert', insert_warning)
+
+event.listen(InflatedEvent, "before_insert", insert_warning)

@@ -12,6 +12,7 @@ from inbox.util.encoding import unicode_safe_truncate
 
 class HasRevisions(ABCMixin):
     """Mixin for tables that should be versioned in the transaction log."""
+
     @property
     def versioned_relationships(self):
         """
@@ -77,12 +78,12 @@ class HasRevisions(ABCMixin):
 
 
 class HasPublicID(object):
-    public_id = Column(Base36UID, nullable=False,
-                       index=True, default=generate_public_id)
+    public_id = Column(
+        Base36UID, nullable=False, index=True, default=generate_public_id
+    )
 
 
 class AddressComparator(Comparator):
-
     def __eq__(self, other):
         return self.__clause_element__() == canonicalize_address(other)
 
@@ -94,7 +95,6 @@ class AddressComparator(Comparator):
 
 
 class CaseInsensitiveComparator(Comparator):
-
     def __eq__(self, other):
         return func.lower(self.__clause_element__()) == func.lower(other)
 
@@ -112,10 +112,11 @@ class HasEmailAddress(object):
     equivalent.
 
     """
-    _raw_address = Column(String(MAX_INDEXABLE_LENGTH),
-                          nullable=True, index=True)
-    _canonicalized_address = Column(String(MAX_INDEXABLE_LENGTH),
-                                    nullable=True, index=True)
+
+    _raw_address = Column(String(MAX_INDEXABLE_LENGTH), nullable=True, index=True)
+    _canonicalized_address = Column(
+        String(MAX_INDEXABLE_LENGTH), nullable=True, index=True
+    )
 
     @hybrid_property
     def email_address(self):
@@ -137,13 +138,17 @@ class HasEmailAddress(object):
 
 
 class CreatedAtMixin(object):
-    created_at = Column(DateTime, server_default=func.now(),
-                        nullable=False, index=True)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False, index=True)
 
 
 class UpdatedAtMixin(object):
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow, nullable=False, index=True)
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+        index=True,
+    )
 
 
 class DeletedAtMixin(object):
@@ -163,5 +168,6 @@ class HasRunState(ABCMixin):
     sync_enabled = abc.abstractproperty()
 
     # Database-level tracking of whether the sync should be running.
-    sync_should_run = Column(Boolean, default=True, nullable=False,
-                             server_default=sql.expression.true())
+    sync_should_run = Column(
+        Boolean, default=True, nullable=False, server_default=sql.expression.true()
+    )

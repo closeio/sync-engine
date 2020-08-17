@@ -14,15 +14,12 @@ from inbox.models.session import session_scope
 
 from nylas.logging import get_logger, create_error_log_context
 from nylas.logging.sentry import log_uncaught_errors
+
 log = get_logger()
 
 BACKOFF_DELAY = 30  # seconds to wait before retrying after a failure
 
-TRANSIENT_NETWORK_ERRS = (
-    socket.timeout,
-    TimeoutError,
-    socket.error,
-    ssl.SSLError)
+TRANSIENT_NETWORK_ERRS = (socket.timeout, TimeoutError, socket.error, ssl.SSLError)
 
 TRANSIENT_MYSQL_MESSAGES = (
     "try restarting transaction",
@@ -30,11 +27,17 @@ TRANSIENT_MYSQL_MESSAGES = (
     "Lost connection to MySQL server",
     "MySQL server has gone away",
     "Can't connect to MySQL server",
-    "Max connect timeout reached")
+    "Max connect timeout reached",
+)
 
 
-def retry(func, retry_classes=None, fail_classes=None, exc_callback=None,
-          backoff_delay=BACKOFF_DELAY):
+def retry(
+    func,
+    retry_classes=None,
+    fail_classes=None,
+    exc_callback=None,
+    backoff_delay=BACKOFF_DELAY,
+):
     """
     Executes the callable func, retrying on uncaught exceptions matching the
     class filters.
@@ -52,10 +55,10 @@ def retry(func, retry_classes=None, fail_classes=None, exc_callback=None,
         Configures what not to retry on. If specified, func is /not/ retried if
         one of these exceptions is raised.
     """
-    if (fail_classes and retry_classes and
-            set(fail_classes).intersection(retry_classes)):
-        raise ValueError("Can't include exception classes in both fail_on and "
-                         "retry_on")
+    if fail_classes and retry_classes and set(fail_classes).intersection(retry_classes):
+        raise ValueError(
+            "Can't include exception classes in both fail_on and " "retry_on"
+        )
 
     def should_retry_on(exc):
         if fail_classes and isinstance(exc, tuple(fail_classes)):
@@ -87,9 +90,15 @@ def retry(func, retry_classes=None, fail_classes=None, exc_callback=None,
     return wrapped
 
 
-def retry_with_logging(func, logger=None, retry_classes=None,
-                       fail_classes=None, account_id=None, provider=None,
-                       backoff_delay=BACKOFF_DELAY):
+def retry_with_logging(
+    func,
+    logger=None,
+    retry_classes=None,
+    fail_classes=None,
+    account_id=None,
+    provider=None,
+    backoff_delay=BACKOFF_DELAY,
+):
 
     # Sharing the network_errs counter between invocations of callback by
     # placing it inside an array:
@@ -104,7 +113,9 @@ def retry_with_logging(func, logger=None, retry_classes=None,
 
         if isinstance(e, _mysql_exceptions.OperationalError):
             mysql_error = e
-        elif isinstance(e, StatementError) and isinstance(e.orig, _mysql_exceptions.OperationalError):
+        elif isinstance(e, StatementError) and isinstance(
+            e.orig, _mysql_exceptions.OperationalError
+        ):
             mysql_error = e.orig
 
         if mysql_error:
@@ -128,12 +139,20 @@ def retry_with_logging(func, logger=None, retry_classes=None,
                         account.update_sync_error(e)
                         db_session.commit()
             except:
-                log.error('Error saving sync_error to account object',
-                          account_id=account_id,
-                          **create_error_log_context(sys.exc_info()))
+                log.error(
+                    "Error saving sync_error to account object",
+                    account_id=account_id,
+                    **create_error_log_context(sys.exc_info())
+                )
 
-        log_uncaught_errors(logger, account_id=account_id, provider=provider,
-                            occurrences=occurrences[0])
+        log_uncaught_errors(
+            logger, account_id=account_id, provider=provider, occurrences=occurrences[0]
+        )
 
-    return retry(func, exc_callback=callback, retry_classes=retry_classes,
-                 fail_classes=fail_classes, backoff_delay=backoff_delay)()
+    return retry(
+        func,
+        exc_callback=callback,
+        retry_classes=retry_classes,
+        fail_classes=fail_classes,
+        backoff_delay=backoff_delay,
+    )()

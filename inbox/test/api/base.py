@@ -5,7 +5,8 @@ from base64 import b64encode
 
 def new_api_client(db, namespace):
     from inbox.api.srv import app
-    app.config['TESTING'] = True
+
+    app.config["TESTING"] = True
     with app.test_client() as c:
         return TestAPIClient(c, namespace.public_id)
 
@@ -13,7 +14,8 @@ def new_api_client(db, namespace):
 @yield_fixture
 def api_client(db, default_namespace):
     from inbox.api.srv import app
-    app.config['TESTING'] = True
+
+    app.config["TESTING"] = True
     with app.test_client() as c:
         yield TestAPIClient(c, default_namespace.public_id)
 
@@ -29,9 +31,8 @@ class TestAPIClient(object):
 
     def __init__(self, test_client, default_namespace_public_id):
         self.client = test_client
-        credential = '{}:'.format(default_namespace_public_id)
-        self.auth_header = {'Authorization': 'Basic {}'
-                            .format(b64encode(credential))}
+        credential = "{}:".format(default_namespace_public_id)
+        self.auth_header = {"Authorization": "Basic {}".format(b64encode(credential))}
 
     def get_raw(self, path, headers={}):
         headers.update(self.auth_header)
@@ -51,10 +52,8 @@ class TestAPIClient(object):
 
     def put_data(self, path, data, headers={}):
         headers.update(self.auth_header)
-        return self.client.put(path, headers=headers,
-                               data=json.dumps(data))
+        return self.client.put(path, headers=headers, data=json.dumps(data))
 
     def delete(self, path, data=None, headers={}):
         headers.update(self.auth_header)
-        return self.client.delete(path, headers=headers,
-                                  data=json.dumps(data))
+        return self.client.delete(path, headers=headers, data=json.dumps(data))

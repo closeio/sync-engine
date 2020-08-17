@@ -16,15 +16,16 @@ def add_fake_imap_account(db_session, provider, email_address, password):
 @pytest.fixture
 def fake_imap_accounts(db):
     imap_account_data = {
-        'yahoo': 'cypresstest@yahoo.com',
-        'aol': 'benbitdit@aol.com',
-        'icloud': 'inbox.watchdog@icloud.com',
-        'imap': 'heyhey@mycustomimap.com',
+        "yahoo": "cypresstest@yahoo.com",
+        "aol": "benbitdit@aol.com",
+        "icloud": "inbox.watchdog@icloud.com",
+        "imap": "heyhey@mycustomimap.com",
     }
-    accounts = {'gmail': add_fake_gmail_account(db.session)}
+    accounts = {"gmail": add_fake_gmail_account(db.session)}
     for provider, email in imap_account_data.items():
-        accounts[provider] = add_fake_imap_account(db.session, provider, email,
-                                                   'sEcr3T')
+        accounts[provider] = add_fake_imap_account(
+            db.session, provider, email, "sEcr3T"
+        )
     return accounts
 
 

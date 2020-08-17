@@ -6,28 +6,29 @@ from datetime import datetime, timedelta
 
 from inbox.models.calendar import Calendar
 from inbox.test.util.base import webhooks_client
-__all__ = ['webhooks_client']
 
-CALENDAR_LIST_PATH = '/calendar_list_update/{}'
-CALENDAR_PATH = '/calendar_update/{}'
+__all__ = ["webhooks_client"]
 
-ACCOUNT_WATCH_UUID = 'this_is_a_unique_identifier'
-CALENDAR_WATCH_UUID = 'this_is_a_unique_identifier'  # lol
+CALENDAR_LIST_PATH = "/calendar_list_update/{}"
+CALENDAR_PATH = "/calendar_update/{}"
+
+ACCOUNT_WATCH_UUID = "this_is_a_unique_identifier"
+CALENDAR_WATCH_UUID = "this_is_a_unique_identifier"  # lol
 
 SYNC_HEADERS = {
-    'X-Goog-Channel-Id': 'id',
-    'X-Goog-Message-Number': 1,
-    'X-Goog-Resource-Id': 'not relevant',
-    'X-Goog-Resource-State': 'sync',
-    'X-Goog-Resource-URI': 'resource/location'
+    "X-Goog-Channel-Id": "id",
+    "X-Goog-Message-Number": 1,
+    "X-Goog-Resource-Id": "not relevant",
+    "X-Goog-Resource-State": "sync",
+    "X-Goog-Resource-URI": "resource/location",
 }
 
 UPDATE_HEADERS = {
-    'X-Goog-Channel-Id': 'id',
-    'X-Goog-Message-Number': 2,
-    'X-Goog-Resource-Id': 'not relevant',
-    'X-Goog-Resource-State': 'update',
-    'X-Goog-Resource-URI': 'resource/location'
+    "X-Goog-Channel-Id": "id",
+    "X-Goog-Message-Number": 2,
+    "X-Goog-Resource-Id": "not relevant",
+    "X-Goog-Resource-State": "update",
+    "X-Goog-Resource-URI": "resource/location",
 }
 
 WATCH_EXPIRATION = 1426325213000  # 3/14/15 - utc TS in milliseconds
@@ -44,10 +45,12 @@ def watched_account(db, default_account):
 
 @pytest.fixture
 def watched_calendar(db, default_namespace):
-    calendar = Calendar(name='Colander',
-                        uid='this_is_a_uid',
-                        read_only=True,
-                        namespace_id=default_namespace.id)
+    calendar = Calendar(
+        name="Colander",
+        uid="this_is_a_uid",
+        read_only=True,
+        namespace_id=default_namespace.id,
+    )
 
     calendar.new_event_watch(WATCH_EXPIRATION)
     db.session.add(calendar)
@@ -137,8 +140,7 @@ def test_should_update_logic_no_push(db, default_account, calendar):
     # Updated recently - should not update
     default_account.last_calendar_list_sync = ten_seconds_ago
     calendar.last_synced = ten_seconds_ago
-    assert not default_account.should_update_calendars(ten_minutes,
-                                                       poll_frequency)
+    assert not default_account.should_update_calendars(ten_minutes, poll_frequency)
     assert not calendar.should_update_events(ten_minutes, poll_frequency)
 
 
@@ -154,8 +156,7 @@ def test_needs_new_watch_logic(db, watched_account, watched_calendar):
     assert not watched_calendar.needs_new_watch()
 
 
-def test_receive_sync_message(db, webhooks_client,
-                              watched_account, watched_calendar):
+def test_receive_sync_message(db, webhooks_client, watched_account, watched_calendar):
     # Sync messages can basically be ignored
     # (see https://developers.google.com/google-apps/calendar/v3/push#sync)
 
@@ -177,7 +178,7 @@ def test_calendar_update(db, webhooks_client, watched_account):
     watched_account.gpush_calendar_list_last_ping = datetime(2010, 1, 1)
 
     headers = UPDATE_HEADERS.copy()
-    headers['X-Goog-Channel-Id'] = ACCOUNT_WATCH_UUID
+    headers["X-Goog-Channel-Id"] = ACCOUNT_WATCH_UUID
     r = webhooks_client.post_data(calendar_path, {}, headers)
     assert r.status_code == 200
     db.session.refresh(watched_account)
@@ -187,12 +188,12 @@ def test_calendar_update(db, webhooks_client, watched_account):
     r = webhooks_client.post_data(unknown_id_path, {}, headers)
     assert r.status_code == 404  # account not found
 
-    invalid_id_path = CALENDAR_LIST_PATH.format('invalid_id')
+    invalid_id_path = CALENDAR_LIST_PATH.format("invalid_id")
     r = webhooks_client.post_data(invalid_id_path, {}, headers)
     assert r.status_code == 400
 
     bad_headers = UPDATE_HEADERS.copy()
-    del bad_headers['X-Goog-Resource-State']
+    del bad_headers["X-Goog-Resource-State"]
     r = webhooks_client.post_data(calendar_path, {}, bad_headers)
     assert r.status_code == 400
 
@@ -205,7 +206,7 @@ def test_event_update(db, webhooks_client, watched_calendar):
     watched_calendar.gpush_last_ping = datetime(2010, 1, 1)
 
     headers = UPDATE_HEADERS.copy()
-    headers['X-Goog-Channel-Id'] = CALENDAR_WATCH_UUID
+    headers["X-Goog-Channel-Id"] = CALENDAR_WATCH_UUID
     r = webhooks_client.post_data(event_path, {}, headers)
     assert r.status_code == 200
     assert len(limitlion.throttle.mock_calls) == 1
@@ -226,11 +227,11 @@ def test_event_update(db, webhooks_client, watched_calendar):
     r = webhooks_client.post_data(bad_event_path, {}, headers)
     assert r.status_code == 404  # calendar not found
 
-    invalid_id_path = CALENDAR_PATH.format('invalid_id')
+    invalid_id_path = CALENDAR_PATH.format("invalid_id")
     r = webhooks_client.post_data(invalid_id_path, {}, headers)
     assert r.status_code == 400
 
     bad_headers = UPDATE_HEADERS.copy()
-    del bad_headers['X-Goog-Resource-State']
+    del bad_headers["X-Goog-Resource-State"]
     r = webhooks_client.post_data(event_path, {}, bad_headers)
     assert r.status_code == 400

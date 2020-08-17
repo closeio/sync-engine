@@ -8,12 +8,12 @@ import time
 from inbox.config import config
 
 from nylas.logging import get_logger
+
 log = get_logger()
 
 
 def _absolute_path(relative_path):
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                        relative_path)
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), relative_path)
 
 
 def check_sudo():
@@ -48,7 +48,7 @@ $ sudo dpkg-reconfigure --frontend noninteractive tzdata
 
 
 def check_tz():
-    if time.tzname[time.daylight] != 'UTC':
+    if time.tzname[time.daylight] != "UTC":
         sys.exit(_TZ_ERROR_TEXT)
 
 
@@ -63,16 +63,13 @@ def load_overrides(file_path, loaded_config=config):
         try:
             overrides = json.load(data_file)
         except ValueError:
-            sys.exit('Failed parsing configuration file at {}'
-                     .format(file_path))
+            sys.exit("Failed parsing configuration file at {}".format(file_path))
         if not overrides:
-            log.debug('No config overrides found.')
+            log.debug("No config overrides found.")
             return
-        assert isinstance(overrides, dict), \
-            'overrides must be dictionary'
+        assert isinstance(overrides, dict), "overrides must be dictionary"
         loaded_config.update(overrides)
-        log.debug('Imported config overrides {}'.format(
-            overrides.keys()))
+        log.debug("Imported config overrides {}".format(overrides.keys()))
 
 
 def preflight():
@@ -82,4 +79,5 @@ def preflight():
     # Print a traceback when the process receives signal SIGSEGV, SIGFPE,
     # SIGABRT, SIGBUS or SIGILL
     import faulthandler
+
     faulthandler.enable()

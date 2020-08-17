@@ -10,7 +10,6 @@ from inbox.util.concurrency import retry_with_logging
 
 
 class MockLogger(object):
-
     def __init__(self):
         self.call_count = 0
 
@@ -19,7 +18,7 @@ class MockLogger(object):
 
 
 class FailingFunction(object):
-    __name__ = 'FailingFunction'
+    __name__ = "FailingFunction"
 
     def __init__(self, exc_type, max_executions=3, delay=0):
         self.exc_type = exc_type
@@ -35,7 +34,7 @@ class FailingFunction(object):
         return
 
 
-@pytest.mark.usefixtures('mock_gevent_sleep')
+@pytest.mark.usefixtures("mock_gevent_sleep")
 def test_retry_with_logging():
     logger = MockLogger()
     failing_function = FailingFunction(ValueError)
@@ -57,35 +56,43 @@ def test_selective_retry():
     logger = MockLogger()
     failing_function = FailingFunction(ValueError)
     with pytest.raises(ValueError):
-        retry_with_logging(failing_function, logger=logger,
-                           fail_classes=[ValueError])
+        retry_with_logging(failing_function, logger=logger, fail_classes=[ValueError])
     assert logger.call_count == 0
     assert failing_function.call_count == 1
 
 
-@pytest.mark.usefixtures('mock_gevent_sleep')
+@pytest.mark.usefixtures("mock_gevent_sleep")
 def test_no_logging_until_many_transient_error():
     transient = [
         socket.timeout,
         socket.error,
         _mysql_exceptions.OperationalError(
             "(_mysql_exceptions.OperationalError) (1213, 'Deadlock "
-            "found when trying to get lock; try restarting transaction')"),
+            "found when trying to get lock; try restarting transaction')"
+        ),
         _mysql_exceptions.OperationalError(
             "(_mysql_exceptions.OperationalError) Lost connection to MySQL "
-            "server during query"),
+            "server during query"
+        ),
         _mysql_exceptions.OperationalError(
-            "(_mysql_exceptions.OperationalError) MySQL server has gone away."),
+            "(_mysql_exceptions.OperationalError) MySQL server has gone away."
+        ),
         _mysql_exceptions.OperationalError(
             "(_mysql_exceptions.OperationalError) Can't connect to MySQL "
-            "server on 127.0.0.1"),
+            "server on 127.0.0.1"
+        ),
         _mysql_exceptions.OperationalError(
             "(_mysql_exceptions.OperationalError) Max connect timeout reached "
-            "while reaching hostgroup 71"),
+            "while reaching hostgroup 71"
+        ),
         StatementError(
-            message="?", statement="SELECT *", params={},
+            message="?",
+            statement="SELECT *",
+            params={},
             orig=_mysql_exceptions.OperationalError(
-                "(_mysql_exceptions.OperationalError) MySQL server has gone away.")),
+                "(_mysql_exceptions.OperationalError) MySQL server has gone away."
+            ),
+        ),
     ]
 
     for transient_exc in transient:
@@ -93,7 +100,7 @@ def test_no_logging_until_many_transient_error():
         failing_function = FailingFunction(transient_exc, max_executions=2)
         retry_with_logging(failing_function, logger=logger)
 
-        assert logger.call_count == 0, '{} should not be logged'.format(transient_exc)
+        assert logger.call_count == 0, "{} should not be logged".format(transient_exc)
         assert failing_function.call_count == 2
 
         failing_function = FailingFunction(socket.error, max_executions=21)
@@ -105,22 +112,27 @@ def test_no_logging_until_many_transient_error():
         failing_function = FailingFunction(socket.error, max_executions=2)
 
 
-@pytest.mark.usefixtures('mock_gevent_sleep')
+@pytest.mark.usefixtures("mock_gevent_sleep")
 def test_logging_on_critical_error():
     critical = [
         TypeError("Example TypeError"),
+        StatementError(message="?", statement="SELECT *", params={}, orig=None),
         StatementError(
-            message="?", statement="SELECT *", params={}, orig=None),
-        StatementError(
-            message="?", statement="SELECT *", params={},
+            message="?",
+            statement="SELECT *",
+            params={},
             orig=_mysql_exceptions.OperationalError(
                 "(_mysql_exceptions.OperationalError) Incorrect string value "
-                "'\\xE7\\x(a\\x84\\xE5'")),
+                "'\\xE7\\x(a\\x84\\xE5'"
+            ),
+        ),
         _mysql_exceptions.OperationalError(
             "(_mysql_exceptions.OperationalError) Incorrect string value "
-            "'\\xE7\\x(a\\x84\\xE5'"),
+            "'\\xE7\\x(a\\x84\\xE5'"
+        ),
         _mysql_exceptions.IntegrityError(
-            "(_mysql_exceptions.IntegrityError) Column not found"),
+            "(_mysql_exceptions.IntegrityError) Column not found"
+        ),
     ]
 
     for critical_exc in critical:
@@ -128,5 +140,5 @@ def test_logging_on_critical_error():
         failing_function = FailingFunction(critical_exc, max_executions=2)
         retry_with_logging(failing_function, logger=logger)
 
-        assert logger.call_count == 1, '{} should be logged'.format(critical_exc)
+        assert logger.call_count == 1, "{} should be logged".format(critical_exc)
         assert failing_function.call_count == 2

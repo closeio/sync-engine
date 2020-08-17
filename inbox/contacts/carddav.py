@@ -25,19 +25,20 @@ import lxml.etree as ET
 
 
 # Fake it till you make it
-USER_AGENT = "User-Agent: DAVKit/4.0.1 (730); CalendarStore/4.0.1 " + \
-    "(973); iCal/4.0.1 (1374); Mac OS X/10.6.2 (10C540)"
+USER_AGENT = (
+    "User-Agent: DAVKit/4.0.1 (730); CalendarStore/4.0.1 "
+    + "(973); iCal/4.0.1 (1374); Mac OS X/10.6.2 (10C540)"
+)
 
 
 def supports_carddav(url):
     """ Basic verification that the endpoint supports CardDav
     """
     response = requests.request(
-        'OPTIONS', url,
-        headers={'User-Agent': USER_AGENT,
-                 'Depth': '1'})
-    response.raise_for_status()   # if not 2XX status
-    if 'addressbook' not in response.headers.get('DAV', ''):
+        "OPTIONS", url, headers={"User-Agent": USER_AGENT, "Depth": "1"}
+    )
+    response.raise_for_status()  # if not 2XX status
+    if "addressbook" not in response.headers.get("DAV", ""):
         raise Exception("URL is not a CardDAV resource")
 
 
@@ -48,8 +49,7 @@ class CardDav(object):
         self.session = requests.Session()
         self.session.auth = (email_address, password)
         self.session.verify = True  # verify SSL certs
-        self.session.headers.update({'User-Agent': USER_AGENT,
-                                     'Depth': '1'})
+        self.session.headers.update({"User-Agent": USER_AGENT, "Depth": "1"})
         self.base_url = base_url
 
     def get_principal_url(self):
@@ -62,9 +62,7 @@ class CardDav(object):
                 </A:prop>
             </A:propfind>
         """
-        response = self.session.request('PROPFIND',
-                                        self.base_url,
-                                        data=payload)
+        response = self.session.request("PROPFIND", self.base_url, data=payload)
         response.raise_for_status()
 
         xml = response.content
@@ -84,9 +82,7 @@ class CardDav(object):
         </D:propfind>
         """
 
-        response = self.session.request('PROPFIND',
-                                        url,
-                                        data=payload)
+        response = self.session.request("PROPFIND", url, data=payload)
         response.raise_for_status()
         xml = response.content
         element = ET.XML(xml)
@@ -124,9 +120,7 @@ class CardDav(object):
        </C:addressbook-query>
         """
 
-        response = self.session.request('REPORT',
-                                        url,
-                                        data=payload,)
+        response = self.session.request("REPORT", url, data=payload,)
 
         response.raise_for_status()
         return response.content

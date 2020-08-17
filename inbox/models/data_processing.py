@@ -15,10 +15,10 @@ import zlib
 class DataProcessingCache(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     """Cached data used in data processing
     """
-    namespace_id = Column(ForeignKey(Namespace.id, ondelete='CASCADE'),
-                          nullable=False)
-    _contact_rankings = Column('contact_rankings', MEDIUMBLOB)
-    _contact_groups = Column('contact_groups', MEDIUMBLOB)
+
+    namespace_id = Column(ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False)
+    _contact_rankings = Column("contact_rankings", MEDIUMBLOB)
+    _contact_groups = Column("contact_groups", MEDIUMBLOB)
     contact_rankings_last_updated = Column(DateTime)
     contact_groups_last_updated = Column(DateTime)
 
@@ -31,8 +31,7 @@ class DataProcessingCache(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
     @contact_rankings.setter
     def contact_rankings(self, value):
-        self._contact_rankings = \
-            zlib.compress(json.dumps(value).encode('utf-8'))
+        self._contact_rankings = zlib.compress(json.dumps(value).encode("utf-8"))
         self.contact_rankings_last_updated = datetime.datetime.now()
 
     @property
@@ -44,7 +43,7 @@ class DataProcessingCache(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
     @contact_groups.setter
     def contact_groups(self, value):
-        self._contact_groups = zlib.compress(json.dumps(value).encode('utf-8'))
+        self._contact_groups = zlib.compress(json.dumps(value).encode("utf-8"))
         self.contact_groups_last_updated = datetime.datetime.now()
 
-    __table_args__ = (UniqueConstraint('namespace_id'),)
+    __table_args__ = (UniqueConstraint("namespace_id"),)

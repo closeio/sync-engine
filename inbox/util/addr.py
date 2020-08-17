@@ -25,9 +25,9 @@ def canonicalize_address(addr):
         return addr
     local_part = parsed_address.mailbox.lower()
     hostname = parsed_address.hostname.lower()
-    if hostname in ('gmail.com', 'googlemail.com'):
-        local_part = local_part.replace('.', '')
-    return '@'.join((local_part, hostname))
+    if hostname in ("gmail.com", "googlemail.com"):
+        local_part = local_part.replace(".", "")
+    return "@".join((local_part, hostname))
 
 
 def parse_mimepart_address_header(mimepart, header_name):

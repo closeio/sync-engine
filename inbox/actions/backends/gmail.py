@@ -7,17 +7,18 @@ from inbox.models.category import Category
 from inbox.models.session import session_scope
 from imaplib import IMAP4
 
-PROVIDER = 'gmail'
+PROVIDER = "gmail"
 
-__all__ = ['remote_create_label', 'remote_update_label', 'remote_delete_label']
+__all__ = ["remote_create_label", "remote_update_label", "remote_delete_label"]
 
 
 def _encode_labels(labels):
     return map(imapclient.imap_utf7.encode, labels)
 
 
-def remote_change_labels(crispin_client, account_id, message_ids,
-                         removed_labels, added_labels):
+def remote_change_labels(
+    crispin_client, account_id, message_ids, removed_labels, added_labels
+):
     uids_for_message = {}
     with session_scope(account_id) as db_session:
         for message_id in message_ids:
@@ -31,10 +32,12 @@ def remote_change_labels(crispin_client, account_id, message_ids,
         crispin_client.select_folder_if_necessary(folder_name, uidvalidity_cb)
         if len(added_labels) > 0:
             crispin_client.conn.add_gmail_labels(
-                uids, _encode_labels(added_labels), silent=True)
+                uids, _encode_labels(added_labels), silent=True
+            )
         if len(removed_labels) > 0:
             crispin_client.conn.remove_gmail_labels(
-                uids, _encode_labels(removed_labels), silent=True)
+                uids, _encode_labels(removed_labels), silent=True
+            )
 
 
 def remote_create_label(crispin_client, account_id, category_id):
@@ -46,8 +49,7 @@ def remote_create_label(crispin_client, account_id, category_id):
     crispin_client.conn.create_folder(display_name)
 
 
-def remote_update_label(crispin_client, account_id, category_id, old_name,
-                        new_name):
+def remote_update_label(crispin_client, account_id, category_id, old_name, new_name):
     crispin_client.conn.rename_folder(old_name, new_name)
 
 

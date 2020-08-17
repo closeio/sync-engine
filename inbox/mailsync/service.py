@@ -22,18 +22,19 @@ from inbox.util.stats import statsd_client
 
 from inbox.mailsync.backends import module_registry
 
-USE_GOOGLE_PUSH_NOTIFICATIONS = \
-    'GOOGLE_PUSH_NOTIFICATIONS' in config.get('FEATURE_FLAGS', [])
+USE_GOOGLE_PUSH_NOTIFICATIONS = "GOOGLE_PUSH_NOTIFICATIONS" in config.get(
+    "FEATURE_FLAGS", []
+)
 
 # How much time (in minutes) should all CPUs be over 90% to consider them
 # overloaded.
 SYNC_POLL_INTERVAL = 20
 PENDING_AVGS_THRESHOLD = 10
 
-MAX_ACCOUNTS_PER_PROCESS = config.get('MAX_ACCOUNTS_PER_PROCESS', 150)
+MAX_ACCOUNTS_PER_PROCESS = config.get("MAX_ACCOUNTS_PER_PROCESS", 150)
 
-SYNC_EVENT_QUEUE_NAME = 'sync:event_queue:{}'
-SHARED_SYNC_EVENT_QUEUE_NAME = 'sync:shared_event_queue:{}'
+SYNC_EVENT_QUEUE_NAME = "sync:event_queue:{}"
+SHARED_SYNC_EVENT_QUEUE_NAME = "sync:shared_event_queue:{}"
 
 SHARED_SYNC_EVENT_QUEUE_ZONE_MAP = {}
 
@@ -59,16 +60,23 @@ class SyncService(object):
         Serves as the max timeout for the redis blocking pop.
     """
 
-    def __init__(self, process_identifier, process_number,
-                 poll_interval=SYNC_POLL_INTERVAL,
-                 exit_after_min=None, exit_after_max=None):
+    def __init__(
+        self,
+        process_identifier,
+        process_number,
+        poll_interval=SYNC_POLL_INTERVAL,
+        exit_after_min=None,
+        exit_after_max=None,
+    ):
         self.keep_running = True
         self.host = platform.node()
         self.process_number = process_number
         self.process_identifier = process_identifier
-        self.monitor_cls_for = {mod.PROVIDER: getattr(
-            mod, mod.SYNC_MONITOR_CLS) for mod in module_registry.values()
-            if hasattr(mod, 'SYNC_MONITOR_CLS')}
+        self.monitor_cls_for = {
+            mod.PROVIDER: getattr(mod, mod.SYNC_MONITOR_CLS)
+            for mod in module_registry.values()
+            if hasattr(mod, "SYNC_MONITOR_CLS")
+        }
 
         for p_name, p in providers.iteritems():
             if p_name not in self.monitor_cls_for:
@@ -76,8 +84,9 @@ class SyncService(object):
 
         self.log = get_logger()
         self.log.bind(process_number=process_number)
-        self.log.info('starting mail sync process',
-                      supported_providers=module_registry.keys())
+        self.log.info(
+            "starting mail sync process", supported_providers=module_registry.keys()
+        )
 
         self.syncing_accounts = set()
         self.email_sync_monitors = {}
@@ -86,29 +95,31 @@ class SyncService(object):
         # Randomize the poll_interval so we maintain at least a little fairness
         # when using a timeout while blocking on the redis queues.
         min_poll_interval = 5
-        self.poll_interval = int((random.random() * (poll_interval - min_poll_interval)) + min_poll_interval)
+        self.poll_interval = int(
+            (random.random() * (poll_interval - min_poll_interval)) + min_poll_interval
+        )
         self.semaphore = BoundedSemaphore(1)
-        self.zone = config.get('ZONE')
+        self.zone = config.get("ZONE")
 
         # Note that we don't partition by zone for the private queues.
         # There's not really a reason to since there's one queue per machine
         # anyways. Also, if you really want to send an Account to a mailsync
         # machine in another zone you can do so.
-        self.private_queue = EventQueue(SYNC_EVENT_QUEUE_NAME.format(self.process_identifier))
-        self.queue_group = EventQueueGroup([
-            shared_sync_event_queue_for_zone(self.zone),
-            self.private_queue,
-        ])
+        self.private_queue = EventQueue(
+            SYNC_EVENT_QUEUE_NAME.format(self.process_identifier)
+        )
+        self.queue_group = EventQueueGroup(
+            [shared_sync_event_queue_for_zone(self.zone), self.private_queue,]
+        )
 
-        self.stealing_enabled = config.get('SYNC_STEAL_ACCOUNTS', True)
+        self.stealing_enabled = config.get("SYNC_STEAL_ACCOUNTS", True)
         self._pending_avgs_provider = None
         self.last_unloaded_account = time.time()
 
         if exit_after_min and exit_after_max:
-            exit_after = random.randint(exit_after_min*60, exit_after_max*60)
-            self.log.info('exit after', seconds=exit_after)
+            exit_after = random.randint(exit_after_min * 60, exit_after_max * 60)
+            self.log.info("exit after", seconds=exit_after)
             gevent.spawn_later(exit_after, self.stop)
-
 
     def run(self):
         while self.keep_running:
@@ -120,7 +131,7 @@ class SyncService(object):
 
         """
         # When the service first starts we should check the state of the world.
-        self.poll({'queue_name': 'none'})
+        self.poll({"queue_name": "none"})
         event = None
         while self.keep_running and event is None:
             event = self.queue_group.receive_event(timeout=self.poll_interval)
@@ -128,7 +139,10 @@ class SyncService(object):
         if not event:
             return
 
-        if shared_sync_event_queue_for_zone(self.zone).queue_name == event['queue_name']:
+        if (
+            shared_sync_event_queue_for_zone(self.zone).queue_name
+            == event["queue_name"]
+        ):
             self.poll_shared_queue(event)
             return
 
@@ -155,28 +169,39 @@ class SyncService(object):
             pending_avgs = self._pending_avgs_provider.get_pending_avgs()
             pending_avgs_over_threshold = pending_avgs[15] >= PENDING_AVGS_THRESHOLD
 
-        if self.stealing_enabled and not pending_avgs_over_threshold and \
-                len(self.syncing_accounts) < MAX_ACCOUNTS_PER_PROCESS:
-            account_id = event['id']
+        if (
+            self.stealing_enabled
+            and not pending_avgs_over_threshold
+            and len(self.syncing_accounts) < MAX_ACCOUNTS_PER_PROCESS
+        ):
+            account_id = event["id"]
             if self.start_sync(account_id):
-                self.log.info('Claimed new unassigned account sync', account_id=account_id)
+                self.log.info(
+                    "Claimed new unassigned account sync", account_id=account_id
+                )
             return
 
         if not self.stealing_enabled:
-            reason = 'stealing disabled'
+            reason = "stealing disabled"
         elif pending_avgs_over_threshold:
-            reason = 'process pending avgs too high'
+            reason = "process pending avgs too high"
         else:
-            reason = 'reached max accounts for process'
-        self.log.info('Not claiming new account sync, sending event back to shared queue', reason=reason)
+            reason = "reached max accounts for process"
+        self.log.info(
+            "Not claiming new account sync, sending event back to shared queue",
+            reason=reason,
+        )
         shared_sync_event_queue_for_zone(self.zone).send_event(event)
 
     def poll(self, event):
         # Determine which accounts to sync
         start_accounts = self.account_ids_to_sync()
         statsd_client.gauge(
-            'mailsync.account_counts.{}.mailsync-{}.count'.format(
-                self.host, self.process_number), len(start_accounts))
+            "mailsync.account_counts.{}.mailsync-{}.count".format(
+                self.host, self.process_number
+            ),
+            len(start_accounts),
+        )
 
         # Perform the appropriate action on each account
         for account_id in start_accounts:
@@ -184,36 +209,53 @@ class SyncService(object):
                 try:
                     self.start_sync(account_id)
                 except OperationalError:
-                    self.log.error('Database error starting account sync',
-                                   exc_info=True)
+                    self.log.error(
+                        "Database error starting account sync", exc_info=True
+                    )
                     log_uncaught_errors()
 
         stop_accounts = self.account_ids_owned() - set(start_accounts)
         for account_id in stop_accounts:
-            self.log.info('sync service stopping sync',
-                          account_id=account_id)
+            self.log.info("sync service stopping sync", account_id=account_id)
             try:
                 self.stop_sync(account_id)
             except OperationalError:
-                self.log.error('Database error stopping account sync',
-                               exc_info=True)
+                self.log.error("Database error stopping account sync", exc_info=True)
                 log_uncaught_errors()
 
     def account_ids_to_sync(self):
         with global_session_scope() as db_session:
-            return {r[0] for r in db_session.query(Account.id).
-                filter(Account.sync_should_run,
-                       or_(and_(Account.desired_sync_host == self.process_identifier,
-                                Account.sync_host == None),     # noqa
-                           and_(Account.desired_sync_host == None,  # noqa
-                               Account.sync_host == self.process_identifier),
-                           and_(Account.desired_sync_host == self.process_identifier,
-                                Account.sync_host == self.process_identifier))).all()}
+            return {
+                r[0]
+                for r in db_session.query(Account.id)
+                .filter(
+                    Account.sync_should_run,
+                    or_(
+                        and_(
+                            Account.desired_sync_host == self.process_identifier,
+                            Account.sync_host == None,
+                        ),  # noqa
+                        and_(
+                            Account.desired_sync_host == None,  # noqa
+                            Account.sync_host == self.process_identifier,
+                        ),
+                        and_(
+                            Account.desired_sync_host == self.process_identifier,
+                            Account.sync_host == self.process_identifier,
+                        ),
+                    ),
+                )
+                .all()
+            }
 
     def account_ids_owned(self):
         with global_session_scope() as db_session:
-            return {r[0] for r in db_session.query(Account.id).
-                    filter(Account.sync_host == self.process_identifier).all()}
+            return {
+                r[0]
+                for r in db_session.query(Account.id)
+                .filter(Account.sync_host == self.process_identifier)
+                .all()
+            }
 
     def register_pending_avgs_provider(self, pending_avgs_provider):
         self._pending_avgs_provider = pending_avgs_provider
@@ -227,19 +269,23 @@ class SyncService(object):
         with self.semaphore, session_scope(account_id) as db_session:
             acc = db_session.query(Account).with_for_update().get(account_id)
             if acc is None:
-                self.log.error('no such account', account_id=account_id)
+                self.log.error("no such account", account_id=account_id)
                 return False
             if not acc.sync_should_run:
                 return False
-            if acc.desired_sync_host is not None and acc.desired_sync_host != self.process_identifier:
+            if (
+                acc.desired_sync_host is not None
+                and acc.desired_sync_host != self.process_identifier
+            ):
                 return False
             if acc.sync_host is not None and acc.sync_host != self.process_identifier:
                 return False
-            self.log.info('starting sync', account_id=acc.id,
-                          email_address=acc.email_address)
+            self.log.info(
+                "starting sync", account_id=acc.id, email_address=acc.email_address
+            )
 
             if acc.id in self.syncing_accounts:
-                self.log.info('sync already started', account_id=account_id)
+                self.log.info("sync already started", account_id=account_id)
                 return False
 
             try:
@@ -250,26 +296,31 @@ class SyncService(object):
                     monitor.start()
 
                 info = acc.provider_info
-                if info.get('contacts', None) and acc.sync_contacts:
-                    contact_sync = ContactSync(acc.email_address,
-                                               acc.verbose_provider,
-                                               acc.id,
-                                               acc.namespace.id)
+                if info.get("contacts", None) and acc.sync_contacts:
+                    contact_sync = ContactSync(
+                        acc.email_address,
+                        acc.verbose_provider,
+                        acc.id,
+                        acc.namespace.id,
+                    )
                     self.contact_sync_monitors[acc.id] = contact_sync
                     contact_sync.start()
 
-                if info.get('events', None) and acc.sync_events:
-                    if (USE_GOOGLE_PUSH_NOTIFICATIONS and
-                            acc.provider == 'gmail'):
-                        event_sync = GoogleEventSync(acc.email_address,
-                                                     acc.verbose_provider,
-                                                     acc.id,
-                                                     acc.namespace.id)
+                if info.get("events", None) and acc.sync_events:
+                    if USE_GOOGLE_PUSH_NOTIFICATIONS and acc.provider == "gmail":
+                        event_sync = GoogleEventSync(
+                            acc.email_address,
+                            acc.verbose_provider,
+                            acc.id,
+                            acc.namespace.id,
+                        )
                     else:
-                        event_sync = EventSync(acc.email_address,
-                                               acc.verbose_provider,
-                                               acc.id,
-                                               acc.namespace.id)
+                        event_sync = EventSync(
+                            acc.email_address,
+                            acc.verbose_provider,
+                            acc.id,
+                            acc.namespace.id,
+                        )
                     self.event_sync_monitors[acc.id] = event_sync
                     event_sync.start()
 
@@ -278,16 +329,18 @@ class SyncService(object):
                 # TODO (mark): Uncomment this after we've transitioned to from statsd to brubeck
                 # statsd_client.gauge('mailsync.sync_hosts_counts.{}'.format(acc.id), 1, delta=True)
                 db_session.commit()
-                self.log.info('Sync started', account_id=account_id,
-                              sync_host=acc.sync_host)
+                self.log.info(
+                    "Sync started", account_id=account_id, sync_host=acc.sync_host
+                )
             except Exception:
-                self.log.error('Error starting sync', exc_info=True,
-                               account_id=account_id)
+                self.log.error(
+                    "Error starting sync", exc_info=True, account_id=account_id
+                )
                 return False
         return True
 
     def stop(self, *args):
-        self.log.info('stopping mail sync process')
+        self.log.info("stopping mail sync process")
         for k, v in self.email_sync_monitors.iteritems():
             gevent.kill(v)
         for k, v in self.contact_sync_monitors.iteritems():
@@ -304,7 +357,7 @@ class SyncService(object):
         """
 
         with self.semaphore:
-            self.log.info('Stopping monitors', account_id=account_id)
+            self.log.info("Stopping monitors", account_id=account_id)
             if account_id in self.email_sync_monitors:
                 self.email_sync_monitors[account_id].kill()
                 del self.email_sync_monitors[account_id]
@@ -327,7 +380,7 @@ class SyncService(object):
                 if not acc.sync_stopped(self.process_identifier):
                     self.syncing_accounts.discard(account_id)
                     return False
-                self.log.info('sync stopped', account_id=account_id)
+                self.log.info("sync stopped", account_id=account_id)
                 # TODO (mark): Uncomment this after we've transitioned to from statsd to brubeck
                 # statsd_client.gauge('mailsync.sync_hosts_counts.{}'.format(acc.id), -1, delta=True)
                 db_session.commit()

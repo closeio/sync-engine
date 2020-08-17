@@ -13,6 +13,7 @@ def profile(func):
         profiler.stop()
         print profiler.output_text(color=True)
         return r
+
     return wrapper
 
 
@@ -27,7 +28,7 @@ def attach_pyinstrument_profiler():
         print profiler.output_text(color=True)
         # Work around an arguable bug in pyinstrument in which output gets
         # frozen after the first call to profiler.output_text()
-        delattr(profiler, '_root_frame')
+        delattr(profiler, "_root_frame")
 
     signal.signal(signal.SIGTRAP, handle_signal)
 
@@ -40,4 +41,4 @@ def bind_context(gr, role, account_id, *args):
 
     TODO(emfree): this should move to inbox/instrumentation.
     """
-    gr.context = ':'.join([role, str(account_id)] + [str(arg) for arg in args])
+    gr.context = ":".join([role, str(account_id)] + [str(arg) for arg in args])

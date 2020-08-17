@@ -1,8 +1,10 @@
 import socket
 import sys
 from gevent import monkey
+
 monkey.patch_all(aggressive=False)
 import gevent_openssl
+
 gevent_openssl.monkey_patch()
 from code import InteractiveConsole
 from nylas.logging import get_logger
@@ -27,10 +29,9 @@ Happy hacking!
 
 
 class RemoteConsole(InteractiveConsole):
-
     def __init__(self, socket, locals=None):
         self.socket = socket
-        self.handle = socket.makefile('rw')
+        self.handle = socket.makefile("rw")
         InteractiveConsole.__init__(self, locals=locals)
         self.handle.write(doc)
 
@@ -70,9 +71,10 @@ class RemoteConsole(InteractiveConsole):
             sys.ps2 = "... "
         cprt = 'Type "help", "copyright", "credits" or "license" for more information.'  # noqa
         if banner is None:
-            self.write("Python %s on %s\n%s\n(%s)\n" %
-                       (sys.version, sys.platform, cprt,
-                        self.__class__.__name__))
+            self.write(
+                "Python %s on %s\n%s\n(%s)\n"
+                % (sys.version, sys.platform, cprt, self.__class__.__name__)
+            )
         else:
             self.write("%s\n" % str(banner))
         more = 0
@@ -134,5 +136,5 @@ def break_to_interpreter(host="localhost", port=None):
 
 
 # example usage - connect with 'netcat localhost 4444'
-if __name__ == '__main__':
+if __name__ == "__main__":
     break_to_interpreter(port=4444)

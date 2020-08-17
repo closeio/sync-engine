@@ -23,9 +23,9 @@ from flanker.mime.message.headers.encoding import encode_string
 from flanker.addresslib.address import MAX_ADDRESS_LENGTH
 from html2text import html2text
 
-VERSION = pkg_resources.get_distribution('inbox-sync').version
+VERSION = pkg_resources.get_distribution("inbox-sync").version
 
-REPLYSTR = 'Re: '
+REPLYSTR = "Re: "
 
 
 # Patch flanker to use base64 rather than quoted-printable encoding for
@@ -36,33 +36,34 @@ REPLYSTR = 'Re: '
 # '=\r\n'. Their expectation seems to be technically correct, per RFC1521
 # section 5.1. However, we opt to simply avoid this mess entirely.
 def fallback_to_base64(charset, preferred_encoding, body):
-    if charset in ('ascii', 'iso8859=1', 'us-ascii'):
+    if charset in ("ascii", "iso8859=1", "us-ascii"):
         if mime.message.part.has_long_lines(body):
             # In the original implementation, this was
             # return stronger_encoding(preferred_encoding, 'quoted-printable')
-            return mime.message.part.stronger_encoding(preferred_encoding,
-                                                       'base64')
+            return mime.message.part.stronger_encoding(preferred_encoding, "base64")
         else:
             return preferred_encoding
     else:
-        return mime.message.part.stronger_encoding(preferred_encoding,
-                                                   'base64')
+        return mime.message.part.stronger_encoding(preferred_encoding, "base64")
+
 
 mime.message.part.choose_text_encoding = fallback_to_base64
 
 
-def create_email(from_name,
-                 from_email,
-                 reply_to,
-                 nylas_uid,
-                 to_addr,
-                 cc_addr,
-                 bcc_addr,
-                 subject,
-                 html,
-                 in_reply_to,
-                 references,
-                 attachments):
+def create_email(
+    from_name,
+    from_email,
+    reply_to,
+    nylas_uid,
+    to_addr,
+    cc_addr,
+    bcc_addr,
+    subject,
+    html,
+    in_reply_to,
+    references,
+    attachments,
+):
     """
     Creates a MIME email message (both body and sets the needed headers).
 
@@ -90,19 +91,17 @@ def create_email(from_name,
     attachments: list of dicts, optional
         a list of dicts(filename, data, content_type, content_disposition)
     """
-    html = html if html else ''
+    html = html if html else ""
     plaintext = html2text(html)
 
     # Create a multipart/alternative message
-    msg = mime.create.multipart('alternative')
-    msg.append(
-        mime.create.text('plain', plaintext),
-        mime.create.text('html', html))
+    msg = mime.create.multipart("alternative")
+    msg.append(mime.create.text("plain", plaintext), mime.create.text("html", html))
 
     # Create an outer multipart/mixed message
     if attachments:
         text_msg = msg
-        msg = mime.create.multipart('mixed')
+        msg = mime.create.multipart("mixed")
 
         # The first part is the multipart/alternative text part
         msg.append(text_msg)
@@ -111,15 +110,16 @@ def create_email(from_name,
         for a in attachments:
             # Disposition should be inline if we add Content-ID
             attachment = mime.create.attachment(
-                a['content_type'],
-                a['data'],
-                filename=a['filename'],
-                disposition=a['content_disposition'])
-            if a['content_disposition'] == 'inline':
-                attachment.headers['Content-Id'] = '<{}>'.format(a['block_id'])
+                a["content_type"],
+                a["data"],
+                filename=a["filename"],
+                disposition=a["content_disposition"],
+            )
+            if a["content_disposition"] == "inline":
+                attachment.headers["Content-Id"] = "<{}>".format(a["block_id"])
             msg.append(attachment)
 
-    msg.headers['Subject'] = subject if subject else ''
+    msg.headers["Subject"] = subject if subject else ""
 
     # Gmail sets the From: header to the default sending account. We can
     # however set our own custom phrase i.e. the name that appears next to the
@@ -127,33 +127,37 @@ def create_email(from_name,
     # specify which to send as), see: http://lee-phillips.org/gmailRewriting/
     # For other providers, we simply use name = ''
     from_addr = address.EmailAddress(from_name, from_email)
-    msg.headers['From'] = from_addr.full_spec()
+    msg.headers["From"] = from_addr.full_spec()
 
     # Need to set these headers so recipients know we sent the email to them
     # TODO(emfree): should these really be unicode?
     if to_addr:
-        full_to_specs = [_get_full_spec_without_validation(name, spec)
-                         for name, spec in to_addr]
-        msg.headers['To'] = u', '.join(full_to_specs)
+        full_to_specs = [
+            _get_full_spec_without_validation(name, spec) for name, spec in to_addr
+        ]
+        msg.headers["To"] = u", ".join(full_to_specs)
     if cc_addr:
-        full_cc_specs = [_get_full_spec_without_validation(name, spec)
-                         for name, spec in cc_addr]
-        msg.headers['Cc'] = u', '.join(full_cc_specs)
+        full_cc_specs = [
+            _get_full_spec_without_validation(name, spec) for name, spec in cc_addr
+        ]
+        msg.headers["Cc"] = u", ".join(full_cc_specs)
     if bcc_addr:
-        full_bcc_specs = [_get_full_spec_without_validation(name, spec)
-                          for name, spec in bcc_addr]
-        msg.headers['Bcc'] = u', '.join(full_bcc_specs)
+        full_bcc_specs = [
+            _get_full_spec_without_validation(name, spec) for name, spec in bcc_addr
+        ]
+        msg.headers["Bcc"] = u", ".join(full_bcc_specs)
     if reply_to:
         # reply_to is only ever a list with one element
-        msg.headers['Reply-To'] = _get_full_spec_without_validation(
-            reply_to[0][0], reply_to[0][1])
+        msg.headers["Reply-To"] = _get_full_spec_without_validation(
+            reply_to[0][0], reply_to[0][1]
+        )
 
     add_nylas_headers(msg, nylas_uid)
 
     if in_reply_to:
-        msg.headers['In-Reply-To'] = in_reply_to
+        msg.headers["In-Reply-To"] = in_reply_to
     if references:
-        msg.headers['References'] = '\t'.join(references)
+        msg.headers["References"] = "\t".join(references)
 
     # Most ISPs set date automatically, but we need to set it here for those
     # which do not. The Date header is required and omitting it causes issues
@@ -161,10 +165,10 @@ def create_email(from_name,
     # Set dates in UTC since we don't know the timezone of the sending user
     # +0000 means UTC, whereas -0000 means unsure of timezone
     utc_datetime = datetime.utcnow()
-    day = utc_datetime.strftime('%a')
-    date = utc_datetime.strftime('%d %b %Y %X')
-    date_header = '{day}, {date} +0000\r\n'.format(day=day, date=date)
-    msg.headers['Date'] = date_header
+    day = utc_datetime.strftime("%a")
+    date = utc_datetime.strftime("%d %b %Y %X")
+    date_header = "{day}, {date} +0000\r\n".format(day=day, date=date)
+    msg.headers["Date"] = date_header
 
     rfcmsg = _rfc_transform(msg)
 
@@ -179,10 +183,11 @@ def _get_full_spec_without_validation(name, email):
     an invalid email address.
     """
     if name:
-        encoded_name = smart_quote(encode_string(
-            None, name, maxlinelen=MAX_ADDRESS_LENGTH))
-        return '{0} <{1}>'.format(encoded_name, email)
-    return u'{0}'.format(email)
+        encoded_name = smart_quote(
+            encode_string(None, name, maxlinelen=MAX_ADDRESS_LENGTH)
+        )
+        return "{0} <{1}>".format(encoded_name, email)
+    return u"{0}".format(email)
 
 
 def add_nylas_headers(msg, nylas_uid):
@@ -202,14 +207,14 @@ def add_nylas_headers(msg, nylas_uid):
     """
 
     # Set our own custom header for tracking in `Sent Mail` folder
-    msg.headers['X-INBOX-ID'] = nylas_uid
-    msg.headers['Message-Id'] = generate_message_id_header(nylas_uid)
+    msg.headers["X-INBOX-ID"] = nylas_uid
+    msg.headers["Message-Id"] = generate_message_id_header(nylas_uid)
     # Potentially also use `X-Mailer`
-    msg.headers['User-Agent'] = 'NylasMailer/{0}'.format(VERSION)
+    msg.headers["User-Agent"] = "NylasMailer/{0}".format(VERSION)
 
 
 def generate_message_id_header(uid):
-    return '<{}@mailer.nylas.com>'.format(uid)
+    return "<{}@mailer.nylas.com>".format(uid)
 
 
 def _rfc_transform(msg):
@@ -222,17 +227,16 @@ def _rfc_transform(msg):
     """
     msgstring = msg.to_string()
 
-    start = msgstring.find('References: ')
+    start = msgstring.find("References: ")
 
     if start == -1:
         return msgstring
 
-    end = msgstring.find('\r\n', start + len('References: '))
+    end = msgstring.find("\r\n", start + len("References: "))
 
     substring = msgstring[start:end]
 
-    separator = '\n\t'
-    rfcmsg = msgstring[:start] + substring.replace('\t', separator) +\
-        msgstring[end:]
+    separator = "\n\t"
+    rfcmsg = msgstring[:start] + substring.replace("\t", separator) + msgstring[end:]
 
     return rfcmsg

@@ -20,13 +20,16 @@ from inbox.util.addr import canonicalize_address
 from inbox.models.action_log import schedule_action
 
 from nylas.logging import get_logger
+
 log = get_logger()
 
 
-STATUS_MAP = {'NEEDS-ACTION': 'noreply',
-              'ACCEPTED': 'yes',
-              'DECLINED': 'no',
-              'TENTATIVE': 'maybe'}
+STATUS_MAP = {
+    "NEEDS-ACTION": "noreply",
+    "ACCEPTED": "yes",
+    "DECLINED": "no",
+    "TENTATIVE": "maybe",
+}
 INVERTED_STATUS_MAP = {value: key for key, value in STATUS_MAP.iteritems()}
 
 
@@ -43,18 +46,17 @@ def events_from_ics(namespace, calendar, ics_str):
 
     for component in cal.walk():
         if component.name == "VCALENDAR":
-            calendar_method = component.get('method')
+            calendar_method = component.get("method")
 
         if component.name == "VTIMEZONE":
-            tzname = component.get('TZID')
-            assert tzname in timezones_table,\
-                "Non-UTC timezone should be in table"
+            tzname = component.get("TZID")
+            assert tzname in timezones_table, "Non-UTC timezone should be in table"
 
         if component.name == "VEVENT":
             # Make sure the times are in UTC.
             try:
-                original_start = component.get('dtstart').dt
-                original_end = component.get('dtend').dt
+                original_start = component.get("dtstart").dt
+                original_end = component.get("dtend").dt
             except AttributeError:
                 raise MalformedEventError("Event lacks start and/or end time")
 
@@ -69,9 +71,10 @@ def events_from_ics(namespace, calendar, ics_str):
                     original_start_tz = timezones_table[tzid]
 
                 if original_start.tzinfo is None:
-                    tzid = component.get('dtstart').params.get('TZID', None)
-                    assert tzid in timezones_table,\
-                        "Non-UTC timezone should be in table"
+                    tzid = component.get("dtstart").params.get("TZID", None)
+                    assert (
+                        tzid in timezones_table
+                    ), "Non-UTC timezone should be in table"
 
                     corresponding_tz = timezones_table[tzid]
                     original_start_tz = corresponding_tz
@@ -80,9 +83,10 @@ def events_from_ics(namespace, calendar, ics_str):
                     original_start = local_timezone.localize(original_start)
 
                 if original_end.tzinfo is None:
-                    tzid = component.get('dtend').params.get('TZID', None)
-                    assert tzid in timezones_table,\
-                        "Non-UTC timezone should be in table"
+                    tzid = component.get("dtend").params.get("TZID", None)
+                    assert (
+                        tzid in timezones_table
+                    ), "Non-UTC timezone should be in table"
 
                     corresponding_tz = timezones_table[tzid]
                     local_timezone = pytz.timezone(corresponding_tz)
@@ -97,13 +101,14 @@ def events_from_ics(namespace, calendar, ics_str):
                 start = arrow.get(start)
                 end = arrow.get(end)
 
-            assert isinstance(start, type(end)), "Start and end should be of "\
-                "the same type"
+            assert isinstance(start, type(end)), (
+                "Start and end should be of " "the same type"
+            )
 
             # Get the last modification date.
             # Exchange uses DtStamp, iCloud and Gmail LAST-MODIFIED.
-            component_dtstamp = component.get('dtstamp')
-            component_last_modified = component.get('last-modified')
+            component_dtstamp = component.get("dtstamp")
+            component_last_modified = component.get("last-modified")
             last_modified = None
 
             if component_dtstamp is not None:
@@ -114,8 +119,9 @@ def events_from_ics(namespace, calendar, ics_str):
                 if component_dtstamp.dt.tzinfo is not None:
                     last_modified = component_dtstamp.dt
                 else:
-                    raise NotImplementedError("We don't support arcane Windows"
-                                              " timezones in timestamps yet")
+                    raise NotImplementedError(
+                        "We don't support arcane Windows" " timezones in timestamps yet"
+                    )
             elif component_last_modified is not None:
                 # Try to look for a LAST-MODIFIED element instead.
                 # Note: LAST-MODIFIED is always in UTC.
@@ -123,63 +129,64 @@ def events_from_ics(namespace, calendar, ics_str):
                 last_modified = component_last_modified.dt
 
             title = None
-            summaries = component.get('summary', [])
+            summaries = component.get("summary", [])
             if not isinstance(summaries, list):
                 summaries = [summaries]
 
             if summaries != []:
                 title = " - ".join(summaries)
 
-            description = component.get('description')
+            description = component.get("description")
             if description is not None:
                 description = unicode(description)
 
-            event_status = component.get('status')
+            event_status = component.get("status")
             if event_status is not None:
                 event_status = event_status.lower()
             else:
                 # Some providers (e.g: iCloud) don't use the status field.
                 # Instead they use the METHOD field to signal cancellations.
-                method = component.get('method')
-                if method and method.lower() == 'cancel':
-                    event_status = 'cancelled'
-                elif calendar_method and calendar_method.lower() == 'cancel':
+                method = component.get("method")
+                if method and method.lower() == "cancel":
+                    event_status = "cancelled"
+                elif calendar_method and calendar_method.lower() == "cancel":
                     # So, this particular event was not cancelled. Maybe the
                     # whole calendar was.
-                    event_status = 'cancelled'
+                    event_status = "cancelled"
                 else:
                     # Otherwise assume the event has been confirmed.
-                    event_status = 'confirmed'
+                    event_status = "confirmed"
 
             assert event_status in EVENT_STATUSES
 
-            recur = component.get('rrule')
+            recur = component.get("rrule")
             if recur:
                 recur = "RRULE:{}".format(recur.to_ical())
 
             participants = []
 
-            organizer = component.get('organizer')
+            organizer = component.get("organizer")
             organizer_name = None
             organizer_email = None
             if organizer:
                 organizer_email = unicode(organizer)
-                if organizer_email.lower().startswith('mailto:'):
+                if organizer_email.lower().startswith("mailto:"):
                     organizer_email = organizer_email[7:]
 
-                if 'CN' in organizer.params:
-                    organizer_name = organizer.params['CN']
+                if "CN" in organizer.params:
+                    organizer_name = organizer.params["CN"]
 
                 owner = formataddr([organizer_name, organizer_email.lower()])
             else:
                 owner = None
 
             is_owner = False
-            if owner is not None and (namespace.account.email_address ==
-                                      canonicalize_address(organizer_email)):
+            if owner is not None and (
+                namespace.account.email_address == canonicalize_address(organizer_email)
+            ):
                 is_owner = True
 
-            attendees = component.get('attendee', [])
+            attendees = component.get("attendee", [])
 
             # the iCalendar python module doesn't return a list when
             # there's only one attendee. Go figure.
@@ -189,40 +196,46 @@ def events_from_ics(namespace, calendar, ics_str):
             for attendee in attendees:
                 email = unicode(attendee)
                 # strip mailto: if it exists
-                if email.lower().startswith('mailto:'):
+                if email.lower().startswith("mailto:"):
                     email = email[7:]
                 try:
-                    name = attendee.params['CN']
+                    name = attendee.params["CN"]
                 except KeyError:
                     name = None
 
-                status_map = {'NEEDS-ACTION': 'noreply',
-                              'ACCEPTED': 'yes',
-                              'DECLINED': 'no',
-                              'TENTATIVE': 'maybe'}
-                status = 'noreply'
+                status_map = {
+                    "NEEDS-ACTION": "noreply",
+                    "ACCEPTED": "yes",
+                    "DECLINED": "no",
+                    "TENTATIVE": "maybe",
+                }
+                status = "noreply"
                 try:
-                    a_status = attendee.params['PARTSTAT']
+                    a_status = attendee.params["PARTSTAT"]
                     status = status_map[a_status]
                 except KeyError:
                     pass
 
                 notes = None
                 try:
-                    guests = attendee.params['X-NUM-GUESTS']
+                    guests = attendee.params["X-NUM-GUESTS"]
                     notes = u"Guests: {}".format(guests)
                 except KeyError:
                     pass
 
-                participants.append({'email': email.lower(),
-                                     'name': name,
-                                     'status': status,
-                                     'notes': notes,
-                                     'guests': []})
+                participants.append(
+                    {
+                        "email": email.lower(),
+                        "name": name,
+                        "status": status,
+                        "notes": notes,
+                        "guests": [],
+                    }
+                )
 
-            location = component.get('location')
-            uid = str(component.get('uid'))
-            sequence_number = int(component.get('sequence', 0))
+            location = component.get("location")
+            uid = str(component.get("uid"))
+            sequence_number = int(component.get("sequence", 0))
 
             # Some services (I'm looking at you, http://www.foogi.me/)
             # don't follow the spec and generate icalendar files with
@@ -235,7 +248,7 @@ def events_from_ics(namespace, calendar, ics_str):
                 namespace=namespace,
                 calendar=calendar,
                 uid=uid,
-                provider_name='ics',
+                provider_name="ics",
                 raw_data=component.to_ical(),
                 title=title,
                 description=description,
@@ -251,17 +264,18 @@ def events_from_ics(namespace, calendar, ics_str):
                 is_owner=is_owner,
                 last_modified=last_modified,
                 original_start_tz=original_start_tz,
-                source='local',
+                source="local",
                 status=event_status,
                 sequence_number=sequence_number,
-                participants=participants)
+                participants=participants,
+            )
 
             # We need to distinguish between invites/updates/cancellations
             # and RSVPs.
-            if calendar_method == 'REQUEST' or calendar_method == 'CANCEL':
-                events['invites'].append(event)
-            elif calendar_method == 'REPLY':
-                events['rsvps'].append(event)
+            if calendar_method == "REQUEST" or calendar_method == "CANCEL":
+                events["invites"].append(event)
+            elif calendar_method == "REPLY":
+                events["rsvps"].append(event)
 
     return events
 
@@ -272,10 +286,15 @@ def process_invites(db_session, message, account, invites):
     # Get the list of events which share a uid with those we received.
     # Note that we're limiting this query to events in the 'emailed events'
     # calendar, because that's where all the invites go.
-    existing_events = db_session.query(Event).filter(
-        Event.calendar_id == account.emailed_events_calendar_id,
-        Event.namespace_id == account.namespace.id,
-        Event.uid.in_(new_uids)).all()
+    existing_events = (
+        db_session.query(Event)
+        .filter(
+            Event.calendar_id == account.emailed_events_calendar_id,
+            Event.namespace_id == account.namespace.id,
+            Event.uid.in_(new_uids),
+        )
+        .all()
+    )
 
     existing_events_table = {event.uid: event for event in existing_events}
 
@@ -300,8 +319,7 @@ def process_invites(db_session, message, account, invites):
             existing_event = existing_events_table[event.uid]
 
             if existing_event.sequence_number <= event.sequence_number:
-                merged_participants = existing_event.\
-                    _partial_participants_merge(event)
+                merged_participants = existing_event._partial_participants_merge(event)
 
                 existing_event.update(event)
                 existing_event.message = message
@@ -317,13 +335,14 @@ def process_invites(db_session, message, account, invites):
 
                 db_session.flush()
                 existing_event.contacts = []
-                update_contacts_from_event(db_session, existing_event,
-                                           account.namespace.id)
+                update_contacts_from_event(
+                    db_session, existing_event, account.namespace.id
+                )
 
 
 def _cleanup_nylas_uid(uid):
     uid = uid.lower()
-    if '@nylas.com' in uid:
+    if "@nylas.com" in uid:
         return uid[:-10]
 
     return uid
@@ -334,8 +353,9 @@ def process_nylas_rsvps(db_session, message, account, rsvps):
     # `public_id@nylas.com`. We couldn't use Event.uid for this because
     # it wouldn't work with Exchange (Exchange uids are of the form
     # 1:2323 and aren't guaranteed to be unique).
-    new_uids = [_cleanup_nylas_uid(event.uid) for event in rsvps
-                if '@nylas.com' in event.uid]
+    new_uids = [
+        _cleanup_nylas_uid(event.uid) for event in rsvps if "@nylas.com" in event.uid
+    ]
 
     # Drop uids which aren't base36 uids.
     new_uids = [uid for uid in new_uids if valid_base36(uid)]
@@ -343,13 +363,17 @@ def process_nylas_rsvps(db_session, message, account, rsvps):
     # Get the list of events which share a uid with those we received.
     # Note that we're excluding events from "Emailed events" because
     # we don't want to process RSVPs to invites we received.
-    existing_events = db_session.query(Event).filter(
-        Event.namespace_id == account.namespace.id,
-        Event.calendar_id != account.emailed_events_calendar_id,
-        Event.public_id.in_(new_uids)).all()
+    existing_events = (
+        db_session.query(Event)
+        .filter(
+            Event.namespace_id == account.namespace.id,
+            Event.calendar_id != account.emailed_events_calendar_id,
+            Event.public_id.in_(new_uids),
+        )
+        .all()
+    )
 
-    existing_events_table = {event.public_id: event
-                             for event in existing_events}
+    existing_events_table = {event.public_id: event for event in existing_events}
 
     for event in rsvps:
         event_uid = _cleanup_nylas_uid(event.uid)
@@ -363,8 +387,7 @@ def process_nylas_rsvps(db_session, message, account, rsvps):
 
             # Is the current event an update?
             if existing_event.sequence_number == event.sequence_number:
-                merged_participants = existing_event.\
-                    _partial_participants_merge(event)
+                merged_participants = existing_event._partial_participants_merge(event)
 
                 # We have to do this mumbo-jumbo because MutableList does
                 # not register changes to nested elements.
@@ -377,9 +400,13 @@ def process_nylas_rsvps(db_session, message, account, rsvps):
 
                 # We need to sync back changes to the event manually
                 if existing_event.calendar != account.emailed_events_calendar:
-                    schedule_action('update_event', existing_event,
-                                    existing_event.namespace.id, db_session,
-                                    calendar_uid=existing_event.calendar.uid)
+                    schedule_action(
+                        "update_event",
+                        existing_event,
+                        existing_event.namespace.id,
+                        db_session,
+                        calendar_uid=existing_event.calendar.uid,
+                    )
 
                 db_session.flush()
 
@@ -389,37 +416,49 @@ def import_attached_events(db_session, account, message):
     assert account is not None
 
     for part in message.attached_event_files:
-        part_data = ''
+        part_data = ""
         try:
             part_data = part.block.data
-            if part_data == '':
+            if part_data == "":
                 continue
 
-            new_events = events_from_ics(account.namespace,
-                                         account.emailed_events_calendar,
-                                         part_data)
+            new_events = events_from_ics(
+                account.namespace, account.emailed_events_calendar, part_data
+            )
         except MalformedEventError:
-            log.error('Attached event parsing error',
-                      account_id=account.id, message_id=message.id,
-                      logstash_tag='icalendar_autoimport',
-                      event_part_id=part.id)
+            log.error(
+                "Attached event parsing error",
+                account_id=account.id,
+                message_id=message.id,
+                logstash_tag="icalendar_autoimport",
+                event_part_id=part.id,
+            )
             continue
-        except (AssertionError, TypeError, RuntimeError,
-                AttributeError, ValueError, UnboundLocalError,
-                LookupError, ImportError, NameError):
+        except (
+            AssertionError,
+            TypeError,
+            RuntimeError,
+            AttributeError,
+            ValueError,
+            UnboundLocalError,
+            LookupError,
+            ImportError,
+            NameError,
+        ):
             # Kind of ugly but we don't want to derail message
             # creation because of an error in the attached calendar.
-            log.error('Unhandled exception during message parsing',
-                      message_id=message.id,
-                      event_part_id=part.id,
-                      logstash_tag='icalendar_autoimport',
-                      traceback=traceback.format_exception(
-                          sys.exc_info()[0],
-                          sys.exc_info()[1],
-                          sys.exc_info()[2]))
+            log.error(
+                "Unhandled exception during message parsing",
+                message_id=message.id,
+                event_part_id=part.id,
+                logstash_tag="icalendar_autoimport",
+                traceback=traceback.format_exception(
+                    sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
+                ),
+            )
             continue
 
-        process_invites(db_session, message, account, new_events['invites'])
+        process_invites(db_session, message, account, new_events["invites"])
 
         # Gmail has a very very annoying feature: it doesn't use email to RSVP
         # to an invite sent by another gmail account. This makes it impossible
@@ -427,130 +466,127 @@ def import_attached_events(db_session, account, message):
         # Gmail API handle invite sending. For other providers we process this
         # ourselves.
         # - karim
-        if account.provider != 'gmail':
-            process_nylas_rsvps(db_session, message, account,
-                                new_events['rsvps'])
+        if account.provider != "gmail":
+            process_nylas_rsvps(db_session, message, account, new_events["rsvps"])
 
 
-def generate_icalendar_invite(event, invite_type='request'):
+def generate_icalendar_invite(event, invite_type="request"):
     # Generates an iCalendar invite from an event.
-    assert invite_type in ['request', 'cancel']
+    assert invite_type in ["request", "cancel"]
 
     cal = iCalendar()
-    cal.add('PRODID', '-//Nylas sync engine//nylas.com//')
+    cal.add("PRODID", "-//Nylas sync engine//nylas.com//")
 
-    if invite_type in ['request', 'update']:
-        cal.add('METHOD', 'REQUEST')
-    elif invite_type == 'cancel':
-        cal.add('METHOD', 'CANCEL')
+    if invite_type in ["request", "update"]:
+        cal.add("METHOD", "REQUEST")
+    elif invite_type == "cancel":
+        cal.add("METHOD", "CANCEL")
 
-    cal.add('VERSION', '2.0')
-    cal.add('CALSCALE', 'GREGORIAN')
+    cal.add("VERSION", "2.0")
+    cal.add("CALSCALE", "GREGORIAN")
 
     icalendar_event = icalendar.Event()
 
     account = event.namespace.account
-    organizer = icalendar.vCalAddress(u"MAILTO:{}".format(
-        account.email_address))
-    if account.name is not None and account.name != '':
-        organizer.params['CN'] = account.name
+    organizer = icalendar.vCalAddress(u"MAILTO:{}".format(account.email_address))
+    if account.name is not None and account.name != "":
+        organizer.params["CN"] = account.name
 
-    icalendar_event['organizer'] = organizer
-    icalendar_event['sequence'] = str(event.sequence_number)
-    icalendar_event['X-MICROSOFT-CDO-APPT-SEQUENCE'] = \
-        icalendar_event['sequence']
+    icalendar_event["organizer"] = organizer
+    icalendar_event["sequence"] = str(event.sequence_number)
+    icalendar_event["X-MICROSOFT-CDO-APPT-SEQUENCE"] = icalendar_event["sequence"]
 
-    if invite_type == 'cancel':
-        icalendar_event['status'] = 'CANCELLED'
+    if invite_type == "cancel":
+        icalendar_event["status"] = "CANCELLED"
     else:
-        icalendar_event['status'] = 'CONFIRMED'
+        icalendar_event["status"] = "CONFIRMED"
 
-    icalendar_event['uid'] = u"{}@nylas.com".format(event.public_id)
-    icalendar_event['description'] = event.description or ''
-    icalendar_event['summary'] = event.title or ''
-    icalendar_event['last-modified'] = serialize_datetime(event.updated_at)
-    icalendar_event['dtstamp'] = icalendar_event['last-modified']
-    icalendar_event['created'] = serialize_datetime(event.created_at)
-    icalendar_event['dtstart'] = serialize_datetime(event.start)
-    icalendar_event['dtend'] = serialize_datetime(event.end)
-    icalendar_event['transp'] = 'OPAQUE' if event.busy else 'TRANSPARENT'
-    icalendar_event['location'] = event.location or ''
+    icalendar_event["uid"] = u"{}@nylas.com".format(event.public_id)
+    icalendar_event["description"] = event.description or ""
+    icalendar_event["summary"] = event.title or ""
+    icalendar_event["last-modified"] = serialize_datetime(event.updated_at)
+    icalendar_event["dtstamp"] = icalendar_event["last-modified"]
+    icalendar_event["created"] = serialize_datetime(event.created_at)
+    icalendar_event["dtstart"] = serialize_datetime(event.start)
+    icalendar_event["dtend"] = serialize_datetime(event.end)
+    icalendar_event["transp"] = "OPAQUE" if event.busy else "TRANSPARENT"
+    icalendar_event["location"] = event.location or ""
 
     attendees = []
     for participant in event.participants:
-        email = participant.get('email', None)
+        email = participant.get("email", None)
 
         # FIXME @karim: handle the case where a participant has no address.
         # We may have to patch the iCalendar module for this.
         assert email is not None and email != ""
 
         attendee = icalendar.vCalAddress(u"MAILTO:{}".format(email))
-        name = participant.get('name', None)
+        name = participant.get("name", None)
         if name is not None:
-            attendee.params['CN'] = name
+            attendee.params["CN"] = name
 
-        attendee.params['RSVP'] = 'TRUE'
-        attendee.params['ROLE'] = 'REQ-PARTICIPANT'
-        attendee.params['CUTYPE'] = 'INDIVIDUAL'
+        attendee.params["RSVP"] = "TRUE"
+        attendee.params["ROLE"] = "REQ-PARTICIPANT"
+        attendee.params["CUTYPE"] = "INDIVIDUAL"
 
-        status = participant.get('status', 'noreply')
-        attendee.params['PARTSTAT'] = INVERTED_STATUS_MAP.get(status)
+        status = participant.get("status", "noreply")
+        attendee.params["PARTSTAT"] = INVERTED_STATUS_MAP.get(status)
         attendees.append(attendee)
 
     if attendees != []:
-        icalendar_event.add('ATTENDEE', attendees)
+        icalendar_event.add("ATTENDEE", attendees)
 
     cal.add_component(icalendar_event)
     return cal
 
 
-def generate_invite_message(ical_txt, event, account, invite_type='request'):
-    assert invite_type in ['request', 'update', 'cancel']
-    html_body = event.description or ''
+def generate_invite_message(ical_txt, event, account, invite_type="request"):
+    assert invite_type in ["request", "update", "cancel"]
+    html_body = event.description or ""
 
     text_body = html2text(html_body)
-    msg = mime.create.multipart('mixed')
+    msg = mime.create.multipart("mixed")
 
-    body = mime.create.multipart('alternative')
+    body = mime.create.multipart("alternative")
 
-    if invite_type in ['request', 'update']:
+    if invite_type in ["request", "update"]:
         body.append(
-            mime.create.text('plain', text_body),
-            mime.create.text('html', html_body),
-            mime.create.text('calendar; method=REQUEST',
-                             ical_txt, charset='utf8'))
+            mime.create.text("plain", text_body),
+            mime.create.text("html", html_body),
+            mime.create.text("calendar; method=REQUEST", ical_txt, charset="utf8"),
+        )
         msg.append(body)
-    elif invite_type == 'cancel':
+    elif invite_type == "cancel":
         body.append(
-            mime.create.text('plain', text_body),
-            mime.create.text('html', html_body),
-            mime.create.text('calendar; method=CANCEL',
-                             ical_txt, charset='utf8'))
+            mime.create.text("plain", text_body),
+            mime.create.text("html", html_body),
+            mime.create.text("calendar; method=CANCEL", ical_txt, charset="utf8"),
+        )
         msg.append(body)
 
     # From should match our mailsend provider (mailgun) so it doesn't confuse
     # spam filters
-    msg.headers['From'] = "automated@notifications.nylas.com"
-    msg.headers['Reply-To'] = account.email_address
+    msg.headers["From"] = "automated@notifications.nylas.com"
+    msg.headers["Reply-To"] = account.email_address
 
-    if invite_type == 'request':
-        msg.headers['Subject'] = u'Invitation: {}'.format(event.title)
-    elif invite_type == 'update':
-        msg.headers['Subject'] = u'Updated Invitation: {}'.format(event.title)
-    elif invite_type == 'cancel':
-        msg.headers['Subject'] = u'Cancelled: {}'.format(event.title)
+    if invite_type == "request":
+        msg.headers["Subject"] = u"Invitation: {}".format(event.title)
+    elif invite_type == "update":
+        msg.headers["Subject"] = u"Updated Invitation: {}".format(event.title)
+    elif invite_type == "cancel":
+        msg.headers["Subject"] = u"Cancelled: {}".format(event.title)
 
     return msg
 
 
-def send_invite(ical_txt, event, account, invite_type='request'):
+def send_invite(ical_txt, event, account, invite_type="request"):
     # We send those transactional emails through a separate domain.
-    MAILGUN_API_KEY = config.get('NOTIFICATIONS_MAILGUN_API_KEY')
-    MAILGUN_DOMAIN = config.get('NOTIFICATIONS_MAILGUN_DOMAIN')
+    MAILGUN_API_KEY = config.get("NOTIFICATIONS_MAILGUN_API_KEY")
+    MAILGUN_DOMAIN = config.get("NOTIFICATIONS_MAILGUN_DOMAIN")
     assert MAILGUN_DOMAIN is not None and MAILGUN_API_KEY is not None
 
     for participant in event.participants:
-        email = participant.get('email', None)
+        email = participant.get("email", None)
         if email is None:
             continue
 
@@ -561,18 +597,26 @@ def send_invite(ical_txt, event, account, invite_type='request'):
             continue
 
         msg = generate_invite_message(ical_txt, event, account, invite_type)
-        msg.headers['To'] = email
+        msg.headers["To"] = email
         final_message = msg.to_string()
 
-        mg_url = 'https://api.mailgun.net/v3/{}/messages.mime'.format(MAILGUN_DOMAIN)
-        r = requests.post(mg_url, auth=("api", MAILGUN_API_KEY),
-                          data={"to": email},
-                          files={"message": final_message})
+        mg_url = "https://api.mailgun.net/v3/{}/messages.mime".format(MAILGUN_DOMAIN)
+        r = requests.post(
+            mg_url,
+            auth=("api", MAILGUN_API_KEY),
+            data={"to": email},
+            files={"message": final_message},
+        )
 
         if r.status_code != 200:
-            log.error("Couldnt send invite email for", email_address=email,
-                      event_id=event.id, account_id=account.id,
-                      logstash_tag='invite_sending', status_code=r.status_code)
+            log.error(
+                "Couldnt send invite email for",
+                email_address=email,
+                event_id=event.id,
+                account_id=account.id,
+                logstash_tag="invite_sending",
+                status_code=r.status_code,
+            )
 
 
 def _generate_rsvp(status, account, event):
@@ -580,45 +624,44 @@ def _generate_rsvp(status, account, event):
     # in the RVSP reply. I suppose it's for reconciling the reply with the
     # invite. - karim
     cal = iCalendar()
-    cal.add('PRODID', '-//Nylas sync engine//nylas.com//')
-    cal.add('METHOD', 'REPLY')
-    cal.add('VERSION', '2.0')
-    cal.add('CALSCALE', 'GREGORIAN')
+    cal.add("PRODID", "-//Nylas sync engine//nylas.com//")
+    cal.add("METHOD", "REPLY")
+    cal.add("VERSION", "2.0")
+    cal.add("CALSCALE", "GREGORIAN")
 
     icalevent = icalendar.Event()
-    icalevent['uid'] = event.uid
+    icalevent["uid"] = event.uid
 
     if event.organizer_email is not None:
-        icalevent['organizer'] = event.organizer_email
+        icalevent["organizer"] = event.organizer_email
 
-    icalevent['sequence'] = event.sequence_number
-    icalevent['X-MICROSOFT-CDO-APPT-SEQUENCE'] = icalevent['sequence']
+    icalevent["sequence"] = event.sequence_number
+    icalevent["X-MICROSOFT-CDO-APPT-SEQUENCE"] = icalevent["sequence"]
 
-    if event.status == 'confirmed':
-        icalevent['status'] = 'CONFIRMED'
+    if event.status == "confirmed":
+        icalevent["status"] = "CONFIRMED"
 
-    icalevent['dtstamp'] = serialize_datetime(datetime.utcnow())
+    icalevent["dtstamp"] = serialize_datetime(datetime.utcnow())
 
     if event.start is not None:
-        icalevent['dtstart'] = serialize_datetime(event.start)
+        icalevent["dtstart"] = serialize_datetime(event.start)
 
     if event.end is not None:
-        icalevent['dtend'] = serialize_datetime(event.end)
+        icalevent["dtend"] = serialize_datetime(event.end)
 
     if event.description is not None:
-        icalevent['description'] = event.description
+        icalevent["description"] = event.description
 
     if event.location is not None:
-        icalevent['location'] = event.location
+        icalevent["location"] = event.location
 
     if event.title is not None:
-        icalevent['summary'] = event.title
+        icalevent["summary"] = event.title
 
-    attendee = icalendar.vCalAddress(u'MAILTO:{}'.format(
-        account.email_address))
-    attendee.params['cn'] = account.name
-    attendee.params['partstat'] = status
-    icalevent.add('attendee', attendee, encode=0)
+    attendee = icalendar.vCalAddress(u"MAILTO:{}".format(account.email_address))
+    attendee.params["cn"] = account.name
+    attendee.params["partstat"] = status
+    icalevent.add("attendee", attendee, encode=0)
     cal.add_component(icalevent)
 
     ret = {}
@@ -643,13 +686,13 @@ def rsvp_recipient(event):
 
     # A stupid bug made us create some db entries of the
     # form "None <None>".
-    if event.organizer_email not in [None, 'None']:
+    if event.organizer_email not in [None, "None"]:
         return event.organizer_email
 
     if event.message is not None:
         if event.message.from_addr is not None and len(event.message.from_addr) == 1:
             from_addr = event.message.from_addr[0][1]
-            if from_addr is not None and from_addr != '':
+            if from_addr is not None and from_addr != "":
                 return from_addr
 
     return None
@@ -667,28 +710,30 @@ def send_rsvp(ical_data, event, body_text, status, account):
 
     sendmail_client = get_sendmail_client(account)
 
-    msg = mime.create.multipart('mixed')
+    msg = mime.create.multipart("mixed")
 
-    body = mime.create.multipart('alternative')
+    body = mime.create.multipart("alternative")
     body.append(
-        mime.create.text('plain', ''),
-        mime.create.text('calendar;method=REPLY', ical_txt))
+        mime.create.text("plain", ""),
+        mime.create.text("calendar;method=REPLY", ical_txt),
+    )
 
     msg.append(body)
 
-    msg.headers['Reply-To'] = account.email_address
-    msg.headers['From'] = account.email_address
-    msg.headers['To'] = rsvp_to
+    msg.headers["Reply-To"] = account.email_address
+    msg.headers["From"] = account.email_address
+    msg.headers["To"] = rsvp_to
 
-    assert status in ['yes', 'no', 'maybe']
+    assert status in ["yes", "no", "maybe"]
 
-    if status == 'yes':
-        msg.headers['Subject'] = u'Accepted: {}'.format(event.message.subject)
-    elif status == 'maybe':
-        msg.headers['Subject'] = u'Tentatively accepted: {}'.format(
-            event.message.subject)
-    elif status == 'no':
-        msg.headers['Subject'] = u'Declined: {}'.format(event.message.subject)
+    if status == "yes":
+        msg.headers["Subject"] = u"Accepted: {}".format(event.message.subject)
+    elif status == "maybe":
+        msg.headers["Subject"] = u"Tentatively accepted: {}".format(
+            event.message.subject
+        )
+    elif status == "no":
+        msg.headers["Subject"] = u"Declined: {}".format(event.message.subject)
 
     final_message = msg.to_string()
 

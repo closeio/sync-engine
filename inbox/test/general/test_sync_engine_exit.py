@@ -17,9 +17,9 @@ TEST_YAHOO_EMAIL = "inboxapptest1@yahoo.com"
 
 @pytest.fixture
 def yahoo_account(db):
-    account = GenericAuthHandler('yahoo').create_account(
-        TEST_YAHOO_EMAIL,
-        {"email": TEST_YAHOO_EMAIL, "password": "BLAH"})
+    account = GenericAuthHandler("yahoo").create_account(
+        TEST_YAHOO_EMAIL, {"email": TEST_YAHOO_EMAIL, "password": "BLAH"}
+    )
     db.session.add(account)
     db.session.commit()
     return account
@@ -31,21 +31,27 @@ def raise_folder_error(*args, **kwargs):
 
 @pytest.fixture
 def sync_engine_stub(db, yahoo_account):
-    db.session.add(Folder(account=yahoo_account, name='Inbox'))
+    db.session.add(Folder(account=yahoo_account, name="Inbox"))
     db.session.commit()
-    engine = FolderSyncEngine(yahoo_account.id, yahoo_account.namespace.id,
-                              "Inbox", TEST_YAHOO_EMAIL, "yahoo", None)
+    engine = FolderSyncEngine(
+        yahoo_account.id,
+        yahoo_account.namespace.id,
+        "Inbox",
+        TEST_YAHOO_EMAIL,
+        "yahoo",
+        None,
+    )
 
     return engine
 
 
-def test_folder_engine_exits_if_folder_missing(db, yahoo_account,
-                                               sync_engine_stub):
+def test_folder_engine_exits_if_folder_missing(db, yahoo_account, sync_engine_stub):
     # if the folder does not exist in our database, _load_state will
     # encounter an IntegrityError as it tries to insert a child
     # ImapFolderSyncStatus against an invalid foreign key
-    folder = db.session.query(Folder).filter_by(account=yahoo_account,
-                                                name='Inbox').one()
+    folder = (
+        db.session.query(Folder).filter_by(account=yahoo_account, name="Inbox").one()
+    )
     db.session.delete(folder)
     db.session.commit()
     with pytest.raises(IntegrityError):
@@ -58,7 +64,7 @@ def test_folder_engine_exits_if_folder_missing(db, yahoo_account,
     # also check that we handle the crispin select_folder error appropriately
     # within the core True loop of _run()
     sync_engine_stub._load_state = lambda: True
-    sync_engine_stub.state = 'poll'
+    sync_engine_stub.state = "poll"
     sync_engine_stub.poll_impl = raise_folder_error
     with pytest.raises(MailsyncDone):
         sync_engine_stub._run()

@@ -7,8 +7,8 @@ Create Date: 2014-07-31 09:37:48.099402
 """
 
 # revision identifiers, used by Alembic.
-revision = '4e93522b5b62'
-down_revision = '3bb5d61c895c'
+revision = "4e93522b5b62"
+down_revision = "3bb5d61c895c"
 
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -31,6 +31,7 @@ def upgrade():
     from inbox.models.session import session_scope
     from inbox.util.html import strip_tags
     from inbox.ignition import main_engine
+
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()
     Base.metadata.reflect(engine)
@@ -38,19 +39,17 @@ def upgrade():
     SNIPPET_LENGTH = 191
 
     class Message(Base):
-        __table__ = Base.metadata.tables['message']
+        __table__ = Base.metadata.tables["message"]
 
     def calculate_html_snippet(msg, text):
-        text = text.replace('<br>', ' ').replace('<br/>', ' '). \
-            replace('<br />', ' ')
+        text = text.replace("<br>", " ").replace("<br/>", " ").replace("<br />", " ")
         text = strip_tags(text)
         calculate_plaintext_snippet(msg, text)
 
     def calculate_plaintext_snippet(msg, text):
-        msg.snippet = ' '.join(text.split())[:SNIPPET_LENGTH]
+        msg.snippet = " ".join(text.split())[:SNIPPET_LENGTH]
 
-    with session_scope(versioned=False)\
-            as db_session:
+    with session_scope(versioned=False) as db_session:
         for message in page_query(db_session.query(Message)):
             if not message.decode_error:
                 calculate_html_snippet(message, message.sanitized_body)

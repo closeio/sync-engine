@@ -6,24 +6,28 @@ import socket
 from OpenSSL._util import lib as ossllib
 
 from nylas.logging import get_logger
+
 log = get_logger()
 
 from inbox.auth.base import AuthHandler, account_or_none
-from inbox.basicauth import (ValidationError, UserRecoverableConfigError,
-                             SSLNotSupportedError, SettingUpdateError,
-                             AppPasswordError)
+from inbox.basicauth import (
+    ValidationError,
+    UserRecoverableConfigError,
+    SSLNotSupportedError,
+    SettingUpdateError,
+    AppPasswordError,
+)
 from inbox.models import Namespace
 from inbox.models.backends.generic import GenericAccount
 from inbox.sendmail.smtp.postel import SMTPClient
 from inbox.util.url import matching_subdomains
 from inbox.crispin import CrispinClient
 
-PROVIDER = 'generic'
-AUTH_HANDLER_CLS = 'GenericAuthHandler'
+PROVIDER = "generic"
+AUTH_HANDLER_CLS = "GenericAuthHandler"
 
 
 class GenericAuthHandler(AuthHandler):
-
     def get_account(self, target, email_address, response):
         account = account_or_none(target, GenericAccount, email_address)
         if not account:
@@ -42,56 +46,66 @@ class GenericAuthHandler(AuthHandler):
         # The server endpoints can ONLY be set at account creation and
         # CANNOT be subsequently changed in order to prevent MITM attacks.
         account.provider = self.provider_name
-        if self.provider_name == 'custom':
-            account.imap_endpoint = (response['imap_server_host'],
-                                     response['imap_server_port'])
-            account.smtp_endpoint = (response['smtp_server_host'],
-                                     response['smtp_server_port'])
+        if self.provider_name == "custom":
+            account.imap_endpoint = (
+                response["imap_server_host"],
+                response["imap_server_port"],
+            )
+            account.smtp_endpoint = (
+                response["smtp_server_host"],
+                response["smtp_server_port"],
+            )
 
         account.create_emailed_events_calendar()
 
         # Shim for back-compatability with legacy auth
         # The old API does NOT send these but authentication now uses them
         # so set them (included here, set in update_account()).
-        for username in ['imap_username', 'smtp_username']:
+        for username in ["imap_username", "smtp_username"]:
             if username not in response:
                 response[username] = email_address
-        for password in ['imap_password', 'smtp_password']:
+        for password in ["imap_password", "smtp_password"]:
             if password not in response:
-                response[password] = response['password']
+                response[password] = response["password"]
 
         return self.update_account(account, response)
 
     def update_account(self, account, response):
-        account.email_address = response['email']
-        for attribute in ['name', 'imap_username', 'imap_password',
-                          'smtp_username', 'smtp_password', 'password']:
+        account.email_address = response["email"]
+        for attribute in [
+            "name",
+            "imap_username",
+            "imap_password",
+            "smtp_username",
+            "smtp_password",
+            "password",
+        ]:
             if response.get(attribute):
                 setattr(account, attribute, response[attribute])
 
         # Shim for back-compatability with legacy auth
-        if response.get('imap_password'):
+        if response.get("imap_password"):
             # The new API sends separate IMAP/ SMTP credentials but we need to
             # set the legacy password attribute.
             # TODO[k]: Remove once column in dropped.
-            account.password = response['imap_password']
+            account.password = response["imap_password"]
         else:
             # The old API does NOT send these but authentication now uses them
             # so update them.
-            for attr in ('imap_username', 'smtp_username'):
+            for attr in ("imap_username", "smtp_username"):
                 if attr not in response:
-                    setattr(account, attr, response['email'])
-            for attr in ('imap_password', 'smtp_password'):
+                    setattr(account, attr, response["email"])
+            for attr in ("imap_password", "smtp_password"):
                 if attr not in response:
-                    setattr(account, attr, response['password'])
+                    setattr(account, attr, response["password"])
 
         account.date = datetime.datetime.utcnow()
 
-        if self.provider_name == 'custom':
-            for attribute in ('imap_server_host', 'smtp_server_host'):
-                old_value = getattr(account, '_{}'.format(attribute), None)
+        if self.provider_name == "custom":
+            for attribute in ("imap_server_host", "smtp_server_host"):
+                old_value = getattr(account, "_{}".format(attribute), None)
                 new_value = response.get(attribute)
-                if (new_value and old_value and new_value != old_value):
+                if new_value and old_value and new_value != old_value:
                     """
                     # Before updating the domain name, check if:
                     # 1/ they have the same parent domain
@@ -106,11 +120,11 @@ class GenericAuthHandler(AuthHandler):
                     """
 
                     # If all those conditions are met, update the address.
-                    setattr(account, '_{}'.format(attribute), new_value)
+                    setattr(account, "_{}".format(attribute), new_value)
 
-        account.ssl_required = response.get('ssl_required', True)
+        account.ssl_required = response.get("ssl_required", True)
 
-        account.sync_email = response.get('sync_email', True)
+        account.sync_email = response.get("sync_email", True)
 
         # Ensure account has sync enabled after authing.
         account.enable_sync()
@@ -131,38 +145,44 @@ class GenericAuthHandler(AuthHandler):
         host, port = account.imap_endpoint
         ssl_required = account.ssl_required
         try:
-            conn = create_imap_connection(host, port, ssl_required,
-                                          use_timeout)
+            conn = create_imap_connection(host, port, ssl_required, use_timeout)
         except (IMAPClient.Error, socket.error) as exc:
-            log.error('Error instantiating IMAP connection',
-                      account_id=account.id,
-                      host=host,
-                      port=port,
-                      ssl_required=ssl_required,
-                      error=exc)
+            log.error(
+                "Error instantiating IMAP connection",
+                account_id=account.id,
+                host=host,
+                port=port,
+                ssl_required=ssl_required,
+                error=exc,
+            )
             raise
         try:
             conn.login(account.imap_username, account.imap_password)
         except IMAPClient.Error as exc:
             if _auth_is_invalid(exc):
-                log.error('IMAP login failed',
-                          account_id=account.id,
-                          host=host, port=port,
-                          ssl_required=ssl_required,
-                          error=exc)
+                log.error(
+                    "IMAP login failed",
+                    account_id=account.id,
+                    host=host,
+                    port=port,
+                    ssl_required=ssl_required,
+                    error=exc,
+                )
                 raise ValidationError(exc)
             elif _auth_requires_app_password(exc):
                 raise AppPasswordError(exc)
             else:
-                log.error('IMAP login failed for an unknown reason. Check _auth_is_invalid',
-                          account_id=account.id,
-                          host=host,
-                          port=port,
-                          ssl_required=ssl_required,
-                          error=exc)
+                log.error(
+                    "IMAP login failed for an unknown reason. Check _auth_is_invalid",
+                    account_id=account.id,
+                    host=host,
+                    port=port,
+                    ssl_required=ssl_required,
+                    error=exc,
+                )
                 raise
 
-        if 'ID' in conn.capabilities():
+        if "ID" in conn.capabilities():
             # Try to issue an IMAP ID command. Some whacky servers
             # (163.com) require this, but it's an encouraged practice in any
             # case. Since this isn't integral to the sync in general, don't
@@ -170,15 +190,22 @@ class GenericAuthHandler(AuthHandler):
             # (Note that as of May 2015, this depends on a patched imapclient
             # that implements the ID command.)
             try:
-                conn.id_({'name': 'Nylas Sync Engine', 'vendor': 'Nylas',
-                          'contact': 'support@nylas.com'})
+                conn.id_(
+                    {
+                        "name": "Nylas Sync Engine",
+                        "vendor": "Nylas",
+                        "contact": "support@nylas.com",
+                    }
+                )
             except Exception as exc:
-                log.warning('Error issuing IMAP ID command; continuing',
-                            account_id=account.id,
-                            host=host,
-                            port=port,
-                            ssl_required=ssl_required,
-                            error=exc)
+                log.warning(
+                    "Error issuing IMAP ID command; continuing",
+                    account_id=account.id,
+                    host=host,
+                    port=port,
+                    ssl_required=ssl_required,
+                    error=exc,
+                )
 
         return conn
 
@@ -213,8 +240,9 @@ class GenericAuthHandler(AuthHandler):
         """
         # Verify IMAP login
         conn = self.connect_account(account)
-        crispin = CrispinClient(account.id, account.provider_info,
-                                account.email_address, conn)
+        crispin = CrispinClient(
+            account.id, account.provider_info, account.email_address, conn
+        )
 
         info = account.provider_info
         if "condstore" not in info:
@@ -225,12 +253,14 @@ class GenericAuthHandler(AuthHandler):
             account.folder_separator = crispin.folder_separator
             account.folder_prefix = crispin.folder_prefix
         except Exception as e:
-            log.error("account_folder_list_failed",
-                      account_id=account.id,
-                      error=e.message)
-            error_message = ("Full IMAP support is not enabled for this account. "
-                             "Please contact your domain "
-                             "administrator and try again.")
+            log.error(
+                "account_folder_list_failed", account_id=account.id, error=e.message
+            )
+            error_message = (
+                "Full IMAP support is not enabled for this account. "
+                "Please contact your domain "
+                "administrator and try again."
+            )
             raise UserRecoverableConfigError(error_message)
         finally:
             conn.logout()
@@ -243,72 +273,81 @@ class GenericAuthHandler(AuthHandler):
             with smtp_client._get_connection():
                 pass
         except socket.gaierror as exc:
-            log.error('Failed to resolve SMTP server domain',
-                      account_id=account.id,
-                      error=exc)
-            error_message = ("Couldn't resolve the SMTP server domain name. "
-                             "Please check that your SMTP settings are correct.")
+            log.error(
+                "Failed to resolve SMTP server domain", account_id=account.id, error=exc
+            )
+            error_message = (
+                "Couldn't resolve the SMTP server domain name. "
+                "Please check that your SMTP settings are correct."
+            )
             raise UserRecoverableConfigError(error_message)
 
         except socket.timeout as exc:
-            log.error('TCP timeout when connecting to SMTP server',
-                      account_id=account.id,
-                      error=exc)
+            log.error(
+                "TCP timeout when connecting to SMTP server",
+                account_id=account.id,
+                error=exc,
+            )
 
-            error_message = ("Connection timeout when connecting to SMTP server. "
-                             "Please check that your SMTP settings are correct.")
+            error_message = (
+                "Connection timeout when connecting to SMTP server. "
+                "Please check that your SMTP settings are correct."
+            )
             raise UserRecoverableConfigError(error_message)
 
         except Exception as exc:
-            log.error('Failed to establish an SMTP connection',
-                      smtp_endpoint=account.smtp_endpoint,
-                      account_id=account.id,
-                      error=exc)
-            raise UserRecoverableConfigError("Please check that your SMTP "
-                                             "settings are correct.")
+            log.error(
+                "Failed to establish an SMTP connection",
+                smtp_endpoint=account.smtp_endpoint,
+                account_id=account.id,
+                error=exc,
+            )
+            raise UserRecoverableConfigError(
+                "Please check that your SMTP " "settings are correct."
+            )
 
         # Reset the sync_state to 'running' on a successful re-auth.
         # Necessary for API requests to proceed and an account modify delta to
         # be returned to delta/ streaming clients.
         # NOTE: Setting this does not restart the sync. Sync scheduling occurs
         # via the sync_should_run bit (set to True in update_account() above).
-        account.sync_state = ('running' if account.sync_state else
-                              account.sync_state)
+        account.sync_state = "running" if account.sync_state else account.sync_state
         return True
 
     def interactive_auth(self, email_address):
         response = dict(email=email_address)
 
-        if self.provider_name == 'custom':
-            imap_server_host = raw_input('IMAP server host: ').strip()
-            imap_server_port = raw_input('IMAP server port: ').strip() or 993
-            imap_um = 'IMAP username (empty for same as email address): '
+        if self.provider_name == "custom":
+            imap_server_host = raw_input("IMAP server host: ").strip()
+            imap_server_port = raw_input("IMAP server port: ").strip() or 993
+            imap_um = "IMAP username (empty for same as email address): "
             imap_user = raw_input(imap_um).strip() or email_address
-            imap_pwm = 'IMAP password for {0}: '
+            imap_pwm = "IMAP password for {0}: "
             imap_p = getpass.getpass(imap_pwm.format(email_address))
 
-            smtp_server_host = raw_input('SMTP server host: ').strip()
-            smtp_server_port = raw_input('SMTP server port: ').strip() or 587
-            smtp_um = 'SMTP username (empty for same as email address): '
+            smtp_server_host = raw_input("SMTP server host: ").strip()
+            smtp_server_port = raw_input("SMTP server port: ").strip() or 587
+            smtp_um = "SMTP username (empty for same as email address): "
             smtp_user = raw_input(smtp_um).strip() or email_address
-            smtp_pwm = 'SMTP password for {0} (empty for same as IMAP): '
+            smtp_pwm = "SMTP password for {0} (empty for same as IMAP): "
             smtp_p = getpass.getpass(smtp_pwm.format(email_address)) or imap_p
 
-            ssl_required = raw_input('Require SSL? [Y/n] ').strip().\
-                lower() != 'n'
+            ssl_required = raw_input("Require SSL? [Y/n] ").strip().lower() != "n"
 
-            response.update(imap_server_host=imap_server_host,
-                            imap_server_port=imap_server_port,
-                            imap_username=imap_user,
-                            imap_password=imap_p,
-                            smtp_server_host=smtp_server_host,
-                            smtp_server_port=smtp_server_port,
-                            smtp_username=smtp_user,
-                            smtp_password=smtp_p,
-                            ssl_required=ssl_required)
+            response.update(
+                imap_server_host=imap_server_host,
+                imap_server_port=imap_server_port,
+                imap_username=imap_user,
+                imap_password=imap_p,
+                smtp_server_host=smtp_server_host,
+                smtp_server_port=smtp_server_port,
+                smtp_username=smtp_user,
+                smtp_password=smtp_p,
+                ssl_required=ssl_required,
+            )
         else:
-            password_message = 'Password for {0} (hidden): '
-            pw = ''
+            password_message = "Password for {0} (hidden): "
+            pw = ""
             while not pw:
                 pw = getpass.getpass(password_message.format(email_address))
             response.update(password=pw)
@@ -320,12 +359,11 @@ def _auth_requires_app_password(exc):
     # Some servers require an application specific password, token, or
     # authorization code to login
     PREFIXES = (
-        'Please using authorized code to login.',  # http://service.mail.qq.com/cgi-bin/help?subtype=1&&id=28&&no=1001256
-        'Authorized code is incorrect',  # http://service.mail.qq.com/cgi-bin/help?subtype=1&&id=28&&no=1001256
-        'Login fail. Please using weixin token',  # http://service.exmail.qq.com/cgi-bin/help?subtype=1&no=1001023&id=23.
+        "Please using authorized code to login.",  # http://service.mail.qq.com/cgi-bin/help?subtype=1&&id=28&&no=1001256
+        "Authorized code is incorrect",  # http://service.mail.qq.com/cgi-bin/help?subtype=1&&id=28&&no=1001256
+        "Login fail. Please using weixin token",  # http://service.exmail.qq.com/cgi-bin/help?subtype=1&no=1001023&id=23.
     )
-    return any(exc.message.lower().startswith(msg.lower()) for msg in
-               PREFIXES)
+    return any(exc.message.lower().startswith(msg.lower()) for msg in PREFIXES)
 
 
 def _auth_is_invalid(exc):
@@ -334,28 +372,29 @@ def _auth_is_invalid(exc):
     # couldn't log in because the credentials are invalid, or because of some
     # temporary server error.
     AUTH_INVALID_PREFIXES = (
-        '[authenticationfailed]',
-        'incorrect username or password',
-        'invalid login or password',
-        'login login error password error',
-        '[auth] authentication failed.',
-        'invalid login credentials',
-        '[ALERT] Please log in via your web browser',
-        'LOGIN Authentication failed',
-        'authentication failed',
-        '[ALERT] Invalid credentials(Failure)',
-        'Invalid email login',
-        'failed: Re-Authentication Failure',
-        'Invalid',
-        'Login incorrect',
-        'LOGIN GroupWise login failed',
-        'authentication failed',
-        'LOGIN bad',  # LOGIN bad username or password
-        '[AUTHORIZATIONFAILED]',
-        'incorrect password',
+        "[authenticationfailed]",
+        "incorrect username or password",
+        "invalid login or password",
+        "login login error password error",
+        "[auth] authentication failed.",
+        "invalid login credentials",
+        "[ALERT] Please log in via your web browser",
+        "LOGIN Authentication failed",
+        "authentication failed",
+        "[ALERT] Invalid credentials(Failure)",
+        "Invalid email login",
+        "failed: Re-Authentication Failure",
+        "Invalid",
+        "Login incorrect",
+        "LOGIN GroupWise login failed",
+        "authentication failed",
+        "LOGIN bad",  # LOGIN bad username or password
+        "[AUTHORIZATIONFAILED]",
+        "incorrect password",
     )
-    return any(exc.message.lower().startswith(msg.lower()) for msg in
-               AUTH_INVALID_PREFIXES)
+    return any(
+        exc.message.lower().startswith(msg.lower()) for msg in AUTH_INVALID_PREFIXES
+    )
 
 
 def create_imap_connection(host, port, ssl_required, use_timeout=True):
@@ -372,24 +411,28 @@ def create_imap_connection(host, port, ssl_required, use_timeout=True):
 
     # TODO: certificate pinning for well known sites
     context = create_default_context()
-    conn = IMAPClient(host, port=port, use_uid=True,
-                      ssl=use_ssl, ssl_context=context, timeout=timeout)
+    conn = IMAPClient(
+        host, port=port, use_uid=True, ssl=use_ssl, ssl_context=context, timeout=timeout
+    )
 
     if not use_ssl:
         # If STARTTLS is available, always use it. If it's not/ it fails, use
         # `ssl_required` to determine whether to fail or continue with
         # plaintext authentication.
-        if conn.has_capability('STARTTLS'):
+        if conn.has_capability("STARTTLS"):
             try:
                 conn.starttls(context)
             except Exception:
                 if not ssl_required:
-                    log.warning('STARTTLS supported but failed for SSL NOT '
-                                'required authentication', exc_info=True)
+                    log.warning(
+                        "STARTTLS supported but failed for SSL NOT "
+                        "required authentication",
+                        exc_info=True,
+                    )
                 else:
                     raise
         elif ssl_required:
-            raise SSLNotSupportedError('Required IMAP STARTTLS not supported.')
+            raise SSLNotSupportedError("Required IMAP STARTTLS not supported.")
 
     return conn
 
@@ -428,8 +471,10 @@ def create_default_context():
     context.options |= ossllib.SSL_OP_SINGLE_DH_USE
     context.options |= ossllib.SSL_OP_SINGLE_ECDH_USE
 
-    context._ctx.set_mode(ossllib.SSL_MODE_ENABLE_PARTIAL_WRITE |
-                          ossllib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER |
-                          ossllib.SSL_MODE_AUTO_RETRY)
+    context._ctx.set_mode(
+        ossllib.SSL_MODE_ENABLE_PARTIAL_WRITE
+        | ossllib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
+        | ossllib.SSL_MODE_AUTO_RETRY
+    )
 
     return context

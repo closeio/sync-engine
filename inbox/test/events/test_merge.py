@@ -3,23 +3,37 @@ from inbox.models.event import Event
 
 
 def fake_event():
-    return Event(title="The fifth element",
-                 participants=[{"name": "Ronald Zubar",
-                                "email": "ronald@example.com",
-                                "status": "noreply",
-                                "notes": "required"}])
+    return Event(
+        title="The fifth element",
+        participants=[
+            {
+                "name": "Ronald Zubar",
+                "email": "ronald@example.com",
+                "status": "noreply",
+                "notes": "required",
+            }
+        ],
+    )
 
 
 def fake_event2():
-    return Event(title="The fifth element",
-                 participants=[{"name": "Ronald Zubar",
-                                "email": "ronald@example.com",
-                                "status": "noreply",
-                                "notes": "required"},
-                               {"name": "Ronald McDonald",
-                                "email": "ronald@mcdonalds.com",
-                                "status": "noreply",
-                                "notes": "required"}])
+    return Event(
+        title="The fifth element",
+        participants=[
+            {
+                "name": "Ronald Zubar",
+                "email": "ronald@example.com",
+                "status": "noreply",
+                "notes": "required",
+            },
+            {
+                "name": "Ronald McDonald",
+                "email": "ronald@mcdonalds.com",
+                "status": "noreply",
+                "notes": "required",
+            },
+        ],
+    )
 
 
 def test_overwrite():

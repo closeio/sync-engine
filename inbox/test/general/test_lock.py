@@ -3,8 +3,7 @@
 import tempfile
 
 import pytest
-
-from gevent import spawn, sleep
+from gevent import sleep, spawn
 
 from inbox.util.file import Lock
 

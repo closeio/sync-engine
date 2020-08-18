@@ -2,8 +2,8 @@
 import pytest
 from sqlalchemy.orm import joinedload, object_session
 
-from inbox.auth.gmail import GmailAuthHandler
-from inbox.models.session import session_scope
+from inbox.auth.gmail import GmailAuthHandler, g_token_manager
+from inbox.basicauth import ConnectionError, OAuthError
 from inbox.models.account import Account
 from inbox.models.backends.gmail import (
     GOOGLE_CALENDAR_SCOPE,
@@ -11,8 +11,7 @@ from inbox.models.backends.gmail import (
     GOOGLE_EMAIL_SCOPE,
     GmailAccount,
 )
-from inbox.auth.gmail import g_token_manager
-from inbox.basicauth import OAuthError, ConnectionError
+from inbox.models.session import session_scope
 
 SHARD_ID = 0
 ACCESS_TOKEN = "this_is_an_access_token"

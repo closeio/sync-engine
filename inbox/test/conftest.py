@@ -10,11 +10,10 @@ import gevent_openssl
 gevent_openssl.monkey_patch()
 
 from inbox.test.util.base import *  # noqa
-from inbox.util.testutils import (
-    mock_imapclient,  # noqa
-    mock_smtp_get_connection,  # noqa
-    mock_dns_resolver,  # noqa
-    dump_dns_queries,  # noqa
-    files,  # noqa
-    uploaded_file_ids,
-)  # noqa
+from inbox.util.testutils import files  # noqa
+from inbox.util.testutils import mock_dns_resolver  # noqa
+from inbox.util.testutils import mock_imapclient  # noqa
+from inbox.util.testutils import mock_smtp_get_connection  # noqa
+from inbox.util.testutils import uploaded_file_ids
+
+from inbox.util.testutils import dump_dns_queries  # noqa; noqa

@@ -1,15 +1,14 @@
-from sqlalchemy import Column, ForeignKey
-from sqlalchemy.schema import UniqueConstraint
-from sqlalchemy.dialects.mysql import MEDIUMBLOB
-from sqlalchemy import DateTime
-
-from inbox.models.base import MailSyncBase
-from inbox.models.namespace import Namespace
-from inbox.models.mixins import UpdatedAtMixin, DeletedAtMixin
-
 import datetime
 import json
 import zlib
+
+from sqlalchemy import Column, DateTime, ForeignKey
+from sqlalchemy.dialects.mysql import MEDIUMBLOB
+from sqlalchemy.schema import UniqueConstraint
+
+from inbox.models.base import MailSyncBase
+from inbox.models.mixins import DeletedAtMixin, UpdatedAtMixin
+from inbox.models.namespace import Namespace
 
 
 class DataProcessingCache(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):

@@ -1,28 +1,28 @@
 from sqlalchemy import (
+    BigInteger,
     Column,
+    Enum,
+    ForeignKey,
+    Index,
     Integer,
     String,
-    Enum,
     Text,
-    Index,
-    BigInteger,
-    ForeignKey,
 )
-from sqlalchemy.orm import relationship, backref, validates
+from sqlalchemy.orm import backref, relationship, validates
 from sqlalchemy.schema import UniqueConstraint
 
-from inbox.sqlalchemy_ext.util import MAX_TEXT_CHARS
-from inbox.models.mixins import (
-    HasPublicID,
-    HasEmailAddress,
-    HasRevisions,
-    UpdatedAtMixin,
-    DeletedAtMixin,
-)
 from inbox.models.base import MailSyncBase
 from inbox.models.event import Event
 from inbox.models.message import Message
+from inbox.models.mixins import (
+    DeletedAtMixin,
+    HasEmailAddress,
+    HasPublicID,
+    HasRevisions,
+    UpdatedAtMixin,
+)
 from inbox.models.namespace import Namespace
+from inbox.sqlalchemy_ext.util import MAX_TEXT_CHARS
 from inbox.util.encoding import unicode_safe_truncate
 
 

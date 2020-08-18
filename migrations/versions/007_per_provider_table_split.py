@@ -10,11 +10,10 @@ Create Date: 2014-03-19 17:55:44.578515
 revision = "1c3f1812f2d9"
 down_revision = "482338e7a7d6"
 
-from alembic import op
 import sqlalchemy as sa
-
-from sqlalchemy.sql import table, column
+from alembic import op
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql import column, table
 
 
 def upgrade():
@@ -31,8 +30,8 @@ def downgrade():
 
 # Upgrade funtions:
 def genericize_imapaccount():
-    from inbox.models.session import session_scope
     from inbox.ignition import main_engine
+    from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()
@@ -73,8 +72,8 @@ def genericize_imapaccount():
 
 
 def genericize_thread():
-    from inbox.models.session import session_scope
     from inbox.ignition import main_engine
+    from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()
@@ -173,8 +172,8 @@ def genericize_namespace_contact_foldersync():
 
 # Downgrade functions:
 def downgrade_imapaccount():
-    from inbox.models.session import session_scope
     from inbox.ignition import main_engine
+    from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()
@@ -238,8 +237,8 @@ def downgrade_imapaccount():
 
 
 def downgrade_imapthread():
-    from inbox.models.session import session_scope
     from inbox.ignition import main_engine
+    from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()

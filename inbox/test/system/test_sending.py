@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-import pytest
-from time import strftime
-from conftest import timeout_loop, all_accounts
-from random_words import random_words
-from inbox.util.url import provider_from_address
 import json
+from time import strftime
+
+import pytest
+from conftest import all_accounts, timeout_loop
+from random_words import random_words
+
+from inbox.util.url import provider_from_address
 
 
 @timeout_loop("send")

@@ -2,9 +2,9 @@ from abc import ABCMeta, abstractmethod
 
 from sqlalchemy.orm.exc import NoResultFound
 
+from inbox.basicauth import NotSupportedError
 from inbox.models.session import session_scope
 from inbox.providers import providers
-from inbox.basicauth import NotSupportedError
 
 
 def handler_from_provider(provider_name):

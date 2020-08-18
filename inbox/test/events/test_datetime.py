@@ -1,9 +1,10 @@
-import arrow
 from datetime import timedelta
 
-from inbox.models.when import Time, TimeSpan, Date, DateSpan, parse_as_when, parse_utc
+import arrow
+
+from inbox.events.util import google_to_event_time, parse_datetime, parse_google_time
 from inbox.models.event import time_parse
-from inbox.events.util import google_to_event_time, parse_google_time, parse_datetime
+from inbox.models.when import Date, DateSpan, Time, TimeSpan, parse_as_when, parse_utc
 
 
 def test_when_time():

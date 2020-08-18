@@ -2,15 +2,15 @@ import sys
 import time
 from contextlib import contextmanager
 
+from nylas.logging import find_first_app_frame_and_name, get_logger
 from sqlalchemy import event
-from sqlalchemy.orm.session import Session
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.horizontal_shard import ShardedSession
+from sqlalchemy.orm.session import Session
 
 from inbox.config import config
 from inbox.ignition import engine_manager
 from inbox.util.stats import statsd_client
-from nylas.logging import get_logger, find_first_app_frame_and_name
 
 log = get_logger()
 
@@ -92,10 +92,10 @@ def new_session(engine, versioned=True):
 
 def configure_versioning(session):
     from inbox.models.transaction import (
-        create_revisions,
-        propagate_changes,
-        increment_versions,
         bump_redis_txn_id,
+        create_revisions,
+        increment_versions,
+        propagate_changes,
     )
 
     @event.listens_for(session, "before_flush")

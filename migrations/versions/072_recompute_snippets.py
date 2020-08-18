@@ -28,9 +28,9 @@ def page_query(q):
 
 
 def upgrade():
+    from inbox.ignition import main_engine
     from inbox.models.session import session_scope
     from inbox.util.html import strip_tags
-    from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()

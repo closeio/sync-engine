@@ -62,14 +62,16 @@ sessions reduce scalability.
 """
 from __future__ import division
 
-from datetime import datetime, timedelta
-from gevent import Greenlet
-import gevent
 import imaplib
 import time
+from datetime import datetime, timedelta
+
+import gevent
+from gevent import Greenlet
+from nylas.logging import get_logger
 from sqlalchemy import func
-from sqlalchemy.orm import load_only
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import load_only
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.basicauth import ValidationError
@@ -77,30 +79,28 @@ from inbox.util.concurrency import retry_with_logging
 from inbox.util.debug import bind_context
 from inbox.util.itert import chunk
 from inbox.util.misc import or_none
-from inbox.util.threading import fetch_corresponding_thread, MAX_THREAD_LENGTH
 from inbox.util.stats import statsd_client
-from nylas.logging import get_logger
+from inbox.util.threading import MAX_THREAD_LENGTH, fetch_corresponding_thread
 
 log = get_logger()
-from inbox.crispin import connection_pool, retry_crispin, FolderMissingError
-from inbox.models import Folder, Account, Message
+from inbox.crispin import FolderMissingError, connection_pool, retry_crispin
+from inbox.events.ical import import_attached_events
+from inbox.heartbeat.store import HeartbeatStatusProxy
+from inbox.mailsync.backends.base import (
+    THROTTLE_COUNT,
+    THROTTLE_WAIT,
+    MailsyncDone,
+    MailsyncError,
+)
+from inbox.mailsync.backends.imap import common
+from inbox.models import Account, Folder, Message
 from inbox.models.backends.imap import (
+    ImapFolderInfo,
     ImapFolderSyncStatus,
     ImapThread,
     ImapUid,
-    ImapFolderInfo,
 )
 from inbox.models.session import session_scope
-from inbox.mailsync.backends.imap import common
-from inbox.mailsync.backends.base import (
-    MailsyncDone,
-    MailsyncError,
-    THROTTLE_COUNT,
-    THROTTLE_WAIT,
-)
-from inbox.heartbeat.store import HeartbeatStatusProxy
-from inbox.events.ical import import_attached_events
-
 
 # Idle doesn't necessarily pick up flag changes, so we don't want to
 # idle for very long, or we won't detect things like messages being

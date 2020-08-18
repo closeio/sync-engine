@@ -20,25 +20,26 @@ user always gets the full thread when they look at mail.
 
 """
 from __future__ import division
+
 from collections import OrderedDict
 from datetime import datetime, timedelta
+
 import gevent
+from gevent.lock import Semaphore
+from nylas.logging import get_logger
 from sqlalchemy.orm import joinedload, load_only
 
-from inbox.util.itert import chunk
-from inbox.util.debug import bind_context
-
-from nylas.logging import get_logger
-from gevent.lock import Semaphore
-from inbox.models import Message, Folder, Namespace, Account, Label, Category
-from inbox.models.category import EPOCH
-from inbox.models.backends.imap import ImapFolderInfo, ImapUid, ImapThread
-from inbox.models.session import session_scope
+from inbox.mailsync.backends.base import THROTTLE_COUNT, THROTTLE_WAIT
+from inbox.mailsync.backends.imap import common
 from inbox.mailsync.backends.imap.generic import FolderSyncEngine
 from inbox.mailsync.backends.imap.monitor import ImapSyncMonitor
-from inbox.mailsync.backends.imap import common
 from inbox.mailsync.gc import LabelRenameHandler
-from inbox.mailsync.backends.base import THROTTLE_COUNT, THROTTLE_WAIT
+from inbox.models import Account, Category, Folder, Label, Message, Namespace
+from inbox.models.backends.imap import ImapFolderInfo, ImapThread, ImapUid
+from inbox.models.category import EPOCH
+from inbox.models.session import session_scope
+from inbox.util.debug import bind_context
+from inbox.util.itert import chunk
 
 log = get_logger()
 

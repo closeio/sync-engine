@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 import contextlib
-import dns
 import json
 import os
-import re
-import pytest
-import subprocess
 import pkgutil
+import re
+import subprocess
+
+import dns
+import pytest
 
 from inbox.basicauth import ValidationError
-
 
 FILENAMES = [
     "muir.jpg",
@@ -60,8 +60,7 @@ def setup_test_db():
 
     """
     from inbox.config import config
-    from inbox.ignition import engine_manager
-    from inbox.ignition import init_db
+    from inbox.ignition import engine_manager, init_db
 
     create_test_db()
 

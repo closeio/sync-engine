@@ -1,21 +1,22 @@
 import random
+
 import gevent
-from requests import Response
-from pytest import fixture
 from freezegun import freeze_time
+from pytest import fixture
+from requests import Response
 
 from inbox.models.namespace import Namespace
 from inbox.test.util.base import (
-    add_generic_imap_account,
-    add_fake_thread,
-    add_fake_message,
     add_fake_calendar,
+    add_fake_contact,
     add_fake_event,
     add_fake_folder,
-    add_fake_imapuid,
     add_fake_gmail_account,
-    add_fake_contact,
+    add_fake_imapuid,
+    add_fake_message,
     add_fake_msg_with_calendar_part,
+    add_fake_thread,
+    add_generic_imap_account,
 )
 
 
@@ -122,7 +123,7 @@ def test_get_accounts_to_delete(db):
 
 def test_bulk_namespace_deletion(db):
     from inbox.models import Account
-    from inbox.models.util import get_accounts_to_delete, batch_delete_namespaces
+    from inbox.models.util import batch_delete_namespaces, get_accounts_to_delete
 
     db.session.query(Account).delete(synchronize_session=False)
     db.session.commit()
@@ -181,7 +182,7 @@ def test_bulk_namespace_deletion(db):
 @freeze_time("2016-02-02 11:01:34")
 def test_deletion_no_throttle(db, patch_requests_no_throttle):
     from inbox.models import Account
-    from inbox.models.util import get_accounts_to_delete, batch_delete_namespaces
+    from inbox.models.util import batch_delete_namespaces, get_accounts_to_delete
 
     new_accounts = set()
     account_1 = add_completely_fake_account(db)
@@ -207,7 +208,7 @@ def test_deletion_no_throttle(db, patch_requests_no_throttle):
 @freeze_time("2016-02-02 11:01:34")
 def test_deletion_metric_throttle(db, patch_requests_throttle):
     from inbox.models import Account
-    from inbox.models.util import get_accounts_to_delete, batch_delete_namespaces
+    from inbox.models.util import batch_delete_namespaces, get_accounts_to_delete
 
     account_1 = add_completely_fake_account(db)
     account_1_id = account_1.id
@@ -233,7 +234,7 @@ def test_deletion_metric_throttle(db, patch_requests_throttle):
 @freeze_time("2016-02-02 01:01:34")
 def test_deletion_time_throttle(db, patch_requests_no_throttle):
     from inbox.models import Account
-    from inbox.models.util import get_accounts_to_delete, batch_delete_namespaces
+    from inbox.models.util import batch_delete_namespaces, get_accounts_to_delete
 
     account_1 = add_completely_fake_account(db, "test5@nylas.com")
     account_1_id = account_1.id
@@ -257,7 +258,7 @@ def test_deletion_time_throttle(db, patch_requests_no_throttle):
 
 
 def test_namespace_deletion(db, default_account):
-    from inbox.models import Account, Thread, Message
+    from inbox.models import Account, Message, Thread
     from inbox.models.util import delete_namespace
 
     models = [Thread, Message]
@@ -326,7 +327,7 @@ def test_namespace_deletion(db, default_account):
 
 
 def test_namespace_delete_cascade(db, default_account):
-    from inbox.models import Account, Thread, Message
+    from inbox.models import Account, Message, Thread
 
     models = [Thread, Message]
 
@@ -374,16 +375,16 @@ def test_namespace_delete_cascade(db, default_account):
 def test_fake_accounts(empty_db):
     from inbox.models import (
         Account,
-        Thread,
-        Message,
         Block,
-        Secret,
         Contact,
         Event,
+        Message,
+        Secret,
+        Thread,
         Transaction,
     )
-    from inbox.models.backends.imap import ImapUid
     from inbox.models.backends.gmail import GmailAuthCredentials
+    from inbox.models.backends.imap import ImapUid
     from inbox.models.util import delete_namespace
 
     models = [Thread, Message, Event, Transaction, Contact, Block]
@@ -431,7 +432,7 @@ def test_fake_accounts(empty_db):
 def test_multiple_fake_accounts(empty_db):
     # Add three fake accounts, check that removing one doesn't affect
     # the two others.
-    from inbox.models import Thread, Message, Block, Secret, Contact, Event, Transaction
+    from inbox.models import Block, Contact, Event, Message, Secret, Thread, Transaction
     from inbox.models.backends.gmail import GmailAuthCredentials
     from inbox.models.util import delete_namespace
 

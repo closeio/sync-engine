@@ -1,5 +1,6 @@
 black==19.10b0
 click==7.1.2
+isort==5.4.2
 pathspec==0.8.0
 regex==2020.7.14
 toml==0.10.1

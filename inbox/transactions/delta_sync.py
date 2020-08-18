@@ -1,16 +1,16 @@
-import time
-import gevent
 import collections
+import time
 from datetime import datetime
 
-from sqlalchemy import asc, desc, bindparam
+import gevent
+from sqlalchemy import asc, bindparam, desc
 from sqlalchemy.orm.exc import NoResultFound
+
 from inbox.api.kellogs import APIEncoder, encode
-from inbox.models import Transaction, Message, Thread, Account, Namespace
+from inbox.models import Account, Message, Namespace, Thread, Transaction
 from inbox.models.session import session_scope
 from inbox.models.util import transaction_objects
 from inbox.sqlalchemy_ext.util import bakery
-
 
 EVENT_NAME_FOR_COMMAND = {"insert": "create", "update": "modify", "delete": "delete"}
 

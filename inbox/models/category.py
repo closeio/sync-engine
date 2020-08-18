@@ -1,24 +1,24 @@
 from datetime import datetime
 
-from sqlalchemy import Column, String, ForeignKey, Enum, DateTime
-from sqlalchemy.orm import relationship, validates
-from sqlalchemy.schema import UniqueConstraint
-from sqlalchemy.orm.exc import MultipleResultsFound
+from nylas.logging import get_logger
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, String
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import relationship, validates
+from sqlalchemy.orm.exc import MultipleResultsFound
+from sqlalchemy.schema import UniqueConstraint
 
-from inbox.sqlalchemy_ext.util import StringWithTransform
 from inbox.models.base import MailSyncBase
+from inbox.models.constants import MAX_INDEXABLE_LENGTH
 from inbox.models.mixins import (
-    HasRevisions,
-    HasPublicID,
     CaseInsensitiveComparator,
     DeletedAtMixin,
+    HasPublicID,
+    HasRevisions,
     UpdatedAtMixin,
 )
-from inbox.models.constants import MAX_INDEXABLE_LENGTH
-from nylas.logging import get_logger
-from inbox.util.misc import fs_folder_path
+from inbox.sqlalchemy_ext.util import StringWithTransform
 from inbox.util.encoding import unicode_safe_truncate
+from inbox.util.misc import fs_folder_path
 
 log = get_logger()
 

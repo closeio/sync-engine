@@ -26,10 +26,11 @@ def page_query(q):
 
 
 def upgrade():
-    from inbox.models import Message, Thread
-    from inbox.models.session import session_scope
     from sqlalchemy import desc
     from sqlalchemy.sql import not_
+
+    from inbox.models import Message, Thread
+    from inbox.models.session import session_scope
 
     with session_scope(versioned=False) as db_session:
         for thread in page_query(db_session.query(Thread)):

@@ -2,8 +2,8 @@ import sys
 import traceback
 
 from flask import jsonify, make_response, request
+from nylas.logging.log import create_error_log_context, get_logger
 from nylas.logging.sentry import sentry_alert
-from nylas.logging.log import get_logger, create_error_log_context
 
 log = get_logger()
 

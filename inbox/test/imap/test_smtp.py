@@ -1,10 +1,11 @@
 import smtplib
-import pytest
+
 import mock
+import pytest
+from nylas.logging import get_logger
 
 from inbox.sendmail.base import SendMailException
 from inbox.sendmail.smtp.postel import SMTPConnection
-from nylas.logging import get_logger
 
 
 @pytest.mark.networkrequired

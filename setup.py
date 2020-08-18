@@ -1,7 +1,7 @@
 import glob
 import os
-from setuptools import setup, find_packages
 
+from setuptools import find_packages, setup
 
 setup(
     name="inbox-sync",

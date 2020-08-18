@@ -1,12 +1,26 @@
 #!/usr/bin/env python
 # Query the id corresponding to a public id and vice-versa.
 
-import click
 import sys
+
+import click
 import IPython
-from inbox.models import (Account, Message, Namespace, Thread, Event,
-                          Calendar, Transaction, Block, Part, ActionLog,
-                          Label, Folder, Category)
+
+from inbox.models import (
+    Account,
+    ActionLog,
+    Block,
+    Calendar,
+    Category,
+    Event,
+    Folder,
+    Label,
+    Message,
+    Namespace,
+    Part,
+    Thread,
+    Transaction,
+)
 from inbox.models.session import global_session_scope, session_scope
 
 cls_for_type = dict(

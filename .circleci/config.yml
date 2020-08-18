@@ -17,6 +17,11 @@ jobs:
           when: always
           command: black --check .
 
+      - run:
+          name: isort
+          when: always
+          command: isort -c .
+
   build:
     machine:
       image: ubuntu-1604:201903-01 

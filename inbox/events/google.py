@@ -1,31 +1,31 @@
 """Provide Google Calendar events."""
-import time
 import datetime
 import json
 import random
+import time
 import urllib
+import uuid
+
+import arrow
 import gevent
 import requests
-import uuid
-import arrow
-
 from nylas.logging import get_logger
 
-log = get_logger()
 from inbox.auth.oauth import OAuthRequestsWrapper
 from inbox.basicauth import AccessNotEnabledError
 from inbox.config import config
-from inbox.models import Calendar, Account
-from inbox.models.event import Event, EVENT_STATUSES
-from inbox.models.session import session_scope
-from inbox.models.backends.gmail import g_token_manager
 from inbox.events.util import (
-    google_to_event_time,
-    parse_google_time,
-    parse_datetime,
     CalendarSyncResponse,
+    google_to_event_time,
+    parse_datetime,
+    parse_google_time,
 )
+from inbox.models import Account, Calendar
+from inbox.models.backends.gmail import g_token_manager
+from inbox.models.event import EVENT_STATUSES, Event
+from inbox.models.session import session_scope
 
+log = get_logger()
 
 CALENDARS_URL = "https://www.googleapis.com/calendar/v3/users/me/calendarList"
 STATUS_MAP = {

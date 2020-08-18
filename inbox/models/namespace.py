@@ -1,8 +1,8 @@
-from sqlalchemy import Column, BigInteger, ForeignKey, bindparam
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy import BigInteger, Column, ForeignKey, bindparam
+from sqlalchemy.orm import backref, relationship
 
 from inbox.models.base import MailSyncBase
-from inbox.models.mixins import HasPublicID, UpdatedAtMixin, DeletedAtMixin
+from inbox.models.mixins import DeletedAtMixin, HasPublicID, UpdatedAtMixin
 from inbox.sqlalchemy_ext.util import bakery
 
 

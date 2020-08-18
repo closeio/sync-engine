@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import binascii
 
-import yaml
 import nacl.secret
 import nacl.utils
+import yaml
 
 
 def main():

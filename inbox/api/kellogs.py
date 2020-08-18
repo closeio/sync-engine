@@ -1,24 +1,25 @@
-import arrow
-import datetime
 import calendar
+import datetime
 from json import JSONEncoder, dumps
+
+import arrow
 from flask import Response
+from nylas.logging import get_logger
 
 from inbox.models import (
-    Message,
-    Contact,
-    Calendar,
-    Event,
-    When,
-    Thread,
-    Namespace,
-    Block,
-    Category,
     Account,
+    Block,
+    Calendar,
+    Category,
+    Contact,
+    Event,
+    Message,
     Metadata,
+    Namespace,
+    Thread,
+    When,
 )
-from inbox.models.event import RecurringEvent, RecurringEventOverride, InflatedEvent
-from nylas.logging import get_logger
+from inbox.models.event import InflatedEvent, RecurringEvent, RecurringEventOverride
 
 log = get_logger()
 

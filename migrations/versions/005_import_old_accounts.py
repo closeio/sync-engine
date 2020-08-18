@@ -10,21 +10,21 @@ Create Date: 2014-03-17 19:00:27.631221
 revision = "adc646e1f11"
 down_revision = "41a7e825d108"
 
-from alembic import op
-from sqlalchemy.ext.declarative import declarative_base
 import os.path
 
+from alembic import op
+from sqlalchemy.ext.declarative import declarative_base
 
 SQL_DUMP_FILENAME = "alphasync_rds_inbox_imapaccount.sql"
 
 
 def upgrade():
-    from inbox.models.session import session_scope
     from inbox.ignition import main_engine
+    from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    from inbox.models.backends.imap import ImapAccount
     import inbox.auth.gmail as gmail
+    from inbox.models.backends.imap import ImapAccount
 
     # Assert we have the dump file
     if not os.path.isfile(SQL_DUMP_FILENAME):

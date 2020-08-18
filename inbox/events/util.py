@@ -1,7 +1,9 @@
-import arrow
 import string
-from dateutil.parser import parse
 from collections import namedtuple
+
+import arrow
+from dateutil.parser import parse
+
 from inbox.models.when import parse_as_when
 
 

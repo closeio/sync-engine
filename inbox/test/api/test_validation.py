@@ -3,10 +3,10 @@ import json
 
 import pytest
 
-from inbox.models import Namespace
 from inbox.api.validation import noop_event_update, valid_email
-from inbox.test.util.base import db, calendar, add_fake_event
+from inbox.models import Namespace
 from inbox.test.api.base import api_client
+from inbox.test.util.base import add_fake_event, calendar, db
 
 __all__ = ["api_client", "db", "calendar"]
 

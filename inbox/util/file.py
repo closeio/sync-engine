@@ -1,7 +1,7 @@
-import string
 import errno
-import os
 import fcntl
+import os
+import string
 
 from gevent.coros import BoundedSemaphore
 

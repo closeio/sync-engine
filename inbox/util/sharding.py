@@ -1,6 +1,5 @@
 import random
 
-
 from inbox.config import config
 from inbox.ignition import engine_manager
 

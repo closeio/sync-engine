@@ -1,20 +1,21 @@
 import collections
 import math
-import thread
 import signal
 import socket
 import sys
 import time
 import traceback
-import gevent.hub
+
 import gevent._threading  # This is a clone of the *real* threading module
+import gevent.hub
 import greenlet
 import psutil
+import thread
+from nylas.logging import get_logger
+
 from inbox.config import config
 from inbox.util.concurrency import retry_with_logging
 from inbox.util.stats import get_statsd_client
-from nylas.logging import get_logger
-
 
 BLOCKING_SAMPLE_PERIOD = 5
 MAX_BLOCKING_TIME_BEFORE_INTERRUPT = 60

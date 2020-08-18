@@ -11,8 +11,9 @@ revision = "7a117720554"
 down_revision = "247cd689758c"
 
 import os
-from alembic import op
+
 import sqlalchemy as sa
+from alembic import op
 
 # We're deleting this value from the config, so need to explicitly give it for
 # this migration.
@@ -41,12 +42,13 @@ def decrypt_aes(ciphertext, key):
 
 
 def upgrade():
-    from inbox.models.session import session_scope
     from inbox.ignition import main_engine
+    from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    from inbox.util.file import mkdirp
     from hashlib import sha256
+
+    from inbox.util.file import mkdirp
 
     OriginalBase = sa.ext.declarative.declarative_base()
     OriginalBase.metadata.reflect(engine)

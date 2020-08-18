@@ -2,14 +2,13 @@
 # We previously didn't store IMAP path separators for generic imap accounts.
 # This script backfixes the accounts.
 import click
+from nylas.logging import configure_logging, get_logger
 
 from inbox.crispin import connection_pool
-
-from nylas.logging import get_logger, configure_logging
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.session import (
-    session_scope,
     global_session_scope,
+    session_scope,
     session_scope_by_shard_id,
 )
 

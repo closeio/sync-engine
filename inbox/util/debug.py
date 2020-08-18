@@ -1,7 +1,8 @@
 """Utilities for debugging failures in development/staging."""
-from functools import wraps
-from pyinstrument import Profiler
 import signal
+from functools import wraps
+
+from pyinstrument import Profiler
 
 
 def profile(func):

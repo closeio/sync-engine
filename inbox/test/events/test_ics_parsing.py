@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa: F401
-import pytest
 import arrow
-from inbox.models.event import Event, RecurringEvent
-from inbox.events.util import MalformedEventError
+import pytest
+
 from inbox.events.ical import events_from_ics, import_attached_events
+from inbox.events.util import MalformedEventError
+from inbox.models.event import Event, RecurringEvent
 from inbox.test.util.base import (
     absolute_path,
     add_fake_calendar,
-    generic_account,
     add_fake_msg_with_calendar_part,
+    generic_account,
 )
 
 FIXTURES = "./events/fixtures/"

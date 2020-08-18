@@ -1,25 +1,25 @@
 import sys
-import pytz
-import arrow
-import requests
-import icalendar
 import traceback
-from inbox.config import config
-from icalendar import Calendar as iCalendar
+from datetime import date, datetime
 from email.utils import formataddr
-from datetime import datetime, date
 
+import arrow
+import icalendar
+import pytz
+import requests
 from flanker import mime
 from html2text import html2text
-from util import serialize_datetime, valid_base36
-from timezones import timezones_table
-from inbox.contacts.processing import update_contacts_from_event
-from inbox.models.event import Event, EVENT_STATUSES
-from inbox.events.util import MalformedEventError
-from inbox.util.addr import canonicalize_address
-from inbox.models.action_log import schedule_action
-
+from icalendar import Calendar as iCalendar
 from nylas.logging import get_logger
+from timezones import timezones_table
+from util import serialize_datetime, valid_base36
+
+from inbox.config import config
+from inbox.contacts.processing import update_contacts_from_event
+from inbox.events.util import MalformedEventError
+from inbox.models.action_log import schedule_action
+from inbox.models.event import EVENT_STATUSES, Event
+from inbox.util.addr import canonicalize_address
 
 log = get_logger()
 
@@ -699,7 +699,7 @@ def rsvp_recipient(event):
 
 
 def send_rsvp(ical_data, event, body_text, status, account):
-    from inbox.sendmail.base import get_sendmail_client, SendMailException
+    from inbox.sendmail.base import SendMailException, get_sendmail_client
 
     ical_file = ical_data["cal"]
     ical_txt = ical_file.to_ical()

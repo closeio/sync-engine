@@ -10,8 +10,8 @@ Create Date: 2015-04-20 21:22:20.523261
 revision = "182f2b40fa36"
 down_revision = "4e6eedda36af"
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.orm import contains_eager
 
 
@@ -21,7 +21,7 @@ def upgrade():
     op.add_column("actionlog", sa.Column("type", sa.String(16)))
 
     # Update action_log entries
-    from inbox.models import Namespace, Account, ActionLog
+    from inbox.models import Account, ActionLog, Namespace
     from inbox.models.session import session_scope
 
     with session_scope() as db_session:

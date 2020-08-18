@@ -11,8 +11,8 @@ revision = "2c577a8a01b7"
 down_revision = "24e9afe91349"
 
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 
 def upgrade():
@@ -34,9 +34,10 @@ def upgrade():
 
     import nacl.secret
     import nacl.utils
+
+    from inbox.config import config
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
-    from inbox.config import config
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = sa.ext.declarative.declarative_base()

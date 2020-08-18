@@ -11,8 +11,8 @@ revision = "4fa0540482f8"
 down_revision = "51ad0922ad8e"
 
 from alembic import op
-from sqlalchemy.sql import text
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql import text
 
 
 def upgrade():

@@ -11,8 +11,9 @@ revision = "2b89164aa9cd"
 down_revision = "2c577a8a01b7"
 
 from datetime import datetime
-from alembic import op
+
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.sql import text
 
 

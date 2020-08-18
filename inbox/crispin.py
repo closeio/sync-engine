@@ -1,8 +1,9 @@
 """ IMAPClient wrapper for the Nylas Sync Engine."""
 import contextlib
+import imaplib
 import re
 import time
-import imaplib
+
 import imapclient
 
 # Prevent "got more than 1000000 bytes" errors for servers that send more data.
@@ -25,28 +26,27 @@ imaplib.InternalDate = re.compile(
 
 import functools
 import threading
+from collections import defaultdict, namedtuple
 from email.parser import HeaderParser
-
-from collections import namedtuple, defaultdict
 
 import gevent
 from backports import ssl
 from gevent import socket
 from gevent.lock import BoundedSemaphore
 from gevent.queue import Queue
+from nylas.logging import get_logger
 from sqlalchemy.orm import joinedload
 
+from inbox.basicauth import GmailSettingError
+from inbox.folder_edge_cases import localized_folder_names
+from inbox.models import Account
+from inbox.models.backends.generic import GenericAccount
+from inbox.models.backends.gmail import GmailAccount
+from inbox.models.backends.imap import ImapAccount
+from inbox.models.session import session_scope
 from inbox.util.concurrency import retry
 from inbox.util.itert import chunk
 from inbox.util.misc import or_none
-from inbox.basicauth import GmailSettingError
-from inbox.models import Account
-from inbox.models.session import session_scope
-from inbox.models.backends.imap import ImapAccount
-from inbox.models.backends.generic import GenericAccount
-from inbox.models.backends.gmail import GmailAccount
-from inbox.folder_edge_cases import localized_folder_names
-from nylas.logging import get_logger
 
 log = get_logger()
 

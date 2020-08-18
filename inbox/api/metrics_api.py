@@ -1,6 +1,7 @@
 from collections import defaultdict
-from flask import Blueprint, request
 from operator import itemgetter
+
+from flask import Blueprint, request
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -8,11 +9,10 @@ from inbox.api.err import InputError
 from inbox.api.kellogs import APIEncoder
 from inbox.events.remote_sync import EVENT_SYNC_FOLDER_ID
 from inbox.heartbeat.status import get_ping_status
-from inbox.models import Calendar, Folder, Account, Namespace
+from inbox.models import Account, Calendar, Folder, Namespace
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.imap import ImapAccount, ImapFolderSyncStatus
 from inbox.models.session import global_session_scope
-
 
 app = Blueprint("metrics_api", __name__, url_prefix="/metrics")
 

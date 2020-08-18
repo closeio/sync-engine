@@ -1,11 +1,10 @@
 import time
 
-import pytest
 import _mysql_exceptions
-
-from gevent import GreenletExit
-from gevent import socket
+import pytest
+from gevent import GreenletExit, socket
 from sqlalchemy.exc import StatementError
+
 from inbox.util.concurrency import retry_with_logging
 
 

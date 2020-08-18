@@ -4,12 +4,12 @@ refresh tokens.
 """
 from datetime import datetime, timedelta
 
+from nylas.logging import get_logger
 from sqlalchemy import Column, ForeignKey
-from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import relationship
 
 from inbox.models.secret import Secret
-from nylas.logging import get_logger
 
 log = get_logger()
 

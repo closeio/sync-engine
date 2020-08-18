@@ -1,7 +1,7 @@
 from inbox.crispin import RawFolder
-from inbox.mailsync.backends.imap.monitor import ImapSyncMonitor
 from inbox.mailsync.backends.gmail import GmailSyncMonitor
-from inbox.models import Folder, Label, Category
+from inbox.mailsync.backends.imap.monitor import ImapSyncMonitor
+from inbox.models import Category, Folder, Label
 from inbox.models.category import EPOCH
 
 

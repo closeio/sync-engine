@@ -1,9 +1,9 @@
 # flake8: noqa: F401, F811
-import mock
 import gevent
+import mock
 
 from inbox.test.api.base import imap_api_client
-from inbox.test.util.base import add_fake_folder, add_fake_category
+from inbox.test.util.base import add_fake_category, add_fake_folder
 from inbox.util.testutils import mock_imapclient  # noqa
 
 

@@ -10,11 +10,12 @@ Create Date: 2015-03-11 22:51:22.180028
 revision = "1de526a15c5d"
 down_revision = "2493281d621"
 
-import json
 import ast
+import json
 import sys
-from alembic import op
+
 import sqlalchemy as sa
+from alembic import op
 
 
 def upgrade():
@@ -62,10 +63,10 @@ def downgrade():
 
 def populate():
     # Populate new classes from the existing data
+    from inbox.events.recurring import link_events
+    from inbox.events.util import parse_datetime
     from inbox.models.event import Event, RecurringEvent, RecurringEventOverride
     from inbox.models.session import session_scope
-    from inbox.events.util import parse_datetime
-    from inbox.events.recurring import link_events
 
     with session_scope() as db:
         # Redo recurrence rule population, since we extended the column length

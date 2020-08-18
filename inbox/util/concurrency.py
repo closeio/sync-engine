@@ -1,19 +1,18 @@
-import sys
 import functools
 import random
+import sys
 
+import _mysql_exceptions
 import gevent
 from backports import ssl
 from gevent import socket
+from nylas.logging import create_error_log_context, get_logger
+from nylas.logging.sentry import log_uncaught_errors
 from redis import TimeoutError
-import _mysql_exceptions
 from sqlalchemy.exc import StatementError
 
 from inbox.models import Account
 from inbox.models.session import session_scope
-
-from nylas.logging import get_logger, create_error_log_context
-from nylas.logging.sentry import log_uncaught_errors
 
 log = get_logger()
 

@@ -14,7 +14,6 @@ import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import load_only
 
-
 CHUNK_SIZE = 1000
 
 

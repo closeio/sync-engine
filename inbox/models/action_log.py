@@ -1,23 +1,23 @@
+from nylas.logging import get_logger
 from sqlalchemy import (
-    Column,
     BigInteger,
-    Integer,
-    Text,
-    ForeignKey,
+    Column,
     Enum,
+    ForeignKey,
     Index,
+    Integer,
     String,
+    Text,
     desc,
 )
 from sqlalchemy.orm import relationship
 
-from nylas.logging import get_logger
+from inbox.models.base import MailSyncBase
+from inbox.models.mixins import DeletedAtMixin, UpdatedAtMixin
+from inbox.models.namespace import Namespace
+from inbox.sqlalchemy_ext.util import JSON
 
 log = get_logger()
-from inbox.sqlalchemy_ext.util import JSON
-from inbox.models.base import MailSyncBase
-from inbox.models.mixins import UpdatedAtMixin, DeletedAtMixin
-from inbox.models.namespace import Namespace
 
 
 def schedule_action(func_name, record, namespace_id, db_session, **kwargs):

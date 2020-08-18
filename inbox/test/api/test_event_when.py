@@ -1,7 +1,7 @@
 import json
-import pytest
 
 import arrow
+import pytest
 
 from inbox.test.api.base import api_client
 

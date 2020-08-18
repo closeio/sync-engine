@@ -1,10 +1,8 @@
 import uuid
 
-from inbox.util.addr import valid_email
-from inbox.util.addr import canonicalize_address as canonicalize
-from inbox.models import Contact, EventContactAssociation, MessageContactAssociation
-
 from inbox.contacts.crud import INBOX_PROVIDER_NAME
+from inbox.models import Contact, EventContactAssociation, MessageContactAssociation
+from inbox.util.addr import canonicalize_address as canonicalize, valid_email
 
 
 def _get_contact_map(db_session, namespace_id, all_addresses):

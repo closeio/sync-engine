@@ -1,13 +1,13 @@
 # XXX(dlitz): Most of this is deployment-related stuff that belongs outside the
 # main Python invocation.
+import json
 import os
 import sys
-import json
 import time
 
-from inbox.config import config
-
 from nylas.logging import get_logger
+
+from inbox.config import config
 
 log = get_logger()
 

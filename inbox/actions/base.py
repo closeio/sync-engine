@@ -23,29 +23,29 @@ ACTIONS MUST BE IDEMPOTENT! We are going to have task workers guarantee
 at-least-once semantics.
 
 """
+from nylas.logging import get_logger
+
 from inbox.actions.backends.generic import (
-    set_remote_unread,
-    set_remote_starred,
-    remote_move,
-    remote_save_draft,
-    remote_update_draft,
-    remote_delete_draft,
-    remote_save_sent,
     remote_create_folder,
-    remote_update_folder,
+    remote_delete_draft,
     remote_delete_folder,
     remote_delete_sent,
+    remote_move,
+    remote_save_draft,
+    remote_save_sent,
+    remote_update_draft,
+    remote_update_folder,
+    set_remote_starred,
+    set_remote_unread,
 )
 from inbox.actions.backends.gmail import (
     remote_change_labels,
     remote_create_label,
-    remote_update_label,
     remote_delete_label,
+    remote_update_label,
 )
-
 from inbox.models import Message
 from inbox.models.session import session_scope
-from nylas.logging import get_logger
 
 log = get_logger()
 

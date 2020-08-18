@@ -10,10 +10,10 @@ Create Date: 2014-10-14 10:04:58.710015
 revision = "4634999269"
 down_revision = "420bf3422c4f"
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 from sqlalchemy.sql import text
+
 from inbox.sqlalchemy_ext.util import JSON
 
 

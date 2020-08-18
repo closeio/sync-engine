@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-import os
-import md5
 import json
-import mock
-
+import os
 from datetime import datetime
 
+import md5
+import mock
 import pytest
+
 from inbox.models import Block, Part
 from inbox.test.api.base import api_client
 from inbox.util.testutils import FILENAMES

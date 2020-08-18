@@ -13,17 +13,17 @@ accounts.
 """
 from datetime import datetime
 
+from nylas.logging import get_logger
 from sqlalchemy import bindparam, desc
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql.expression import func
 
 from inbox.contacts.processing import update_contacts_from_message
-from inbox.models import Account, Message, MessageCategory, Folder, ActionLog
-from inbox.models.backends.imap import ImapUid, ImapFolderInfo
+from inbox.models import Account, ActionLog, Folder, Message, MessageCategory
+from inbox.models.backends.imap import ImapFolderInfo, ImapUid
 from inbox.models.session import session_scope
 from inbox.models.util import reconcile_message
 from inbox.sqlalchemy_ext.util import bakery
-from nylas.logging import get_logger
 
 log = get_logger()
 

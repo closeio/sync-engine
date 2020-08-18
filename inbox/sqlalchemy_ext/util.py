@@ -1,27 +1,26 @@
 import abc
 import contextlib
-import uuid
 import struct
+import uuid
 import weakref
 
-from bson import json_util, EPOCH_NAIVE
+from bson import EPOCH_NAIVE, json_util
 
 # Monkeypatch to not include tz_info in decoded JSON.
 # Kind of a ridiculous solution, but works.
 json_util.EPOCH_AWARE = EPOCH_NAIVE
 
+from nylas.logging import get_logger
 from sqlalchemy import String, Text, event
-from sqlalchemy.types import TypeDecorator, BINARY
-from sqlalchemy.interfaces import PoolListener
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext import baked
-from sqlalchemy.sql import operators
-from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.ext.declarative import DeclarativeMeta
+from sqlalchemy.ext.mutable import Mutable
+from sqlalchemy.interfaces import PoolListener
+from sqlalchemy.sql import operators
+from sqlalchemy.types import BINARY, TypeDecorator
 
-from inbox.util.encoding import base36encode, base36decode
-
-from nylas.logging import get_logger
+from inbox.util.encoding import base36decode, base36encode
 
 log = get_logger()
 

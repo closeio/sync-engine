@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from operator import attrgetter
 
-from inbox.models.message import Message
-from inbox.models.thread import Thread
 from sqlalchemy import desc
 from sqlalchemy.orm import contains_eager, load_only, outerjoin
-from inbox.util.misc import cleanup_subject
 
+from inbox.models.message import Message
+from inbox.models.thread import Thread
+from inbox.util.misc import cleanup_subject
 
 MAX_THREAD_LENGTH = 500
 MAX_MESSAGES_SCANNED = 20000

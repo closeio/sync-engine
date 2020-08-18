@@ -1,5 +1,6 @@
-from boto import ec2
 import random
+
+from boto import ec2
 
 
 def get_sync_hosts_in_zone(zone, level, include_debug=False):

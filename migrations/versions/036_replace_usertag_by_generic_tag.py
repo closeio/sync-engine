@@ -10,8 +10,8 @@ Create Date: 2014-05-21 03:36:26.834916
 revision = "21878b1b3d4b"
 down_revision = "24e085e152c0"
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 
 def upgrade():
@@ -72,13 +72,12 @@ def upgrade():
 
     op.drop_column("folder", u"exposed_name")
 
-    from inbox.models.session import session_scope
-
     # Doing this ties this migration to the state of the code at the time
     # of this commit. However, the alternative is to have a crazy long,
     # involved and error-prone recreation of the models and their behavior
     # here. (I tried it, and decided this way was better.)
-    from inbox.models import FolderItem, Tag, Namespace
+    from inbox.models import FolderItem, Namespace, Tag
+    from inbox.models.session import session_scope
 
     with session_scope(versioned=False) as db_session:
         # create canonical tags that don't already exist.

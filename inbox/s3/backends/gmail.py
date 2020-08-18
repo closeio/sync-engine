@@ -1,9 +1,11 @@
 import base64
+
 import requests
-from inbox.s3.exc import TemporaryEmailFetchException, EmailDeletedException
+from nylas.logging import get_logger
+
 from inbox.auth.oauth import OAuthRequestsWrapper
 from inbox.models.backends.gmail import g_token_manager
-from nylas.logging import get_logger
+from inbox.s3.exc import EmailDeletedException, TemporaryEmailFetchException
 
 log = get_logger()
 

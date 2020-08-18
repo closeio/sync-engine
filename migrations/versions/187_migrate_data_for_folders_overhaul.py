@@ -10,10 +10,11 @@ Create Date: 2015-07-09 00:23:04.918833
 revision = "334b33f18b4f"
 down_revision = "23e204cd1d91"
 
-from sqlalchemy import asc
-from sqlalchemy.orm import joinedload, subqueryload, load_only
-from inbox.config import config
 from nylas.logging import configure_logging, get_logger
+from sqlalchemy import asc
+from sqlalchemy.orm import joinedload, load_only, subqueryload
+
+from inbox.config import config
 
 configure_logging(config.get("LOGLEVEL"))
 log = get_logger()
@@ -60,7 +61,7 @@ def set_labels_for_imapuids(account, db_session):
 
 
 def create_categories_for_folders(account, db_session):
-    from inbox.models import Folder, Category
+    from inbox.models import Category, Folder
 
     for folder in db_session.query(Folder).filter(Folder.account_id == account.id):
         cat = Category.find_or_create(
@@ -83,8 +84,8 @@ def create_categories_for_easfoldersyncstatuses(account, db_session):
 
 
 def migrate_account_metadata(account_id):
-    from inbox.models.session import session_scope
     from inbox.models import Account
+    from inbox.models.session import session_scope
 
     with session_scope(versioned=False) as db_session:
         account = db_session.query(Account).get(account_id)
@@ -98,9 +99,9 @@ def migrate_account_metadata(account_id):
 
 
 def migrate_messages(account_id):
-    from inbox.models.session import session_scope
-    from inbox.models import Message, Namespace
     from inbox.ignition import main_engine
+    from inbox.models import Message, Namespace
+    from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
 
@@ -155,8 +156,8 @@ def migrate_account(account_id):
 
 
 def upgrade():
-    from inbox.models.session import session_scope
     from inbox.models import Account
+    from inbox.models.session import session_scope
 
     with session_scope() as db_session:
         account_ids = [id_ for id_, in db_session.query(Account.id)]

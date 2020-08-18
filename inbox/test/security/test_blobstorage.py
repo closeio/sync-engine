@@ -1,6 +1,8 @@
 import zlib
+
 import hypothesis
-from inbox.security.blobstorage import encode_blob, decode_blob
+
+from inbox.security.blobstorage import decode_blob, encode_blob
 
 
 # This will run the test for a bunch of randomly-chosen values of sample_input.

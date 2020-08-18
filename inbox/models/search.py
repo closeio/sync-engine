@@ -1,7 +1,7 @@
 from sqlalchemy import Column, ForeignKey
 
 from inbox.models.base import MailSyncBase
-from inbox.models.mixins import UpdatedAtMixin, DeletedAtMixin
+from inbox.models.mixins import DeletedAtMixin, UpdatedAtMixin
 from inbox.models.transaction import Transaction
 
 

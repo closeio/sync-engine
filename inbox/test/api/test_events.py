@@ -1,10 +1,10 @@
 import json
 
 from inbox.api.ns_api import API_VERSIONS
+from inbox.models import Calendar, Event
 from inbox.sqlalchemy_ext.util import generate_public_id
-from inbox.models import Event, Calendar
-from inbox.test.util.base import db, calendar, add_fake_event
 from inbox.test.api.base import api_client
+from inbox.test.util.base import add_fake_event, calendar, db
 
 __all__ = ["api_client", "calendar", "db"]
 

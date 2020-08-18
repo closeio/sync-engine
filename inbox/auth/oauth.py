@@ -1,11 +1,10 @@
-import urllib
 import socket
-from simplejson import JSONDecodeError
+import urllib
 
 import requests
 from imapclient import IMAPClient
-
 from nylas.logging import get_logger
+from simplejson import JSONDecodeError
 
 log = get_logger()
 from inbox.auth.base import AuthHandler

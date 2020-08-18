@@ -10,11 +10,11 @@ Create Date: 2014-05-15 23:57:34.159260
 revision = "1b6ceae51b43"
 down_revision = "52a9a976a2e0"
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import mysql
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import backref, relationship
 
 
 def upgrade():
@@ -35,8 +35,8 @@ def upgrade():
         "usertagitem", "updated_at", existing_type=mysql.DATETIME(), nullable=False
     )
 
-    from inbox.models.session import session_scope
     from inbox.ignition import main_engine
+    from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()

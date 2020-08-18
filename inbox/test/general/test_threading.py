@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa: F401
 import pytest
-from inbox.util.threading import fetch_corresponding_thread
+
+from inbox.test.util.base import add_fake_imapuid, add_fake_message, add_fake_thread
 from inbox.util.misc import cleanup_subject
-from inbox.test.util.base import add_fake_message, add_fake_thread, add_fake_imapuid
+from inbox.util.threading import fetch_corresponding_thread
 
 
 def test_message_cleanup():

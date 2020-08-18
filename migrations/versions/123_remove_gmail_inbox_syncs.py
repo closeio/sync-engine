@@ -14,11 +14,11 @@ down_revision = "476c5185121b"
 def upgrade():
     # Remove UIDs and sync status for inbox IMAP syncs -- otherwise
     # archives/deletes may not be synced correctly.
-    from inbox.models.backends.imap import ImapFolderSyncStatus, ImapUid
-    from inbox.models.backends.gmail import GmailAccount
-    from inbox.models.session import session_scope
     from inbox.heartbeat.config import STATUS_DATABASE, get_redis_client
     from inbox.heartbeat.status import HeartbeatStatusKey
+    from inbox.models.backends.gmail import GmailAccount
+    from inbox.models.backends.imap import ImapFolderSyncStatus, ImapUid
+    from inbox.models.session import session_scope
 
     redis_client = get_redis_client(STATUS_DATABASE)
     with session_scope(versioned=False) as db_session:

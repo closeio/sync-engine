@@ -10,13 +10,14 @@ Create Date: 2014-05-13 03:20:41.488982
 revision = "40629415951c"
 down_revision = "924ffd092832"
 
-from alembic import op
-import sqlalchemy as sa
-from sqlalchemy.orm import relationship, sessionmaker
-from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.ext.declarative import declarative_base
 from contextlib import contextmanager
 from datetime import datetime
+
+import sqlalchemy as sa
+from alembic import op
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.orm.exc import NoResultFound
 
 
 def upgrade():

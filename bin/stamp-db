@@ -2,9 +2,9 @@
 import os
 import sys
 
-import alembic.util
-import alembic.config
 import alembic.command
+import alembic.config
+import alembic.util
 
 from inbox.config import config
 

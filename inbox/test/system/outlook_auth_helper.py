@@ -1,9 +1,10 @@
+import re
+
 import requests
 from HTMLParser import HTMLParser
 
 from inbox.auth.outlook import OutlookAuthHandler
 from inbox.util.url import url_concat
-import re
 
 
 class OutlookAuthParser(HTMLParser):

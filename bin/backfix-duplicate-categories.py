@@ -4,16 +4,16 @@
 # associated. If two or more duplicate categories exist with associated
 # messages, they are consolidated into a single category and the other
 # categories are deleted
-import click
-
 from itertools import chain
-from inbox.ignition import engine_manager
-from nylas.logging import get_logger, configure_logging
-from inbox.models import MessageCategory, Category
-from inbox.models.session import session_scope_by_shard_id
 
+import click
+from nylas.logging import configure_logging, get_logger
 from sqlalchemy import func
-from sqlalchemy.sql import exists, and_
+from sqlalchemy.sql import and_, exists
+
+from inbox.ignition import engine_manager
+from inbox.models import Category, MessageCategory
+from inbox.models.session import session_scope_by_shard_id
 
 configure_logging()
 log = get_logger(purpose="duplicate-category-backfill")

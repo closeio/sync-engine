@@ -13,8 +13,8 @@ THREAD_ID = 2
 
 def test_archive_move_syncback(db, config):
     from inbox.actions.backends.gmail import (
-        set_remote_archived,
         remote_move,
+        set_remote_archived,
         uidvalidity_cb,
     )
     from inbox.models.backends.imap import ImapAccount, ImapThread

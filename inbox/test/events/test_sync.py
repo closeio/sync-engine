@@ -1,10 +1,10 @@
 # flake8: noqa: F401
 from datetime import datetime
+
 from inbox.events.remote_sync import EventSync
 from inbox.events.util import CalendarSyncResponse
 from inbox.models import Calendar, Event, Transaction
 from inbox.models.constants import MAX_INDEXABLE_LENGTH
-
 
 # Placeholder values for non-nullable attributes
 default_params = dict(

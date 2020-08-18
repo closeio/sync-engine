@@ -1,119 +1,126 @@
+import base64
+import itertools
+import json
 import os
 import sys
-import json
 import time
 import uuid
-import base64
-import gevent
-import itertools
-from hashlib import sha256
-from datetime import datetime
 from collections import namedtuple
+from datetime import datetime
+from hashlib import sha256
 
-from flask import request, g, Blueprint, make_response, Response, stream_with_context
-from flask import jsonify as flask_jsonify
+import gevent
+from flask import (
+    Blueprint,
+    Response,
+    g,
+    jsonify as flask_jsonify,
+    make_response,
+    request,
+    stream_with_context,
+)
 from flask.ext.restful import reqparse
 from sqlalchemy import asc, func
 from sqlalchemy.exc import OperationalError
-from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm import joinedload, load_only
+from sqlalchemy.orm.exc import NoResultFound
 
-from inbox.models import (
-    Message,
-    Block,
-    Part,
-    Thread,
-    Namespace,
-    Contact,
-    Calendar,
-    Event,
-    Transaction,
-    DataProcessingCache,
-    Category,
-    MessageCategory,
+import inbox.contacts.crud
+from inbox.actions.backends.generic import remote_delete_sent
+from inbox.api import filtering
+from inbox.api.err import (
+    AccountDoesNotExistError,
+    APIException,
+    InputError,
+    NotFoundError,
+    err,
+    log_exception,
 )
-from inbox.models.event import RecurringEvent, RecurringEventOverride
-from inbox.models.category import EPOCH
-from inbox.models.backends.generic import GenericAccount
+from inbox.api.kellogs import APIEncoder
 from inbox.api.sending import (
     send_draft,
-    send_raw_mime,
     send_draft_copy,
+    send_raw_mime,
     update_draft_on_send,
 )
 from inbox.api.update import update_message, update_thread
-from inbox.api.kellogs import APIEncoder
-from inbox.api import filtering
 from inbox.api.validation import (
-    valid_account,
+    ValidatableArgument,
+    bounded_str,
+    comma_separated_email_list,
     get_attachments,
     get_calendar,
-    get_recipients,
     get_draft,
-    valid_public_id,
-    valid_event,
-    valid_event_update,
-    timestamp,
-    bounded_str,
-    view,
-    strict_parse_args,
+    get_recipients,
+    get_sending_draft,
     limit,
+    noop_event_update,
     offset,
-    ValidatableArgument,
     strict_bool,
-    validate_draft_recipients,
+    strict_parse_args,
+    timestamp,
+    valid_account,
+    valid_category_type,
     valid_delta_object_types,
     valid_display_name,
-    noop_event_update,
-    valid_category_type,
-    comma_separated_email_list,
-    get_sending_draft,
+    valid_event,
+    valid_event_update,
+    valid_public_id,
+    validate_draft_recipients,
+    view,
 )
 from inbox.config import config
 from inbox.contacts.algorithms import (
     calculate_contact_scores,
-    calculate_group_scores,
     calculate_group_counts,
+    calculate_group_scores,
     is_stale,
 )
-import inbox.contacts.crud
 from inbox.contacts.search import ContactSearchClient
-from inbox.sendmail.base import (
-    create_message_from_json,
-    update_draft,
-    delete_draft,
-    create_draft_from_mime,
-    SendMailException,
-)
-from inbox.ignition import engine_manager
-from inbox.models.action_log import schedule_action
-from inbox.models.session import new_session, session_scope
-from inbox.search.base import (
-    get_search_client,
-    SearchBackendException,
-    SearchStoreException,
-)
-from inbox.transactions import delta_sync
-from inbox.api.err import (
-    err,
-    APIException,
-    NotFoundError,
-    InputError,
-    AccountDoesNotExistError,
-    log_exception,
-)
+from inbox.crispin import writable_connection_pool
 from inbox.events.ical import generate_rsvp, send_rsvp
 from inbox.events.util import removed_participants
-from inbox.util import blockstore
-from inbox.util.misc import imap_folder_path
-from inbox.actions.backends.generic import remote_delete_sent
-from inbox.crispin import writable_connection_pool
+from inbox.ignition import engine_manager
+from inbox.models import (
+    Block,
+    Calendar,
+    Category,
+    Contact,
+    DataProcessingCache,
+    Event,
+    Message,
+    MessageCategory,
+    Namespace,
+    Part,
+    Thread,
+    Transaction,
+)
+from inbox.models.action_log import schedule_action
+from inbox.models.backends.generic import GenericAccount
+from inbox.models.category import EPOCH
+from inbox.models.event import RecurringEvent, RecurringEventOverride
+from inbox.models.session import new_session, session_scope
 from inbox.s3.base import get_raw_from_provider
 from inbox.s3.exc import (
+    EmailDeletedException,
     EmailFetchException,
     TemporaryEmailFetchException,
-    EmailDeletedException,
 )
+from inbox.search.base import (
+    SearchBackendException,
+    SearchStoreException,
+    get_search_client,
+)
+from inbox.sendmail.base import (
+    SendMailException,
+    create_draft_from_mime,
+    create_message_from_json,
+    delete_draft,
+    update_draft,
+)
+from inbox.transactions import delta_sync
+from inbox.util import blockstore
+from inbox.util.misc import imap_folder_path
 from inbox.util.stats import statsd_client
 
 try:

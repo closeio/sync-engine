@@ -1,8 +1,8 @@
+from inbox.events.actions.backends import module_registry
+from inbox.events.ical import generate_icalendar_invite, send_invite
 from inbox.models.account import Account
 from inbox.models.event import Event
 from inbox.models.session import session_scope
-from inbox.events.actions.backends import module_registry
-from inbox.events.ical import generate_icalendar_invite, send_invite
 
 
 def create_event(account_id, event_id, extra_args):

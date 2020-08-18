@@ -1,14 +1,14 @@
-from sqlalchemy import Column, String, ForeignKey, DateTime, bindparam
-from sqlalchemy.orm import relationship, backref, synonym, validates
+from nylas.logging import get_logger
+from sqlalchemy import Column, DateTime, ForeignKey, String, bindparam
+from sqlalchemy.orm import backref, relationship, synonym, validates
+from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.schema import UniqueConstraint
-from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from inbox.models.base import MailSyncBase
 from inbox.models.category import Category, CategoryNameString, sanitize_name
-from inbox.models.mixins import UpdatedAtMixin, DeletedAtMixin
 from inbox.models.constants import MAX_INDEXABLE_LENGTH
+from inbox.models.mixins import DeletedAtMixin, UpdatedAtMixin
 from inbox.sqlalchemy_ext.util import bakery
-from nylas.logging import get_logger
 
 log = get_logger()
 

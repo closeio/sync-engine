@@ -1,8 +1,10 @@
 # flake8: noqa: F401
-import arrow
 import urllib
+
+import arrow
 import pytest
-from inbox.models import Event, Calendar
+
+from inbox.models import Calendar, Event
 from inbox.test.api.base import api_client
 from inbox.test.util.base import message
 

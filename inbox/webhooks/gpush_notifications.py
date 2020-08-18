@@ -1,20 +1,19 @@
 import random
 from datetime import datetime
-from flask import request, g, Blueprint, make_response
-from flask import jsonify
+
+from flask import Blueprint, g, jsonify, make_response, request
+from nylas.logging import get_logger
 from sqlalchemy.orm.exc import NoResultFound
 
-from inbox.api.err import APIException, NotFoundError, InputError
+from inbox.api.err import APIException, InputError, NotFoundError
 from inbox.api.validation import valid_public_id
-from nylas.logging import get_logger
 
 log = get_logger()
-from inbox.models.session import global_session_scope
-
-from inbox.models.backends.gmail import GmailAccount
-from inbox.models import Calendar
-
 import limitlion
+
+from inbox.models import Calendar
+from inbox.models.backends.gmail import GmailAccount
+from inbox.models.session import global_session_scope
 
 app = Blueprint("webhooks", "webhooks_api", url_prefix="/w")
 

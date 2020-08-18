@@ -1,17 +1,16 @@
 from datetime import datetime
 
-from sqlalchemy import desc
 from flanker import mime
+from sqlalchemy import desc
 
-from inbox.models import Transaction, AccountTransaction, Calendar
+from inbox.models import AccountTransaction, Calendar, Transaction
 from inbox.models.mixins import HasRevisions
 from inbox.models.util import transaction_objects
-
 from inbox.test.util.base import (
+    add_fake_category,
+    add_fake_event,
     add_fake_message,
     add_fake_thread,
-    add_fake_event,
-    add_fake_category,
 )
 
 

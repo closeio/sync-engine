@@ -1,4 +1,4 @@
-from redis import StrictRedis, BlockingConnectionPool
+from redis import BlockingConnectionPool, StrictRedis
 
 from inbox.config import config
 

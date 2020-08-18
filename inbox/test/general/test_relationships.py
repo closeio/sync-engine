@@ -1,9 +1,8 @@
 import json
 
 from inbox.models import Category, Message, MessageCategory, Thread
-
-from inbox.test.util.base import add_fake_message, add_fake_thread
 from inbox.test.api.base import new_api_client
+from inbox.test.util.base import add_fake_message, add_fake_thread
 
 
 def test_category_delete(db, gmail_account):

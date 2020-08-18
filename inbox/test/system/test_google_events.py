@@ -7,15 +7,15 @@
 # these functions to check instead for changes to the event on
 # the Google backend.
 
-import pytest
 import random
+
+import pytest
+from conftest import gmail_accounts, timeout_loop
+from test_events import real_db, real_test_event_crud
 
 from inbox.client.errors import NotFoundError
 from inbox.events.google import GoogleEventsProvider
 from inbox.models import Account
-
-from conftest import gmail_accounts, timeout_loop
-from test_events import real_db, real_test_event_crud
 
 random.seed(None)
 

@@ -10,15 +10,17 @@ Create Date: 2014-07-07 15:03:27.386981
 revision = "1925c535a52d"
 down_revision = "29217fad3f46"
 
-from alembic import op
-import sqlalchemy as sa
 from datetime import datetime
+
+import sqlalchemy as sa
+from alembic import op
 
 
 def upgrade():
-    from inbox.models.session import session_scope
     from sqlalchemy.ext.declarative import declarative_base
+
     from inbox.ignition import main_engine
+    from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
     op.create_table(
@@ -86,9 +88,10 @@ def upgrade():
 
 
 def downgrade():
-    from inbox.models.session import session_scope
     from sqlalchemy.ext.declarative import declarative_base
+
     from inbox.ignition import main_engine
+    from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()

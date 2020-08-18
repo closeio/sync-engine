@@ -1,10 +1,10 @@
 import pytest
-from inbox.util.url import provider_from_address
-from inbox.util.url import InvalidEmailAddressError
+
 from inbox.auth.base import handler_from_provider
 from inbox.auth.generic import GenericAuthHandler
 from inbox.auth.gmail import GmailAuthHandler
 from inbox.basicauth import NotSupportedError
+from inbox.util.url import InvalidEmailAddressError, provider_from_address
 
 
 def test_provider_resolution(mock_dns_resolver):

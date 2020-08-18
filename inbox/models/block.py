@@ -1,17 +1,17 @@
-from sqlalchemy import Column, Integer, String, Boolean, Enum, ForeignKey, event
-from sqlalchemy.orm import reconstructor, relationship, backref
+from sqlalchemy import Boolean, Column, Enum, ForeignKey, Integer, String, event
+from sqlalchemy.orm import backref, reconstructor, relationship
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.sql.expression import false
 
-from inbox.models.roles import Blob
+from inbox.models.base import MailSyncBase
+from inbox.models.message import Message
 from inbox.models.mixins import (
+    DeletedAtMixin,
     HasPublicID,
     HasRevisions,
     UpdatedAtMixin,
-    DeletedAtMixin,
 )
-from inbox.models.base import MailSyncBase
-from inbox.models.message import Message
+from inbox.models.roles import Blob
 
 # These are the top 15 most common Content-Type headers
 # in my personal mail archive. --mg

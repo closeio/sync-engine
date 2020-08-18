@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger
+from sqlalchemy import BigInteger, Column
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from sqlalchemy.orm.exc import DetachedInstanceError
 

@@ -1,9 +1,10 @@
 import json
-from inbox.models import DataProcessingCache
-from sqlalchemy.orm.exc import NoResultFound
-from inbox.test.util.base import add_fake_thread, add_fake_message, default_namespace
-from inbox.test.api.base import api_client
 
+from sqlalchemy.orm.exc import NoResultFound
+
+from inbox.models import DataProcessingCache
+from inbox.test.api.base import api_client
+from inbox.test.util.base import add_fake_message, add_fake_thread, default_namespace
 
 __all__ = ["api_client", "default_namespace"]
 

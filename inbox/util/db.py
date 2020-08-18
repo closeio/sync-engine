@@ -1,6 +1,11 @@
 from sqlalchemy.engine import reflection
-from sqlalchemy.schema import MetaData, Table, ForeignKeyConstraint
-from sqlalchemy.schema import DropTable, DropConstraint
+from sqlalchemy.schema import (
+    DropConstraint,
+    DropTable,
+    ForeignKeyConstraint,
+    MetaData,
+    Table,
+)
 
 
 # http://www.sqlalchemy.org/trac/wiki/UsageRecipes/DropEverything

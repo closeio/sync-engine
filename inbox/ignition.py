@@ -1,20 +1,21 @@
-import limitlion
 import time
 import weakref
-import gevent
-import redis
 from socket import gethostname
 from urllib import quote_plus as urlquote
+from warnings import filterwarnings
+
+import gevent
+import limitlion
+import redis
+from nylas.logging import find_first_app_frame_and_name, get_logger
 from sqlalchemy import create_engine, event
 
+from inbox.config import config
 from inbox.sqlalchemy_ext.util import (
     ForceStrictMode,
     disabled_dubiously_many_queries_warning,
 )
-from inbox.config import config
 from inbox.util.stats import statsd_client
-from nylas.logging import get_logger, find_first_app_frame_and_name
-from warnings import filterwarnings
 
 filterwarnings("ignore", message="Invalid utf8mb4 character string")
 log = get_logger()
@@ -191,8 +192,9 @@ def init_db(engine, key=0):
     and all subsequent changes done via migration scripts.
 
     """
+    from sqlalchemy import DDL, event
+
     from inbox.models.base import MailSyncBase
-    from sqlalchemy import event, DDL
 
     # Hopefully setting auto_increment via an event listener will make it safe
     # to execute this function multiple times.

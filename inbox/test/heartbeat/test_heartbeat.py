@@ -1,20 +1,20 @@
 # flake8: noqa: F401, F811
-import pytest
 import json
 import time
 from datetime import datetime, timedelta
 
-from inbox.heartbeat.store import (
-    HeartbeatStore,
-    HeartbeatStatusProxy,
-    HeartbeatStatusKey,
-)
-from inbox.heartbeat.status import clear_heartbeat_status, get_ping_status
-import inbox.heartbeat.config as heartbeat_config
-from inbox.heartbeat.config import ALIVE_EXPIRY
-from inbox.config import config
-
+import pytest
 from nylas.logging import configure_logging
+
+import inbox.heartbeat.config as heartbeat_config
+from inbox.config import config
+from inbox.heartbeat.config import ALIVE_EXPIRY
+from inbox.heartbeat.status import clear_heartbeat_status, get_ping_status
+from inbox.heartbeat.store import (
+    HeartbeatStatusKey,
+    HeartbeatStatusProxy,
+    HeartbeatStore,
+)
 
 configure_logging(config.get("LOGLEVEL"))
 

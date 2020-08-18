@@ -3,15 +3,14 @@ import json
 import pytest
 
 from inbox.mailsync.backends.imap.common import update_message_metadata
-
+from inbox.test.api.base import api_client
 from inbox.test.util.base import (
-    default_account,
     add_fake_folder,
+    add_fake_imapuid,
     add_fake_message,
     add_fake_thread,
-    add_fake_imapuid,
+    default_account,
 )
-from inbox.test.api.base import api_client
 
 __all__ = ["default_account", "api_client"]
 

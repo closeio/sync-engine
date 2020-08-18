@@ -5,9 +5,9 @@ from inbox.models.constants import MAX_INDEXABLE_LENGTH
 from inbox.test.util.base import (
     add_fake_folder,
     add_fake_label,
+    db,
     generic_account,
     gmail_account,
-    db,
 )
 
 __all__ = ["db", "generic_account", "gmail_account"]

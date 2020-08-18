@@ -1,8 +1,10 @@
 from datetime import datetime
+
 from nylas.logging import get_logger
+
 from inbox.api.err import err
 from inbox.api.kellogs import APIEncoder, encode
-from inbox.sendmail.base import get_sendmail_client, SendMailException
+from inbox.sendmail.base import SendMailException, get_sendmail_client
 
 log = get_logger()
 

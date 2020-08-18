@@ -11,8 +11,9 @@ revision = "161b88c17615"
 down_revision = "38d78543f8be"
 
 import itertools
-from alembic import op
+
 import sqlalchemy as sa
+from alembic import op
 
 
 def upgrade():
@@ -22,8 +23,8 @@ def upgrade():
     op.add_column("thread", sa.Column("message_public_ids", JSON, nullable=True))
     op.add_column("thread", sa.Column("snippet", sa.String(191), nullable=True))
 
-    from inbox.models.session import session_scope
     from inbox.models import Thread
+    from inbox.models.session import session_scope
 
     with session_scope(versioned=False) as db_session:
         (num_threads,) = db_session.query(sa.func.max(Thread.id)).one()

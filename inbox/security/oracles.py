@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 import enum  # Python 3 style enums from enum34
+
 import nacl.secret
 import nacl.utils
 

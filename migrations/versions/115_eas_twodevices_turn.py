@@ -12,8 +12,8 @@ down_revision = "ad7b856bcc0"
 
 from datetime import datetime
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.sql import text
 
 

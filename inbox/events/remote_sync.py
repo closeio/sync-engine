@@ -1,24 +1,21 @@
 from datetime import datetime, timedelta
-from requests.exceptions import HTTPError
 
 from nylas.logging import get_logger
-
-logger = get_logger()
+from requests.exceptions import HTTPError
 
 from inbox.basicauth import AccessNotEnabledError, OAuthError
 from inbox.config import config
 from inbox.contacts.processing import update_contacts_from_event
-from inbox.sync.base_sync import BaseSyncMonitor
-from inbox.models import Event, Calendar
-from inbox.models.event import RecurringEvent, RecurringEventOverride
-from inbox.util.debug import bind_context
-from inbox.models.session import session_scope
-
-from inbox.models.account import Account
-
-from inbox.events.recurring import link_events
 from inbox.events.google import GoogleEventsProvider
+from inbox.events.recurring import link_events
+from inbox.models import Calendar, Event
+from inbox.models.account import Account
+from inbox.models.event import RecurringEvent, RecurringEventOverride
+from inbox.models.session import session_scope
+from inbox.sync.base_sync import BaseSyncMonitor
+from inbox.util.debug import bind_context
 
+logger = get_logger()
 
 EVENT_SYNC_FOLDER_ID = -2
 EVENT_SYNC_FOLDER_NAME = "Events"

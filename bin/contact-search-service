@@ -1,20 +1,23 @@
 #!/usr/bin/env python
 """ Start the contact search indexing service. """
+import gevent_openssl
+
+gevent_openssl.monkey_patch()
+
+from gevent import monkey
+
+monkey.patch_all()
+
 import os
-from setproctitle import setproctitle
 
 import click
-import gevent_openssl
-gevent_openssl.monkey_patch()
-from gevent import monkey
+from nylas.logging import configure_logging
+from setproctitle import setproctitle
 
 from inbox.config import config as inbox_config
 from inbox.util.startup import preflight
 
-from nylas.logging import configure_logging
-
-setproctitle('nylas-contact-search-index-service')
-monkey.patch_all()
+setproctitle("nylas-contact-search-index-service")
 
 
 @click.command()

@@ -1,11 +1,13 @@
-import json
-import datetime
 import calendar
+import datetime
+import json
+
 from sqlalchemy import desc
-from inbox.models import Message, Thread, Namespace, Block, Category
-from inbox.util.misc import dt_to_timestamp
-from inbox.test.util.base import test_client, add_fake_message, add_fake_thread
+
+from inbox.models import Block, Category, Message, Namespace, Thread
 from inbox.test.api.base import api_client
+from inbox.test.util.base import add_fake_message, add_fake_thread, test_client
+from inbox.util.misc import dt_to_timestamp
 
 __all__ = ["api_client", "test_client"]
 

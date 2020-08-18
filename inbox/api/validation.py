@@ -5,18 +5,18 @@ from flanker.addresslib import address
 from flask.ext.restful import reqparse
 from sqlalchemy.orm.exc import NoResultFound
 
-from inbox.models import Calendar, Thread, Block, Message, Category, Event
-from inbox.models.when import parse_as_when
-from inbox.models.category import EPOCH
-from inbox.models.constants import MAX_INDEXABLE_LENGTH
 from inbox.api.err import (
-    InputError,
-    NotFoundError,
-    ConflictError,
     AccountInvalidError,
     AccountStoppedError,
+    ConflictError,
+    InputError,
+    NotFoundError,
 )
 from inbox.api.kellogs import encode
+from inbox.models import Block, Calendar, Category, Event, Message, Thread
+from inbox.models.category import EPOCH
+from inbox.models.constants import MAX_INDEXABLE_LENGTH
+from inbox.models.when import parse_as_when
 from inbox.util.addr import valid_email
 
 MAX_LIMIT = 1000

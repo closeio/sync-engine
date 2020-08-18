@@ -1,17 +1,17 @@
 # flake8: noqa: F811
-import os
-import sys
-import ssl
-import smtpd
-import socket
 import asyncore
 import datetime
+import os
+import smtpd
+import socket
+import ssl
+import sys
 
-import pytest
 import gevent
+import pytest
 
-from inbox.test.util.base import default_account
 from inbox.test.api.base import api_client, new_api_client
+from inbox.test.util.base import default_account
 
 smtpd.DEBUGSTREAM = sys.stderr
 

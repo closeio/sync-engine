@@ -1,9 +1,9 @@
 import imapclient
-from inbox.s3.exc import EmailFetchException, EmailDeletedException
+from nylas.logging import get_logger
+
 from inbox.crispin import connection_pool
 from inbox.mailsync.backends.imap.generic import uidvalidity_cb
-
-from nylas.logging import get_logger
+from inbox.s3.exc import EmailDeletedException, EmailFetchException
 
 log = get_logger()
 

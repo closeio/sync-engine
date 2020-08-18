@@ -1,14 +1,14 @@
 # gmail-specific label handling tests.
-import pytest
 import random
 from datetime import datetime
 
-from inbox.crispin import writable_connection_pool
-from inbox.models.session import session_scope
-from inbox.models import Account
-from inbox.mailsync.backends.imap.generic import uidvalidity_cb
-
+import pytest
 from conftest import gmail_accounts, timeout_loop
+
+from inbox.crispin import writable_connection_pool
+from inbox.mailsync.backends.imap.generic import uidvalidity_cb
+from inbox.models import Account
+from inbox.models.session import session_scope
 
 
 @timeout_loop("tag_add")

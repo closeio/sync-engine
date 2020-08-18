@@ -14,9 +14,10 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    from inbox.config import config
     import nacl.secret
     import nacl.utils
+
+    from inbox.config import config
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 

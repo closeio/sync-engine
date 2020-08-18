@@ -340,8 +340,8 @@ class VCard(defaultdict):
         if no UID is specified yet, one will be added (as a UID is mandatory
         for carddav as specified in RFC6352
         TODO make shure this random uid is unique"""
-        import string
         import random
+        import string
 
         def generate_random_uid():
             """generate a random uid, when random isn't broken, getting a

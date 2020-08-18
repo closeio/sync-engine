@@ -1,18 +1,20 @@
 # flake8: noqa: F401, F811
-import pytest
 from hashlib import sha256
+
+import pytest
 from gevent.lock import BoundedSemaphore
 from sqlalchemy.orm.exc import ObjectDeletedError
-from inbox.models import Folder, Message
-from inbox.models.backends.imap import ImapFolderSyncStatus, ImapUid, ImapFolderInfo
+
+from inbox.mailsync.backends.base import MailsyncDone
+from inbox.mailsync.backends.gmail import GmailFolderSyncEngine
 from inbox.mailsync.backends.imap.generic import (
+    MAX_UIDINVALID_RESYNCS,
     FolderSyncEngine,
     UidInvalid,
-    MAX_UIDINVALID_RESYNCS,
 )
-from inbox.mailsync.backends.gmail import GmailFolderSyncEngine
-from inbox.mailsync.backends.base import MailsyncDone
-from inbox.test.imap.data import uids, uid_data  # noqa
+from inbox.models import Folder, Message
+from inbox.models.backends.imap import ImapFolderInfo, ImapFolderSyncStatus, ImapUid
+from inbox.test.imap.data import uid_data, uids  # noqa
 from inbox.util.testutils import mock_imapclient  # noqa
 
 

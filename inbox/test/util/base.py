@@ -1,14 +1,14 @@
 import json
-import mock
 import os
 import uuid
 from datetime import datetime, timedelta
 
-from pytest import fixture, yield_fixture
+import mock
 from flanker import mime
 from mockredis import mock_strict_redis_client
+from pytest import fixture, yield_fixture
 
-from inbox.util.testutils import setup_test_db, MockIMAPClient  # noqa
+from inbox.util.testutils import MockIMAPClient, setup_test_db  # noqa
 
 
 def absolute_path(path):
@@ -113,10 +113,10 @@ def patch_network_functions(monkeypatch):
 
 def make_default_account(db, config):
     import platform
-    from inbox.models.backends.gmail import GmailAccount
-    from inbox.models.backends.gmail import GmailAuthCredentials
+
     from inbox.auth.gmail import OAUTH_SCOPE
     from inbox.models import Namespace
+    from inbox.models.backends.gmail import GmailAccount, GmailAuthCredentials
 
     ns = Namespace()
     account = GmailAccount(
@@ -144,9 +144,8 @@ def make_default_account(db, config):
 
 
 def delete_default_accounts(db):
-    from inbox.models.backends.gmail import GmailAccount
-    from inbox.models.backends.gmail import GmailAuthCredentials
     from inbox.models import Namespace
+    from inbox.models.backends.gmail import GmailAccount, GmailAuthCredentials
 
     delete_messages(db.session)
     db.session.rollback()
@@ -259,8 +258,9 @@ def add_fake_label(db_session, default_account, display_name="My Label", name=No
 
 def add_generic_imap_account(db_session, email_address="test@nylas.com"):
     import platform
-    from inbox.models.backends.generic import GenericAccount
+
     from inbox.models import Namespace
+    from inbox.models.backends.generic import GenericAccount
 
     account = GenericAccount(
         email_address=email_address, sync_host=platform.node(), provider="custom"
@@ -276,8 +276,8 @@ def add_generic_imap_account(db_session, email_address="test@nylas.com"):
 
 
 def delete_generic_imap_accounts(db_session):
-    from inbox.models.backends.generic import GenericAccount
     from inbox.models import Namespace
+    from inbox.models.backends.generic import GenericAccount
 
     db_session.rollback()
     db_session.query(GenericAccount).delete()
@@ -287,8 +287,9 @@ def delete_generic_imap_accounts(db_session):
 
 def add_fake_yahoo_account(db_session, email_address="cypresstest@yahoo.com"):
     import platform
-    from inbox.models.backends.generic import GenericAccount
+
     from inbox.models import Namespace
+    from inbox.models.backends.generic import GenericAccount
 
     account = GenericAccount(
         email_address=email_address, sync_host=platform.node(), provider="yahoo"
@@ -307,9 +308,10 @@ def add_fake_gmail_account(
     refresh_token="tearsofgold",
     password="COyPtHmj9E9bvGdN",
 ):
+    import platform
+
     from inbox.models import Namespace
     from inbox.models.backends.gmail import GmailAccount
-    import platform
 
     with db_session.no_autoflush:
         namespace = Namespace()
@@ -352,8 +354,8 @@ def add_fake_message(
     g_msgid=None,
     add_sent_category=False,
 ):
-    from inbox.models import Message, Category
     from inbox.contacts.processing import update_contacts_from_message
+    from inbox.models import Category, Message
 
     m = Message()
     m.namespace_id = namespace_id

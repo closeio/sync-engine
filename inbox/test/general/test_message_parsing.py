@@ -7,18 +7,17 @@ import pkgutil
 import pytest
 from flanker import mime
 
-from inbox.models import Message, Block
-from inbox.util.blockstore import get_from_blockstore
-
-from inbox.util.addr import parse_mimepart_address_header
+from inbox.models import Block, Message
 from inbox.test.util.base import (
+    add_fake_thread,
     default_account,
     default_namespace,
-    thread,
-    new_message_from_synced,
     mime_message,
-    add_fake_thread,
+    new_message_from_synced,
+    thread,
 )
+from inbox.util.addr import parse_mimepart_address_header
+from inbox.util.blockstore import get_from_blockstore
 
 __all__ = ["default_namespace", "thread", "default_account"]
 

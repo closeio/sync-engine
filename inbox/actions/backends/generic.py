@@ -3,12 +3,14 @@
     generic IMAP providers.
 """
 from collections import defaultdict
-from nylas.logging import get_logger
-from inbox.mailsync.backends.imap.generic import uidvalidity_cb
-from inbox.models.backends.imap import ImapUid
-from inbox.models import Folder, Category, Account, Message
-from inbox.models.session import session_scope
 from imaplib import IMAP4
+
+from nylas.logging import get_logger
+
+from inbox.mailsync.backends.imap.generic import uidvalidity_cb
+from inbox.models import Account, Category, Folder, Message
+from inbox.models.backends.imap import ImapUid
+from inbox.models.session import session_scope
 from inbox.sendmail.base import generate_attachments
 from inbox.sendmail.message import create_email
 from inbox.util.misc import imap_folder_path

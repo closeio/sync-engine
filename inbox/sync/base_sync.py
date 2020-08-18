@@ -1,14 +1,13 @@
-from gevent import event, Greenlet, sleep
-
+from gevent import Greenlet, event, sleep
 from nylas.logging import get_logger
 
-logger = get_logger()
-
-from inbox.util.concurrency import retry_with_logging
-from inbox.heartbeat.store import HeartbeatStatusProxy
 from inbox.basicauth import ConnectionError, ValidationError
+from inbox.heartbeat.store import HeartbeatStatusProxy
 from inbox.models import Account
 from inbox.models.session import session_scope
+from inbox.util.concurrency import retry_with_logging
+
+logger = get_logger()
 
 
 class BaseSyncMonitor(Greenlet):

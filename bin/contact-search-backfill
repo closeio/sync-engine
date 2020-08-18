@@ -1,14 +1,17 @@
 #!/usr/bin/env python
-import click
-
 from gevent import monkey
+
 monkey.patch_all()
+
 import gevent_openssl
+
 gevent_openssl.monkey_patch()
+
+import click
+from nylas.logging import configure_logging, get_logger
 
 from inbox.contacts.search import index_namespace
 
-from nylas.logging import get_logger, configure_logging
 configure_logging()
 log = get_logger()
 

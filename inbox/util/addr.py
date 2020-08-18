@@ -1,9 +1,9 @@
 import re
+
 import rfc822
 from flanker.addresslib import address
-from flanker.mime.message.headers.parsing import normalize
 from flanker.mime.message.headers.encodedword import decode
-
+from flanker.mime.message.headers.parsing import normalize
 
 # Note that technically `'` is also allowed in the local part, but nobody
 # uses it in practice, so we'd rather extract <a href='email@example.com'>

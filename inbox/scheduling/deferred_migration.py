@@ -1,14 +1,14 @@
-import gevent
 import json
 import time
+
+import gevent
+from nylas.logging import get_logger
 
 from inbox.models.account import Account
 from inbox.models.session import session_scope
 from inbox.scheduling import event_queue
 from inbox.util.concurrency import retry_with_logging
 from inbox.util.stats import statsd_client
-
-from nylas.logging import get_logger
 
 log = get_logger()
 

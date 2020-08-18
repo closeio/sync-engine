@@ -1,19 +1,19 @@
-import pkg_resources
-from datetime import datetime
 import re
+from datetime import datetime
 
-from inbox.api.validation import (
-    get_recipients,
-    get_attachments,
-    get_thread,
-    get_message,
-)
+import pkg_resources
+
 from inbox.api.err import InputError
+from inbox.api.validation import (
+    get_attachments,
+    get_message,
+    get_recipients,
+    get_thread,
+)
 from inbox.contacts.processing import update_contacts_from_message
 from inbox.models import Message, Part
 from inbox.models.action_log import schedule_action
 from inbox.sqlalchemy_ext.util import generate_public_id
-
 
 VERSION = pkg_resources.get_distribution("inbox-sync").version
 

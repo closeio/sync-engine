@@ -3,6 +3,7 @@
 import gevent_openssl
 
 gevent_openssl.monkey_patch()
+
 from gevent import monkey
 
 monkey.patch_all()

@@ -12,11 +12,14 @@ def get_shards():
 def get_open_shards():
     # Can't use engine_manager.engines here because it does not track
     # shard state (open/ closed)
-    database_hosts = config.get_required('DATABASE_HOSTS')
+    database_hosts = config.get_required("DATABASE_HOSTS")
     open_shards = []
     for host in database_hosts:
-        open_shards.extend(shard['ID'] for shard in host['SHARDS'] if
-                           shard['OPEN'] and not shard.get('DISABLED'))
+        open_shards.extend(
+            shard["ID"]
+            for shard in host["SHARDS"]
+            if shard["OPEN"] and not shard.get("DISABLED")
+        )
 
     return open_shards
 
@@ -25,12 +28,12 @@ def get_shard_schemas():
     # Can't use engine_manager.engines here because it does not track
     # shard schemas.
     shard_schemas = {}
-    database_hosts = config.get_required('DATABASE_HOSTS')
+    database_hosts = config.get_required("DATABASE_HOSTS")
     for host in database_hosts:
-        for shard in host['SHARDS']:
-            if not shard.get('DISABLED'):
-                shard_id = shard['ID']
-                schema_name = shard['SCHEMA_NAME']
+        for shard in host["SHARDS"]:
+            if not shard.get("DISABLED"):
+                shard_id = shard["ID"]
+                schema_name = shard["SCHEMA_NAME"]
                 shard_schemas[shard_id] = schema_name
     return shard_schemas
 

@@ -19,7 +19,7 @@ def get_encryption_oracle(secret_name):
     """
     Return an encryption oracle for the given secret.
     """
-    assert secret_name in ('SECRET_ENCRYPTION_KEY', 'BLOCK_ENCRYPTION_KEY')
+    assert secret_name in ("SECRET_ENCRYPTION_KEY", "BLOCK_ENCRYPTION_KEY")
     return _EncryptionOracle(secret_name)
 
 
@@ -29,7 +29,7 @@ def get_decryption_oracle(secret_name):
 
     Decryption oracles can also encrypt.
     """
-    assert secret_name in ('SECRET_ENCRYPTION_KEY', 'BLOCK_ENCRYPTION_KEY')
+    assert secret_name in ("SECRET_ENCRYPTION_KEY", "BLOCK_ENCRYPTION_KEY")
     return _DecryptionOracle(secret_name)
 
 
@@ -44,15 +44,15 @@ class _EncryptionOracle(object):
     def __init__(self, secret_name):
         self._closed = False
 
-        if not config.get_required('ENCRYPT_SECRETS'):
+        if not config.get_required("ENCRYPT_SECRETS"):
             self.default_scheme = EncryptionScheme.NULL
             self._secret_box = None
             return
 
         self.default_scheme = EncryptionScheme.SECRETBOX_WITH_STATIC_KEY
         self._secret_box = nacl.secret.SecretBox(
-            key=config.get_required(secret_name),
-            encoder=nacl.encoding.HexEncoder)
+            key=config.get_required(secret_name), encoder=nacl.encoding.HexEncoder
+        )
 
     def __enter__(self):
         return self
@@ -95,8 +95,9 @@ class _EncryptionOracle(object):
             raise TypeError("encryption_scheme should be an Enum")
         if not 0 <= encryption_scheme.value <= 2 ** 31 - 1:
             raise ValueError("encryption_scheme value out of range")
-        if (encryption_scheme != EncryptionScheme.NULL and
-                not config.get_required('ENCRYPT_SECRETS')):
+        if encryption_scheme != EncryptionScheme.NULL and not config.get_required(
+            "ENCRYPT_SECRETS"
+        ):
             raise ValueError("ENCRYPT_SECRETS not enabled in config")
 
         # encrypt differently depending on the scheme
@@ -106,11 +107,11 @@ class _EncryptionOracle(object):
         elif encryption_scheme == EncryptionScheme.SECRETBOX_WITH_STATIC_KEY:
             ciphertext = self._secret_box.encrypt(
                 plaintext=plaintext,
-                nonce=nacl.utils.random(nacl.secret.SecretBox.NONCE_SIZE))
+                nonce=nacl.utils.random(nacl.secret.SecretBox.NONCE_SIZE),
+            )
 
         else:
-            raise ValueError("encryption_scheme not supported: %d" %
-                             encryption_scheme)
+            raise ValueError("encryption_scheme not supported: %d" % encryption_scheme)
 
         return (ciphertext, encryption_scheme.value)
 
@@ -123,8 +124,7 @@ class _DecryptionOracle(_EncryptionOracle):
     module.
     """
 
-    def reencrypt(self, ciphertext, encryption_scheme,
-                  new_encryption_scheme=None):
+    def reencrypt(self, ciphertext, encryption_scheme, new_encryption_scheme=None):
         """
         Re-encrypt the specified secret.  If no new_encryption_scheme is
         specified (recommended), a reasonable default will be used.
@@ -141,7 +141,8 @@ class _DecryptionOracle(_EncryptionOracle):
         # for now, it's all in memory anyway
         return self.encrypt(
             self.decrypt(ciphertext, encryption_scheme),
-            encryption_scheme=new_encryption_scheme)
+            encryption_scheme=new_encryption_scheme,
+        )
 
     def decrypt(self, ciphertext, encryption_scheme):
         """
@@ -167,10 +168,12 @@ class _DecryptionOracle(_EncryptionOracle):
         if encryption_scheme_value == EncryptionScheme.NULL.value:
             return ciphertext
 
-        elif encryption_scheme_value == \
-                EncryptionScheme.SECRETBOX_WITH_STATIC_KEY.value:
+        elif (
+            encryption_scheme_value == EncryptionScheme.SECRETBOX_WITH_STATIC_KEY.value
+        ):
             return self._secret_box.decrypt(ciphertext)
 
         else:
-            raise ValueError("encryption_scheme not supported: %d" %
-                             encryption_scheme_value)
+            raise ValueError(
+                "encryption_scheme not supported: %d" % encryption_scheme_value
+            )

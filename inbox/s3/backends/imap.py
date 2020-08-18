@@ -4,6 +4,7 @@ from inbox.crispin import connection_pool
 from inbox.mailsync.backends.imap.generic import uidvalidity_cb
 
 from nylas.logging import get_logger
+
 log = get_logger()
 
 
@@ -22,11 +23,18 @@ def get_imap_raw_contents(message):
         try:
             uids = crispin_client.uids([uid.msg_uid])
             if len(uids) == 0:
-                raise EmailDeletedException("Message was deleted on the backend server.")
+                raise EmailDeletedException(
+                    "Message was deleted on the backend server."
+                )
 
             return uids[0].body
         except imapclient.IMAPClient.Error:
-            log.error("Error while fetching raw contents", exc_info=True,
-                      logstash_tag='fetching_error')
-            raise EmailFetchException("Couldn't get message from server. "
-                                      "Please try again in a few minutes.")
+            log.error(
+                "Error while fetching raw contents",
+                exc_info=True,
+                logstash_tag="fetching_error",
+            )
+            raise EmailFetchException(
+                "Couldn't get message from server. "
+                "Please try again in a few minutes."
+            )

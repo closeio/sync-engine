@@ -3,20 +3,29 @@ import itertools
 from collections import defaultdict
 
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Index
-from sqlalchemy.orm import (relationship, backref, validates, object_session,
-                            subqueryload)
+from sqlalchemy.orm import (
+    relationship,
+    backref,
+    validates,
+    object_session,
+    subqueryload,
+)
 
 from nylas.logging import get_logger
+
 log = get_logger()
-from inbox.models.mixins import (HasPublicID, HasRevisions, UpdatedAtMixin,
-                                 DeletedAtMixin)
+from inbox.models.mixins import (
+    HasPublicID,
+    HasRevisions,
+    UpdatedAtMixin,
+    DeletedAtMixin,
+)
 from inbox.models.base import MailSyncBase
 from inbox.models.namespace import Namespace
 from inbox.util.misc import cleanup_subject
 
 
-class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
-             DeletedAtMixin):
+class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtMixin):
     """
     Threads are a first-class object in Nylas. This thread aggregates
     the relevant thread metadata from elsewhere so that clients can only
@@ -28,13 +37,15 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
     don't query based on folder!
 
     """
-    API_OBJECT_NAME = 'thread'
 
-    namespace_id = Column(ForeignKey(Namespace.id, ondelete='CASCADE'),
-                          nullable=False)
-    namespace = relationship('Namespace',
-                             backref=backref('threads', passive_deletes=True),
-                             load_on_pending=True)
+    API_OBJECT_NAME = "thread"
+
+    namespace_id = Column(ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False)
+    namespace = relationship(
+        "Namespace",
+        backref=backref("threads", passive_deletes=True),
+        load_on_pending=True,
+    )
 
     subject = Column(String(255), nullable=True)
     # a column with the cleaned up version of a subject string, to speed up
@@ -42,15 +53,15 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
     _cleaned_subject = Column(String(255), nullable=True)
     subjectdate = Column(DateTime, nullable=False, index=True)
     recentdate = Column(DateTime, nullable=False, index=True)
-    snippet = Column(String(191), nullable=True, default='')
-    version = Column(Integer, nullable=True, server_default='0')
+    snippet = Column(String(191), nullable=True, default="")
+    version = Column(Integer, nullable=True, server_default="0")
 
-    @validates('subject')
+    @validates("subject")
     def compute_cleaned_up_subject(self, key, value):
         self._cleaned_subject = cleanup_subject(value)
         return value
 
-    @validates('messages')
+    @validates("messages")
     def update_from_message(self, k, message):
         with object_session(self).no_autoflush:
             if message.is_draft:
@@ -72,18 +83,24 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
     def most_recent_received_date(self):
         received_recent_date = None
         for m in self.messages:
-            if all(category.name != "sent" for category in m.categories if category is not None) and \
-                    not m.is_draft and not m.is_sent:
-                if not received_recent_date or \
-                        m.received_date > received_recent_date:
+            if (
+                all(
+                    category.name != "sent"
+                    for category in m.categories
+                    if category is not None
+                )
+                and not m.is_draft
+                and not m.is_sent
+            ):
+                if not received_recent_date or m.received_date > received_recent_date:
                     received_recent_date = m.received_date
 
         if not received_recent_date:
-            sorted_messages = sorted(self.messages,
-                                     key=lambda m: m.received_date)
+            sorted_messages = sorted(self.messages, key=lambda m: m.received_date)
             if not sorted_messages:
-                log.warning('Thread does not have associated messages',
-                            thread_id=self.id)
+                log.warning(
+                    "Thread does not have associated messages", thread_id=self.id
+                )
                 return None
             received_recent_date = sorted_messages[-1].received_date
 
@@ -96,11 +113,11 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
             not. Clients can use this to properly sort the Sent view.
             """
         sent_recent_date = None
-        sorted_messages = sorted(self.messages,
-                                 key=lambda m: m.received_date, reverse=True)
+        sorted_messages = sorted(
+            self.messages, key=lambda m: m.received_date, reverse=True
+        )
         for m in sorted_messages:
-            if "sent" in [c.name for c in m.categories] or \
-                    (m.is_draft and m.is_sent):
+            if "sent" in [c.name for c in m.categories] or (m.is_draft and m.is_sent):
                 sent_recent_date = m.received_date
                 return sent_recent_date
 
@@ -118,7 +135,7 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
 
     @property
     def versioned_relationships(self):
-        return ['messages']
+        return ["messages"]
 
     @property
     def participants(self):
@@ -134,13 +151,14 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
             if m.is_draft:
                 # Don't use drafts to compute participants.
                 continue
-            for phrase, address in itertools.chain(m.from_addr, m.to_addr,
-                                                   m.cc_addr, m.bcc_addr):
+            for phrase, address in itertools.chain(
+                m.from_addr, m.to_addr, m.cc_addr, m.bcc_addr
+            ):
                 deduped_participants[address].add(phrase.strip())
         p = []
         for address, phrases in deduped_participants.iteritems():
             for phrase in phrases:
-                if phrase != '' or len(phrases) == 1:
+                if phrase != "" or len(phrases) == 1:
                     p.append((phrase, address))
         return p
 
@@ -169,20 +187,35 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
 
     @classmethod
     def api_loading_options(cls, expand=False):
-        message_columns = ['public_id', 'is_draft', 'from_addr', 'to_addr',
-                           'cc_addr', 'bcc_addr', 'is_read', 'is_starred',
-                           'received_date', 'is_sent']
+        message_columns = [
+            "public_id",
+            "is_draft",
+            "from_addr",
+            "to_addr",
+            "cc_addr",
+            "bcc_addr",
+            "is_read",
+            "is_starred",
+            "received_date",
+            "is_sent",
+        ]
         if expand:
-            message_columns += ['subject', 'snippet', 'version', 'from_addr',
-                                'to_addr', 'cc_addr', 'bcc_addr', 'reply_to']
+            message_columns += [
+                "subject",
+                "snippet",
+                "version",
+                "from_addr",
+                "to_addr",
+                "cc_addr",
+                "bcc_addr",
+                "reply_to",
+            ]
         return (
-            subqueryload(Thread.messages).
-            load_only(*message_columns)
-            .joinedload('messagecategories')
-            .joinedload('category'),
             subqueryload(Thread.messages)
-            .joinedload('parts')
-            .joinedload('block')
+            .load_only(*message_columns)
+            .joinedload("messagecategories")
+            .joinedload("category"),
+            subqueryload(Thread.messages).joinedload("parts").joinedload("block"),
         )
 
     def mark_for_deletion(self):
@@ -193,18 +226,21 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
         """
         self.deleted_at = datetime.datetime.utcnow()
 
-    discriminator = Column('type', String(16))
-    __mapper_args__ = {'polymorphic_on': discriminator}
+    discriminator = Column("type", String(16))
+    __mapper_args__ = {"polymorphic_on": discriminator}
+
 
 # Need to explicitly specify the index length for MySQL 5.6, because the
 # subject column is too long to be fully indexed with utf8mb4 collation.
-Index('ix_thread_subject', Thread.subject, mysql_length=80)
+Index("ix_thread_subject", Thread.subject, mysql_length=80)
 
 # For async deletion.
-Index('ix_thread_namespace_id_deleted_at', Thread.namespace_id,
-      Thread.deleted_at)
+Index("ix_thread_namespace_id_deleted_at", Thread.namespace_id, Thread.deleted_at)
 
 # For fetch_corresponding_thread.
-Index('ix_namespace_id__cleaned_subject',
-      Thread.namespace_id, Thread._cleaned_subject,
-      mysql_length={'_cleaned_subject': 80})
+Index(
+    "ix_namespace_id__cleaned_subject",
+    Thread.namespace_id,
+    Thread._cleaned_subject,
+    mysql_length={"_cleaned_subject": 80},
+)

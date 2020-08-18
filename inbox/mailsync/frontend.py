@@ -3,8 +3,7 @@ import gevent._threading  # This is a clone of the *real* threading module
 from pympler import muppy, summary
 from werkzeug.serving import run_simple, WSGIRequestHandler
 from flask import Flask, jsonify, request
-from inbox.instrumentation import (GreenletTracer, KillerGreenletTracer,
-                                   ProfileCollector)
+from inbox.instrumentation import GreenletTracer, KillerGreenletTracer, ProfileCollector
 
 
 class HTTPFrontend(object):
@@ -17,8 +16,9 @@ class HTTPFrontend(object):
         app = self._create_app()
         # We need to spawn an OS-level thread because we don't want a stuck
         # greenlet to prevent us to access the web API.
-        gevent._threading.start_new_thread(run_simple, ('0.0.0.0', self.port, app),
-                                           {"request_handler": _QuietHandler})
+        gevent._threading.start_new_thread(
+            run_simple, ("0.0.0.0", self.port, app), {"request_handler": _QuietHandler}
+        )
 
     def _create_app(self):
         app = Flask(__name__)
@@ -48,29 +48,29 @@ class ProfilingHTTPFrontend(HTTPFrontend):
         super(ProfilingHTTPFrontend, self).start()
 
     def _create_app_impl(self, app):
-        @app.route('/profile')
+        @app.route("/profile")
         def profile():
             if self.profiler is None:
-                return 'Profiling disabled\n', 404
+                return "Profiling disabled\n", 404
             resp = self.profiler.stats()
-            if request.args.get('reset ') in (1, 'true'):
+            if request.args.get("reset ") in (1, "true"):
                 self.profiler.reset()
             return resp
 
-        @app.route('/load')
+        @app.route("/load")
         def load():
             if self.tracer is None:
-                return 'Load tracing disabled\n', 404
+                return "Load tracing disabled\n", 404
             resp = jsonify(self.tracer.stats())
-            if request.args.get('reset ') in (1, 'true'):
+            if request.args.get("reset ") in (1, "true"):
                 self.tracer.reset()
             return resp
 
-        @app.route('/mem')
+        @app.route("/mem")
         def mem():
             objs = muppy.get_objects()
             summ = summary.summarize(objs)
-            return '\n'.join(summary.format_(summ)) + '\n'
+            return "\n".join(summary.format_(summ)) + "\n"
 
 
 class SyncbackHTTPFrontend(ProfilingHTTPFrontend):
@@ -89,30 +89,26 @@ class SyncHTTPFrontend(ProfilingHTTPFrontend):
     def _create_app_impl(self, app):
         super(SyncHTTPFrontend, self)._create_app_impl(app)
 
-        @app.route('/unassign', methods=['POST'])
+        @app.route("/unassign", methods=["POST"])
         def unassign_account():
-            account_id = request.json['account_id']
+            account_id = request.json["account_id"]
             ret = self.sync_service.stop_sync(account_id)
             if ret:
-                return 'OK'
+                return "OK"
             else:
-                return 'Account not assigned to this process', 409
+                return "Account not assigned to this process", 409
 
-        @app.route('/build-metadata', methods=['GET'])
+        @app.route("/build-metadata", methods=["GET"])
         def build_metadata():
-            filename = '/usr/share/python/cloud-core/metadata.txt'
-            with open(filename, 'r') as f:
-                _, build_id = f.readline().rstrip('\n').split()
-                build_id = build_id[1:-1]   # Remove first and last single quotes.
-                _, git_commit = f.readline().rstrip('\n').split()
-                return jsonify({
-                    'build_id': build_id,
-                    'git_commit': git_commit,
-                })
+            filename = "/usr/share/python/cloud-core/metadata.txt"
+            with open(filename, "r") as f:
+                _, build_id = f.readline().rstrip("\n").split()
+                build_id = build_id[1:-1]  # Remove first and last single quotes.
+                _, git_commit = f.readline().rstrip("\n").split()
+                return jsonify({"build_id": build_id, "git_commit": git_commit,})
 
 
 class _QuietHandler(WSGIRequestHandler):
-
     def log_request(self, *args, **kwargs):
         """Suppress request logging so as not to pollute application logs."""
         pass

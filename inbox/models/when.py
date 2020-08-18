@@ -14,7 +14,7 @@ def parse_as_when(raw):
     """
     when_classes = [TimeSpan, Time, DateSpan, Date]
     keys_for_type = {tuple(sorted(cls_.json_keys)): cls_ for cls_ in when_classes}
-    given_keys = tuple(sorted(set(raw.keys()) - set('object')))
+    given_keys = tuple(sorted(set(raw.keys()) - set("object")))
     when_type = keys_for_type.get(given_keys)
     if when_type is None:
         raise ValueError("When object had invalid keys.")
@@ -23,7 +23,7 @@ def parse_as_when(raw):
 
 def parse_utc(datetime):
     # Arrow can handle epoch timestamps as well as most ISO-8601 strings
-    return arrow.get(datetime).to('utc')
+    return arrow.get(datetime).to("utc")
 
 
 class When(object):
@@ -37,6 +37,7 @@ class When(object):
         end (datetime, optional): End time. If missing, start will be used.
 
     """
+
     __metaclass__ = abc.ABCMeta  # Needed?
     json_keys = abc.abstractproperty()
     all_day = False
@@ -63,7 +64,7 @@ class When(object):
         self.end = end or start
 
     def __repr__(self):
-        return '{} ({} - {})'.format(type(self), self.start, self.end)
+        return "{} ({} - {})".format(type(self), self.start, self.end)
 
     @property
     def is_time(self):
@@ -104,18 +105,18 @@ class SpanningWhen(When):
 
 
 class Time(When):
-    json_keys = ['time']
+    json_keys = ["time"]
 
 
 class TimeSpan(Time, SpanningWhen):
-    json_keys = ['start_time', 'end_time']
+    json_keys = ["start_time", "end_time"]
     singular_cls = Time
 
 
 class Date(AllDayWhen):
-    json_keys = ['date']
+    json_keys = ["date"]
 
 
 class DateSpan(Date, AllDayWhen, SpanningWhen):
-    json_keys = ['start_date', 'end_date']
+    json_keys = ["start_date", "end_date"]
     singular_cls = Date

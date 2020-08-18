@@ -17,29 +17,29 @@ def parse_datetime(datetime):
     # http://crsmithdev.com/arrow/
     if datetime is not None:
         if isinstance(datetime, int):
-            return arrow.get(datetime).to('utc')
-        return arrow.get(parse(datetime)).to('utc')
+            return arrow.get(datetime).to("utc")
+        return arrow.get(parse(datetime)).to("utc")
 
 
 def parse_rrule_datetime(datetime, tzinfo=None):
     # format: 20140904T133000Z (datetimes) or 20140904 (dates)
-    if datetime[-1] == 'Z':
-        tzinfo = 'UTC'
+    if datetime[-1] == "Z":
+        tzinfo = "UTC"
         datetime = datetime[:-1]
     if len(datetime) == 8:
-        dt = arrow.get(datetime, 'YYYYMMDD').to('utc')
+        dt = arrow.get(datetime, "YYYYMMDD").to("utc")
     else:
-        dt = arrow.get(datetime, 'YYYYMMDDTHHmmss')
-    if tzinfo and tzinfo != 'UTC':
+        dt = arrow.get(datetime, "YYYYMMDDTHHmmss")
+    if tzinfo and tzinfo != "UTC":
         dt = arrow.get(dt.datetime, tzinfo)
     return dt
 
 
 def serialize_datetime(d):
-    return d.strftime('%Y%m%dT%H%M%SZ')
+    return d.strftime("%Y%m%dT%H%M%SZ")
 
 
-EventTime = namedtuple('EventTime', ['start', 'end', 'all_day'])
+EventTime = namedtuple("EventTime", ["start", "end", "all_day"])
 
 
 def when_to_event_time(raw):
@@ -51,7 +51,7 @@ def parse_google_time(d):
     # google dictionaries contain either 'date' or 'dateTime' & 'timeZone'
     # 'dateTime' is in ISO format so is UTC-aware, 'date' is just a date
     for key, dt in d.iteritems():
-        if key != 'timeZone':
+        if key != "timeZone":
             return arrow.get(dt)
 
 
@@ -61,13 +61,13 @@ def google_to_event_time(start_raw, end_raw):
     if start > end:
         start, end = (end, start)
 
-    if 'date' in start_raw:
+    if "date" in start_raw:
         # Google all-day events normally end a 'day' later than they should,
         # but not always if they were created by a third-party client.
         end = max(start, end.replace(days=-1))
-        d = {'start_date': start, 'end_date': end}
+        d = {"start_date": start, "end_date": end}
     else:
-        d = {'start_time': start, 'end_time': end}
+        d = {"start_time": start, "end_time": end}
 
     event_time = when_to_event_time(d)
 
@@ -82,10 +82,16 @@ def valid_base36(uid):
 def removed_participants(original_participants, update_participants):
     """Returns the name and addresses of the participants which have been
     removed."""
-    original_table = {part['email'].lower(): part.get('name') for part in original_participants
-                      if 'email' in part}
-    update_table = {part['email'].lower(): part.get('name') for part in update_participants
-                    if 'email' in part}
+    original_table = {
+        part["email"].lower(): part.get("name")
+        for part in original_participants
+        if "email" in part
+    }
+    update_table = {
+        part["email"].lower(): part.get("name")
+        for part in update_participants
+        if "email" in part
+    }
 
     ret = []
     for email in original_table:
@@ -99,6 +105,6 @@ def removed_participants(original_participants, update_participants):
 # all together, but we want to handle deletions separately in our persistence
 # logic. deleted_uids should be a list of uids, and updated_objects should be a
 # list of (un-added, uncommitted) model instances.
-CalendarSyncResponse = namedtuple('CalendarSyncResponse',
-                                  ['deleted_uids',
-                                   'updated_objects'])
+CalendarSyncResponse = namedtuple(
+    "CalendarSyncResponse", ["deleted_uids", "updated_objects"]
+)

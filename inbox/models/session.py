@@ -11,6 +11,7 @@ from inbox.config import config
 from inbox.ignition import engine_manager
 from inbox.util.stats import statsd_client
 from nylas.logging import get_logger, find_first_app_frame_and_name
+
 log = get_logger()
 
 
@@ -28,8 +29,7 @@ def two_phase_session(engine_map, versioned=True):
     versioned: bool
 
     """
-    session = Session(binds=engine_map, twophase=True, autoflush=True,
-                      autocommit=False)
+    session = Session(binds=engine_map, twophase=True, autoflush=True, autocommit=False)
     if versioned:
         session = configure_versioning(session)
         # TODO[k]: Metrics for transaction latencies!
@@ -46,14 +46,18 @@ def new_session(engine, versioned=True):
         # Make statsd calls for transaction times
         transaction_start_map = {}
         frame, modname = find_first_app_frame_and_name(
-            ignores=['sqlalchemy', 'inbox.models.session', 'nylas.logging',
-                     'contextlib'])
+            ignores=[
+                "sqlalchemy",
+                "inbox.models.session",
+                "nylas.logging",
+                "contextlib",
+            ]
+        )
         funcname = frame.f_code.co_name
         modname = modname.replace(".", "-")
-        metric_name = 'db.{}.{}.{}'.format(engine.url.database, modname,
-                                           funcname)
+        metric_name = "db.{}.{}.{}".format(engine.url.database, modname, funcname)
 
-        @event.listens_for(session, 'after_begin')
+        @event.listens_for(session, "after_begin")
         def after_begin(session, transaction, connection):
             # It's okay to key on the session object here, because each session
             # binds to only one engine/connection. If this changes in the
@@ -61,8 +65,8 @@ def new_session(engine, versioned=True):
             # we'll have to get more sophisticated.
             transaction_start_map[session] = time.time()
 
-        @event.listens_for(session, 'after_commit')
-        @event.listens_for(session, 'after_rollback')
+        @event.listens_for(session, "after_commit")
+        @event.listens_for(session, "after_rollback")
         def end(session):
             start_time = transaction_start_map.get(session)
             if not start_time:
@@ -72,28 +76,34 @@ def new_session(engine, versioned=True):
 
             t = time.time()
             latency = int((t - start_time) * 1000)
-            if config.get('ENABLE_DB_TXN_METRICS', False):
+            if config.get("ENABLE_DB_TXN_METRICS", False):
                 statsd_client.timing(metric_name, latency)
                 statsd_client.incr(metric_name)
             if latency > MAX_SANE_TRX_TIME_MS:
-                log.warning('Long transaction', latency=latency,
-                            modname=modname, funcname=funcname)
+                log.warning(
+                    "Long transaction",
+                    latency=latency,
+                    modname=modname,
+                    funcname=funcname,
+                )
 
     return session
 
 
 def configure_versioning(session):
     from inbox.models.transaction import (
-        create_revisions, propagate_changes, increment_versions,
-        bump_redis_txn_id
+        create_revisions,
+        propagate_changes,
+        increment_versions,
+        bump_redis_txn_id,
     )
 
-    @event.listens_for(session, 'before_flush')
+    @event.listens_for(session, "before_flush")
     def before_flush(session, flush_context, instances):
         propagate_changes(session)
         increment_versions(session)
 
-    @event.listens_for(session, 'after_flush')
+    @event.listens_for(session, "after_flush")
     def after_flush(session, flush_context):
         """
         Hook to log revision snapshots. Must be post-flush in order to
@@ -108,7 +118,7 @@ def configure_versioning(session):
         try:
             bump_redis_txn_id(session)
         except Exception:
-            log.exception('bump_redis_txn_id exception')
+            log.exception("bump_redis_txn_id exception")
             pass
         create_revisions(session)
 
@@ -146,15 +156,16 @@ def session_scope(id_, versioned=True):
     session = new_session(engine, versioned)
 
     try:
-        if config.get('LOG_DB_SESSIONS'):
+        if config.get("LOG_DB_SESSIONS"):
             start_time = time.time()
             calling_frame = sys._getframe().f_back.f_back
-            call_loc = '{}:{}'.format(calling_frame.f_globals.get('__name__'),
-                                      calling_frame.f_lineno)
-            logger = log.bind(engine_id=id(engine),
-                              session_id=id(session), call_loc=call_loc)
-            logger.info('creating db_session',
-                        sessions_used=engine.pool.checkedout())
+            call_loc = "{}:{}".format(
+                calling_frame.f_globals.get("__name__"), calling_frame.f_lineno
+            )
+            logger = log.bind(
+                engine_id=id(engine), session_id=id(session), call_loc=call_loc
+            )
+            logger.info("creating db_session", sessions_used=engine.pool.checkedout())
         yield session
         session.commit()
     except BaseException as exc:
@@ -162,14 +173,18 @@ def session_scope(id_, versioned=True):
             session.rollback()
             raise
         except OperationalError:
-            log.warn('Encountered OperationalError on rollback',
-                     original_exception=type(exc))
+            log.warn(
+                "Encountered OperationalError on rollback", original_exception=type(exc)
+            )
             raise exc
     finally:
-        if config.get('LOG_DB_SESSIONS'):
+        if config.get("LOG_DB_SESSIONS"):
             lifetime = time.time() - start_time
-            logger.info('closing db_session', lifetime=lifetime,
-                        sessions_used=engine.pool.checkedout())
+            logger.info(
+                "closing db_session",
+                lifetime=lifetime,
+                sessions_used=engine.pool.checkedout(),
+            )
         session.close()
 
 
@@ -207,7 +222,8 @@ def global_session_scope():
         shard_chooser=shard_chooser,
         id_chooser=id_chooser,
         query_chooser=query_chooser,
-        shards=shards)
+        shards=shards,
+    )
     # STOPSHIP(emfree): need instrumentation and proper exception handling
     # here.
     try:

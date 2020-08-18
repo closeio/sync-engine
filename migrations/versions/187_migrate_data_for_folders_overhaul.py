@@ -7,38 +7,33 @@ Create Date: 2015-07-09 00:23:04.918833
 """
 
 # revision identifiers, used by Alembic.
-revision = '334b33f18b4f'
-down_revision = '23e204cd1d91'
+revision = "334b33f18b4f"
+down_revision = "23e204cd1d91"
 
 from sqlalchemy import asc
 from sqlalchemy.orm import joinedload, subqueryload, load_only
 from inbox.config import config
 from nylas.logging import configure_logging, get_logger
-configure_logging(config.get('LOGLEVEL'))
+
+configure_logging(config.get("LOGLEVEL"))
 log = get_logger()
 
 
 def populate_labels(uid, account, db_session):
     from inbox.models import Label
-    existing_labels = {
-        (l.name, l.canonical_name): l for l in account.labels
-    }
-    uid.is_draft = '\\Draft' in uid.g_labels
-    uid.is_starred = '\\Starred' in uid.g_labels
 
-    category_map = {
-        '\\Inbox': 'inbox',
-        '\\Important': 'important',
-        '\\Sent': 'sent'
-    }
+    existing_labels = {(l.name, l.canonical_name): l for l in account.labels}
+    uid.is_draft = "\\Draft" in uid.g_labels
+    uid.is_starred = "\\Starred" in uid.g_labels
+
+    category_map = {"\\Inbox": "inbox", "\\Important": "important", "\\Sent": "sent"}
 
     remote_labels = set()
     for label_string in uid.g_labels:
-        if label_string in ('\\Draft', '\\Starred'):
+        if label_string in ("\\Draft", "\\Starred"):
             continue
         elif label_string in category_map:
-            remote_labels.add((category_map[label_string],
-                               category_map[label_string]))
+            remote_labels.add((category_map[label_string], category_map[label_string]))
         else:
             remote_labels.add((label_string, None))
 
@@ -53,28 +48,35 @@ def populate_labels(uid, account, db_session):
 
 def set_labels_for_imapuids(account, db_session):
     from inbox.models.backends.imap import ImapUid
-    uids = db_session.query(ImapUid).filter(
-        ImapUid.account_id == account.id).options(
-            subqueryload(ImapUid.labelitems).joinedload('label'))
+
+    uids = (
+        db_session.query(ImapUid)
+        .filter(ImapUid.account_id == account.id)
+        .options(subqueryload(ImapUid.labelitems).joinedload("label"))
+    )
     for uid in uids:
         populate_labels(uid, account, db_session)
-        log.info('Updated UID labels', account_id=account.id, uid=uid.id)
+        log.info("Updated UID labels", account_id=account.id, uid=uid.id)
 
 
 def create_categories_for_folders(account, db_session):
     from inbox.models import Folder, Category
-    for folder in db_session.query(Folder).filter(
-            Folder.account_id == account.id):
+
+    for folder in db_session.query(Folder).filter(Folder.account_id == account.id):
         cat = Category.find_or_create(
-            db_session, namespace_id=account.namespace.id,
-            name=folder.canonical_name, display_name=folder.name,
-            type_='folder')
+            db_session,
+            namespace_id=account.namespace.id,
+            name=folder.canonical_name,
+            display_name=folder.name,
+            type_="folder",
+        )
         folder.category = cat
     db_session.commit()
 
 
 def create_categories_for_easfoldersyncstatuses(account, db_session):
     from inbox.mailsync.backends.eas.base.foldersync import save_categories
+
     save_categories(db_session, account, account.primary_device_id)
     db_session.commit()
     save_categories(db_session, account, account.secondary_device_id)
@@ -83,13 +85,14 @@ def create_categories_for_easfoldersyncstatuses(account, db_session):
 def migrate_account_metadata(account_id):
     from inbox.models.session import session_scope
     from inbox.models import Account
+
     with session_scope(versioned=False) as db_session:
         account = db_session.query(Account).get(account_id)
-        if account.discriminator == 'easaccount':
+        if account.discriminator == "easaccount":
             create_categories_for_easfoldersyncstatuses(account, db_session)
         else:
             create_categories_for_folders(account, db_session)
-        if account.discriminator == 'gmailaccount':
+        if account.discriminator == "gmailaccount":
             set_labels_for_imapuids(account, db_session)
         db_session.commit()
 
@@ -102,25 +105,35 @@ def migrate_messages(account_id):
     engine = main_engine(pool_size=1, max_overflow=0)
 
     with session_scope(versioned=False) as db_session:
-        namespace = db_session.query(Namespace).filter_by(
-            account_id=account_id).one()
+        namespace = db_session.query(Namespace).filter_by(account_id=account_id).one()
         offset = 0
         while True:
-            if engine.has_table('easuid'):
+            if engine.has_table("easuid"):
                 additional_options = [subqueryload(Message.easuids)]
             else:
                 additional_options = []
 
-            messages = db_session.query(Message). \
-                filter(Message.namespace_id == namespace.id). \
-                options(load_only(Message.id, Message.is_read,
-                                  Message.is_starred, Message.is_draft),
-                        joinedload(Message.namespace).load_only('id'),
-                        subqueryload(Message.imapuids),
-                        subqueryload(Message.messagecategories),
-                        *additional_options). \
-                with_hint(Message, 'USE INDEX (ix_message_namespace_id)'). \
-                order_by(asc(Message.id)).limit(1000).offset(offset).all()
+            messages = (
+                db_session.query(Message)
+                .filter(Message.namespace_id == namespace.id)
+                .options(
+                    load_only(
+                        Message.id,
+                        Message.is_read,
+                        Message.is_starred,
+                        Message.is_draft,
+                    ),
+                    joinedload(Message.namespace).load_only("id"),
+                    subqueryload(Message.imapuids),
+                    subqueryload(Message.messagecategories),
+                    *additional_options
+                )
+                .with_hint(Message, "USE INDEX (ix_message_namespace_id)")
+                .order_by(asc(Message.id))
+                .limit(1000)
+                .offset(offset)
+                .all()
+            )
             if not messages:
                 return
             for message in messages:
@@ -129,8 +142,9 @@ def migrate_messages(account_id):
                 except IndexError:
                     # Can happen for messages without a folder.
                     pass
-                log.info('Updated message', namespace_id=namespace.id,
-                         message_id=message.id)
+                log.info(
+                    "Updated message", namespace_id=namespace.id, message_id=message.id
+                )
             db_session.commit()
             offset += 1000
 
@@ -143,6 +157,7 @@ def migrate_account(account_id):
 def upgrade():
     from inbox.models.session import session_scope
     from inbox.models import Account
+
     with session_scope() as db_session:
         account_ids = [id_ for id_, in db_session.query(Account.id)]
 

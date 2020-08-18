@@ -5,57 +5,62 @@ from sqlalchemy.orm import joinedload, object_session
 from inbox.auth.gmail import GmailAuthHandler
 from inbox.models.session import session_scope
 from inbox.models.account import Account
-from inbox.models.backends.gmail import (GOOGLE_CALENDAR_SCOPE,
-                                         GOOGLE_CONTACTS_SCOPE,
-                                         GOOGLE_EMAIL_SCOPE,
-                                         GmailAccount)
+from inbox.models.backends.gmail import (
+    GOOGLE_CALENDAR_SCOPE,
+    GOOGLE_CONTACTS_SCOPE,
+    GOOGLE_EMAIL_SCOPE,
+    GmailAccount,
+)
 from inbox.auth.gmail import g_token_manager
 from inbox.basicauth import OAuthError, ConnectionError
 
 SHARD_ID = 0
-ACCESS_TOKEN = 'this_is_an_access_token'
+ACCESS_TOKEN = "this_is_an_access_token"
 
 
 @pytest.fixture
 def account_with_multiple_auth_creds(db):
-    email = 'test_account@localhost.com'
-    resp = {'access_token': '',
-            'expires_in': 3600,
-            'email': email,
-            'family_name': '',
-            'given_name': '',
-            'name': '',
-            'gender': '',
-            'id': 0,
-            'user_id': '',
-            'id_token': '',
-            'link': 'http://example.com',
-            'locale': '',
-            'picture': '',
-            'hd': ''}
+    email = "test_account@localhost.com"
+    resp = {
+        "access_token": "",
+        "expires_in": 3600,
+        "email": email,
+        "family_name": "",
+        "given_name": "",
+        "name": "",
+        "gender": "",
+        "id": 0,
+        "user_id": "",
+        "id_token": "",
+        "link": "http://example.com",
+        "locale": "",
+        "picture": "",
+        "hd": "",
+    }
 
-    all_scopes = ' '.join(
-        [GOOGLE_CALENDAR_SCOPE, GOOGLE_CONTACTS_SCOPE, GOOGLE_EMAIL_SCOPE])
+    all_scopes = " ".join(
+        [GOOGLE_CALENDAR_SCOPE, GOOGLE_CONTACTS_SCOPE, GOOGLE_EMAIL_SCOPE]
+    )
 
     first_auth_args = {
-        'refresh_token': 'refresh_token_1',
-        'client_id': 'client_id_1',
-        'client_secret': 'client_secret_1',
-        'scope': all_scopes,
-        'sync_contacts': True,
-        'events': True
+        "refresh_token": "refresh_token_1",
+        "client_id": "client_id_1",
+        "client_secret": "client_secret_1",
+        "scope": all_scopes,
+        "sync_contacts": True,
+        "events": True,
     }
 
     second_auth_args = {
-        'refresh_token': 'refresh_token_2',
-        'client_id': 'client_id_2',
-        'client_secret': 'client_secret_2',
-        'scope': GOOGLE_EMAIL_SCOPE,
-        'sync_contacts': False,
-        'events': True
+        "refresh_token": "refresh_token_2",
+        "client_id": "client_id_2",
+        "client_secret": "client_secret_2",
+        "scope": GOOGLE_EMAIL_SCOPE,
+        "sync_contacts": False,
+        "events": True,
     }
 
-    g = GmailAuthHandler('gmail')
+    g = GmailAuthHandler("gmail")
     g.verify_config = lambda x: True
 
     resp.update(first_auth_args)
@@ -73,30 +78,31 @@ def account_with_multiple_auth_creds(db):
 
 @pytest.fixture
 def account_with_single_auth_creds(db):
-    email = 'test_account2@localhost.com'
-    resp = {'access_token': '',
-            'expires_in': 3600,
-            'email': email,
-            'family_name': '',
-            'given_name': '',
-            'name': '',
-            'gender': '',
-            'id': 0,
-            'user_id': '',
-            'id_token': '',
-            'link': 'http://example.com',
-            'locale': '',
-            'picture': '',
-            'hd': '',
-            'refresh_token': 'refresh_token_3',
-            'client_id': 'client_id_1',
-            'client_secret': 'client_secret_1',
-            'scope': ' '.join([GOOGLE_CALENDAR_SCOPE, GOOGLE_EMAIL_SCOPE]),
-            'sync_contacts': False,
-            'sync_events': True
-            }
+    email = "test_account2@localhost.com"
+    resp = {
+        "access_token": "",
+        "expires_in": 3600,
+        "email": email,
+        "family_name": "",
+        "given_name": "",
+        "name": "",
+        "gender": "",
+        "id": 0,
+        "user_id": "",
+        "id_token": "",
+        "link": "http://example.com",
+        "locale": "",
+        "picture": "",
+        "hd": "",
+        "refresh_token": "refresh_token_3",
+        "client_id": "client_id_1",
+        "client_secret": "client_secret_1",
+        "scope": " ".join([GOOGLE_CALENDAR_SCOPE, GOOGLE_EMAIL_SCOPE]),
+        "sync_contacts": False,
+        "sync_events": True,
+    }
 
-    g = GmailAuthHandler('gmail')
+    g = GmailAuthHandler("gmail")
     g.verify_config = lambda x: True
 
     account = g.get_account(SHARD_ID, email, resp)
@@ -109,7 +115,6 @@ def account_with_single_auth_creds(db):
 @pytest.fixture
 def patch_access_token_getter(monkeypatch):
     class TokenGenerator:
-
         def __init__(self):
             self.revoked_refresh_tokens = []
             self.connection_error_tokens = []
@@ -129,13 +134,13 @@ def patch_access_token_getter(monkeypatch):
             self.connection_error_tokens.append(refresh_token)
 
     token_generator = TokenGenerator()
-    monkeypatch.setattr('inbox.auth.oauth.OAuthAuthHandler.new_token',
-                        token_generator.new_token)
+    monkeypatch.setattr(
+        "inbox.auth.oauth.OAuthAuthHandler.new_token", token_generator.new_token
+    )
     return token_generator
 
 
-def test_auth_revoke(
-        db, account_with_multiple_auth_creds, patch_access_token_getter):
+def test_auth_revoke(db, account_with_multiple_auth_creds, patch_access_token_getter):
     account = account_with_multiple_auth_creds
     refresh_token1 = account.auth_credentials[0].refresh_token
     refresh_token2 = account.auth_credentials[1].refresh_token
@@ -144,7 +149,7 @@ def test_auth_revoke(
     assert len(account.valid_auth_credentials) == 2
     assert account.sync_contacts is True
     assert account.sync_events is True
-    assert account.sync_state != 'invalid'
+    assert account.sync_state != "invalid"
     assert account.sync_should_run is True
 
     patch_access_token_getter.revoke_refresh_token(refresh_token1)
@@ -159,7 +164,7 @@ def test_auth_revoke(
     assert len(account.valid_auth_credentials) == 1
     assert account.sync_contacts is False
     assert account.sync_events is False
-    assert account.sync_state != 'invalid'
+    assert account.sync_state != "invalid"
     assert account.sync_should_run is True
 
     patch_access_token_getter.revoke_refresh_token(refresh_token2)
@@ -173,12 +178,13 @@ def test_auth_revoke(
     account.verify_all_credentials()
     assert len(account.auth_credentials) == 2
     assert len(account.valid_auth_credentials) == 0
-    assert account.sync_state == 'invalid'
+    assert account.sync_state == "invalid"
     assert account.sync_should_run is False
 
 
 def test_auth_revoke_different_order(
-        db, account_with_multiple_auth_creds, patch_access_token_getter):
+    db, account_with_multiple_auth_creds, patch_access_token_getter
+):
     account = account_with_multiple_auth_creds
     refresh_token1 = account.auth_credentials[0].refresh_token
     refresh_token2 = account.auth_credentials[1].refresh_token
@@ -187,7 +193,7 @@ def test_auth_revoke_different_order(
     assert len(account.valid_auth_credentials) == 2
     assert account.sync_contacts is True
     assert account.sync_events is True
-    assert account.sync_state != 'invalid'
+    assert account.sync_state != "invalid"
     assert account.sync_should_run is True
 
     patch_access_token_getter.revoke_refresh_token(refresh_token2)
@@ -199,7 +205,7 @@ def test_auth_revoke_different_order(
     assert len(account.auth_credentials) == 2
     assert account.sync_contacts is True
     assert account.sync_events is True
-    assert account.sync_state != 'invalid'
+    assert account.sync_state != "invalid"
     assert account.sync_should_run is True
     assert len(account.valid_auth_credentials) == 1
 
@@ -216,41 +222,43 @@ def test_auth_revoke_different_order(
     assert len(account.valid_auth_credentials) == 0
     assert account.sync_contacts is False
     assert account.sync_events is False
-    assert account.sync_state == 'invalid'
+    assert account.sync_state == "invalid"
     assert account.sync_should_run is False
 
 
 def test_create_account(db):
-    email = 'vault.test@localhost.com'
-    resp = {'access_token': '',
-            'expires_in': 3600,
-            'email': email,
-            'family_name': '',
-            'given_name': '',
-            'name': '',
-            'gender': '',
-            'id': 0,
-            'user_id': '',
-            'id_token': '',
-            'link': 'http://example.com',
-            'locale': '',
-            'picture': '',
-            'hd': ''}
+    email = "vault.test@localhost.com"
+    resp = {
+        "access_token": "",
+        "expires_in": 3600,
+        "email": email,
+        "family_name": "",
+        "given_name": "",
+        "name": "",
+        "gender": "",
+        "id": 0,
+        "user_id": "",
+        "id_token": "",
+        "link": "http://example.com",
+        "locale": "",
+        "picture": "",
+        "hd": "",
+    }
 
-    g = GmailAuthHandler('gmail')
+    g = GmailAuthHandler("gmail")
     g.verify_config = lambda x: True
 
     # Auth me once...
-    token_1 = 'the_first_token'
-    client_id_1 = 'first client id'
-    client_secret_1 = 'first client secret'
-    scopes_1 = 'scope scop sco sc s'
-    scopes_1_list = scopes_1.split(' ')
+    token_1 = "the_first_token"
+    client_id_1 = "first client id"
+    client_secret_1 = "first client secret"
+    scopes_1 = "scope scop sco sc s"
+    scopes_1_list = scopes_1.split(" ")
     first_auth_args = {
-        'refresh_token': token_1,
-        'scope': scopes_1,
-        'client_id': client_id_1,
-        'client_secret': client_secret_1
+        "refresh_token": token_1,
+        "scope": scopes_1,
+        "client_id": client_id_1,
+        "client_secret": client_secret_1,
     }
     resp.update(first_auth_args)
 
@@ -260,8 +268,7 @@ def test_create_account(db):
     account_id = account.id
 
     with session_scope(account_id) as db_session:
-        account = db_session.query(Account).filter(
-            Account.email_address == email).one()
+        account = db_session.query(Account).filter(Account.email_address == email).one()
 
         assert account.id == account_id
         assert isinstance(account, GmailAccount)
@@ -275,36 +282,38 @@ def test_create_account(db):
 
 
 def test_get_account(db):
-    email = 'vault.test@localhost.com'
-    resp = {'access_token': '',
-            'expires_in': 3600,
-            'email': email,
-            'family_name': '',
-            'given_name': '',
-            'name': '',
-            'gender': '',
-            'id': 0,
-            'user_id': '',
-            'id_token': '',
-            'link': 'http://example.com',
-            'locale': '',
-            'picture': '',
-            'hd': ''}
+    email = "vault.test@localhost.com"
+    resp = {
+        "access_token": "",
+        "expires_in": 3600,
+        "email": email,
+        "family_name": "",
+        "given_name": "",
+        "name": "",
+        "gender": "",
+        "id": 0,
+        "user_id": "",
+        "id_token": "",
+        "link": "http://example.com",
+        "locale": "",
+        "picture": "",
+        "hd": "",
+    }
 
-    g = GmailAuthHandler('gmail')
+    g = GmailAuthHandler("gmail")
     g.verify_config = lambda x: True
 
     # Auth me once...
-    token_1 = 'the_first_token'
-    client_id_1 = 'first client id'
-    client_secret_1 = 'first client secret'
-    scopes_1 = 'scope scop sco sc s'
-    scopes_1_list = scopes_1.split(' ')
+    token_1 = "the_first_token"
+    client_id_1 = "first client id"
+    client_secret_1 = "first client secret"
+    scopes_1 = "scope scop sco sc s"
+    scopes_1_list = scopes_1.split(" ")
     first_auth_args = {
-        'refresh_token': token_1,
-        'scope': scopes_1,
-        'client_id': client_id_1,
-        'client_secret': client_secret_1
+        "refresh_token": token_1,
+        "scope": scopes_1,
+        "client_id": client_id_1,
+        "client_secret": client_secret_1,
     }
     resp.update(first_auth_args)
 
@@ -321,16 +330,16 @@ def test_get_account(db):
     assert auth_creds.refresh_token == token_1
 
     # Auth me twice...
-    token_2 = 'second_token_!'
-    client_id_2 = 'second client id'
-    client_secret_2 = 'second client secret'
-    scopes_2 = 'scope scop sco sc s'
-    scopes_2_list = scopes_2.split(' ')
+    token_2 = "second_token_!"
+    client_id_2 = "second client id"
+    client_secret_2 = "second client secret"
+    scopes_2 = "scope scop sco sc s"
+    scopes_2_list = scopes_2.split(" ")
     second_auth_args = {
-        'refresh_token': token_2,
-        'scope': scopes_2,
-        'client_id': client_id_2,
-        'client_secret': client_secret_2
+        "refresh_token": token_2,
+        "scope": scopes_2,
+        "client_id": client_id_2,
+        "client_secret": client_secret_2,
     }
     resp.update(second_auth_args)
 
@@ -339,8 +348,10 @@ def test_get_account(db):
     db.session.commit()
 
     assert len(account.auth_credentials) == 2
-    auth_creds = next((creds for creds in account.auth_credentials
-                       if creds.refresh_token == token_2), False)
+    auth_creds = next(
+        (creds for creds in account.auth_credentials if creds.refresh_token == token_2),
+        False,
+    )
     assert auth_creds
     assert auth_creds.client_id == client_id_2
     assert auth_creds.client_secret == client_secret_2
@@ -349,7 +360,7 @@ def test_get_account(db):
     # Don't add duplicate row in GmailAuthCredentials for the same
     # client_id/client_secret pair.
     resp.update(first_auth_args)
-    resp['refresh_token'] = 'a new refresh token'
+    resp["refresh_token"] = "a new refresh token"
     account = g.get_account(SHARD_ID, email, resp)
     db.session.merge(account)
     db.session.commit()
@@ -357,7 +368,7 @@ def test_get_account(db):
     assert len(account.auth_credentials) == 2
 
     # Should still work okay if we don't get a refresh token back
-    del resp['refresh_token']
+    del resp["refresh_token"]
     account = g.get_account(SHARD_ID, email, resp)
     db.session.merge(account)
     db.session.commit()
@@ -366,21 +377,20 @@ def test_get_account(db):
 
 
 def test_g_token_manager(
-        db, patch_access_token_getter,
-        account_with_multiple_auth_creds,
-        account_with_single_auth_creds):
+    db,
+    patch_access_token_getter,
+    account_with_multiple_auth_creds,
+    account_with_single_auth_creds,
+):
     account = account_with_multiple_auth_creds
     refresh_token1 = account.auth_credentials[0].refresh_token
     refresh_token2 = account.auth_credentials[1].refresh_token
     g_token_manager.clear_cache(account)
 
     # existing account w/ multiple credentials, all valid
-    assert (g_token_manager.get_token(account, GOOGLE_EMAIL_SCOPE) ==
-            ACCESS_TOKEN)
-    assert (g_token_manager.get_token(account, GOOGLE_CONTACTS_SCOPE) ==
-            ACCESS_TOKEN)
-    assert (g_token_manager.get_token(account, GOOGLE_CALENDAR_SCOPE) ==
-            ACCESS_TOKEN)
+    assert g_token_manager.get_token(account, GOOGLE_EMAIL_SCOPE) == ACCESS_TOKEN
+    assert g_token_manager.get_token(account, GOOGLE_CONTACTS_SCOPE) == ACCESS_TOKEN
+    assert g_token_manager.get_token(account, GOOGLE_CALENDAR_SCOPE) == ACCESS_TOKEN
     for auth_creds in account.auth_credentials:
         assert auth_creds.is_valid
 
@@ -391,8 +401,7 @@ def test_g_token_manager(
     with pytest.raises(OAuthError):
         g_token_manager.get_token(account, GOOGLE_CONTACTS_SCOPE)
 
-    assert (g_token_manager.get_token(account, GOOGLE_EMAIL_SCOPE) ==
-            ACCESS_TOKEN)
+    assert g_token_manager.get_token(account, GOOGLE_EMAIL_SCOPE) == ACCESS_TOKEN
 
     with pytest.raises(OAuthError):
         g_token_manager.get_token(account, GOOGLE_CALENDAR_SCOPE)
@@ -415,16 +424,15 @@ def test_g_token_manager(
     account = account_with_single_auth_creds
     g_token_manager.clear_cache(account)
 
-    assert (g_token_manager.get_token(account, GOOGLE_EMAIL_SCOPE) ==
-            ACCESS_TOKEN)
-    assert (g_token_manager.get_token(account, GOOGLE_CALENDAR_SCOPE) ==
-            ACCESS_TOKEN)
+    assert g_token_manager.get_token(account, GOOGLE_EMAIL_SCOPE) == ACCESS_TOKEN
+    assert g_token_manager.get_token(account, GOOGLE_CALENDAR_SCOPE) == ACCESS_TOKEN
     with pytest.raises(OAuthError):
         g_token_manager.get_token(account, GOOGLE_CONTACTS_SCOPE)
 
 
 def test_new_token_with_non_oauth_error(
-        db, patch_access_token_getter, account_with_multiple_auth_creds):
+    db, patch_access_token_getter, account_with_multiple_auth_creds
+):
     account = account_with_multiple_auth_creds
     refresh_token1 = account.auth_credentials[0].refresh_token
     refresh_token2 = account.auth_credentials[1].refresh_token
@@ -441,12 +449,14 @@ def test_new_token_with_non_oauth_error(
     assert len(account.valid_auth_credentials) == 1
 
 
-def test_invalid_token_during_connect(db, patch_access_token_getter,
-                                      account_with_single_auth_creds):
+def test_invalid_token_during_connect(
+    db, patch_access_token_getter, account_with_single_auth_creds
+):
     account_id = account_with_single_auth_creds.id
 
     patch_access_token_getter.revoke_refresh_token(
-        account_with_single_auth_creds.auth_credentials[0].refresh_token)
+        account_with_single_auth_creds.auth_credentials[0].refresh_token
+    )
     account_with_single_auth_creds.verify_all_credentials()
     assert len(account_with_single_auth_creds.valid_auth_credentials) == 0
     g_token_manager.clear_cache(account_with_single_auth_creds)
@@ -454,16 +464,19 @@ def test_invalid_token_during_connect(db, patch_access_token_getter,
     # connect_account() takes an /expunged/ account object
     # that has the necessary relationships eager-loaded
     object_session(account_with_single_auth_creds).expunge(
-        account_with_single_auth_creds)
+        account_with_single_auth_creds
+    )
     assert not object_session(account_with_single_auth_creds)
 
-    account = db.session.query(GmailAccount).options(
-        joinedload(GmailAccount.auth_credentials)).get(
-        account_id)
+    account = (
+        db.session.query(GmailAccount)
+        .options(joinedload(GmailAccount.auth_credentials))
+        .get(account_id)
+    )
     db.session.expunge(account)
     assert not object_session(account)
 
-    g = GmailAuthHandler('gmail')
+    g = GmailAuthHandler("gmail")
 
     with pytest.raises(OAuthError):
         g.connect_account(account)

@@ -7,8 +7,8 @@ Create Date: 2014-07-15 17:21:31.618746
 """
 
 # revision identifiers, used by Alembic.
-revision = '4b4674f1a726'
-down_revision = '5143154fb1a2'
+revision = "4b4674f1a726"
+down_revision = "5143154fb1a2"
 
 from alembic import op
 import sqlalchemy as sa
@@ -16,9 +16,9 @@ import sqlalchemy as sa
 
 def upgrade():
     op.add_column(
-        'account',
-        sa.Column('state', sa.Enum('live', 'down', 'invalid'), nullable=True))
+        "account", sa.Column("state", sa.Enum("live", "down", "invalid"), nullable=True)
+    )
 
 
 def downgrade():
-    op.drop_column('account', 'state')
+    op.drop_column("account", "state")

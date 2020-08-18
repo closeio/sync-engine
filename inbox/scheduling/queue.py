@@ -29,6 +29,7 @@ from inbox.util.concurrency import retry_with_logging
 from inbox.util.stats import statsd_client
 from nylas.logging import get_logger
 from redis import StrictRedis
+
 log = get_logger()
 
 SOCKET_CONNECT_TIMEOUT = 5
@@ -41,30 +42,33 @@ class QueueClient(object):
     """
 
     # Lua scripts for atomic assignment and conflict-free unassignment.
-    ASSIGN = '''
+    ASSIGN = """
     local k = redis.call('RPOP', KEYS[1])
     if k then
         local s = redis.call('HSETNX', KEYS[2], k, ARGV[1])
         if s then
             return k
         end
-    end'''
+    end"""
 
-    UNASSIGN = '''
+    UNASSIGN = """
     if redis.call('HGET', KEYS[1], KEYS[2]) == ARGV[1] then
         return redis.call('HDEL', KEYS[1], KEYS[2])
     else
         return 0
     end
-    '''
+    """
 
     def __init__(self, zone):
         self.zone = zone
-        redis_host = config['ACCOUNT_QUEUE_REDIS_HOSTNAME']
-        redis_db = config['ACCOUNT_QUEUE_REDIS_DB']
-        self.redis = StrictRedis(host=redis_host, db=redis_db,
-                                 socket_connect_timeout=SOCKET_CONNECT_TIMEOUT,
-                                 socket_timeout=SOCKET_TIMEOUT)
+        redis_host = config["ACCOUNT_QUEUE_REDIS_HOSTNAME"]
+        redis_db = config["ACCOUNT_QUEUE_REDIS_DB"]
+        self.redis = StrictRedis(
+            host=redis_host,
+            db=redis_db,
+            socket_connect_timeout=SOCKET_CONNECT_TIMEOUT,
+            socket_timeout=SOCKET_TIMEOUT,
+        )
 
     def all(self):
         """
@@ -115,11 +119,11 @@ class QueueClient(object):
 
     @property
     def _queue(self):
-        return 'unassigned_{}'.format(self.zone)
+        return "unassigned_{}".format(self.zone)
 
     @property
     def _hash(self):
-        return 'assigned_{}'.format(self.zone)
+        return "assigned_{}".format(self.zone)
 
 
 class QueuePopulator(object):
@@ -133,24 +137,27 @@ class QueuePopulator(object):
         self.poll_interval = poll_interval
         self.queue_client = QueueClient(zone)
         self.shards = []
-        for database in config['DATABASE_HOSTS']:
-            if database.get('ZONE') == self.zone:
-                shard_ids = [shard['ID'] for shard in database['SHARDS']]
-                self.shards.extend(shard_id for shard_id in shard_ids
-                                   if shard_id in engine_manager.engines)
+        for database in config["DATABASE_HOSTS"]:
+            if database.get("ZONE") == self.zone:
+                shard_ids = [shard["ID"] for shard in database["SHARDS"]]
+                self.shards.extend(
+                    shard_id
+                    for shard_id in shard_ids
+                    if shard_id in engine_manager.engines
+                )
 
     def run(self):
-        log.info('Queueing accounts', zone=self.zone, shards=self.shards)
+        log.info("Queueing accounts", zone=self.zone, shards=self.shards)
         while True:
             retry_with_logging(self._run_impl)
 
     def _run_impl(self):
         self.enqueue_new_accounts()
         self.unassign_disabled_accounts()
-        statsd_client.gauge('syncqueue.queue.{}.length'.format(self.zone),
-                            self.queue_client.qsize())
-        statsd_client.incr('syncqueue.service.{}.heartbeat'.
-                           format(self.zone))
+        statsd_client.gauge(
+            "syncqueue.queue.{}.length".format(self.zone), self.queue_client.qsize()
+        )
+        statsd_client.incr("syncqueue.service.{}.heartbeat".format(self.zone))
         gevent.sleep(self.poll_interval)
 
     def enqueue_new_accounts(self):
@@ -162,17 +169,18 @@ class QueuePopulator(object):
         """
         new_accounts = self.runnable_accounts() - self.queue_client.all()
         for account_id in new_accounts:
-            log.info('Enqueuing new account', account_id=account_id)
+            log.info("Enqueuing new account", account_id=account_id)
             self.queue_client.enqueue(account_id)
 
     def unassign_disabled_accounts(self):
         runnable_accounts = self.runnable_accounts()
         disabled_accounts = {
-            k: v for k, v in self.queue_client.assigned().items()
+            k: v
+            for k, v in self.queue_client.assigned().items()
             if k not in runnable_accounts
         }
         for account_id, sync_host in disabled_accounts.items():
-            log.info('Removing disabled account', account_id=account_id)
+            log.info("Removing disabled account", account_id=account_id)
             self.queue_client.unassign(account_id, sync_host)
 
     def runnable_accounts(self):
@@ -180,6 +188,9 @@ class QueuePopulator(object):
         for key in self.shards:
             with session_scope_by_shard_id(key) as db_session:
                 accounts.update(
-                    id_ for id_, in db_session.query(Account.id).filter(
-                        Account.sync_should_run))
+                    id_
+                    for id_, in db_session.query(Account.id).filter(
+                        Account.sync_should_run
+                    )
+                )
         return accounts

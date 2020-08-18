@@ -4,28 +4,36 @@ import json
 import time
 from datetime import datetime, timedelta
 
-from inbox.heartbeat.store import (HeartbeatStore, HeartbeatStatusProxy,
-                                   HeartbeatStatusKey)
-from inbox.heartbeat.status import (clear_heartbeat_status,
-                                    get_ping_status)
+from inbox.heartbeat.store import (
+    HeartbeatStore,
+    HeartbeatStatusProxy,
+    HeartbeatStatusKey,
+)
+from inbox.heartbeat.status import clear_heartbeat_status, get_ping_status
 import inbox.heartbeat.config as heartbeat_config
 from inbox.heartbeat.config import ALIVE_EXPIRY
 from inbox.config import config
 
 from nylas.logging import configure_logging
-configure_logging(config.get('LOGLEVEL'))
+
+configure_logging(config.get("LOGLEVEL"))
 
 from mockredis import MockRedis
+
 # Note that all Redis commands are mocked via mockredis in conftest.py.
 
 
-def proxy_for(account_id, folder_id, email='test@test.com', provider='gmail',
-              device_id=0):
-    return HeartbeatStatusProxy(account_id=account_id, folder_id=folder_id,
-                                folder_name="Inbox",
-                                email_address=email,
-                                provider_name=provider,
-                                device_id=device_id)
+def proxy_for(
+    account_id, folder_id, email="test@test.com", provider="gmail", device_id=0
+):
+    return HeartbeatStatusProxy(
+        account_id=account_id,
+        folder_id=folder_id,
+        folder_name="Inbox",
+        email_address=email,
+        provider_name=provider,
+        device_id=device_id,
+    )
 
 
 def fuzzy_equals(a, b):
@@ -62,6 +70,7 @@ def test_heartbeat_status_key():
 def test_proxy_publish_doesnt_break_everything(monkeypatch):
     def break_things(s, k, d, v):
         raise Exception("Redis connection failure")
+
     monkeypatch.setattr("mockredis.MockRedis.hset", break_things)
     # Check heartbeat publish exception doesn't pass up through to caller.
     # It will print out an error in the log, though.
@@ -73,15 +82,15 @@ def test_folder_publish_in_index(redis_client):
     proxy = proxy_for(1, 2)
     proxy.publish()
     client = heartbeat_config.get_redis_client()
-    assert '1' in client.keys()
+    assert "1" in client.keys()
 
     # Check the per-account folder-list index was populated correctly: it
     # should be a sorted set of all folder IDs for that account, with the
     # folder's last heartbeat timestamp.
-    acct_folder_index = client.zrange('1', 0, -1, withscores=True)
+    acct_folder_index = client.zrange("1", 0, -1, withscores=True)
     assert len(acct_folder_index) == 1
     key, timestamp = acct_folder_index[0]
-    assert key == '2'
+    assert key == "2"
     assert fuzzy_equals(proxy.heartbeat_at, timestamp)
 
 
@@ -97,7 +106,7 @@ def test_kill_device_multiple():
 
     assert len(folders) == 1
     f, ts = folders[0]
-    assert f == '2'
+    assert f == "2"
 
 
 # Test querying heartbeats
@@ -117,8 +126,9 @@ def random_heartbeats():
 def make_dead_heartbeat(store, proxies, account_id, folder_id, time_dead):
     dead_time = time.time() - ALIVE_EXPIRY - time_dead
     dead_proxy = proxies[account_id][folder_id]
-    store.publish(dead_proxy.key, dead_proxy.device_id,
-                  json.dumps(dead_proxy.value), dead_time)
+    store.publish(
+        dead_proxy.key, dead_proxy.device_id, json.dumps(dead_proxy.value), dead_time
+    )
 
 
 def test_ping(random_heartbeats):
@@ -128,7 +138,7 @@ def test_ping(random_heartbeats):
     assert isinstance(ping, dict)
     assert sorted(ping.keys()) == sorted(random_heartbeats.keys())
     single = ping[0]
-    attrs = ('id', 'folders')
+    attrs = ("id", "folders")
     for attr in attrs:
         assert hasattr(single, attr)
     for f in single.folders:

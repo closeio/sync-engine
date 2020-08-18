@@ -11,12 +11,11 @@ from inbox.models.session import session_scope
 
 log = get_logger()
 
-PROVIDER = 'gmail'
-SEARCH_CLS = 'GmailSearchClient'
+PROVIDER = "gmail"
+SEARCH_CLS = "GmailSearchClient"
 
 
 class GmailSearchClient(object):
-
     def __init__(self, account):
         self.account_id = int(account.id)
         try:
@@ -28,7 +27,9 @@ class GmailSearchClient(object):
             raise SearchBackendException(
                 "This search can't be performed because the account's "
                 "credentials are out of date. Please reauthenticate and try "
-                "again.", 403)
+                "again.",
+                403,
+            )
 
     def search_messages(self, db_session, search_query, offset=0, limit=40):
         # We need to get the next limit + offset terms if we want to
@@ -36,10 +37,14 @@ class GmailSearchClient(object):
         g_msgids = self._search(search_query, limit=limit + offset)
         if not g_msgids:
             return []
-        query = db_session.query(Message). \
-            filter(Message.namespace_id == self.account.namespace.id,
-                   Message.g_msgid.in_(g_msgids)). \
-            order_by(desc(Message.received_date))
+        query = (
+            db_session.query(Message)
+            .filter(
+                Message.namespace_id == self.account.namespace.id,
+                Message.g_msgid.in_(g_msgids),
+            )
+            .order_by(desc(Message.received_date))
+        )
 
         if offset:
             query = query.offset(offset)
@@ -56,7 +61,9 @@ class GmailSearchClient(object):
             encoder = APIEncoder()
 
             with session_scope(self.account_id) as db_session:
-                yield encoder.cereal(self.search_messages(db_session, search_query)) + '\n'
+                yield encoder.cereal(
+                    self.search_messages(db_session, search_query)
+                ) + "\n"
 
         return g
 
@@ -66,13 +73,17 @@ class GmailSearchClient(object):
         g_msgids = self._search(search_query, limit=limit + offset)
         if not g_msgids:
             return []
-        query = db_session.query(Thread). \
-            join(Message, Message.thread_id == Thread.id). \
-            filter(Thread.namespace_id == self.account.namespace.id,
-                   Thread.deleted_at == None,
-                   Message.namespace_id == self.account.namespace.id,
-                   Message.g_msgid.in_(g_msgids)). \
-            order_by(desc(Message.received_date))
+        query = (
+            db_session.query(Thread)
+            .join(Message, Message.thread_id == Thread.id)
+            .filter(
+                Thread.namespace_id == self.account.namespace.id,
+                Thread.deleted_at == None,
+                Message.namespace_id == self.account.namespace.id,
+                Message.g_msgid.in_(g_msgids),
+            )
+            .order_by(desc(Message.received_date))
+        )
 
         if offset:
             query = query.offset(offset)
@@ -87,7 +98,9 @@ class GmailSearchClient(object):
             encoder = APIEncoder()
 
             with session_scope(self.account_id) as db_session:
-                yield encoder.cereal(self.search_threads(db_session, search_query)) + '\n'
+                yield encoder.cereal(
+                    self.search_threads(db_session, search_query)
+                ) + "\n"
 
         return g
 
@@ -99,46 +112,51 @@ class GmailSearchClient(object):
         # Could have used while True: but I don't like infinite loops.
         for i in range(1, 10):
             ret = requests.get(
-                u'https://www.googleapis.com/gmail/v1/users/me/messages',
+                u"https://www.googleapis.com/gmail/v1/users/me/messages",
                 params=params,
-                auth=OAuthRequestsWrapper(self.auth_token))
+                auth=OAuthRequestsWrapper(self.auth_token),
+            )
 
-            log.info('Gmail API search request completed',
-                     elapsed=ret.elapsed.total_seconds())
+            log.info(
+                "Gmail API search request completed",
+                elapsed=ret.elapsed.total_seconds(),
+            )
 
             if ret.status_code != 200:
-                log.critical('HTTP error making search request',
-                             account_id=self.account.id,
-                             url=ret.url,
-                             response=ret.content)
+                log.critical(
+                    "HTTP error making search request",
+                    account_id=self.account.id,
+                    url=ret.url,
+                    response=ret.content,
+                )
                 raise SearchBackendException(
-                    "Error issuing search request", 503,
-                    server_error=ret.content)
+                    "Error issuing search request", 503, server_error=ret.content
+                )
 
             data = ret.json()
 
-            if 'messages' not in data:
+            if "messages" not in data:
                 return results
 
             # Note that the Gmail API returns g_msgids in hex format. So for
             # example the IMAP X-GM-MSGID 1438297078380071706 corresponds to
             # 13f5db9286538b1a in the API response we have here.
-            results = results + [int(m['id'], 16) for m in data['messages']]
+            results = results + [int(m["id"], 16) for m in data["messages"]]
 
             if len(results) >= limit:
                 return results[:limit]
 
-            if 'nextPageToken' not in data:
+            if "nextPageToken" not in data:
                 return results
             else:
                 # We don't have <limit> results and there's more to fetch ---
                 # get them!
-                params['pageToken'] = data['nextPageToken']
-                log.info('Getting next page of search results')
+                params["pageToken"] = data["nextPageToken"]
+                log.info("Getting next page of search results")
                 continue
 
         # If we've been through the loop 10 times, it means we got a request
         # a crazy-high offset --- raise an error.
-        log.error('Too many search results', query=search_query, limit=limit)
+        log.error("Too many search results", query=search_query, limit=limit)
 
         raise SearchBackendException("Too many results", 400)

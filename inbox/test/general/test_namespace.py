@@ -5,10 +5,18 @@ from pytest import fixture
 from freezegun import freeze_time
 
 from inbox.models.namespace import Namespace
-from inbox.test.util.base import (add_generic_imap_account, add_fake_thread, add_fake_message,
-                                  add_fake_calendar, add_fake_event, add_fake_folder,
-                                  add_fake_imapuid, add_fake_gmail_account,
-                                  add_fake_contact, add_fake_msg_with_calendar_part)
+from inbox.test.util.base import (
+    add_generic_imap_account,
+    add_fake_thread,
+    add_fake_message,
+    add_fake_calendar,
+    add_fake_event,
+    add_fake_folder,
+    add_fake_imapuid,
+    add_fake_gmail_account,
+    add_fake_contact,
+    add_fake_msg_with_calendar_part,
+)
 
 
 @fixture
@@ -17,9 +25,7 @@ def patch_requests_throttle(monkeypatch):
         resp = Response()
         resp.status_code = 500
 
-    monkeypatch.setattr(
-        'requests.get',
-        lambda *args, **kwargs: get())
+    monkeypatch.setattr("requests.get", lambda *args, **kwargs: get())
 
 
 @fixture
@@ -28,22 +34,22 @@ def patch_requests_no_throttle(monkeypatch):
         resp = Response()
         resp.status_code = 500
 
-    monkeypatch.setattr(
-        'requests.get',
-        lambda *args, **kwargs: get())
+    monkeypatch.setattr("requests.get", lambda *args, **kwargs: get())
 
 
 def random_range(start, end):
     return range(random.randrange(start, end))
 
 
-def add_completely_fake_account(db, email='test@nylas.com'):
+def add_completely_fake_account(db, email="test@nylas.com"):
     from inbox.models.backends.gmail import GmailAuthCredentials
+
     fake_account = add_fake_gmail_account(db.session, email_address=email)
     calendar = add_fake_calendar(db.session, fake_account.namespace.id)
     for i in random_range(1, 10):
-        add_fake_event(db.session, fake_account.namespace.id,
-                       calendar=calendar, title='%s' % i)
+        add_fake_event(
+            db.session, fake_account.namespace.id, calendar=calendar, title="%s" % i
+        )
 
     # Add fake Threads, Messages and ImapUids.
     folder = add_fake_folder(db.session, fake_account)
@@ -51,15 +57,16 @@ def add_completely_fake_account(db, email='test@nylas.com'):
         th = add_fake_thread(db.session, fake_account.namespace.id)
 
         for j in random_range(1, 3):
-            msg = add_fake_msg_with_calendar_part(db.session,
-                                                  fake_account,
-                                                  'fake part', thread=th)
+            msg = add_fake_msg_with_calendar_part(
+                db.session, fake_account, "fake part", thread=th
+            )
             db.session.add(msg)
             db.session.flush()
 
             for k in random_range(1, 2):
-                add_fake_imapuid(db.session, fake_account.id, msg, folder,
-                                 int('%s%s' % (msg.id, k)))
+                add_fake_imapuid(
+                    db.session, fake_account.id, msg, folder, int("%s%s" % (msg.id, k))
+                )
     # Add fake contacts
     for i in random_range(1, 5):
         add_fake_contact(db.session, fake_account.namespace.id, uid=str(i))
@@ -85,7 +92,7 @@ def test_get_accounts_to_delete(db):
     existing_account_count = db.session.query(Account.id).count()
 
     accounts = []
-    email = 'test{}@nylas.com'
+    email = "test{}@nylas.com"
     for i in range(1, 6):
         account = add_completely_fake_account(db, email.format(i))
         accounts.append(account)
@@ -267,16 +274,14 @@ def test_namespace_deletion(db, default_account):
     message = add_fake_message(db.session, namespace_id, thread)
 
     for m in models:
-        c = db.session.query(m).filter(
-            m.namespace_id == namespace_id).count()
+        c = db.session.query(m).filter(m.namespace_id == namespace_id).count()
         print "count for", m, ":", c
         assert c != 0
 
     fake_account = add_generic_imap_account(db.session)
     fake_account_id = fake_account.id
 
-    assert fake_account_id != account.id and \
-        fake_account.namespace.id != namespace_id
+    assert fake_account_id != account.id and fake_account.namespace.id != namespace_id
 
     thread = add_fake_thread(db.session, fake_account.namespace.id)
     thread_id = thread.id
@@ -284,25 +289,33 @@ def test_namespace_deletion(db, default_account):
     message = add_fake_message(db.session, fake_account.namespace.id, thread)
     message_id = message.id
 
-    assert len(db.session.query(Namespace).filter(Namespace.id == namespace_id).all()) > 0
+    assert (
+        len(db.session.query(Namespace).filter(Namespace.id == namespace_id).all()) > 0
+    )
 
     # Delete namespace, verify data corresponding to this namespace /only/
     # is deleted
 
-    account = db.session.query(Account).join(Namespace).filter(Namespace.id == namespace_id).one()
+    account = (
+        db.session.query(Account)
+        .join(Namespace)
+        .filter(Namespace.id == namespace_id)
+        .one()
+    )
     account.mark_for_deletion()
 
     delete_namespace(namespace_id)
     db.session.commit()
 
-    assert len(db.session.query(Namespace).filter(Namespace.id == namespace_id).all()) == 0
+    assert (
+        len(db.session.query(Namespace).filter(Namespace.id == namespace_id).all()) == 0
+    )
 
     account = db.session.query(Account).get(account_id)
     assert not account
 
     for m in models:
-        assert db.session.query(m).filter(
-            m.namespace_id == namespace_id).count() == 0
+        assert db.session.query(m).filter(m.namespace_id == namespace_id).count() == 0
 
     fake_account = db.session.query(Account).get(fake_account_id)
     assert fake_account
@@ -329,22 +342,22 @@ def test_namespace_delete_cascade(db, default_account):
     add_fake_message(db.session, namespace_id, thread)
 
     for m in models:
-        c = db.session.query(m).filter(
-            m.namespace_id == namespace_id).count()
+        c = db.session.query(m).filter(m.namespace_id == namespace_id).count()
         print "count for", m, ":", c
         assert c != 0
 
     fake_account = add_generic_imap_account(db.session)
     fake_account_id = fake_account.id
 
-    assert fake_account_id != account.id and \
-        fake_account.namespace.id != namespace_id
+    assert fake_account_id != account.id and fake_account.namespace.id != namespace_id
 
     thread = add_fake_thread(db.session, fake_account.namespace.id)
 
     add_fake_message(db.session, fake_account.namespace.id, thread)
 
-    assert len(db.session.query(Namespace).filter(Namespace.id == namespace_id).all()) > 0
+    assert (
+        len(db.session.query(Namespace).filter(Namespace.id == namespace_id).all()) > 0
+    )
 
     # This test is separate from test_namespace_deletion because we want to
     # do a raw SQLAlchemy delete rather than using delete_namespace, which does
@@ -353,12 +366,22 @@ def test_namespace_delete_cascade(db, default_account):
     db.session.query(Namespace).filter(Namespace.id == namespace_id).delete()
     db.session.commit()
 
-    assert len(db.session.query(Namespace).filter(Namespace.id == namespace_id).all()) == 0
+    assert (
+        len(db.session.query(Namespace).filter(Namespace.id == namespace_id).all()) == 0
+    )
 
 
 def test_fake_accounts(empty_db):
-    from inbox.models import (Account, Thread, Message, Block,
-                              Secret, Contact, Event, Transaction)
+    from inbox.models import (
+        Account,
+        Thread,
+        Message,
+        Block,
+        Secret,
+        Contact,
+        Event,
+        Transaction,
+    )
     from inbox.models.backends.imap import ImapUid
     from inbox.models.backends.gmail import GmailAuthCredentials
     from inbox.models.util import delete_namespace
@@ -369,27 +392,23 @@ def test_fake_accounts(empty_db):
     account = add_completely_fake_account(db)
 
     for m in models:
-        c = db.session.query(m).filter(
-            m.namespace_id == account.namespace.id).count()
+        c = db.session.query(m).filter(m.namespace_id == account.namespace.id).count()
         assert c != 0
 
     assert db.session.query(ImapUid).count() != 0
     assert db.session.query(Secret).count() != 0
     assert db.session.query(GmailAuthCredentials).count() != 0
-    assert db.session.query(Account).filter(
-        Account.id == account.id).count() == 1
+    assert db.session.query(Account).filter(Account.id == account.id).count() == 1
 
     # Try the dry-run mode:
     account.mark_for_deletion()
     delete_namespace(account.namespace.id, dry_run=True)
 
     for m in models:
-        c = db.session.query(m).filter(
-            m.namespace_id == account.namespace.id).count()
+        c = db.session.query(m).filter(m.namespace_id == account.namespace.id).count()
         assert c != 0
 
-    assert db.session.query(Account).filter(
-        Account.id == account.id).count() != 0
+    assert db.session.query(Account).filter(Account.id == account.id).count() != 0
 
     assert db.session.query(Secret).count() != 0
     assert db.session.query(GmailAuthCredentials).count() != 0
@@ -399,12 +418,10 @@ def test_fake_accounts(empty_db):
     delete_namespace(account.namespace.id)
 
     for m in models:
-        c = db.session.query(m).filter(
-            m.namespace_id == account.namespace.id).count()
+        c = db.session.query(m).filter(m.namespace_id == account.namespace.id).count()
         assert c == 0
 
-    assert db.session.query(Account).filter(
-        Account.id == account.id).count() == 0
+    assert db.session.query(Account).filter(Account.id == account.id).count() == 0
 
     assert db.session.query(Secret).count() == 0
     assert db.session.query(GmailAuthCredentials).count() == 0
@@ -414,15 +431,14 @@ def test_fake_accounts(empty_db):
 def test_multiple_fake_accounts(empty_db):
     # Add three fake accounts, check that removing one doesn't affect
     # the two others.
-    from inbox.models import (Thread, Message, Block, Secret, Contact, Event,
-                              Transaction)
+    from inbox.models import Thread, Message, Block, Secret, Contact, Event, Transaction
     from inbox.models.backends.gmail import GmailAuthCredentials
     from inbox.models.util import delete_namespace
 
     db = empty_db
     accounts = []
-    accounts.append(add_completely_fake_account(db, 'test1@nylas.com'))
-    accounts.append(add_completely_fake_account(db, 'test2@nylas.com'))
+    accounts.append(add_completely_fake_account(db, "test1@nylas.com"))
+    accounts.append(add_completely_fake_account(db, "test2@nylas.com"))
 
     # Count secrets and authcredentials now. We can't do it after adding
     # the third account because our object model is a bit cumbersome.
@@ -431,7 +447,7 @@ def test_multiple_fake_accounts(empty_db):
     assert secret_count != 0
     assert authcredentials_count != 0
 
-    accounts.append(add_completely_fake_account(db, 'test3@nylas.com'))
+    accounts.append(add_completely_fake_account(db, "test3@nylas.com"))
 
     stats = {}
     models = [Thread, Message, Event, Transaction, Contact, Block]
@@ -440,8 +456,11 @@ def test_multiple_fake_accounts(empty_db):
         stats[account.email_address] = {}
         for model in models:
             clsname = model.__name__
-            stats[account.email_address][clsname] = db.session.query(model).filter(
-                model.namespace_id == account.namespace.id).count()
+            stats[account.email_address][clsname] = (
+                db.session.query(model)
+                .filter(model.namespace_id == account.namespace.id)
+                .count()
+            )
 
     # now delete the third account.
     last_namespace_id = accounts[2].namespace.id
@@ -452,14 +471,22 @@ def test_multiple_fake_accounts(empty_db):
     for account in accounts[:2]:
         for model in models:
             clsname = model.__name__
-            assert stats[account.email_address][clsname] == db.session.query(model).filter(
-                model.namespace_id == account.namespace.id).count()
+            assert (
+                stats[account.email_address][clsname]
+                == db.session.query(model)
+                .filter(model.namespace_id == account.namespace.id)
+                .count()
+            )
 
     # check that no model from the last account is present.
     for model in models:
         clsname = model.__name__
-        assert db.session.query(model).filter(
-            model.namespace_id == last_namespace_id).count() == 0
+        assert (
+            db.session.query(model)
+            .filter(model.namespace_id == last_namespace_id)
+            .count()
+            == 0
+        )
 
     # check that we didn't delete a secret that wasn't ours.
     assert db.session.query(Secret).count() == secret_count

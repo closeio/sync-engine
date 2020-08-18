@@ -5,6 +5,7 @@ import struct
 import weakref
 
 from bson import json_util, EPOCH_NAIVE
+
 # Monkeypatch to not include tz_info in decoded JSON.
 # Kind of a ridiculous solution, but works.
 json_util.EPOCH_AWARE = EPOCH_NAIVE
@@ -21,6 +22,7 @@ from sqlalchemy.ext.declarative import DeclarativeMeta
 from inbox.util.encoding import base36encode, base36decode
 
 from nylas.logging import get_logger
+
 log = get_logger()
 
 
@@ -50,27 +52,28 @@ def disabled_dubiously_many_queries_warning():
 
 
 @event.listens_for(Engine, "before_cursor_execute")
-def before_cursor_execute(conn, cursor, statement,
-                          parameters, context, executemany):
+def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
     if conn not in query_counts:
         query_counts[conn] = 1
     else:
         query_counts[conn] += 1
 
 
-@event.listens_for(Engine, 'commit')
+@event.listens_for(Engine, "commit")
 def before_commit(conn):
     if not should_log_dubiously_many_queries:
         return
     if query_counts.get(conn, 0) > MAX_SANE_QUERIES_PER_SESSION:
-        log.warning('Dubiously many queries per session!',
-                    query_count=query_counts.get(conn))
+        log.warning(
+            "Dubiously many queries per session!", query_count=query_counts.get(conn)
+        )
 
 
 class SQLAlchemyCompatibleAbstractMetaClass(DeclarativeMeta, abc.ABCMeta):
     """Declarative model classes that *also* inherit from an abstract base
     class need a metaclass like this one, in order to prevent metaclass
     conflict errors."""
+
     pass
 
 
@@ -78,6 +81,7 @@ class ABCMixin(object):
     """Use this if you want a mixin class which is actually an abstract base
     class, for example in order to enforce that concrete subclasses define
     particular methods or properties."""
+
     __metaclass__ = SQLAlchemyCompatibleAbstractMetaClass
     __abstract__ = True
 
@@ -98,14 +102,15 @@ class StringWithTransform(TypeDecorator):
     the transform applied, you must manually apply it using a custom property
     setter or a @validates decorator
     """
+
     impl = String
 
     def __init__(self, string_transform, *args, **kwargs):
         super(StringWithTransform, self).__init__(*args, **kwargs)
         if string_transform is None:
-            raise ValueError('Must provide a string_transform')
-        if not hasattr(string_transform, '__call__'):
-            raise TypeError('`string_transform` must be callable')
+            raise ValueError("Must provide a string_transform")
+        if not hasattr(string_transform, "__call__"):
+            raise TypeError("`string_transform` must be callable")
         self._string_transform = string_transform
 
     def process_bind_param(self, value, dialect):
@@ -138,7 +143,7 @@ class JSON(TypeDecorator):
         try:
             return json_util.loads(value)
         except ValueError:
-            log.error('ValueError on decoding JSON', value=value)
+            log.error("ValueError on decoding JSON", value=value)
 
 
 def json_field_too_long(value):
@@ -171,7 +176,6 @@ class Base36UID(TypeDecorator):
 # dumps() return standard Python dicts like the json.* equivalents
 # (because these are simply called under the hood)
 class MutableDict(Mutable, dict):
-
     @classmethod
     def coerce(cls, key, value):
         """ Convert plain dictionaries to MutableDict. """
@@ -207,7 +211,6 @@ class MutableDict(Mutable, dict):
 
 
 class MutableList(Mutable, list):
-
     @classmethod
     def coerce(cls, key, value):
         """Convert plain list to MutableList"""
@@ -265,7 +268,7 @@ def int128_to_b36(int128):
     if not int128:
         return None
     assert len(int128) == 16, "should be 16 bytes (128 bits)"
-    a, b = struct.unpack('>QQ', int128)  # uuid() is big-endian
+    a, b = struct.unpack(">QQ", int128)  # uuid() is big-endian
     pub_id = (a << 64) | b
     return base36encode(pub_id).lower()
 
@@ -276,10 +279,7 @@ def b36_to_bin(b36_string):
     """
     int128 = base36decode(b36_string)
     MAX_INT64 = 0xFFFFFFFFFFFFFFFF
-    return struct.pack(
-        '>QQ',
-        (int128 >> 64) & MAX_INT64,
-        int128 & MAX_INT64)
+    return struct.pack(">QQ", (int128 >> 64) & MAX_INT64, int128 & MAX_INT64)
 
 
 def generate_public_id():
@@ -299,12 +299,13 @@ def generate_public_id():
 # Without this, MySQL will silently insert invalid values in the database if
 # not running with sql-mode=traditional.
 class ForceStrictMode(PoolListener):
-
     def connect(self, dbapi_con, connection_record):
         cur = dbapi_con.cursor()
-        cur.execute("SET SESSION sql_mode='STRICT_TRANS_TABLES,STRICT_ALL_TABLES,"
-                    "NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,"
-                    "NO_ENGINE_SUBSTITUTION'")
+        cur.execute(
+            "SET SESSION sql_mode='STRICT_TRANS_TABLES,STRICT_ALL_TABLES,"
+            "NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,"
+            "NO_ENGINE_SUBSTITUTION'"
+        )
         cur = None
 
 
@@ -331,8 +332,7 @@ def safer_yield_per(query, id_field, start_id, count):
     """
     cur_id = start_id
     while True:
-        results = query.filter(id_field >= cur_id).order_by(id_field).\
-            limit(count).all()
+        results = query.filter(id_field >= cur_id).order_by(id_field).limit(count).all()
         if not results:
             return
         for result in results:

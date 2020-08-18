@@ -7,8 +7,8 @@ Create Date: 2015-07-20 23:47:41.297327
 """
 
 # revision identifiers, used by Alembic.
-revision = '691fa97024d'
-down_revision = '2758cefad87d'
+revision = "691fa97024d"
+down_revision = "2758cefad87d"
 
 
 # solution from http://stackoverflow.com/a/1217947
@@ -33,10 +33,15 @@ def upgrade():
 
     with session_scope(versioned=False) as db_session:
         for thread in page_query(db_session.query(Thread)):
-            last_message = db_session.query(Message). \
-                filter(Message.thread_id == thread.id,
-                       not_(Message.categories.any(name="sent"))). \
-                order_by(desc(Message.received_date)).first()
+            last_message = (
+                db_session.query(Message)
+                .filter(
+                    Message.thread_id == thread.id,
+                    not_(Message.categories.any(name="sent")),
+                )
+                .order_by(desc(Message.received_date))
+                .first()
+            )
             if last_message:
                 thread.receivedrecentdate = last_message.received_date
 

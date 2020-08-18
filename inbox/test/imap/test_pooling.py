@@ -10,7 +10,6 @@ from inbox.crispin import CrispinConnectionPool
 
 
 class TestableConnectionPool(CrispinConnectionPool):
-
     def _set_account_info(self):
         pass
 
@@ -36,14 +35,17 @@ def test_block_on_depleted_pool():
                 pass
 
 
-@pytest.mark.parametrize("error_class,expect_logout_called", [
-    (imaplib.IMAP4.error, True),
-    (imaplib.IMAP4.abort, False),
-    (socket.error, False),
-    (socket.timeout, False),
-    (ssl.SSLError, False),
-    (ssl.CertificateError, False),
-])
+@pytest.mark.parametrize(
+    "error_class,expect_logout_called",
+    [
+        (imaplib.IMAP4.error, True),
+        (imaplib.IMAP4.abort, False),
+        (socket.error, False),
+        (socket.timeout, False),
+        (ssl.SSLError, False),
+        (ssl.CertificateError, False),
+    ],
+)
 def test_imap_and_network_errors(error_class, expect_logout_called):
     pool = TestableConnectionPool(1, num_connections=3, readonly=True)
     with pytest.raises(error_class):

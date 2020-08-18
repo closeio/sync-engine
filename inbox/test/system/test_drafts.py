@@ -5,7 +5,7 @@ from conftest import timeout_loop, all_accounts
 from inbox.client.errors import NotFoundError
 
 
-@timeout_loop('file')
+@timeout_loop("file")
 def wait_for_file(client, file_id):
     try:
         client.files.find(file_id)
@@ -14,7 +14,7 @@ def wait_for_file(client, file_id):
         return False
 
 
-@timeout_loop('draft')
+@timeout_loop("draft")
 def wait_for_draft(client, draft_id):
     try:
         return client.drafts.find(draft_id)
@@ -22,7 +22,7 @@ def wait_for_draft(client, draft_id):
         return False
 
 
-@timeout_loop('draft_removed')
+@timeout_loop("draft_removed")
 def check_draft_is_removed(client, draft_id):
     try:
         client.drafts.find(draft_id)
@@ -37,14 +37,14 @@ def test_draft(client):
 
     # Create the file
     myfile = client.files.create()
-    myfile.filename = 'file_%d.txt' % time.time()
-    myfile.data = 'This is a file'
+    myfile.filename = "file_%d.txt" % time.time()
+    myfile.data = "This is a file"
     myfile.save()
     wait_for_file(client, myfile.id)
 
     # And the draft
     mydraft = client.drafts.create()
-    mydraft.to = [{'email': client.email_address}]
+    mydraft.to = [{"email": client.email_address}]
     mydraft.subject = "Test draft from Inbox - %s" % time.strftime("%H:%M:%S")
     mydraft.body = "This is a test email, disregard this."
     mydraft.attach(myfile)
@@ -57,5 +57,5 @@ def test_draft(client):
     # check_draft_is_removed(client, mydraft.id)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pytest.main([__file__])

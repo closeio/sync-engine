@@ -3,13 +3,14 @@ import itertools
 from inbox.util.itert import chunk
 
 from nylas.logging import get_logger
+
 log = get_logger()
 
 # We're doing this weird rename import to make it easier to monkeypatch
 # get_redis_client. That's the only way we have to test our very brittle
 # status code.
 import inbox.heartbeat.config as heartbeat_config
-from inbox.heartbeat.config import (CONTACTS_FOLDER_ID, EVENTS_FOLDER_ID)
+from inbox.heartbeat.config import CONTACTS_FOLDER_ID, EVENTS_FOLDER_ID
 
 
 def safe_failure(f):
@@ -17,17 +18,16 @@ def safe_failure(f):
         try:
             return f(*args, **kwargs)
         except Exception:
-            log.error('Error interacting with heartbeats',
-                      exc_info=True)
+            log.error("Error interacting with heartbeats", exc_info=True)
+
     return wrapper
 
 
 class HeartbeatStatusKey(object):
-
     def __init__(self, account_id, folder_id):
         self.account_id = account_id
         self.folder_id = folder_id
-        self.key = '{}:{}'.format(self.account_id, self.folder_id)
+        self.key = "{}:{}".format(self.account_id, self.folder_id)
 
     def __repr__(self):
         return self.key
@@ -38,12 +38,11 @@ class HeartbeatStatusKey(object):
         return self.folder_id < other.folder_id
 
     def __eq__(self, other):
-        return self.account_id == other.account_id and \
-            self.folder_id == other.folder_id
+        return self.account_id == other.account_id and self.folder_id == other.folder_id
 
     @classmethod
     def all_folders(cls, account_id):
-        return cls(account_id, '*')
+        return cls(account_id, "*")
 
     @classmethod
     def contacts(cls, account_id):
@@ -55,14 +54,20 @@ class HeartbeatStatusKey(object):
 
     @classmethod
     def from_string(cls, string_key):
-        account_id, folder_id = map(int, string_key.split(':'))
+        account_id, folder_id = map(int, string_key.split(":"))
         return cls(account_id, folder_id)
 
 
 class HeartbeatStatusProxy(object):
-
-    def __init__(self, account_id, folder_id, folder_name=None,
-                 email_address=None, provider_name=None, device_id=0):
+    def __init__(
+        self,
+        account_id,
+        folder_id,
+        folder_name=None,
+        email_address=None,
+        provider_name=None,
+        device_id=0,
+    ):
         self.key = HeartbeatStatusKey(account_id, folder_id)
         self.account_id = account_id
         self.folder_id = folder_id
@@ -76,21 +81,23 @@ class HeartbeatStatusProxy(object):
             self.store.publish(self.key, self.heartbeat_at)
         except Exception:
             log = get_logger()
-            log.error('Error while writing the heartbeat status',
-                      account_id=self.key.account_id,
-                      folder_id=self.key.folder_id,
-                      device_id=self.device_id,
-                      exc_info=True)
+            log.error(
+                "Error while writing the heartbeat status",
+                account_id=self.key.account_id,
+                folder_id=self.key.folder_id,
+                device_id=self.device_id,
+                exc_info=True,
+            )
 
     @safe_failure
     def clear(self):
-        self.store.remove_folders(self.account_id, self.folder_id,
-                                  self.device_id)
+        self.store.remove_folders(self.account_id, self.folder_id, self.device_id)
 
 
 class HeartbeatStore(object):
     """ Store that proxies requests to Redis with handlers that also
         update indexes and handle scanning through results. """
+
     _instances = {}
 
     def __init__(self, host=None, port=6379):
@@ -158,23 +165,24 @@ class HeartbeatStore(object):
         # Find the oldest heartbeat from the account-folder index
         try:
             client = heartbeat_config.get_redis_client(key.account_id)
-            f, oldest_heartbeat = client.zrange(key.account_id, 0, 0,
-                                                withscores=True).pop()
-            client.zadd('account_index', oldest_heartbeat, key.account_id)
+            f, oldest_heartbeat = client.zrange(
+                key.account_id, 0, 0, withscores=True
+            ).pop()
+            client.zadd("account_index", oldest_heartbeat, key.account_id)
         except:
             # If all heartbeats were deleted at the same time as this, the pop
             # will fail -- ignore it.
             pass
 
     def remove_from_folder_index(self, key, client):
-        client.zrem('folder_index', key)
+        client.zrem("folder_index", key)
         if isinstance(key, str):
             key = HeartbeatStatusKey.from_string(key)
         client.zrem(key.account_id, key.folder_id)
 
     def remove_from_account_index(self, account_id, client):
         client.delete(account_id)
-        client.zrem('account_index', account_id)
+        client.zrem("account_index", account_id)
 
     def get_account_folders(self, account_id):
         client = heartbeat_config.get_redis_client(account_id)
@@ -191,7 +199,10 @@ class HeartbeatStore(object):
         # http://stackoverflow.com/questions/8793772/how-to-split-a-sequence-according-to-a-predicate
         shard_num = heartbeat_config.account_redis_shard_number
         account_ids_grouped_by_shards = [
-            list(v[1]) for v in itertools.groupby(sorted(account_ids, key=shard_num), key=shard_num)
+            list(v[1])
+            for v in itertools.groupby(
+                sorted(account_ids, key=shard_num), key=shard_num
+            )
         ]
 
         results = dict()

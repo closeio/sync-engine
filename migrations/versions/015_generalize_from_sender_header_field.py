@@ -7,8 +7,8 @@ Create Date: 2014-04-24 06:04:21.163229
 """
 
 # revision identifiers, used by Alembic.
-revision = '3fee2f161614'
-down_revision = '563d405d1f99'
+revision = "3fee2f161614"
+down_revision = "563d405d1f99"
 
 
 def upgrade():

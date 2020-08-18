@@ -25,18 +25,19 @@ def handler_from_provider(provider_name):
 
     """
     from inbox.auth import module_registry
+
     auth_mod = module_registry.get(provider_name)
 
     if auth_mod is None:
         # Try to get a generic provider
         info = providers.get(provider_name, None)
         if info:
-            provider_type = info.get('type', None)
+            provider_type = info.get("type", None)
             if provider_type:
-                auth_mod = module_registry.get('generic')
+                auth_mod = module_registry.get("generic")
 
     if auth_mod is None:
-        raise NotSupportedError('Nylas does not support the email provider.')
+        raise NotSupportedError("Nylas does not support the email provider.")
 
     auth_handler_class = getattr(auth_mod, auth_mod.AUTH_HANDLER_CLS)
     auth_handler = auth_handler_class(provider_name=provider_name)
@@ -64,8 +65,9 @@ def account_or_none(target, cls, email_address):
     shard_id = target << 48
     with session_scope(shard_id) as db_session:
         try:
-            account = db_session.query(cls).filter(
-                cls.email_address == email_address).one()
+            account = (
+                db_session.query(cls).filter(cls.email_address == email_address).one()
+            )
         except NoResultFound:
             return
         db_session.expunge(account)

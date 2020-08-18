@@ -4,6 +4,7 @@ import gevent
 from sqlalchemy import func
 from sqlalchemy.orm import load_only
 from nylas.logging import get_logger
+
 log = get_logger()
 from inbox.models import Message, Thread
 from inbox.models.category import Category, EPOCH
@@ -18,8 +19,8 @@ from inbox.mailsync.backends.imap.generic import uidvalidity_cb
 from inbox.crispin import connection_pool
 from imapclient.imap_utf7 import encode as utf7_encode
 
-DEFAULT_MESSAGE_TTL = 2 * 60            # 2 minutes
-DEFAULT_THREAD_TTL = 60 * 60 * 24 * 7   # 7 days
+DEFAULT_MESSAGE_TTL = 2 * 60  # 2 minutes
+DEFAULT_THREAD_TTL = 60 * 60 * 24 * 7  # 7 days
 MAX_FETCH = 1000
 
 
@@ -50,9 +51,16 @@ class DeleteHandler(gevent.Greenlet):
 
     """
 
-    def __init__(self, account_id, namespace_id, provider_name, uid_accessor,
-                 message_ttl=DEFAULT_MESSAGE_TTL, thread_ttl=DEFAULT_THREAD_TTL):
-        bind_context(self, 'deletehandler', account_id)
+    def __init__(
+        self,
+        account_id,
+        namespace_id,
+        provider_name,
+        uid_accessor,
+        message_ttl=DEFAULT_MESSAGE_TTL,
+        thread_ttl=DEFAULT_THREAD_TTL,
+    ):
+        bind_context(self, "deletehandler", account_id)
         self.account_id = account_id
         self.namespace_id = namespace_id
         self.provider_name = provider_name
@@ -64,8 +72,9 @@ class DeleteHandler(gevent.Greenlet):
 
     def _run(self):
         while True:
-            retry_with_logging(self._run_impl, account_id=self.account_id,
-                               provider=self.provider_name)
+            retry_with_logging(
+                self._run_impl, account_id=self.account_id, provider=self.provider_name
+            )
 
     def _run_impl(self):
         current_time = datetime.datetime.utcnow()
@@ -76,10 +85,14 @@ class DeleteHandler(gevent.Greenlet):
 
     def check(self, current_time):
         with session_scope(self.namespace_id) as db_session:
-            dangling_messages = db_session.query(Message).filter(
-                Message.namespace_id == self.namespace_id,
-                Message.deleted_at <= current_time - self.message_ttl
-            ).limit(MAX_FETCH)
+            dangling_messages = (
+                db_session.query(Message)
+                .filter(
+                    Message.namespace_id == self.namespace_id,
+                    Message.deleted_at <= current_time - self.message_ttl,
+                )
+                .limit(MAX_FETCH)
+            )
             for message in dangling_messages:
                 # If the message isn't *actually* dangling (i.e., it has
                 # imapuids associated with it), undelete it.
@@ -90,9 +103,11 @@ class DeleteHandler(gevent.Greenlet):
                 thread = message.thread
 
                 if not thread or message not in thread.messages:
-                    self.log.warning("Running delete handler check but message"
-                                     " is not part of referenced thread: {}",
-                                     thread_id=thread.id)
+                    self.log.warning(
+                        "Running delete handler check but message"
+                        " is not part of referenced thread: {}",
+                        thread_id=thread.id,
+                    )
                     # Nothing to check
                     continue
 
@@ -111,8 +126,7 @@ class DeleteHandler(gevent.Greenlet):
                     # TODO(emfree): This is messy. We need better
                     # abstractions for recomputing a thread's attributes
                     # from messages, here and in mail sync.
-                    non_draft_messages = [m for m in thread.messages if not
-                                          m.is_draft]
+                    non_draft_messages = [m for m in thread.messages if not m.is_draft]
                     if not non_draft_messages:
                         continue
                     # The value of thread.messages is ordered oldest-to-newest.
@@ -135,14 +149,17 @@ class DeleteHandler(gevent.Greenlet):
         # associated with it. If not, delete it.
         with session_scope(self.namespace_id) as db_session:
             categories = db_session.query(Category).filter(
-                Category.namespace_id == self.namespace_id,
-                Category.deleted_at > EPOCH)
+                Category.namespace_id == self.namespace_id, Category.deleted_at > EPOCH
+            )
 
             for category in categories:
                 # Check if no message is associated with the category. If yes,
                 # delete it.
-                count = db_session.query(func.count(MessageCategory.id)).filter(
-                    MessageCategory.category_id == category.id).scalar()
+                count = (
+                    db_session.query(func.count(MessageCategory.id))
+                    .filter(MessageCategory.category_id == category.id)
+                    .scalar()
+                )
 
                 if count == 0:
                     db_session.delete(category)
@@ -150,10 +167,14 @@ class DeleteHandler(gevent.Greenlet):
 
     def gc_deleted_threads(self, current_time):
         with session_scope(self.namespace_id) as db_session:
-            deleted_threads = db_session.query(Thread).filter(
-                Thread.namespace_id == self.namespace_id,
-                Thread.deleted_at <= current_time - self.thread_ttl
-            ).limit(MAX_FETCH)
+            deleted_threads = (
+                db_session.query(Thread)
+                .filter(
+                    Thread.namespace_id == self.namespace_id,
+                    Thread.deleted_at <= current_time - self.thread_ttl,
+                )
+                .limit(MAX_FETCH)
+            )
             for thread in deleted_threads:
                 if thread.messages:
                     thread.deleted_at = None
@@ -177,7 +198,7 @@ class LabelRenameHandler(gevent.Greenlet):
     """
 
     def __init__(self, account_id, namespace_id, label_name, semaphore):
-        bind_context(self, 'renamehandler', account_id)
+        bind_context(self, "renamehandler", account_id)
         self.account_id = account_id
         self.namespace_id = namespace_id
         self.label_name = label_name
@@ -189,8 +210,7 @@ class LabelRenameHandler(gevent.Greenlet):
         return retry_with_logging(self._run_impl, account_id=self.account_id)
 
     def _run_impl(self):
-        self.log.info('Starting LabelRenameHandler',
-                      label_name=self.label_name)
+        self.log.info("Starting LabelRenameHandler", label_name=self.label_name)
 
         self.semaphore.acquire(blocking=True)
 
@@ -199,7 +219,8 @@ class LabelRenameHandler(gevent.Greenlet):
                 folder_names = []
                 with session_scope(self.account_id) as db_session:
                     folders = db_session.query(Folder).filter(
-                        Folder.account_id == self.account_id)
+                        Folder.account_id == self.account_id
+                    )
 
                     folder_names = [folder.name for folder in folders]
                     db_session.expunge_all()
@@ -207,22 +228,35 @@ class LabelRenameHandler(gevent.Greenlet):
                 for folder_name in folder_names:
                     crispin_client.select_folder(folder_name, uidvalidity_cb)
 
-                    found_uids = crispin_client.search_uids(['X-GM-LABELS',
-                                                             utf7_encode(self.label_name)])
+                    found_uids = crispin_client.search_uids(
+                        ["X-GM-LABELS", utf7_encode(self.label_name)]
+                    )
 
                     for chnk in chunk(found_uids, 200):
                         flags = crispin_client.flags(chnk)
 
-                        self.log.info('Running metadata update for folder',
-                                      folder_name=folder_name)
+                        self.log.info(
+                            "Running metadata update for folder",
+                            folder_name=folder_name,
+                        )
                         with session_scope(self.account_id) as db_session:
-                            fld = db_session.query(Folder).options(load_only("id"))\
-                                .filter(Folder.account_id == self.account_id,
-                                        Folder.name == folder_name).one()
+                            fld = (
+                                db_session.query(Folder)
+                                .options(load_only("id"))
+                                .filter(
+                                    Folder.account_id == self.account_id,
+                                    Folder.name == folder_name,
+                                )
+                                .one()
+                            )
 
-                            common.update_metadata(self.account_id, fld.id,
-                                                   fld.canonical_name, flags,
-                                                   db_session)
+                            common.update_metadata(
+                                self.account_id,
+                                fld.id,
+                                fld.canonical_name,
+                                flags,
+                                db_session,
+                            )
                             db_session.commit()
         finally:
             self.semaphore.release()

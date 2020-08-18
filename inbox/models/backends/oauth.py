@@ -10,11 +10,11 @@ from sqlalchemy.ext.declarative import declared_attr
 
 from inbox.models.secret import Secret
 from nylas.logging import get_logger
+
 log = get_logger()
 
 
 class TokenManager(object):
-
     def __init__(self):
         self._tokens = {}
 
@@ -46,8 +46,7 @@ class OAuthAccount(object):
 
     @declared_attr
     def secret(cls):
-        return relationship('Secret', cascade='all', uselist=False,
-                            lazy='joined')
+        return relationship("Secret", cascade="all", uselist=False, lazy="joined")
 
     @property
     def refresh_token(self):
@@ -59,31 +58,33 @@ class OAuthAccount(object):
     def refresh_token(self, value):
         # Must be a valid UTF-8 byte sequence without NULL bytes.
         if isinstance(value, unicode):
-            value = value.encode('utf-8')
+            value = value.encode("utf-8")
 
         try:
-            unicode(value, 'utf-8')
+            unicode(value, "utf-8")
         except UnicodeDecodeError:
-            raise ValueError('Invalid refresh_token')
+            raise ValueError("Invalid refresh_token")
 
-        if b'\x00' in value:
-            raise ValueError('Invalid refresh_token')
+        if b"\x00" in value:
+            raise ValueError("Invalid refresh_token")
 
         if not self.secret:
             self.secret = Secret()
 
         self.secret.secret = value
-        self.secret.type = 'token'
+        self.secret.type = "token"
 
     def new_token(self):
         try:
-            return self.auth_handler.new_token(self.refresh_token,
-                                               self.client_id,
-                                               self.client_secret)
+            return self.auth_handler.new_token(
+                self.refresh_token, self.client_id, self.client_secret
+            )
         except Exception as e:
-            log.error('Error while getting access token: {}'.format(e),
-                      account_id=self.id,
-                      exc_info=True)
+            log.error(
+                "Error while getting access token: {}".format(e),
+                account_id=self.id,
+                exc_info=True,
+            )
             raise
 
     def verify(self):

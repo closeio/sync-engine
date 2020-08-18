@@ -9,7 +9,7 @@ from gevent.coros import BoundedSemaphore
 def safe_filename(filename):
     """ Strip filesystem-unfriendly characters from a filename. """
     valid_chars = "-_.() {}{}".format(string.ascii_letters, string.digits)
-    return ''.join(c for c in filename if c in valid_chars)
+    return "".join(c for c in filename if c in valid_chars)
 
 
 # http://my.safaribooksonline.com/book/programming/python/0596001673/files/pythoncook-chp-4-sect-16
@@ -82,16 +82,17 @@ class Lock(object):
         Whether to block or throw IOError if the lock is grabbed multiple
         times.
     """
+
     TIMEOUT = 60
 
     def __init__(self, f, block=True):
         if isinstance(f, file):
             self.filename = f.name
-            self.handle = f if not f.closed else open(f, 'w')
+            self.handle = f if not f.closed else open(f, "w")
         else:
             self.filename = f
             mkdirp(os.path.dirname(f))
-            self.handle = open(f, 'w')
+            self.handle = open(f, "w")
         if block:
             self.lock_op = fcntl.LOCK_EX
         else:
@@ -102,8 +103,11 @@ class Lock(object):
     def acquire(self):
         got_gevent_lock = self.gevent_lock.acquire(blocking=self.block)
         if not got_gevent_lock:
-            raise IOError("cannot acquire gevent lock; associated file is {}"
-                          .format(self.filename))
+            raise IOError(
+                "cannot acquire gevent lock; associated file is {}".format(
+                    self.filename
+                )
+            )
         fcntl.flock(self.handle, self.lock_op)
 
     def release(self):

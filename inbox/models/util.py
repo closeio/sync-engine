@@ -29,7 +29,7 @@ log = get_logger()
 
 # Use a single throttle instance for rate limiting.  Limits will be applied
 # across all db shards (same approach as the original check_throttle()).
-bulk_throttle = limitlion.throttle_wait('bulk', rps=.75, window=5)
+bulk_throttle = limitlion.throttle_wait("bulk", rps=0.75, window=5)
 
 
 def reconcile_message(new_message, session):
@@ -46,15 +46,21 @@ def reconcile_message(new_message, session):
         # try to reconcile using other means
         q = session.query(Message).filter(
             Message.namespace_id == new_message.namespace_id,
-            Message.data_sha256 == new_message.data_sha256)
+            Message.data_sha256 == new_message.data_sha256,
+        )
         return q.first()
 
-    if '-' not in new_message.nylas_uid:
+    if "-" not in new_message.nylas_uid:
         # Old X-Inbox-Id format; use the old reconciliation strategy.
-        existing_message = session.query(Message).filter(
-            Message.namespace_id == new_message.namespace_id,
-            Message.nylas_uid == new_message.nylas_uid,
-            Message.is_created).first()
+        existing_message = (
+            session.query(Message)
+            .filter(
+                Message.namespace_id == new_message.namespace_id,
+                Message.nylas_uid == new_message.nylas_uid,
+                Message.is_created,
+            )
+            .first()
+        )
         version = None
     else:
         # new_message has the new X-Inbox-Id format <public_id>-<version>
@@ -62,11 +68,16 @@ def reconcile_message(new_message, session):
         # * not commit a new, separate Message object for it
         # * not update the current draft with the old header values in the code
         #   below.
-        expected_public_id, version = new_message.nylas_uid.split('-')
-        existing_message = session.query(Message).filter(
-            Message.namespace_id == new_message.namespace_id,
-            Message.public_id == expected_public_id,
-            Message.is_created).first()
+        expected_public_id, version = new_message.nylas_uid.split("-")
+        existing_message = (
+            session.query(Message)
+            .filter(
+                Message.namespace_id == new_message.namespace_id,
+                Message.public_id == expected_public_id,
+                Message.is_created,
+            )
+            .first()
+        )
 
     if existing_message is None:
         return None
@@ -87,29 +98,40 @@ def transaction_objects():
     models that implement the HasRevisions mixin).
 
     """
-    from inbox.models import (Calendar, Contact, Message, Event, Block,
-                              Category, Thread, Metadata)
+    from inbox.models import (
+        Calendar,
+        Contact,
+        Message,
+        Event,
+        Block,
+        Category,
+        Thread,
+        Metadata,
+    )
 
     return {
-        'calendar': Calendar,
-        'contact': Contact,
-        'draft': Message,
-        'event': Event,
-        'file': Block,
-        'message': Message,
-        'thread': Thread,
-        'label': Category,
-        'folder': Category,
-        'account': Account,
-        'metadata': Metadata
+        "calendar": Calendar,
+        "contact": Contact,
+        "draft": Message,
+        "event": Event,
+        "file": Block,
+        "message": Message,
+        "thread": Thread,
+        "label": Category,
+        "folder": Category,
+        "account": Account,
+        "metadata": Metadata,
     }
 
 
 def get_accounts_to_delete(shard_id):
     ids_to_delete = []
     with session_scope_by_shard_id(shard_id) as db_session:
-        ids_to_delete = [(acc.id, acc.namespace.id) for acc
-                         in db_session.query(Account) if acc.is_marked_for_deletion]
+        ids_to_delete = [
+            (acc.id, acc.namespace.id)
+            for acc in db_session.query(Account)
+            if acc.is_marked_for_deletion
+        ]
     return ids_to_delete
 
 
@@ -117,8 +139,7 @@ class AccountDeletionErrror(Exception):
     pass
 
 
-def batch_delete_namespaces(ids_to_delete, throttle=False,
-                                           dry_run=False):
+def batch_delete_namespaces(ids_to_delete, throttle=False, dry_run=False):
 
     start = time.time()
 
@@ -126,20 +147,21 @@ def batch_delete_namespaces(ids_to_delete, throttle=False,
     for account_id, namespace_id in ids_to_delete:
         # try:
         try:
-            delete_namespace(namespace_id,
-                             throttle=throttle,
-                             dry_run=dry_run)
+            delete_namespace(namespace_id, throttle=throttle, dry_run=dry_run)
         except AccountDeletionErrror as e:
-            log.critical('AccountDeletionErrror', error_message=e.message)
+            log.critical("AccountDeletionErrror", error_message=e.message)
         except Exception:
             log_uncaught_errors(log, account_id=account_id)
 
         deleted_count += 1
 
     end = time.time()
-    log.info('All data deleted successfully for ids',
-             ids_to_delete=ids_to_delete,
-             time=end - start, count=deleted_count)
+    log.info(
+        "All data deleted successfully for ids",
+        ids_to_delete=ids_to_delete,
+        time=end - start,
+        count=deleted_count,
+    )
 
 
 def delete_namespace(namespace_id, throttle=False, dry_run=False):
@@ -155,19 +177,24 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False):
 
     with session_scope(namespace_id) as db_session:
         try:
-            account = db_session.query(Account).join(Namespace).filter(Namespace.id == namespace_id).one()
+            account = (
+                db_session.query(Account)
+                .join(Namespace)
+                .filter(Namespace.id == namespace_id)
+                .one()
+            )
         except NoResultFound:
-            raise AccountDeletionErrror(
-                'Could not find account in database')
+            raise AccountDeletionErrror("Could not find account in database")
 
         if not account.is_marked_for_deletion:
             raise AccountDeletionErrror(
-                'Account is_marked_for_deletion is False. '
-                'Change this to proceed with deletion.')
+                "Account is_marked_for_deletion is False. "
+                "Change this to proceed with deletion."
+            )
         account_id = account.id
         account_discriminator = account.discriminator
 
-    log.info('Deleting account', account_id=account_id)
+    log.info("Deleting account", account_id=account_id)
     start_time = time.time()
 
     # These folders are used to configure batch deletion in chunks for
@@ -177,27 +204,37 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False):
     # we include here for simplicity anyway.
 
     filters = OrderedDict()
-    for table in ['message', 'block', 'thread', 'transaction', 'actionlog',
-                  'event', 'contact', 'dataprocessingcache']:
-        filters[table] = ('namespace_id', namespace_id)
+    for table in [
+        "message",
+        "block",
+        "thread",
+        "transaction",
+        "actionlog",
+        "event",
+        "contact",
+        "dataprocessingcache",
+    ]:
+        filters[table] = ("namespace_id", namespace_id)
 
-    if account_discriminator == 'easaccount':
-        filters['easuid'] = ('easaccount_id', account_id)
-        filters['easfoldersyncstatus'] = ('account_id', account_id)
+    if account_discriminator == "easaccount":
+        filters["easuid"] = ("easaccount_id", account_id)
+        filters["easfoldersyncstatus"] = ("account_id", account_id)
     else:
-        filters['imapuid'] = ('account_id', account_id)
-        filters['imapfoldersyncstatus'] = ('account_id', account_id)
-        filters['imapfolderinfo'] = ('account_id', account_id)
+        filters["imapuid"] = ("account_id", account_id)
+        filters["imapfoldersyncstatus"] = ("account_id", account_id)
+        filters["imapfolderinfo"] = ("account_id", account_id)
 
     from inbox.ignition import engine_manager
+
     # Bypass the ORM for performant bulk deletion;
     # we do /not/ want Transaction records created for these deletions,
     # so this is okay.
     engine = engine_manager.get_for_id(namespace_id)
 
     for cls in filters:
-        _batch_delete(engine, cls, filters[cls], account_id, throttle=throttle,
-                      dry_run=dry_run)
+        _batch_delete(
+            engine, cls, filters[cls], account_id, throttle=throttle, dry_run=dry_run
+        )
 
     # Use a single delete for the other tables. Rows from tables which contain
     # cascade-deleted foreign keys to other tables deleted here (or above)
@@ -206,17 +243,17 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False):
     #
     # NOTE: Namespace, Account are deleted at the end too.
 
-    query = 'DELETE FROM {} WHERE {}={};'
+    query = "DELETE FROM {} WHERE {}={};"
 
     filters = OrderedDict()
-    for table in ('category', 'calendar'):
-        filters[table] = ('namespace_id', namespace_id)
-    for table in ('folder', 'label'):
-        filters[table] = ('account_id', account_id)
-    filters['namespace'] = ('id', namespace_id)
+    for table in ("category", "calendar"):
+        filters[table] = ("namespace_id", namespace_id)
+    for table in ("folder", "label"):
+        filters[table] = ("account_id", account_id)
+    filters["namespace"] = ("id", namespace_id)
 
     for table, (column, id_) in filters.iteritems():
-        log.info('Performing bulk deletion', table=table)
+        log.info("Performing bulk deletion", table=table)
         start = time.time()
 
         if throttle:
@@ -228,7 +265,7 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False):
             log.debug(query.format(table, column, id_))
 
         end = time.time()
-        log.info('Completed bulk deletion', table=table, time=end - start)
+        log.info("Completed bulk deletion", table=table, time=end - start)
 
     # Delete the account object manually to get rid of the various objects
     # associated with it (e.g: secrets, tokens, etc.)
@@ -239,46 +276,51 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False):
             db_session.commit()
 
     # Delete liveness data ( heartbeats)
-    log.debug('Deleting liveness data', account_id=account_id)
+    log.debug("Deleting liveness data", account_id=account_id)
     clear_heartbeat_status(account_id)
 
-    statsd_client.timing('mailsync.account_deletion.queue.deleted',
-                         time.time() - start_time)
+    statsd_client.timing(
+        "mailsync.account_deletion.queue.deleted", time.time() - start_time
+    )
 
 
-def _batch_delete(engine, table, column_id_filters, account_id, throttle=False,
-                  dry_run=False):
+def _batch_delete(
+    engine, table, column_id_filters, account_id, throttle=False, dry_run=False
+):
     (column, id_) = column_id_filters
     count = engine.execute(
-        'SELECT COUNT(*) FROM {} WHERE {}={};'.format(table, column, id_)).\
-        scalar()
+        "SELECT COUNT(*) FROM {} WHERE {}={};".format(table, column, id_)
+    ).scalar()
 
     if count == 0:
-        log.info('Completed batch deletion', table=table)
+        log.info("Completed batch deletion", table=table)
         return
 
     batches = int(math.ceil(float(count) / CHUNK_SIZE))
 
-    log.info('Starting batch deletion', table=table, count=count,
-             batches=batches)
+    log.info("Starting batch deletion", table=table, count=count, batches=batches)
     start = time.time()
 
-    if table in ('message', 'block'):
-        query = ''
+    if table in ("message", "block"):
+        query = ""
     else:
-        query = 'DELETE FROM {} WHERE {}={} LIMIT {};'.format(table, column, id_, CHUNK_SIZE)
+        query = "DELETE FROM {} WHERE {}={} LIMIT {};".format(
+            table, column, id_, CHUNK_SIZE
+        )
 
-    log.info('deleting', account_id=account_id, table=table)
+    log.info("deleting", account_id=account_id, table=table)
 
     for i in range(0, batches):
         if throttle:
             bulk_throttle()
 
-        if table == 'block':
+        if table == "block":
             with session_scope(account_id) as db_session:
-                blocks = list(db_session.query(Block.id, Block.data_sha256)
-                                        .filter(Block.namespace_id == id_)
-                                        .limit(CHUNK_SIZE))
+                blocks = list(
+                    db_session.query(Block.id, Block.data_sha256)
+                    .filter(Block.namespace_id == id_)
+                    .limit(CHUNK_SIZE)
+                )
             blocks = list(blocks)
             block_ids = [b[0] for b in blocks]
             block_hashes = [b[1] for b in blocks]
@@ -292,25 +334,31 @@ def _batch_delete(engine, table, column_id_filters, account_id, throttle=False,
                 if dry_run is False:
                     query.delete(synchronize_session=False)
 
-        elif table == 'message':
+        elif table == "message":
             with session_scope(account_id) as db_session:
                 # messages must be order by the foreign key `received_date`
                 # otherwise MySQL will raise an error when deleting
                 # from the message table
-                messages = list(db_session.query(Message.id, Message.data_sha256)
-                                          .filter(Message.namespace_id == id_)
-                                          .order_by(desc(Message.received_date))
-                                          .limit(CHUNK_SIZE)
-                                          .with_hint(Message, 'use index (ix_message_namespace_id_received_date)'))
+                messages = list(
+                    db_session.query(Message.id, Message.data_sha256)
+                    .filter(Message.namespace_id == id_)
+                    .order_by(desc(Message.received_date))
+                    .limit(CHUNK_SIZE)
+                    .with_hint(
+                        Message, "use index (ix_message_namespace_id_received_date)"
+                    )
+                )
 
             message_ids = [m[0] for m in messages]
             message_hashes = [m[1] for m in messages]
 
             with session_scope(account_id) as db_session:
-                existing_hashes = list(db_session.query(Message.data_sha256)
-                            .filter(Message.data_sha256.in_(message_hashes))
-                            .filter(Message.namespace_id != id_)
-                            .distinct())
+                existing_hashes = list(
+                    db_session.query(Message.data_sha256)
+                    .filter(Message.data_sha256.in_(message_hashes))
+                    .filter(Message.namespace_id != id_)
+                    .distinct()
+                )
             existing_hashes = [h[0] for h in existing_hashes]
 
             remove_hashes = set(message_hashes) - set(existing_hashes)
@@ -329,11 +377,11 @@ def _batch_delete(engine, table, column_id_filters, account_id, throttle=False,
                 log.debug(query)
 
     end = time.time()
-    log.info('Completed batch deletion', time=end - start, table=table)
+    log.info("Completed batch deletion", time=end - start, table=table)
 
     count = engine.execute(
-        'SELECT COUNT(*) FROM {} WHERE {}={};'.format(table, column, id_)).\
-        scalar()
+        "SELECT COUNT(*) FROM {} WHERE {}={};".format(table, column, id_)
+    ).scalar()
 
     if dry_run is False:
         assert count == 0
@@ -350,22 +398,26 @@ def check_throttle():
     return True
 
 
-def purge_transactions(shard_id, days_ago=60, limit=1000, throttle=False,
-                       dry_run=False, now=None):
-    start = 'now()'
+def purge_transactions(
+    shard_id, days_ago=60, limit=1000, throttle=False, dry_run=False, now=None
+):
+    start = "now()"
     if now is not None:
-        start = "'{}'".format(now.strftime('%Y-%m-%d %H:%M:%S'))
+        start = "'{}'".format(now.strftime("%Y-%m-%d %H:%M:%S"))
 
     # Delete all items from the transaction table that are older than
     # `days_ago` days.
     if dry_run:
         offset = 0
-        query = ("SELECT id FROM transaction where created_at < "
-                 "DATE_SUB({}, INTERVAL {} day) LIMIT {}".
-                 format(start, days_ago, limit))
+        query = (
+            "SELECT id FROM transaction where created_at < "
+            "DATE_SUB({}, INTERVAL {} day) LIMIT {}".format(start, days_ago, limit)
+        )
     else:
-        query = ("DELETE FROM transaction where created_at < DATE_SUB({},"
-                 " INTERVAL {} day) LIMIT {}".format(start, days_ago, limit))
+        query = (
+            "DELETE FROM transaction where created_at < DATE_SUB({},"
+            " INTERVAL {} day) LIMIT {}".format(start, days_ago, limit)
+        )
     try:
         # delete from rows until there are no more rows affected
         rowcount = 1
@@ -373,18 +425,24 @@ def purge_transactions(shard_id, days_ago=60, limit=1000, throttle=False,
             if throttle:
                 bulk_throttle()
 
-            with session_scope_by_shard_id(shard_id, versioned=False) as \
-                    db_session:
+            with session_scope_by_shard_id(shard_id, versioned=False) as db_session:
                 if dry_run:
                     rowcount = db_session.execute(
-                        "{} OFFSET {}".format(query, offset)).rowcount
+                        "{} OFFSET {}".format(query, offset)
+                    ).rowcount
                     offset += rowcount
                 else:
                     rowcount = db_session.execute(query).rowcount
-            log.info("Deleted batch from transaction table", batch_size=limit,
-                     rowcount=rowcount)
-        log.info("Finished purging transaction table for shard",
-                 shard_id=shard_id, date_delta=days_ago)
+            log.info(
+                "Deleted batch from transaction table",
+                batch_size=limit,
+                rowcount=rowcount,
+            )
+        log.info(
+            "Finished purging transaction table for shard",
+            shard_id=shard_id,
+            date_delta=days_ago,
+        )
     except Exception as e:
         log.critical("Exception encountered during deletion", exception=e)
 
@@ -394,7 +452,7 @@ def purge_transactions(shard_id, days_ago=60, limit=1000, throttle=False,
         return
     try:
         with session_scope_by_shard_id(shard_id, versioned=False) as db_session:
-            min_txn_id, = db_session.query(func.min(Transaction.id)).one()
+            (min_txn_id,) = db_session.query(func.min(Transaction.id)).one()
         redis_txn.zremrangebyscore(
             TXN_REDIS_KEY,
             "-inf",
@@ -402,7 +460,8 @@ def purge_transactions(shard_id, days_ago=60, limit=1000, throttle=False,
         )
         log.info(
             "Finished purging transaction entries from redis",
-            min_id=min_txn_id, date_delta=days_ago
+            min_id=min_txn_id,
+            date_delta=days_ago,
         )
     except Exception as e:
         log.critical("Exception encountered during deletion", exception=e)

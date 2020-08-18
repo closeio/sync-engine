@@ -11,6 +11,7 @@ fileConfig(context.config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 from inbox.models.base import MailSyncBase
+
 target_metadata = MailSyncBase.metadata
 
 from inbox.config import config
@@ -25,17 +26,18 @@ from inbox.ignition import EngineManager
 # alembic -x shard_id=1 upgrade +1
 #
 # to target shard 1 for the migration.
-config_shard_id = context.config.get_main_option('shard_id')
-x_shard_id = context.get_x_argument(as_dictionary=True).get(
-    'shard_id')
+config_shard_id = context.config.get_main_option("shard_id")
+x_shard_id = context.get_x_argument(as_dictionary=True).get("shard_id")
 
 if config_shard_id is not None:
     shard_id = int(config_shard_id)
 elif x_shard_id is not None:
     shard_id = int(x_shard_id)
 else:
-    raise ValueError('No shard_id is configured for migration; '
-                     'run `alembic -x shard_id=<target shard id> upgrade +1`')
+    raise ValueError(
+        "No shard_id is configured for migration; "
+        "run `alembic -x shard_id=<target shard id> upgrade +1`"
+    )
 
 
 def run_migrations_offline():
@@ -50,9 +52,11 @@ def run_migrations_offline():
     script output.
 
     """
-    engine_manager = EngineManager(config.get_required('DATABASE_HOSTS'),
-                                   config.get_required('DATABASE_USERS'),
-                                   include_disabled=True)
+    engine_manager = EngineManager(
+        config.get_required("DATABASE_HOSTS"),
+        config.get_required("DATABASE_USERS"),
+        include_disabled=True,
+    )
     engine = engine_manager.engines[shard_id]
     context.configure(engine=engine, url=engine.url)
 
@@ -67,24 +71,24 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
-    engine_manager = EngineManager(config.get_required('DATABASE_HOSTS'),
-                                   config.get_required('DATABASE_USERS'),
-                                   include_disabled=True)
+    engine_manager = EngineManager(
+        config.get_required("DATABASE_HOSTS"),
+        config.get_required("DATABASE_USERS"),
+        include_disabled=True,
+    )
 
     engine = engine_manager.engines[shard_id]
     connection = engine.connect()
     # Set sane lock wait timeout value.
-    connection.execute('SET @@lock_wait_timeout=15')
-    context.configure(
-        connection=connection,
-        target_metadata=target_metadata
-    )
+    connection.execute("SET @@lock_wait_timeout=15")
+    context.configure(connection=connection, target_metadata=target_metadata)
 
     try:
         with context.begin_transaction():
             context.run_migrations()
     finally:
         connection.close()
+
 
 if context.is_offline_mode():
     run_migrations_offline()

@@ -7,8 +7,8 @@ Create Date: 2015-03-20 18:50:29.961734
 """
 
 # revision identifiers, used by Alembic.
-revision = '69e93aef3e9'
-down_revision = '691fa97024d'
+revision = "69e93aef3e9"
+down_revision = "691fa97024d"
 
 from alembic import op
 from sqlalchemy.sql import text
@@ -20,13 +20,18 @@ def upgrade():
     conn.execute(text("set @@lock_wait_timeout = 20;"))
 
     from inbox.ignition import main_engine
+
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()
     Base.metadata.reflect(engine)
 
-    if 'easfoldersyncstatus' in Base.metadata.tables:
-        conn.execute(text("ALTER TABLE easfoldersyncstatus MODIFY eas_folder_id VARCHAR(191),"
-                          "                                MODIFY eas_parent_id VARCHAR(191)"))
+    if "easfoldersyncstatus" in Base.metadata.tables:
+        conn.execute(
+            text(
+                "ALTER TABLE easfoldersyncstatus MODIFY eas_folder_id VARCHAR(191),"
+                "                                MODIFY eas_parent_id VARCHAR(191)"
+            )
+        )
 
 
 def downgrade():
@@ -34,10 +39,15 @@ def downgrade():
     conn.execute(text("set @@lock_wait_timeout = 20;"))
 
     from inbox.ignition import main_engine
+
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()
     Base.metadata.reflect(engine)
 
-    if 'easfoldersyncstatus' in Base.metadata.tables:
-        conn.execute(text("ALTER TABLE easfoldersyncstatus MODIFY eas_folder_id VARCHAR(64),"
-                          "                                MODIFY eas_parent_id VARCHAR(64)"))
+    if "easfoldersyncstatus" in Base.metadata.tables:
+        conn.execute(
+            text(
+                "ALTER TABLE easfoldersyncstatus MODIFY eas_folder_id VARCHAR(64),"
+                "                                MODIFY eas_parent_id VARCHAR(64)"
+            )
+        )

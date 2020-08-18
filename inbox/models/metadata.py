@@ -1,16 +1,19 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, BigInteger, Index
-from sqlalchemy.orm import (relationship)
+from sqlalchemy.orm import relationship
 from inbox.sqlalchemy_ext.util import JSON
 
 from inbox.models.base import MailSyncBase
-from inbox.models.mixins import (HasPublicID, HasRevisions, UpdatedAtMixin,
-                                 DeletedAtMixin)
+from inbox.models.mixins import (
+    HasPublicID,
+    HasRevisions,
+    UpdatedAtMixin,
+    DeletedAtMixin,
+)
 from inbox.sqlalchemy_ext.util import Base36UID
 from inbox.models.namespace import Namespace
 
 
-class Metadata(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
-               DeletedAtMixin):
+class Metadata(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtMixin):
     """
     Key-value store for applications to store arbitrary data associated with
     mail. API object public_id's are used as the keys, and values are JSON.
@@ -24,7 +27,8 @@ class Metadata(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
     metadata objects should never be deleted from the table; instead, the row's
     value should be set to null.
     """
-    API_OBJECT_NAME = 'metadata'
+
+    API_OBJECT_NAME = "metadata"
 
     # Application data fields
     # - app_id: The referenced app's primary key
@@ -35,8 +39,7 @@ class Metadata(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
     app_client_id = Column(Base36UID, nullable=False)
     app_type = Column(String(20), nullable=False)
 
-    namespace_id = Column(ForeignKey(Namespace.id, ondelete='CASCADE'),
-                          nullable=False)
+    namespace_id = Column(ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False)
     namespace = relationship(Namespace)
 
     # Reference to the object that this metadata is about. Public ID is the
@@ -49,9 +52,10 @@ class Metadata(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin,
 
     queryable_value = Column(BigInteger, nullable=True, index=True)
 
-    version = Column(Integer, nullable=True, server_default='0')
+    version = Column(Integer, nullable=True, server_default="0")
 
-Index('ix_obj_public_id_app_id',
-      Metadata.object_public_id, Metadata.app_id, unique=True)
-Index('ix_namespace_id_app_id',
-      Metadata.namespace_id, Metadata.app_id)
+
+Index(
+    "ix_obj_public_id_app_id", Metadata.object_public_id, Metadata.app_id, unique=True
+)
+Index("ix_namespace_id_app_id", Metadata.namespace_id, Metadata.app_id)

@@ -12,18 +12,26 @@ THREAD_ID = 2
 
 
 def test_archive_move_syncback(db, config):
-    from inbox.actions.backends.gmail import (set_remote_archived,
-                                              remote_move, uidvalidity_cb)
+    from inbox.actions.backends.gmail import (
+        set_remote_archived,
+        remote_move,
+        uidvalidity_cb,
+    )
     from inbox.models.backends.imap import ImapAccount, ImapThread
-    g_thrid = db.session.query(ImapThread.g_thrid).filter_by(
-        id=THREAD_ID, namespace_id=NAMESPACE_ID).one()[0]
+
+    g_thrid = (
+        db.session.query(ImapThread.g_thrid)
+        .filter_by(id=THREAD_ID, namespace_id=NAMESPACE_ID)
+        .one()[0]
+    )
     account = db.session.query(ImapAccount).get(ACCOUNT_ID)
 
     set_remote_archived(account, THREAD_ID, False, db.session)
     set_remote_archived(account, THREAD_ID, True, db.session)
 
-    assert account.inbox_folder_id and account.all_folder_id, \
-        "`inbox_folder_id` and `all_folder_id` cannot be NULL"
+    assert (
+        account.inbox_folder_id and account.all_folder_id
+    ), "`inbox_folder_id` and `all_folder_id` cannot be NULL"
     with crispin_client(account.id, account.provider) as client:
         client.select_folder(account.inbox_folder.name, uidvalidity_cb)
         inbox_uids = client.find_messages(g_thrid)
@@ -33,8 +41,13 @@ def test_archive_move_syncback(db, config):
         assert archive_uids, "thread missing from archive"
 
         # and put things back the way they were :)
-        remote_move(account, THREAD_ID, account.all_folder.name,
-                    account.inbox_folder.name, db.session)
+        remote_move(
+            account,
+            THREAD_ID,
+            account.all_folder.name,
+            account.inbox_folder.name,
+            db.session,
+        )
         client.select_folder(account.inbox_folder.name, uidvalidity_cb)
         inbox_uids = client.find_messages(g_thrid)
         assert inbox_uids, "thread missing from inbox"
@@ -44,16 +57,21 @@ def test_archive_move_syncback(db, config):
 
 
 def test_copy_delete_syncback(db, config):
-    from inbox.actions.backends.gmail import (_remote_copy, _remote_delete,
-                                              uidvalidity_cb)
+    from inbox.actions.backends.gmail import (
+        _remote_copy,
+        _remote_delete,
+        uidvalidity_cb,
+    )
     from inbox.models.backends.imap import ImapAccount, ImapThread
 
-    g_thrid = db.session.query(ImapThread.g_thrid). \
-        filter_by(id=THREAD_ID, namespace_id=NAMESPACE_ID).one()[0]
+    g_thrid = (
+        db.session.query(ImapThread.g_thrid)
+        .filter_by(id=THREAD_ID, namespace_id=NAMESPACE_ID)
+        .one()[0]
+    )
     account = db.session.query(ImapAccount).get(ACCOUNT_ID)
 
-    _remote_copy(account, THREAD_ID, account.inbox_folder.name, 'testlabel',
-                 db.session)
+    _remote_copy(account, THREAD_ID, account.inbox_folder.name, "testlabel", db.session)
 
     with crispin_client(account.id, account.provider) as client:
         client.select_folder(account.inbox_folder.name, uidvalidity_cb)
@@ -62,19 +80,19 @@ def test_copy_delete_syncback(db, config):
         client.select_folder(account.all_folder.name, uidvalidity_cb)
         archive_uids = client.find_messages(g_thrid)
         assert archive_uids, "thread missing from archive"
-        client.select_folder('testlabel', uidvalidity_cb)
+        client.select_folder("testlabel", uidvalidity_cb)
         testlabel_uids = client.find_messages(g_thrid)
         assert testlabel_uids, "thread missing from testlabel"
 
         # and put things back the way they were :)
-        _remote_delete(account, THREAD_ID, 'testlabel', db.session)
+        _remote_delete(account, THREAD_ID, "testlabel", db.session)
         client.select_folder(account.inbox_folder.name, uidvalidity_cb)
         inbox_uids = client.find_messages(g_thrid)
         assert inbox_uids, "thread missing from inbox"
         client.select_folder(account.all_folder.name, uidvalidity_cb)
         archive_uids = client.find_messages(g_thrid)
         assert archive_uids, "thread missing from archive"
-        client.select_folder('testlabel', uidvalidity_cb)
+        client.select_folder("testlabel", uidvalidity_cb)
         testlabel_uids = client.find_messages(g_thrid)
         assert not testlabel_uids, "thread still present in testlabel"
 
@@ -84,24 +102,20 @@ def test_remote_unread_syncback(db, config):
     from inbox.models.backends.imap import ImapAccount, ImapThread
 
     account = db.session.query(ImapAccount).get(ACCOUNT_ID)
-    g_thrid, = db.session.query(ImapThread.g_thrid). \
-        filter_by(id=THREAD_ID).one()
+    (g_thrid,) = db.session.query(ImapThread.g_thrid).filter_by(id=THREAD_ID).one()
 
     set_remote_unread(account, THREAD_ID, True, db.session)
 
     with crispin_client(account.id, account.provider) as client:
         client.select_folder(account.all_folder.name, uidvalidity_cb)
         uids = client.find_messages(g_thrid)
-        assert not any('\\Seen' in flags for flags, _ in
-                       client.flags(uids).values())
+        assert not any("\\Seen" in flags for flags, _ in client.flags(uids).values())
 
         set_remote_unread(account, THREAD_ID, False, db.session)
-        assert all('\\Seen' in flags for flags, _ in
-                   client.flags(uids).values())
+        assert all("\\Seen" in flags for flags, _ in client.flags(uids).values())
 
         set_remote_unread(account, THREAD_ID, True, db.session)
-        assert not any('\\Seen' in flags for flags, _ in
-                       client.flags(uids).values())
+        assert not any("\\Seen" in flags for flags, _ in client.flags(uids).values())
 
 
 # TODO: Test more of the different cases here.

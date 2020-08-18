@@ -2,7 +2,7 @@ import pytest
 
 from inbox.models.session import session_scope
 from client import NylasTestClient
-from conftest import (timeout_loop, credentials, create_account, API_BASE)
+from conftest import timeout_loop, credentials, create_account, API_BASE
 
 try:
     # If there's no broken accounts file, well, tough luck but don't crash.
@@ -14,17 +14,17 @@ except ImportError:
     broken_credentials = []
 
 
-@timeout_loop('sync_start')
+@timeout_loop("sync_start")
 def wait_for_sync_start(client):
     return True if client.messages.first() else False
 
 
-@timeout_loop('auth')
+@timeout_loop("auth")
 def wait_for_auth(client):
     namespaces = client.namespaces.all()
     if len(namespaces):
-        client.email_address = namespaces[0]['email_address']
-        client.provider = namespaces[0]['provider']
+        client.email_address = namespaces[0]["email_address"]
+        client.provider = namespaces[0]["provider"]
         return True
     return False
 
@@ -41,7 +41,7 @@ def test_account_auth(account_credentials):
     wait_for_sync_start(client)
 
 
-errors = __import__('inbox.basicauth', fromlist=['basicauth'])
+errors = __import__("inbox.basicauth", fromlist=["basicauth"])
 
 
 def test_account_create_should_fail():
@@ -52,8 +52,7 @@ def test_account_create_should_fail():
        e.g.
        ({'user': 'foo@foo.com', 'password': 'pass'}, 'ConfigurationError')
     """
-    credentials = [((c['user'], c['password']), e)
-                   for (c, e) in broken_credentials]
+    credentials = [((c["user"], c["password"]), e) for (c, e) in broken_credentials]
 
     for ((email, password), error) in credentials:
         error_obj = getattr(errors, error)
@@ -62,5 +61,5 @@ def test_account_create_should_fail():
                 create_account(db_session, email, password)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pytest.main([__file__])

@@ -8,20 +8,30 @@ def add_imap_status_info_rows(folder_id, account_id, db_session):
     """Add placeholder ImapFolderSyncStatus and ImapFolderInfo rows for this
        folder_id if none exist.
     """
-    if not db_session.query(ImapFolderSyncStatus).filter_by(
-            account_id=account_id, folder_id=folder_id).all():
-        db_session.add(ImapFolderSyncStatus(
-            account_id=account_id,
-            folder_id=folder_id,
-            state='initial'))
+    if (
+        not db_session.query(ImapFolderSyncStatus)
+        .filter_by(account_id=account_id, folder_id=folder_id)
+        .all()
+    ):
+        db_session.add(
+            ImapFolderSyncStatus(
+                account_id=account_id, folder_id=folder_id, state="initial"
+            )
+        )
 
-    if not db_session.query(ImapFolderInfo).filter_by(
-            account_id=account_id, folder_id=folder_id).all():
-        db_session.add(ImapFolderInfo(
-            account_id=account_id,
-            folder_id=folder_id,
-            uidvalidity=1,
-            highestmodseq=22))
+    if (
+        not db_session.query(ImapFolderInfo)
+        .filter_by(account_id=account_id, folder_id=folder_id)
+        .all()
+    ):
+        db_session.add(
+            ImapFolderInfo(
+                account_id=account_id,
+                folder_id=folder_id,
+                uidvalidity=1,
+                highestmodseq=22,
+            )
+        )
 
 
 def create_foldersyncstatuses(db, default_account):
@@ -29,13 +39,13 @@ def create_foldersyncstatuses(db, default_account):
     monitor = ImapSyncMonitor(default_account)
 
     folder_names_and_roles = {
-        RawFolder('INBOX', 'inbox'),
-        RawFolder('Sent Mail', 'sent'),
-        RawFolder('Sent Messages', 'sent'),
-        RawFolder('Drafts', 'drafts'),
-        RawFolder('Miscellania', None),
-        RawFolder('miscellania', None),
-        RawFolder('Recipes', None),
+        RawFolder("INBOX", "inbox"),
+        RawFolder("Sent Mail", "sent"),
+        RawFolder("Sent Messages", "sent"),
+        RawFolder("Drafts", "drafts"),
+        RawFolder("Miscellania", None),
+        RawFolder("miscellania", None),
+        RawFolder("Recipes", None),
     }
     monitor.save_folder_names(db.session, folder_names_and_roles)
     folders = db.session.query(Folder).filter_by(account_id=default_account.id)
@@ -70,8 +80,7 @@ def test_imap_folder_sync_enabled(db, default_account):
     assert all([fs.sync_enabled for fs in default_account.foldersyncstatuses])
 
     # Disable sync. Folders should now not have sync_enabled.
-    default_account.disable_sync('testing')
+    default_account.disable_sync("testing")
     db.session.commit()
 
-    assert all([not fs.sync_enabled
-                for fs in default_account.foldersyncstatuses])
+    assert all([not fs.sync_enabled for fs in default_account.foldersyncstatuses])

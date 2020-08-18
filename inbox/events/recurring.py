@@ -1,12 +1,12 @@
 import arrow
-from dateutil.rrule import (rrulestr, rrule, rruleset,
-                            MO, TU, WE, TH, FR, SA, SU)
+from dateutil.rrule import rrulestr, rrule, rruleset, MO, TU, WE, TH, FR, SA, SU
 
 from inbox.models.event import RecurringEvent, RecurringEventOverride
 from inbox.events.util import parse_rrule_datetime
 from timezones import timezones_table
 
 from nylas.logging import get_logger
+
 log = get_logger()
 
 # How far in the future to expand recurring events
@@ -25,11 +25,16 @@ def link_events(db_session, event):
 def link_overrides(db_session, event):
     # Find event instances which override this specific
     # RecurringEvent instance.
-    overrides = db_session.query(RecurringEventOverride).\
-        filter_by(namespace_id=event.namespace_id,
-                  calendar_id=event.calendar_id,
-                  master_event_uid=event.uid,
-                  source=event.source).all()
+    overrides = (
+        db_session.query(RecurringEventOverride)
+        .filter_by(
+            namespace_id=event.namespace_id,
+            calendar_id=event.calendar_id,
+            master_event_uid=event.uid,
+            source=event.source,
+        )
+        .all()
+    )
     for o in overrides:
         if not o.master:
             o.master = event
@@ -42,11 +47,16 @@ def link_master(db_session, event):
     # been synced yet)
     if not event.master:
         if event.master_event_uid:
-            master = db_session.query(RecurringEvent).\
-                filter_by(namespace_id=event.namespace_id,
-                          calendar_id=event.calendar_id,
-                          uid=event.master_event_uid,
-                          source=event.source).first()
+            master = (
+                db_session.query(RecurringEvent)
+                .filter_by(
+                    namespace_id=event.namespace_id,
+                    calendar_id=event.calendar_id,
+                    uid=event.master_event_uid,
+                    source=event.source,
+                )
+                .first()
+            )
             if master:
                 event.master = master
     return event.master  # This may be None.
@@ -56,32 +66,34 @@ def parse_rrule(event):
     # Parse the RRULE string and return a dateutil.rrule.rrule object
     if event.rrule is not None:
         if event.all_day:
-            start = event.start.to('utc').naive
+            start = event.start.to("utc").naive
             ignoretz = True
         else:
             start = event.start.datetime
             ignoretz = False
         try:
-            rule = rrulestr(event.rrule, dtstart=start, ignoretz=ignoretz,
-                            compatible=True)
+            rule = rrulestr(
+                event.rrule, dtstart=start, ignoretz=ignoretz, compatible=True
+            )
 
             return rule
         except Exception as e:
-            log.error("Error parsing RRULE entry", event_id=event.id,
-                      error=e, exc_info=True)
+            log.error(
+                "Error parsing RRULE entry", event_id=event.id, error=e, exc_info=True
+            )
 
 
 def parse_exdate(event):
     # Parse the EXDATE string and return a list of arrow datetimes
     excl_dates = []
     if event.exdate:
-        name, values = event.exdate.split(':', 1)
-        tzinfo = 'UTC'
-        for p in name.split(';'):
+        name, values = event.exdate.split(":", 1)
+        tzinfo = "UTC"
+        for p in name.split(";"):
             # Handle TZID in EXDATE (TODO: submit PR to python-dateutil)
-            if p.startswith('TZID'):
+            if p.startswith("TZID"):
                 tzinfo = p[5:]
-        for v in values.split(','):
+        for v in values.split(","):
             # convert to timezone-aware dates
             t = parse_rrule_datetime(v, tzinfo)
             excl_dates.append(t)
@@ -119,8 +131,7 @@ def get_start_times(event, start=None, end=None):
 
         rrules = parse_rrule(event)
         if not rrules:
-            log.warn('Tried to expand a non-recurring event',
-                     event_id=event.id)
+            log.warn("Tried to expand a non-recurring event", event_id=event.id)
             return [event.start]
 
         excl_dates = parse_exdate(event)
@@ -139,13 +150,13 @@ def get_start_times(event, start=None, end=None):
         if event.all_day:
             # compare naive times, since date handling in rrulestr is naive
             # when UNTIL takes the form YYYYMMDD
-            start = start.to('utc').naive
-            end = end.to('utc').naive
+            start = start.to("utc").naive
+            end = end.to("utc").naive
 
         start_times = rrules.between(start, end, inc=True)
 
         # Convert back to UTC, which covers daylight savings differences
-        start_times = [arrow.get(t).to('utc') for t in start_times]
+        start_times = [arrow.get(t).to("utc") for t in start_times]
 
         return start_times
 
@@ -153,13 +164,7 @@ def get_start_times(event, start=None, end=None):
 
 
 # rrule constant values
-freq_map = ('YEARLY',
-            'MONTHLY',
-            'WEEKLY',
-            'DAILY',
-            'HOURLY',
-            'MINUTELY',
-            'SECONDLY')
+freq_map = ("YEARLY", "MONTHLY", "WEEKLY", "DAILY", "HOURLY", "MINUTELY", "SECONDLY")
 
 weekday_map = (MO, TU, WE, TH, FR, SA, SU)
 
@@ -172,17 +177,16 @@ def rrule_to_json(r):
     for field, value in info.iteritems():
         if isinstance(value, tuple) and len(value) == 1:
             value = value[0]
-        if field[0] == '_':
+        if field[0] == "_":
             fieldname = field[1:]
         else:
             continue
-        if fieldname.startswith('by') and value is not None:
-            if fieldname == 'byweekday':
+        if fieldname.startswith("by") and value is not None:
+            if fieldname == "byweekday":
                 value = str(weekday_map[value])
             j[fieldname] = value
-        elif fieldname == 'freq':
+        elif fieldname == "freq":
             j[fieldname] = freq_map[value]
-        elif fieldname in ['dtstart', 'interval', 'wkst',
-                           'count', 'until']:  # tzinfo?
+        elif fieldname in ["dtstart", "interval", "wkst", "count", "until"]:  # tzinfo?
             j[fieldname] = value
     return j

@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from requests.exceptions import HTTPError
 
 from nylas.logging import get_logger
+
 logger = get_logger()
 
 from inbox.basicauth import AccessNotEnabledError, OAuthError
@@ -20,10 +21,10 @@ from inbox.events.google import GoogleEventsProvider
 
 
 EVENT_SYNC_FOLDER_ID = -2
-EVENT_SYNC_FOLDER_NAME = 'Events'
+EVENT_SYNC_FOLDER_NAME = "Events"
 
 # Update frequency for accounts without push notifications
-POLL_FREQUENCY = config.get('CALENDAR_POLL_FREQUENCY', 300)
+POLL_FREQUENCY = config.get("CALENDAR_POLL_FREQUENCY", 300)
 
 # Update frequency for accounts with push notifications (accounts are only
 # updated if there was a recent push notification).
@@ -37,42 +38,51 @@ MAX_TIME_WITHOUT_SYNC = timedelta(seconds=3600)
 class EventSync(BaseSyncMonitor):
     """Per-account event sync engine."""
 
-    def __init__(self, email_address, provider_name, account_id, namespace_id,
-                 poll_frequency=POLL_FREQUENCY):
-        bind_context(self, 'eventsync', account_id)
+    def __init__(
+        self,
+        email_address,
+        provider_name,
+        account_id,
+        namespace_id,
+        poll_frequency=POLL_FREQUENCY,
+    ):
+        bind_context(self, "eventsync", account_id)
         # Only Google for now, can easily parametrize by provider later.
         self.provider = GoogleEventsProvider(account_id, namespace_id)
-        self.log = logger.new(account_id=account_id, component='calendar sync')
+        self.log = logger.new(account_id=account_id, component="calendar sync")
 
-        BaseSyncMonitor.__init__(self,
-                                 account_id,
-                                 namespace_id,
-                                 email_address,
-                                 EVENT_SYNC_FOLDER_ID,
-                                 EVENT_SYNC_FOLDER_NAME,
-                                 provider_name,
-                                 poll_frequency=poll_frequency,
-                                 scope='calendar')
+        BaseSyncMonitor.__init__(
+            self,
+            account_id,
+            namespace_id,
+            email_address,
+            EVENT_SYNC_FOLDER_ID,
+            EVENT_SYNC_FOLDER_NAME,
+            provider_name,
+            poll_frequency=poll_frequency,
+            scope="calendar",
+        )
 
     def sync(self):
         """Query a remote provider for updates and persist them to the
         database. This function runs every `self.poll_frequency`.
         """
-        self.log.debug('syncing events')
+        self.log.debug("syncing events")
 
         try:
             deleted_uids, calendar_changes = self.provider.sync_calendars()
         except AccessNotEnabledError:
             self.log.warning(
-                'Access to provider calendar API not enabled; bypassing sync')
+                "Access to provider calendar API not enabled; bypassing sync"
+            )
             return
         with session_scope(self.namespace_id) as db_session:
-            handle_calendar_deletes(self.namespace_id, deleted_uids,
-                                    self.log, db_session)
-            calendar_uids_and_ids = handle_calendar_updates(self.namespace_id,
-                                                            calendar_changes,
-                                                            self.log,
-                                                            db_session)
+            handle_calendar_deletes(
+                self.namespace_id, deleted_uids, self.log, db_session
+            )
+            calendar_uids_and_ids = handle_calendar_updates(
+                self.namespace_id, calendar_changes, self.log, db_session
+            )
             db_session.commit()
 
         for (uid, id_) in calendar_uids_and_ids:
@@ -80,22 +90,24 @@ class EventSync(BaseSyncMonitor):
             # miss remote updates that happen while the poll loop is executing.
             sync_timestamp = datetime.utcnow()
             with session_scope(self.namespace_id) as db_session:
-                last_sync = db_session.query(Calendar.last_synced).filter(
-                    Calendar.id == id_).scalar()
+                last_sync = (
+                    db_session.query(Calendar.last_synced)
+                    .filter(Calendar.id == id_)
+                    .scalar()
+                )
 
-            event_changes = self.provider.sync_events(
-                uid, sync_from_time=last_sync)
+            event_changes = self.provider.sync_events(uid, sync_from_time=last_sync)
 
             with session_scope(self.namespace_id) as db_session:
-                handle_event_updates(self.namespace_id, id_, event_changes,
-                                     self.log, db_session)
+                handle_event_updates(
+                    self.namespace_id, id_, event_changes, self.log, db_session
+                )
                 cal = db_session.query(Calendar).get(id_)
                 cal.last_synced = sync_timestamp
                 db_session.commit()
 
 
-def handle_calendar_deletes(namespace_id, deleted_calendar_uids, log,
-                            db_session):
+def handle_calendar_deletes(namespace_id, deleted_calendar_uids, log, db_session):
     """
     Delete any local Calendar rows with uid in `deleted_calendar_uids`. This
     delete cascades to associated events (if the calendar is gone, so are all
@@ -104,13 +116,15 @@ def handle_calendar_deletes(namespace_id, deleted_calendar_uids, log,
     """
     deleted_count = 0
     for uid in deleted_calendar_uids:
-        local_calendar = db_session.query(Calendar).filter(
-            Calendar.namespace_id == namespace_id,
-            Calendar.uid == uid).first()
+        local_calendar = (
+            db_session.query(Calendar)
+            .filter(Calendar.namespace_id == namespace_id, Calendar.uid == uid)
+            .first()
+        )
         if local_calendar is not None:
             _delete_calendar(db_session, local_calendar)
             deleted_count += 1
-    log.info('deleted calendars', deleted=deleted_count)
+    log.info("deleted calendars", deleted=deleted_count)
 
 
 def handle_calendar_updates(namespace_id, calendars, log, db_session):
@@ -119,11 +133,13 @@ def handle_calendar_updates(namespace_id, calendars, log, db_session):
     added_count = 0
     updated_count = 0
     for calendar in calendars:
-        assert calendar.uid is not None, 'Got remote item with null uid'
+        assert calendar.uid is not None, "Got remote item with null uid"
 
-        local_calendar = db_session.query(Calendar).filter(
-            Calendar.namespace_id == namespace_id,
-            Calendar.uid == calendar.uid).first()
+        local_calendar = (
+            db_session.query(Calendar)
+            .filter(Calendar.namespace_id == namespace_id, Calendar.uid == calendar.uid)
+            .first()
+        )
 
         if local_calendar is not None:
             local_calendar.update(calendar)
@@ -137,8 +153,9 @@ def handle_calendar_updates(namespace_id, calendars, log, db_session):
         db_session.commit()
         ids_.append((local_calendar.uid, local_calendar.id))
 
-    log.info('synced added and updated calendars', added=added_count,
-             updated=updated_count)
+    log.info(
+        "synced added and updated calendars", added=added_count, updated=updated_count
+    )
     return ids_
 
 
@@ -146,31 +163,40 @@ def handle_event_updates(namespace_id, calendar_id, events, log, db_session):
     """Persists new or updated Event objects to the database."""
     added_count = 0
     updated_count = 0
-    existing_event_query = db_session.query(Event).filter(
-        Event.namespace_id == namespace_id,
-        Event.calendar_id == calendar_id).exists()
+    existing_event_query = (
+        db_session.query(Event)
+        .filter(Event.namespace_id == namespace_id, Event.calendar_id == calendar_id)
+        .exists()
+    )
     events_exist = db_session.query(existing_event_query).scalar()
     for event in events:
-        assert event.uid is not None, 'Got remote item with null uid'
+        assert event.uid is not None, "Got remote item with null uid"
 
         local_event = None
         if events_exist:
             # Skip this lookup if there are no local events at all, for faster
             # first sync.
-            local_event = db_session.query(Event).filter(
-                Event.namespace_id == namespace_id,
-                Event.calendar_id == calendar_id,
-                Event.uid == event.uid).first()
+            local_event = (
+                db_session.query(Event)
+                .filter(
+                    Event.namespace_id == namespace_id,
+                    Event.calendar_id == calendar_id,
+                    Event.uid == event.uid,
+                )
+                .first()
+            )
 
         if local_event is not None:
             # We also need to mark all overrides as cancelled if we're
             # cancelling a recurring event. However, note the original event
             # may not itself be recurring (recurrence may have been added).
-            if isinstance(local_event, RecurringEvent) and \
-                    event.status == 'cancelled' and \
-                    local_event.status != 'cancelled':
+            if (
+                isinstance(local_event, RecurringEvent)
+                and event.status == "cancelled"
+                and local_event.status != "cancelled"
+            ):
                 for override in local_event.overrides:
-                    override.status = 'cancelled'
+                    override.status = "cancelled"
 
             local_event.update(event)
             local_event.participants = event.participants
@@ -190,29 +216,31 @@ def handle_event_updates(namespace_id, calendar_id, events, log, db_session):
 
         # If we just updated/added a recurring event or override, make sure
         # we link it to the right master event.
-        if isinstance(event, RecurringEvent) or \
-                isinstance(event, RecurringEventOverride):
+        if isinstance(event, RecurringEvent) or isinstance(
+            event, RecurringEventOverride
+        ):
             link_events(db_session, event)
 
         # Batch commits to avoid long transactions that may lock calendar rows.
         if (added_count + updated_count) % 10 == 0:
             db_session.commit()
 
-    log.info('synced added and updated events',
-             calendar_id=calendar_id,
-             added=added_count,
-             updated=updated_count)
+    log.info(
+        "synced added and updated events",
+        calendar_id=calendar_id,
+        added=added_count,
+        updated=updated_count,
+    )
 
 
 class GoogleEventSync(EventSync):
-
     def __init__(self, *args, **kwargs):
         super(GoogleEventSync, self).__init__(*args, **kwargs)
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(Account).get(self.account_id)
             if (
-                self.provider.push_notifications_enabled(account) and
-                kwargs.get('poll_frequency') is None
+                self.provider.push_notifications_enabled(account)
+                and kwargs.get("poll_frequency") is None
             ):
                 # Run the sync loop more frequently if push notifications are
                 # enabled. Note that we'll only update the calendar if a
@@ -229,27 +257,29 @@ class GoogleEventSync(EventSync):
         currently subscribed to push notificaitons and haven't heard anything
         new from Google.
         """
-        self.log.debug('syncing events')
+        self.log.debug("syncing events")
 
         try:
             self._refresh_gpush_subscriptions()
         except AccessNotEnabledError:
             self.log.warning(
-                'Access to provider calendar API not enabled; '
-                'cannot sign up for push notifications')
+                "Access to provider calendar API not enabled; "
+                "cannot sign up for push notifications"
+            )
         except OAuthError:
             # Not enough of a reason to halt the sync!
             self.log.warning(
-                'Not authorized to set up push notifications for account'
-                '(Safe to ignore this message if not recurring.)',
-                account_id=self.account_id)
+                "Not authorized to set up push notifications for account"
+                "(Safe to ignore this message if not recurring.)",
+                account_id=self.account_id,
+            )
 
         try:
             self._sync_data()
         except AccessNotEnabledError:
             self.log.warning(
-                'Access to provider calendar API not enabled; '
-                'bypassing sync')
+                "Access to provider calendar API not enabled; " "bypassing sync"
+            )
 
     def _refresh_gpush_subscriptions(self):
         with session_scope(self.namespace_id) as db_session:
@@ -263,8 +293,9 @@ class GoogleEventSync(EventSync):
                 if expir is not None:
                     account.new_calendar_list_watch(expir)
 
-            cals_to_update = (cal for cal in account.namespace.calendars
-                              if cal.needs_new_watch())
+            cals_to_update = (
+                cal for cal in account.namespace.calendars if cal.needs_new_watch()
+            )
             for cal in cals_to_update:
                 try:
                     expir = self.provider.watch_calendar(account, cal)
@@ -273,31 +304,37 @@ class GoogleEventSync(EventSync):
                 except HTTPError as exc:
                     if exc.response.status_code == 404:
                         self.log.warning(
-                            'Tried to subscribe to push notifications'
-                            ' for a deleted or inaccessible calendar. Deleting'
-                            ' local calendar',
-                            calendar_id=cal.id, calendar_uid=cal.uid)
+                            "Tried to subscribe to push notifications"
+                            " for a deleted or inaccessible calendar. Deleting"
+                            " local calendar",
+                            calendar_id=cal.id,
+                            calendar_uid=cal.uid,
+                        )
                         _delete_calendar(db_session, cal)
                     else:
                         self.log.error(
-                            'Error while updating calendar push notification '
-                            'subscription', cal_id=cal.id, calendar_uid=cal.uid,
-                            status_code=exc.response.status_code)
+                            "Error while updating calendar push notification "
+                            "subscription",
+                            cal_id=cal.id,
+                            calendar_uid=cal.uid,
+                            status_code=exc.response.status_code,
+                        )
                         raise exc
 
     def _sync_data(self):
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(Account).get(self.account_id)
-            if (
-                account.should_update_calendars(
-                    MAX_TIME_WITHOUT_SYNC, timedelta(seconds=POLL_FREQUENCY))
+            if account.should_update_calendars(
+                MAX_TIME_WITHOUT_SYNC, timedelta(seconds=POLL_FREQUENCY)
             ):
                 self._sync_calendar_list(account, db_session)
 
             stale_calendars = (
-                cal for cal in account.namespace.calendars
-                if cal.should_update_events(MAX_TIME_WITHOUT_SYNC,
-                                            timedelta(seconds=POLL_FREQUENCY))
+                cal
+                for cal in account.namespace.calendars
+                if cal.should_update_events(
+                    MAX_TIME_WITHOUT_SYNC, timedelta(seconds=POLL_FREQUENCY)
+                )
             )
 
             # Sync user's primary calendar first. Note that the UID of the
@@ -313,27 +350,29 @@ class GoogleEventSync(EventSync):
                 except HTTPError as exc:
                     if exc.response.status_code == 404:
                         self.log.warning(
-                            'Tried to sync a deleted calendar.'
-                            'Deleting local calendar.',
-                            calendar_id=cal.id, calendar_uid=cal.uid)
+                            "Tried to sync a deleted calendar."
+                            "Deleting local calendar.",
+                            calendar_id=cal.id,
+                            calendar_uid=cal.uid,
+                        )
                         _delete_calendar(db_session, cal)
                     else:
                         self.log.error(
-                            'Error while syncing calendar',
-                            cal_id=cal.id, calendar_uid=cal.uid,
-                            status_code=exc.response.status_code)
+                            "Error while syncing calendar",
+                            cal_id=cal.id,
+                            calendar_uid=cal.uid,
+                            status_code=exc.response.status_code,
+                        )
                         raise exc
 
     def _sync_calendar_list(self, account, db_session):
         sync_timestamp = datetime.utcnow()
         deleted_uids, calendar_changes = self.provider.sync_calendars()
 
-        handle_calendar_deletes(self.namespace_id, deleted_uids,
-                                self.log, db_session)
-        handle_calendar_updates(self.namespace_id,
-                                calendar_changes,
-                                self.log,
-                                db_session)
+        handle_calendar_deletes(self.namespace_id, deleted_uids, self.log, db_session)
+        handle_calendar_updates(
+            self.namespace_id, calendar_changes, self.log, db_session
+        )
 
         account.last_calendar_list_sync = sync_timestamp
         db_session.commit()
@@ -341,10 +380,12 @@ class GoogleEventSync(EventSync):
     def _sync_calendar(self, calendar, db_session):
         sync_timestamp = datetime.utcnow()
         event_changes = self.provider.sync_events(
-            calendar.uid, sync_from_time=calendar.last_synced)
+            calendar.uid, sync_from_time=calendar.last_synced
+        )
 
-        handle_event_updates(self.namespace_id, calendar.id,
-                             event_changes, self.log, db_session)
+        handle_event_updates(
+            self.namespace_id, calendar.id, event_changes, self.log, db_session
+        )
         calendar.last_synced = sync_timestamp
         db_session.commit()
 

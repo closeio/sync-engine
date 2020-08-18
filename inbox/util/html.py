@@ -18,8 +18,8 @@ class HTMLTagStripper(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         # Replace <br>, <div> tags by spaces
-        if tag.lower() in ('br', 'div'):
-            self.fed.append(' ')
+        if tag.lower() in ("br", "div"):
+            self.fed.append(" ")
         # Strip the contents of a tag when it's
         # in strippedTags. We can do this because
         # HTMLParser won't try to parse the inner
@@ -36,7 +36,7 @@ class HTMLTagStripper(HTMLParser):
 
     def handle_charref(self, d):
         try:
-            if d.startswith('x'):
+            if d.startswith("x"):
                 val = int(d[1:], 16)
             else:
                 val = int(d)
@@ -52,7 +52,7 @@ class HTMLTagStripper(HTMLParser):
         self.fed.append(val)
 
     def get_data(self):
-        return u''.join(self.fed)
+        return u"".join(self.fed)
 
 
 def strip_tags(html):
@@ -60,39 +60,44 @@ def strip_tags(html):
     try:
         s.feed(html)
     except HTMLParseError:
-        get_logger().error('error stripping tags', raw_html=html)
+        get_logger().error("error stripping tags", raw_html=html)
     return s.get_data()
 
+
 # https://djangosnippets.org/snippets/19/
-re_string = re.compile(ur'(?P<htmlchars>[<&>])|(?P<space>^[ \t]+)|(?P<lineend>\n)|(?P<protocol>(^|\s)((http|ftp)://.*?))(\s|$)', re.S | re.M | re.I | re.U)  # noqa
+re_string = re.compile(
+    ur"(?P<htmlchars>[<&>])|(?P<space>^[ \t]+)|(?P<lineend>\n)|(?P<protocol>(^|\s)((http|ftp)://.*?))(\s|$)",
+    re.S | re.M | re.I | re.U,
+)  # noqa
 
 
 def plaintext2html(text, tabstop=4):
-    assert '\r' not in text, "newlines not normalized"
+    assert "\r" not in text, "newlines not normalized"
 
     def do_sub(m):
         c = m.groupdict()
-        if c['htmlchars']:
-            return cgi.escape(c['htmlchars'])
-        if c['lineend']:
-            return '<br>'
-        elif c['space']:
-            t = m.group().replace('\t', u'&nbsp;' * tabstop)
-            t = t.replace(' ', '&nbsp;')
+        if c["htmlchars"]:
+            return cgi.escape(c["htmlchars"])
+        if c["lineend"]:
+            return "<br>"
+        elif c["space"]:
+            t = m.group().replace("\t", u"&nbsp;" * tabstop)
+            t = t.replace(" ", "&nbsp;")
             return t
-        elif c['space'] == '\t':
-            return ' ' * tabstop
+        elif c["space"] == "\t":
+            return " " * tabstop
         else:
-            url = m.group('protocol')
-            if url.startswith(' '):
-                prefix = ' '
+            url = m.group("protocol")
+            if url.startswith(" "):
+                prefix = " "
                 url = url[1:]
             else:
-                prefix = ''
+                prefix = ""
             last = m.groups()[-1]
-            if last in ['\n', '\r', '\r\n']:
-                last = '<br>'
-            return u'{0}<a href="{1}">{2}</a>{3}'.format(
-                prefix, url, url, last)
-    return '\n'.join([u'<p>{0}</p>'.format(
-        re.sub(re_string, do_sub, p)) for p in text.split('\n\n')])
+            if last in ["\n", "\r", "\r\n"]:
+                last = "<br>"
+            return u'{0}<a href="{1}">{2}</a>{3}'.format(prefix, url, url, last)
+
+    return "\n".join(
+        [u"<p>{0}</p>".format(re.sub(re_string, do_sub, p)) for p in text.split("\n\n")]
+    )

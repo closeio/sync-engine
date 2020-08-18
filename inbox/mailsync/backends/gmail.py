@@ -39,10 +39,11 @@ from inbox.mailsync.backends.imap.monitor import ImapSyncMonitor
 from inbox.mailsync.backends.imap import common
 from inbox.mailsync.gc import LabelRenameHandler
 from inbox.mailsync.backends.base import THROTTLE_COUNT, THROTTLE_WAIT
+
 log = get_logger()
 
-PROVIDER = 'gmail'
-SYNC_MONITOR_CLS = 'GmailSyncMonitor'
+PROVIDER = "gmail"
+SYNC_MONITOR_CLS = "GmailSyncMonitor"
 
 
 MAX_DOWNLOAD_BYTES = 2 ** 20
@@ -51,7 +52,6 @@ MAX_DOWNLOAD_COUNT = 1
 
 
 class GmailSyncMonitor(ImapSyncMonitor):
-
     def __init__(self, *args, **kwargs):
         ImapSyncMonitor.__init__(self, *args, **kwargs)
         self.sync_engine_class = GmailFolderSyncEngine
@@ -72,35 +72,45 @@ class GmailSyncMonitor(ImapSyncMonitor):
         self.label_rename_semaphore = Semaphore(value=1)
 
     def handle_raw_folder_change(self, db_session, account, raw_folder):
-        folder = db_session.query(Folder).filter(
-            Folder.account_id == account.id,
-            Folder.canonical_name == raw_folder.role).first()
+        folder = (
+            db_session.query(Folder)
+            .filter(
+                Folder.account_id == account.id,
+                Folder.canonical_name == raw_folder.role,
+            )
+            .first()
+        )
         if folder:
             if folder.name != raw_folder.display_name:
-                log.info('Folder name changed on remote',
-                         account_id=self.account_id,
-                         role=raw_folder.role,
-                         new_name=raw_folder.display_name,
-                         name=folder.name)
+                log.info(
+                    "Folder name changed on remote",
+                    account_id=self.account_id,
+                    role=raw_folder.role,
+                    new_name=raw_folder.display_name,
+                    name=folder.name,
+                )
                 folder.name = raw_folder.display_name
 
             if folder.category:
-                if folder.category.display_name != \
-                        raw_folder.display_name:
+                if folder.category.display_name != raw_folder.display_name:
                     folder.category.display_name = raw_folder.display_name  # noqa
             else:
-                log.info('Creating category for folder',
-                         account_id=self.account_id,
-                         folder_id=folder.id)
+                log.info(
+                    "Creating category for folder",
+                    account_id=self.account_id,
+                    folder_id=folder.id,
+                )
                 folder.category = Category.find_or_create(
-                    db_session, namespace_id=account.namespace.id,
+                    db_session,
+                    namespace_id=account.namespace.id,
                     name=raw_folder.role,
                     display_name=raw_folder.display_name,
-                    type_='folder')
+                    type_="folder",
+                )
         else:
-            Folder.find_or_create(db_session, account,
-                                  raw_folder.display_name,
-                                  raw_folder.role)
+            Folder.find_or_create(
+                db_session, account, raw_folder.display_name, raw_folder.role
+            )
 
     def set_sync_should_run_bit(self, account):
         # Ensure sync_should_run is True for the folders we want to sync (for
@@ -145,9 +155,12 @@ class GmailSyncMonitor(ImapSyncMonitor):
         account = db_session.query(Account).get(self.account_id)
 
         current_labels = set()
-        old_labels = {label for label in db_session.query(Label).filter(
-            Label.account_id == self.account_id,
-            Label.deleted_at == None)}  # noqa
+        old_labels = {
+            label
+            for label in db_session.query(Label).filter(
+                Label.account_id == self.account_id, Label.deleted_at == None
+            )
+        }  # noqa
 
         # Is it the first time we've been syncing folders?
         # It's important to know this because we don't want to
@@ -157,22 +170,23 @@ class GmailSyncMonitor(ImapSyncMonitor):
 
         # Create new labels, folders
         for raw_folder in raw_folders:
-            if raw_folder.role == 'starred':
+            if raw_folder.role == "starred":
                 # The starred state of messages is tracked separately
                 # (we set Message.is_starred from the '\\Flagged' flag)
                 continue
 
-            if raw_folder.role in ('all', 'spam', 'trash'):
+            if raw_folder.role in ("all", "spam", "trash"):
                 self.handle_raw_folder_change(db_session, account, raw_folder)
 
-            label = Label.find_or_create(db_session, account,
-                                         raw_folder.display_name,
-                                         raw_folder.role)
+            label = Label.find_or_create(
+                db_session, account, raw_folder.display_name, raw_folder.role
+            )
             if label.deleted_at is not None:
                 # This is a label which was previously marked as deleted
                 # but which mysteriously reappeared. Unmark it.
-                log.info('Deleted label recreated on remote',
-                         name=raw_folder.display_name)
+                log.info(
+                    "Deleted label recreated on remote", name=raw_folder.display_name
+                )
                 label.deleted_at = None
                 label.category.deleted_at = EPOCH
 
@@ -191,7 +205,8 @@ class GmailSyncMonitor(ImapSyncMonitor):
                     account_id=self.account_id,
                     namespace_id=self.namespace_id,
                     label_name=label.name,
-                    semaphore=self.label_rename_semaphore)
+                    semaphore=self.label_rename_semaphore,
+                )
 
                 rename_handler.start()
 
@@ -204,15 +219,13 @@ class GmailSyncMonitor(ImapSyncMonitor):
 
 
 class GmailFolderSyncEngine(FolderSyncEngine):
-
     def __init__(self, *args, **kwargs):
         FolderSyncEngine.__init__(self, *args, **kwargs)
         self.saved_uids = set()
 
     def is_all_mail(self, crispin_client):
-        if not hasattr(self, '_is_all_mail'):
-            self._is_all_mail = (self.folder_name in
-                                 crispin_client.folder_names()['all'])
+        if not hasattr(self, "_is_all_mail"):
+            self._is_all_mail = self.folder_name in crispin_client.folder_names()["all"]
         return self._is_all_mail
 
     def should_idle(self, crispin_client):
@@ -226,37 +239,43 @@ class GmailFolderSyncEngine(FolderSyncEngine):
             remote_uids = sorted(crispin_client.all_uids(), key=int)
             with self.syncmanager_lock:
                 with session_scope(self.namespace_id) as db_session:
-                    local_uids = common.local_uids(self.account_id, db_session,
-                                                   self.folder_id)
+                    local_uids = common.local_uids(
+                        self.account_id, db_session, self.folder_id
+                    )
                 common.remove_deleted_uids(
-                    self.account_id, self.folder_id,
-                    set(local_uids) - set(remote_uids))
+                    self.account_id, self.folder_id, set(local_uids) - set(remote_uids)
+                )
                 unknown_uids = set(remote_uids) - local_uids
                 with session_scope(self.namespace_id) as db_session:
                     self.update_uid_counts(
-                        db_session, remote_uid_count=len(remote_uids),
-                        download_uid_count=len(unknown_uids))
+                        db_session,
+                        remote_uid_count=len(remote_uids),
+                        download_uid_count=len(unknown_uids),
+                    )
 
             change_poller = gevent.spawn(self.poll_for_changes)
-            bind_context(change_poller, 'changepoller', self.account_id,
-                         self.folder_id)
+            bind_context(change_poller, "changepoller", self.account_id, self.folder_id)
 
             if self.is_all_mail(crispin_client):
                 # Prioritize UIDs for messages in the inbox folder.
                 if len(remote_uids) < 1e6:
                     inbox_uids = set(
-                        crispin_client.search_uids(['X-GM-LABELS', 'inbox']))
+                        crispin_client.search_uids(["X-GM-LABELS", "inbox"])
+                    )
                 else:
                     # The search above is really slow (times out) on really
                     # large mailboxes, so bound the search to messages within
                     # the past month in order to get anywhere.
                     since = datetime.utcnow() - timedelta(days=30)
-                    inbox_uids = set(crispin_client.search_uids([
-                        'X-GM-LABELS', 'inbox',
-                        'SINCE', since]))
+                    inbox_uids = set(
+                        crispin_client.search_uids(
+                            ["X-GM-LABELS", "inbox", "SINCE", since]
+                        )
+                    )
 
-                uids_to_download = (sorted(unknown_uids - inbox_uids) +
-                                    sorted(unknown_uids & inbox_uids))
+                uids_to_download = sorted(unknown_uids - inbox_uids) + sorted(
+                    unknown_uids & inbox_uids
+                )
             else:
                 uids_to_download = sorted(unknown_uids)
 
@@ -266,8 +285,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 # case the g_metadata call above will return nothing.
                 # They may also have been preemptively downloaded by thread
                 # expansion. We can omit such UIDs.
-                uids = [u for u in uids if u in g_metadata and u not in
-                        self.saved_uids]
+                uids = [u for u in uids if u in g_metadata and u not in self.saved_uids]
                 self.batch_download_uids(crispin_client, uids, g_metadata)
         finally:
             if change_poller is not None:
@@ -276,49 +294,60 @@ class GmailFolderSyncEngine(FolderSyncEngine):
 
     def resync_uids_impl(self):
         with session_scope(self.namespace_id) as db_session:
-            imap_folder_info_entry = db_session.query(ImapFolderInfo)\
-                .options(load_only('uidvalidity', 'highestmodseq'))\
-                .filter_by(account_id=self.account_id,
-                           folder_id=self.folder_id)\
+            imap_folder_info_entry = (
+                db_session.query(ImapFolderInfo)
+                .options(load_only("uidvalidity", "highestmodseq"))
+                .filter_by(account_id=self.account_id, folder_id=self.folder_id)
                 .one()
+            )
             with self.conn_pool.get() as crispin_client:
-                crispin_client.select_folder(self.folder_name,
-                                             lambda *args: True)
+                crispin_client.select_folder(self.folder_name, lambda *args: True)
                 uidvalidity = crispin_client.selected_uidvalidity
                 if uidvalidity <= imap_folder_info_entry.uidvalidity:
                     # if the remote UIDVALIDITY is less than or equal to -
                     # from my (siro) understanding it should not be less than -
                     # the local UIDVALIDITY log a debug message and exit right
                     # away
-                    log.debug('UIDVALIDITY unchanged')
+                    log.debug("UIDVALIDITY unchanged")
                     return
                 msg_uids = crispin_client.all_uids()
-                mapping = {g_msgid: msg_uid for msg_uid, g_msgid in
-                           crispin_client.g_msgids(msg_uids).iteritems()}
-            imap_uid_entries = db_session.query(ImapUid)\
-                .options(load_only('msg_uid'),
-                         joinedload('message').load_only('g_msgid'))\
-                .filter_by(account_id=self.account_id,
-                           folder_id=self.folder_id)
+                mapping = {
+                    g_msgid: msg_uid
+                    for msg_uid, g_msgid in crispin_client.g_msgids(
+                        msg_uids
+                    ).iteritems()
+                }
+            imap_uid_entries = (
+                db_session.query(ImapUid)
+                .options(
+                    load_only("msg_uid"), joinedload("message").load_only("g_msgid")
+                )
+                .filter_by(account_id=self.account_id, folder_id=self.folder_id)
+            )
 
             chunk_size = 1000
             for entry in imap_uid_entries.yield_per(chunk_size):
                 if entry.message.g_msgid in mapping:
-                    log.debug('X-GM-MSGID {} from UID {} to UID {}'.format(
-                        entry.message.g_msgid,
-                        entry.msg_uid,
-                        mapping[entry.message.g_msgid]))
+                    log.debug(
+                        "X-GM-MSGID {} from UID {} to UID {}".format(
+                            entry.message.g_msgid,
+                            entry.msg_uid,
+                            mapping[entry.message.g_msgid],
+                        )
+                    )
                     entry.msg_uid = mapping[entry.message.g_msgid]
                 else:
                     db_session.delete(entry)
-            log.debug('UIDVALIDITY from {} to {}'.format(
-                imap_folder_info_entry.uidvalidity, uidvalidity))
+            log.debug(
+                "UIDVALIDITY from {} to {}".format(
+                    imap_folder_info_entry.uidvalidity, uidvalidity
+                )
+            )
             imap_folder_info_entry.uidvalidity = uidvalidity
             imap_folder_info_entry.highestmodseq = None
             db_session.commit()
 
-    def __deduplicate_message_object_creation(self, db_session, raw_messages,
-                                              account):
+    def __deduplicate_message_object_creation(self, db_session, raw_messages, account):
         """
         We deduplicate messages based on g_msgid: if we've previously saved a
         Message object for this raw message, we don't create a new one. But we
@@ -332,44 +361,58 @@ class GmailFolderSyncEngine(FolderSyncEngine):
 
         """
         new_g_msgids = {msg.g_msgid for msg in raw_messages}
-        existing_g_msgids = g_msgids(self.namespace_id, db_session,
-                                     in_=new_g_msgids)
-        brand_new_messages = [m for m in raw_messages if m.g_msgid not in
-                              existing_g_msgids]
-        previously_synced_messages = [m for m in raw_messages if m.g_msgid in
-                                      existing_g_msgids]
+        existing_g_msgids = g_msgids(self.namespace_id, db_session, in_=new_g_msgids)
+        brand_new_messages = [
+            m for m in raw_messages if m.g_msgid not in existing_g_msgids
+        ]
+        previously_synced_messages = [
+            m for m in raw_messages if m.g_msgid in existing_g_msgids
+        ]
         if previously_synced_messages:
-            log.info('saving new uids for existing messages',
-                     count=len(previously_synced_messages))
+            log.info(
+                "saving new uids for existing messages",
+                count=len(previously_synced_messages),
+            )
             account = Account.get(self.account_id, db_session)
             folder = Folder.get(self.folder_id, db_session)
             for raw_message in previously_synced_messages:
-                message_obj = db_session.query(Message).filter(
-                    Message.namespace_id == self.namespace_id,
-                    Message.g_msgid == raw_message.g_msgid).first()
+                message_obj = (
+                    db_session.query(Message)
+                    .filter(
+                        Message.namespace_id == self.namespace_id,
+                        Message.g_msgid == raw_message.g_msgid,
+                    )
+                    .first()
+                )
                 if message_obj is None:
                     log.warning(
-                        'Message disappeared while saving new uid',
+                        "Message disappeared while saving new uid",
                         g_msgid=raw_message.g_msgid,
-                        uid=raw_message.uid)
+                        uid=raw_message.uid,
+                    )
                     brand_new_messages.append(raw_message)
                     continue
-                already_have_uid = (
-                    (raw_message.uid, self.folder_id) in
-                    {(u.msg_uid, u.folder_id) for u in message_obj.imapuids}
-                )
+                already_have_uid = (raw_message.uid, self.folder_id) in {
+                    (u.msg_uid, u.folder_id) for u in message_obj.imapuids
+                }
                 if already_have_uid:
-                    log.warning('Skipping existing UID for message',
-                                uid=raw_message.uid, message_id=message_obj.id)
+                    log.warning(
+                        "Skipping existing UID for message",
+                        uid=raw_message.uid,
+                        message_id=message_obj.id,
+                    )
                     continue
-                uid = ImapUid(account=account,
-                              folder=folder,
-                              msg_uid=raw_message.uid,
-                              message=message_obj)
+                uid = ImapUid(
+                    account=account,
+                    folder=folder,
+                    msg_uid=raw_message.uid,
+                    message=message_obj,
+                )
                 uid.update_flags(raw_message.flags)
                 uid.update_labels(raw_message.g_labels)
                 common.update_message_metadata(
-                    db_session, account, message_obj, uid.is_draft)
+                    db_session, account, message_obj, uid.is_draft
+                )
                 db_session.commit()
 
         return brand_new_messages
@@ -385,7 +428,8 @@ class GmailFolderSyncEngine(FolderSyncEngine):
             # Disable autoflush so we don't try to flush a message with null
             # thread_id.
             message_obj.thread = ImapThread.from_gmail_message(
-                db_session, self.namespace_id, message_obj)
+                db_session, self.namespace_id, message_obj
+            )
 
     def download_and_commit_uids(self, crispin_client, uids):
         start = datetime.utcnow()
@@ -398,24 +442,22 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 account = Account.get(self.account_id, db_session)
                 folder = Folder.get(self.folder_id, db_session)
                 raw_messages = self.__deduplicate_message_object_creation(
-                    db_session, raw_messages, account)
+                    db_session, raw_messages, account
+                )
                 if not raw_messages:
                     return 0
 
                 for msg in raw_messages:
-                    uid = self.create_message(db_session, account, folder,
-                                              msg)
+                    uid = self.create_message(db_session, account, folder, msg)
                     if uid is not None:
                         db_session.add(uid)
                         db_session.commit()
                         new_uids.add(uid)
 
-        log.debug('Committed new UIDs',
-                  new_committed_message_count=len(new_uids))
+        log.debug("Committed new UIDs", new_committed_message_count=len(new_uids))
         # If we downloaded uids, record message velocity (#uid / latency)
         if self.state == "initial" and len(new_uids):
-            self._report_message_velocity(datetime.utcnow() - start,
-                                          len(new_uids))
+            self._report_message_velocity(datetime.utcnow() - start, len(new_uids))
 
         if self.is_first_message:
             self._report_first_message()
@@ -449,17 +491,22 @@ class GmailFolderSyncEngine(FolderSyncEngine):
             for uid in sorted(uids, reverse=True):
                 yield uid
 
-    def batch_download_uids(self, crispin_client, uids, metadata,
-                            max_download_bytes=MAX_DOWNLOAD_BYTES,
-                            max_download_count=MAX_DOWNLOAD_COUNT):
+    def batch_download_uids(
+        self,
+        crispin_client,
+        uids,
+        metadata,
+        max_download_bytes=MAX_DOWNLOAD_BYTES,
+        max_download_count=MAX_DOWNLOAD_COUNT,
+    ):
         expanded_pending_uids = self.expand_uids_to_download(
-            crispin_client, uids, metadata)
+            crispin_client, uids, metadata
+        )
         count = 0
         while True:
             dl_size = 0
             batch = []
-            while (dl_size < max_download_bytes and
-                   len(batch) < max_download_count):
+            while dl_size < max_download_bytes and len(batch) < max_download_count:
                 try:
                     uid = expanded_pending_uids.next()
                 except StopIteration:
@@ -499,12 +546,18 @@ def g_msgids(namespace_id, session, in_):
     if len(in_) > 1000:
         # If in_ is really large, passing all the values to MySQL can get
         # deadly slow. (Approximate threshold empirically determined)
-        query = session.query(Message.g_msgid).join(Namespace). \
-            filter(Message.namespace_id == namespace_id).all()
+        query = (
+            session.query(Message.g_msgid)
+            .join(Namespace)
+            .filter(Message.namespace_id == namespace_id)
+            .all()
+        )
         return sorted(g_msgid for g_msgid, in query if g_msgid in in_)
     # But in the normal case that in_ only has a few elements, it's way better
     # to not fetch a bunch of values from MySQL only to return a few of them.
-    query = session.query(Message.g_msgid). \
-        filter(Message.namespace_id == namespace_id,
-               Message.g_msgid.in_(in_)).all()
+    query = (
+        session.query(Message.g_msgid)
+        .filter(Message.namespace_id == namespace_id, Message.g_msgid.in_(in_))
+        .all()
+    )
     return {g_msgid for g_msgid, in query}

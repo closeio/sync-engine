@@ -37,7 +37,7 @@ class ProfileCollector(object):
         try:
             signal.signal(signal.SIGVTALRM, self._sample)
         except ValueError:
-            raise ValueError('Can only sample on the main thread')
+            raise ValueError("Can only sample on the main thread")
 
         signal.setitimer(signal.ITIMER_VIRTUAL, self.interval, 0)
 
@@ -47,25 +47,23 @@ class ProfileCollector(object):
             stack.append(self._format_frame(frame))
             frame = frame.f_back
 
-        stack = ';'.join(reversed(stack))
+        stack = ";".join(reversed(stack))
         self._stack_counts[stack] += 1
         signal.setitimer(signal.ITIMER_VIRTUAL, self.interval, 0)
 
     def _format_frame(self, frame):
-        return '{}({})'.format(frame.f_code.co_name,
-                               frame.f_globals.get('__name__'))
+        return "{}({})".format(frame.f_code.co_name, frame.f_globals.get("__name__"))
 
     def stats(self):
         if self._started is None:
-            return ''
+            return ""
         elapsed = time.time() - self._started
-        lines = ['elapsed {}'.format(elapsed),
-                 'granularity {}'.format(self.interval)]
-        ordered_stacks = sorted(self._stack_counts.items(),
-                                key=lambda kv: kv[1], reverse=True)
-        lines.extend(['{} {}'.format(frame, count)
-                      for frame, count in ordered_stacks])
-        return '\n'.join(lines) + '\n'
+        lines = ["elapsed {}".format(elapsed), "granularity {}".format(self.interval)]
+        ordered_stacks = sorted(
+            self._stack_counts.items(), key=lambda kv: kv[1], reverse=True
+        )
+        lines.extend(["{} {}".format(frame, count) for frame, count in ordered_stacks])
+        return "\n".join(lines) + "\n"
 
     def reset(self):
         self._started = time.time()
@@ -83,10 +81,12 @@ class GreenletTracer(object):
         seconds.
     """
 
-    def __init__(self,
-                 blocking_sample_period=BLOCKING_SAMPLE_PERIOD,
-                 sampling_interval=GREENLET_SAMPLING_INTERVAL,
-                 logging_interval=LOGGING_INTERVAL):
+    def __init__(
+        self,
+        blocking_sample_period=BLOCKING_SAMPLE_PERIOD,
+        sampling_interval=GREENLET_SAMPLING_INTERVAL,
+        logging_interval=LOGGING_INTERVAL,
+    ):
         self.blocking_sample_period = blocking_sample_period
         self.sampling_interval = sampling_interval
         self.logging_interval = logging_interval
@@ -121,27 +121,29 @@ class GreenletTracer(object):
 
     def stats(self):
         total_time = time.time() - self.start_time
-        idle_fraction = self.time_spent_by_context.get('hub', 0) / total_time
+        idle_fraction = self.time_spent_by_context.get("hub", 0) / total_time
         return {
-            'times': self.time_spent_by_context,
-            'idle_fraction': idle_fraction,
-            'total_time': total_time,
-            'pending_avgs': self.pending_avgs,
-            'cpu_avgs': self.cpu_avgs,
-            'total_switches': self.total_switches
+            "times": self.time_spent_by_context,
+            "idle_fraction": idle_fraction,
+            "total_time": total_time,
+            "pending_avgs": self.pending_avgs,
+            "cpu_avgs": self.cpu_avgs,
+            "total_switches": self.total_switches,
         }
 
     def log_stats(self, max_stats=60):
         total_time = round(time.time() - self.start_time, 2)
-        greenlets_by_cost = sorted(self.time_spent_by_context.items(),
-                                   key=lambda k_v: k_v[1], reverse=True)
-        formatted_times = {k: round(v, 2) for k, v in
-                           greenlets_by_cost[:max_stats]}
-        self.log.info('greenlet stats',
-                      times=str(formatted_times),
-                      total_switches=self.total_switches,
-                      total_time=total_time,
-                      pending_avgs=self.pending_avgs)
+        greenlets_by_cost = sorted(
+            self.time_spent_by_context.items(), key=lambda k_v: k_v[1], reverse=True
+        )
+        formatted_times = {k: round(v, 2) for k, v in greenlets_by_cost[:max_stats]}
+        self.log.info(
+            "greenlet stats",
+            times=str(formatted_times),
+            total_switches=self.total_switches,
+            total_time=total_time,
+            pending_avgs=self.pending_avgs,
+        )
         self._publish_load_avgs()
 
     def _trace(self, event, xxx_todo_changeme):
@@ -151,9 +153,9 @@ class GreenletTracer(object):
         if self._last_switch_time is not None:
             time_spent = current_time - self._last_switch_time
             if origin is not self._hub:
-                context = getattr(origin, 'context', None)
+                context = getattr(origin, "context", None)
             else:
-                context = 'hub'
+                context = "hub"
             self.time_spent_by_context[context] += time_spent
         self._active_greenlet = target
         self._last_switch_time = current_time
@@ -170,11 +172,13 @@ class GreenletTracer(object):
         # greenlet.gr_frame doesn't work on another thread -- we have
         # to get the main thread's frame.
         frame = sys._current_frames()[self._main_thread_id]
-        formatted_frame = '\t'.join(traceback.format_stack(frame))
+        formatted_frame = "\t".join(traceback.format_stack(frame))
         self.log.warning(
-            'greenlet blocking', frame=formatted_frame,
-            context=getattr(active_greenlet, 'context', None),
-            blocking_greenlet_id=id(active_greenlet))
+            "greenlet blocking",
+            frame=formatted_frame,
+            context=getattr(active_greenlet, "context", None),
+            blocking_greenlet_id=id(active_greenlet),
+        )
 
     def _calculate_pending_avgs(self):
         # Calculate a "load average" for greenlet scheduling in roughly the
@@ -183,26 +187,28 @@ class GreenletTracer(object):
         # are waiting to run.
         pendingcnt = self._hub.loop.pendingcnt
         for k, v in self.pending_avgs.items():
-            exp = math.exp(- self.sampling_interval / (60. * k))
-            self.pending_avgs[k] = exp * v + (1. - exp) * pendingcnt
+            exp = math.exp(-self.sampling_interval / (60.0 * k))
+            self.pending_avgs[k] = exp * v + (1.0 - exp) * pendingcnt
 
     def _calculate_cpu_avgs(self):
         times = self.process.cpu_times()
         new_total_time = times.user + times.system
         delta = new_total_time - self.total_cpu_time
         for k, v in self.cpu_avgs.items():
-            exp = math.exp(- self.sampling_interval / (60. * k))
-            self.cpu_avgs[k] = exp * v + (1. - exp) * delta
+            exp = math.exp(-self.sampling_interval / (60.0 * k))
+            self.cpu_avgs[k] = exp * v + (1.0 - exp) * delta
         self.total_cpu_time = new_total_time
 
     def _publish_load_avgs(self):
         for k, v in self.pending_avgs.items():
-            path = 'greenlet_tracer.pending_avg.{}.{}.{:02d}'.format(
-                self.hostname, self.process_name, k)
+            path = "greenlet_tracer.pending_avg.{}.{}.{:02d}".format(
+                self.hostname, self.process_name, k
+            )
             self.statsd_client.gauge(path, v)
         for k, v in self.cpu_avgs.items():
-            path = 'greenlet_tracer.cpu_avg.{}.{}.{:02d}'.format(
-                self.hostname, self.process_name, k)
+            path = "greenlet_tracer.cpu_avg.{}.{}.{:02d}".format(
+                self.hostname, self.process_name, k
+            )
             self.statsd_client.gauge(path, v)
 
     def _monitoring_thread(self):
@@ -230,18 +236,22 @@ class GreenletTracer(object):
 
 
 class KillerGreenletTracer(GreenletTracer):
-    def __init__(self,
-                 blocking_sample_period=BLOCKING_SAMPLE_PERIOD,
-                 sampling_interval=GREENLET_SAMPLING_INTERVAL,
-                 logging_interval=LOGGING_INTERVAL,
-                 max_blocking_time=MAX_BLOCKING_TIME_BEFORE_INTERRUPT):
+    def __init__(
+        self,
+        blocking_sample_period=BLOCKING_SAMPLE_PERIOD,
+        sampling_interval=GREENLET_SAMPLING_INTERVAL,
+        logging_interval=LOGGING_INTERVAL,
+        max_blocking_time=MAX_BLOCKING_TIME_BEFORE_INTERRUPT,
+    ):
         self._max_blocking_time = max_blocking_time
-        super(KillerGreenletTracer, self).__init__(blocking_sample_period,
-                                                   sampling_interval,
-                                                   logging_interval)
+        super(KillerGreenletTracer, self).__init__(
+            blocking_sample_period, sampling_interval, logging_interval
+        )
 
     def _notify_greenlet_blocked(self, active_greenlet, current_time):
-        super(KillerGreenletTracer, self)._notify_greenlet_blocked(active_greenlet, current_time)
+        super(KillerGreenletTracer, self)._notify_greenlet_blocked(
+            active_greenlet, current_time
+        )
         if self._last_switch_time is None:
             return
 
@@ -254,7 +264,8 @@ class KillerGreenletTracer(GreenletTracer):
         # throw an exception on this thread saying that we would block forever
         # (which is true).
         self.log.warning(
-            'interrupting blocked greenlet',
-            context=getattr(active_greenlet, 'context', None),
-            blocking_greenlet_id=id(active_greenlet))
+            "interrupting blocked greenlet",
+            context=getattr(active_greenlet, "context", None),
+            blocking_greenlet_id=id(active_greenlet),
+        )
         thread.interrupt_main()

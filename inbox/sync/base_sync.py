@@ -1,6 +1,7 @@
 from gevent import event, Greenlet, sleep
 
 from nylas.logging import get_logger
+
 logger = get_logger()
 
 from inbox.util.concurrency import retry_with_logging
@@ -24,9 +25,17 @@ class BaseSyncMonitor(Greenlet):
 
     """
 
-    def __init__(self, account_id, namespace_id, email_address, folder_id,
-                 folder_name, provider_name, poll_frequency=1,
-                 scope=None):
+    def __init__(
+        self,
+        account_id,
+        namespace_id,
+        email_address,
+        folder_id,
+        folder_name,
+        provider_name,
+        poll_frequency=1,
+        scope=None,
+    ):
 
         self.account_id = account_id
         self.namespace_id = namespace_id
@@ -37,11 +46,9 @@ class BaseSyncMonitor(Greenlet):
         self.log = logger.new(account_id=account_id)
 
         self.shutdown = event.Event()
-        self.heartbeat_status = HeartbeatStatusProxy(self.account_id,
-                                                     folder_id,
-                                                     folder_name,
-                                                     email_address,
-                                                     provider_name)
+        self.heartbeat_status = HeartbeatStatusProxy(
+            self.account_id, folder_id, folder_name, email_address, provider_name
+        )
         Greenlet.__init__(self)
 
     def _run(self):
@@ -49,13 +56,20 @@ class BaseSyncMonitor(Greenlet):
         self.log = self.log.new(account_id=self.account_id)
         try:
             while True:
-                retry_with_logging(self._run_impl, account_id=self.account_id,
-                                   fail_classes=[ValidationError],
-                                   provider=self.provider_name, logger=self.log)
+                retry_with_logging(
+                    self._run_impl,
+                    account_id=self.account_id,
+                    fail_classes=[ValidationError],
+                    provider=self.provider_name,
+                    logger=self.log,
+                )
         except ValidationError:
             # Bad account credentials; exit.
-            self.log.error('Credential validation error; exiting',
-                           exc_info=True, logstash_tag='mark_invalid')
+            self.log.error(
+                "Credential validation error; exiting",
+                exc_info=True,
+                logstash_tag="mark_invalid",
+            )
             with session_scope(self.namespace_id) as db_session:
                 account = db_session.query(Account).get(self.account_id)
                 account.mark_invalid(scope=self.scope)
@@ -63,12 +77,12 @@ class BaseSyncMonitor(Greenlet):
     def _run_impl(self):
         try:
             self.sync()
-            self.heartbeat_status.publish(state='poll')
+            self.heartbeat_status.publish(state="poll")
 
         # If we get a connection or API permissions error, then sleep
         # 2x poll frequency.
         except ConnectionError:
-            self.log.error('Error while polling', exc_info=True)
+            self.log.error("Error while polling", exc_info=True)
             sleep(self.poll_frequency)
         sleep(self.poll_frequency)
 

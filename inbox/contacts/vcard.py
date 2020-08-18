@@ -42,50 +42,103 @@ def list_clean(string):
     returns: list()
     """
 
-    string = string.split(',')
+    string = string.split(",")
     rstring = list()
     for element in string:
-        rstring.append(element.strip(' '))
+        rstring.append(element.strip(" "))
     return rstring
 
 
 NO_STRINGS = [u"n", "n", u"no", "no"]
 YES_STRINGS = [u"y", "y", u"yes", "yes"]
 
-PROPERTIES = ['EMAIL', 'TEL']
-PROPS_ALL = ['FN', 'N', 'VERSION', 'NICKNAME', 'PHOTO', 'BDAY', 'ADR',
-             'LABEL', 'TEL', 'EMAIL', 'MAILER', 'TZ', 'GEO', 'TITLE', 'ROLE',
-             'LOGO', 'AGENT', 'ORG', 'NOTE', 'REV', 'SOUND', 'URL', 'UID',
-             'KEY', 'CATEGORIES', 'PRODID', 'REV', 'SORT-STRING', 'SOUND',
-             'URL', 'VERSION', 'UTC-OFFSET']
-PROPS_ALLOWED = ['NICKNAME', 'BDAY', 'ADR', 'LABEL', 'TEL', 'EMAIL',
-                 'MAILER', 'TZ', 'GEO', 'TITLE', 'ROLE', 'AGENT',
-                 'ORG', 'NOTE', 'REV', 'SOUND', 'URL', 'UID', 'KEY',
-                 'CATEGORIES', 'PRODID', 'REV', 'SORT-STRING', 'SOUND',
-                 'URL', 'VERSION', 'UTC-OFFSET']
-PROPS_ONCE = ['FN', 'N', 'VERSION']
-PROPS_LIST = ['NICKNAME', 'CATEGORIES']
-PROPS_BIN = ['PHOTO', 'LOGO', 'SOUND', 'KEY']
+PROPERTIES = ["EMAIL", "TEL"]
+PROPS_ALL = [
+    "FN",
+    "N",
+    "VERSION",
+    "NICKNAME",
+    "PHOTO",
+    "BDAY",
+    "ADR",
+    "LABEL",
+    "TEL",
+    "EMAIL",
+    "MAILER",
+    "TZ",
+    "GEO",
+    "TITLE",
+    "ROLE",
+    "LOGO",
+    "AGENT",
+    "ORG",
+    "NOTE",
+    "REV",
+    "SOUND",
+    "URL",
+    "UID",
+    "KEY",
+    "CATEGORIES",
+    "PRODID",
+    "REV",
+    "SORT-STRING",
+    "SOUND",
+    "URL",
+    "VERSION",
+    "UTC-OFFSET",
+]
+PROPS_ALLOWED = [
+    "NICKNAME",
+    "BDAY",
+    "ADR",
+    "LABEL",
+    "TEL",
+    "EMAIL",
+    "MAILER",
+    "TZ",
+    "GEO",
+    "TITLE",
+    "ROLE",
+    "AGENT",
+    "ORG",
+    "NOTE",
+    "REV",
+    "SOUND",
+    "URL",
+    "UID",
+    "KEY",
+    "CATEGORIES",
+    "PRODID",
+    "REV",
+    "SORT-STRING",
+    "SOUND",
+    "URL",
+    "VERSION",
+    "UTC-OFFSET",
+]
+PROPS_ONCE = ["FN", "N", "VERSION"]
+PROPS_LIST = ["NICKNAME", "CATEGORIES"]
+PROPS_BIN = ["PHOTO", "LOGO", "SOUND", "KEY"]
 
 
-RTEXT = '\x1b[7m'
-NTEXT = '\x1b[0m'
-BTEXT = '\x1b[1m'
+RTEXT = "\x1b[7m"
+NTEXT = "\x1b[0m"
+BTEXT = "\x1b[1m"
 
 
 def get_names(display_name):
-    first_name, last_name = '', display_name
+    first_name, last_name = "", display_name
 
-    if display_name.find(',') > 0:
+    if display_name.find(",") > 0:
         # Parsing something like 'Doe, John Abraham'
-        last_name, first_name = display_name.split(',')
+        last_name, first_name = display_name.split(",")
 
-    elif display_name.find(' '):
+    elif display_name.find(" "):
         # Parsing something like 'John Abraham Doe'
         # TODO: This fails for compound names. What is the most common case?
-        name_list = display_name.split(' ')
-        last_name = ''.join(name_list[-1])
-        first_name = ' '.join(name_list[:-1])
+        name_list = display_name.split(" ")
+        last_name = "".join(name_list[-1])
+        first_name = " ".join(name_list[:-1])
 
     return first_name.strip().capitalize(), last_name.strip().capitalize()
 
@@ -97,11 +150,11 @@ def fix_vobject(vcard):
     :type vcard: vobject.base.Component (vobject based vcard)
 
     """
-    if 'fn' not in vcard.contents:
-        logging.debug('vcard has no formatted name, reconstructing...')
-        fname = vcard.contents['n'][0].valueRepr()
+    if "fn" not in vcard.contents:
+        logging.debug("vcard has no formatted name, reconstructing...")
+        fname = vcard.contents["n"][0].valueRepr()
         fname = fname.strip()
-        vcard.add('fn')
+        vcard.add("fn")
         vcard.fn.value = fname
     return vcard
 
@@ -118,14 +171,13 @@ def vcard_from_vobject(vcard):
         property_value = line.value
 
         try:
-            if line.ENCODING_paramlist == [u'b'] or \
-                    line.ENCODING_paramlist == [u'B']:
+            if line.ENCODING_paramlist == [u"b"] or line.ENCODING_paramlist == [u"B"]:
                 property_value = base64.b64encode(line.value)
 
         except AttributeError:
             pass
         if isinstance(property_value, list):
-            property_value = (',').join(property_value)
+            property_value = (",").join(property_value)
 
         vdict[property_name].append((property_value, line.params,))
     return vdict
@@ -146,13 +198,13 @@ def vcard_from_string(vcard_string):
 def vcard_from_email(display_name, email):
     fname, lname = get_names(display_name)
     vcard = vobject.vCard()
-    vcard.add('n')
+    vcard.add("n")
     vcard.n.value = vobject.vcard.Name(family=lname, given=fname)
-    vcard.add('fn')
+    vcard.add("fn")
     vcard.fn.value = display_name
-    vcard.add('email')
+    vcard.add("email")
     vcard.email.value = email
-    vcard.email.type_param = 'INTERNET'
+    vcard.email.type_param = "INTERNET"
     return vcard_from_vobject(vcard)
 
 
@@ -182,15 +234,15 @@ class VCard(defaultdict):
         2: some property was deleted
     """
 
-    def __init__(self, ddict=''):
+    def __init__(self, ddict=""):
 
-        if ddict == '':
+        if ddict == "":
             defaultdict.__init__(self, list)
         else:
             defaultdict.__init__(self, list, ddict)
-        self.href = ''
-        self.account = ''
-        self.etag = ''
+        self.href = ""
+        self.account = ""
+        self.etag = ""
         self.edited = 0
 
     def serialize(self):
@@ -198,25 +250,25 @@ class VCard(defaultdict):
 
     @property
     def name(self):
-        return unicode(self['N'][0][0]) if self['N'] else ''
+        return unicode(self["N"][0][0]) if self["N"] else ""
 
     @name.setter
     def name(self, value):
-        if not self['N']:
-            self['N'] = [('', {})]
-        self['N'][0][0] = value
+        if not self["N"]:
+            self["N"] = [("", {})]
+        self["N"][0][0] = value
 
     @property
     def fname(self):
-        return unicode(self['FN'][0][0]) if self['FN'] else ''
+        return unicode(self["FN"][0][0]) if self["FN"] else ""
 
     @fname.setter
     def fname(self, value):
-        self['FN'][0] = (value, {})
+        self["FN"][0] = (value, {})
 
     def alt_keys(self):
         keylist = self.keys()
-        for one in [x for x in ['FN', 'N', 'VERSION'] if x in keylist]:
+        for one in [x for x in ["FN", "N", "VERSION"] if x in keylist]:
             keylist.remove(one)
         keylist.sort()
         return keylist
@@ -225,29 +277,29 @@ class VCard(defaultdict):
         """prints only name, email and type for use with mutt"""
         collector = list()
         try:
-            for one in self['EMAIL']:
+            for one in self["EMAIL"]:
                 try:
-                    typelist = ','.join(one[1][u'TYPE'])
+                    typelist = ",".join(one[1][u"TYPE"])
                 except KeyError:
-                    typelist = ''
+                    typelist = ""
                 collector.append(one[0] + "\t" + self.fname + "\t" + typelist)
-            return '\n'.join(collector)
+            return "\n".join(collector)
         except KeyError:
-            return ''
+            return ""
 
     def print_tel(self):
         """prints only name, email and type for use with mutt"""
         collector = list()
         try:
-            for one in self['TEL']:
+            for one in self["TEL"]:
                 try:
-                    typelist = ','.join(one[1][u'TYPE'])
+                    typelist = ",".join(one[1][u"TYPE"])
                 except KeyError:
-                    typelist = ''
+                    typelist = ""
                 collector.append(self.fname + "\t" + one[0] + "\t" + typelist)
-            return '\n'.join(collector)
+            return "\n".join(collector)
         except KeyError:
-            return ''
+            return ""
 
     @property
     def pretty(self):
@@ -255,32 +307,32 @@ class VCard(defaultdict):
 
     @property
     def pretty_min(self):
-        return self._pretty_base(['TEL', 'EMAIL'])
+        return self._pretty_base(["TEL", "EMAIL"])
 
     def _pretty_base(self, keylist):
         collector = list()
         if sys.stdout.isatty():
-            collector.append('\n' + BTEXT + 'Name: ' + self.fname + NTEXT)
+            collector.append("\n" + BTEXT + "Name: " + self.fname + NTEXT)
         else:
-            collector.append('\n' + 'Name: ' + self.fname)
+            collector.append("\n" + "Name: " + self.fname)
         for key in keylist:
             for value in self[key]:
                 try:
-                    types = ' (' + ', '.join(value[1]['TYPE']) + ')'
+                    types = " (" + ", ".join(value[1]["TYPE"]) + ")"
                 except KeyError:
-                    types = ''
-                line = key + types + ': ' + value[0]
+                    types = ""
+                line = key + types + ": " + value[0]
                 collector.append(line)
-        return '\n'.join(collector)
+        return "\n".join(collector)
 
     def _line_helper(self, line):
         collector = list()
         for key in line[1].keys():
-            collector.append(key + '=' + ','.join(line[1][key]))
+            collector.append(key + "=" + ",".join(line[1][key]))
         if collector == list():
-            return ''
+            return ""
         else:
-            return (';' + ';'.join(collector))
+            return ";" + ";".join(collector)
 
     @property
     def vcf(self):
@@ -295,21 +347,21 @@ class VCard(defaultdict):
             """generate a random uid, when random isn't broken, getting a
             random UID from a pool of roughly 10^56 should be good enough"""
             choice = string.ascii_uppercase + string.digits
-            return ''.join([random.choice(choice) for _ in range(36)])
+            return "".join([random.choice(choice) for _ in range(36)])
 
-        if 'UID' not in self.keys():
-            self['UID'] = [(generate_random_uid(), dict())]
+        if "UID" not in self.keys():
+            self["UID"] = [(generate_random_uid(), dict())]
         collector = list()
-        collector.append('BEGIN:VCARD')
-        collector.append('VERSION:3.0')
-        for key in ['FN', 'N']:
+        collector.append("BEGIN:VCARD")
+        collector.append("VERSION:3.0")
+        for key in ["FN", "N"]:
             try:
-                collector.append(key + ':' + self[key][0][0])
+                collector.append(key + ":" + self[key][0][0])
             except IndexError:  # broken vcard without FN or N
-                collector.append(key + ':')
+                collector.append(key + ":")
         for prop in self.alt_keys():
             for line in self[prop]:
                 types = self._line_helper(line)
-                collector.append(prop + types + ':' + line[0])
-        collector.append('END:VCARD')
-        return '\n'.join(collector)
+                collector.append(prop + types + ":" + line[0])
+        collector.append("END:VCARD")
+        return "\n".join(collector)

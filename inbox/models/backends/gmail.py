@@ -17,21 +17,21 @@ from inbox.models.secret import Secret
 from inbox.models.mixins import UpdatedAtMixin, DeletedAtMixin
 
 from nylas.logging import get_logger
+
 log = get_logger()
 
-PROVIDER = 'gmail'
+PROVIDER = "gmail"
 
-GOOGLE_CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar'
-GOOGLE_EMAIL_SCOPE = 'https://mail.google.com/'
-GOOGLE_CONTACTS_SCOPE = 'https://www.google.com/m8/feeds'
+GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar"
+GOOGLE_EMAIL_SCOPE = "https://mail.google.com/"
+GOOGLE_CONTACTS_SCOPE = "https://www.google.com/m8/feeds"
 
 
 # Google token named tuple - only used in this file.
 # NOTE: we only keep track of the auth_credentials id because
 # we need it for contacts sync (which is unfortunate). If that ever
 # changes, we should remove auth_creds from GToken.
-GToken = namedtuple('GToken',
-                    'value expiration scopes client_id auth_creds_id')
+GToken = namedtuple("GToken", "value expiration scopes client_id auth_creds_id")
 
 
 class GTokenManager(object):
@@ -91,10 +91,10 @@ class GTokenManager(object):
         gtoken = self._get_token(account, scope, force_refresh=force_refresh)
         return gtoken.value, gtoken.auth_creds_id
 
-    def get_token_and_auth_creds_id_for_contacts(self, account,
-                                                 force_refresh=False):
+    def get_token_and_auth_creds_id_for_contacts(self, account, force_refresh=False):
         return self.get_token_and_auth_creds_id(
-            account, GOOGLE_CONTACTS_SCOPE, force_refresh)
+            account, GOOGLE_CONTACTS_SCOPE, force_refresh
+        )
 
     def cache_token(self, account, gtoken):
         for scope in gtoken.scopes:
@@ -103,8 +103,9 @@ class GTokenManager(object):
     def clear_cache(self, account):
         self._tokens[account.id] = {}
 
-    def get_token_for_calendars_restrict_ids(self, account, client_ids,
-                                             force_refresh=False):
+    def get_token_for_calendars_restrict_ids(
+        self, account, client_ids, force_refresh=False
+    ):
         """
         For the given account, returns an access token that's associated
         with a client id from the given list of client_ids.
@@ -134,10 +135,9 @@ g_token_manager = GTokenManager()
 
 
 class GmailAccount(OAuthAccount, ImapAccount):
-    id = Column(ForeignKey(ImapAccount.id, ondelete='CASCADE'),
-                primary_key=True)
+    id = Column(ForeignKey(ImapAccount.id, ondelete="CASCADE"), primary_key=True)
 
-    __mapper_args__ = {'polymorphic_identity': 'gmailaccount'}
+    __mapper_args__ = {"polymorphic_identity": "gmailaccount"}
 
     # STOPSHIP(emfree) store these either as secrets or as properties of the
     # developer app.
@@ -167,16 +167,18 @@ class GmailAccount(OAuthAccount, ImapAccount):
 
     @property
     def category_type(self):
-        return 'label'
+        return "label"
 
     @property
     def thread_cls(self):
         from inbox.models.backends.imap import ImapThread
+
         return ImapThread
 
     @property
     def actionlog_cls(self):
         from inbox.models.action_log import ActionLog
+
         return ActionLog
 
     def new_token(self, scope, client_ids=None):
@@ -196,11 +198,10 @@ class GmailAccount(OAuthAccount, ImapAccount):
         non_oauth_error = None
 
         possible_credentials = [
-            auth_creds for auth_creds in self.valid_auth_credentials
-            if scope in auth_creds.scopes and (
-                client_ids is None or
-                auth_creds.client_id in client_ids
-            )
+            auth_creds
+            for auth_creds in self.valid_auth_credentials
+            if scope in auth_creds.scopes
+            and (client_ids is None or auth_creds.client_id in client_ids)
         ]
 
         # If more than one set of credentials is present, we don't want to
@@ -212,29 +213,36 @@ class GmailAccount(OAuthAccount, ImapAccount):
                 token, expires_in = self.auth_handler.new_token(
                     auth_creds.refresh_token,
                     auth_creds.client_id,
-                    auth_creds.client_secret)
+                    auth_creds.client_secret,
+                )
 
                 expires_in -= 10
-                expiration = (datetime.utcnow() +
-                              timedelta(seconds=expires_in))
+                expiration = datetime.utcnow() + timedelta(seconds=expires_in)
 
                 return GToken(
-                    token, expiration, auth_creds.scopes,
-                    auth_creds.client_id, auth_creds.id)
+                    token,
+                    expiration,
+                    auth_creds.scopes,
+                    auth_creds.client_id,
+                    auth_creds.id,
+                )
 
             except OAuthError as e:
-                log.error('Error validating',
-                          account_id=self.id,
-                          auth_creds_id=auth_creds.id,
-                          logstash_tag='mark_invalid')
+                log.error(
+                    "Error validating",
+                    account_id=self.id,
+                    auth_creds_id=auth_creds.id,
+                    logstash_tag="mark_invalid",
+                )
                 auth_creds.is_valid = False
 
             except Exception as e:
                 log.error(
-                    'Error while getting access token: {}'.format(e),
+                    "Error while getting access token: {}".format(e),
                     account_id=self.id,
                     auth_creds_id=auth_creds.id,
-                    exc_info=True)
+                    exc_info=True,
+                )
                 non_oauth_error = e
 
         if non_oauth_error:
@@ -262,9 +270,8 @@ class GmailAccount(OAuthAccount, ImapAccount):
     def verify_credentials(self, auth_creds):
         try:
             self.auth_handler.new_token(
-                auth_creds.refresh_token,
-                auth_creds.client_id,
-                auth_creds.client_secret)
+                auth_creds.refresh_token, auth_creds.client_id, auth_creds.client_secret
+            )
             # Valid access token might have changed? This might not
             # be necessary.
             g_token_manager.clear_cache(self)
@@ -277,13 +284,12 @@ class GmailAccount(OAuthAccount, ImapAccount):
         return [creds for creds in self.auth_credentials if creds.is_valid]
 
     def verify(self):
-        token = g_token_manager.get_token(self, GOOGLE_EMAIL_SCOPE,
-                                          force_refresh=True)
+        token = g_token_manager.get_token(self, GOOGLE_EMAIL_SCOPE, force_refresh=True)
         return self.auth_handler.validate_token(token)
 
     def new_calendar_list_watch(self, expiration):
         # Google gives us back expiration timestamps in milliseconds
-        expiration = datetime.fromtimestamp(int(expiration) / 1000.)
+        expiration = datetime.fromtimestamp(int(expiration) / 1000.0)
         self.gpush_calendar_list_expiration = expiration
         self.gpush_calendar_list_last_ping = datetime.utcnow()
 
@@ -302,28 +308,33 @@ class GmailAccount(OAuthAccount, ImapAccount):
         now = datetime.utcnow()
         return (
             # Never synced
-            self.last_calendar_list_sync is None or
+            self.last_calendar_list_sync is None
+            or
             # Too much time has passed to not sync
-            (now > self.last_calendar_list_sync + max_time_between_syncs) or
+            (now > self.last_calendar_list_sync + max_time_between_syncs)
+            or
             # Push notifications channel is stale (and we didn't just sync it)
             (
-                self.needs_new_calendar_list_watch() and
-                now > self.last_calendar_list_sync + poll_frequency
-            ) or
+                self.needs_new_calendar_list_watch()
+                and now > self.last_calendar_list_sync + poll_frequency
+            )
+            or
             # Our info is stale, according to google's push notifications
             (
-                self.gpush_calendar_list_last_ping is not None and
-                (self.last_calendar_list_sync <
-                    self.gpush_calendar_list_last_ping)
+                self.gpush_calendar_list_last_ping is not None
+                and (self.last_calendar_list_sync < self.gpush_calendar_list_last_ping)
             )
         )
 
     def needs_new_calendar_list_watch(self):
-        return (self.gpush_calendar_list_expiration is None or
-                self.gpush_calendar_list_expiration < datetime.utcnow())
+        return (
+            self.gpush_calendar_list_expiration is None
+            or self.gpush_calendar_list_expiration < datetime.utcnow()
+        )
 
     def get_raw_message_contents(self, message):
         from inbox.s3.backends.gmail import get_gmail_raw_contents
+
         return get_gmail_raw_contents(message)
 
 
@@ -343,14 +354,15 @@ class GmailAuthCredentials(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     [auth_creds.refresh_token for auth_creds in g.auth_credentials]
 
     """
-    gmailaccount_id = Column(BigInteger,
-                             ForeignKey(GmailAccount.id, ondelete='CASCADE'),
-                             nullable=False)
-    refresh_token_id = Column(BigInteger,
-                              ForeignKey(Secret.id, ondelete='CASCADE'),
-                              nullable=False)
 
-    _scopes = Column('scopes', String(512), nullable=False)
+    gmailaccount_id = Column(
+        BigInteger, ForeignKey(GmailAccount.id, ondelete="CASCADE"), nullable=False
+    )
+    refresh_token_id = Column(
+        BigInteger, ForeignKey(Secret.id, ondelete="CASCADE"), nullable=False
+    )
+
+    _scopes = Column("scopes", String(512), nullable=False)
     g_id_token = Column(String(2048), nullable=False)
     client_id = Column(String(256), nullable=False)
     client_secret = Column(String(256), nullable=False)
@@ -358,23 +370,24 @@ class GmailAuthCredentials(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
     gmailaccount = relationship(
         GmailAccount,
-        backref=backref('auth_credentials', cascade='all, delete-orphan',
-                        lazy='joined'),
-        lazy='joined',
-        join_depth=2
+        backref=backref(
+            "auth_credentials", cascade="all, delete-orphan", lazy="joined"
+        ),
+        lazy="joined",
+        join_depth=2,
     )
 
     refresh_token_secret = relationship(
         Secret,
-        cascade='all, delete-orphan',
+        cascade="all, delete-orphan",
         single_parent=True,
-        lazy='joined',
-        backref=backref('gmail_auth_credentials')
+        lazy="joined",
+        backref=backref("gmail_auth_credentials"),
     )
 
     @hybrid_property
     def scopes(self):
-        return self._scopes.split(' ')
+        return self._scopes.split(" ")
 
     @scopes.setter
     def scopes(self, value):
@@ -382,7 +395,7 @@ class GmailAuthCredentials(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         if isinstance(value, basestring):
             self._scopes = value
         else:
-            self._scopes = ' '.join(value)
+            self._scopes = " ".join(value)
 
     @property
     def refresh_token(self):
@@ -394,18 +407,18 @@ class GmailAuthCredentials(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     def refresh_token(self, value):
         # Must be a valid UTF-8 byte sequence without NULL bytes.
         if isinstance(value, unicode):
-            value = value.encode('utf-8')
+            value = value.encode("utf-8")
 
         try:
-            unicode(value, 'utf-8')
+            unicode(value, "utf-8")
         except UnicodeDecodeError:
-            raise ValueError('Invalid refresh_token')
+            raise ValueError("Invalid refresh_token")
 
-        if b'\x00' in value:
-            raise ValueError('Invalid refresh_token')
+        if b"\x00" in value:
+            raise ValueError("Invalid refresh_token")
 
         if not self.refresh_token_secret:
             self.refresh_token_secret = Secret()
 
         self.refresh_token_secret.secret = value
-        self.refresh_token_secret.type = 'token'
+        self.refresh_token_secret.type = "token"

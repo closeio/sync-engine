@@ -21,25 +21,27 @@ random.seed(None)
 
 
 def get_api_access(db_session, email_address):
-    account = db_session.query(Account).filter(
-        Account.email_address == email_address).one()
+    account = (
+        db_session.query(Account).filter(Account.email_address == email_address).one()
+    )
     if account is None:
-        raise Exception(("No account found for email address %s. "
-                         "Are you sure you've authed it?") % email_address)
+        raise Exception(
+            ("No account found for email address %s. " "Are you sure you've authed it?")
+            % email_address
+        )
 
-    return GoogleEventsProvider(account.id, account.namespace.id).\
-        _get_google_service()
+    return GoogleEventsProvider(account.id, account.namespace.id)._get_google_service()
 
 
-@timeout_loop('event')
+@timeout_loop("event")
 def wait_for_event(client, event_id, real_db):
     try:
         ev = client.events.find(event_id)
         cal = client.calendars.find(ev.calendar_id)
         api = get_api_access(real_db, client.email_address)
         events = api.events().list(calendarId=cal.name).execute()
-        for event in events['items']:
-            if event['summary'] == ev.title:
+        for event in events["items"]:
+            if event["summary"] == ev.title:
                 return True
 
         return False
@@ -47,15 +49,15 @@ def wait_for_event(client, event_id, real_db):
         return False
 
 
-@timeout_loop('event')
+@timeout_loop("event")
 def wait_for_event_rename(client, event_id, new_title, real_db):
     try:
         ev = client.events.find(event_id)
         cal = client.calendars.find(ev.calendar_id)
         api = get_api_access(real_db, client.email_address)
         events = api.events().list(calendarId=cal.name).execute()
-        for event in events['items']:
-            if event['summary'] == new_title:
+        for event in events["items"]:
+            if event["summary"] == new_title:
                 return True
 
         return False
@@ -63,14 +65,14 @@ def wait_for_event_rename(client, event_id, new_title, real_db):
         return False
 
 
-@timeout_loop('event')
+@timeout_loop("event")
 def wait_for_event_deletion(client, calendar_id, event_title, real_db):
     try:
         cal = client.calendars.find(calendar_id)
         api = get_api_access(real_db, client.email_address)
         events = api.events().list(calendarId=cal.name).execute()
-        for event in events['items']:
-            if event['summary'] == event_title:
+        for event in events["items"]:
+            if event["summary"] == event_title:
                 return False
 
         return True
@@ -83,5 +85,5 @@ def test_event_crud(client, real_db):
     real_test_event_crud(client, real_db)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pytest.main([__file__])

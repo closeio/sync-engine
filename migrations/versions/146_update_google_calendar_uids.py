@@ -7,8 +7,8 @@ Create Date: 2015-03-12 17:58:50.477526
 """
 
 # revision identifiers, used by Alembic.
-revision = 'c77a90d524'
-down_revision = '557378226d9f'
+revision = "c77a90d524"
+down_revision = "557378226d9f"
 
 from alembic import op
 
@@ -16,9 +16,10 @@ from alembic import op
 def upgrade():
     conn = op.get_bind()
     conn.execute(
-        '''UPDATE calendar JOIN namespace ON calendar.namespace_id=namespace.id
+        """UPDATE calendar JOIN namespace ON calendar.namespace_id=namespace.id
            JOIN gmailaccount ON namespace.account_id=gmailaccount.id SET
-           calendar.uid=calendar.name''')
+           calendar.uid=calendar.name"""
+    )
 
 
 def downgrade():

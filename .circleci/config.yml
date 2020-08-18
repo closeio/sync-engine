@@ -20,7 +20,7 @@ jobs:
       - run:
           name: isort
           when: always
-          command: isort -rc -c .
+          command: isort -c .
 
   build:
     machine:

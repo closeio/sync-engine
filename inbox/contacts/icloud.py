@@ -1,17 +1,16 @@
 """Provide iCloud contacts"""
 
-from nylas.logging import get_logger
-
-logger = get_logger()
-
 import lxml.etree as ET
 from carddav import CardDav
+from nylas.logging import get_logger
 
 from inbox.contacts.carddav import supports_carddav
 from inbox.contacts.vcard import vcard_from_string
 from inbox.models import Contact
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.session import session_scope
+
+logger = get_logger()
 
 ICLOUD_CONTACTS_URL = "https://contacts.icloud.com"
 

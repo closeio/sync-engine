@@ -8,16 +8,15 @@ also starts up the syncback service.)
 from gevent import monkey
 
 monkey.patch_all()
+import gevent_openssl
+
+gevent_openssl.monkey_patch()
 
 import os
 
 import click
-import gevent_openssl
-from setproctitle import setproctitle
-
-gevent_openssl.monkey_patch()
-
 from nylas.logging import configure_logging
+from setproctitle import setproctitle
 
 from inbox.config import config as inbox_config
 from inbox.mailsync.frontend import SyncbackHTTPFrontend

@@ -12,7 +12,6 @@ from sqlalchemy.orm import (
     validates,
 )
 
-log = get_logger()
 from inbox.models.base import MailSyncBase
 from inbox.models.mixins import (
     DeletedAtMixin,
@@ -22,6 +21,8 @@ from inbox.models.mixins import (
 )
 from inbox.models.namespace import Namespace
 from inbox.util.misc import cleanup_subject
+
+log = get_logger()
 
 
 class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtMixin):

@@ -4,11 +4,12 @@ from flanker import mime
 from nylas.logging import get_logger
 from sqlalchemy import Column, Integer, String
 
-log = get_logger()
 from inbox.config import config
 from inbox.s3.base import get_raw_from_provider
 from inbox.util import blockstore
 from inbox.util.stats import statsd_client
+
+log = get_logger()
 
 # TODO: store AWS credentials in a better way.
 STORE_MSG_ON_S3 = config.get("STORE_MESSAGES_ON_S3", None)

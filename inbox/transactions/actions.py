@@ -20,7 +20,6 @@ from nylas.logging import get_logger
 from nylas.logging.sentry import log_uncaught_errors
 from sqlalchemy import desc
 
-logger = get_logger()
 from inbox.actions.base import (
     can_handle_multiple_records,
     change_labels,
@@ -48,6 +47,8 @@ from inbox.models.session import session_scope, session_scope_by_shard_id
 from inbox.util.concurrency import retry_with_logging
 from inbox.util.misc import DummyContextManager
 from inbox.util.stats import statsd_client
+
+logger = get_logger()
 
 MAIL_ACTION_FUNCTION_MAP = {
     "mark_unread": mark_unread,

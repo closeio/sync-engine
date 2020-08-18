@@ -11,7 +11,6 @@ import gevent
 import requests
 from nylas.logging import get_logger
 
-log = get_logger()
 from inbox.auth.oauth import OAuthRequestsWrapper
 from inbox.basicauth import AccessNotEnabledError
 from inbox.config import config
@@ -25,6 +24,8 @@ from inbox.models import Account, Calendar
 from inbox.models.backends.gmail import g_token_manager
 from inbox.models.event import EVENT_STATUSES, Event
 from inbox.models.session import session_scope
+
+log = get_logger()
 
 CALENDARS_URL = "https://www.googleapis.com/calendar/v3/users/me/calendarList"
 STATUS_MAP = {

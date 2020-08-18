@@ -7,8 +7,6 @@ from imapclient import IMAPClient
 from nylas.logging import get_logger
 from OpenSSL._util import lib as ossllib
 
-log = get_logger()
-
 from inbox.auth.base import AuthHandler, account_or_none
 from inbox.basicauth import (
     AppPasswordError,
@@ -22,6 +20,8 @@ from inbox.models import Namespace
 from inbox.models.backends.generic import GenericAccount
 from inbox.sendmail.smtp.postel import SMTPClient
 from inbox.util.url import matching_subdomains
+
+log = get_logger()
 
 PROVIDER = "generic"
 AUTH_HANDLER_CLS = "GenericAuthHandler"

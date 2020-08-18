@@ -9,7 +9,6 @@ import gdata.contacts.client
 import gevent
 from nylas.logging import get_logger
 
-logger = get_logger()
 from inbox.basicauth import ConnectionError, OAuthError, ValidationError
 from inbox.models import Contact
 from inbox.models.backends.gmail import (
@@ -18,6 +17,8 @@ from inbox.models.backends.gmail import (
     g_token_manager,
 )
 from inbox.models.session import session_scope
+
+logger = get_logger()
 
 SOURCE_APP_NAME = "Nylas Sync Engine"
 

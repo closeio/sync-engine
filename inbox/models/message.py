@@ -31,7 +31,6 @@ from sqlalchemy.orm import (
 )
 from sqlalchemy.sql.expression import false
 
-log = get_logger()
 from inbox.config import config
 from inbox.models.base import MailSyncBase
 from inbox.models.category import Category
@@ -53,6 +52,8 @@ from inbox.util.blockstore import save_to_blockstore
 from inbox.util.encoding import unicode_safe_truncate
 from inbox.util.html import plaintext2html, strip_tags
 from inbox.util.misc import get_internaldate, parse_references
+
+log = get_logger()
 
 SNIPPET_LENGTH = 191
 

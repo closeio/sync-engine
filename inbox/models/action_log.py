@@ -12,12 +12,12 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-log = get_logger()
 from inbox.models.base import MailSyncBase
 from inbox.models.mixins import DeletedAtMixin, UpdatedAtMixin
 from inbox.models.namespace import Namespace
 from inbox.sqlalchemy_ext.util import JSON
 
+log = get_logger()
 
 def schedule_action(func_name, record, namespace_id, db_session, **kwargs):
     # Ensure that the record's id is non-null

@@ -1,12 +1,10 @@
 import datetime
 
 import gevent
+from imapclient.imap_utf7 import encode as utf7_encode
 from nylas.logging import get_logger
 from sqlalchemy import func
 from sqlalchemy.orm import load_only
-
-log = get_logger()
-from imapclient.imap_utf7 import encode as utf7_encode
 
 from inbox.crispin import connection_pool
 from inbox.mailsync.backends.imap import common
@@ -19,6 +17,8 @@ from inbox.models.session import session_scope
 from inbox.util.concurrency import retry_with_logging
 from inbox.util.debug import bind_context
 from inbox.util.itert import chunk
+
+log = get_logger()
 
 DEFAULT_MESSAGE_TTL = 2 * 60  # 2 minutes
 DEFAULT_THREAD_TTL = 60 * 60 * 24 * 7  # 7 days

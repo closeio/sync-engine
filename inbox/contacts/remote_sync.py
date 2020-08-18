@@ -4,13 +4,14 @@ from datetime import datetime
 from nylas.logging import get_logger
 from sqlalchemy.orm.exc import NoResultFound
 
-logger = get_logger()
 from inbox.contacts.google import GoogleContactsProvider
 from inbox.contacts.icloud import ICloudContactsProvider
 from inbox.models import Account, Contact
 from inbox.models.session import session_scope
 from inbox.sync.base_sync import BaseSyncMonitor
 from inbox.util.debug import bind_context
+
+logger = get_logger()
 
 CONTACT_SYNC_PROVIDER_MAP = {
     "gmail": GoogleContactsProvider,

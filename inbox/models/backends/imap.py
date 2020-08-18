@@ -19,9 +19,6 @@ from sqlalchemy.orm import backref, object_session, relationship
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.sql.expression import false
 
-from inbox.sqlalchemy_ext.util import JSON, LittleJSON, MutableDict
-
-log = get_logger()
 from inbox.models.account import Account
 from inbox.models.base import MailSyncBase
 from inbox.models.folder import Folder
@@ -29,7 +26,10 @@ from inbox.models.label import Label
 from inbox.models.message import Message
 from inbox.models.mixins import DeletedAtMixin, HasRunState, UpdatedAtMixin
 from inbox.models.thread import Thread
+from inbox.sqlalchemy_ext.util import JSON, LittleJSON, MutableDict
 from inbox.util.misc import cleanup_subject
+
+log = get_logger()
 
 PROVIDER = "imap"
 

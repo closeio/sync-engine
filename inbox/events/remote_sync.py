@@ -3,8 +3,6 @@ from datetime import datetime, timedelta
 from nylas.logging import get_logger
 from requests.exceptions import HTTPError
 
-logger = get_logger()
-
 from inbox.basicauth import AccessNotEnabledError, OAuthError
 from inbox.config import config
 from inbox.contacts.processing import update_contacts_from_event
@@ -16,6 +14,8 @@ from inbox.models.event import RecurringEvent, RecurringEventOverride
 from inbox.models.session import session_scope
 from inbox.sync.base_sync import BaseSyncMonitor
 from inbox.util.debug import bind_context
+
+logger = get_logger()
 
 EVENT_SYNC_FOLDER_ID = -2
 EVENT_SYNC_FOLDER_NAME = "Events"

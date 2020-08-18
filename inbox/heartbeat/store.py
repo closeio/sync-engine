@@ -3,15 +3,14 @@ import time
 
 from nylas.logging import get_logger
 
-from inbox.util.itert import chunk
-
-log = get_logger()
-
 # We're doing this weird rename import to make it easier to monkeypatch
 # get_redis_client. That's the only way we have to test our very brittle
 # status code.
 import inbox.heartbeat.config as heartbeat_config
 from inbox.heartbeat.config import CONTACTS_FOLDER_ID, EVENTS_FOLDER_ID
+from inbox.util.itert import chunk
+
+log = get_logger()
 
 
 def safe_failure(f):

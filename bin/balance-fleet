@@ -12,9 +12,6 @@ import click
 from munkres import Munkres, make_cost_matrix
 from nylas.logging import configure_logging, get_logger
 
-configure_logging()
-log = get_logger()
-
 from inbox.config import config
 from inbox.models.account import Account
 from inbox.models.session import global_session_scope, session_scope
@@ -23,6 +20,9 @@ from inbox.scheduling.deferred_migration import (
     DeferredAccountMigrationExecutor,
 )
 from inbox.util import fleet
+
+configure_logging()
+log = get_logger()
 
 # How long we should take to migrate all accounts (in seconds).
 ACCOUNT_MIGRATION_TIMESPAN = 15 * 60  # 15 minutes

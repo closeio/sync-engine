@@ -11,21 +11,20 @@ Create Date: 2014-04-28 22:09:00.652851
 revision = "5a787816e2bc"
 down_revision = "223041bb858b"
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.ext.declarative import declarative_base
-
 
 chunk_size = 250
 
 
 def upgrade():
-    from inbox.models.session import session_scope, Session
     from inbox.ignition import main_engine
+    from inbox.models.session import Session, session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
 
-    from inbox.models import Part, Namespace, Message, Thread
+    from inbox.models import Message, Namespace, Part, Thread
     from inbox.sqlalchemy_ext.util import JSON
 
     print "Creating table for parts..."

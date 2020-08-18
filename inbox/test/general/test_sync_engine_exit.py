@@ -5,12 +5,12 @@
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from inbox.mailsync.backends.imap.monitor import ImapSyncMonitor
-from inbox.mailsync.backends.imap.generic import FolderSyncEngine
-from inbox.mailsync.backends.base import MailsyncDone
-from inbox.models import Folder
 from inbox.auth.generic import GenericAuthHandler
 from inbox.crispin import FolderMissingError
+from inbox.mailsync.backends.base import MailsyncDone
+from inbox.mailsync.backends.imap.generic import FolderSyncEngine
+from inbox.mailsync.backends.imap.monitor import ImapSyncMonitor
+from inbox.models import Folder
 
 TEST_YAHOO_EMAIL = "inboxapptest1@yahoo.com"
 

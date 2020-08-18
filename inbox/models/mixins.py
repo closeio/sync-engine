@@ -1,11 +1,11 @@
 import abc
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, String, inspect, Boolean, sql, func
-from sqlalchemy.ext.hybrid import hybrid_property, Comparator
+from sqlalchemy import Boolean, Column, DateTime, String, func, inspect, sql
+from sqlalchemy.ext.hybrid import Comparator, hybrid_property
 
-from inbox.sqlalchemy_ext.util import Base36UID, generate_public_id, ABCMixin
 from inbox.models.constants import MAX_INDEXABLE_LENGTH
+from inbox.sqlalchemy_ext.util import ABCMixin, Base36UID, generate_public_id
 from inbox.util.addr import canonicalize_address
 from inbox.util.encoding import unicode_safe_truncate
 

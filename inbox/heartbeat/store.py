@@ -1,8 +1,9 @@
-import time
 import itertools
-from inbox.util.itert import chunk
+import time
 
 from nylas.logging import get_logger
+
+from inbox.util.itert import chunk
 
 log = get_logger()
 

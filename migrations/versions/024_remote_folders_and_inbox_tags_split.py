@@ -10,13 +10,11 @@ Create Date: 2014-05-01 02:20:00.936927
 revision = "4c1eb89f6bed"
 down_revision = "4e04f752b7ad"
 
-from alembic import op
 import sqlalchemy as sa
-
-from sqlalchemy.orm import relationship, backref
-from sqlalchemy.ext.declarative import declarative_base
-
+from alembic import op
 from sqlalchemy.dialects import mysql
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import backref, relationship
 
 CHUNK_SIZE = 250
 
@@ -108,8 +106,8 @@ def upgrade():
     op.add_column("imapuid", sa.Column("folder_id", sa.Integer, nullable=True))
     op.create_foreign_key("imapuid_ibfk_3", "imapuid", "folder", ["folder_id"], ["id"])
 
-    from inbox.models.session import session_scope
     from inbox.ignition import main_engine
+    from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
 

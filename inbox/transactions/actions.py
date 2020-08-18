@@ -7,48 +7,47 @@ TODO(emfree):
 talking to the same database backend things could go really badly.
 
 """
+import random
+import weakref
 from collections import defaultdict
 from datetime import datetime, timedelta
 
 import gevent
 import gevent.event
-from gevent.queue import Queue
-import random
 from gevent.coros import BoundedSemaphore
-from sqlalchemy import desc
-import weakref
-
+from gevent.queue import Queue
 from nylas.logging import get_logger
 from nylas.logging.sentry import log_uncaught_errors
+from sqlalchemy import desc
 
 logger = get_logger()
-from inbox.crispin import writable_connection_pool
-from inbox.ignition import engine_manager
-from inbox.util.concurrency import retry_with_logging
-from inbox.models.session import session_scope, session_scope_by_shard_id
-from inbox.models import ActionLog, Event
-from inbox.util.misc import DummyContextManager
-from inbox.util.stats import statsd_client
 from inbox.actions.base import (
     can_handle_multiple_records,
-    mark_unread,
-    mark_starred,
-    move,
     change_labels,
-    save_draft,
-    update_draft,
-    delete_draft,
-    save_sent_email,
     create_folder,
     create_label,
-    update_folder,
-    update_label,
+    delete_draft,
     delete_folder,
     delete_label,
     delete_sent_email,
+    mark_starred,
+    mark_unread,
+    move,
+    save_draft,
+    save_sent_email,
+    update_draft,
+    update_folder,
+    update_label,
 )
-from inbox.events.actions.base import create_event, delete_event, update_event
 from inbox.config import config
+from inbox.crispin import writable_connection_pool
+from inbox.events.actions.base import create_event, delete_event, update_event
+from inbox.ignition import engine_manager
+from inbox.models import ActionLog, Event
+from inbox.models.session import session_scope, session_scope_by_shard_id
+from inbox.util.concurrency import retry_with_logging
+from inbox.util.misc import DummyContextManager
+from inbox.util.stats import statsd_client
 
 MAIL_ACTION_FUNCTION_MAP = {
     "mark_unread": mark_unread,

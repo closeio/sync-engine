@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-import string
-import random
 import json
+import random
+import string
 
 DICT_FILE = "/etc/dictionaries-common/words"
 

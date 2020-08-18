@@ -10,15 +10,15 @@ Create Date: 2014-04-15 02:21:13.398192
 revision = "193802835c33"
 down_revision = "3237b6b1ee03"
 
-from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.sql import table, column
+from alembic import op
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql import column, table
 
 
 def upgrade():
-    from inbox.models.session import session_scope
     from inbox.ignition import main_engine
+    from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()
@@ -102,8 +102,8 @@ def upgrade():
 
 
 def downgrade():
-    from inbox.models.session import session_scope
     from inbox.ignition import main_engine
+    from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()

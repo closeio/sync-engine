@@ -12,8 +12,9 @@ down_revision = "1d7374c286c5"
 
 import sys
 from gc import collect as garbage_collect
-from alembic import op
+
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import mysql
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -30,11 +31,10 @@ def upgrade():
         "ix_transaction_public_id", "transaction", ["public_id"], unique=False
     )
 
-    from inbox.sqlalchemy_ext.util import generate_public_id, b36_to_bin
-
+    from inbox.ignition import main_engine
     # TODO(emfree) reflect
     from inbox.models.session import session_scope
-    from inbox.ignition import main_engine
+    from inbox.sqlalchemy_ext.util import b36_to_bin, generate_public_id
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()

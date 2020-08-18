@@ -4,10 +4,9 @@ import pytest
 from imapclient import IMAPClient
 
 from inbox.auth.generic import GenericAuthHandler, create_imap_connection
+from inbox.basicauth import SSLNotSupportedError
 from inbox.sendmail.base import SendMailException
 from inbox.sendmail.smtp.postel import SMTPClient
-from inbox.basicauth import SSLNotSupportedError
-
 
 settings = [
     {

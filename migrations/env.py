@@ -1,7 +1,8 @@
 from __future__ import with_statement
-from alembic import context
 
 from logging.config import fileConfig
+
+from alembic import context
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -16,7 +17,6 @@ target_metadata = MailSyncBase.metadata
 
 from inbox.config import config
 from inbox.ignition import EngineManager
-
 
 # Alembic configuration is confusing. Here we look for a shard id both as a
 # "main option" (where it's programmatically set by bin/create-db), and in the

@@ -1,56 +1,58 @@
-import os
 import binascii
 import datetime
 import itertools
-from hashlib import sha256
+import os
 from collections import defaultdict
+from hashlib import sha256
 
 from flanker import mime
+from nylas.logging import get_logger
 from sqlalchemy import (
-    Column,
-    Integer,
     BigInteger,
-    String,
-    DateTime,
     Boolean,
+    Column,
+    DateTime,
     Enum,
     Index,
+    Integer,
+    String,
     bindparam,
 )
 from sqlalchemy.dialects.mysql import LONGBLOB, VARCHAR
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import (
-    relationship,
     backref,
-    validates,
     joinedload,
-    subqueryload,
     load_only,
+    relationship,
+    subqueryload,
     synonym,
+    validates,
 )
 from sqlalchemy.sql.expression import false
-from sqlalchemy.ext.associationproxy import association_proxy
-
-from nylas.logging import get_logger
 
 log = get_logger()
 from inbox.config import config
-from inbox.util.html import plaintext2html, strip_tags
-from inbox.sqlalchemy_ext.util import JSON, json_field_too_long, bakery
-from inbox.util.addr import parse_mimepart_address_header
-from inbox.util.misc import parse_references, get_internaldate
-from inbox.util.blockstore import save_to_blockstore
-from inbox.security.blobstorage import encode_blob, decode_blob
+from inbox.models.base import MailSyncBase
+from inbox.models.category import Category
 from inbox.models.mixins import (
+    DeletedAtMixin,
     HasPublicID,
     HasRevisions,
     UpdatedAtMixin,
-    DeletedAtMixin,
 )
-from inbox.models.base import MailSyncBase
-from inbox.models.category import Category
-
-from inbox.sqlalchemy_ext.util import MAX_MYSQL_INTEGER
+from inbox.security.blobstorage import decode_blob, encode_blob
+from inbox.sqlalchemy_ext.util import (
+    JSON,
+    MAX_MYSQL_INTEGER,
+    bakery,
+    json_field_too_long,
+)
+from inbox.util.addr import parse_mimepart_address_header
+from inbox.util.blockstore import save_to_blockstore
 from inbox.util.encoding import unicode_safe_truncate
+from inbox.util.html import plaintext2html, strip_tags
+from inbox.util.misc import get_internaldate, parse_references
 
 SNIPPET_LENGTH = 191
 
@@ -497,7 +499,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         namespace_id,
         mid,
     ):
-        from inbox.models import Part, Block
+        from inbox.models import Block, Part
 
         block = Block()
         block.namespace_id = namespace_id

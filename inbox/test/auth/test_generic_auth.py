@@ -4,11 +4,10 @@ import socket
 
 import pytest
 
-from inbox.util.url import parent_domain
-from inbox.models.account import Account
 from inbox.auth.generic import GenericAuthHandler
 from inbox.basicauth import SettingUpdateError, ValidationError
-
+from inbox.models.account import Account
+from inbox.util.url import parent_domain
 
 settings = {
     "provider": "custom",

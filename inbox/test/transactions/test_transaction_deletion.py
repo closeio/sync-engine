@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import desc
 
 from inbox.ignition import redis_txn
-from inbox.models.transaction import Transaction, TXN_REDIS_KEY
+from inbox.models.transaction import TXN_REDIS_KEY, Transaction
 from inbox.models.util import purge_transactions
 
 

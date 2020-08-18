@@ -1,11 +1,11 @@
 import copy
-import mock
 
+import mock
 import pytest
 
-from inbox.models.account import Account
 from inbox.auth.gmail import GmailAuthHandler
 from inbox.basicauth import ImapSupportDisabledError
+from inbox.models.account import Account
 
 settings = {
     "email": "t.est@gmail.com",

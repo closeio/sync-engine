@@ -1,11 +1,11 @@
-import dns
+import re
 import socket
-from dns.resolver import Resolver
-from dns.resolver import NoNameservers, NXDOMAIN, Timeout, NoAnswer
 from urllib import urlencode
+
+import dns
+from dns.resolver import NXDOMAIN, NoAnswer, NoNameservers, Resolver, Timeout
 from nylas.logging import get_logger
 from tldextract import extract as tld_extract
-import re
 
 log = get_logger("inbox.util.url")
 

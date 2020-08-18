@@ -1,5 +1,5 @@
 import redis
-from sqlalchemy import Column, BigInteger, String, Index, Enum, inspect, func
+from sqlalchemy import BigInteger, Column, Enum, Index, String, func, inspect
 from sqlalchemy.orm import relationship
 
 from inbox.config import config
@@ -160,8 +160,8 @@ def propagate_changes(session):
 
 
 def increment_versions(session):
-    from inbox.models.thread import Thread
     from inbox.models.metadata import Metadata
+    from inbox.models.thread import Thread
 
     for obj in session:
         if isinstance(obj, Thread) and is_dirty(session, obj):

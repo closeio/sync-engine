@@ -1,25 +1,23 @@
-import time
-import math
-import gevent
-import requests
 import datetime
+import math
+import time
 from collections import OrderedDict
+
+import gevent
+import limitlion
+import requests
+from nylas.logging import get_logger
+from nylas.logging.sentry import log_uncaught_errors
 from sqlalchemy import desc, func
 from sqlalchemy.orm.exc import NoResultFound
 
-import limitlion
-
+from inbox.heartbeat.status import clear_heartbeat_status
 from inbox.ignition import redis_txn
 from inbox.models import Account, Block, Message, Namespace
-from inbox.models.transaction import Transaction, TXN_REDIS_KEY
+from inbox.models.session import session_scope, session_scope_by_shard_id
+from inbox.models.transaction import TXN_REDIS_KEY, Transaction
 from inbox.util.blockstore import delete_from_blockstore
 from inbox.util.stats import statsd_client
-from inbox.models.session import session_scope
-from nylas.logging.sentry import log_uncaught_errors
-from inbox.heartbeat.status import clear_heartbeat_status
-from inbox.models.session import session_scope_by_shard_id
-
-from nylas.logging import get_logger
 
 # Some tables have cascading deletes so the actual number of rows deleted
 # can be much larger than the CHUNK_SIZE.
@@ -99,14 +97,14 @@ def transaction_objects():
 
     """
     from inbox.models import (
-        Calendar,
-        Contact,
-        Message,
-        Event,
         Block,
+        Calendar,
         Category,
-        Thread,
+        Contact,
+        Event,
+        Message,
         Metadata,
+        Thread,
     )
 
     return {

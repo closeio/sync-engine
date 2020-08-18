@@ -15,31 +15,29 @@ down_revision = "5093433b073"
 import sys
 from gc import collect as garbage_collect
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import mysql
-
 
 chunk_size = 500
 
 
 def upgrade():
-    from inbox.sqlalchemy_ext.util import generate_public_id
-    from inbox.models.session import session_scope
-
     # These all inherit HasPublicID
     from inbox.models import (
         Account,
         Block,
         Contact,
+        HasPublicID,
         Message,
         Namespace,
         SharedFolder,
         Thread,
         User,
         UserSession,
-        HasPublicID,
     )
+    from inbox.models.session import session_scope
+    from inbox.sqlalchemy_ext.util import generate_public_id
 
     classes = [
         Account,
@@ -105,13 +103,13 @@ def downgrade():
         Account,
         Block,
         Contact,
+        HasPublicID,
         Message,
         Namespace,
         SharedFolder,
         Thread,
         User,
         UserSession,
-        HasPublicID,
     )
 
     classes = [

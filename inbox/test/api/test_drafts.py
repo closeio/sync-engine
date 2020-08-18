@@ -4,12 +4,12 @@ sending."""
 import json
 import os
 from datetime import datetime
-from freezegun import freeze_time
 
 import pytest
+from freezegun import freeze_time
 
-from inbox.test.util.base import add_fake_message, add_fake_thread
 from inbox.test.api.base import api_client
+from inbox.test.util.base import add_fake_message, add_fake_thread
 
 __all__ = ["api_client"]
 
@@ -78,8 +78,8 @@ def test_save_update_bad_recipient_draft(
 ):
     # You should be able to save a draft, even if
     # the recipient's email is invalid.
-    from inbox.sendmail.base import create_message_from_json
     from inbox.actions.base import save_draft
+    from inbox.sendmail.base import create_message_from_json
 
     for example_draft in example_bad_recipient_drafts:
         draft = create_message_from_json(

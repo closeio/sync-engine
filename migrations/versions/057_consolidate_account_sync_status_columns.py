@@ -10,18 +10,19 @@ Create Date: 2014-07-17 06:07:08.339740
 revision = "4f57260602c9"
 down_revision = "4b4c5579c083"
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from bson import json_util
 
 
 def upgrade():
-    from inbox.sqlalchemy_ext.util import JSON, MutableDict
     from inbox.ignition import main_engine
+    from inbox.sqlalchemy_ext.util import JSON, MutableDict
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    from inbox.models.session import session_scope
     from sqlalchemy.ext.declarative import declarative_base
+
+    from inbox.models.session import session_scope
 
     op.add_column(
         "account",

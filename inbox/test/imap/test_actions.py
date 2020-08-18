@@ -1,36 +1,37 @@
 # flake8: noqa: F401, F811
 # -*- coding: utf-8 -*-
+import gevent
 import mock
 import pytest
-import gevent
 from flanker import mime
+
+from inbox.actions.backends.generic import _create_email
 from inbox.actions.base import (
     change_labels,
+    create_folder,
+    create_label,
+    delete_draft,
+    delete_folder,
+    delete_label,
+    mark_starred,
+    mark_unread,
     save_draft,
     update_draft,
-    delete_draft,
-    create_folder,
     update_folder,
-    delete_folder,
-    create_label,
     update_label,
-    delete_label,
-    mark_unread,
-    mark_starred,
 )
-from inbox.util.testutils import mock_imapclient  # noqa
-from inbox.test.util.base import add_fake_imapuid, add_fake_category
 from inbox.crispin import writable_connection_pool
-from inbox.models import Category, ActionLog
-from inbox.models.action_log import schedule_action
-from inbox.sendmail.base import create_message_from_json
-from inbox.sendmail.base import update_draft as sendmail_update_draft
 from inbox.events.actions.backends.gmail import remote_create_event
-from inbox.transactions.actions import SyncbackService
+from inbox.models import ActionLog, Category
+from inbox.models.action_log import schedule_action
 from inbox.models.session import new_session
-from inbox.actions.backends.generic import _create_email
-
-import pytest
+from inbox.sendmail.base import (
+    create_message_from_json,
+    update_draft as sendmail_update_draft,
+)
+from inbox.test.util.base import add_fake_category, add_fake_imapuid
+from inbox.transactions.actions import SyncbackService
+from inbox.util.testutils import mock_imapclient  # noqa
 
 
 @pytest.mark.only

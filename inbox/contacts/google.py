@@ -1,22 +1,23 @@
 """Provide Google contacts."""
 import posixpath
 import random
-import gevent
 from datetime import datetime
 
 import gdata.auth
 import gdata.client
 import gdata.contacts.client
-
+import gevent
 from nylas.logging import get_logger
 
 logger = get_logger()
-from inbox.basicauth import ConnectionError, ValidationError
-from inbox.basicauth import OAuthError
-from inbox.models.session import session_scope
+from inbox.basicauth import ConnectionError, OAuthError, ValidationError
 from inbox.models import Contact
-from inbox.models.backends.gmail import GmailAccount, g_token_manager
-from inbox.models.backends.gmail import GmailAuthCredentials
+from inbox.models.backends.gmail import (
+    GmailAccount,
+    GmailAuthCredentials,
+    g_token_manager,
+)
+from inbox.models.session import session_scope
 
 SOURCE_APP_NAME = "Nylas Sync Engine"
 

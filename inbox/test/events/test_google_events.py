@@ -1,9 +1,11 @@
-import arrow
 import json
+
+import arrow
 import gevent
 import mock
 import pytest
 import requests
+
 from inbox.basicauth import AccessNotEnabledError
 from inbox.events.google import GoogleEventsProvider, parse_event_response
 from inbox.models import Calendar, Event

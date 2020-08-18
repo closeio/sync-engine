@@ -3,19 +3,18 @@ well as a mock IMAPClient isntance that can be used to deterministically test
 aspects of IMAP sync.
 See https://hypothesis.readthedocs.org/en/latest/data.html for more information
 about how this works."""
-import string
-
 import os
+import string
 import tempfile
 
 # don't try writing to .hypothesis
 os.environ["HYPOTHESIS_STORAGE_DIRECTORY"] = hyp_dir = tempfile.mkdtemp()
 os.environ["HYPOTHESIS_DATABASE_FILE"] = os.path.join(hyp_dir, "db")
 
-from hypothesis import strategies as s
-from hypothesis.extra.datetime import datetimes
 import flanker
 from flanker import mime
+from hypothesis import strategies as s
+from hypothesis.extra.datetime import datetimes
 
 
 def _build_address_header(addresslist):

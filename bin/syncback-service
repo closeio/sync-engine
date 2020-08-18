@@ -6,14 +6,15 @@ also starts up the syncback service.)
 
 """
 from gevent import monkey
+
 monkey.patch_all()
 
 import os
-from setproctitle import setproctitle
 
 import click
-
 import gevent_openssl
+from setproctitle import setproctitle
+
 gevent_openssl.monkey_patch()
 
 from nylas.logging import configure_logging
@@ -21,9 +22,9 @@ from nylas.logging import configure_logging
 from inbox.config import config as inbox_config
 from inbox.mailsync.frontend import SyncbackHTTPFrontend
 from inbox.transactions.actions import SyncbackService
-from inbox.util.startup import preflight, load_overrides
-
 from inbox.util.logging_helper import reconfigure_logging
+from inbox.util.startup import load_overrides, preflight
+
 
 @click.command()
 @click.option('--prod/--no-prod', default=False,

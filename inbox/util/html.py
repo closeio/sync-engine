@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-import re
 import cgi
-import htmlentitydefs
-from HTMLParser import HTMLParser, HTMLParseError
+import re
 
+import htmlentitydefs
+from HTMLParser import HTMLParseError, HTMLParser
 from nylas.logging import get_logger
 
 

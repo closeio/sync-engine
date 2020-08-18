@@ -10,7 +10,7 @@ Create Date: 2016-01-29 00:27:08.174534
 revision = "501f6b2fef28"
 down_revision = "31aae1ecb374"
 
-from alembic import op, context
+from alembic import context, op
 from sqlalchemy.sql import text
 
 

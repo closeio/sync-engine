@@ -1,10 +1,10 @@
 from sqlalchemy import Column, Enum, Integer
-from sqlalchemy.types import BLOB
 from sqlalchemy.orm import validates
+from sqlalchemy.types import BLOB
 
 from inbox.models.base import MailSyncBase
-from inbox.models.mixins import UpdatedAtMixin, DeletedAtMixin
-from inbox.security.oracles import get_encryption_oracle, get_decryption_oracle
+from inbox.models.mixins import DeletedAtMixin, UpdatedAtMixin
+from inbox.security.oracles import get_decryption_oracle, get_encryption_oracle
 
 
 class Secret(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):

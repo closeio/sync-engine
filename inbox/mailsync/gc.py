@@ -1,23 +1,24 @@
 import datetime
 
 import gevent
+from nylas.logging import get_logger
 from sqlalchemy import func
 from sqlalchemy.orm import load_only
-from nylas.logging import get_logger
 
 log = get_logger()
+from imapclient.imap_utf7 import encode as utf7_encode
+
+from inbox.crispin import connection_pool
+from inbox.mailsync.backends.imap import common
+from inbox.mailsync.backends.imap.generic import uidvalidity_cb
 from inbox.models import Message, Thread
-from inbox.models.category import Category, EPOCH
-from inbox.models.message import MessageCategory
+from inbox.models.category import EPOCH, Category
 from inbox.models.folder import Folder
+from inbox.models.message import MessageCategory
 from inbox.models.session import session_scope
 from inbox.util.concurrency import retry_with_logging
-from inbox.util.itert import chunk
-from inbox.mailsync.backends.imap import common
 from inbox.util.debug import bind_context
-from inbox.mailsync.backends.imap.generic import uidvalidity_cb
-from inbox.crispin import connection_pool
-from imapclient.imap_utf7 import encode as utf7_encode
+from inbox.util.itert import chunk
 
 DEFAULT_MESSAGE_TTL = 2 * 60  # 2 minutes
 DEFAULT_THREAD_TTL = 60 * 60 * 24 * 7  # 7 days

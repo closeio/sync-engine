@@ -1,27 +1,27 @@
 import datetime
 import getpass
+import socket
+
 from backports import ssl
 from imapclient import IMAPClient
-import socket
-from OpenSSL._util import lib as ossllib
-
 from nylas.logging import get_logger
+from OpenSSL._util import lib as ossllib
 
 log = get_logger()
 
 from inbox.auth.base import AuthHandler, account_or_none
 from inbox.basicauth import (
-    ValidationError,
-    UserRecoverableConfigError,
-    SSLNotSupportedError,
-    SettingUpdateError,
     AppPasswordError,
+    SettingUpdateError,
+    SSLNotSupportedError,
+    UserRecoverableConfigError,
+    ValidationError,
 )
+from inbox.crispin import CrispinClient
 from inbox.models import Namespace
 from inbox.models.backends.generic import GenericAccount
 from inbox.sendmail.smtp.postel import SMTPClient
 from inbox.util.url import matching_subdomains
-from inbox.crispin import CrispinClient
 
 PROVIDER = "generic"
 AUTH_HANDLER_CLS = "GenericAuthHandler"

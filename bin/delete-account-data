@@ -21,10 +21,10 @@ import time
 
 import click
 
-from inbox.models.session import session_scope
-from inbox.models import Account
-from inbox.models.util import delete_namespace
 from inbox.heartbeat.status import clear_heartbeat_status
+from inbox.models import Account
+from inbox.models.session import session_scope
+from inbox.models.util import delete_namespace
 
 
 @click.command()

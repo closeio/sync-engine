@@ -1,27 +1,26 @@
 from datetime import datetime
 
 from sqlalchemy import (
+    Boolean,
     Column,
+    DateTime,
+    ForeignKey,
     String,
     Text,
-    Boolean,
     UniqueConstraint,
-    ForeignKey,
-    DateTime,
     inspect,
 )
-from sqlalchemy.orm import relationship, backref, object_session
+from sqlalchemy.orm import backref, object_session, relationship
 
 from inbox.models.base import MailSyncBase
-from inbox.models.namespace import Namespace
 from inbox.models.constants import MAX_INDEXABLE_LENGTH
-
 from inbox.models.mixins import (
+    DeletedAtMixin,
     HasPublicID,
     HasRevisions,
     UpdatedAtMixin,
-    DeletedAtMixin,
 )
+from inbox.models.namespace import Namespace
 
 
 class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtMixin):

@@ -11,8 +11,9 @@ revision = "427812c1e849"
 down_revision = "159607944f52"
 
 from datetime import datetime
-from alembic import op
+
 import sqlalchemy as sa
+from alembic import op
 
 
 def upgrade():

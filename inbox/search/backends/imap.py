@@ -1,20 +1,19 @@
-from nylas.logging import get_logger
-from inbox.crispin import CrispinClient, FolderMissingError
-from inbox.providers import provider_info
-from inbox.basicauth import NotSupportedError
-from inbox.models import Message, Folder, Account, Thread
-from inbox.models.session import session_scope
-from inbox.models.backends.imap import ImapUid
-from inbox.mailsync.backends.imap.generic import uidvalidity_cb
-from inbox.basicauth import ValidationError
-from inbox.search.base import SearchBackendException
-from inbox.mailsync.backends.imap.generic import UidInvalid
-from inbox.api.kellogs import APIEncoder
-
-from sqlalchemy import desc
-from imaplib import IMAP4
 import socket
+from imaplib import IMAP4
+
 from imapclient import IMAPClient
+from nylas.logging import get_logger
+from sqlalchemy import desc
+
+from inbox.api.kellogs import APIEncoder
+from inbox.basicauth import NotSupportedError, ValidationError
+from inbox.crispin import CrispinClient, FolderMissingError
+from inbox.mailsync.backends.imap.generic import UidInvalid, uidvalidity_cb
+from inbox.models import Account, Folder, Message, Thread
+from inbox.models.backends.imap import ImapUid
+from inbox.models.session import session_scope
+from inbox.providers import provider_info
+from inbox.search.base import SearchBackendException
 
 PROVIDER = "imap"
 

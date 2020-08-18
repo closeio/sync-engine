@@ -1,5 +1,6 @@
 # flake8: noqa: F811
 import pytest
+
 from inbox.test.api.base import api_client, new_api_client
 from inbox.test.util.base import generic_account
 

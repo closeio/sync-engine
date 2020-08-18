@@ -4,15 +4,14 @@ from nylas.logging import get_logger
 
 logger = get_logger()
 
-from carddav import CardDav
 import lxml.etree as ET
-from inbox.contacts.vcard import vcard_from_string
-from inbox.contacts.carddav import supports_carddav
+from carddav import CardDav
 
-from inbox.models.session import session_scope
+from inbox.contacts.carddav import supports_carddav
+from inbox.contacts.vcard import vcard_from_string
 from inbox.models import Contact
 from inbox.models.backends.generic import GenericAccount
-
+from inbox.models.session import session_scope
 
 ICLOUD_CONTACTS_URL = "https://contacts.icloud.com"
 

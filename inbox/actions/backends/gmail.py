@@ -1,11 +1,13 @@
 """ Operations for syncing back local datastore changes to Gmail. """
 
+from imaplib import IMAP4
+
 import imapclient
+
 from inbox.actions.backends.generic import uids_by_folder
 from inbox.mailsync.backends.imap.generic import uidvalidity_cb
 from inbox.models.category import Category
 from inbox.models.session import session_scope
-from imaplib import IMAP4
 
 PROVIDER = "gmail"
 

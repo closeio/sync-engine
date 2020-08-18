@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
-import pytest
 import time
-from conftest import timeout_loop, all_accounts
+
+import pytest
+from conftest import all_accounts, timeout_loop
+
 from inbox.client.errors import NotFoundError
 
 

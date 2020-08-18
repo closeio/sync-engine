@@ -1,13 +1,14 @@
-import pytest
-import random
 import datetime
+import random
 import time
 
-from inbox.client.errors import NotFoundError
+import pytest
 from conftest import calendar_accounts, timeout_loop
-from inbox.models.session import new_session
-from inbox.models import ActionLog
+
+from inbox.client.errors import NotFoundError
 from inbox.ignition import main_engine
+from inbox.models import ActionLog
+from inbox.models.session import new_session
 
 random.seed(None)
 

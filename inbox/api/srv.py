@@ -1,32 +1,28 @@
-from flask import Flask, request, jsonify, make_response, g
+from flask import Flask, g, jsonify, make_response, request
 from flask.ext.restful import reqparse
-from werkzeug.exceptions import default_exceptions, HTTPException
+from metrics_api import app as metrics_api
+from ns_api import DEFAULT_LIMIT, app as ns_api
+from nylas.logging import get_logger
 from sqlalchemy.orm.exc import NoResultFound
+from werkzeug.exceptions import HTTPException, default_exceptions
 
+from inbox.api.err import APIException, InputError, NotFoundError
 from inbox.api.kellogs import APIEncoder
+from inbox.api.validation import (
+    ValidatableArgument,
+    bounded_str,
+    limit,
+    strict_parse_args,
+    valid_public_id,
+)
 from inbox.auth.generic import GenericAuthHandler
 from inbox.auth.gmail import GmailAuthHandler
-from nylas.logging import get_logger
-from inbox.models import Namespace, Account
+from inbox.models import Account, Namespace
 from inbox.models.backends.generic import GenericAccount
-from inbox.models.backends.gmail import GmailAccount, GOOGLE_EMAIL_SCOPE
+from inbox.models.backends.gmail import GOOGLE_EMAIL_SCOPE, GmailAccount
 from inbox.models.session import global_session_scope
-from inbox.api.err import APIException, InputError, NotFoundError
-from inbox.api.validation import (
-    bounded_str,
-    ValidatableArgument,
-    strict_parse_args,
-    limit,
-)
-from inbox.api.validation import valid_public_id
-
-from metrics_api import app as metrics_api
-from ns_api import app as ns_api
-from ns_api import DEFAULT_LIMIT
-
-from inbox.webhooks.gpush_notifications import app as webhooks_api
-
 from inbox.util.logging_helper import reconfigure_logging
+from inbox.webhooks.gpush_notifications import app as webhooks_api
 
 app = Flask(__name__)
 # Handle both /endpoint and /endpoint/ without redirecting.

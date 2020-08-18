@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import click
+from nylas.logging import configure_logging, get_logger
 
 from inbox.contacts.search import delete_namespace_indexes as delete_indexes
 
-from nylas.logging import get_logger, configure_logging
 configure_logging()
 log = get_logger()
 

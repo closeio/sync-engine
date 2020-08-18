@@ -10,8 +10,8 @@ Create Date: 2014-07-18 22:00:45.339930
 revision = "4af5952e8a5b"
 down_revision = "4f57260602c9"
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 
 def truncate_subject(obj):
@@ -23,8 +23,8 @@ def truncate_subject(obj):
 
 
 def upgrade():
-    from inbox.models.session import session_scope
     from inbox.ignition import main_engine
+    from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
 

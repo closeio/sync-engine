@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa: F811
-import smtplib
-import json
-import time
-import pytest
-import re
-import traceback
 import contextlib
-from flanker import mime
+import json
+import re
+import smtplib
+import time
+import traceback
+
 import nylas.logging
+import pytest
+from flanker import mime
+
 import inbox.api.ns_api
 from inbox.basicauth import OAuthError
-from inbox.models import Message, Event
-from inbox.test.util.base import thread, message, imported_event
-from inbox.test.api.base import api_client
+from inbox.models import Event, Message
 from inbox.sendmail.smtp.postel import _substitute_bcc
-
+from inbox.test.api.base import api_client
+from inbox.test.util.base import imported_event, message, thread
 
 __all__ = ["thread", "message", "api_client", "imported_event"]
 

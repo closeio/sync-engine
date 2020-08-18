@@ -1,5 +1,5 @@
 # Test path conversion functions.
-from inbox.util.misc import imap_folder_path, fs_folder_path
+from inbox.util.misc import fs_folder_path, imap_folder_path
 
 
 def test_imap_folder_path():

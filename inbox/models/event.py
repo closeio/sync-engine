@@ -1,42 +1,41 @@
-import arrow
-from datetime import datetime
-from dateutil.parser import parse as date_parse
 import ast
 import json
+from datetime import datetime
+from email.utils import parseaddr
 
+import arrow
+from dateutil.parser import parse as date_parse
+from nylas.logging import get_logger
 from sqlalchemy import (
-    Column,
-    String,
-    ForeignKey,
-    Text,
     Boolean,
-    Integer,
+    Column,
     DateTime,
     Enum,
+    ForeignKey,
     Index,
+    Integer,
+    String,
+    Text,
     event,
 )
-from sqlalchemy.orm import relationship, backref, validates, reconstructor
-from sqlalchemy.types import TypeDecorator
 from sqlalchemy.dialects.mysql import LONGTEXT
+from sqlalchemy.orm import backref, reconstructor, relationship, validates
+from sqlalchemy.types import TypeDecorator
 
-from inbox.sqlalchemy_ext.util import MAX_TEXT_CHARS, BigJSON, MutableList
 from inbox.models.base import MailSyncBase
+from inbox.models.calendar import Calendar
+from inbox.models.message import Message
 from inbox.models.mixins import (
+    DeletedAtMixin,
     HasPublicID,
     HasRevisions,
     UpdatedAtMixin,
-    DeletedAtMixin,
 )
-from inbox.models.calendar import Calendar
 from inbox.models.namespace import Namespace
-from inbox.models.message import Message
-from inbox.models.when import Time, TimeSpan, Date, DateSpan
-from email.utils import parseaddr
-from inbox.util.encoding import unicode_safe_truncate
+from inbox.models.when import Date, DateSpan, Time, TimeSpan
+from inbox.sqlalchemy_ext.util import MAX_TEXT_CHARS, BigJSON, MutableList
 from inbox.util.addr import extract_emails_from_text
-
-from nylas.logging import get_logger
+from inbox.util.encoding import unicode_safe_truncate
 
 log = get_logger()
 

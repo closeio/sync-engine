@@ -1,11 +1,12 @@
 import json
 import time
-from gevent import Greenlet
 
 import pytest
+from gevent import Greenlet
+
+from inbox.test.api.base import api_client
 from inbox.test.util.base import add_fake_message
 from inbox.util.url import url_concat
-from inbox.test.api.base import api_client
 
 GEVENT_EPSILON = 0.5  # Greenlet switching time. VMs on Macs suck :()
 LONGPOLL_EPSILON = 2 + GEVENT_EPSILON  # API implementation polls every second

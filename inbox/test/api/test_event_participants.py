@@ -1,9 +1,9 @@
-import pytest
 import json
 
-from inbox.test.util.base import calendar
-from inbox.test.api.base import api_client
+import pytest
 
+from inbox.test.api.base import api_client
+from inbox.test.util.base import calendar
 
 __all__ = ["calendar", "api_client"]
 

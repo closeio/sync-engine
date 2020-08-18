@@ -1,20 +1,20 @@
 import requests
-
 from imapclient import IMAPClient
+from nylas.logging import get_logger
 
-from inbox.models import Namespace
-from inbox.models.backends.gmail import GmailAccount
-from inbox.models.backends.gmail import GmailAuthCredentials
-from inbox.models.backends.gmail import g_token_manager
-from inbox.config import config
 from inbox.auth.base import account_or_none
 from inbox.auth.oauth import OAuthAuthHandler
-from inbox.basicauth import OAuthError, ImapSupportDisabledError
-from inbox.util.url import url_concat
-from inbox.providers import provider_info
+from inbox.basicauth import ImapSupportDisabledError, OAuthError
+from inbox.config import config
 from inbox.crispin import GmailCrispinClient
-
-from nylas.logging import get_logger
+from inbox.models import Namespace
+from inbox.models.backends.gmail import (
+    GmailAccount,
+    GmailAuthCredentials,
+    g_token_manager,
+)
+from inbox.providers import provider_info
+from inbox.util.url import url_concat
 
 log = get_logger()
 

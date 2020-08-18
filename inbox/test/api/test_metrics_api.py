@@ -1,8 +1,9 @@
 import json
 
 import pytest
-from inbox.test.util.base import add_fake_message
+
 from inbox.ignition import redis_txn
+from inbox.test.util.base import add_fake_message
 
 
 class TestGlobalDeltas:

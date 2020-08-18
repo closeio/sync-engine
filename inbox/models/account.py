@@ -2,40 +2,39 @@ import os
 import traceback
 from datetime import datetime
 
+from nylas.logging import get_logger
+from nylas.logging.sentry import log_uncaught_errors
 from sqlalchemy import (
-    Column,
     BigInteger,
-    String,
-    DateTime,
     Boolean,
-    ForeignKey,
+    Column,
+    DateTime,
     Enum,
-    inspect,
-    bindparam,
+    ForeignKey,
     Index,
+    String,
+    bindparam,
     event,
+    inspect,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import false
 
 from inbox.config import config
-from inbox.sqlalchemy_ext.util import JSON, MutableDict, bakery
-
-from inbox.models.mixins import (
-    HasPublicID,
-    HasEmailAddress,
-    HasRunState,
-    HasRevisions,
-    UpdatedAtMixin,
-    DeletedAtMixin,
-)
 from inbox.models.base import MailSyncBase
 from inbox.models.calendar import Calendar
-from inbox.scheduling.event_queue import EventQueue
+from inbox.models.mixins import (
+    DeletedAtMixin,
+    HasEmailAddress,
+    HasPublicID,
+    HasRevisions,
+    HasRunState,
+    UpdatedAtMixin,
+)
 from inbox.providers import provider_info
-from nylas.logging.sentry import log_uncaught_errors
-from nylas.logging import get_logger
+from inbox.scheduling.event_queue import EventQueue
+from inbox.sqlalchemy_ext.util import JSON, MutableDict, bakery
 
 log = get_logger()
 
@@ -388,8 +387,8 @@ def update_listener_state(obj):
 @event.listens_for(Session, "after_flush")
 def after_flush(session, flush_context):
     from inbox.mailsync.service import (
-        shared_sync_event_queue_for_zone,
         SYNC_EVENT_QUEUE_NAME,
+        shared_sync_event_queue_for_zone,
     )
 
     def send_migration_events(obj_state):

@@ -1,25 +1,24 @@
 import json
 from datetime import datetime
 
-from sqlalchemy import asc
-from sqlalchemy.sql import func
-from sqlalchemy.orm import joinedload
 from gevent import Greenlet, sleep
-
-from inbox.ignition import engine_manager
-from inbox.util.itert import partition
-from inbox.models import Transaction, Contact
-from inbox.util.stats import statsd_client
-from inbox.models.session import session_scope_by_shard_id
-from inbox.models.search import ContactSearchIndexCursor
-from inbox.contacts.search import (
-    get_doc_service,
-    DOC_UPLOAD_CHUNK_SIZE,
-    cloudsearch_contact_repr,
-)
-
 from nylas.logging import get_logger
 from nylas.logging.sentry import log_uncaught_errors
+from sqlalchemy import asc
+from sqlalchemy.orm import joinedload
+from sqlalchemy.sql import func
+
+from inbox.contacts.search import (
+    DOC_UPLOAD_CHUNK_SIZE,
+    cloudsearch_contact_repr,
+    get_doc_service,
+)
+from inbox.ignition import engine_manager
+from inbox.models import Contact, Transaction
+from inbox.models.search import ContactSearchIndexCursor
+from inbox.models.session import session_scope_by_shard_id
+from inbox.util.itert import partition
+from inbox.util.stats import statsd_client
 
 log = get_logger()
 

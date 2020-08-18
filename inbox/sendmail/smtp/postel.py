@@ -1,25 +1,25 @@
-import re
-import ssl
 import base64
-import socket
 import itertools
-
+import re
 import smtplib
+import socket
+import ssl
 
 from nylas.logging import get_logger
 
 log = get_logger()
-from inbox.models.session import session_scope
+from util import SMTP_ERRORS
+
+from inbox.basicauth import OAuthError
+from inbox.models.backends.generic import GenericAccount
+from inbox.models.backends.gmail import g_token_manager
 from inbox.models.backends.imap import ImapAccount
 from inbox.models.backends.oauth import token_manager as default_token_manager
-from inbox.models.backends.gmail import g_token_manager
-from inbox.models.backends.generic import GenericAccount
-from inbox.sendmail.base import generate_attachments, SendMailException
-from inbox.sendmail.message import create_email
-from inbox.basicauth import OAuthError
+from inbox.models.session import session_scope
 from inbox.providers import provider_info
+from inbox.sendmail.base import SendMailException, generate_attachments
+from inbox.sendmail.message import create_email
 from inbox.util.blockstore import get_from_blockstore
-from util import SMTP_ERRORS
 
 # TODO[k]: Other types (LOGIN, XOAUTH, PLAIN-CLIENTTOKEN, CRAM-MD5)
 AUTH_EXTNS = {"oauth2": "XOAUTH2", "password": "PLAIN"}

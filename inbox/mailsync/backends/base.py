@@ -1,12 +1,11 @@
 from gevent import Greenlet, GreenletExit, event
-
 from nylas.logging import get_logger
 
 log = get_logger()
 from inbox.config import config
-from inbox.util.debug import bind_context
-from inbox.util.concurrency import retry_with_logging
 from inbox.models.session import session_scope
+from inbox.util.concurrency import retry_with_logging
+from inbox.util.debug import bind_context
 
 THROTTLE_COUNT = config.get("THROTTLE_COUNT", 200)
 THROTTLE_WAIT = config.get("THROTTLE_WAIT", 60)

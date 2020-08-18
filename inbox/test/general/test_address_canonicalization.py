@@ -1,5 +1,5 @@
 def test_canonicalization(db):
-    from inbox.models import Namespace, Account
+    from inbox.models import Account, Namespace
 
     ns = Namespace()
     account = Account(namespace=ns, email_address="lambda.the.ultimate@gmail.com")

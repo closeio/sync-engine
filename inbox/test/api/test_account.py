@@ -1,11 +1,11 @@
 # flake8: noqa: F811
+from inbox.test.api.base import api_client, new_api_client
 from inbox.test.util.base import (
+    add_fake_yahoo_account,
+    db,
     generic_account,
     gmail_account,
-    db,
-    add_fake_yahoo_account,
 )
-from inbox.test.api.base import api_client, new_api_client
 
 __all__ = ["db", "api_client", "generic_account", "gmail_account"]
 

@@ -1,9 +1,11 @@
-import json
 import datetime
+import json
+
 import pytest
+
 from inbox.api.ns_api import API_VERSIONS
-from inbox.test.util.base import add_fake_message, default_account, add_fake_thread, db
 from inbox.test.api.base import api_client
+from inbox.test.util.base import add_fake_message, add_fake_thread, db, default_account
 
 __all__ = ["db", "api_client", "default_account"]
 

@@ -10,8 +10,8 @@ Create Date: 2015-05-06 18:51:12.598129
 revision = "29698176aa8d"
 down_revision = "17dcbd7754e0"
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import mysql
 
 

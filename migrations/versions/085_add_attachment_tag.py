@@ -15,8 +15,8 @@ from sqlalchemy.sql import text
 
 
 def upgrade():
-    from inbox.models.session import session_scope
     from inbox.models import Namespace
+    from inbox.models.session import session_scope
 
     with session_scope() as db_session:
         # Create the attachment tag

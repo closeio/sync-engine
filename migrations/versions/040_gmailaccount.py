@@ -10,8 +10,8 @@ Create Date: 2014-06-17 22:48:01.928601
 revision = "4085dd542739"
 down_revision = "1c72d8a0120e"
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 
 def upgrade():
@@ -43,6 +43,7 @@ def upgrade():
     )
 
     from sqlalchemy.ext.declarative import declarative_base
+
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)

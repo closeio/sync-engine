@@ -1,8 +1,9 @@
 import gevent
 import gevent._threading  # This is a clone of the *real* threading module
-from pympler import muppy, summary
-from werkzeug.serving import run_simple, WSGIRequestHandler
 from flask import Flask, jsonify, request
+from pympler import muppy, summary
+from werkzeug.serving import WSGIRequestHandler, run_simple
+
 from inbox.instrumentation import GreenletTracer, KillerGreenletTracer, ProfileCollector
 
 

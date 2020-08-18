@@ -1,9 +1,11 @@
 import datetime
 import json
 import time
+
 from freezegun import freeze_time
-from inbox.test.util.base import add_fake_message
+
 from inbox.test.api.base import api_client
+from inbox.test.util.base import add_fake_message
 
 __all__ = ["api_client"]
 
@@ -12,8 +14,9 @@ def add_account_with_different_namespace_id(
     db_session, email_address="cypress@yahoo.com"
 ):
     import platform
-    from inbox.models.backends.generic import GenericAccount
+
     from inbox.models import Namespace
+    from inbox.models.backends.generic import GenericAccount
 
     account = GenericAccount(
         id=11,

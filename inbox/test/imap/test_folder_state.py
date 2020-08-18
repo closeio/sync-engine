@@ -1,6 +1,6 @@
 from inbox.crispin import RawFolder
-from inbox.models import Folder
 from inbox.mailsync.backends.imap.monitor import ImapSyncMonitor
+from inbox.models import Folder
 from inbox.models.backends.imap import ImapFolderInfo, ImapFolderSyncStatus
 
 

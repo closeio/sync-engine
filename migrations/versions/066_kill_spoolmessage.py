@@ -10,14 +10,15 @@ Create Date: 2014-07-21 17:35:46.026443
 revision = "4f3a1f6eaee3"
 down_revision = "2e6120c97485"
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 
 def upgrade():
     from sqlalchemy.ext.declarative import declarative_base
-    from inbox.models.session import session_scope
+
     from inbox.ignition import main_engine
+    from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
     op.add_column(

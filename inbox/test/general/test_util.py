@@ -1,7 +1,8 @@
 # test_util.py --- test various utility functions.
 import socket
-from inbox.util.url import naked_domain, matching_subdomains
+
 from inbox.util.addr import extract_emails_from_text
+from inbox.util.url import matching_subdomains, naked_domain
 
 
 def test_naked_domain():

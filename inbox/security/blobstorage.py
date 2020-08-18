@@ -14,8 +14,8 @@ always just null bytes.)
 """
 import struct
 import zlib
-from inbox.security.oracles import get_encryption_oracle, get_decryption_oracle
 
+from inbox.security.oracles import get_decryption_oracle, get_encryption_oracle
 
 KEY_VERSION = 0
 HEADER_WIDTH = 5

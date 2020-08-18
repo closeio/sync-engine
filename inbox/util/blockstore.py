@@ -2,9 +2,10 @@ import os
 import time
 from hashlib import sha256
 
+from nylas.logging import get_logger
+
 from inbox.config import config
 from inbox.util.stats import statsd_client
-from nylas.logging import get_logger
 
 log = get_logger()
 

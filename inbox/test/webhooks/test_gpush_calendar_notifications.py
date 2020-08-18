@@ -1,8 +1,9 @@
+from datetime import datetime, timedelta
+
 import limitlion
 import mock
-from gevent import sleep
 import pytest
-from datetime import datetime, timedelta
+from gevent import sleep
 
 from inbox.models.calendar import Calendar
 from inbox.test.util.base import webhooks_client

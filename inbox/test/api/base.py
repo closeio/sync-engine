@@ -1,6 +1,7 @@
 import json
-from pytest import fixture, yield_fixture
 from base64 import b64encode
+
+from pytest import fixture, yield_fixture
 
 
 def new_api_client(db, namespace):

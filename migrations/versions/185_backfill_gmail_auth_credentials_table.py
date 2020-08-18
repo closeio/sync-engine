@@ -13,11 +13,13 @@ down_revision = "2ac4e3c4e049"
 
 def upgrade():
     import datetime
+
     from sqlalchemy.ext.declarative import declarative_base
     from sqlalchemy.orm import relationship
+
     from inbox.config import config
-    from inbox.models.session import session_scope
     from inbox.ignition import main_engine
+    from inbox.models.session import session_scope
 
     engine = main_engine()
 

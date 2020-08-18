@@ -1,12 +1,12 @@
-import sys
 import pkgutil
-import time
 import re
-
+import sys
+import time
 from datetime import datetime
-from email.utils import parsedate_tz, mktime_tz
+from email.utils import mktime_tz, parsedate_tz
 
 from nylas.logging import get_logger
+
 from inbox.providers import providers
 
 

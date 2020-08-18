@@ -1,20 +1,21 @@
-import pytest
-import arrow
 import datetime
+from datetime import timedelta
+
+import arrow
+import pytest
 from dateutil import tz
 from dateutil.rrule import rrulestr
-from datetime import timedelta
-from inbox.models.event import Event, RecurringEvent, RecurringEventOverride
-from inbox.models.when import Date, Time, DateSpan, TimeSpan
-from inbox.events.remote_sync import handle_event_updates
+from nylas.logging import get_logger
+
 from inbox.events.recurring import (
-    link_events,
     get_start_times,
+    link_events,
     parse_exdate,
     rrule_to_json,
 )
-
-from nylas.logging import get_logger
+from inbox.events.remote_sync import handle_event_updates
+from inbox.models.event import Event, RecurringEvent, RecurringEventOverride
+from inbox.models.when import Date, DateSpan, Time, TimeSpan
 
 log = get_logger()
 

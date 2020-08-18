@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 from gevent import monkey
+
 monkey.patch_all()
 
 import gevent_openssl
+
 gevent_openssl.monkey_patch()
 
 import os
-import socket
 import platform
 import signal
+import socket
 import sys
 
 import click
@@ -24,12 +26,12 @@ except ImportError:
              "Maybe the Vagrant box provisioning didn't succeed?\n"
              "Try running sudo ./setup.sh")
 
-from inbox.util.startup import preflight
-from nylas.logging import get_logger, configure_logging
-from inbox.mailsync.service import SyncService
-from inbox.mailsync.frontend import SyncHTTPFrontend
+from nylas.logging import configure_logging, get_logger
 
+from inbox.mailsync.frontend import SyncHTTPFrontend
+from inbox.mailsync.service import SyncService
 from inbox.util.logging_helper import reconfigure_logging
+from inbox.util.startup import preflight
 
 # Set a default timeout for sockets.
 SOCKET_TIMEOUT = 2 * 60

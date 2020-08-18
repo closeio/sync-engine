@@ -1,16 +1,15 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, BigInteger, Index
+from sqlalchemy import BigInteger, Column, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import relationship
-from inbox.sqlalchemy_ext.util import JSON
 
 from inbox.models.base import MailSyncBase
 from inbox.models.mixins import (
+    DeletedAtMixin,
     HasPublicID,
     HasRevisions,
     UpdatedAtMixin,
-    DeletedAtMixin,
 )
-from inbox.sqlalchemy_ext.util import Base36UID
 from inbox.models.namespace import Namespace
+from inbox.sqlalchemy_ext.util import JSON, Base36UID
 
 
 class Metadata(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtMixin):

@@ -1,13 +1,13 @@
 from hashlib import sha256
-from flanker import mime
-from sqlalchemy import Column, Integer, String
 
+from flanker import mime
 from nylas.logging import get_logger
+from sqlalchemy import Column, Integer, String
 
 log = get_logger()
 from inbox.config import config
-from inbox.util import blockstore
 from inbox.s3.base import get_raw_from_provider
+from inbox.util import blockstore
 from inbox.util.stats import statsd_client
 
 # TODO: store AWS credentials in a better way.

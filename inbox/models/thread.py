@@ -2,25 +2,24 @@ import datetime
 import itertools
 from collections import defaultdict
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Index
+from nylas.logging import get_logger
+from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import (
-    relationship,
     backref,
-    validates,
     object_session,
+    relationship,
     subqueryload,
+    validates,
 )
 
-from nylas.logging import get_logger
-
 log = get_logger()
+from inbox.models.base import MailSyncBase
 from inbox.models.mixins import (
+    DeletedAtMixin,
     HasPublicID,
     HasRevisions,
     UpdatedAtMixin,
-    DeletedAtMixin,
 )
-from inbox.models.base import MailSyncBase
 from inbox.models.namespace import Namespace
 from inbox.util.misc import cleanup_subject
 

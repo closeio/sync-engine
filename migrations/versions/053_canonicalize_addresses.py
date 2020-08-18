@@ -10,8 +10,8 @@ Create Date: 2014-07-15 22:11:38.037716
 revision = "3795b2a97af1"
 down_revision = "358d0320397f"
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import mysql
 
 
@@ -51,11 +51,13 @@ def upgrade():
     )
 
     from flanker.addresslib import address
+
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    from inbox.models.session import session_scope
     from sqlalchemy.ext.declarative import declarative_base
+
+    from inbox.models.session import session_scope
 
     Base = declarative_base()
     Base.metadata.reflect(engine)
@@ -112,8 +114,9 @@ def downgrade():
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    from inbox.models.session import session_scope
     from sqlalchemy.ext.declarative import declarative_base
+
+    from inbox.models.session import session_scope
 
     Base = declarative_base()
     Base.metadata.reflect(engine)

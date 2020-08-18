@@ -1,25 +1,26 @@
-from sqlalchemy import and_, or_, desc, asc, func, bindparam
-from sqlalchemy.orm import subqueryload, contains_eager
+from sqlalchemy import and_, asc, bindparam, desc, func, or_
+from sqlalchemy.orm import contains_eager, subqueryload
+
 from inbox.api.err import InputError
 from inbox.api.validation import valid_public_id
+from inbox.ignition import engine_manager
 from inbox.models import (
+    Block,
+    Calendar,
+    Category,
     Contact,
     Event,
     EventContactAssociation,
-    Calendar,
     Message,
-    MessageContactAssociation,
-    Thread,
-    Block,
-    Part,
     MessageCategory,
-    Category,
+    MessageContactAssociation,
     Metadata,
+    Part,
+    Thread,
 )
 from inbox.models.event import RecurringEvent
-from inbox.sqlalchemy_ext.util import bakery
-from inbox.ignition import engine_manager
 from inbox.models.session import session_scope_by_shard_id
+from inbox.sqlalchemy_ext.util import bakery
 
 
 def contact_subquery(db_session, namespace_id, email_address, field):

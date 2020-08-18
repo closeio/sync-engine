@@ -1,18 +1,16 @@
-from datetime import datetime
 from collections import Counter
-
-from sqlalchemy.orm.exc import NoResultFound
+from datetime import datetime
 
 from nylas.logging import get_logger
+from sqlalchemy.orm.exc import NoResultFound
 
 logger = get_logger()
-from inbox.models import Contact, Account
-from inbox.sync.base_sync import BaseSyncMonitor
 from inbox.contacts.google import GoogleContactsProvider
 from inbox.contacts.icloud import ICloudContactsProvider
-from inbox.util.debug import bind_context
+from inbox.models import Account, Contact
 from inbox.models.session import session_scope
-
+from inbox.sync.base_sync import BaseSyncMonitor
+from inbox.util.debug import bind_context
 
 CONTACT_SYNC_PROVIDER_MAP = {
     "gmail": GoogleContactsProvider,

@@ -1,14 +1,13 @@
 import random
 
-import pytest
 import gevent
+import pytest
 
 from inbox.ignition import engine_manager
-from inbox.models.session import session_scope, session_scope_by_shard_id
 from inbox.models.action_log import ActionLog, schedule_action
-from inbox.transactions.actions import SyncbackService
-
+from inbox.models.session import session_scope, session_scope_by_shard_id
 from inbox.test.util.base import add_generic_imap_account
+from inbox.transactions.actions import SyncbackService
 
 
 @pytest.fixture

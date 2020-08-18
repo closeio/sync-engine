@@ -1,35 +1,34 @@
 import json
 from datetime import datetime
 
+from nylas.logging import get_logger
 from sqlalchemy import (
-    Column,
-    Integer,
     BigInteger,
     Boolean,
+    Column,
+    DateTime,
     Enum,
     ForeignKey,
     Index,
+    Integer,
     String,
-    DateTime,
     desc,
 )
-from sqlalchemy.schema import UniqueConstraint
-from sqlalchemy.orm import relationship, backref
-from sqlalchemy.sql.expression import false
-from inbox.sqlalchemy_ext.util import LittleJSON, JSON, MutableDict
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import object_session
+from sqlalchemy.orm import backref, object_session, relationship
+from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy.sql.expression import false
 
-from nylas.logging import get_logger
+from inbox.sqlalchemy_ext.util import JSON, LittleJSON, MutableDict
 
 log = get_logger()
-from inbox.models.base import MailSyncBase
 from inbox.models.account import Account
-from inbox.models.thread import Thread
-from inbox.models.message import Message
+from inbox.models.base import MailSyncBase
 from inbox.models.folder import Folder
-from inbox.models.mixins import HasRunState, UpdatedAtMixin, DeletedAtMixin
 from inbox.models.label import Label
+from inbox.models.message import Message
+from inbox.models.mixins import DeletedAtMixin, HasRunState, UpdatedAtMixin
+from inbox.models.thread import Thread
 from inbox.util.misc import cleanup_subject
 
 PROVIDER = "imap"

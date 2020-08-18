@@ -1,5 +1,6 @@
-from inbox.providers import providers
 import json
+
+from inbox.providers import providers
 
 
 def test_provider_export_as_json():

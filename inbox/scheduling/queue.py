@@ -19,16 +19,18 @@ ids to process identifiers. We use a bit of Redis Lua scripting to ensure that
 this happens atomically.
 """
 
-import gevent
 import itertools
-from inbox.config import config
-from inbox.ignition import engine_manager
-from inbox.models.session import session_scope_by_shard_id
-from inbox.models import Account
-from inbox.util.concurrency import retry_with_logging
-from inbox.util.stats import statsd_client
+
+import gevent
 from nylas.logging import get_logger
 from redis import StrictRedis
+
+from inbox.config import config
+from inbox.ignition import engine_manager
+from inbox.models import Account
+from inbox.models.session import session_scope_by_shard_id
+from inbox.util.concurrency import retry_with_logging
+from inbox.util.stats import statsd_client
 
 log = get_logger()
 

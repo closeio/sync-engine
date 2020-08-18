@@ -1,17 +1,19 @@
 # flake8: noqa: F401, F811
 from datetime import datetime, timedelta
-import pytest
-from sqlalchemy import desc
+
 import gevent
+import pytest
 from gevent.lock import Semaphore
+from sqlalchemy import desc
 from sqlalchemy.orm.exc import ObjectDeletedError
+
 from inbox.crispin import GmailFlags
 from inbox.mailsync.backends.imap.common import remove_deleted_uids, update_metadata
 from inbox.mailsync.gc import DeleteHandler, LabelRenameHandler
 from inbox.models import Folder, Message, Transaction
 from inbox.models.label import Label
-from inbox.util.testutils import mock_imapclient, MockIMAPClient
 from inbox.test.util.base import add_fake_imapuid, add_fake_message
+from inbox.util.testutils import MockIMAPClient, mock_imapclient
 
 
 @pytest.fixture()

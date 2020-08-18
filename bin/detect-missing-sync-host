@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import click
-
 from sqlalchemy.orm import load_only
 
 from inbox.models.account import Account

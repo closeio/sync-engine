@@ -5,16 +5,17 @@ the created_at column)
 
 """
 from gevent import monkey
+
 monkey.patch_all()
+
+import logging
 
 import click
 import gevent
-import logging
+from nylas.logging import configure_logging, get_logger
 
 from inbox.config import config
 from inbox.models.util import purge_transactions
-
-from nylas.logging import get_logger, configure_logging
 
 configure_logging(logging.INFO)
 log = get_logger()

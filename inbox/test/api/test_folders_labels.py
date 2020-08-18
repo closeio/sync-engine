@@ -6,17 +6,15 @@ import pytest
 from freezegun import freeze_time
 
 from inbox.api.ns_api import API_VERSIONS
-from inbox.models.category import Category, EPOCH
-
+from inbox.models.category import EPOCH, Category
+from inbox.test.api.base import api_client, new_api_client
 from inbox.test.util.base import (
     add_fake_message,
-    thread,
     add_fake_thread,
     generic_account,
     gmail_account,
+    thread,
 )
-from inbox.test.api.base import api_client, new_api_client
-
 
 __all__ = ["api_client", "thread", "generic_account", "gmail_account"]
 

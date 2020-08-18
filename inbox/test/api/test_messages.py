@@ -1,23 +1,22 @@
 # flake8: noqa: F811
 import json
+
 import mock
 import pytest
 
 from inbox.api.ns_api import API_VERSIONS
-from inbox.util.blockstore import get_from_blockstore
-
+from inbox.test.api.base import api_client, new_api_client
 from inbox.test.util.base import (
     add_fake_message,
-    default_namespace,
-    new_message_from_synced,
-    mime_message,
-    thread,
     add_fake_thread,
+    default_namespace,
     generic_account,
     gmail_account,
+    mime_message,
+    new_message_from_synced,
+    thread,
 )
-from inbox.test.api.base import api_client, new_api_client
-
+from inbox.util.blockstore import get_from_blockstore
 
 __all__ = [
     "api_client",

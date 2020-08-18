@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import os
 
-import alembic.config
 import alembic.command
+import alembic.config
 import alembic.util
 
 from inbox.config import config

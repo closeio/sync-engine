@@ -20,9 +20,8 @@ TODOs
 
 """
 
-import requests
 import lxml.etree as ET
-
+import requests
 
 # Fake it till you make it
 USER_AGENT = (

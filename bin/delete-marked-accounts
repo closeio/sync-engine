@@ -9,16 +9,17 @@ Includes:
 
 """
 from gevent import monkey
+
 monkey.patch_all()
+
+import logging
 
 import click
 import gevent
-import logging
+from nylas.logging import configure_logging, get_logger
 
 from inbox.config import config
-from inbox.models.util import get_accounts_to_delete, batch_delete_namespaces
-
-from nylas.logging import get_logger, configure_logging
+from inbox.models.util import batch_delete_namespaces, get_accounts_to_delete
 
 configure_logging(logging.INFO)
 log = get_logger()

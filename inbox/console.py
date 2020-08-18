@@ -1,10 +1,11 @@
 import sys
 
-from inbox.mailsync.backends.imap.generic import uidvalidity_cb
-from inbox.crispin import writable_connection_pool
-from inbox.models.session import global_session_scope
-from inbox.models import Account
 import IPython
+
+from inbox.crispin import writable_connection_pool
+from inbox.mailsync.backends.imap.generic import uidvalidity_cb
+from inbox.models import Account
+from inbox.models.session import global_session_scope
 
 
 def user_console(user_email_address):

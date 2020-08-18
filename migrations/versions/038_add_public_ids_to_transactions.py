@@ -31,8 +31,8 @@ def upgrade():
         "ix_transaction_public_id", "transaction", ["public_id"], unique=False
     )
 
-    from inbox.ignition import main_engine
     # TODO(emfree) reflect
+    from inbox.ignition import main_engine
     from inbox.models.session import session_scope
     from inbox.sqlalchemy_ext.util import b36_to_bin, generate_public_id
 

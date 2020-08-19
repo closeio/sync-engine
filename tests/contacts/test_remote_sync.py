@@ -1,6 +1,7 @@
 import pytest
 
 from inbox.models import Contact
+
 from tests.util.base import ContactsProviderStub, contact_sync, contacts_provider
 
 __all__ = ["contact_sync", "contacts_provider"]

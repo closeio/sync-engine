@@ -1,4 +1,5 @@
 from inbox.models import Contact
+
 from tests.api.base import api_client
 from tests.util.base import contact_sync, contacts_provider
 

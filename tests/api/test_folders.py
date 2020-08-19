@@ -2,9 +2,10 @@
 import gevent
 import mock
 
+from inbox.util.testutils import mock_imapclient  # noqa
+
 from tests.api.base import imap_api_client
 from tests.util.base import add_fake_category, add_fake_folder
-from inbox.util.testutils import mock_imapclient  # noqa
 
 
 # Check that folders of the form INBOX.A.B get converted by the API

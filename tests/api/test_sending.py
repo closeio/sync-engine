@@ -15,6 +15,7 @@ import inbox.api.ns_api
 from inbox.basicauth import OAuthError
 from inbox.models import Event, Message
 from inbox.sendmail.smtp.postel import _substitute_bcc
+
 from tests.api.base import api_client
 from tests.util.base import imported_event, message, thread
 

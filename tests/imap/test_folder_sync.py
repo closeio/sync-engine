@@ -14,8 +14,9 @@ from inbox.mailsync.backends.imap.generic import (
 )
 from inbox.models import Folder, Message
 from inbox.models.backends.imap import ImapFolderInfo, ImapFolderSyncStatus, ImapUid
-from tests.imap.data import uid_data, uids  # noqa
 from inbox.util.testutils import mock_imapclient  # noqa
+
+from tests.imap.data import uid_data, uids  # noqa
 
 
 def create_folder_with_syncstatus(account, name, canonical_name, db_session):

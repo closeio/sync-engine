@@ -1,6 +1,7 @@
 import json
 
 from inbox.models import Category, Message, MessageCategory, Thread
+
 from tests.api.base import new_api_client
 from tests.util.base import add_fake_message, add_fake_thread
 

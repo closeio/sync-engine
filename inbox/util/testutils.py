@@ -315,7 +315,12 @@ def files(db):
     data = []
     for filename in filenames:
         path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "..", "..", "tests", "data", filename
+            os.path.dirname(os.path.abspath(__file__)),
+            "..",
+            "..",
+            "tests",
+            "data",
+            filename,
         ).encode("utf-8")
         data.append((filename, path))
     return data

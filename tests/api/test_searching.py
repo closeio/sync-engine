@@ -12,6 +12,7 @@ from inbox.models import Folder
 from inbox.search.backends.gmail import GmailSearchClient
 from inbox.search.backends.imap import IMAPSearchClient
 from inbox.search.base import get_search_client
+
 from tests.api.base import api_client, imap_api_client
 from tests.util.base import (
     add_fake_folder,

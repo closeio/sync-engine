@@ -3,6 +3,7 @@ import json
 import pytest
 
 from inbox.mailsync.backends.imap.common import update_message_metadata
+
 from tests.api.base import api_client
 from tests.util.base import (
     add_fake_folder,

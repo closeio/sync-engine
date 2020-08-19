@@ -8,6 +8,9 @@ import pytest
 from flanker import mime
 
 from inbox.models import Block, Message
+from inbox.util.addr import parse_mimepart_address_header
+from inbox.util.blockstore import get_from_blockstore
+
 from tests.util.base import (
     add_fake_thread,
     default_account,
@@ -16,8 +19,6 @@ from tests.util.base import (
     new_message_from_synced,
     thread,
 )
-from inbox.util.addr import parse_mimepart_address_header
-from inbox.util.blockstore import get_from_blockstore
 
 __all__ = ["default_namespace", "thread", "default_account"]
 
@@ -64,9 +65,7 @@ def raw_message_with_bad_attachment():
 
 @pytest.fixture
 def raw_message_with_filename_attachment():
-    return pkgutil.get_data(
-        "tests", "data/raw_message_with_filename_attachment.txt"
-    )
+    return pkgutil.get_data("tests", "data/raw_message_with_filename_attachment.txt")
 
 
 @pytest.fixture
@@ -86,9 +85,7 @@ def raw_message_with_outlook_emoji():
 
 @pytest.fixture
 def raw_message_with_outlook_emoji_inline():
-    return pkgutil.get_data(
-        "tests", "data/raw_message_with_outlook_emoji_inline.txt"
-    )
+    return pkgutil.get_data("tests", "data/raw_message_with_outlook_emoji_inline.txt")
 
 
 @pytest.fixture

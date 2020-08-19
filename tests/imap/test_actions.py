@@ -29,9 +29,10 @@ from inbox.sendmail.base import (
     create_message_from_json,
     update_draft as sendmail_update_draft,
 )
-from tests.util.base import add_fake_category, add_fake_imapuid
 from inbox.transactions.actions import SyncbackService
 from inbox.util.testutils import mock_imapclient  # noqa
+
+from tests.util.base import add_fake_category, add_fake_imapuid
 
 
 @pytest.mark.only

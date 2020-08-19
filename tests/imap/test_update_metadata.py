@@ -5,7 +5,7 @@ import pytest
 from inbox.crispin import Flags, GmailFlags
 from inbox.mailsync.backends.imap.common import update_message_metadata, update_metadata
 from inbox.models.backends.imap import ImapUid
-from inbox.test.util.base import (
+from tests.util.base import (
     add_fake_folder,
     add_fake_imapuid,
     add_fake_message,

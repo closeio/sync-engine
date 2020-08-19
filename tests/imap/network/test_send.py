@@ -3,9 +3,9 @@ from datetime import datetime
 
 import pytest
 
-from inbox.test.api.base import api_client
-from inbox.test.util.base import default_account
-from inbox.test.util.crispin import crispin_client
+from tests.api.base import api_client
+from tests.util.base import default_account
+from tests.util.crispin import crispin_client
 
 __all__ = ["default_account", "api_client"]
 

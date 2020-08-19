@@ -7,8 +7,8 @@ from freezegun import freeze_time
 
 from inbox.api.ns_api import API_VERSIONS
 from inbox.models.category import EPOCH, Category
-from inbox.test.api.base import api_client, new_api_client
-from inbox.test.util.base import (
+from tests.api.base import api_client, new_api_client
+from tests.util.base import (
     add_fake_message,
     add_fake_thread,
     generic_account,

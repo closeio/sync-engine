@@ -1,2 +1,2 @@
 # flake8: noqa: F401
-from inbox.test.util.base import db, dbloader, default_account
+from tests.util.base import db, dbloader, default_account

@@ -2,7 +2,7 @@
 # flake8: noqa: F401
 import pytest
 
-from inbox.test.util.base import add_fake_imapuid, add_fake_message, add_fake_thread
+from tests.util.base import add_fake_imapuid, add_fake_message, add_fake_thread
 from inbox.util.misc import cleanup_subject
 from inbox.util.threading import fetch_corresponding_thread
 

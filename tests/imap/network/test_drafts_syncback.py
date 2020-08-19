@@ -3,7 +3,7 @@ from datetime import datetime
 
 import pytest
 
-from inbox.test.util.crispin import crispin_client
+from tests.util.crispin import crispin_client
 
 ACCOUNT_ID = 1
 NAMESPACE_ID = 1

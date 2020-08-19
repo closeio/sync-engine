@@ -14,7 +14,7 @@ from inbox.mailsync.backends.imap.generic import (
 )
 from inbox.models import Folder, Message
 from inbox.models.backends.imap import ImapFolderInfo, ImapFolderSyncStatus, ImapUid
-from inbox.test.imap.data import uid_data, uids  # noqa
+from tests.imap.data import uid_data, uids  # noqa
 from inbox.util.testutils import mock_imapclient  # noqa
 
 

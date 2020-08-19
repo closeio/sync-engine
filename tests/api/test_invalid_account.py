@@ -5,8 +5,8 @@ import mock
 import pytest
 import requests
 
-from inbox.test.api.base import api_client
-from inbox.test.util.base import db
+from tests.api.base import api_client
+from tests.util.base import db
 
 __all__ = ["api_client", "db"]
 

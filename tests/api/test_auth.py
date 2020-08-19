@@ -1,8 +1,8 @@
 import json
 from base64 import b64encode
 
-from inbox.test.api.base import new_api_client  # noqa
-from inbox.test.util.base import db, generic_account  # noqa
+from tests.api.base import new_api_client  # noqa
+from tests.util.base import db, generic_account  # noqa
 
 
 def test_no_auth(db, generic_account):  # noqa

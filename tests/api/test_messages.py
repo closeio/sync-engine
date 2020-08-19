@@ -5,8 +5,8 @@ import mock
 import pytest
 
 from inbox.api.ns_api import API_VERSIONS
-from inbox.test.api.base import api_client, new_api_client
-from inbox.test.util.base import (
+from tests.api.base import api_client, new_api_client
+from tests.util.base import (
     add_fake_message,
     add_fake_thread,
     default_namespace,

@@ -10,8 +10,8 @@ import sys
 import gevent
 import pytest
 
-from inbox.test.api.base import api_client, new_api_client
-from inbox.test.util.base import default_account
+from tests.api.base import api_client, new_api_client
+from tests.util.base import default_account
 
 smtpd.DEBUGSTREAM = sys.stderr
 

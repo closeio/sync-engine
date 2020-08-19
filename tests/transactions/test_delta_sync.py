@@ -4,8 +4,8 @@ import time
 
 from freezegun import freeze_time
 
-from inbox.test.api.base import api_client
-from inbox.test.util.base import add_fake_message
+from tests.api.base import api_client
+from tests.util.base import add_fake_message
 
 __all__ = ["api_client"]
 

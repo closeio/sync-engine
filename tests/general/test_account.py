@@ -1,6 +1,6 @@
 import pytest
 
-from inbox.test.util.base import add_fake_gmail_account, add_generic_imap_account
+from tests.util.base import add_fake_gmail_account, add_generic_imap_account
 
 
 def add_fake_imap_account(db_session, provider, email_address, password):

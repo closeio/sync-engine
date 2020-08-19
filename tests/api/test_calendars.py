@@ -1,6 +1,6 @@
 from inbox.models import Calendar
-from inbox.test.api.base import api_client
-from inbox.test.util.base import add_fake_event, db, default_namespace
+from tests.api.base import api_client
+from tests.util.base import add_fake_event, db, default_namespace
 
 __all__ = ["api_client", "db", "default_namespace"]
 

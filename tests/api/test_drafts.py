@@ -8,8 +8,8 @@ from datetime import datetime
 import pytest
 from freezegun import freeze_time
 
-from inbox.test.api.base import api_client
-from inbox.test.util.base import add_fake_message, add_fake_thread
+from tests.api.base import api_client
+from tests.util.base import add_fake_message, add_fake_thread
 
 __all__ = ["api_client"]
 

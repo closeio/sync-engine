@@ -1,5 +1,5 @@
 from inbox.models.action_log import ActionLog, schedule_action
-from inbox.test.util.base import add_fake_event
+from tests.util.base import add_fake_event
 
 
 def test_action_scheduling(db, default_account):

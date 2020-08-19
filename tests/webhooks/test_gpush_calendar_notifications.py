@@ -6,7 +6,7 @@ import pytest
 from gevent import sleep
 
 from inbox.models.calendar import Calendar
-from inbox.test.util.base import webhooks_client
+from tests.util.base import webhooks_client
 
 __all__ = ["webhooks_client"]
 

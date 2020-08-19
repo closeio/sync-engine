@@ -3,7 +3,7 @@ import json
 import arrow
 import pytest
 
-from inbox.test.api.base import api_client
+from tests.api.base import api_client
 
 __all__ = ["api_client"]
 

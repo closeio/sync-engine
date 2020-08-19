@@ -9,7 +9,7 @@ from inbox.mailsync.backends.imap.generic import FolderSyncEngine
 from inbox.models import Folder, Namespace
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.imap import ImapUid
-from inbox.test.util.base import (
+from tests.util.base import (
     add_fake_message,
     add_fake_thread,
     add_generic_imap_account,

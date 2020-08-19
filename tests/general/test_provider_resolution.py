@@ -9,7 +9,7 @@ from inbox.util.url import InvalidEmailAddressError, provider_from_address
 
 def test_provider_resolution(mock_dns_resolver):
     mock_dns_resolver._load_records(
-        "inbox", "test/data/general_test_provider_resolution.json"
+        "tests", "data/general_test_provider_resolution.json"
     )
     test_cases = [
         ("foo@example.com", "unknown"),

@@ -3,8 +3,8 @@ import json
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.models import DataProcessingCache
-from inbox.test.api.base import api_client
-from inbox.test.util.base import add_fake_message, add_fake_thread, default_namespace
+from tests.api.base import api_client
+from tests.util.base import add_fake_message, add_fake_thread, default_namespace
 
 __all__ = ["api_client", "default_namespace"]
 

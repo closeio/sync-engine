@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa: F401,F811
-from inbox.test.util.base import event
+from tests.util.base import event
 
 
 def test_invite_generation(event, default_account):

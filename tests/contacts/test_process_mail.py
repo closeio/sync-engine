@@ -1,7 +1,7 @@
 """Sanity-check our logic for updating contact data from message addressees
 during a sync."""
 from inbox.models import Contact
-from inbox.test.util.base import add_fake_message
+from tests.util.base import add_fake_message
 
 
 def test_update_contacts_from_message(db, default_namespace, thread):

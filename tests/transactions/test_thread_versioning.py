@@ -1,4 +1,4 @@
-from inbox.test.util.base import add_fake_category, add_fake_message
+from tests.util.base import add_fake_category, add_fake_message
 
 
 def test_adding_and_removing_message_on_thread_increments_version(

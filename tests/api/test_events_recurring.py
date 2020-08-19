@@ -5,8 +5,8 @@ import arrow
 import pytest
 
 from inbox.models import Calendar, Event
-from inbox.test.api.base import api_client
-from inbox.test.util.base import message
+from tests.api.base import api_client
+from tests.util.base import message
 
 __all__ = ["api_client"]
 

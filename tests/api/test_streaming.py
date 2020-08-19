@@ -4,8 +4,8 @@ import time
 import pytest
 from gevent import Greenlet
 
-from inbox.test.api.base import api_client
-from inbox.test.util.base import add_fake_message
+from tests.api.base import api_client
+from tests.util.base import add_fake_message
 from inbox.util.url import url_concat
 
 GEVENT_EPSILON = 0.5  # Greenlet switching time. VMs on Macs suck :()

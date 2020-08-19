@@ -8,7 +8,7 @@ import mock
 import pytest
 
 from inbox.models import Block, Part
-from inbox.test.api.base import api_client
+from tests.api.base import api_client
 from inbox.util.testutils import FILENAMES
 
 __all__ = ["api_client"]

@@ -40,7 +40,7 @@ jobs:
             docker-compose run nylas bash -ec '
               pip install -e . \
               && bin/wait-for-it.sh mysql:3306 \
-              && NYLAS_ENV=test py.test inbox/test/
+              && NYLAS_ENV=test py.test tests/
             '
 
 workflows:

@@ -15,8 +15,8 @@ from inbox.api.validation import (
     strict_parse_args,
     valid_public_id,
 )
-from inbox.auth.generic import GenericAuthHandler
-from inbox.auth.gmail import GmailAuthHandler
+from inbox.auth.generic import GenericAccountData, GenericAccountHandler
+from inbox.auth.gmail import GoogleAccountData, GoogleAccountHandler
 from inbox.models import Account, Namespace
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.gmail import GOOGLE_EMAIL_SCOPE, GmailAccount
@@ -146,66 +146,77 @@ def ns_all():
         return encoder.jsonify(namespaces)
 
 
+def _get_account_data_for_generic_account(data):
+    email_address = data["email_address"]
+    sync_email = data.get("sync_email", True)
+    return GenericAccountData(
+        email=email_address,
+        imap_server_host=data["imap_server_host"],
+        imap_server_port=data["imap_server_port"],
+        imap_username=data["imap_username"],
+        imap_password=data["imap_password"],
+        smtp_server_host="localhost",
+        smtp_server_port=25,
+        smtp_username="dummy",
+        smtp_password="dummy",
+        sync_email=sync_email,
+    )
+
+
+def _get_account_data_for_google_account(data):
+    email_address = data["email_address"]
+    scopes = data.get("scopes", GOOGLE_EMAIL_SCOPE)
+    client_id = data.get("client_id")
+
+    sync_email = data.get("sync_email", True)
+    sync_calendar = data.get("sync_calendar", False)
+    sync_contacts = data.get("sync_contacts", False)
+
+    refresh_token = data.get("refresh_token")
+    authalligator = data.get("authalligator")
+
+    if authalligator:
+        secret_type = SecretType.AuthAlligator
+        secret_value = authalligator
+    elif refresh_token:
+        secret_type = SecretType.Token
+        secret_value = refresh_token
+    else:
+        raise InputError("Authentication information missing.")
+
+    return GoogleAccountData(
+        email=email_address,
+        secret_type=secret_type,
+        secret_value=secret_value,
+        client_id=client_id,
+        scopes=scopes,
+        sync_email=sync_email,
+        sync_calendar=sync_calendar,
+        sync_contacts=sync_contacts,
+    )
+
+
 @app.route("/accounts/", methods=["POST"])
 def create_account():
     """ Create a new account """
     data = request.get_json(force=True)
 
-    provider = data.get("provider", "custom")
-    email_address = data["email_address"]
-
-    sync_email = data.get("sync_email", True)
-    sync_calendar = data.get("sync_calendar", False)
-
     if data["type"] == "generic":
-        auth_handler = GenericAuthHandler(provider)
-        account = auth_handler.create_account(
-            email_address,
-            {
-                "name": "",
-                "email": email_address,
-                "imap_server_host": data["imap_server_host"],
-                "imap_server_port": data["imap_server_port"],
-                "imap_username": data["imap_username"],
-                "imap_password": data["imap_password"],
-                # Make Nylas happy with dummy values
-                "smtp_server_host": "localhost",
-                "smtp_server_port": 25,
-                "smtp_username": "dummy",
-                "smtp_password": "dummy",
-                "sync_email": sync_email,
-            },
-        )
-
+        account_handler = GenericAccountHandler()
+        account_data = _get_account_data_for_generic_account(data)
     elif data["type"] == "gmail":
-        scopes = data.get("scopes", GOOGLE_EMAIL_SCOPE)
-        auth_handler = GmailAuthHandler(provider)
-        account = auth_handler.create_account(
-            email_address,
-            {
-                "name": "",
-                "email": email_address,
-                "refresh_token": data["refresh_token"],
-                "scope": scopes,
-                "id_token": "",
-                "contacts": False,
-                "sync_email": sync_email,
-                "events": sync_calendar,
-            },
-        )
-
+        account_handler = GoogleAuthHandler()
+        account_data = _get_account_data_for_google_account(data)
     else:
         raise ValueError("Account type not supported.")
 
     with global_session_scope() as db_session:
-        # By default, don't enable accounts so we have the ability to set a
-        # custom sync host.
-        account.sync_should_run = False
+        account = account_handler.create_account(account_data)
         db_session.add(account)
         db_session.commit()
 
-        encoder = APIEncoder()
-        return encoder.jsonify(account.namespace)
+    encoder = APIEncoder()
+    return encoder.jsonify(account.namespace)
 
 
 @app.route("/accounts/<namespace_public_id>/", methods=["PUT"])
@@ -218,12 +229,6 @@ def modify_account(namespace_public_id):
 
     data = request.get_json(force=True)
 
-    provider = data.get("provider", "custom")
-    email_address = data["email_address"]
-
-    sync_email = data.get("sync_email", True)
-    sync_calendar = data.get("sync_calendar", False)
-
     with global_session_scope() as db_session:
         namespace = (
             db_session.query(Namespace)
@@ -233,67 +238,20 @@ def modify_account(namespace_public_id):
         account = namespace.account
 
         if isinstance(account, GenericAccount):
-            if "refresh_token" in data:
-                raise InputError(
-                    "Cannot change the refresh token on a password account."
-                )
-
-            auth_handler = GenericAuthHandler(provider)
-            auth_handler.update_account(
-                account,
-                {
-                    "name": "",
-                    "email": email_address,
-                    "imap_server_host": data["imap_server_host"],
-                    "imap_server_port": data["imap_server_port"],
-                    "imap_username": data["imap_username"],
-                    "imap_password": data["imap_password"],
-                    # Make Nylas happy with dummy values
-                    "smtp_server_host": "localhost",
-                    "smtp_server_port": 25,
-                    "smtp_username": "dummy",
-                    "smtp_password": "dummy",
-                    "sync_email": sync_email,
-                },
-            )
-
+            account_handler = GenericAccountHandler()
+            account_data = _get_account_data_for_generic_account(data)
         elif isinstance(account, GmailAccount):
-            scopes = data.get("scopes", GOOGLE_EMAIL_SCOPE)
             auth_handler = GmailAuthHandler(provider)
-            if "refresh_token" in data:
-                account = auth_handler.update_account(
-                    account,
-                    {
-                        "name": "",
-                        "email": email_address,
-                        "refresh_token": data["refresh_token"],
-                        "scope": scopes,
-                        "id_token": "",
-                        "sync_email": sync_email,
-                        "contacts": False,
-                        "events": sync_calendar,
-                    },
-                )
-            else:
-                if (
-                    "imap_server_host" in data
-                    or "imap_server_port" in data
-                    or "imap_username" in data
-                    or "imap_password" in data
-                ):
-                    raise InputError("Cannot change IMAP fields on a Gmail account.")
-
+            account_data = _get_account_data_for_google_account(data)
         else:
             raise ValueError("Account type not supported.")
 
-        # By default, don't enable accounts so we have the ability to set a
-        # custom sync host.
-        account.disable_sync("modified-account")
+        account = account_handler.update_account(account, account_data)
         db_session.add(account)
         db_session.commit()
 
-        encoder = APIEncoder()
-        return encoder.jsonify(account.namespace)
+    encoder = APIEncoder()
+    return encoder.jsonify(account.namespace)
 
 
 @app.route("/accounts/<namespace_public_id>/", methods=["DELETE"])

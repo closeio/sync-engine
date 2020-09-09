@@ -21,7 +21,7 @@ from inbox.events.util import (
     parse_google_time,
 )
 from inbox.models import Account, Calendar
-from inbox.models.backends.gmail import g_token_manager
+from inbox.models.backends.oauth import token_manager
 from inbox.models.event import EVENT_STATUSES, Event
 from inbox.models.session import session_scope
 
@@ -154,7 +154,7 @@ class GoogleEventsProvider(object):
             acc = db_session.query(Account).get(self.account_id)
             # This will raise OAuthError if OAuth access was revoked. The
             # BaseSyncMonitor loop will catch this, clean up, and exit.
-            return g_token_manager.get_token_for_calendars(
+            return token_manager.get_token_for_calendars(
                 acc, force_refresh=force_refresh
             )
 
@@ -296,21 +296,15 @@ class GoogleEventsProvider(object):
     # -------- logic for push notification subscriptions -------- #
 
     def _get_access_token_for_push_notifications(self, account, force_refresh=False):
-        # Raises an OAuthError if no such token exists
-        return g_token_manager.get_token_for_calendars_restrict_ids(
-            account, PUSH_ENABLED_CLIENT_IDS, force_refresh
-        )
+        if not self.push_notifications_enabled(account):
+            raise OAuthError("Account not enabled for push notifications.")
+        return token_manager.get_token(account, force_refresh)
 
     def push_notifications_enabled(self, account):
-        push_enabled_creds = next(
-            (
-                creds
-                for creds in account.valid_auth_credentials
-                if creds.client_id in PUSH_ENABLED_CLIENT_IDS
-            ),
-            None,
-        )
-        return push_enabled_creds is not None
+        if account.get_client_info()[0] in PUSH_ENABLED_CLIENT_IDS:
+            return True
+        else:
+            return False
 
     def watch_calendar_list(self, account):
         """

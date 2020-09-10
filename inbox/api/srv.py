@@ -176,10 +176,10 @@ def _get_account_data_for_google_account(data):
     authalligator = data.get("authalligator")
 
     if authalligator:
-        secret_type = SecretType.AuthAlligator
+        secret_type = SecretType.authalligator
         secret_value = authalligator
     elif refresh_token:
-        secret_type = SecretType.Token
+        secret_type = SecretType.token
         secret_value = refresh_token
     else:
         raise InputError("Authentication information missing.")

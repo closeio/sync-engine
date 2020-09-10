@@ -53,7 +53,7 @@ class OAuthAccount(object):
     def refresh_token(self):
         if not self.secret:
             return None
-        if self.secret.type == SecretType.Token:
+        if self.secret.type == SecretType.token:
             return self.secret.secret
         else:
             raise ValueError("Invalid secret type.")
@@ -72,7 +72,7 @@ class OAuthAccount(object):
         if b"\x00" in value:
             raise ValueError("Invalid refresh_token")
 
-        self.set_secret(SecretType.Token, value)
+        self.set_secret(SecretType.token, value)
 
     def set_secret(self, secret_type, secret_value):
         if not self.secret:
@@ -100,7 +100,7 @@ class OAuthAccount(object):
         Raises:
             OAuthError: If no token could be obtained.
         """
-        if self.secret.type == SecretType.AuthAlligator:
+        if self.secret.type == SecretType.authalligator:
             aa_data = json.loads(self.secret.secret)
             print("get token from AA", aa_data)
             # TODO: obtain token from AA

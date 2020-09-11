@@ -9,11 +9,11 @@ from sqlalchemy.orm import backref, relationship
 from sqlalchemy.orm.session import object_session
 
 from inbox.basicauth import ConnectionError, OAuthError
+from inbox.config import config
 from inbox.models.backends.imap import ImapAccount
 from inbox.models.backends.oauth import OAuthAccount
 from inbox.models.base import MailSyncBase
 from inbox.models.mixins import DeletedAtMixin, UpdatedAtMixin
-from inbox.models.secret import Secret
 from inbox.models.session import session_scope
 
 log = get_logger()

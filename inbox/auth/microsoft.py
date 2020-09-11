@@ -1,3 +1,6 @@
+import attr
+
+
 @attr.s
 class MicrosoftAccountData(object):
     email = attr.ib()

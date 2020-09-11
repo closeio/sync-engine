@@ -15,11 +15,12 @@ from inbox.api.validation import (
     strict_parse_args,
     valid_public_id,
 )
-from inbox.auth.generic import GenericAccountData, GenericAccountHandler
-from inbox.auth.gmail import GoogleAccountData, GoogleAccountHandler
+from inbox.auth.generic import GenericAccountData, GenericAuthHandler
+from inbox.auth.google import GoogleAccountData, GoogleAuthHandler
 from inbox.models import Account, Namespace
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.gmail import GOOGLE_EMAIL_SCOPE, GmailAccount
+from inbox.models.secret import SecretType
 from inbox.models.session import global_session_scope
 from inbox.util.logging_helper import reconfigure_logging
 from inbox.webhooks.gpush_notifications import app as webhooks_api
@@ -176,10 +177,10 @@ def _get_account_data_for_google_account(data):
     authalligator = data.get("authalligator")
 
     if authalligator:
-        secret_type = SecretType.authalligator
+        secret_type = SecretType.AuthAlligator
         secret_value = authalligator
     elif refresh_token:
-        secret_type = SecretType.token
+        secret_type = SecretType.Token
         secret_value = refresh_token
     else:
         raise InputError("Authentication information missing.")
@@ -202,21 +203,21 @@ def create_account():
     data = request.get_json(force=True)
 
     if data["type"] == "generic":
-        account_handler = GenericAccountHandler()
+        auth_handler = GenericAuthHandler()
         account_data = _get_account_data_for_generic_account(data)
     elif data["type"] == "gmail":
-        account_handler = GoogleAuthHandler()
+        auth_handler = GoogleAuthHandler()
         account_data = _get_account_data_for_google_account(data)
     else:
         raise ValueError("Account type not supported.")
 
     with global_session_scope() as db_session:
-        account = account_handler.create_account(account_data)
+        account = auth_handler.create_account(account_data)
         db_session.add(account)
         db_session.commit()
 
-    encoder = APIEncoder()
-    return encoder.jsonify(account.namespace)
+        encoder = APIEncoder()
+        return encoder.jsonify(account.namespace)
 
 
 @app.route("/accounts/<namespace_public_id>/", methods=["PUT"])
@@ -238,20 +239,20 @@ def modify_account(namespace_public_id):
         account = namespace.account
 
         if isinstance(account, GenericAccount):
-            account_handler = GenericAccountHandler()
+            auth_handler = GenericAuthHandler()
             account_data = _get_account_data_for_generic_account(data)
         elif isinstance(account, GmailAccount):
-            auth_handler = GmailAuthHandler(provider)
+            auth_handler = GoogleAuthHandler()
             account_data = _get_account_data_for_google_account(data)
         else:
             raise ValueError("Account type not supported.")
 
-        account = account_handler.update_account(account, account_data)
+        account = auth_handler.update_account(account, account_data)
         db_session.add(account)
         db_session.commit()
 
-    encoder = APIEncoder()
-    return encoder.jsonify(account.namespace)
+        encoder = APIEncoder()
+        return encoder.jsonify(account.namespace)
 
 
 @app.route("/accounts/<namespace_public_id>/", methods=["DELETE"])

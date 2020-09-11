@@ -7,31 +7,39 @@ def handler_from_provider(provider_name):
             "outlook").
 
     Returns:
-        An object that implements the AccountHandler interface.
+        An object that implements the AuthHandler interface.
     """
     if provider_name == "custom":
-        from .generic import GenericAccountHandler
+        from .generic import GenericAuthHandler
 
-        return GenericAccountHandler()
+        return GenericAuthHandler()
     elif provider_name == "gmail":
-        from .google import GoogleAccountHandler
+        from .google import GoogleAuthHandler
 
-        return GoogleAccountHandler()
+        return GoogleAuthHandler()
     elif provider_name == "outlook":
-        from .microsoft import MicrosoftAccountHandler
+        from .microsoft import MicrosoftAuthHandler
 
-        return MicrosoftAccountHandler()
+        return MicrosoftAuthHandler()
 
 
-class AccountHandler(object):
+class AuthHandler(object):
     def create_account(self, account_data):
         raise NotImplementedError()
 
     def update_account(self, account, account_data):
         raise NotImplementedError()
 
-    def get_imap_connection(self, account):
+    def get_imap_connection(self, account, use_timeout=True):
         raise NotImplementedError()
+
+    def authenticate_imap_connection(self, account, conn):
+        raise NotImplementedError()
+
+    def get_authenticated_imap_connection(self, account, use_timeout=True):
+        conn = self.get_imap_connection(account, use_timeout=use_timeout)
+        self.authenticate_imap_connection(account, conn)
+        return conn
 
     def interactive_auth(self, email_address):
         raise NotImplementedError()

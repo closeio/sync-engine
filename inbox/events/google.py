@@ -154,9 +154,7 @@ class GoogleEventsProvider(object):
             acc = db_session.query(Account).get(self.account_id)
             # This will raise OAuthError if OAuth access was revoked. The
             # BaseSyncMonitor loop will catch this, clean up, and exit.
-            return token_manager.get_token_for_calendars(
-                acc, force_refresh=force_refresh
-            )
+            return token_manager.get_token(acc, force_refresh=force_refresh)
 
     def _get_resource_list(self, url, **params):
         """Handles response pagination."""

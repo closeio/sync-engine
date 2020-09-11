@@ -10,7 +10,7 @@ from sqlalchemy import Column, ForeignKey
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship
 
-from inbox.models.secret import Secret
+from inbox.models.secret import Secret, SecretType
 
 log = get_logger()
 
@@ -53,7 +53,7 @@ class OAuthAccount(object):
     def refresh_token(self):
         if not self.secret:
             return None
-        if self.secret.type == SecretType.token:
+        if self.secret.type == SecretType.Token.value:
             return self.secret.secret
         else:
             raise ValueError("Invalid secret type.")
@@ -72,7 +72,7 @@ class OAuthAccount(object):
         if b"\x00" in value:
             raise ValueError("Invalid refresh_token")
 
-        self.set_secret(SecretType.token, value)
+        self.set_secret(SecretType.Token, value)
 
     def set_secret(self, secret_type, secret_value):
         if not self.secret:
@@ -95,23 +95,13 @@ class OAuthAccount(object):
         Retrieves a new access token.
 
         Returns:
-            A GToken namedtuple.
+            A tuple with the new access token and its expiration.
 
         Raises:
             OAuthError: If no token could be obtained.
         """
-        if self.secret.type == SecretType.authalligator:
-            aa_data = json.loads(self.secret.secret)
-            print("get token from AA", aa_data)
-            # TODO: obtain token from AA
-            # raise OAuthError("No valid tokens.")
-            return
-
         try:
-            client_secret = self.get_client_secret()
-            return self.auth_handler.new_token(
-                self.refresh_token, self.client_id, self.client_secret
-            )
+            return self.auth_handler.acquire_access_token(self)
         except Exception as e:
             log.error(
                 "Error while getting access token: {}".format(e),

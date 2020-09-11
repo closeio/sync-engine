@@ -1,20 +1,17 @@
+import datetime
+import socket
+
+import attr
 from imapclient import IMAPClient
 from nylas.logging import get_logger
 
-from inbox.auth.utils import (
-    auth_is_invalid,
-    auth_requires_app_password,
-    create_imap_connection,
-)
-from inbox.basicauth import (
-    AppPasswordError,
-    SettingUpdateError,
-    SSLNotSupportedError,
-    UserRecoverableConfigError,
-    ValidationError,
-)
+from inbox.auth.utils import auth_is_invalid, auth_requires_app_password
+from inbox.basicauth import AppPasswordError, ValidationError
 from inbox.models import Namespace
 from inbox.models.backends.generic import GenericAccount
+
+from .base import AuthHandler
+from .utils import create_imap_connection
 
 log = get_logger()
 
@@ -36,7 +33,7 @@ class GenericAccountData(object):
     sync_email = attr.ib()
 
 
-class GenericAccountHandler(AccountHandler):
+class GenericAuthHandler(AuthHandler):
     def create_account(self, account_data):
         namespace = Namespace()
         account = GenericAccount(namespace=namespace)
@@ -44,7 +41,7 @@ class GenericAccountHandler(AccountHandler):
         account.create_emailed_events_calendar()
         return self.update_account(account, account_data)
 
-    def update_account(self, account_data):
+    def update_account(self, account, account_data):
         account.imap_endpoint = (
             account_data.imap_server_host,
             account_data.imap_server_port,
@@ -87,12 +84,11 @@ class GenericAccountHandler(AccountHandler):
                 )
                 raise
 
-    def get_imap_connection(self, account):
+    def get_imap_connection(self, account, use_timeout=True):
         host, port = account.imap_endpoint
         ssl_required = account.ssl_required
-        use_timeout = True
         try:
-            conn = create_imap_connection(host, port, ssl_required, use_timeout)
+            return create_imap_connection(host, port, ssl_required, use_timeout)
         except (IMAPClient.Error, socket.error) as exc:
             log.error(
                 "Error instantiating IMAP connection", account_id=account.id, error=exc,

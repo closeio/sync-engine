@@ -27,7 +27,7 @@ class IMAPSearchClient(object):
     def _open_crispin_connection(self, db_session):
         account = db_session.query(Account).get(self.account_id)
         try:
-            conn = account.auth_handler.connect_account(account)
+            conn = account.auth_handler.get_authenticated_imap_connection(account)
         except (IMAPClient.Error, socket.error, IMAP4.error):
             raise SearchBackendException(
                 (

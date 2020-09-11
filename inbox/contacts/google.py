@@ -8,7 +8,9 @@ import gdata.client
 import gdata.contacts.client
 import gevent
 from nylas.logging import get_logger
+from sqlalchemy.orm import joinedload
 
+from inbox.auth.google import GoogleAuthHandler
 from inbox.basicauth import ConnectionError, OAuthError, ValidationError
 from inbox.models import Contact
 from inbox.models.backends.gmail import GmailAccount
@@ -57,8 +59,8 @@ class GoogleContactsProvider(object):
         """Return the Google API client."""
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(GmailAccount).get(self.account_id)
-
-        access_token = GoogleAccountHandler().acquire_access_token(account)
+            db_session.expunge(account)
+        access_token = token_manager.get_token(account)
         token = gdata.gauth.AuthSubToken(access_token)
         google_client = gdata.contacts.client.ContactsClient(source=SOURCE_APP_NAME)
         google_client.auth_token = token

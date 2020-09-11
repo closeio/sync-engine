@@ -10,10 +10,9 @@ from inbox.security.oracles import get_decryption_oracle, get_encryption_oracle
 
 
 class SecretType(enum.Enum):
-    # TODO: After SQLAlchemy upgrade, use proper casing (see Secret.type).
-    password = "password"
-    token = "token"
-    authalligator = "authalligator"
+    Password = "password"
+    Token = "token"
+    AuthAlligator = "authalligator"
 
 
 class Secret(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
@@ -22,8 +21,9 @@ class Secret(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     _secret = Column(BLOB, nullable=False)
 
     # Type of secret
+    # TODO: After SQLAlchemy upgrade, use this properly.
     # TODO: Use values_callable=lambda obj: [e.value for e in obj]
-    type = Column(Enum(SecretType), nullable=False)
+    type = Column(Enum([x.value for x in SecretType]), nullable=False)
 
     # Scheme used
     encryption_scheme = Column(Integer, server_default="0", nullable=False)
@@ -48,7 +48,7 @@ class Secret(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
     @validates("type")
     def validate_type(self, k, type):
-        if type not in SECRET_TYPES:
+        if type not in SecretType:
             raise TypeError("Invalid secret type.")
 
-        return type
+        return type.value

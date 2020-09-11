@@ -23,7 +23,7 @@ class Secret(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     # Type of secret
     # TODO: After SQLAlchemy upgrade, use this properly.
     # TODO: Use values_callable=lambda obj: [e.value for e in obj]
-    type = Column(Enum([x.value for x in SecretType]), nullable=False)
+    type = Column(Enum(*[x.value for x in SecretType]), nullable=False)
 
     # Scheme used
     encryption_scheme = Column(Integer, server_default="0", nullable=False)
@@ -48,7 +48,7 @@ class Secret(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
     @validates("type")
     def validate_type(self, k, type):
-        if type not in SecretType:
+        if type not in [x.value for x in SecretType]:
             raise TypeError("Invalid secret type.")
 
-        return type.value
+        return type

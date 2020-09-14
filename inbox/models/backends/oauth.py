@@ -78,8 +78,8 @@ class OAuthAccount(object):
         if not self.secret:
             self.secret = Secret()
 
+        self.secret.type = secret_type.value
         self.secret.secret = secret_value
-        self.secret.type = secret_type
 
     def get_client_info(self):
         """

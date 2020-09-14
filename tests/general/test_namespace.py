@@ -44,8 +44,6 @@ def random_range(start, end):
 
 
 def add_completely_fake_account(db, email="test@nylas.com"):
-    from inbox.models.backends.gmail import GmailAuthCredentials
-
     fake_account = add_fake_gmail_account(db.session, email_address=email)
     calendar = add_fake_calendar(db.session, fake_account.namespace.id)
     for i in random_range(1, 10):
@@ -73,15 +71,6 @@ def add_completely_fake_account(db, email="test@nylas.com"):
     for i in random_range(1, 5):
         add_fake_contact(db.session, fake_account.namespace.id, uid=str(i))
 
-    auth_creds = GmailAuthCredentials()
-    auth_creds.gmailaccount = fake_account
-    auth_creds.scopes = "email"
-    auth_creds.g_id_token = "test"
-    auth_creds.client_id = "test"
-    auth_creds.client_secret = "test"
-    auth_creds.refresh_token = "test"
-    auth_creds.is_valid = True
-    db.session.add(auth_creds)
     db.session.commit()
 
     return fake_account
@@ -384,7 +373,6 @@ def test_fake_accounts(empty_db):
         Thread,
         Transaction,
     )
-    from inbox.models.backends.gmail import GmailAuthCredentials
     from inbox.models.backends.imap import ImapUid
     from inbox.models.util import delete_namespace
 
@@ -399,7 +387,6 @@ def test_fake_accounts(empty_db):
 
     assert db.session.query(ImapUid).count() != 0
     assert db.session.query(Secret).count() != 0
-    assert db.session.query(GmailAuthCredentials).count() != 0
     assert db.session.query(Account).filter(Account.id == account.id).count() == 1
 
     # Try the dry-run mode:
@@ -413,7 +400,6 @@ def test_fake_accounts(empty_db):
     assert db.session.query(Account).filter(Account.id == account.id).count() != 0
 
     assert db.session.query(Secret).count() != 0
-    assert db.session.query(GmailAuthCredentials).count() != 0
     assert db.session.query(ImapUid).count() != 0
 
     # Now delete the account for reals.
@@ -426,7 +412,6 @@ def test_fake_accounts(empty_db):
     assert db.session.query(Account).filter(Account.id == account.id).count() == 0
 
     assert db.session.query(Secret).count() == 0
-    assert db.session.query(GmailAuthCredentials).count() == 0
     assert db.session.query(ImapUid).count() == 0
 
 
@@ -434,7 +419,6 @@ def test_multiple_fake_accounts(empty_db):
     # Add three fake accounts, check that removing one doesn't affect
     # the two others.
     from inbox.models import Block, Contact, Event, Message, Secret, Thread, Transaction
-    from inbox.models.backends.gmail import GmailAuthCredentials
     from inbox.models.util import delete_namespace
 
     db = empty_db
@@ -445,9 +429,7 @@ def test_multiple_fake_accounts(empty_db):
     # Count secrets and authcredentials now. We can't do it after adding
     # the third account because our object model is a bit cumbersome.
     secret_count = db.session.query(Secret).count()
-    authcredentials_count = db.session.query(GmailAuthCredentials).count()
     assert secret_count != 0
-    assert authcredentials_count != 0
 
     accounts.append(add_completely_fake_account(db, "test3@nylas.com"))
 
@@ -492,4 +474,3 @@ def test_multiple_fake_accounts(empty_db):
 
     # check that we didn't delete a secret that wasn't ours.
     assert db.session.query(Secret).count() == secret_count
-    assert db.session.query(GmailAuthCredentials).count() == authcredentials_count

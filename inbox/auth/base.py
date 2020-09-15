@@ -30,9 +30,21 @@ def handler_from_provider(provider_name):
 
 class AuthHandler(object):
     def create_account(self, account_data):
+        """
+        Create a new account with the given subclass-specific account data.
+
+        This method does NOT check for the existence of an account for a
+        provider and email_address. That should be done by the caller.
+        """
         raise NotImplementedError()
 
     def update_account(self, account, account_data):
+        """
+        Update an existing account with the given subclass-specific account
+        data.
+
+        This method assumes the existence of the account passed in.
+        """
         raise NotImplementedError()
 
     def get_imap_connection(self, account, use_timeout=True):

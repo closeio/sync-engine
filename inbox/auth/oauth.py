@@ -89,6 +89,61 @@ class OAuthAuthHandler(AuthHandler):
             )
             raise
 
+    def _get_user_info(self, access_token):
+        try:
+            response = requests.get(
+                self.OAUTH_USER_INFO_URL, params={"access_token": access_token}
+            )
+        except requests.exceptions.ConnectionError as e:
+            log.error("user_info_fetch_failed", error=e)
+            raise ConnectionError()
+
+        userinfo_dict = response.json()
+
+        if "error" in userinfo_dict:
+            assert userinfo_dict["error"] == "invalid_token"
+            log.error(
+                "user_info_fetch_failed",
+                error=userinfo_dict["error"],
+                error_description=userinfo_dict["error_description"],
+            )
+            log.error(
+                "%s - %s" % (userinfo_dict["error"], userinfo_dict["error_description"])
+            )
+            raise OAuthError()
+
+        return userinfo_dict
+
+    def _get_authenticated_user(self, authorization_code):
+        args = {
+            "client_id": self.OAUTH_CLIENT_ID,
+            "client_secret": self.OAUTH_CLIENT_SECRET,
+            "redirect_uri": self.OAUTH_REDIRECT_URI,
+            "code": authorization_code,
+            "grant_type": "authorization_code",
+        }
+
+        headers = {
+            "Content-type": "application/x-www-form-urlencoded",
+            "Accept": "text/plain",
+        }
+        data = urllib.urlencode(args)
+        resp = requests.post(self.OAUTH_ACCESS_TOKEN_URL, data=data, headers=headers)
+
+        session_dict = resp.json()
+
+        if u"error" in session_dict:
+            raise OAuthError(session_dict["error"])
+
+        access_token = session_dict["access_token"]
+
+        userinfo_dict = self._get_user_info(access_token)
+
+        z = session_dict.copy()
+        z.update(userinfo_dict)
+
+        return z
+
 
 class OAuthRequestsWrapper(requests.auth.AuthBase):
     """Helper class for setting the Authorization header on HTTP requests."""

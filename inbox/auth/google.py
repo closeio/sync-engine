@@ -5,10 +5,13 @@ from imapclient import IMAPClient
 from nylas.logging import get_logger
 
 from inbox.basicauth import ImapSupportDisabledError, OAuthError
+from inbox.config import config
 from inbox.crispin import GmailCrispinClient
 from inbox.models import Namespace
 from inbox.models.backends.gmail import GmailAccount
+from inbox.models.secret import SecretType
 from inbox.providers import provider_info
+from inbox.util.url import url_concat
 
 from .oauth import OAuthAuthHandler
 from .utils import create_imap_connection
@@ -32,7 +35,22 @@ class GoogleAccountData(object):
 
 
 class GoogleAuthHandler(OAuthAuthHandler):
-    OAUTH_ACCESS_TOKEN_URL = "https://www.googleapis.com/oauth2/v4/token"
+    OAUTH_CLIENT_ID = config.get_required("GOOGLE_OAUTH_CLIENT_ID")
+    OAUTH_CLIENT_SECRET = config.get_required("GOOGLE_OAUTH_CLIENT_SECRET")
+    OAUTH_REDIRECT_URI = config.get_required("GOOGLE_OAUTH_REDIRECT_URI")
+
+    OAUTH_AUTHENTICATE_URL = "https://accounts.google.com/o/oauth2/auth"
+    OAUTH_ACCESS_TOKEN_URL = "https://accounts.google.com/o/oauth2/token"
+    OAUTH_USER_INFO_URL = "https://www.googleapis.com/oauth2/v1/userinfo"
+
+    OAUTH_SCOPE = " ".join(
+        [
+            "email",  # email address
+            "https://mail.google.com/",  # email
+            "https://www.google.com/m8/feeds",  # contacts
+            "https://www.googleapis.com/auth/calendar",  # calendar
+        ]
+    )
 
     def create_account(self, account_data):
         namespace = Namespace()
@@ -67,6 +85,39 @@ class GoogleAuthHandler(OAuthAuthHandler):
                 "Error instantiating IMAP connection", account_id=account.id, error=exc,
             )
             raise
+
+    def interactive_auth(self, email_address=None):
+        url_args = {
+            "redirect_uri": self.OAUTH_REDIRECT_URI,
+            "client_id": self.OAUTH_CLIENT_ID,
+            "response_type": "code",
+            "scope": self.OAUTH_SCOPE,
+            "access_type": "offline",
+            "approval_prompt": "force",
+        }
+        if email_address:
+            url_args["login_hint"] = email_address
+        url = url_concat(self.OAUTH_AUTHENTICATE_URL, url_args)
+
+        print "To authorize Nylas, visit this URL and follow the directions:"
+        print "\n{}".format(url)
+
+        while True:
+            auth_code = raw_input("Enter authorization code: ").strip()
+            try:
+                auth_response = self._get_authenticated_user(auth_code)
+                return GoogleAccountData(
+                    email=auth_response["email"],
+                    secret_type=SecretType.Token,
+                    secret_value=auth_response["refresh_token"].encode(),
+                    client_id=self.OAUTH_CLIENT_ID,
+                    scope=auth_response["scope"],
+                    sync_email=True,
+                    sync_contacts=True,
+                    sync_events=True,
+                )
+            except OAuthError:
+                print "\nInvalid authorization code, try again...\n"
 
     def verify_account(self, account):
         """

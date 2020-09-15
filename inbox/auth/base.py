@@ -1,3 +1,6 @@
+from inbox.basicauth import NotSupportedError
+
+
 def handler_from_provider(provider_name):
     """
     Return an authentication handler for the given provider.
@@ -21,6 +24,8 @@ def handler_from_provider(provider_name):
         from .microsoft import MicrosoftAuthHandler
 
         return MicrosoftAuthHandler()
+
+    raise NotSupportedError("Nylas does not support the email provider.")
 
 
 class AuthHandler(object):

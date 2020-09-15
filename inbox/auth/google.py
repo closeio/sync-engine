@@ -22,7 +22,7 @@ class GoogleAccountData(object):
     secret_value = attr.ib()
 
     client_id = attr.ib()
-    scopes = attr.ib()
+    scope = attr.ib()
 
     sync_email = attr.ib()
     sync_contacts = attr.ib()
@@ -39,7 +39,7 @@ class GoogleAuthHandler(OAuthAuthHandler):
         return self.update_account(account, account_data)
 
     def update_account(self, account, account_data):
-        account.email = account_data.email
+        account.email_address = account_data.email
 
         if account_data.secret_type:
             account.set_secret(account_data.secret_type, account_data.secret_value)
@@ -51,7 +51,7 @@ class GoogleAuthHandler(OAuthAuthHandler):
         account.sync_events = account_data.sync_events
 
         account.client_id = account_data.client_id
-        account.scope = account_data.scopes
+        account.scope = account_data.scope
 
         return account
 

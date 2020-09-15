@@ -6,7 +6,7 @@ from inbox.api.kellogs import APIEncoder
 from inbox.auth.oauth import OAuthRequestsWrapper
 from inbox.basicauth import OAuthError
 from inbox.models import Account, Message, Thread
-from inbox.models.backends.gmail import token_manager
+from inbox.models.backends.oauth import token_manager
 from inbox.models.session import session_scope
 from inbox.search.base import SearchBackendException
 

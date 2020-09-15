@@ -42,6 +42,8 @@ class GenericAuthHandler(AuthHandler):
         return self.update_account(account, account_data)
 
     def update_account(self, account, account_data):
+        account.email_address = account_data.email
+
         account.imap_endpoint = (
             account_data.imap_server_host,
             account_data.imap_server_port,

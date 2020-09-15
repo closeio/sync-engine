@@ -280,7 +280,7 @@ def mock_imapclient(monkeypatch):
         lambda *args, **kwargs: conn,
     )
     monkeypatch.setattr(
-        "inbox.auth.oauth.create_imap_connection", lambda *args, **kwargs: conn
+        "inbox.auth.google.create_imap_connection", lambda *args, **kwargs: conn
     )
     monkeypatch.setattr(
         "inbox.auth.generic.create_imap_connection", lambda *args, **kwargs: conn

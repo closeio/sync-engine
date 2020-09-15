@@ -4,9 +4,11 @@ import attr
 from imapclient import IMAPClient
 from nylas.logging import get_logger
 
-from inbox.basicauth import OAuthError
+from inbox.basicauth import ImapSupportDisabledError, OAuthError
+from inbox.crispin import GmailCrispinClient
 from inbox.models import Namespace
 from inbox.models.backends.gmail import GmailAccount
+from inbox.providers import provider_info
 
 from .oauth import OAuthAuthHandler
 from .utils import create_imap_connection
@@ -65,3 +67,32 @@ class GoogleAuthHandler(OAuthAuthHandler):
                 "Error instantiating IMAP connection", account_id=account.id, error=exc,
             )
             raise
+
+    def verify_account(self, account):
+        """
+        Verify the credentials provided by logging in.
+        Verify the account configuration -- specifically checks for the presence
+        of the 'All Mail' folder.
+
+        Raises
+        ------
+        An inbox.crispin.GmailSettingError if the 'All Mail' folder is
+        not present and is required (account.sync_email == True).
+        """
+        try:
+            # Verify login.
+            conn = self.get_authenticated_imap_connection(account)
+            # Verify configuration.
+            client = GmailCrispinClient(
+                account.id,
+                provider_info("gmail"),
+                account.email_address,
+                conn,
+                readonly=True,
+            )
+            client.sync_folders()
+            conn.logout()
+        except ImapSupportDisabledError:
+            if account.sync_email:
+                raise
+        return True

@@ -310,7 +310,8 @@ def add_fake_gmail_account(
             sync_host=platform.node(),
             namespace=namespace,
         )
-        account.password = password
+        account.imap_password = password
+        account.smtp_password = password
 
         db_session.add(account)
         db_session.commit()

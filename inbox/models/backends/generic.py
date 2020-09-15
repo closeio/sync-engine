@@ -102,20 +102,6 @@ class GenericAccount(ImapAccount):
         self.smtp_secret.secret = value
         self.smtp_secret.type = "password"
 
-    # The password property is used for legacy reasons.
-    # TODO[logan]: Remove once changeover to IMAP/SMTP auth is complete.
-    @property
-    def password(self):
-        return self.old_secret.secret
-
-    @password.setter
-    def password(self, value):
-        value = self.valid_password(value)
-        if not self.old_secret:
-            self.old_secret = Secret()
-        self.old_secret.secret = value
-        self.old_secret.type = "password"
-
     @property
     def category_type(self):
         if self.provider == "gmail":

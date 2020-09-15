@@ -35,16 +35,13 @@ class MockTokenManager(object):
 
 @pytest.fixture
 def patch_token_manager(monkeypatch):
-    monkeypatch.setattr(
-        "inbox.sendmail.smtp.postel.token_manager", MockTokenManager()
-    )
+    monkeypatch.setattr("inbox.sendmail.smtp.postel.token_manager", MockTokenManager())
 
 
 @pytest.fixture
 def disallow_auth(monkeypatch):
     monkeypatch.setattr(
-        "inbox.sendmail.smtp.postel.token_manager",
-        MockTokenManager(allow_auth=False),
+        "inbox.sendmail.smtp.postel.token_manager", MockTokenManager(allow_auth=False),
     )
 
 

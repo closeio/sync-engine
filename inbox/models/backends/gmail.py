@@ -77,7 +77,7 @@ class GmailAccount(OAuthAccount, ImapAccount):
         return ActionLog
 
     def get_client_info(self):
-        if self.client_id is None or self.client_id == OAUTH_CLIENT_ID:
+        if not self.client_id or self.client_id == OAUTH_CLIENT_ID:
             return (OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET)
         else:
             raise OAuthError("No valid tokens.")

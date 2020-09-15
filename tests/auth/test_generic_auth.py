@@ -108,6 +108,49 @@ def test_update_account_with_different_subdomain(db, monkeypatch):
     assert account._smtp_server_host == "mail.office365.com"
 
 
+@pytest.mark.usefixtures("mock_smtp_get_connection")
+def test_double_auth(db, mock_imapclient):
+    password = "valid"
+    email = account_data.email
+    mock_imapclient._add_login(email, password)
+
+    handler = GenericAuthHandler()
+
+    # First authentication, using a valid password, succeeds.
+    valid_settings = attr.evolve(
+        account_data, imap_password=password, smtp_password=password
+    )
+
+    account = handler.create_account(valid_settings)
+    assert handler.verify_account(account) is True
+
+    db.session.add(account)
+    db.session.commit()
+    id_ = account.id
+    account = db.session.query(Account).get(id_)
+    assert account.email_address == email
+    assert account.imap_username == email
+    assert account.smtp_username == email
+    assert account.imap_password == password
+    assert account.smtp_password == password
+
+    # Second auth using an invalid password should fail.
+    invalid_settings = attr.evolve(account_data, imap_password="invalid_password")
+    with pytest.raises(ValidationError):
+        account = handler.update_account(account, invalid_settings)
+        handler.verify_account(account)
+
+    db.session.expire(account)
+
+    # Ensure original account is unaffected
+    account = db.session.query(Account).get(id_)
+    assert account.email_address == email
+    assert account.imap_username == email
+    assert account.smtp_username == email
+    assert account.imap_password == password
+    assert account.smtp_password == password
+
+
 def test_parent_domain():
     assert parent_domain("x.a.com") == "a.com"
     assert parent_domain("a.com") == "a.com"

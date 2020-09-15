@@ -1,7 +1,7 @@
 """ Test that the All Mail folder is enabled for Gmail. """
 import pytest
 
-from inbox.auth.gmail import GmailAuthHandler
+from inbox.auth.google import GoogleAuthHandler
 from inbox.basicauth import GmailSettingError
 from inbox.crispin import GmailCrispinClient
 
@@ -26,12 +26,12 @@ class ConnectionStub(object):
 
 
 def get_auth_handler(monkeypatch, folders):
-    g = GmailAuthHandler("gmail")
+    g = GoogleAuthHandler()
 
     def mock_connect(a):
         return ConnectionStub()
 
-    g.connect_account = mock_connect
+    g.get_authenticated_imap_connection = mock_connect
     monkeypatch.setattr(GmailCrispinClient, "folder_names", lambda x: folders)
     return g
 
@@ -55,4 +55,4 @@ def test_all_mail_present(monkeypatch):
     g = get_auth_handler(
         monkeypatch, {"all": "ALL", "inbox": "INBOX", "trash": "TRASH"}
     )
-    assert g.verify_account(AccountStub())
+    g.verify_account(AccountStub())

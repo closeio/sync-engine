@@ -48,3 +48,6 @@ class AuthHandler(object):
 
     def interactive_auth(self, email_address):
         raise NotImplementedError()
+
+    def verify_account(self, account):
+        raise NotImplementedError()

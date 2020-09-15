@@ -64,3 +64,28 @@ def test_update_account(db):
     db.session.commit()
     account = db.session.query(Account).get(id_)
     assert account.refresh_token == "NewRefreshToken"
+
+
+def test_verify_account(db, patched_gmail_client):
+    handler = GoogleAuthHandler()
+    handler.get_authenticated_imap_connection = lambda account: None
+
+    # Create an account with sync_email=True
+    account = handler.create_account(account_data)
+    db.session.add(account)
+    db.session.commit()
+    assert account.sync_email is True
+    # Verify an exception is raised if there is an email settings error.
+    with pytest.raises(ImapSupportDisabledError):
+        handler.verify_account(account)
+
+    # Create an account with sync_email=False
+    updated_data = attr.evolve(
+        account_data, email="another@gmail.com", sync_email=False
+    )
+    account = handler.create_account(updated_data)
+    db.session.add(account)
+    db.session.commit()
+    assert account.sync_email is False
+    # Verify an exception is NOT raised if there is an email settings error.
+    account = handler.verify_account(account)

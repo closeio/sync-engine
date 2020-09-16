@@ -56,6 +56,7 @@ class GoogleAuthHandler(OAuthAuthHandler):
         namespace = Namespace()
         account = GmailAccount(namespace=namespace)
         account.create_emailed_events_calendar()
+        account.sync_should_run = False
         return self.update_account(account, account_data)
 
     def update_account(self, account, account_data):
@@ -109,7 +110,7 @@ class GoogleAuthHandler(OAuthAuthHandler):
                 return GoogleAccountData(
                     email=auth_response["email"],
                     secret_type=SecretType.Token,
-                    secret_value=auth_response["refresh_token"].encode(),
+                    secret_value=auth_response["refresh_token"],
                     client_id=self.OAUTH_CLIENT_ID,
                     scope=auth_response["scope"],
                     sync_email=True,

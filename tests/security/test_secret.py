@@ -35,10 +35,8 @@ def test_secret(db, config, encrypt):
         assert secret._secret == bytes_secret
     assert secret.secret == bytes_secret, "secret not decrypted correctly"
 
-    with pytest.raises(TypeError) as e:
-        secret.secret = unicode_secret
-
-    assert e.typename == "TypeError", "secret cannot be unicode"
+    secret.secret = unicode_secret
+    assert secret.secret == unicode_secret.encode("utf8")
 
 
 @pytest.mark.parametrize("encrypt", [True, False])

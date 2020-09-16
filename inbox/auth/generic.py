@@ -46,6 +46,7 @@ class GenericAuthHandler(AuthHandler):
         account = GenericAccount(namespace=namespace)
         account.provider = "custom"
         account.create_emailed_events_calendar()
+        account.sync_should_run = False
         return self.update_account(account, account_data)
 
     def update_account(self, account, account_data):

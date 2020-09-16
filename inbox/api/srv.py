@@ -190,9 +190,9 @@ def _get_account_data_for_google_account(data):
         secret_type=secret_type,
         secret_value=secret_value,
         client_id=client_id,
-        scopes=scopes,
+        scope=scopes,
         sync_email=sync_email,
-        sync_calendar=sync_calendar,
+        sync_events=sync_calendar,
         sync_contacts=sync_contacts,
     )
 

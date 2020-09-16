@@ -35,7 +35,7 @@ STATUS_MAP = {
     "tentative": "maybe",
 }
 
-URL_PREFIX = config.get("API_URL", "https://api.nylas.com")
+URL_PREFIX = config.get("API_URL", "")
 
 PUSH_ENABLED_CLIENT_IDS = config.get("PUSH_ENABLED_CLIENT_IDS", [])
 

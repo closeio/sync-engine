@@ -6,7 +6,7 @@ from requests.exceptions import HTTPError
 from inbox.basicauth import AccessNotEnabledError, OAuthError
 from inbox.config import config
 from inbox.contacts.processing import update_contacts_from_event
-from inbox.events.google import GoogleEventsProvider, URL_PREFIX
+from inbox.events.google import URL_PREFIX, GoogleEventsProvider
 from inbox.events.recurring import link_events
 from inbox.models import Calendar, Event
 from inbox.models.account import Account

@@ -70,6 +70,7 @@ class OAuthAuthHandler(AuthHandler):
         assert account.secret.type == SecretType.AuthAlligator.value
         # aa_data = json.loads(account.secret.secret)
         # TODO: get verified token
+        raise NotImplementedError("Not implemented yet.")
 
     def acquire_access_token(self, account):
         if account.secret.type == SecretType.AuthAlligator.value:

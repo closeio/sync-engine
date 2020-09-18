@@ -47,7 +47,6 @@ def test_create_account(db):
     assert account._emailed_events_calendar.name == "Emailed events"
 
 
-@pytest.mark.skipif(True, reason="Need to investigate")
 def test_update_account(db):
     handler = GenericAuthHandler()
 
@@ -58,8 +57,8 @@ def test_update_account(db):
     id_ = account.id
 
     # A valid update
-    account = handler.update_account(account, updated_settings["settings"])
     updated_data = attr.evolve(account_data, imap_username="other@example.com")
+    account = handler.update_account(account, updated_data)
     db.session.add(account)
     db.session.commit()
     account = db.session.query(Account).get(id_)

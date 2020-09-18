@@ -160,3 +160,31 @@ def test_parent_domain():
     assert parent_domain("smtp.example.a.com") == parent_domain("imap.a.com")
 
     assert parent_domain("company.co.uk") != parent_domain("evilcompany.co.uk")
+
+
+@pytest.mark.usefixtures("mock_smtp_get_connection")
+def test_successful_reauth_resets_sync_state(db, mock_imapclient):
+    email = account_data.email
+    password = account_data.imap_password
+    mock_imapclient._add_login(email, password)
+    handler = GenericAuthHandler()
+
+    account = handler.create_account(account_data)
+    assert handler.verify_account(account) is True
+    # Brand new accounts have `sync_state`=None.
+    assert account.sync_state is None
+    db.session.add(account)
+    db.session.commit()
+
+    # Pretend account sync starts, and subsequently the password changes,
+    # causing the account to be in `sync_state`='invalid'.
+    account.mark_invalid()
+    db.session.commit()
+    assert account.sync_state == "invalid"
+
+    # Verify the `sync_state` is reset to 'running' on a successful "re-auth".
+    account = handler.update_account(account, account_data)
+    assert handler.verify_account(account) is True
+    assert account.sync_state == "running"
+    db.session.add(account)
+    db.session.commit()

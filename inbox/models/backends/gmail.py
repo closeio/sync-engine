@@ -14,6 +14,7 @@ from inbox.models.backends.imap import ImapAccount
 from inbox.models.backends.oauth import OAuthAccount
 from inbox.models.base import MailSyncBase
 from inbox.models.mixins import DeletedAtMixin, UpdatedAtMixin
+from inbox.models.secret import Secret
 from inbox.models.session import session_scope
 
 log = get_logger()
@@ -131,3 +132,90 @@ class GmailAccount(OAuthAccount, ImapAccount):
         from inbox.s3.backends.gmail import get_gmail_raw_contents
 
         return get_gmail_raw_contents(message)
+
+
+# TODO: This code is for backwards-compatibility. Remove it.
+class GmailAuthCredentials(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
+    """
+    Associate a Gmail Account with a refresh token using a
+    one-to-many relationship. Refresh token ids are actually
+    ids of objects in the 'secrets' table.
+
+    A GmailAccount has many GmailAuthCredentials.
+    A GmailAuthCredentials entry has a single secret.
+
+    There should be only one GmailAuthCredentials for each
+    (gmailaccount, client_id, client_secret) triple.
+
+    If g is a gmail account, you can get all of its refresh tokens w/
+    [auth_creds.refresh_token for auth_creds in g.auth_credentials]
+
+    """
+
+    gmailaccount_id = Column(
+        BigInteger, ForeignKey(GmailAccount.id, ondelete="CASCADE"), nullable=False
+    )
+    refresh_token_id = Column(
+        BigInteger, ForeignKey(Secret.id, ondelete="CASCADE"), nullable=False
+    )
+
+    _scopes = Column("scopes", String(512), nullable=False)
+    g_id_token = Column(String(2048), nullable=False)
+    client_id = Column(String(256), nullable=False)
+    client_secret = Column(String(256), nullable=False)
+    is_valid = Column(Boolean, default=True, nullable=False)
+
+    gmailaccount = relationship(
+        GmailAccount,
+        backref=backref(
+            "auth_credentials", cascade="all, delete-orphan", lazy="joined"
+        ),
+        lazy="joined",
+        join_depth=2,
+    )
+
+    refresh_token_secret = relationship(
+        Secret,
+        cascade="all, delete-orphan",
+        single_parent=True,
+        lazy="joined",
+        backref=backref("gmail_auth_credentials"),
+    )
+
+    @hybrid_property
+    def scopes(self):
+        return self._scopes.split(" ")
+
+    @scopes.setter
+    def scopes(self, value):
+        # Can assign a space-separated string or a list of urls
+        if isinstance(value, basestring):
+            self._scopes = value
+        else:
+            self._scopes = " ".join(value)
+
+    @property
+    def refresh_token(self):
+        if self.refresh_token_secret:
+            return self.refresh_token_secret.secret
+        return None
+
+    @refresh_token.setter
+    def refresh_token(self, value):
+        # Must be a valid UTF-8 byte sequence without NULL bytes.
+        if isinstance(value, unicode):
+            value = value.encode("utf-8")
+
+        try:
+            unicode(value, "utf-8")
+        except UnicodeDecodeError:
+            raise ValueError("Invalid refresh_token")
+
+        if b"\x00" in value:
+            raise ValueError("Invalid refresh_token")
+
+        if not self.refresh_token_secret:
+            self.refresh_token_secret = Secret()
+
+        self.refresh_token_secret.secret = value
+        self.refresh_token_secret.type = "token"

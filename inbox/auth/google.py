@@ -68,6 +68,8 @@ class GoogleAuthHandler(OAuthAuthHandler):
             # TODO: This code is for backwards-compatibility. Remove it.
             from inbox.models.backends.gmail import GmailAuthCredentials
 
+            client_id = account_data.client_id or self.OAUTH_CLIENT_ID
+            client_secret = self.OAUTH_CLIENT_SECRET
             # See if we already have credentials for this client_id/secret
             # pair. If those don't exist, make a new GmailAuthCredentials
             auth_creds = next(
@@ -83,8 +85,8 @@ class GoogleAuthHandler(OAuthAuthHandler):
             )
             auth_creds.gmailaccount = account
             auth_creds.scopes = account_data.scope
-            auth_creds.client_id = account_data.client_id or self.OAUTH_CLIENT_ID
-            auth_creds.client_secret = self.OAUTH_CLIENT_SECRET
+            auth_creds.client_id = client_id
+            auth_creds.client_secret = client_secret
             auth_creds.g_id_token = ""  # must not be NULL
             auth_creds.refresh_token = account_data.secret_value
             auth_creds.is_valid = True

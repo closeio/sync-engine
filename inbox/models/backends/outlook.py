@@ -11,11 +11,11 @@ class OutlookAccount(ImapAccount, OAuthAccount):
 
     __mapper_args__ = {"polymorphic_identity": "outlookaccount"}
 
-    # STOPSHIP(emfree) store these either as secrets or as properties of the
-    # developer app.
     client_id = Column(String(256))
-    client_secret = Column(String(256))
     scope = Column(String(512))
+
+    # TODO: These fields are unused.
+    client_secret = Column(String(256))
     family_name = Column(String(256))
     given_name = Column(String(256))
     gender = Column(String(16))

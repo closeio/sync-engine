@@ -1,7 +1,6 @@
 import socket
 
 import attr
-from imapclient import IMAPClient
 from nylas.logging import get_logger
 
 from inbox.basicauth import ImapSupportDisabledError, OAuthError

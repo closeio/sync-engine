@@ -31,7 +31,7 @@ def handler_from_provider(provider_name):
         from .google import GoogleAuthHandler
 
         return GoogleAuthHandler()
-    elif provider_name == "outlook":
+    elif provider_name == "microsoft":
         from .microsoft import MicrosoftAuthHandler
 
         return MicrosoftAuthHandler()

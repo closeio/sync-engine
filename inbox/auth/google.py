@@ -1,5 +1,3 @@
-import socket
-
 import attr
 from nylas.logging import get_logger
 

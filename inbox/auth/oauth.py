@@ -1,8 +1,10 @@
-import urllib
+import json
+
 
 import requests
 from imapclient import IMAPClient
 from nylas.logging import get_logger
+from six.moves import urllib
 
 from inbox.basicauth import ConnectionError, OAuthError
 from inbox.models.backends.oauth import token_manager
@@ -26,7 +28,7 @@ class OAuthAuthHandler(AuthHandler):
 
         access_token_url = self.OAUTH_ACCESS_TOKEN_URL
 
-        data = urllib.urlencode(
+        data = urllib.parse.urlencode(
             {
                 "refresh_token": refresh_token,
                 "client_id": client_id,
@@ -91,28 +93,21 @@ class OAuthAuthHandler(AuthHandler):
             raise
 
     def _get_user_info(self, access_token):
+        request = urllib.request.Request(
+            self.OAUTH_USER_INFO_URL, headers={"Authorization": "Bearer {}".format(access_token)}
+        )
         try:
-            response = requests.get(
-                self.OAUTH_USER_INFO_URL, params={"access_token": access_token}
-            )
-        except requests.exceptions.ConnectionError as e:
+            response = urllib.request.urlopen(request)
+        except urllib.error.HTTPError as e:
+            if e.code == 401:
+                raise OAuthError()
+            log.error("user_info_fetch_failed", error_code=e.code, error=e)
+            raise ConnectionError()
+        except urllib.error.URLError as e:
             log.error("user_info_fetch_failed", error=e)
             raise ConnectionError()
 
-        userinfo_dict = response.json()
-
-        if "error" in userinfo_dict:
-            assert userinfo_dict["error"] == "invalid_token"
-            log.error(
-                "user_info_fetch_failed",
-                error=userinfo_dict["error"],
-                error_description=userinfo_dict["error_description"],
-            )
-            log.error(
-                "%s - %s" % (userinfo_dict["error"], userinfo_dict["error_description"])
-            )
-            raise OAuthError()
-
+        userinfo_dict = json.loads(response.read())
         return userinfo_dict
 
     def _get_authenticated_user(self, authorization_code):
@@ -128,7 +123,7 @@ class OAuthAuthHandler(AuthHandler):
             "Content-type": "application/x-www-form-urlencoded",
             "Accept": "text/plain",
         }
-        data = urllib.urlencode(args)
+        data = urllib.parse.urlencode(args)
         resp = requests.post(self.OAUTH_ACCESS_TOKEN_URL, data=data, headers=headers)
 
         session_dict = resp.json()

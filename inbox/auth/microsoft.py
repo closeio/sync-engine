@@ -1,5 +1,14 @@
 import attr
 
+from inbox.basicauth import OAuthError
+from inbox.config import config
+from inbox.models import Namespace
+from inbox.models.backends.outlook import OutlookAccount
+from inbox.models.secret import SecretType
+from inbox.util.url import url_concat
+
+from .oauth import OAuthAuthHandler
+
 
 @attr.s
 class MicrosoftAccountData(object):
@@ -60,6 +69,7 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
             "client_id": self.OAUTH_CLIENT_ID,
             "response_type": "code",
             "scope": self.OAUTH_SCOPE,
+            "prompt": "select_account",
         }
         if email_address:
             url_args["login_hint"] = email_address

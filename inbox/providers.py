@@ -39,9 +39,9 @@ providers = dict(
             {"type": "generic", "auth": "password", "domains": ["autobizbrokers.com"],},
         ),
         (
-            "eas",
+            "microsoft",
             {
-                "auth": "password",
+                "auth": "oauth2",
                 "domains": [
                     "onmicrosoft.com",
                     "exchange.mit.edu",
@@ -59,6 +59,9 @@ providers = dict(
                     "*.mail.protection.outlook.com",
                     "*.mail.eo.outlook.com",
                 ],
+                "imap": ("outlook.office365.com", 993),
+                "smtp": ("outlook.office365.com", 587),
+                "events": False,
             },
         ),
         (

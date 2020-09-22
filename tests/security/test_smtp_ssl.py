@@ -69,20 +69,22 @@ def patched_smtp(monkeypatch):
 
 @pytest.fixture(scope="function")
 def local_smtp_account(db):
-    from inbox.auth.generic import GenericAuthHandler
+    from inbox.auth.generic import GenericAccountData, GenericAuthHandler
 
-    handler = GenericAuthHandler(provider_name="custom")
-    acc = handler.get_account(
-        SHARD_ID,
-        "user@gmail.com",
-        {
-            "email": "user@gmail.com",
-            "password": "hunter2",
-            "imap_server_host": "imap-test.nylas.com",
-            "imap_server_port": 143,
-            "smtp_server_host": SMTP_SERVER_HOST,
-            "smtp_server_port": postel.SMTP_OVER_SSL_TEST_PORT,
-        },
+    handler = GenericAuthHandler()
+    acc = handler.create_account(
+        GenericAccountData(
+            email="user@gmail.com",
+            imap_username="user@gmail.com",
+            smtp_username="user@gmail.com",
+            imap_password="hunter2",
+            smtp_password="hunter2",
+            imap_server_host="imap-test.nylas.com",
+            imap_server_port=143,
+            smtp_server_host=SMTP_SERVER_HOST,
+            smtp_server_port=postel.SMTP_OVER_SSL_TEST_PORT,
+            sync_email=True,
+        )
     )
     db.session.add(acc)
     db.session.commit()

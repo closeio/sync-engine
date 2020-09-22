@@ -12,9 +12,8 @@ from util import SMTP_ERRORS
 
 from inbox.basicauth import OAuthError
 from inbox.models.backends.generic import GenericAccount
-from inbox.models.backends.gmail import g_token_manager
 from inbox.models.backends.imap import ImapAccount
-from inbox.models.backends.oauth import token_manager as default_token_manager
+from inbox.models.backends.oauth import token_manager
 from inbox.models.session import session_scope
 from inbox.providers import provider_info
 from inbox.sendmail.base import SendMailException, generate_attachments
@@ -37,19 +36,6 @@ SMTP_OVER_SSL_TEST_PORT = 64465
 SMTP_AUTH_SUCCESS = 235
 SMTP_AUTH_CHALLENGE = 334
 SMTP_TEMP_AUTH_FAIL_CODES = (421, 454)
-
-
-class _TokenManagerWrapper:
-    def get_token(self, account, force_refresh=False):
-        if account.provider == "gmail":
-            return g_token_manager.get_token_for_email(
-                account, force_refresh=force_refresh
-            )
-        else:
-            return default_token_manager.get_token(account, force_refresh=force_refresh)
-
-
-token_manager = _TokenManagerWrapper()
 
 
 class SMTP_SSL(smtplib.SMTP_SSL):

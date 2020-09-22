@@ -8,14 +8,13 @@ import gdata.client
 import gdata.contacts.client
 import gevent
 from nylas.logging import get_logger
+from sqlalchemy.orm import joinedload
 
+from inbox.auth.google import GoogleAuthHandler
 from inbox.basicauth import ConnectionError, OAuthError, ValidationError
 from inbox.models import Contact
-from inbox.models.backends.gmail import (
-    GmailAccount,
-    GmailAuthCredentials,
-    g_token_manager,
-)
+from inbox.models.backends.gmail import GmailAccount
+from inbox.models.backends.oauth import token_manager
 from inbox.models.session import session_scope
 
 logger = get_logger()
@@ -58,47 +57,14 @@ class GoogleContactsProvider(object):
 
     def _get_google_client(self, retry_conn_errors=True):
         """Return the Google API client."""
-        # TODO(emfree) figure out a better strategy for refreshing OAuth
-        # credentials as needed
         with session_scope(self.namespace_id) as db_session:
-            try:
-                account = db_session.query(GmailAccount).get(self.account_id)
-                (
-                    access_token,
-                    auth_creds_id,
-                ) = g_token_manager.get_token_and_auth_creds_id_for_contacts(account)
-                auth_creds = db_session.query(GmailAuthCredentials).get(auth_creds_id)
-
-                two_legged_oauth_token = gdata.gauth.OAuth2Token(
-                    client_id=auth_creds.client_id,
-                    client_secret=auth_creds.client_secret,
-                    scope=auth_creds.scopes,  # FIXME: string not list?
-                    user_agent=SOURCE_APP_NAME,
-                    access_token=access_token,
-                    refresh_token=auth_creds.refresh_token,
-                )
-                google_client = gdata.contacts.client.ContactsClient(
-                    source=SOURCE_APP_NAME
-                )
-                google_client.auth_token = two_legged_oauth_token
-                return google_client
-            except (
-                gdata.client.BadAuthentication,
-                gdata.client.Unauthorized,
-                OAuthError,
-            ):
-
-                if not retry_conn_errors:  # end of the line
-                    raise ValidationError
-
-                # If there are no valid refresh_tokens, will raise an
-                # OAuthError, stopping the sync
-                g_token_manager.get_token_for_contacts(account, force_refresh=True)
-                return self._google_client(retry_conn_errors=False)
-
-            except ConnectionError:
-                self.log.error("Connection error")
-                raise
+            account = db_session.query(GmailAccount).get(self.account_id)
+            db_session.expunge(account)
+        access_token = token_manager.get_token(account)
+        token = gdata.gauth.AuthSubToken(access_token)
+        google_client = gdata.contacts.client.ContactsClient(source=SOURCE_APP_NAME)
+        google_client.auth_token = token
+        return google_client
 
     def _parse_contact_result(self, google_contact):
         """Constructs a Contact object from a Google contact entry.
@@ -207,4 +173,4 @@ class GoogleContactsProvider(object):
                 # Raises an OAuth error if no valid token exists
                 with session_scope(self.namespace_id) as db_session:
                     account = db_session.query(GmailAccount).get(self.account_id)
-                    g_token_manager.get_token_for_contacts(account, force_refresh=True)
+                    token_manager.get_token(account, force_refresh=True)

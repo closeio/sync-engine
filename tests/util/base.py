@@ -114,9 +114,8 @@ def patch_network_functions(monkeypatch):
 def make_default_account(db, config):
     import platform
 
-    from inbox.auth.gmail import OAUTH_SCOPE
     from inbox.models import Namespace
-    from inbox.models.backends.gmail import GmailAccount, GmailAuthCredentials
+    from inbox.models.backends.gmail import GmailAccount
 
     ns = Namespace()
     account = GmailAccount(
@@ -124,33 +123,22 @@ def make_default_account(db, config):
         email_address="inboxapptest@gmail.com",
     )
     account.namespace = ns
+    account.client_id = config.get_required("GOOGLE_OAUTH_CLIENT_ID")
     account.create_emailed_events_calendar()
     account.refresh_token = "faketoken"
 
-    auth_creds = GmailAuthCredentials()
-    auth_creds.client_id = config.get_required("GOOGLE_OAUTH_CLIENT_ID")
-    auth_creds.client_secret = config.get_required("GOOGLE_OAUTH_CLIENT_SECRET")
-    auth_creds.refresh_token = "faketoken"
-    auth_creds.g_id_token = "foo"
-    auth_creds.created_at = datetime.utcnow()
-    auth_creds.updated_at = datetime.utcnow()
-    auth_creds.gmailaccount = account
-    auth_creds.scopes = OAUTH_SCOPE
-
     db.session.add(account)
-    db.session.add(auth_creds)
     db.session.commit()
     return account
 
 
 def delete_default_accounts(db):
     from inbox.models import Namespace
-    from inbox.models.backends.gmail import GmailAccount, GmailAuthCredentials
+    from inbox.models.backends.gmail import GmailAccount
 
     delete_messages(db.session)
     db.session.rollback()
     db.session.query(GmailAccount).delete()
-    db.session.query(GmailAuthCredentials).delete()
     db.session.query(Namespace).delete()
     db.session.commit()
 
@@ -322,7 +310,8 @@ def add_fake_gmail_account(
             sync_host=platform.node(),
             namespace=namespace,
         )
-        account.password = password
+        account.imap_password = password
+        account.smtp_password = password
 
         db_session.add(account)
         db_session.commit()

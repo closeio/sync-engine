@@ -2,7 +2,7 @@ import pytest
 
 from inbox.auth.base import handler_from_provider
 from inbox.auth.generic import GenericAuthHandler
-from inbox.auth.gmail import GmailAuthHandler
+from inbox.auth.google import GoogleAuthHandler
 from inbox.basicauth import NotSupportedError
 from inbox.util.url import InvalidEmailAddressError, provider_from_address
 
@@ -58,10 +58,7 @@ def test_provider_resolution(mock_dns_resolver):
 
 def test_auth_handler_dispatch():
     assert isinstance(handler_from_provider("custom"), GenericAuthHandler)
-    assert isinstance(handler_from_provider("fastmail"), GenericAuthHandler)
-    assert isinstance(handler_from_provider("aol"), GenericAuthHandler)
-    assert isinstance(handler_from_provider("yahoo"), GenericAuthHandler)
-    assert isinstance(handler_from_provider("gmail"), GmailAuthHandler)
+    assert isinstance(handler_from_provider("gmail"), GoogleAuthHandler)
 
     with pytest.raises(NotSupportedError):
         handler_from_provider("NOTAREALMAILPROVIDER")

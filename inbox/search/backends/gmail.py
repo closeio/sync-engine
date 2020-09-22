@@ -6,7 +6,7 @@ from inbox.api.kellogs import APIEncoder
 from inbox.auth.oauth import OAuthRequestsWrapper
 from inbox.basicauth import OAuthError
 from inbox.models import Account, Message, Thread
-from inbox.models.backends.gmail import g_token_manager
+from inbox.models.backends.oauth import token_manager
 from inbox.models.session import session_scope
 from inbox.search.base import SearchBackendException
 
@@ -22,7 +22,7 @@ class GmailSearchClient(object):
         try:
             with session_scope(self.account_id) as db_session:
                 self.account = db_session.query(Account).get(self.account_id)
-                self.auth_token = g_token_manager.get_token_for_email(self.account)
+                self.auth_token = token_manager.get_token(self.account)
                 db_session.expunge_all()
         except OAuthError:
             raise SearchBackendException(

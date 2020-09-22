@@ -233,7 +233,8 @@ class MockImapConnection(object):
 def imap_connection(monkeypatch):
     conn = MockImapConnection()
     monkeypatch.setattr(
-        "inbox.auth.generic.GenericAuthHandler.connect_account", lambda *_, **__: conn
+        "inbox.auth.base.AuthHandler.get_authenticated_imap_connection",
+        lambda *_, **__: conn,
     )
     return conn
 
@@ -247,7 +248,7 @@ def invalid_imap_connection(monkeypatch):
 
     conn = MockImapConnection()
     monkeypatch.setattr(
-        "inbox.auth.generic.GenericAuthHandler.connect_account", raise_401
+        "inbox.auth.base.AuthHandler.get_authenticated_imap_connection", raise_401
     )
     return conn
 
@@ -255,7 +256,7 @@ def invalid_imap_connection(monkeypatch):
 @fixture
 def patch_token_manager(monkeypatch):
     monkeypatch.setattr(
-        "inbox.models.backends.gmail.g_token_manager.get_token_for_email",
+        "inbox.models.backends.oauth.token_manager.get_token",
         lambda *args, **kwargs: "token",
     )
 
@@ -277,7 +278,7 @@ def invalid_gmail_token(monkeypatch):
         raise OAuthError()
 
     monkeypatch.setattr(
-        "inbox.models.backends.gmail.g_token_manager.get_token_for_email", raise_401
+        "inbox.models.backends.oauth.token_manager.get_token", raise_401
     )
 
 
@@ -501,7 +502,8 @@ def test_streaming_search_results(
 
     conn = MultiFolderMockImapConnection()
     monkeypatch.setattr(
-        "inbox.auth.generic.GenericAuthHandler.connect_account", lambda *_, **__: conn
+        "inbox.auth.base.AuthHandler.get_authenticated_imap_connection",
+        lambda *_, **__: conn,
     )
 
     search_client = get_search_client(generic_account)

@@ -2,6 +2,7 @@
 Generic OAuth class that provides abstraction for access and
 refresh tokens.
 """
+import json
 from datetime import datetime, timedelta
 
 from nylas.logging import get_logger
@@ -9,7 +10,7 @@ from sqlalchemy import Column, ForeignKey
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship
 
-from inbox.models.secret import Secret
+from inbox.models.secret import Secret, SecretType
 
 log = get_logger()
 
@@ -52,7 +53,10 @@ class OAuthAccount(object):
     def refresh_token(self):
         if not self.secret:
             return None
-        return self.secret.secret
+        if self.secret.type == SecretType.Token.value:
+            return self.secret.secret
+        else:
+            raise ValueError("Invalid secret type.")
 
     @refresh_token.setter
     def refresh_token(self, value):
@@ -68,17 +72,36 @@ class OAuthAccount(object):
         if b"\x00" in value:
             raise ValueError("Invalid refresh_token")
 
+        self.set_secret(SecretType.Token, value)
+
+    def set_secret(self, secret_type, secret_value):
         if not self.secret:
             self.secret = Secret()
 
-        self.secret.secret = value
-        self.secret.type = "token"
+        self.secret.type = secret_type.value
+        self.secret.secret = secret_value
+
+    def get_client_info(self):
+        """
+        Obtain the client ID and secret for this OAuth account.
+
+        Return:
+            Tuple with (client_id, client_secret).
+        """
+        raise NotImplementedError()
 
     def new_token(self):
+        """
+        Retrieves a new access token.
+
+        Returns:
+            A tuple with the new access token and its expiration.
+
+        Raises:
+            OAuthError: If no token could be obtained.
+        """
         try:
-            return self.auth_handler.new_token(
-                self.refresh_token, self.client_id, self.client_secret
-            )
+            return self.auth_handler.acquire_access_token(self)
         except Exception as e:
             log.error(
                 "Error while getting access token: {}".format(e),
@@ -86,8 +109,3 @@ class OAuthAccount(object):
                 exc_info=True,
             )
             raise
-
-    def verify(self):
-        # TODO(emfree): update callers and remove this silliness.
-        token = token_manager.get_token(self)
-        return self.auth_handler.validate_token(token)

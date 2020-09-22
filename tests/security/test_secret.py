@@ -1,8 +1,8 @@
 # -*- coding: UTF-8 -*-
 import pytest
 
-from inbox.auth.gmail import GmailAuthHandler
-from inbox.models.secret import Secret
+from inbox.auth.google import GoogleAccountData, GoogleAuthHandler
+from inbox.models.secret import Secret, SecretType
 
 SHARD_ID = 0
 ACCOUNT_ID = 1
@@ -35,10 +35,8 @@ def test_secret(db, config, encrypt):
         assert secret._secret == bytes_secret
     assert secret.secret == bytes_secret, "secret not decrypted correctly"
 
-    with pytest.raises(TypeError) as e:
-        secret.secret = unicode_secret
-
-    assert e.typename == "TypeError", "secret cannot be unicode"
+    secret.secret = unicode_secret
+    assert secret.secret == unicode_secret.encode("utf8")
 
 
 @pytest.mark.parametrize("encrypt", [True, False])
@@ -55,27 +53,19 @@ def test_token(db, config, encrypt):
     token = "tH*$&123abcº™™∞"
 
     email = "vault.test@localhost.com"
-    resp = {
-        "access_token": "",
-        "expires_in": 3600,
-        "refresh_token": token,
-        "scope": "",
-        "email": email,
-        "family_name": "",
-        "given_name": "",
-        "name": "",
-        "gender": "",
-        "id": 0,
-        "user_id": "",
-        "id_token": "",
-        "link": "http://example.com",
-        "locale": "",
-        "picture": "",
-        "hd": "",
-    }
-    g = GmailAuthHandler("gmail")
+    account_data = GoogleAccountData(
+        email=email,
+        secret_type=SecretType.Token,
+        secret_value=token,
+        client_id="",
+        scope="a b",
+        sync_email=True,
+        sync_contacts=False,
+        sync_events=True,
+    )
+    g = GoogleAuthHandler()
     g.verify_config = lambda x: True
-    account = g.get_account(SHARD_ID, email, resp)
+    account = g.create_account(account_data)
 
     db.session.add(account)
     db.session.commit()
@@ -95,11 +85,6 @@ def test_token(db, config, encrypt):
         decrypted_secret == token and account.refresh_token == decrypted_secret
     ), "token not decrypted correctly"
 
-    # Remove auth credentials row, else weird things
-    # happen when we try to read both encrypted and
-    # unencrypted data from the database.
-    for ac in account.auth_credentials:
-        db.session.delete(ac)
     # db.session.delete(account.auth_credentials[0])
     db.session.commit()
 

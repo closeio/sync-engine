@@ -5,7 +5,7 @@
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from inbox.auth.generic import GenericAuthHandler
+from inbox.auth.generic import GenericAccountData, GenericAuthHandler
 from inbox.crispin import FolderMissingError
 from inbox.mailsync.backends.base import MailsyncDone
 from inbox.mailsync.backends.imap.generic import FolderSyncEngine
@@ -15,11 +15,23 @@ from inbox.models import Folder
 TEST_YAHOO_EMAIL = "inboxapptest1@yahoo.com"
 
 
+yahoo_account_data = GenericAccountData(
+    email=TEST_YAHOO_EMAIL,
+    imap_server_host="localhost",
+    imap_server_port=143,
+    imap_username="BLAH",
+    imap_password="BLAH",
+    smtp_server_host="localhost",
+    smtp_server_port=25,
+    smtp_username="BLAH",
+    smtp_password="BLAH",
+    sync_email=True,
+)
+
+
 @pytest.fixture
 def yahoo_account(db):
-    account = GenericAuthHandler("yahoo").create_account(
-        TEST_YAHOO_EMAIL, {"email": TEST_YAHOO_EMAIL, "password": "BLAH"}
-    )
+    account = GenericAuthHandler().create_account(yahoo_account_data)
     db.session.add(account)
     db.session.commit()
     return account

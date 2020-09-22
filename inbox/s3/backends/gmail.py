@@ -4,7 +4,7 @@ import requests
 from nylas.logging import get_logger
 
 from inbox.auth.oauth import OAuthRequestsWrapper
-from inbox.models.backends.gmail import g_token_manager
+from inbox.models.backends.oauth import token_manager
 from inbox.s3.exc import EmailDeletedException, TemporaryEmailFetchException
 
 log = get_logger()
@@ -14,7 +14,7 @@ log = get_logger()
 # the Gmail max IMAP connection limit.
 def get_gmail_raw_contents(message):
     account = message.namespace.account
-    auth_token = g_token_manager.get_token_for_email(account)
+    auth_token = token_manager.get_token(account)
 
     # The Gmail API exposes the X-GM-MSGID field but encodes it
     # in hexadecimal.

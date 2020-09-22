@@ -1,85 +1,29 @@
-import socket
 import urllib
 
 import requests
 from imapclient import IMAPClient
 from nylas.logging import get_logger
-from simplejson import JSONDecodeError
 
-log = get_logger()
-from inbox.auth.base import AuthHandler
-from inbox.auth.generic import create_imap_connection
 from inbox.basicauth import ConnectionError, OAuthError
 from inbox.models.backends.oauth import token_manager
+from inbox.models.secret import SecretType
+
+from .base import AuthHandler
+
+log = get_logger()
 
 
 class OAuthAuthHandler(AuthHandler):
-    def connect_account(self, account, use_timeout=True):
-        """
-        Returns an authenticated IMAP connection for the given account.
+    # Defined by subclasses
+    OAUTH_ACCESS_TOKEN_URL = None
 
-        Raises
-        ------
-        ValidationError
-            If fetching an access token failed because the refresh token we
-            have is invalid (i.e., if the user has revoked access).
-        ConnectionError
-            If another error occurred when fetching an access token.
-        imapclient.IMAPClient.Error, socket.error
-            If errors occurred establishing the connection or logging in.
-
-        """
-        conn = self._get_IMAP_connection(account, use_timeout)
-        self._authenticate_IMAP_connection(account, conn)
-        return conn
-
-    def _get_IMAP_connection(self, account, use_timeout=True):
-        host, port = account.imap_endpoint
-        try:
-            conn = create_imap_connection(
-                host, port, ssl_required=True, use_timeout=use_timeout
-            )
-        except (IMAPClient.Error, socket.error) as exc:
-            log.error(
-                "Error instantiating IMAP connection",
-                account_id=account.id,
-                imap_host=host,
-                imap_port=port,
-                error=exc,
-            )
-            raise
-        return conn
-
-    def _authenticate_IMAP_connection(self, account, conn):
-        host, port = account.imap_endpoint
-        try:
-            # Raises ValidationError if the refresh token we have is invalid.
-            token = token_manager.get_token(account)
-            conn.oauth2_login(account.email_address, token)
-        except IMAPClient.Error as exc:
-            log.error(
-                "Error during IMAP XOAUTH2 login",
-                account_id=account.id,
-                host=host,
-                port=port,
-                error=exc,
-            )
-            raise
-
-    def verify_account(self, account):
-        """Verifies an IMAP account by logging in."""
-        conn = self.connect_account(account)
-        conn.logout()
-        return True
-
-    def new_token(self, refresh_token, client_id=None, client_secret=None):
+    def _new_access_token_from_refresh_token(self, account):
+        refresh_token = account.refresh_token
         if not refresh_token:
             raise OAuthError("refresh_token required")
 
-        # If these aren't set on the Account object, use the values from
-        # config so that the dev version of the sync engine continues to work.
-        client_id = client_id or self.OAUTH_CLIENT_ID
-        client_secret = client_secret or self.OAUTH_CLIENT_SECRET
+        client_id, client_secret = account.get_client_info()
+
         access_token_url = self.OAUTH_ACCESS_TOKEN_URL
 
         data = urllib.urlencode(
@@ -102,7 +46,7 @@ class OAuthAuthHandler(AuthHandler):
 
         try:
             session_dict = response.json()
-        except JSONDecodeError:
+        except ValueError:
             log.error("Invalid JSON renewing on renewing token", response=response.text)
             raise ConnectionError("Invalid JSON response on renewing token")
 
@@ -122,36 +66,29 @@ class OAuthAuthHandler(AuthHandler):
 
         return session_dict["access_token"], session_dict["expires_in"]
 
-    def _get_authenticated_user(self, authorization_code):
-        args = {
-            "client_id": self.OAUTH_CLIENT_ID,
-            "client_secret": self.OAUTH_CLIENT_SECRET,
-            "redirect_uri": self.OAUTH_REDIRECT_URI,
-            "code": authorization_code,
-            "grant_type": "authorization_code",
-        }
+    def _access_token_from_authalligator(self, account):
+        assert account.secret.type == SecretType.AuthAlligator.value
+        # aa_data = json.loads(account.secret.secret)
+        # TODO: get verified token
+        raise NotImplementedError("Not implemented yet.")
 
-        headers = {
-            "Content-type": "application/x-www-form-urlencoded",
-            "Accept": "text/plain",
-        }
-        data = urllib.urlencode(args)
-        resp = requests.post(self.OAUTH_ACCESS_TOKEN_URL, data=data, headers=headers)
+    def acquire_access_token(self, account):
+        if account.secret.type == SecretType.AuthAlligator.value:
+            return self._new_access_token_from_authalligator(account)
+        elif account.secret.type == SecretType.Token.value:
+            return self._new_access_token_from_refresh_token(account)
+        else:
+            raise OAuthError("No supported secret found.")
 
-        session_dict = resp.json()
-
-        if u"error" in session_dict:
-            raise OAuthError(session_dict["error"])
-
-        access_token = session_dict["access_token"]
-        validation_dict = self.validate_token(access_token)
-        userinfo_dict = self._get_user_info(access_token)
-
-        z = session_dict.copy()
-        z.update(validation_dict)
-        z.update(userinfo_dict)
-
-        return z
+    def authenticate_imap_connection(self, account, conn):
+        token = token_manager.get_token(account)
+        try:
+            conn.oauth2_login(account.email_address, token)
+        except IMAPClient.Error as exc:
+            log.error(
+                "Error during IMAP XOAUTH2 login", account_id=account.id, error=exc,
+            )
+            raise
 
     def _get_user_info(self, access_token):
         try:
@@ -177,6 +114,36 @@ class OAuthAuthHandler(AuthHandler):
             raise OAuthError()
 
         return userinfo_dict
+
+    def _get_authenticated_user(self, authorization_code):
+        args = {
+            "client_id": self.OAUTH_CLIENT_ID,
+            "client_secret": self.OAUTH_CLIENT_SECRET,
+            "redirect_uri": self.OAUTH_REDIRECT_URI,
+            "code": authorization_code,
+            "grant_type": "authorization_code",
+        }
+
+        headers = {
+            "Content-type": "application/x-www-form-urlencoded",
+            "Accept": "text/plain",
+        }
+        data = urllib.urlencode(args)
+        resp = requests.post(self.OAUTH_ACCESS_TOKEN_URL, data=data, headers=headers)
+
+        session_dict = resp.json()
+
+        if u"error" in session_dict:
+            raise OAuthError(session_dict["error"])
+
+        access_token = session_dict["access_token"]
+
+        userinfo_dict = self._get_user_info(access_token)
+
+        z = session_dict.copy()
+        z.update(userinfo_dict)
+
+        return z
 
 
 class OAuthRequestsWrapper(requests.auth.AuthBase):

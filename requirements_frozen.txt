@@ -4,6 +4,7 @@ apipkg==1.4
 arrow==0.5.4
 asn1crypto==0.24.0
 astroid==1.6.1
+attrs==20.2.0
 backports.functools-lru-cache==1.4
 backports.ssl==0.0.9
 boto==2.10.0

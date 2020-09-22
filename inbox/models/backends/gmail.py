@@ -38,20 +38,6 @@ class GmailAccount(OAuthAccount, ImapAccount):
     client_id = Column(String(256))
     scope = Column(String(512))
 
-    # XXX: These fields are not currently used.
-    client_secret = Column(String(256))
-    access_type = Column(String(64))
-    family_name = Column(String(256))
-    given_name = Column(String(256))
-    gender = Column(String(16))
-    g_id = Column(String(32))  # `id`
-    g_id_token = Column(String(2048))  # `id_token`
-    g_user_id = Column(String(32))  # `user_id`
-    link = Column(String(256))
-    locale = Column(String(8))
-    picture = Column(String(1024))
-    home_domain = Column(String(256))
-
     # for google push notifications:
     last_calendar_list_sync = Column(DateTime)
     gpush_calendar_list_last_ping = Column(DateTime)

@@ -19,17 +19,16 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
     OAUTH_CLIENT_SECRET = config.get_required("MICROSOFT_OAUTH_CLIENT_SECRET")
     OAUTH_REDIRECT_URI = config.get_required("MICROSOFT_OAUTH_REDIRECT_URI")
 
-    OAUTH_AUTHENTICATE_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
-    OAUTH_ACCESS_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+    OAUTH_AUTHENTICATE_URL = (
+        "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
+    )
+    OAUTH_ACCESS_TOKEN_URL = (
+        "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+    )
     OAUTH_USER_INFO_URL = "https://graph.microsoft.com/oidc/userinfo"
 
     OAUTH_SCOPE = " ".join(
-        [
-            "https://graph.microsoft.com/.default",
-            "offline_access",
-            "openid",
-            "profile",
-        ]
+        ["https://graph.microsoft.com/.default", "offline_access", "openid", "profile",]
     )
 
     def create_account(self, account_data):

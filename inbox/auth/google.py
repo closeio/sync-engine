@@ -14,7 +14,6 @@ from inbox.providers import provider_info
 from inbox.util.url import url_concat
 
 from .oauth import OAuthAuthHandler
-from .utils import create_imap_connection
 
 log = get_logger()
 
@@ -102,17 +101,6 @@ class GoogleAuthHandler(OAuthAuthHandler):
         account.scope = account_data.scope
 
         return account
-
-    def get_imap_connection(self, account, use_timeout=True):
-        host, port = account.imap_endpoint
-        ssl_required = True
-        try:
-            return create_imap_connection(host, port, ssl_required, use_timeout)
-        except (IMAPClient.Error, socket.error) as exc:
-            log.error(
-                "Error instantiating IMAP connection", account_id=account.id, error=exc,
-            )
-            raise
 
     def interactive_auth(self, email_address=None):
         url_args = {

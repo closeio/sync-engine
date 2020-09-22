@@ -41,8 +41,6 @@ class GenericAccount(ImapAccount):
         foreign_keys=[smtp_password_id],
     )
 
-    ssl_required = Column(Boolean, default=True)
-
     # Old Secret
     # TODO[logan]: delete once IMAP and SMTP secret are in production.
     password_id = Column(ForeignKey(Secret.id, ondelete="CASCADE"), nullable=True)
@@ -126,7 +124,6 @@ class GenericAccount(ImapAccount):
         settings = {}
         settings["imap_host"], settings["imap_port"] = self.imap_endpoint
         settings["smtp_host"], settings["smtp_port"] = self.smtp_endpoint
-        settings["ssl_required"] = self.ssl_required
         return settings
 
     # Override provider_info and auth_handler to make sure we always get

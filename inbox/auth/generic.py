@@ -18,7 +18,6 @@ from inbox.models.backends.generic import GenericAccount
 from inbox.sendmail.smtp.postel import SMTPClient
 
 from .base import AuthHandler
-from .utils import create_imap_connection
 
 log = get_logger()
 
@@ -70,7 +69,6 @@ class GenericAuthHandler(AuthHandler):
 
         account.date = datetime.datetime.utcnow()
 
-        account.ssl_required = True
         account.sync_email = account_data.sync_email
 
         return account
@@ -93,17 +91,6 @@ class GenericAuthHandler(AuthHandler):
                     error=exc,
                 )
                 raise
-
-    def get_imap_connection(self, account, use_timeout=True):
-        host, port = account.imap_endpoint
-        ssl_required = account.ssl_required
-        try:
-            return create_imap_connection(host, port, ssl_required, use_timeout)
-        except (IMAPClient.Error, socket.error) as exc:
-            log.error(
-                "Error instantiating IMAP connection", account_id=account.id, error=exc,
-            )
-            raise
 
     def interactive_auth(self, email_address):
         response = dict(email=email_address)

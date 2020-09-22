@@ -20,7 +20,6 @@ def test_use_smtp_over_ssl():
         auth_type="password",
         auth_token="secret_password",
         smtp_endpoint=("smtp.gmail.com", 465),
-        ssl_required=True,
         log=get_logger(),
     )
     assert isinstance(conn.connection, smtplib.SMTP_SSL)
@@ -35,7 +34,6 @@ def test_use_starttls():
         auth_type="password",
         auth_token="secret_password",
         smtp_endpoint=("smtp.gmail.com", 587),
-        ssl_required=True,
         log=get_logger(),
     )
     assert isinstance(conn.connection, smtplib.SMTP)
@@ -53,7 +51,6 @@ def test_use_plain():
             auth_type="password",
             auth_token="testpwd",
             smtp_endpoint=("tivertical.com", 587),
-            ssl_required=ssl,
             log=get_logger(),
         )
 
@@ -65,7 +62,6 @@ def test_use_plain():
         auth_type="password",
         auth_token="testpwd",
         smtp_endpoint=("tivertical.com", 587),
-        ssl_required=ssl,
         log=get_logger(),
     )
     assert isinstance(conn.connection, smtplib.SMTP)
@@ -86,7 +82,6 @@ def test_handle_disconnect(monkeypatch, smtp_port):
         auth_type="password",
         auth_token="secret_password",
         smtp_endpoint=("smtp.gmail.com", smtp_port),
-        ssl_required=True,
         log=get_logger(),
     )
     with pytest.raises(smtplib.SMTPSenderRefused):

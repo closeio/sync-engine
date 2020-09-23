@@ -1,6 +1,5 @@
 import json
 
-
 import requests
 from imapclient import IMAPClient
 from nylas.logging import get_logger

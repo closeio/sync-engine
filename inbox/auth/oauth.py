@@ -92,9 +92,11 @@ class OAuthAuthHandler(AuthHandler):
             )
             raise
 
-    def _get_user_info(self, access_token):
+    def _get_user_info(self, session_dict):
+        access_token = session_dict["access_token"]
         request = urllib.request.Request(
-            self.OAUTH_USER_INFO_URL, headers={"Authorization": "Bearer {}".format(access_token)}
+            self.OAUTH_USER_INFO_URL,
+            headers={"Authorization": "Bearer {}".format(access_token)},
         )
         try:
             response = urllib.request.urlopen(request)
@@ -131,9 +133,7 @@ class OAuthAuthHandler(AuthHandler):
         if u"error" in session_dict:
             raise OAuthError(session_dict["error"])
 
-        access_token = session_dict["access_token"]
-
-        userinfo_dict = self._get_user_info(access_token)
+        userinfo_dict = self._get_user_info(session_dict)
 
         z = session_dict.copy()
         z.update(userinfo_dict)

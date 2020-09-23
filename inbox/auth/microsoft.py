@@ -1,4 +1,5 @@
 import attr
+import jwt
 
 from inbox.basicauth import OAuthError
 from inbox.config import config
@@ -37,7 +38,13 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
     OAUTH_USER_INFO_URL = "https://graph.microsoft.com/oidc/userinfo"
 
     OAUTH_SCOPE = " ".join(
-        ["https://graph.microsoft.com/.default", "offline_access", "openid", "profile",]
+        [
+            "offline_access",
+            "openid",
+            "profile",
+            "https://outlook.office.com/IMAP.AccessAsUser.All",
+            "https://outlook.office.com/SMTP.Send",
+        ]
     )
 
     def create_account(self, account_data):
@@ -62,6 +69,16 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
         account.scope = account_data.scope
 
         return account
+
+    def _get_user_info(self, session_dict):
+        # Since we can't use an Exchange token to access the Graph API's
+        # userinfo endpoint we're going to use the id_token to determine
+        # the email address.
+        id_token = session_dict["id_token"]
+        id_data = jwt.decode(id_token, verify=False)
+        return {
+            "email": id_data["preferred_username"],
+        }
 
     def interactive_auth(self, email_address=None):
         url_args = {

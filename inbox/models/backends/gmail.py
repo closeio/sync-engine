@@ -26,7 +26,6 @@ GOOGLE_EMAIL_SCOPE = "https://mail.google.com/"
 GOOGLE_CONTACTS_SCOPE = "https://www.google.com/m8/feeds"
 
 
-
 class GmailAccount(OAuthAccount, ImapAccount):
     OAUTH_CLIENT_ID = config.get_required("GOOGLE_OAUTH_CLIENT_ID")
     OAUTH_CLIENT_SECRET = config.get_required("GOOGLE_OAUTH_CLIENT_SECRET")

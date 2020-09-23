@@ -91,7 +91,6 @@ class OAuthAccount(object):
         else:
             raise OAuthError("No valid tokens.")
 
-
     def new_token(self):
         """
         Retrieves a new access token.

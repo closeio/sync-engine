@@ -46,7 +46,6 @@ def test_create_gmail_account(db, api_client):
     assert account["sync_state"] == "running"
 
 
-
 def test_create_microsoft_account(db, api_client):
     resp = api_client.post_data(
         "/accounts/",

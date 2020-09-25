@@ -35,15 +35,14 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
     OAUTH_ACCESS_TOKEN_URL = (
         "https://login.microsoftonline.com/common/oauth2/v2.0/token"
     )
-    OAUTH_USER_INFO_URL = "https://graph.microsoft.com/oidc/userinfo"
+    # Not used with Exchange tokens, which are JWTs.
+    OAUTH_USER_INFO_URL = None
 
     OAUTH_SCOPE = " ".join(
         [
-            "offline_access",
-            "openid",
-            "profile",
             "https://outlook.office.com/IMAP.AccessAsUser.All",
             "https://outlook.office.com/SMTP.Send",
+            "offline_access",
         ]
     )
 
@@ -72,12 +71,12 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
 
     def _get_user_info(self, session_dict):
         # Since we can't use an Exchange token to access the Graph API's
-        # userinfo endpoint we're going to use the id_token to determine
-        # the email address.
-        id_token = session_dict["id_token"]
+        # userinfo endpoint we're going to use the access_token, which is a
+        # JWT, to determine the email address.
+        id_token = session_dict["access_token"]
         id_data = jwt.decode(id_token, verify=False)
         return {
-            "email": id_data["preferred_username"],
+            "email": id_data["upn"],
         }
 
     def interactive_auth(self, email_address=None):

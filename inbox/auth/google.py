@@ -65,32 +65,6 @@ class GoogleAuthHandler(OAuthAuthHandler):
         if account_data.secret_type:
             account.set_secret(account_data.secret_type, account_data.secret_value)
 
-            # TODO: This code is for backwards-compatibility. Remove it.
-            from inbox.models.backends.gmail import GmailAuthCredentials
-
-            client_id = account_data.client_id or self.OAUTH_CLIENT_ID
-            client_secret = self.OAUTH_CLIENT_SECRET
-            # See if we already have credentials for this client_id/secret
-            # pair. If those don't exist, make a new GmailAuthCredentials
-            auth_creds = next(
-                (
-                    auth_creds
-                    for auth_creds in account.auth_credentials
-                    if (
-                        auth_creds.client_id == client_id
-                        and auth_creds.client_secret == client_secret
-                    )
-                ),
-                GmailAuthCredentials(),
-            )
-            auth_creds.gmailaccount = account
-            auth_creds.scopes = account_data.scope
-            auth_creds.client_id = client_id
-            auth_creds.client_secret = client_secret
-            auth_creds.g_id_token = ""  # must not be NULL
-            auth_creds.refresh_token = account_data.secret_value
-            auth_creds.is_valid = True
-
         if not account.secret:
             raise OAuthError("No valid auth info.")
 

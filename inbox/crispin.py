@@ -43,6 +43,7 @@ from inbox.models import Account
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.gmail import GmailAccount
 from inbox.models.backends.imap import ImapAccount
+from inbox.models.backends.outlook import OutlookAccount
 from inbox.models.session import session_scope
 from inbox.util.concurrency import retry
 from inbox.util.itert import chunk
@@ -237,10 +238,13 @@ class CrispinConnectionPool(object):
     def _new_raw_connection(self):
         """Returns a new, authenticated IMAPClient instance for the account."""
         from inbox.auth.google import GoogleAuthHandler
+        from inbox.auth.microsoft import MicrosoftAuthHandler
 
         with session_scope(self.account_id) as db_session:
             if isinstance(self.auth_handler, GoogleAuthHandler):
                 account = db_session.query(GmailAccount).get(self.account_id)
+            elif isinstance(self.auth_handler, MicrosoftAuthHandler):
+                account = db_session.query(OutlookAccount).get(self.account_id)
             else:
                 account = (
                     db_session.query(GenericAccount)

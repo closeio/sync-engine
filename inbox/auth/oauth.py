@@ -101,7 +101,7 @@ class OAuthAuthHandler(AuthHandler):
             response = urllib.request.urlopen(request)
         except urllib.error.HTTPError as e:
             if e.code == 401:
-                raise OAuthError()
+                raise OAuthError("Could not retrieve user info.")
             log.error("user_info_fetch_failed", error_code=e.code, error=e)
             raise ConnectionError()
         except urllib.error.URLError as e:

@@ -11,6 +11,8 @@ from .utils import create_imap_connection
 
 log = get_logger()
 
+from .utils import create_imap_connection
+
 
 def handler_from_provider(provider_name):
     """

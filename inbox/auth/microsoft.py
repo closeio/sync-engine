@@ -42,6 +42,9 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
             "https://outlook.office.com/SMTP.Send",
             "https://outlook.office.com/User.Read",
             "offline_access",
+            # Not needed here but gives us an id_token with user information.
+            "openid",
+            "profile",
         ]
     )
 

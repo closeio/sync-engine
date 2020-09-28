@@ -25,12 +25,11 @@ GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar"
 GOOGLE_EMAIL_SCOPE = "https://mail.google.com/"
 GOOGLE_CONTACTS_SCOPE = "https://www.google.com/m8/feeds"
 
-OAUTH_CLIENT_ID = config.get_required("GOOGLE_OAUTH_CLIENT_ID")
-OAUTH_CLIENT_SECRET = config.get_required("GOOGLE_OAUTH_CLIENT_SECRET")
-OAUTH_REDIRECT_URI = config.get_required("GOOGLE_OAUTH_REDIRECT_URI")
-
 
 class GmailAccount(OAuthAccount, ImapAccount):
+    OAUTH_CLIENT_ID = config.get_required("GOOGLE_OAUTH_CLIENT_ID")
+    OAUTH_CLIENT_SECRET = config.get_required("GOOGLE_OAUTH_CLIENT_SECRET")
+
     id = Column(ForeignKey(ImapAccount.id, ondelete="CASCADE"), primary_key=True)
 
     __mapper_args__ = {"polymorphic_identity": "gmailaccount"}
@@ -62,12 +61,6 @@ class GmailAccount(OAuthAccount, ImapAccount):
         from inbox.models.action_log import ActionLog
 
         return ActionLog
-
-    def get_client_info(self):
-        if not self.client_id or self.client_id == OAUTH_CLIENT_ID:
-            return (OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET)
-        else:
-            raise OAuthError("No valid tokens.")
 
     def new_calendar_list_watch(self, expiration):
         # Google gives us back expiration timestamps in milliseconds

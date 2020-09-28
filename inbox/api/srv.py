@@ -17,6 +17,7 @@ from inbox.api.validation import (
 )
 from inbox.auth.generic import GenericAccountData, GenericAuthHandler
 from inbox.auth.google import GoogleAccountData, GoogleAuthHandler
+from inbox.auth.microsoft import MicrosoftAccountData, MicrosoftAuthHandler
 from inbox.models import Account, Namespace
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.gmail import GOOGLE_EMAIL_SCOPE, GmailAccount
@@ -197,6 +198,35 @@ def _get_account_data_for_google_account(data):
     )
 
 
+def _get_account_data_for_microsoft_account(data):
+    email_address = data["email_address"]
+    scopes = data["scopes"]
+    client_id = data.get("client_id")
+
+    refresh_token = data.get("refresh_token")
+    authalligator = data.get("authalligator")
+
+    sync_email = data.get("sync_email", True)
+
+    if authalligator:
+        secret_type = SecretType.AuthAlligator
+        secret_value = authalligator
+    elif refresh_token:
+        secret_type = SecretType.Token
+        secret_value = refresh_token
+    else:
+        raise InputError("Authentication information missing.")
+
+    return MicrosoftAccountData(
+        email=email_address,
+        secret_type=secret_type,
+        secret_value=secret_value,
+        client_id=client_id,
+        scope=scopes,
+        sync_email=sync_email,
+    )
+
+
 @app.route("/accounts/", methods=["POST"])
 def create_account():
     """ Create a new account """
@@ -208,6 +238,9 @@ def create_account():
     elif data["type"] == "gmail":
         auth_handler = GoogleAuthHandler()
         account_data = _get_account_data_for_google_account(data)
+    elif data["type"] == "microsoft":
+        auth_handler = MicrosoftAuthHandler()
+        account_data = _get_account_data_for_microsoft_account(data)
     else:
         raise ValueError("Account type not supported.")
 

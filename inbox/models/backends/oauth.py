@@ -39,8 +39,6 @@ token_manager = TokenManager()
 
 
 class OAuthAccount(object):
-    # Secret
-
     @declared_attr
     def refresh_token_id(cls):
         return Column(ForeignKey(Secret.id), nullable=False)
@@ -88,7 +86,10 @@ class OAuthAccount(object):
         Return:
             Tuple with (client_id, client_secret).
         """
-        raise NotImplementedError()
+        if not self.client_id or self.client_id == self.OAUTH_CLIENT_ID:
+            return (self.OAUTH_CLIENT_ID, self.OAUTH_CLIENT_SECRET)
+        else:
+            raise OAuthError("No valid tokens.")
 
     def new_token(self):
         """

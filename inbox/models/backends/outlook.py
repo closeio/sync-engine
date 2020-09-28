@@ -1,21 +1,25 @@
 from sqlalchemy import Column, ForeignKey, String
 
+from inbox.config import config
 from inbox.models.backends.imap import ImapAccount
 from inbox.models.backends.oauth import OAuthAccount
 
-PROVIDER = "_outlook"
+PROVIDER = "microsoft"
 
 
 class OutlookAccount(ImapAccount, OAuthAccount):
+    OAUTH_CLIENT_ID = config.get_required("MICROSOFT_OAUTH_CLIENT_ID")
+    OAUTH_CLIENT_SECRET = config.get_required("MICROSOFT_OAUTH_CLIENT_SECRET")
+
     id = Column(ForeignKey(ImapAccount.id, ondelete="CASCADE"), primary_key=True)
 
     __mapper_args__ = {"polymorphic_identity": "outlookaccount"}
 
-    # STOPSHIP(emfree) store these either as secrets or as properties of the
-    # developer app.
     client_id = Column(String(256))
-    client_secret = Column(String(256))
     scope = Column(String(512))
+
+    # TODO: These fields are unused.
+    client_secret = Column(String(256))
     family_name = Column(String(256))
     given_name = Column(String(256))
     gender = Column(String(16))

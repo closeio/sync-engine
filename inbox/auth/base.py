@@ -38,7 +38,9 @@ def handler_from_provider(provider_name):
 
         return MicrosoftAuthHandler()
 
-    raise NotSupportedError("Nylas does not support the email provider.")
+    raise NotSupportedError(
+        'Nylas does not support the email provider "{}".'.format(provider_name)
+    )
 
 
 class AuthHandler(object):

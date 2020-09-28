@@ -43,6 +43,7 @@ providers = dict(
             {
                 "auth": "oauth2",
                 "domains": [
+                    # Microsoft 365
                     "onmicrosoft.com",
                     "exchange.mit.edu",
                     "savills-studley.com",
@@ -53,22 +54,7 @@ providers = dict(
                     "iontrading.com",
                     "adaptiveinsights.com",
                     "icims.com",
-                ],
-                "mx_servers": [
-                    # Office365
-                    "*.mail.protection.outlook.com",
-                    "*.mail.eo.outlook.com",
-                ],
-                "imap": ("outlook.office365.com", 993),
-                "smtp": ("outlook.office365.com", 587),
-                "events": False,
-            },
-        ),
-        (
-            "outlook",
-            {
-                "auth": "password",
-                "domains": [
+                    # Outlook / Hotmail / Live
                     "outlook.com",
                     "outlook.com.ar",
                     "outlook.com.au",
@@ -157,7 +143,17 @@ providers = dict(
                     "hotmail.co.th",
                     "hotmail.com.tr",
                 ],
-                "mx_servers": ["*.pamx1.hotmail.com", "mx.*.hotmail.com",],
+                "mx_servers": [
+                    # Office365
+                    "*.mail.protection.outlook.com",
+                    "*.mail.eo.outlook.com",
+                    # Hotmail
+                    "*.pamx1.hotmail.com",
+                    "mx.*.hotmail.com",
+                ],
+                "imap": ("outlook.office365.com", 993),
+                "smtp": ("smtp.office365.com", 587),
+                "events": False,
             },
         ),
         (

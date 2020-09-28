@@ -109,7 +109,8 @@ class OAuthAuthHandler(AuthHandler):
             raise ConnectionError()
 
         userinfo_dict = json.loads(response.read())
-        return userinfo_dict
+
+        return {"email": userinfo_dict["EmailAddress"]}
 
     def _get_authenticated_user(self, authorization_code):
         args = {

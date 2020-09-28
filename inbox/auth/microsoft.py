@@ -1,5 +1,4 @@
 import attr
-import jwt
 
 from inbox.basicauth import OAuthError
 from inbox.config import config
@@ -35,13 +34,13 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
     OAUTH_ACCESS_TOKEN_URL = (
         "https://login.microsoftonline.com/common/oauth2/v2.0/token"
     )
-    # Not used with Exchange tokens, which are JWTs.
-    OAUTH_USER_INFO_URL = None
+    OAUTH_USER_INFO_URL = "https://outlook.office.com/api/v2.0/me"
 
     OAUTH_SCOPE = " ".join(
         [
             "https://outlook.office.com/IMAP.AccessAsUser.All",
             "https://outlook.office.com/SMTP.Send",
+            "https://outlook.office.com/User.Read",
             "offline_access",
         ]
     )
@@ -68,16 +67,6 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
         account.scope = account_data.scope
 
         return account
-
-    def _get_user_info(self, session_dict):
-        # Since we can't use an Exchange token to access the Graph API's
-        # userinfo endpoint we're going to use the access_token, which is a
-        # JWT, to determine the email address.
-        id_token = session_dict["access_token"]
-        id_data = jwt.decode(id_token, verify=False)
-        return {
-            "email": id_data["upn"],
-        }
 
     def interactive_auth(self, email_address=None):
         url_args = {

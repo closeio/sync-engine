@@ -45,7 +45,6 @@ def test_account_expanded(db, api_client, generic_account, gmail_account):
             "smtp_host": "smtp.custom.com",
             "imap_port": 993,
             "smtp_port": 587,
-            "ssl_required": True,
         }
     )
 
@@ -61,7 +60,6 @@ def test_account_expanded(db, api_client, generic_account, gmail_account):
             "smtp_host": "smtp.mail.yahoo.com",
             "imap_port": 993,
             "smtp_port": 587,
-            "ssl_required": True,
         }
     )
 

@@ -121,7 +121,6 @@ class SMTPConnection(object):
         auth_type,
         auth_token,
         smtp_endpoint,
-        ssl_required,
         log,
     ):
         self.account_id = account_id
@@ -130,7 +129,6 @@ class SMTPConnection(object):
         self.auth_type = auth_type
         self.auth_token = auth_token
         self.smtp_endpoint = smtp_endpoint
-        self.ssl_required = ssl_required
         self.log = log
         self.log.bind(account_id=self.account_id)
         self.auth_handlers = {
@@ -180,25 +178,18 @@ class SMTPConnection(object):
         raise an exception.
 
         """
-        # If STARTTLS is available, always use it -- irrespective of the
-        # `self.ssl_required`. If it's not or it fails, use `self.ssl_required`
-        # to determine whether to fail or continue with plaintext
-        # authentication.
         self.connection.ehlo()
+        # Always use STARTTLS if we're using a non-SSL port.
         if self.connection.has_extn("starttls"):
             try:
                 self.connection.starttls()
             except ssl.SSLError as e:
-                if not self.ssl_required:
-                    log.warning(
-                        "STARTTLS supported but failed for SSL NOT "
-                        "required authentication",
-                        exc_info=True,
-                    )
-                else:
-                    msg = _transform_ssl_error(e.strerror)
-                    raise SendMailException(msg, 503)
-        elif self.ssl_required:
+                log.warning(
+                    "STARTTLS supported but failed.", exc_info=True,
+                )
+                msg = _transform_ssl_error(e.strerror)
+                raise SendMailException(msg, 503)
+        else:
             raise SendMailException("Required SMTP STARTTLS not supported.", 403)
 
     # OAuth2 authentication
@@ -287,11 +278,9 @@ class SMTPClient(object):
         self.log.bind(account_id=account.id)
         if isinstance(account, GenericAccount):
             self.smtp_username = account.smtp_username
-            self.ssl_required = account.ssl_required
         else:
-            # Non-generic accounts have no smtp username, ssl_required
+            # Non-generic accounts have no smtp username
             self.smtp_username = account.email_address
-            self.ssl_required = True
         self.email_address = account.email_address
         self.provider_name = account.provider
         self.sender_name = account.name
@@ -517,7 +506,6 @@ class SMTPClient(object):
             auth_type=self.auth_type,
             auth_token=self.auth_token,
             smtp_endpoint=self.smtp_endpoint,
-            ssl_required=self.ssl_required,
             log=self.log,
         )
         return smtp_connection

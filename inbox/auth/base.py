@@ -1,5 +1,7 @@
 from inbox.basicauth import NotSupportedError
 
+from .utils import create_imap_connection
+
 
 def handler_from_provider(provider_name):
     """
@@ -48,7 +50,14 @@ class AuthHandler(object):
         raise NotImplementedError()
 
     def get_imap_connection(self, account, use_timeout=True):
-        raise NotImplementedError()
+        host, port = account.imap_endpoint
+        try:
+            return create_imap_connection(host, port, use_timeout)
+        except (IMAPClient.Error, socket.error) as exc:
+            log.error(
+                "Error instantiating IMAP connection", account_id=account.id, error=exc,
+            )
+            raise
 
     def authenticate_imap_connection(self, account, conn):
         raise NotImplementedError()

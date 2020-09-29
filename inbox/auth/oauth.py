@@ -1,6 +1,11 @@
+import datetime
 import json
 
+import pytz
 import requests
+from authalligator_client.client import Client as AuthAlligatorApiClient
+from authalligator_client.enums import ProviderType
+from authalligator_client.exceptions import AccountError
 from imapclient import IMAPClient
 from nylas.logging import get_logger
 from six.moves import urllib
@@ -17,6 +22,9 @@ log = get_logger()
 class OAuthAuthHandler(AuthHandler):
     # Defined by subclasses
     OAUTH_ACCESS_TOKEN_URL = None
+
+    AUTHALLIGATOR_AUTH_KEY = config.get("AUTHALLIGATOR_AUTH_KEY")
+    AUTHALLIGATOR_SERVICE_URL = config.get("AUTHALLIGATOR_SERVICE_URL")
 
     def _new_access_token_from_refresh_token(self, account):
         refresh_token = account.refresh_token
@@ -67,13 +75,60 @@ class OAuthAuthHandler(AuthHandler):
 
         return session_dict["access_token"], session_dict["expires_in"]
 
-    def _access_token_from_authalligator(self, account):
+    def _new_access_token_from_authalligator(self, account):
+        """
+        Return the access token based on an account created in AuthAlligator.
+        """
         assert account.secret.type == SecretType.AuthAlligator.value
-        # aa_data = json.loads(account.secret.secret)
-        # TODO: get verified token
-        raise NotImplementedError("Not implemented yet.")
+        assert self.AUTHALLIGATOR_AUTH_KEY
+        assert self.AUTHALLIGATOR_SERVICE_URL
+
+        aa_client = AuthAlligatorApiClient(
+            token=self.AUTHALLIGATOR_AUTH_KEY,
+            service_url=self.AUTHALLIGATOR_SERVICE_URL,
+        )
+        aa_data = json.loads(account.secret.secret)
+        provider = ProviderType(aa_data["provider"])
+        username = aa_data["username"]
+        account_key = aa_data["account_key"]
+
+        try:
+            aa_response = aa_client.query_account(
+                provider=provider, username=username, account_key=account_key,
+            )
+        except AccountError as exc:
+            log.warn(
+                "AccountError during AuthAlligator account query",
+                account_id=account.id,
+                error_code=exc.code,
+                error_message=exc.message,
+                retry_in=exc.retry_in,
+            )
+            if exc.code in (
+                AccountErrorCode.AUTHORIZATION_ERROR,
+                AccountErrorCode.CONFIGURATION_ERROR,
+                AccountErrorCode.DOES_NOT_EXIST,
+            ):
+                raise OAuthError("Could not obtain access token from AuthAlligator")
+            else:
+                raise ConnectionError(
+                    "Temporary error while obtaining access token from AuthAlligator"
+                )
+        else:
+            now = datetime.datetime.now(pytz.UTC)
+            expires_in = int((aa_response.expires_at - now).total_seconds())
+            assert expires_in > 0
+            return (aa_response.access_token, expires_in)
 
     def acquire_access_token(self, account):
+        """
+        Acquire a new access token for the given account.
+
+        Raises:
+            OAuthError: If the token is no longer valid and syncing should stop.
+            ConnectionError: If there was a temporary/connection error renewing
+                the auth token.
+        """
         if account.secret.type == SecretType.AuthAlligator.value:
             return self._new_access_token_from_authalligator(account)
         elif account.secret.type == SecretType.Token.value:

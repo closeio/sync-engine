@@ -11,6 +11,7 @@ from nylas.logging import get_logger
 from six.moves import urllib
 
 from inbox.basicauth import ConnectionError, OAuthError
+from inbox.config import config
 from inbox.models.backends.oauth import token_manager
 from inbox.models.secret import SecretType
 
@@ -124,7 +125,7 @@ class OAuthAuthHandler(AuthHandler):
                 )
         else:
             now = datetime.datetime.now(pytz.UTC)
-            expires_in = int((aa_account.expires_at - now).total_seconds())
+            expires_in = int((aa_account.access_token_expires_at - now).total_seconds())
             assert expires_in > 0
             return (aa_account.access_token, expires_in)
 

@@ -5,7 +5,7 @@ arrow==0.5.4
 asn1crypto==0.24.0
 astroid==1.6.1
 attrs==20.2.0
--e git+https://github.com/closeio/authalligator-client.git@ab9e302eb65d0a048bbe803abe14a596405c82bb#egg=authalligator_client
+git+https://github.com/closeio/authalligator-client.git@ab9e302eb65d0a048bbe803abe14a596405c82bb#egg=authalligator_client
 backports.functools-lru-cache==1.4
 backports.ssl==0.0.9
 boto==2.10.0

@@ -75,7 +75,7 @@ class OAuthAuthHandler(AuthHandler):
 
         return session_dict["access_token"], session_dict["expires_in"]
 
-    def _new_access_token_from_authalligator(self, account):
+    def _new_access_token_from_authalligator(self, account, verify_token):
         """
         Return the access token based on an account created in AuthAlligator.
         """
@@ -93,9 +93,17 @@ class OAuthAuthHandler(AuthHandler):
         account_key = aa_data["account_key"]
 
         try:
-            aa_response = aa_client.query_account(
-                provider=provider, username=username, account_key=account_key,
-            )
+            if verify_token:
+                # TODO: not implemented yet
+                aa_response = aa_client.verify_account(
+                    provider=provider, username=username, account_key=account_key,
+                )
+                aa_account = aa_response.account
+            else:
+                aa_response = aa_client.query_account(
+                    provider=provider, username=username, account_key=account_key,
+                )
+                aa_account = aa_response
         except AccountError as exc:
             log.warn(
                 "AccountError during AuthAlligator account query",
@@ -116,13 +124,17 @@ class OAuthAuthHandler(AuthHandler):
                 )
         else:
             now = datetime.datetime.now(pytz.UTC)
-            expires_in = int((aa_response.expires_at - now).total_seconds())
+            expires_in = int((aa_account.expires_at - now).total_seconds())
             assert expires_in > 0
-            return (aa_response.access_token, expires_in)
+            return (aa_account.access_token, expires_in)
 
-    def acquire_access_token(self, account):
+    def acquire_access_token(self, account, verify_token=False):
         """
         Acquire a new access token for the given account.
+
+        Args:
+            verify_token (bool): Whether the token should be verified when
+                requesting it from an external token service (AuthAlligator)
 
         Raises:
             OAuthError: If the token is no longer valid and syncing should stop.
@@ -130,8 +142,10 @@ class OAuthAuthHandler(AuthHandler):
                 the auth token.
         """
         if account.secret.type == SecretType.AuthAlligator.value:
-            return self._new_access_token_from_authalligator(account)
+            return self._new_access_token_from_authalligator(account, verify_token)
         elif account.secret.type == SecretType.Token.value:
+            # Any token requested from the refresh token is considered
+            # verified.
             return self._new_access_token_from_refresh_token(account)
         else:
             raise OAuthError("No supported secret found.")

@@ -256,6 +256,10 @@ def _process_imap_exception(exc):
         # IMAP is disabled for this domain
         return ImapSupportDisabledError("imap_disabled_for_domain")
     elif exc.message.startswith("[AUTHENTICATIONFAILED] Invalid credentials (Failure)"):
+        # Google
+        return ImapSupportDisabledError("authentication_failed")
+    elif exc.message.startswith("AUTHENTICATE failed."):
+        # Microsoft
         return ImapSupportDisabledError("authentication_failed")
     else:
         # Unknown IMAPClient error

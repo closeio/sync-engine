@@ -20,21 +20,12 @@ class TokenManager(object):
         self._tokens = {}
 
     def get_token(self, account, force_refresh=False):
-        # Whether the token should be verified when requesting it from an
-        # external token service (AuthAlligator)
-        verify_token = False
-
         if account.id in self._tokens:
             token, expiration = self._tokens[account.id]
-            if expiration > datetime.utcnow():
-                if force_refresh:
-                    # We have an unexpired token. Since we're here, we need to
-                    # request a verified token.
-                    verify_token = True
-                else:
-                    return token
+            if not force_refresh and expiration > datetime.utcnow():
+                return token
 
-        new_token, expires_in = account.new_token(verify_token=verify_token)
+        new_token, expires_in = account.new_token(force_refresh=force_refresh)
         self.cache_token(account, new_token, expires_in)
         return new_token
 
@@ -100,12 +91,12 @@ class OAuthAccount(object):
         else:
             raise OAuthError("No valid tokens.")
 
-    def new_token(self, verify_token=False):
+    def new_token(self, force_refresh=False):
         """
         Retrieves a new access token.
 
         Args:
-            verify_token (bool): Whether the token should be verified when
+            force_refresh (bool): Whether a token refresh should be forced when
                 requesting it from an external token service (AuthAlligator)
         Returns:
             A tuple with the new access token and its expiration.
@@ -115,11 +106,12 @@ class OAuthAccount(object):
         """
         try:
             return self.auth_handler.acquire_access_token(
-                self, verify_token=verify_token
+                self, force_refresh=force_refresh
             )
         except Exception as e:
             log.error(
                 "Error while getting access token: {}".format(e),
+                force_refresh=force_refresh,
                 account_id=self.id,
                 exc_info=True,
             )

@@ -10,7 +10,7 @@ from imapclient import IMAPClient
 from nylas.logging import get_logger
 from six.moves import urllib
 
-from inbox.basicauth import ConnectionError, OAuthError
+from inbox.basicauth import ConnectionError, ImapSupportDisabledError, OAuthError
 from inbox.config import config
 from inbox.models.backends.oauth import token_manager
 from inbox.models.secret import SecretType
@@ -76,7 +76,7 @@ class OAuthAuthHandler(AuthHandler):
 
         return session_dict["access_token"], session_dict["expires_in"]
 
-    def _new_access_token_from_authalligator(self, account, verify_token):
+    def _new_access_token_from_authalligator(self, account, force_refresh):
         """
         Return the access token based on an account created in AuthAlligator.
         """
@@ -94,8 +94,7 @@ class OAuthAuthHandler(AuthHandler):
         account_key = aa_data["account_key"]
 
         try:
-            if verify_token:
-                # TODO: not implemented yet
+            if force_refresh:
                 aa_response = aa_client.verify_account(
                     provider=provider, username=username, account_key=account_key,
                 )
@@ -129,12 +128,12 @@ class OAuthAuthHandler(AuthHandler):
             assert expires_in > 0
             return (aa_account.access_token, expires_in)
 
-    def acquire_access_token(self, account, verify_token=False):
+    def acquire_access_token(self, account, force_refresh=False):
         """
         Acquire a new access token for the given account.
 
         Args:
-            verify_token (bool): Whether the token should be verified when
+            force_refresh (bool): Whether a token refresh should be forced when
                 requesting it from an external token service (AuthAlligator)
 
         Raises:
@@ -143,10 +142,9 @@ class OAuthAuthHandler(AuthHandler):
                 the auth token.
         """
         if account.secret.type == SecretType.AuthAlligator.value:
-            return self._new_access_token_from_authalligator(account, verify_token)
+            return self._new_access_token_from_authalligator(account, force_refresh)
         elif account.secret.type == SecretType.Token.value:
-            # Any token requested from the refresh token is considered
-            # verified.
+            # Any token requested from the refresh token is refreshed already.
             return self._new_access_token_from_refresh_token(account)
         else:
             raise OAuthError("No supported secret found.")
@@ -156,10 +154,38 @@ class OAuthAuthHandler(AuthHandler):
         try:
             conn.oauth2_login(account.email_address, token)
         except IMAPClient.Error as exc:
+            exc = _process_imap_exception(exc)
+
+            # Raise all IMAP disabled errors except authentication_failed
+            # error, which we handle differently.
+            if (
+                isinstance(exc, ImapSupportDisabledError)
+                and exc.reason != "authentication_failed"
+            ):
+                raise exc
+
             log.error(
                 "Error during IMAP XOAUTH2 login", account_id=account.id, error=exc,
             )
-            raise
+            if not isinstance(exc, ImapSupportDisabledError):
+                raise  # Unknown IMAPClient error, reraise
+
+            # If we got an AUTHENTICATIONFAILED response, force a token refresh
+            # and try again. If IMAP auth still fails, it's likely that IMAP
+            # access is disabled, so propagate that errror.
+            token = token_manager.get_token(account, force_refresh=True)
+            try:
+                conn.oauth2_login(account.email_address, token)
+            except IMAPClient.Error as exc:
+                exc = _process_imap_exception(exc)
+                if (
+                    not isinstance(exc, ImapSupportDisabledError)
+                    or exc.reason != "authentication_failed"
+                ):
+                    raise exc
+                else:
+                    # Instead of authentication_failed, report imap disabled
+                    raise ImapSupportDisabledError("imap_disabled_for_account")
 
     def _get_user_info(self, session_dict):
         access_token = session_dict["access_token"]
@@ -220,3 +246,17 @@ class OAuthRequestsWrapper(requests.auth.AuthBase):
     def __call__(self, r):
         r.headers["Authorization"] = "Bearer {}".format(self.token)
         return r
+
+
+def _process_imap_exception(exc):
+    if "Lookup failed" in exc.message:
+        # Gmail is disabled for this apps account
+        return ImapSupportDisabledError("gmail_disabled_for_domain")
+    elif "IMAP access is disabled for your domain." in exc.message:
+        # IMAP is disabled for this domain
+        return ImapSupportDisabledError("imap_disabled_for_domain")
+    elif exc.message.startswith("[AUTHENTICATIONFAILED] Invalid credentials (Failure)"):
+        return ImapSupportDisabledError("authentication_failed")
+    else:
+        # Unknown IMAPClient error
+        return exc

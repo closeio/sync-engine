@@ -4,7 +4,7 @@ import json
 import pytz
 import requests
 from authalligator_client.client import Client as AuthAlligatorApiClient
-from authalligator_client.enums import ProviderType
+from authalligator_client.enums import AccountErrorCode, ProviderType
 from authalligator_client.exceptions import AccountError
 from imapclient import IMAPClient
 from nylas.logging import get_logger
@@ -108,7 +108,7 @@ class OAuthAuthHandler(AuthHandler):
             log.warn(
                 "AccountError during AuthAlligator account query",
                 account_id=account.id,
-                error_code=exc.code,
+                error_code=exc.code and exc.code.value,
                 error_message=exc.message,
                 retry_in=exc.retry_in,
             )

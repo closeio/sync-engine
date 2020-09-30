@@ -25,7 +25,7 @@ class TokenManager(object):
             if not force_refresh and expiration > datetime.utcnow():
                 return token
 
-        new_token, expires_in = account.new_token()
+        new_token, expires_in = account.new_token(force_refresh=force_refresh)
         self.cache_token(account, new_token, expires_in)
         return new_token
 
@@ -91,10 +91,13 @@ class OAuthAccount(object):
         else:
             raise OAuthError("No valid tokens.")
 
-    def new_token(self):
+    def new_token(self, force_refresh=False):
         """
         Retrieves a new access token.
 
+        Args:
+            force_refresh (bool): Whether a token refresh should be forced when
+                requesting it from an external token service (AuthAlligator)
         Returns:
             A tuple with the new access token and its expiration.
 
@@ -102,10 +105,13 @@ class OAuthAccount(object):
             OAuthError: If no token could be obtained.
         """
         try:
-            return self.auth_handler.acquire_access_token(self)
+            return self.auth_handler.acquire_access_token(
+                self, force_refresh=force_refresh
+            )
         except Exception as e:
             log.error(
                 "Error while getting access token: {}".format(e),
+                force_refresh=force_refresh,
                 account_id=self.id,
                 exc_info=True,
             )

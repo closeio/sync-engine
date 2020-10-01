@@ -158,13 +158,15 @@ class Category(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedA
 
     @property
     def api_display_name(self):
+        from inbox.models.backends.generic import GenericAccount
+
         if self.namespace.account.provider == "gmail":
             if self.display_name.startswith("[Gmail]/"):
                 return self.display_name[8:]
             elif self.display_name.startswith("[Google Mail]/"):
                 return self.display_name[14:]
 
-        if self.namespace.account.provider not in ["gmail", "eas"]:
+        if isinstance(self.namespace.account, GenericAccount):
             return fs_folder_path(
                 self.display_name,
                 separator=self.namespace.account.folder_separator,

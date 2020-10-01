@@ -21,6 +21,7 @@ from inbox.auth.microsoft import MicrosoftAccountData, MicrosoftAuthHandler
 from inbox.models import Account, Namespace
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.gmail import GOOGLE_EMAIL_SCOPE, GmailAccount
+from inbox.models.backends.outlook import OutlookAccount
 from inbox.models.secret import SecretType
 from inbox.models.session import global_session_scope
 from inbox.util.logging_helper import reconfigure_logging
@@ -277,6 +278,9 @@ def modify_account(namespace_public_id):
         elif isinstance(account, GmailAccount):
             auth_handler = GoogleAuthHandler()
             account_data = _get_account_data_for_google_account(data)
+        elif isinstance(account, OutlookAccount):
+            auth_handler = MicrosoftAuthHandler()
+            account_data = _get_account_data_for_microsoft_account(data)
         else:
             raise ValueError("Account type not supported.")
 

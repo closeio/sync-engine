@@ -116,12 +116,11 @@ def remote_create_folder(crispin_client, account_id, category_id):
 
 
 def remote_update_folder(crispin_client, account_id, category_id, old_name, new_name):
-
     with session_scope(account_id) as db_session:
         account = db_session.query(Account).get(account_id)
         account_provider = account.provider
 
-    if account_provider not in ["gmail", "eas"]:
+    if account_provider not in ["gmail", "microsoft"]:
         new_display_name = imap_folder_path(
             new_name,
             separator=crispin_client.folder_separator,

@@ -788,7 +788,7 @@ def folders_labels_create_api():
     # duplicate.
     valid_display_name(g.namespace.id, category_type, display_name, g.db_session)
 
-    if isinstance(g.namespace.account, GenericAccount):
+    if g.namespace.account.provider not in ["gmail", "microsoft"]:
         # Translate the name of the folder to an actual IMAP name
         # (e.g: "Accounting/Taxes" becomes "Accounting.Taxes")
         display_name = imap_folder_path(
@@ -856,7 +856,7 @@ def folder_label_update_api(public_id):
     display_name = data.get("display_name")
     valid_display_name(g.namespace.id, category_type, display_name, g.db_session)
 
-    if isinstance(g.namespace.account, GenericAccount):
+    if g.namespace.account.provider not in ["gmail", "microsoft"]:
         # Translate the name of the folder to an actual IMAP name
         # (e.g: "Accounting/Taxes" becomes "Accounting.Taxes")
         display_name = imap_folder_path(

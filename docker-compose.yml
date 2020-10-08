@@ -6,7 +6,7 @@ services:
       - 6379
 
   mysql:
-    image: mysql:5.7.19
+    image: mysql:5.7.31
     environment:
       MYSQL_ROOT_PASSWORD: nylas_it
       MYSQL_USER: inboxtest

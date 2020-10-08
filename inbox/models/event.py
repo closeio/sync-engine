@@ -46,6 +46,10 @@ LOCATION_MAX_LEN = 255
 RECURRENCE_MAX_LEN = 255
 REMINDER_MAX_LEN = 255
 OWNER_MAX_LEN = 1024
+# UIDs MUST be "less than 255 octets" according to RFC 7986, but some events
+# have more (seen up to 1034). We truncate at 767, which is InnoDB's index key
+# prefix length.
+UID_MAX_LEN = 767
 MAX_LENS = {
     "location": LOCATION_MAX_LEN,
     "owner": OWNER_MAX_LEN,
@@ -53,6 +57,8 @@ MAX_LENS = {
     "reminders": REMINDER_MAX_LEN,
     "title": TITLE_MAX_LEN,
     "raw_data": MAX_TEXT_CHARS,
+    "uid": UID_MAX_LEN,
+    "master_event_uid": UID_MAX_LEN,
 }
 
 
@@ -113,7 +119,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
     )
 
     # A server-provided unique ID.
-    uid = Column(String(767, collation="ascii_general_ci"), nullable=False)
+    uid = Column(String(UID_MAX_LEN, collation="ascii_general_ci"), nullable=False)
 
     # DEPRECATED
     # TODO(emfree): remove
@@ -165,7 +171,9 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
     discriminator = Column("type", String(30))
     __mapper_args__ = {"polymorphic_on": discriminator, "polymorphic_identity": "event"}
 
-    @validates("reminders", "recurrence", "owner", "location", "title", "raw_data")
+    @validates(
+        "reminders", "recurrence", "owner", "location", "title", "uid", "raw_data"
+    )
     def validate_length(self, key, value):
         if value is None:
             return None
@@ -526,13 +534,21 @@ class RecurringEventOverride(Event):
     __table_args__ = None
 
     master_event_id = Column(ForeignKey("event.id", ondelete="CASCADE"))
-    master_event_uid = Column(String(767, collation="ascii_general_ci"), index=True)
+    master_event_uid = Column(
+        String(UID_MAX_LEN, collation="ascii_general_ci"), index=True
+    )
     original_start_time = Column(FlexibleDateTime)
     master = relationship(
         RecurringEvent,
         foreign_keys=[master_event_id],
         backref=backref("overrides", lazy="dynamic", cascade="all, delete-orphan"),
     )
+
+    @validates("master_event_uid")
+    def validate_master_event_uid_length(self, key, value):
+        if value is None:
+            return None
+        return unicode_safe_truncate(value, MAX_LENS[key])
 
     def update(self, event):
         super(RecurringEventOverride, self).update(event)

@@ -3,7 +3,7 @@
 
 from datetime import datetime
 
-from inbox.models.event import Event
+from inbox.models.event import Event, RecurringEventOverride
 
 
 def test_base36_validation():
@@ -58,7 +58,7 @@ def test_unicode_event_truncation(db, default_account):
         busy=True,
         all_day=False,
         read_only=False,
-        uid="31418",
+        uid="x" * 1000,
         start=datetime(2015, 2, 22, 11, 11),
         end=datetime(2015, 2, 22, 22, 22),
         is_owner=True,
@@ -76,6 +76,30 @@ def test_unicode_event_truncation(db, default_account):
     # the column is uft8-encoded.
     assert len(e.location) == 255
     assert len(e.title) == 1024
+    assert len(e.uid) == 767
+
+    e = RecurringEventOverride(
+        raw_data="",
+        busy=True,
+        all_day=False,
+        read_only=False,
+        uid="y" * 1000,
+        start=datetime(2015, 2, 22, 11, 11),
+        end=datetime(2015, 2, 22, 22, 22),
+        is_owner=True,
+        master_event_uid="z" * 1000,
+        calendar=default_account.emailed_events_calendar,
+        title=title,
+        location=emoji_str,
+        participants=[],
+    )
+    e.namespace = default_account.namespace
+    db.session.add(e)
+    db.session.commit()
+    assert len(e.location) == 255
+    assert len(e.title) == 1024
+    assert len(e.uid) == 767
+    assert len(e.master_event_uid) == 767
 
 
 def test_event_emails():

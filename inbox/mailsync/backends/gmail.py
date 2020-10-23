@@ -226,7 +226,10 @@ class GmailFolderSyncEngine(FolderSyncEngine):
 
     def is_all_mail(self, crispin_client):
         if not hasattr(self, "_is_all_mail"):
-            self._is_all_mail = self.folder_name in crispin_client.folder_names()["all"]
+            folder_names = crispin_client.folder_names()
+            self._is_all_mail = (
+                "all" in folder_names and self.folder_name in folder_names["all"]
+            )
         return self._is_all_mail
 
     def should_idle(self, crispin_client):

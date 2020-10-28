@@ -3,6 +3,9 @@ jobs:
   static-code-analysis:
     docker:
       - image: circleci/python:3.7
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASS
     working_directory: ~/code
     steps:
       - checkout
@@ -37,6 +40,7 @@ jobs:
       - run:
           name: run tests
           command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker-compose run nylas bash -ec '
               pip install -e . \
               && bin/wait-for-it.sh mysql:3306 \
@@ -47,5 +51,9 @@ workflows:
   version: 2
   workflow:
     jobs:
-      - static-code-analysis
-      - build
+      - static-code-analysis:
+          context:
+            - docker-hub-creds-ro
+      - build:
+          context:
+            - docker-hub-creds-ro

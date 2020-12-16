@@ -152,10 +152,10 @@ def ns_all():
 def _get_account_data_for_generic_account(data):
     email_address = data["email_address"]
     sync_email = data.get("sync_email", True)
-    smtp_server_host = data["smtp_server_host"] or "localhost"
-    smtp_server_port = data["smtp_server_port"] or 25
-    smtp_username = data["smtp_username"] or "dummy"
-    smtp_password = data["smtp_password"] or "dummy"
+    smtp_server_host = data.get("smtp_server_host", "localhost")
+    smtp_server_port = data.get("smtp_server_port", 25)
+    smtp_username = data.get("smtp_username", "dummy") 
+    smtp_password = data.get("smtp_password", "dummy")
 
     return GenericAccountData(
         email=email_address,

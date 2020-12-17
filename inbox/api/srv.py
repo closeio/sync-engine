@@ -154,7 +154,7 @@ def _get_account_data_for_generic_account(data):
     sync_email = data.get("sync_email", True)
     smtp_server_host = data.get("smtp_server_host", "localhost")
     smtp_server_port = data.get("smtp_server_port", 25)
-    smtp_username = data.get("smtp_username", "dummy") 
+    smtp_username = data.get("smtp_username", "dummy")
     smtp_password = data.get("smtp_password", "dummy")
 
     return GenericAccountData(
@@ -324,8 +324,8 @@ def home():
 
 @app.route("/logout")
 def logout():
-    """ Utility function used to force browsers to reset cached HTTP Basic Auth
-        credentials """
+    """Utility function used to force browsers to reset cached HTTP Basic Auth
+    credentials"""
     return make_response(
         (
             "<meta http-equiv='refresh' content='0; url=/''>.",

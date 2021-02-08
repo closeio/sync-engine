@@ -33,7 +33,7 @@ RUN DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get dist-upgrade -y 
 WORKDIR /src
 COPY ./ ./
 RUN pip install setuptools==44.0.0
-RUN pip install --upgrade pip
+RUN pip install pip==20.3.4
 RUN pip install -r requirements_frozen.txt -e .
 
 ENV \

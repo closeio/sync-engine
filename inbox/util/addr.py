@@ -8,7 +8,7 @@ from flanker.mime.message.headers.parsing import normalize
 # Note that technically `'` is also allowed in the local part, but nobody
 # uses it in practice, so we'd rather extract <a href='email@example.com'>
 # from HTML.
-EMAIL_FIND_RE = re.compile(r"[\w.!#$%&*+-/=?^_`{|}~]+@[\w.-]+\w", re.UNICODE)
+EMAIL_FIND_RE = re.compile(r"[\w.!#$%&*+-/=?^_`{|}~]{1,64}@[\w.-]{1,254}\w", re.UNICODE)
 
 
 def valid_email(email_address):

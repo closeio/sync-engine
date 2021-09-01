@@ -20,6 +20,7 @@ RUN DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get dist-upgrade -y 
   libxml2-dev \
   libxslt-dev \
   libxslt1-dev \
+  libffi-dev \
   mysql-client \
   pkg-config \
   lsof \

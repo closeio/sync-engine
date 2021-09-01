@@ -14,6 +14,7 @@ services:
       MYSQL_DATABASE: synctest
       PYTHONUNBUFFERED: 1
       PYTHONDONTWRITEBYTECODE: 1
+    # Mysql has no arm64 image. So far the amd64 worked fine under emulator on M1.
     platform: linux/amd64
 
   nylas:

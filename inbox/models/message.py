@@ -340,6 +340,21 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                         mid=mid,
                     )
                     msg._mark_error()
+                finally:
+                    # Even though whole email can be only 16MB in total, it can
+                    # contain many mimeparts that refer to the same data.
+                    # Flanker creates all mimeparts and as we load their body
+                    # prop, we can end up with thousands of similar mimeparts,
+                    # each having their own copy of the actual data they refer too.
+                    # Here is the part where Mimepart.stream keeps the reference
+                    # to copy of body, and never removes it later. If the body is
+                    # 16MB of each mimepart, and we have thousands of mimeparts,
+                    # we run out of memory.
+                    # https://github.com/closeio/flanker/blob/master/flanker/mime/message/part.py#L75
+                    # By resetting the body attribute we remove the data copy for that mimepart.
+                    # In case the prop was accessed after that, it would just be
+                    # loaded again. So we trade cpu for memory
+                    mimepart.body = None
             store_body = config.get("STORE_MESSAGE_BODIES", True)
             msg.calculate_body(html_parts, plain_parts, store_body=store_body)
 

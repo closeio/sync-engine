@@ -353,8 +353,9 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                     # https://github.com/closeio/flanker/blob/master/flanker/mime/message/part.py#L75
                     # By resetting the body attribute we remove the data copy for that mimepart.
                     # In case the prop was accessed after that, it would just be
-                    # loaded again. So we trade cpu for memory
-                    mimepart.body = None
+                    # loaded again. So we trade cpu for memory.
+                    # We change the _body directly to not change _body_change prop.
+                    mimepart._container._body = None
             store_body = config.get("STORE_MESSAGE_BODIES", True)
             msg.calculate_body(html_parts, plain_parts, store_body=store_body)
 

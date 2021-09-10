@@ -314,7 +314,8 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             )
             msg._mark_error()
 
-        if parsed is not None:
+        store_body = config.get('STORE_MESSAGE_BODIES', True)
+        if store_body and parsed is not None:
             plain_parts = []
             html_parts = []
             for mimepart in parsed.walk(with_self=parsed.content_type.is_singlepart()):
@@ -340,9 +341,9 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                         mid=mid,
                     )
                     msg._mark_error()
-            store_body = config.get("STORE_MESSAGE_BODIES", True)
             msg.calculate_body(html_parts, plain_parts, store_body=store_body)
 
+        if parsed is not None:
             # Occasionally people try to send messages to way too many
             # recipients. In such cases, empty the field and treat as a parsing
             # error so that we don't break the entire sync.

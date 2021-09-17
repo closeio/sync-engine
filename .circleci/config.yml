@@ -42,6 +42,7 @@ jobs:
           command: |
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker-compose run nylas bash -ec '
+              pip install -e . \
               bin/wait-for-it.sh mysql:3306 \
               && NYLAS_ENV=test py.test tests/
             '

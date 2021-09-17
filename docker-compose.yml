@@ -21,6 +21,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - .:/opt/app
+    tmpfs: /opt/app/inbox_sync.egg-info
     depends_on:
       - redis
       - mysql

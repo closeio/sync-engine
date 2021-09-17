@@ -39,18 +39,21 @@ RUN chmod +x /tini-install.sh && TARGETPLATFORM=linux/amd64 /tini-install.sh && 
 RUN mkdir /etc/inboxapp && \
   chown sync-engine:sync-engine /etc/inboxapp && \
   mkdir /var/lib/inboxapp && \
-  chown sync-engine:sync-engine /var/lib/inboxapp
+  chown sync-engine:sync-engine /var/lib/inboxapp && \
+  mkdir /opt/app && \
+  chown sync-engine:sync-engine /opt/app && \
+  mkdir /opt/venv && \
+  chown sync-engine:sync-engine /opt/venv
 
 USER sync-engine
 
-RUN mkdir /home/sync-engine/sync-engine
-WORKDIR /home/sync-engine/sync-engine
+WORKDIR /opt/app
 
-ENV PATH="/home/sync-engine/venv/bin:$PATH"
+ENV PATH="/opt/venv/bin:$PATH"
 
 COPY ./ ./
 RUN \
-  virtualenv /home/sync-engine/venv && \
+  virtualenv /opt/venv && \
   pip install setuptools==44.0.0 && \
   pip install pip==20.3.4 && \
   pip install -r requirements_frozen.txt -e .

@@ -39,7 +39,8 @@ RUN mkdir /etc/inboxapp && \
 
 USER sync-engine
 
-WORKDIR /home/sync-engine
+RUN mkdir /home/sync-engine/sync-engine
+WORKDIR /home/sync-engine/sync-engine
 
 ENV PATH="/home/sync-engine/venv/bin:$PATH"
 

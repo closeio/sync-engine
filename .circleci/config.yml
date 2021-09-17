@@ -68,6 +68,4 @@ workflows:
       - static-code-analysis:
           context:
             - docker-hub-creds-ro
-      - build:
-          context:
-            - docker-hub-creds-ro
+      - build

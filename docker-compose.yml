@@ -20,7 +20,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - .:/src
+      - .:/home/sync-engine
     depends_on:
       - redis
       - mysql

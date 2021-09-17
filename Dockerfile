@@ -51,12 +51,13 @@ WORKDIR /opt/app
 
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY ./ ./
+COPY --chown=sync-engine:sync-engine ./ ./
 RUN \
   virtualenv /opt/venv && \
   pip install setuptools==44.0.0 && \
   pip install pip==20.3.4 && \
-  pip install -r requirements_frozen.txt -e .
+  pip install -r requirements_frozen.txt && \
+  pip install -e .
 
 ENV \
   LANG="en_US.UTF-8" \

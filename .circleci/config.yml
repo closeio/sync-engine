@@ -65,7 +65,5 @@ workflows:
   version: 2
   workflow:
     jobs:
-      - static-code-analysis:
-          context:
-            - docker-hub-creds-ro
+      - static-code-analysis
       - build

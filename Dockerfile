@@ -32,10 +32,6 @@ RUN DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get dist-upgrade -y 
   vim \
   && rm -rf /var/lib/apt/lists/*
 
-ENV TINI_VERSION v0.18.0
-COPY ./tini-install.sh /tini-install.sh
-RUN chmod +x /tini-install.sh && TARGETPLATFORM=linux/amd64 /tini-install.sh && rm /tini-install.sh
-
 RUN mkdir /etc/inboxapp && \
   chown sync-engine:sync-engine /etc/inboxapp && \
   mkdir /var/lib/inboxapp && \

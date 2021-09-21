@@ -15,12 +15,13 @@ services:
       PYTHONUNBUFFERED: 1
       PYTHONDONTWRITEBYTECODE: 1
 
-  nylas:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - .:/src
+      - .:/opt/app
+    tmpfs: /opt/app/inbox_sync.egg-info
     depends_on:
       - redis
       - mysql

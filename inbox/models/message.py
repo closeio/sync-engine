@@ -317,7 +317,15 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         if parsed is not None:
             plain_parts = []
             html_parts = []
-            for mimepart in parsed.walk(with_self=parsed.content_type.is_singlepart()):
+            # Parse only 10 mimeparts, because flanker is very inefficient
+            # in parsing and can get OOM.
+            # We probably don't use body snippet and body anyway, so we plan
+            # to remove this loop completely.
+            for idx, mimepart in enumerate(
+                parsed.walk(with_self=parsed.content_type.is_singlepart())
+            ):
+                if idx >= 10:
+                    break
                 try:
                     if mimepart.content_type.is_multipart():
                         continue  # TODO should we store relations?

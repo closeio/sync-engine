@@ -24,6 +24,7 @@ from inbox.mailsync.frontend import SyncbackHTTPFrontend
 from inbox.transactions.actions import SyncbackService
 from inbox.util.logging_helper import reconfigure_logging
 from inbox.util.startup import load_overrides, preflight
+from inbox.util import hook
 
 
 @click.command()
@@ -53,6 +54,8 @@ def main(prod, config, process_num, syncback_id, enable_tracer,
     level = os.environ.get('LOGLEVEL', inbox_config.get('LOGLEVEL'))
     configure_logging(log_level=level)
     reconfigure_logging()
+
+    hook.run_startup()
 
     os.environ["SENTRY_DSN"] = inbox_config.get("SENTRY_DSN", "")
 

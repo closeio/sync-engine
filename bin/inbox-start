@@ -29,6 +29,7 @@ except ImportError:
 from nylas.logging import configure_logging, get_logger
 
 from inbox.mailsync.frontend import SyncHTTPFrontend
+from inbox.util import hook
 from inbox.mailsync.service import SyncService
 from inbox.util.logging_helper import reconfigure_logging
 from inbox.util.startup import preflight
@@ -63,6 +64,8 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
     level = os.environ.get('LOGLEVEL', inbox_config.get('LOGLEVEL'))
     configure_logging(log_level=level)
     reconfigure_logging()
+
+    hook.run_startup()
 
     os.environ["SENTRY_DSN"] = inbox_config.get("SENTRY_DSN", "")
 

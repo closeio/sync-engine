@@ -22,9 +22,9 @@ from setproctitle import setproctitle
 from inbox.config import config as inbox_config
 from inbox.mailsync.frontend import SyncbackHTTPFrontend
 from inbox.transactions.actions import SyncbackService
+from inbox.util import hook
 from inbox.util.logging_helper import reconfigure_logging
 from inbox.util.startup import load_overrides, preflight
-from inbox.util import hook
 
 
 @click.command()

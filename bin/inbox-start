@@ -29,8 +29,8 @@ except ImportError:
 from nylas.logging import configure_logging, get_logger
 
 from inbox.mailsync.frontend import SyncHTTPFrontend
-from inbox.util import hook
 from inbox.mailsync.service import SyncService
+from inbox.util import hook
 from inbox.util.logging_helper import reconfigure_logging
 from inbox.util.startup import preflight
 

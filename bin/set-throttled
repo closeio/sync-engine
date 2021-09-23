@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # throttle or unthrottle an account
-from inbox.util import hook
 import optparse
 import sys
 import time
 
 from inbox.models.account import Account
 from inbox.models.session import session_scope
+from inbox.util import hook
 
 
 def print_usage():

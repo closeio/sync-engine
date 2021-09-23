@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-from inbox.util import hook
 import click
 
 from inbox.models.account import Account
 from inbox.models.session import global_session_scope
+from inbox.util import hook
 
 
 @click.command()

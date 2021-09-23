@@ -10,6 +10,7 @@ from inbox.ignition import engine_manager
 from inbox.models import Account, Namespace
 from inbox.models.action_log import ActionLog
 from inbox.models.session import session_scope_by_shard_id
+from inbox.util import hook
 
 
 @click.command()
@@ -18,6 +19,8 @@ def main():
     lengths.
 
     """
+    hook.maybe_run_startup()
+    
     for key in engine_manager.engines:
         with session_scope_by_shard_id(key) as db_session:
             total_pending_actions = 0

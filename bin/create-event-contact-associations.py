@@ -14,6 +14,7 @@ from inbox.ignition import engine_manager
 from inbox.models import Event
 from inbox.models.session import session_scope_by_shard_id
 from inbox.models.util import limitlion
+from inbox.util import hook
 
 configure_logging()
 log = get_logger(purpose="create-event-contact-associations")
@@ -91,6 +92,8 @@ def process_shard(shard_id, dry_run, id_start=0):
 @click.option("--id-start", type=int, default=0)
 @click.option("--dry-run", is_flag=True)
 def main(shard_id, id_start, dry_run):
+    hook.maybe_run_startup()
+    
     if shard_id is not None:
         process_shard(shard_id, dry_run, id_start)
     else:

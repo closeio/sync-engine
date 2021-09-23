@@ -13,7 +13,7 @@ from inbox.ignition import engine_manager
 from inbox.mailsync.service import MAX_ACCOUNTS_PER_PROCESS
 from inbox.models.account import Account
 from inbox.models.session import session_scope_by_shard_id
-from inbox.util import fleet
+from inbox.util import fleet, hook
 
 NUM_PROCESSES_PER_HOST = 16
 
@@ -84,6 +84,8 @@ def get_account_loads(zone, hosts):
 @click.command()
 @click.option('--level', default='staging')
 def main(level):
+    hook.maybe_run_startup()
+    
     zones = {h.get('ZONE') for h in config['DATABASE_HOSTS']}
     zone_map = {}
     for zone in zones:

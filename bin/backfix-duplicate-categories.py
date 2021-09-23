@@ -14,6 +14,7 @@ from sqlalchemy.sql import and_, exists
 from inbox.ignition import engine_manager
 from inbox.models import Category, MessageCategory
 from inbox.models.session import session_scope_by_shard_id
+from inbox.util import hook
 
 configure_logging()
 log = get_logger(purpose="duplicate-category-backfill")
@@ -183,6 +184,8 @@ def backfix_shard(shard_id, dry_run):
 @click.option("--shard-id", type=int, default=None)
 @click.option("--dry-run", is_flag=True)
 def main(shard_id, dry_run):
+    hook.maybe_run_startup()
+    
     if shard_id is not None:
         backfix_shard(shard_id, dry_run)
     else:

@@ -11,6 +11,7 @@ from inbox.models.session import (
     session_scope,
     session_scope_by_shard_id,
 )
+from inbox.util import hook
 
 configure_logging()
 log = get_logger(purpose="separator-backfix")
@@ -21,6 +22,8 @@ log = get_logger(purpose="separator-backfix")
 @click.option("--max-id", type=int, default=None)
 @click.option("--shard-id", type=int, default=None)
 def main(min_id, max_id, shard_id):
+    hook.maybe_run_startup()
+    
     generic_accounts = []
     failed = []
 

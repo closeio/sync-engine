@@ -3,11 +3,14 @@
 import click
 
 from inbox.ignition import engine_manager
+from inbox.util import hook
 
 
 @click.command()
 @click.option('--shard_id', type=int)
 def main(shard_id):
+    hook.maybe_run_startup()
+    
     if shard_id is not None:
         update_categories_for_shard(shard_id)
         update_folders_and_labels_for_shard(shard_id)

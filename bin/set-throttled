@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # throttle or unthrottle an account
+from inbox.util import hook
 import optparse
 import sys
 import time
@@ -36,6 +37,8 @@ def throttle(options):
 
 
 def main():
+    hook.maybe_run_startup()
+    
     parser = optparse.OptionParser()
     parser.add_option('--throttled', action="store_true", default=False)
     parser.add_option('--unthrottled', action="store_true", default=False)

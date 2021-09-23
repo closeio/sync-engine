@@ -34,6 +34,7 @@ from nylas.api.wsgi import NylasWSGIHandler
 from nylas.logging import configure_logging, get_logger
 
 from inbox.mailsync.frontend import SyncbackHTTPFrontend
+from inbox.util import hook
 from inbox.util.startup import load_overrides, preflight
 
 syncback = None
@@ -57,6 +58,8 @@ def main(prod, start_syncback, enable_tracer, config, port, enable_profiler):
     """ Launch the Nylas API service. """
     level = os.environ.get('LOGLEVEL', inbox_config.get('LOGLEVEL'))
     configure_logging(log_level=level)
+
+    hook.maybe_run_startup()
 
     if config is not None:
         config_path = os.path.abspath(config)

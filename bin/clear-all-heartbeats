@@ -12,6 +12,7 @@ from inbox.heartbeat.config import (
     WAIT_TIMEOUT,
     get_redis_client,
 )
+from inbox.util import hook
 
 
 @click.command()
@@ -19,6 +20,8 @@ from inbox.heartbeat.config import (
 @click.option('--port', '-p', type=int, default=6379)
 @click.option('--database', '-d', type=int, default=STATUS_DATABASE)
 def main(host, port, database):
+    hook.maybe_run_startup()
+    
     connection_pool = BlockingConnectionPool(
         host=host, port=port, db=database,
         max_connections=MAX_CONNECTIONS, timeout=WAIT_TIMEOUT,

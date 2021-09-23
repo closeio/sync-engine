@@ -24,6 +24,7 @@ from inbox.models.session import (
 )
 from inbox.s3.base import get_raw_from_provider
 from inbox.s3.exc import EmailFetchException, TemporaryEmailFetchException
+from inbox.util import hook
 
 configure_logging()
 log = get_logger(purpose='separator-backfix')
@@ -71,6 +72,8 @@ def process_account(account_id):
 @click.command()
 @click.option('--num-accounts', type=int, default=1500)
 def main(num_accounts):
+    hook.maybe_run_startup()
+    
     with global_session_scope() as db_session:
         accounts = db_session.query(Account).filter(
             Account.sync_should_run == True).order_by(func.rand()).limit(

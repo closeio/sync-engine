@@ -21,6 +21,7 @@ from inbox.basicauth import NotSupportedError
 from inbox.config import config
 from inbox.models import Account
 from inbox.models.session import session_scope
+from inbox.util import hook
 from inbox.util.startup import preflight
 from inbox.util.url import provider_from_address
 
@@ -37,6 +38,8 @@ configure_logging(config.get('LOGLEVEL'))
               help='Manually specify the provider instead of trying to detect it')
 def main(email_address, reauth, target, provider):
     """ Auth an email account. """
+    hook.maybe_run_startup()
+
     preflight()
 
     shard_id = target << 48

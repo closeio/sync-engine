@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from inbox.util import hook
 import click
 
 from inbox.models.account import Account
@@ -12,6 +13,8 @@ from inbox.models.session import global_session_scope
 @click.option('--dry-run', is_flag=True)
 @click.option('--toggle-sync', is_flag=True)
 def main(account_id, desired_host, dry_run, toggle_sync):
+    hook.maybe_run_startup()
+    
     with global_session_scope() as db_session:
         account = db_session.query(Account).get(int(account_id))
 

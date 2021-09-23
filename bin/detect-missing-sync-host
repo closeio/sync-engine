@@ -5,6 +5,7 @@ from sqlalchemy.orm import load_only
 
 from inbox.models.account import Account
 from inbox.models.session import global_session_scope
+from inbox.util import hook
 
 
 @click.command()
@@ -16,6 +17,8 @@ def main():
     host.)
 
     """
+    hook.maybe_run_startup()
+    
     with global_session_scope() as db_session:
         for acc in db_session.query(Account).options(
                 load_only('sync_state', 'sync_should_run', 'sync_host', 'desired_sync_host'))\

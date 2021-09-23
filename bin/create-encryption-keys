@@ -5,8 +5,12 @@ import nacl.secret
 import nacl.utils
 import yaml
 
+from inbox.util import hook
+
 
 def main():
+    hook.maybe_run_startup()
+    
     from inbox.config import config, secrets_path
 
     # If the config contains encryption keys, don't override.

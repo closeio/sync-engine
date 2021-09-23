@@ -7,11 +7,14 @@ import click
 from setproctitle import setproctitle
 
 from inbox.config import config
+from inbox.util import hook
 
 
 @click.command()
 @click.option('--shard-num', type=int)
 def main(shard_num):
+    hook.maybe_run_startup()
+    
     users = config.get_required('DATABASE_USERS')
 
     creds = dict(hostname=None, username=None,

@@ -19,7 +19,7 @@ from inbox.scheduling.deferred_migration import (
     DeferredAccountMigration,
     DeferredAccountMigrationExecutor,
 )
-from inbox.util import fleet
+from inbox.util import fleet, hook
 
 configure_logging()
 log = get_logger()
@@ -188,6 +188,8 @@ def balance_zone(zone, normal_hosts, debug_hosts, account_loads, timespan, minim
 @click.option('--minimize-migrations/--no-minimize-migrations', default=True)
 @click.argument('account-loads')
 def main(dry_run, level, timespan, minimize_migrations, account_loads):
+    hook.maybe_run_startup()
+    
     zones = {h.get('ZONE') for h in config['DATABASE_HOSTS']}
     load_per_account = {}
     with open(account_loads) as f:

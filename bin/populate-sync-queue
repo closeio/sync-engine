@@ -15,11 +15,14 @@ from setproctitle import setproctitle
 
 from inbox.config import config
 from inbox.scheduling.queue import QueuePopulator
+from inbox.util import hook
 
 configure_logging()
 
 
 def main():
+    hook.maybe_run_startup()
+    
     setproctitle('scheduler')
     zones = {h.get('ZONE') for h in config['DATABASE_HOSTS']}
     threads = []

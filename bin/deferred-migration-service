@@ -9,11 +9,14 @@ from nylas.logging import configure_logging
 from setproctitle import setproctitle
 
 from inbox.scheduling.deferred_migration import DeferredAccountMigrationExecutor
+from inbox.util import hook
 
 configure_logging()
 
 
 def main():
+    hook.maybe_run_startup()
+    
     setproctitle('deferred-migration-service')
     print "Starting DeferredAccountMigrationExecutor..."
     dame = DeferredAccountMigrationExecutor()

@@ -3,6 +3,7 @@ import click
 
 from inbox.models.account import Account
 from inbox.models.session import global_session_scope, session_scope
+from inbox.util import hook
 
 
 @click.command()
@@ -17,6 +18,8 @@ def main(dry_run, number, hostname, process):
     manually unloading an overloaded sync instance.
 
     """
+    hook.maybe_run_startup()
+    
     if not number:
         message = 'You have not provided a --number option. This will '\
                   'unschedule ALL syncs on the host. Proceed? [Y/n] '

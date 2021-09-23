@@ -2,10 +2,13 @@
 import argparse
 import sys
 
+from inbox.util import hook
 from inbox.util.db import drop_everything
 
 
 def main():
+    hook.maybe_run_startup()
+    
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--with-users', action='store_true',
                         dest='with_users', default=False)

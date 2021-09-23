@@ -10,12 +10,15 @@ from inbox.heartbeat.config import (
     _get_redis_client,
     get_redis_client,
 )
+from inbox.util import hook
 
 
 @click.command()
 @click.option('--host', '-h', type=str)
 @click.option('--port', '-p', type=int, default=6379)
 def main(host, port):
+    hook.maybe_run_startup()
+    
     if host:
         status_client = _get_redis_client(host, port, STATUS_DATABASE)
         report_client = _get_redis_client(host, port, REPORT_DATABASE)

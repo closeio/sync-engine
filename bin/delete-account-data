@@ -25,6 +25,7 @@ from inbox.heartbeat.status import clear_heartbeat_status
 from inbox.models import Account
 from inbox.models.session import session_scope
 from inbox.models.util import delete_namespace
+from inbox.util import hook
 
 
 @click.command()
@@ -33,6 +34,8 @@ from inbox.models.util import delete_namespace
 @click.option('--yes', is_flag=True)
 @click.option('--throttle', is_flag=True)
 def delete_account_data(account_id, dry_run, yes, throttle):
+    hook.maybe_run_startup()
+    
     with session_scope(account_id) as db_session:
         account = db_session.query(Account).get(account_id)
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from inbox.util import hook
 import click
 
 from inbox.models.account import Account
@@ -9,6 +10,8 @@ from inbox.models.session import global_session_scope
 @click.command()
 @click.argument('hostname')
 def main(hostname):
+    hook.maybe_run_startup()
+    
     with global_session_scope() as db_session:
         account_ids = db_session.query(Account.id).filter(Account.sync_host == hostname)
 

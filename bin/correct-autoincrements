@@ -4,11 +4,14 @@ import click
 
 from inbox.config import config
 from inbox.ignition import EngineManager, reset_invalid_autoincrements
+from inbox.util import hook
 
 
 @click.command()
 @click.option('--dry-run', is_flag=True)
 def reset_db(dry_run):
+    hook.maybe_run_startup()
+    
     database_hosts = config.get_required('DATABASE_HOSTS')
     database_users = config.get_required('DATABASE_USERS')
     # Do not include disabled shards since application services do not use them.

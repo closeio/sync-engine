@@ -830,5 +830,6 @@ class SyncbackWorker(gevent.Greenlet):
                     exc_info=True,
                     account_id=task.account_id,
                 )
+                log_uncaught_errors()
             finally:
                 self.parent_service().notify_worker_finished(task.action_log_ids)

@@ -23,7 +23,7 @@ log = get_logger(purpose="separator-backfix")
 @click.option("--shard-id", type=int, default=None)
 def main(min_id, max_id, shard_id):
     hook.maybe_run_startup()
-    
+
     generic_accounts = []
     failed = []
 

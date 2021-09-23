@@ -185,7 +185,7 @@ def backfix_shard(shard_id, dry_run):
 @click.option("--dry-run", is_flag=True)
 def main(shard_id, dry_run):
     hook.maybe_run_startup()
-    
+
     if shard_id is not None:
         backfix_shard(shard_id, dry_run)
     else:

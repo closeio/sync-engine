@@ -28,7 +28,7 @@ log = get_logger()
 @click.option('--throttle', is_flag=True)
 @click.option('--dry-run', is_flag=True)
 def run(days_ago, limit, throttle, dry_run):
-    hook.run_startup()
+    hook.maybe_run_startup()
 
     pool = []
 

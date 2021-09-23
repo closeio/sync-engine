@@ -11,14 +11,6 @@ def another_hook():
     pass
 
 
-def test_empty():
-    with mock.patch("inbox.util.hook.log") as log_mock:
-        run_once("")
-        run_once(None)
-
-    assert log_mock.info.call_count == 0
-
-
 def test_run_once():
     with mock.patch("inbox.util.hook.log") as log_mock:
         run_once("tests.util.test_hook.hook")

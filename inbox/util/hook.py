@@ -11,9 +11,7 @@ _already_run = set()
 
 
 def run_once(hookspec):
-    if not hookspec:
-        return
-
+    """Execute given hookspec once per process"""
     with _lock:
         if hookspec in _already_run:
             log.info("Not running hook {}, it was already run".format(hookspec))
@@ -30,5 +28,10 @@ def run_once(hookspec):
         _already_run.add(hookspec)
 
 
-def run_startup():
-    return run_once(os.environ.get("SYNC_ENGINE_STARTUP_HOOK"))
+def maybe_run_startup():
+    """Check if startup hook env var is set and run it"""
+    startup_hook = os.environ.get("SYNC_ENGINE_STARTUP_HOOK")
+    if not startup_hook:
+        return
+
+    return run_once(startup_hook)

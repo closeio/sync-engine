@@ -65,7 +65,7 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
     configure_logging(log_level=level)
     reconfigure_logging()
 
-    hook.run_startup()
+    hook.maybe_run_startup()
 
     os.environ["SENTRY_DSN"] = inbox_config.get("SENTRY_DSN", "")
 

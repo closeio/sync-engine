@@ -6,6 +6,7 @@ import click
 from nylas.logging import configure_logging, get_logger
 
 from inbox.config import config
+from inbox.error_handling import maybe_enable_rollbar
 from inbox.heartbeat.status import clear_heartbeat_status
 
 configure_logging(config.get('LOGLEVEL'))
@@ -19,6 +20,8 @@ log = get_logger()
 @click.option('--folder-id', '-f', type=int)
 @click.option('--device-id', '-d', type=int)
 def main(host, port, account_id, folder_id, device_id):
+    maybe_enable_rollbar()
+
     print 'Clearing heartbeat status...'
     n = clear_heartbeat_status(account_id, folder_id, device_id, host, port)
     print '{} folders cleared.'.format(n)

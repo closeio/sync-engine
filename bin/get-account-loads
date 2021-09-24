@@ -9,6 +9,7 @@ import click
 import requests
 
 from inbox.config import config
+from inbox.error_handling import maybe_enable_rollbar
 from inbox.ignition import engine_manager
 from inbox.mailsync.service import MAX_ACCOUNTS_PER_PROCESS
 from inbox.models.account import Account
@@ -84,6 +85,8 @@ def get_account_loads(zone, hosts):
 @click.command()
 @click.option('--level', default='staging')
 def main(level):
+    maybe_enable_rollbar()
+
     zones = {h.get('ZONE') for h in config['DATABASE_HOSTS']}
     zone_map = {}
     for zone in zones:

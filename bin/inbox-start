@@ -28,6 +28,7 @@ except ImportError:
 
 from nylas.logging import configure_logging, get_logger
 
+from inbox.error_handling import maybe_enable_rollbar
 from inbox.mailsync.frontend import SyncHTTPFrontend
 from inbox.mailsync.service import SyncService
 from inbox.util.logging_helper import reconfigure_logging
@@ -63,6 +64,8 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
     level = os.environ.get('LOGLEVEL', inbox_config.get('LOGLEVEL'))
     configure_logging(log_level=level)
     reconfigure_logging()
+
+    maybe_enable_rollbar()
 
     os.environ["SENTRY_DSN"] = inbox_config.get("SENTRY_DSN", "")
 

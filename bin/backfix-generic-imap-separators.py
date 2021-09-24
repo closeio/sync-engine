@@ -5,6 +5,7 @@ import click
 from nylas.logging import configure_logging, get_logger
 
 from inbox.crispin import connection_pool
+from inbox.error_handling import maybe_enable_rollbar
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.session import (
     global_session_scope,
@@ -21,6 +22,8 @@ log = get_logger(purpose="separator-backfix")
 @click.option("--max-id", type=int, default=None)
 @click.option("--shard-id", type=int, default=None)
 def main(min_id, max_id, shard_id):
+    maybe_enable_rollbar()
+
     generic_accounts = []
     failed = []
 

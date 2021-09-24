@@ -11,6 +11,7 @@ import click
 from nylas.logging import configure_logging, get_logger
 
 from inbox.contacts.search import index_namespace
+from inbox.error_handling import maybe_enable_rollbar
 
 configure_logging()
 log = get_logger()
@@ -23,6 +24,8 @@ def main(namespace_ids):
     Idempotently index the given namespace_ids.
 
     """
+    maybe_enable_rollbar()
+
     for namespace_id in namespace_ids:
         log.info("indexing namespace {namespace_id}".format(
                  namespace_id=namespace_id))

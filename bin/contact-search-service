@@ -15,6 +15,7 @@ from nylas.logging import configure_logging
 from setproctitle import setproctitle
 
 from inbox.config import config as inbox_config
+from inbox.error_handling import maybe_enable_rollbar
 from inbox.util.startup import preflight
 
 setproctitle("nylas-contact-search-index-service")
@@ -30,6 +31,8 @@ def main(prod, config):
     """ Launch the contact search index service. """
     level = os.environ.get('LOGLEVEL', inbox_config.get('LOGLEVEL'))
     configure_logging(log_level=level)
+
+    maybe_enable_rollbar()
 
     if config is not None:
         from inbox.util.startup import load_overrides

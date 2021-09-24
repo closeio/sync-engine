@@ -14,12 +14,15 @@ from nylas.logging import configure_logging
 from setproctitle import setproctitle
 
 from inbox.config import config
+from inbox.error_handling import maybe_enable_rollbar
 from inbox.scheduling.queue import QueuePopulator
 
 configure_logging()
 
 
 def main():
+    maybe_enable_rollbar()
+
     setproctitle('scheduler')
     zones = {h.get('ZONE') for h in config['DATABASE_HOSTS']}
     threads = []

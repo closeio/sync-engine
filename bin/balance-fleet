@@ -13,6 +13,7 @@ from munkres import Munkres, make_cost_matrix
 from nylas.logging import configure_logging, get_logger
 
 from inbox.config import config
+from inbox.error_handling import maybe_enable_rollbar
 from inbox.models.account import Account
 from inbox.models.session import global_session_scope, session_scope
 from inbox.scheduling.deferred_migration import (
@@ -188,6 +189,8 @@ def balance_zone(zone, normal_hosts, debug_hosts, account_loads, timespan, minim
 @click.option('--minimize-migrations/--no-minimize-migrations', default=True)
 @click.argument('account-loads')
 def main(dry_run, level, timespan, minimize_migrations, account_loads):
+    maybe_enable_rollbar()
+
     zones = {h.get('ZONE') for h in config['DATABASE_HOSTS']}
     load_per_account = {}
     with open(account_loads) as f:

@@ -4,6 +4,7 @@ import optparse
 import sys
 import time
 
+from inbox.error_handling import maybe_enable_rollbar
 from inbox.models.account import Account
 from inbox.models.session import session_scope
 
@@ -45,6 +46,8 @@ def main():
     if all(opt is False for opt in [options.throttled, options.unthrottled]):
         print_usage()
         sys.exit(-1)
+
+    maybe_enable_rollbar()
 
     # If we were not given the --stdin param, only start/stop the account
     # specified on the command-line.

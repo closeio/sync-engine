@@ -7,11 +7,14 @@ import click
 from setproctitle import setproctitle
 
 from inbox.config import config
+from inbox.error_handling import maybe_enable_rollbar
 
 
 @click.command()
 @click.option('--shard-num', type=int)
 def main(shard_num):
+    maybe_enable_rollbar()
+
     users = config.get_required('DATABASE_USERS')
 
     creds = dict(hostname=None, username=None,

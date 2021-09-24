@@ -10,6 +10,7 @@ from nylas.logging import configure_logging, get_logger
 from sqlalchemy import asc
 
 from inbox.contacts.processing import update_contacts_from_event
+from inbox.error_handling import maybe_enable_rollbar
 from inbox.ignition import engine_manager
 from inbox.models import Event
 from inbox.models.session import session_scope_by_shard_id
@@ -91,6 +92,8 @@ def process_shard(shard_id, dry_run, id_start=0):
 @click.option("--id-start", type=int, default=0)
 @click.option("--dry-run", is_flag=True)
 def main(shard_id, id_start, dry_run):
+    maybe_enable_rollbar()
+
     if shard_id is not None:
         process_shard(shard_id, dry_run, id_start)
     else:

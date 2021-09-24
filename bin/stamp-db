@@ -7,9 +7,12 @@ import alembic.config
 import alembic.util
 
 from inbox.config import config
+from inbox.error_handling import maybe_enable_rollbar
 
 
 def main(revision_id):
+    maybe_enable_rollbar()
+
     alembic_ini_filename = os.environ.get('ALEMBIC_INI_PATH', 'alembic.ini')
     assert os.path.isfile(alembic_ini_filename), \
         'Missing alembic.ini file at {}'.format(alembic_ini_filename)

@@ -5,6 +5,7 @@ import sys
 
 import click
 
+from inbox.error_handling import maybe_enable_rollbar
 from inbox.models import (
     Account,
     Block,
@@ -35,6 +36,8 @@ cls_for_type = dict(
 @click.option('--id', type=str, default=None)
 @click.option('--public-id', type=str, default=None)
 def main(type, id, public_id):
+    maybe_enable_rollbar()
+
     type = type.lower()
 
     if type not in cls_for_type:

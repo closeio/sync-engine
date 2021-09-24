@@ -6,6 +6,7 @@ monkey.patch_all()
 import click
 from sqlalchemy import func
 
+from inbox.error_handling import maybe_enable_rollbar
 from inbox.ignition import engine_manager
 from inbox.models import Account, Namespace
 from inbox.models.action_log import ActionLog
@@ -18,6 +19,8 @@ def main():
     lengths.
 
     """
+    maybe_enable_rollbar()
+
     for key in engine_manager.engines:
         with session_scope_by_shard_id(key) as db_session:
             total_pending_actions = 0

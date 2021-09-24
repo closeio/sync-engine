@@ -3,6 +3,7 @@ import click
 from nylas.logging import configure_logging, get_logger
 
 from inbox.contacts.search import delete_namespace_indexes as delete_indexes
+from inbox.error_handling import maybe_enable_rollbar
 
 configure_logging()
 log = get_logger()
@@ -15,6 +16,8 @@ def delete_namespace_indexes(namespace_ids):
     Delete the CloudSearch indexes for a list of namespaces, specified by id.
 
     """
+    maybe_enable_rollbar()
+
     delete_indexes(namespace_ids)
 
 

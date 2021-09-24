@@ -2,12 +2,15 @@
 
 import click
 
+from inbox.error_handling import maybe_enable_rollbar
 from inbox.ignition import engine_manager
 
 
 @click.command()
 @click.option('--shard_id', type=int)
 def main(shard_id):
+    maybe_enable_rollbar()
+
     if shard_id is not None:
         update_categories_for_shard(shard_id)
         update_folders_and_labels_for_shard(shard_id)

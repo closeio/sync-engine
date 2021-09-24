@@ -20,6 +20,7 @@ from nylas.logging import configure_logging
 from setproctitle import setproctitle
 
 from inbox.config import config as inbox_config
+from inbox.error_handling import maybe_enable_rollbar
 from inbox.mailsync.frontend import SyncbackHTTPFrontend
 from inbox.transactions.actions import SyncbackService
 from inbox.util.logging_helper import reconfigure_logging
@@ -46,6 +47,8 @@ def main(prod, config, process_num, syncback_id, enable_tracer,
          enable_profiler):
     """ Launch the actions syncback service. """
     setproctitle('syncback-{}'.format(process_num))
+
+    maybe_enable_rollbar()
 
     if config is not None:
         config_path = os.path.abspath(config)

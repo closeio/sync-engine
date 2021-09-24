@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import click
 
+from inbox.error_handling import maybe_enable_rollbar
 from inbox.models.account import Account
 from inbox.models.session import global_session_scope, session_scope
 
@@ -17,6 +18,8 @@ def main(dry_run, number, hostname, process):
     manually unloading an overloaded sync instance.
 
     """
+    maybe_enable_rollbar()
+
     if not number:
         message = 'You have not provided a --number option. This will '\
                   'unschedule ALL syncs on the host. Proceed? [Y/n] '

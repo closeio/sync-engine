@@ -5,9 +5,13 @@ import nacl.secret
 import nacl.utils
 import yaml
 
+from inbox.error_handling import maybe_enable_rollbar
+
 
 def main():
     from inbox.config import config, secrets_path
+
+    maybe_enable_rollbar()
 
     # If the config contains encryption keys, don't override.
     if config.get('SECRET_ENCRYPTION_KEY'):

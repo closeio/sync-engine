@@ -19,6 +19,7 @@ from nylas.logging import configure_logging
 from inbox.auth.base import handler_from_provider
 from inbox.basicauth import NotSupportedError
 from inbox.config import config
+from inbox.error_handling import maybe_enable_rollbar
 from inbox.models import Account
 from inbox.models.session import session_scope
 from inbox.util.startup import preflight
@@ -38,6 +39,8 @@ configure_logging(config.get('LOGLEVEL'))
 def main(email_address, reauth, target, provider):
     """ Auth an email account. """
     preflight()
+
+    maybe_enable_rollbar()
 
     shard_id = target << 48
 

@@ -7,8 +7,6 @@ import rollbar
 from nylas.logging import get_logger
 from rollbar.logger import RollbarHandler
 
-from inbox.api.wsgi import NylasWSGIWorker
-
 log = get_logger()
 
 ROLLBAR_API_KEY = os.getenv("ROLLBAR_API_KEY", "")

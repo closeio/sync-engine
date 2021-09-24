@@ -1,6 +1,9 @@
+import functools
 import json
 import logging
 import os
+import random
+import re
 
 import nylas.logging.sentry
 import rollbar
@@ -49,6 +52,45 @@ def handle_uncaught_exception(*args, **kwargs):
 nylas.logging.sentry.sentry_alert = handle_uncaught_exception
 
 
+def ignore_handler(message_filters, payload, **kw):
+    title = payload["data"].get("title")
+    exception_message = (
+        payload["data"]
+        .get("body", {})
+        .get("trace", {})
+        .get("exception", {})
+        .get("message")
+    )
+
+    if not (title or exception_message):
+        return payload
+
+    for regex, threshold in message_filters:
+        if regex.match(title or exception_message) and random.random() >= threshold:
+            return False
+
+    return payload
+
+
+def get_message_filters():
+    try:
+        message_filters = json.loads(os.getenv("ROLLBAR_MESSAGE_FILTERS", "[]"))
+    except ValueError:
+        log.error("Could not JSON parse ROLLBAR_MESSAGE_FILTERS environment variable")
+        return []
+
+    try:
+        message_filters = [
+            (re.compile(filter_["regex"]), float(filter_["threshold"]))
+            for filter_ in message_filters
+        ]
+    except Exception:
+        log.error("Error while compiling ROLLBAR_MESSAGE_FILTERS")
+        return []
+
+    return message_filters
+
+
 def maybe_enable_rollbar():
     if not ROLLBAR_API_KEY:
         log.info("ROLLBAR_API_KEY environment variable empty, rollbar disabled")
@@ -66,5 +108,11 @@ def maybe_enable_rollbar():
     rollbar_handler.setLevel(logging.ERROR)
     logger = logging.getLogger()
     logger.addHandler(rollbar_handler)
+
+    message_filters = get_message_filters()
+    if message_filters:
+        rollbar.events.add_payload_handler(
+            functools.partial(ignore_handler, message_filters)
+        )
 
     log.info("Rollbar enabled")

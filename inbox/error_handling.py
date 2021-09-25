@@ -66,7 +66,7 @@ def ignore_handler(message_filters, payload, **kw):
         return payload
 
     for regex, threshold in message_filters:
-        if regex.match(title or exception_message) and random.random() >= threshold:
+        if regex.search(title or exception_message) and random.random() >= threshold:
             return False
 
     return payload

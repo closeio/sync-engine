@@ -1,21 +1,11 @@
-from collections import defaultdict, namedtuple
-from datetime import datetime, timedelta
-from random import shuffle
+from datetime import datetime
 
 from nylas.logging import get_logger
-from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, String
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import backref, relationship
-from sqlalchemy.orm.session import object_session
+from sqlalchemy import Column, DateTime, ForeignKey, String
 
-from inbox.basicauth import ConnectionError, OAuthError
 from inbox.config import config
 from inbox.models.backends.imap import ImapAccount
 from inbox.models.backends.oauth import OAuthAccount
-from inbox.models.base import MailSyncBase
-from inbox.models.mixins import DeletedAtMixin, UpdatedAtMixin
-from inbox.models.secret import Secret
-from inbox.models.session import session_scope
 
 log = get_logger()
 

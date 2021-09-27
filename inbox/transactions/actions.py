@@ -168,7 +168,7 @@ class SyncbackService(gevent.Greenlet):
             return False
 
         log_entry = log_entries[0]
-        action_log_ids = [log_entry.id for log_entry in log_entries]
+        action_log_ids = [entry.id for entry in log_entries]
         # Check if there was a pending move action that recently completed.
         threshold = datetime.utcnow() - timedelta(seconds=90)
         actionlog = (

@@ -5,26 +5,18 @@ from gevent import monkey
 monkey.patch_all()
 
 import datetime
-import traceback
 from collections import defaultdict
 
 import click
-import gevent
+import gevent  # noqa
 from gevent.pool import Pool
 from nylas.logging import configure_logging, get_logger
 from sqlalchemy.sql.expression import func
 
-from inbox.crispin import connection_pool
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.models import Account, Block
-from inbox.models.backends.generic import GenericAccount
-from inbox.models.session import (
-    global_session_scope,
-    session_scope,
-    session_scope_by_shard_id,
-)
+from inbox.models.session import global_session_scope, session_scope
 from inbox.s3.base import get_raw_from_provider
-from inbox.s3.exc import EmailFetchException, TemporaryEmailFetchException
 
 configure_logging()
 log = get_logger(purpose='separator-backfix')
@@ -76,7 +68,7 @@ def main(num_accounts):
 
     with global_session_scope() as db_session:
         accounts = db_session.query(Account).filter(
-            Account.sync_should_run == True).order_by(func.rand()).limit(
+            Account.sync_should_run).order_by(func.rand()).limit(
             num_accounts).all()
 
         accounts = [acc.id for acc in accounts][:num_accounts]
@@ -94,6 +86,7 @@ def main(num_accounts):
             global_results[key] += ret[key]
 
     print global_results
+
 
 if __name__ == '__main__':
     main()

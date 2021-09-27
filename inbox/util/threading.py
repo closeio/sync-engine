@@ -2,7 +2,7 @@
 from operator import attrgetter
 
 from sqlalchemy import desc
-from sqlalchemy.orm import contains_eager, load_only, outerjoin
+from sqlalchemy.orm import contains_eager, load_only
 
 from inbox.models.message import Message
 from inbox.models.thread import Thread

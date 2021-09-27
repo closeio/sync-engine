@@ -1,3 +1,4 @@
+# flake8: noqa: E266
 from datetime import datetime
 
 from nylas.logging import get_logger

@@ -11,7 +11,6 @@ from inbox.heartbeat.config import (
     SOCKET_TIMEOUT,
     STATUS_DATABASE,
     WAIT_TIMEOUT,
-    get_redis_client,
 )
 
 
@@ -21,7 +20,7 @@ from inbox.heartbeat.config import (
 @click.option('--database', '-d', type=int, default=STATUS_DATABASE)
 def main(host, port, database):
     maybe_enable_rollbar()
-    
+
     connection_pool = BlockingConnectionPool(
         host=host, port=port, db=database,
         max_connections=MAX_CONNECTIONS, timeout=WAIT_TIMEOUT,

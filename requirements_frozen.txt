@@ -27,8 +27,6 @@ docutils==0.14
 enum34==1.0.4
 execnet==1.5.0
 faulthandler==2.3
-flake8==2.1.0
-flake8-pep3101==0.6
 git+https://github.com/closeio/flanker.git@c86e8c2599497f234988acfcef726bbc3228c787#egg=flanker
 Flask==0.10.1
 Flask-RESTful==0.3.2
@@ -62,7 +60,6 @@ lunatic-python-bugfix==1.1.1  # For Redis mocking in tests
 lxml==3.4.2
 Mako==1.0.7
 MarkupSafe==1.0
-mccabe==0.6.1
 mock==1.3.0
 mockredispy==2.9.0.10
 msgpack-python==0.4.2
@@ -72,7 +69,6 @@ ndg-httpsclient==0.4.3
 nylas==1.2.3
 nylas-production-python==0.4.2
 pbr==3.1.1
-pep8==1.4.6
 pluggy==0.3.1
 ply==3.10
 psutil==3.3.0
@@ -80,7 +76,6 @@ py==1.5.2
 pyaml==14.5.7
 pyasn1==0.2.3
 pycparser==2.18
-pyflakes==0.7.3
 pyinstrument==0.12
 pylint==1.5.1
 pymongo==2.5.2  # For json_util in bson

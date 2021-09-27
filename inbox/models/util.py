@@ -2,7 +2,7 @@ import math
 import time
 from collections import OrderedDict
 
-import gevent
+import gevent  # noqa
 import limitlion
 from nylas.logging import get_logger
 from nylas.logging.sentry import log_uncaught_errors

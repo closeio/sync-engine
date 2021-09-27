@@ -12,7 +12,7 @@ import requests
 from nylas.logging import get_logger
 
 from inbox.auth.oauth import OAuthRequestsWrapper
-from inbox.basicauth import AccessNotEnabledError
+from inbox.basicauth import AccessNotEnabledError, OAuthError
 from inbox.config import config
 from inbox.events.util import (
     CalendarSyncResponse,

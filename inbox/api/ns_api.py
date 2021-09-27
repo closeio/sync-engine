@@ -59,7 +59,6 @@ from inbox.api.validation import (
     strict_bool,
     strict_parse_args,
     timestamp,
-    valid_account,
     valid_category_type,
     valid_delta_object_types,
     valid_display_name,
@@ -290,7 +289,7 @@ def handle_generic_error(error):
     log_exception(sys.exc_info())
     response = flask_jsonify(
         message="An internal error occured. If this issue persists, please contact support@nylas.com and include this request_uid: {}".format(
-            request.headers.get("X-Unique-ID"), type="api_error"
+            request.headers.get("X-Unique-ID")
         )
     )
     response.status_code = 500

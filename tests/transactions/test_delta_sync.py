@@ -4,10 +4,7 @@ import time
 
 from freezegun import freeze_time
 
-from tests.api.base import api_client
 from tests.util.base import add_fake_message
-
-__all__ = ["api_client"]
 
 
 def add_account_with_different_namespace_id(

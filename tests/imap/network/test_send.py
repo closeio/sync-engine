@@ -3,11 +3,10 @@ from datetime import datetime
 
 import pytest
 
-from tests.api.base import api_client
 from tests.util.base import default_account
 from tests.util.crispin import crispin_client
 
-__all__ = ["default_account", "api_client"]
+__all__ = ["default_account"]
 
 
 @pytest.fixture

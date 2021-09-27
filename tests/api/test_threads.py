@@ -5,10 +5,9 @@ import pytest
 
 from inbox.api.ns_api import API_VERSIONS
 
-from tests.api.base import api_client
 from tests.util.base import add_fake_message, add_fake_thread, db, default_account
 
-__all__ = ["db", "api_client", "default_account"]
+__all__ = ["db", "default_account"]
 
 
 def test_thread_received_recent_date(db, api_client, default_account):

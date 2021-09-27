@@ -4,7 +4,6 @@ import mock
 
 from inbox.util.testutils import mock_imapclient  # noqa
 
-from tests.api.base import imap_api_client
 from tests.util.base import add_fake_category, add_fake_folder
 
 

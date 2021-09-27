@@ -7,7 +7,7 @@ import pytest
 from inbox.api.ns_api import API_VERSIONS
 from inbox.util.blockstore import get_from_blockstore
 
-from tests.api.base import api_client, new_api_client
+from tests.api.base import new_api_client
 from tests.util.base import (
     add_fake_message,
     add_fake_thread,

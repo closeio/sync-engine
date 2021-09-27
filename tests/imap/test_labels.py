@@ -4,7 +4,6 @@ import pytest
 
 from inbox.mailsync.backends.imap.common import update_message_metadata
 
-from tests.api.base import api_client
 from tests.util.base import (
     add_fake_folder,
     add_fake_imapuid,
@@ -13,7 +12,7 @@ from tests.util.base import (
     default_account,
 )
 
-__all__ = ["default_account", "api_client"]
+__all__ = ["default_account"]
 
 
 def add_fake_label(db_session, default_account, display_name, name):

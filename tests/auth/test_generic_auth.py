@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-import copy
 import socket
 
 import attr
 import pytest
 
 from inbox.auth.generic import GenericAccountData, GenericAuthHandler
-from inbox.basicauth import SettingUpdateError, ValidationError
+from inbox.basicauth import ValidationError
 from inbox.models.account import Account
 from inbox.util.url import parent_domain
 

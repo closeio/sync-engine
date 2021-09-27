@@ -8,10 +8,7 @@ from datetime import datetime
 import pytest
 from freezegun import freeze_time
 
-from tests.api.base import api_client
 from tests.util.base import add_fake_message, add_fake_thread
-
-__all__ = ["api_client"]
 
 
 @pytest.fixture

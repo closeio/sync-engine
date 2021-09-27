@@ -1,9 +1,8 @@
 from inbox.models import Calendar
 
-from tests.api.base import api_client
 from tests.util.base import add_fake_event, db, default_namespace
 
-__all__ = ["api_client", "db", "default_namespace"]
+__all__ = ["db", "default_namespace"]
 
 
 def test_get_calendar(db, default_namespace, api_client):
@@ -78,10 +77,8 @@ def test_delete_from_readonly_calendar(db, default_namespace, api_client):
         db.session,
         default_namespace.id,
         calendar=db.session.query(Calendar)
-        .filter(
-            Calendar.namespace_id == default_namespace.id, Calendar.read_only == True
-        )
-        .first(),  # noqa
+        .filter(Calendar.namespace_id == default_namespace.id, Calendar.read_only)
+        .first(),
         read_only=True,
     )
     calendar_list = api_client.get_data("/calendars")

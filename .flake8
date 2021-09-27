@@ -1,0 +1,13 @@
+[flake8]
+ignore=
+    # do not use bare 'except'
+    E722
+    # Module level import not at top of file
+    E402,
+    # This is not PEP8-compliant and conflicts with black.
+    E501,
+    E231,
+    E203,
+    W503,
+    W504
+exclude=migrations/versions

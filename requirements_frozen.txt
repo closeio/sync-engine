@@ -108,10 +108,8 @@ git+https://github.com/mhahnenberg/sqlalchemy.git@e5f7586346ce5fafe2c182f70bf6ef
 statsd==3.1
 structlog==17.2.0
 tldextract==1.7.5
-tox==2.3.1
 uritemplate==0.6
 urllib3==1.22
-virtualenv==15.1.0
 vobject==0.8.2
 WebOb==1.7.4
 Werkzeug==0.14.1

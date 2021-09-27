@@ -91,7 +91,6 @@ def erring_smtp_connection(exc_type, *args):
         "5.7.1 You have exceeded your daily sending limits",
     ]
 )
-@pytest.fixture
 def quota_exceeded(patch_token_manager, monkeypatch, request):
     monkeypatch.setattr(
         "inbox.sendmail.smtp.postel.SMTPConnection",

@@ -189,9 +189,6 @@ pip install 'pip==9.0.1' 'setuptools==38.4.0'
 # Doing pip upgrade setuptools leaves behind this problematic symlink
 rm -rf /usr/lib/python2.7/dist-packages/setuptools.egg-info
 
-# Install tox for running tests
-pip install 'tox'
-
 # Now that the new version of pip and our other non-pip dependencies are
 # installed, we can switch back to the source directory.
 cd "$src_dir"

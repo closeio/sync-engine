@@ -27,7 +27,7 @@ run_for_cover()
     pids+=("$!")
 }
 
-coverage run --source inbox -p -m py.test --junitxml tests/output tests
+coverage run --source inbox -p -m pytest --junitxml tests/output tests
 
 # Start the services
 run_for_cover inbox-start

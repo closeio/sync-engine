@@ -232,10 +232,10 @@ class SyncService(object):
                     or_(
                         and_(
                             Account.desired_sync_host == self.process_identifier,
-                            Account.sync_host == None,
-                        ),  # noqa
+                            Account.sync_host.is_(None),
+                        ),
                         and_(
-                            Account.desired_sync_host == None,  # noqa
+                            Account.desired_sync_host.is_(None),
                             Account.sync_host == self.process_identifier,
                         ),
                         and_(

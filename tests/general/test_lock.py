@@ -26,33 +26,33 @@ def nb_lock():
     return lock(block=False)
 
 
-def grab_lock(l):
+def grab_lock(lock):
     """ Stub fn to grab lock inside a Greenlet. """
-    l.acquire()
-    print "Got the lock again", l.filename
-    l.release()
+    lock.acquire()
+    print "Got the lock again", lock.filename
+    lock.release()
 
 
 def test_nb_lock(nb_lock):
-    with nb_lock as l:
-        filename = l.filename
+    with nb_lock as lock_:
+        filename = lock_.filename
         with pytest.raises(IOError):
             with lock(block=False, filename=filename):
                 pass
     # Should be able to acquire the lock again after the scope ends (also
     # testing that the non-context-manager acquire works).
-    l.acquire()
+    lock_.acquire()
     # Should NOT be able to take the same lock from a Greenlet.
-    g = spawn(grab_lock, l)
+    g = spawn(grab_lock, lock_)
     g.join()
     assert not g.successful(), "greenlet should throw error"
-    l.release()
+    lock_.release()
 
 
 def test_b_lock(b_lock):
-    with b_lock as l:
+    with b_lock as lock:
         # A greenlet should hang forever if it tries to acquire this lock.
-        g = spawn(grab_lock, l)
+        g = spawn(grab_lock, lock)
         # Wait long enough that the greenlet ought to be able to finish if
         # it's not blocking, but not long enough to make the test suite hella
         # slow.

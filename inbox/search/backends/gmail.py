@@ -79,7 +79,7 @@ class GmailSearchClient(object):
             .join(Message, Message.thread_id == Thread.id)
             .filter(
                 Thread.namespace_id == self.account.namespace.id,
-                Thread.deleted_at == None,
+                Thread.deleted_at.is_(None),
                 Message.namespace_id == self.account.namespace.id,
                 Message.g_msgid.in_(g_msgids),
             )

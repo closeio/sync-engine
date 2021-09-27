@@ -188,7 +188,9 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             else:
                 remote_labels.add((label, None))
 
-        local_labels = {(l.name, l.canonical_name): l for l in self.labels}
+        local_labels = {
+            (label.name, label.canonical_name): label for label in self.labels
+        }
 
         remove = set(local_labels) - remote_labels
         add = remote_labels - set(local_labels)
@@ -209,7 +211,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
     @property
     def categories(self):
-        categories = set([l.category for l in self.labels])
+        categories = set([label.category for label in self.labels])
         categories.add(self.folder.category)
         return categories
 

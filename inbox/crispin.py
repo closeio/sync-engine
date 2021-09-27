@@ -330,7 +330,7 @@ class CrispinClient(object):
         self.readonly = readonly
 
     def _fetch_folder_list(self):
-        """ NOTE: XLIST is deprecated, so we just use LIST.
+        r""" NOTE: XLIST is deprecated, so we just use LIST.
 
         An example response with some other flags:
 

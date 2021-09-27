@@ -75,5 +75,6 @@ def main(email_address, reauth, target, provider):
 
     print 'OK. Authenticated account for {}'.format(email_address)
 
+
 if __name__ == '__main__':
     main()

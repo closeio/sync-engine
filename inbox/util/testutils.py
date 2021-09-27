@@ -207,7 +207,7 @@ class MockIMAPClient(object):
             data.append("BODY[]")
         if isinstance(items, (int, long)):
             items = [items]
-        elif isinstance(items, basestring) and re.match("[0-9]+:\*", items):
+        elif isinstance(items, basestring) and re.match(r"[0-9]+:\*", items):
             min_uid = int(items.split(":")[0])
             items = {u for u in uid_dict if u >= min_uid} | {max(uid_dict)}
             if modifiers is not None:

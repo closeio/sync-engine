@@ -31,5 +31,6 @@ def main(namespace_ids):
                  namespace_id=namespace_id))
         index_namespace(namespace_id)
 
+
 if __name__ == '__main__':
     main()

@@ -39,5 +39,6 @@ def main(shard_num):
                              '--safe-updates'])
     proc.wait()
 
+
 if __name__ == '__main__':
     main()

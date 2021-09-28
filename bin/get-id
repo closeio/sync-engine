@@ -59,5 +59,6 @@ def main(type, id, public_id):
             obj = db_session.query(cls).filter(cls.id == id).one()
             print obj.public_id
 
+
 if __name__ == '__main__':
     main()

@@ -24,6 +24,25 @@ jobs:
           name: isort
           when: always
           command: isort -c .
+        
+  static-code-analysis-flake8:
+    docker:
+      - image: circleci/python:2.7
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASS
+    working_directory: ~/code
+    steps:
+      - checkout
+
+      - run:
+          name: Prepare Environment
+          command: |
+            sudo -E pip install flake8==3.9.2
+
+      - run:
+          name: flake8
+          command: flake8
 
   build:
     machine:

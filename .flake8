@@ -1,0 +1,49 @@
+[flake8]
+ignore=
+    # TODO: undefined name 'name'
+    F821
+    # TODO: redefinition of unused 'symbol' from line n
+    F811
+    # TODO: 'module' imported but unused
+    F401
+    # TODO: local variable 'var' is assigned to but never used
+    F841
+    # TODO: ambiguous variable name 'x'
+    E741
+    # TODO: '...'.format(...) has unused arguments at position(s): n
+    # TODO: '...'.format(...) has unused named argument(s): arg
+    F523
+    F522
+    # TODO: expected 2 blank lines after class or function definition
+    E305
+    # TODO: invalid escape sequence
+    W605
+    # TODO: comparison to None should be 'if cond is None:'
+    # TODO: comparison to True should be 'if cond is True:' or 'if cond:'
+    # TODO: use ==/!= to compare constant literals (str, bytes, int, float, tuple)
+    E711
+    E712
+    F632
+    # TODO: indentation contains mixed spaces and tabs
+    # TODO: indentation contains tabs
+    # TODO: continuation line under-indented for visual indent
+    # TODO: continuation line over-indented for visual indent
+    # TODO: blank line contains whitespace
+    E101
+    W191
+    E128
+    E127
+    W293
+    # TODO: too many leading '#' for block comment
+    E266
+    # do not use bare 'except'
+    E722
+    # Module level import not at top of file
+    E402,
+    # This is not PEP8-compliant and conflicts with black.
+    E501,
+    E231,
+    E203,
+    W503,
+    W504
+exclude=migrations/versions

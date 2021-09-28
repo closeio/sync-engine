@@ -18,16 +18,6 @@ ignore=
     E305
     # TODO: invalid escape sequence
     W605
-    # TODO: indentation contains mixed spaces and tabs
-    # TODO: indentation contains tabs
-    # TODO: continuation line under-indented for visual indent
-    # TODO: continuation line over-indented for visual indent
-    # TODO: blank line contains whitespace
-    E101
-    W191
-    E128
-    E127
-    W293
     # TODO: too many leading '#' for block comment
     E266
     # do not use bare 'except'

@@ -6,8 +6,6 @@ ignore=
     F811
     # TODO: 'module' imported but unused
     F401
-    # TODO: local variable 'var' is assigned to but never used
-    F841
     # TODO: ambiguous variable name 'x'
     E741
     # TODO: '...'.format(...) has unused arguments at position(s): n

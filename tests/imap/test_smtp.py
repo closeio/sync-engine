@@ -42,6 +42,7 @@ def test_use_starttls():
 @pytest.mark.skipif(True, reason="Need to investigate")
 @pytest.mark.networkrequired
 def test_use_plain():
+    # ssl = True
     with pytest.raises(SendMailException):
         conn = SMTPConnection(
             account_id=1,
@@ -53,6 +54,7 @@ def test_use_plain():
             log=get_logger(),
         )
 
+    # ssl = False
     conn = SMTPConnection(
         account_id=1,
         email_address="test@tivertical.com",

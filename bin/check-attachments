@@ -76,7 +76,7 @@ def main(num_accounts):
 
     with global_session_scope() as db_session:
         accounts = db_session.query(Account).filter(
-            Account.sync_should_run == True).order_by(func.rand()).limit(
+            Account.sync_should_run).order_by(func.rand()).limit(
             num_accounts).all()
 
         accounts = [acc.id for acc in accounts][:num_accounts]

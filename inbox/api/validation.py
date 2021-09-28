@@ -247,7 +247,7 @@ def get_thread(thread_public_id, namespace_id, db_session):
             db_session.query(Thread)
             .filter(
                 Thread.public_id == thread_public_id,
-                Thread.deleted_at == None,
+                Thread.deleted_at.is_(None),
                 Thread.namespace_id == namespace_id,
             )
             .one()

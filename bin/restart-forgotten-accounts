@@ -29,7 +29,7 @@ def check_accounts():
     with global_session_scope() as db_session:
         not_syncing_accounts = set(db_session.query(Account.id).
                                    filter(Account.sync_should_run,
-                                          Account.sync_host == None))  # noqa
+                                          Account.sync_host.is_(None)))
         still_not_syncing_accounts = accounts_without_sync_host & not_syncing_accounts
 
         for account_id in still_not_syncing_accounts:

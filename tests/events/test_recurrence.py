@@ -619,7 +619,7 @@ def test_rrule_to_json():
     r = rrulestr(r, dtstart=None)
     j = rrule_to_json(r)
     assert j.get("until") is None
-    assert j.get("byminute") is 42
+    assert j.get("byminute") == 42
 
 
 def test_master_cancelled(db, default_account, calendar):

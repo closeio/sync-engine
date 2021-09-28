@@ -454,8 +454,8 @@ def thread_api(public_id):
         thread = (
             g.db_session.query(Thread)
             .filter(
-                Thread.public_id == public_id,  # noqa
-                Thread.deleted_at == None,  # noqa
+                Thread.public_id == public_id,
+                Thread.deleted_at.is_(None),
                 Thread.namespace_id == g.namespace.id,
             )
             .one()
@@ -475,8 +475,8 @@ def thread_api_update(public_id):
         thread = (
             g.db_session.query(Thread)
             .filter(
-                Thread.public_id == public_id,  # noqa
-                Thread.deleted_at == None,  # noqa
+                Thread.public_id == public_id,
+                Thread.deleted_at.is_(None),
                 Thread.namespace_id == g.namespace.id,
             )
             .one()
@@ -1148,10 +1148,10 @@ def event_read_api(public_id):
             .filter(
                 Event.namespace_id == g.namespace.id,
                 Event.public_id == public_id,
-                Event.deleted_at == None,
+                Event.deleted_at.is_(None),
             )
             .one()
-        )  # noqa
+        )
     except NoResultFound:
         raise NotFoundError("Couldn't find event id {0}".format(public_id))
     return g.encoder.jsonify(event)
@@ -1170,10 +1170,10 @@ def event_update_api(public_id):
             .filter(
                 Event.public_id == public_id,
                 Event.namespace_id == g.namespace.id,
-                Event.deleted_at == None,
+                Event.deleted_at.is_(None),
             )
             .one()
-        )  # noqa
+        )
     except NoResultFound:
         raise NotFoundError("Couldn't find event {0}".format(public_id))
 
@@ -1272,10 +1272,10 @@ def event_delete_api(public_id):
             .filter(
                 Event.public_id == public_id,
                 Event.namespace_id == g.namespace.id,
-                Event.deleted_at == None,
+                Event.deleted_at.is_(None),
             )
             .one()
-        )  # noqa
+        )
     except NoResultFound:
         raise NotFoundError("Couldn't find event {0}".format(public_id))
 

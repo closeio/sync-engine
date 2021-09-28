@@ -18,12 +18,6 @@ ignore=
     E305
     # TODO: invalid escape sequence
     W605
-    # TODO: comparison to None should be 'if cond is None:'
-    # TODO: comparison to True should be 'if cond is True:' or 'if cond:'
-    # TODO: use ==/!= to compare constant literals (str, bytes, int, float, tuple)
-    E711
-    E712
-    F632
     # TODO: indentation contains mixed spaces and tabs
     # TODO: indentation contains tabs
     # TODO: continuation line under-indented for visual indent

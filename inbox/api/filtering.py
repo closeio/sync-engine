@@ -68,7 +68,7 @@ def threads(
     else:
         query = db_session.query(Thread)
 
-    filters = [Thread.namespace_id == namespace_id, Thread.deleted_at == None]
+    filters = [Thread.namespace_id == namespace_id, Thread.deleted_at.is_(None)]
     if thread_public_id is not None:
         filters.append(Thread.public_id == thread_public_id)
 
@@ -290,7 +290,7 @@ def messages_or_drafts(
     query += lambda q: q.filter(
         Message.namespace_id == bindparam("namespace_id"),
         Message.is_draft == bindparam("drafts"),
-        Thread.deleted_at == None,
+        Thread.deleted_at.is_(None),
     )
 
     if subject is not None:
@@ -538,8 +538,8 @@ def filter_event_query(
 ):
 
     query = query.filter(event_cls.namespace_id == namespace_id).filter(
-        event_cls.deleted_at == None
-    )  # noqa
+        event_cls.deleted_at.is_(None)
+    )
 
     if event_public_id:
         query = query.filter(event_cls.public_id == event_public_id)
@@ -596,12 +596,12 @@ def recurring_events(
     after_criteria = []
     if starts_after:
         after_criteria.append(
-            or_(RecurringEvent.until > starts_after, RecurringEvent.until == None)
-        )  # noqa
+            or_(RecurringEvent.until > starts_after, RecurringEvent.until.is_(None))
+        )
     if ends_after:
         after_criteria.append(
-            or_(RecurringEvent.until > ends_after, RecurringEvent.until == None)
-        )  # noqa
+            or_(RecurringEvent.until > ends_after, RecurringEvent.until.is_(None))
+        )
 
     recur_query = recur_query.filter(and_(*after_criteria))
 

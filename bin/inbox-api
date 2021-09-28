@@ -103,5 +103,6 @@ def start(port, start_syncback, enable_tracer, enable_profiler):
     if start_syncback:
         syncback.join()
 
+
 if __name__ == '__main__':
     main()

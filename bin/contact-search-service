@@ -54,5 +54,6 @@ def main(prod, config):
     contact_search_indexer.start()
     contact_search_indexer.join()
 
+
 if __name__ == '__main__':
     main()

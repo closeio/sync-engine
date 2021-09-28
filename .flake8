@@ -6,8 +6,6 @@ ignore=
     F811
     # TODO: 'module' imported but unused
     F401
-    # TODO: local variable 'var' is assigned to but never used
-    F841
     # TODO: ambiguous variable name 'x'
     E741
     # TODO: '...'.format(...) has unused arguments at position(s): n
@@ -18,16 +16,6 @@ ignore=
     E305
     # TODO: invalid escape sequence
     W605
-    # TODO: indentation contains mixed spaces and tabs
-    # TODO: indentation contains tabs
-    # TODO: continuation line under-indented for visual indent
-    # TODO: continuation line over-indented for visual indent
-    # TODO: blank line contains whitespace
-    E101
-    W191
-    E128
-    E127
-    W293
     # TODO: too many leading '#' for block comment
     E266
     # do not use bare 'except'

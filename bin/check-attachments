@@ -95,5 +95,6 @@ def main(num_accounts):
 
     print global_results
 
+
 if __name__ == '__main__':
     main()

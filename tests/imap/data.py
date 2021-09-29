@@ -7,10 +7,6 @@ import os
 import string
 import tempfile
 
-# don't try writing to .hypothesis
-os.environ["HYPOTHESIS_STORAGE_DIRECTORY"] = hyp_dir = tempfile.mkdtemp()
-os.environ["HYPOTHESIS_DATABASE_FILE"] = os.path.join(hyp_dir, "db")
-
 import flanker
 from flanker import mime
 from hypothesis import strategies as s
@@ -73,11 +69,11 @@ mime_message = s.builds(
     basic_text,
 )
 
-randint = s.basic(generate=lambda random, _: random.getrandbits(63))
+randint = s.integers(0, 1 << 62)
 
 uid_data = s.builds(
     build_uid_data,
-    s.datetimes(timezones=[]),
+    s.datetimes(),
     s.sampled_from([(), ("\\Seen",)]),
     mime_message,
     s.sampled_from([(), ("\\Inbox",)]),

@@ -7,14 +7,9 @@ import os
 import string
 import tempfile
 
-# don't try writing to .hypothesis
-os.environ["HYPOTHESIS_STORAGE_DIRECTORY"] = hyp_dir = tempfile.mkdtemp()
-os.environ["HYPOTHESIS_DATABASE_FILE"] = os.path.join(hyp_dir, "db")
-
 import flanker
 from flanker import mime
 from hypothesis import strategies as s
-from hypothesis.extra.datetime import datetimes
 
 
 def _build_address_header(addresslist):
@@ -74,11 +69,11 @@ mime_message = s.builds(
     basic_text,
 )
 
-randint = s.basic(generate=lambda random, _: random.getrandbits(63))
+randint = s.integers(min_value=0, max_value=1 << 63)
 
 uid_data = s.builds(
     build_uid_data,
-    datetimes(timezones=[]),
+    s.datetimes(),
     s.sampled_from([(), ("\\Seen",)]),
     mime_message,
     s.sampled_from([(), ("\\Inbox",)]),
@@ -87,4 +82,6 @@ uid_data = s.builds(
 )
 
 
-uids = s.dictionaries(s.integers(min_value=22), uid_data, min_size=5, max_size=10)
+uids = s.dictionaries(
+    s.integers(min_value=22, max_value=1 << 63), uid_data, min_size=5, max_size=10
+)

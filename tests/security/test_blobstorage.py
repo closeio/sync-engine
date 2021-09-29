@@ -1,18 +1,19 @@
 import zlib
 
 import hypothesis
+from hypothesis import strategies as s
 
 from inbox.security.blobstorage import decode_blob, encode_blob
 
 
 # This will run the test for a bunch of randomly-chosen values of sample_input.
-@hypothesis.given(str, bool)
+@hypothesis.given(s.binary(), s.booleans())
 def test_blobstorage(config, sample_input, encrypt):
     config["ENCRYPT_SECRETS"] = encrypt
     assert decode_blob(encode_blob(sample_input)) == sample_input
 
 
-@hypothesis.given(str, bool)
+@hypothesis.given(s.binary(), s.booleans())
 def test_encoded_format(config, sample_input, encrypt):
     config["ENCRYPT_SECRETS"] = encrypt
     encoded = encode_blob(sample_input)
@@ -25,7 +26,7 @@ def test_encoded_format(config, sample_input, encrypt):
         assert data == zlib.compress(sample_input)
 
 
-@hypothesis.given(unicode, bool)
+@hypothesis.given(s.text(), s.booleans())
 def test_message_body_storage(config, message, sample_input, encrypt):
     config["ENCRYPT_SECRETS"] = encrypt
     message.body = None

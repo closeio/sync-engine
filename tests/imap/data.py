@@ -69,7 +69,7 @@ mime_message = s.builds(
     basic_text,
 )
 
-randint = s.integers(0, 1 << 62)
+randint = s.integers(min_value=0, max_value=1 << 63)
 
 uid_data = s.builds(
     build_uid_data,
@@ -82,4 +82,6 @@ uid_data = s.builds(
 )
 
 
-uids = s.dictionaries(s.integers(min_value=22), uid_data, min_size=5, max_size=10)
+uids = s.dictionaries(
+    s.integers(min_value=22, max_value=1 << 63), uid_data, min_size=5, max_size=10
+)

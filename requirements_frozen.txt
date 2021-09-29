@@ -44,7 +44,7 @@ guppy==0.1.10
 hiredis==0.1.5
 html2text==2014.9.8
 httplib2==0.8
-hypothesis==1.10.3
+hypothesis==4.57.1
 icalendar==3.9.1
 iconv==1.0
 idna==2.6

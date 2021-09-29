@@ -57,33 +57,15 @@ jobs:
           command: docker-compose build app
 
       - run:
-          name: start app container
-          command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker-compose run -d --name sync_engine_tests app sh -c "tail -f /dev/null"
-
-      - run:
           name: run tests
           command: |
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker exec sync_engine_tests bash -ec '
+            docker-compose run app bash -ec '
               pip install -e . \
               && bin/wait-for-it.sh mysql:3306 \
               && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/
+              && coverage html -d pythoncov
             '
-
-      - run:
-          name: coverage reports
-          command: |
-            docker exec sync_engine_tests coverage html -d /tmp/html
-            docker cp sync_engine_tests:/tmp/html /tmp/html
-
-      - run:
-          name: take down app container
-          command: docker rm -f sync_engine_tests
-
-      - store_artifacts:
-          path: /tmp/html
 
       - run:
           name: Push the tested image to docker hub
@@ -99,6 +81,13 @@ jobs:
             docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}"
             docker push "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}"
             docker push "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}"
+
+      - store_artifacts:
+          path: html
+
+      - store_artifacts:
+          path: .circleci/artifacts.html
+          destination: artifacts.html
 
 workflows:
   version: 2

@@ -22,6 +22,7 @@ services:
     volumes:
       - .:/opt/app
     tmpfs: /opt/app/inbox_sync.egg-info
+    tmpfs: /tmp
     depends_on:
       - redis
       - mysql

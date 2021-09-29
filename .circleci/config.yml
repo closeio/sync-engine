@@ -57,14 +57,34 @@ jobs:
           command: docker-compose build app
 
       - run:
+          name: start app container
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker-compose run -d --name sync_engine_tests app sh -c "tail -f /dev/null"
+
+      - run:
           name: run tests
           command: |
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker-compose run app bash -ec '
+            docker exec sync_engine_tests bash -ec '
               pip install -e . \
               && bin/wait-for-it.sh mysql:3306 \
-              && NYLAS_ENV=test py.test tests/
+              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/
             '
+
+      - run:
+          name: coverage reports
+          command: |
+            docker exec sync_engine_tests coverage html -d /tmp/html
+            docker cp sync_engine_tests:/tmp/html /tmp/html
+
+      - run:
+          name: take down app container
+          command: docker rm -f sync_engine_tests
+
+      - store_artifacts:
+          path: /tmp/html
+
       - run:
           name: Push the tested image to docker hub
           environment:

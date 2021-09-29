@@ -63,7 +63,7 @@ jobs:
             docker-compose run app bash -ec '
               pip install -e . \
               && bin/wait-for-it.sh mysql:3306 \
-              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/
+              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
               && coverage html -d pythoncov
             '
 

@@ -1,3 +1,5 @@
+from sqlalchemy import true
+
 from inbox.models import Calendar
 
 from tests.api.base import api_client
@@ -79,9 +81,9 @@ def test_delete_from_readonly_calendar(db, default_namespace, api_client):
         default_namespace.id,
         calendar=db.session.query(Calendar)
         .filter(
-            Calendar.namespace_id == default_namespace.id, Calendar.read_only == True
+            Calendar.namespace_id == default_namespace.id, Calendar.read_only == true()
         )
-        .first(),  # noqa
+        .first(),
         read_only=True,
     )
     calendar_list = api_client.get_data("/calendars")

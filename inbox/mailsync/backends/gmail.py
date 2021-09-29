@@ -159,7 +159,7 @@ class GmailSyncMonitor(ImapSyncMonitor):
         old_labels = {
             label
             for label in db_session.query(Label).filter(
-                Label.account_id == self.account_id, Label.deleted_at == None
+                Label.account_id == self.account_id, Label.deleted_at.is_(None)
             )
         }  # noqa
 

@@ -83,7 +83,7 @@ jobs:
             docker push "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}"
 
       - store_artifacts:
-          path: html
+          path: pythoncov
 
       - store_artifacts:
           path: .circleci/artifacts.html

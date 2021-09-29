@@ -14,7 +14,6 @@ os.environ["HYPOTHESIS_DATABASE_FILE"] = os.path.join(hyp_dir, "db")
 import flanker
 from flanker import mime
 from hypothesis import strategies as s
-from hypothesis.extra.datetime import datetimes
 
 
 def _build_address_header(addresslist):
@@ -78,7 +77,7 @@ randint = s.basic(generate=lambda random, _: random.getrandbits(63))
 
 uid_data = s.builds(
     build_uid_data,
-    datetimes(timezones=[]),
+    s.datetimes(timezones=[]),
     s.sampled_from([(), ("\\Seen",)]),
     mime_message,
     s.sampled_from([(), ("\\Inbox",)]),

@@ -8,10 +8,6 @@ ignore=
     F401
     # TODO: ambiguous variable name 'x'
     E741
-    # TODO: '...'.format(...) has unused arguments at position(s): n
-    # TODO: '...'.format(...) has unused named argument(s): arg
-    F523
-    F522
     # TODO: expected 2 blank lines after class or function definition
     E305
     # TODO: invalid escape sequence

@@ -8,7 +8,6 @@ import gdata.client
 import gdata.contacts.client
 import gevent
 from nylas.logging import get_logger
-from sqlalchemy.orm import joinedload
 
 from inbox.auth.google import GoogleAuthHandler
 from inbox.basicauth import ConnectionError, OAuthError, ValidationError

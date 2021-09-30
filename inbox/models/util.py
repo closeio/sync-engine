@@ -1,11 +1,9 @@
-import datetime
 import math
 import time
 from collections import OrderedDict
 
 import gevent
 import limitlion
-import requests
 from nylas.logging import get_logger
 from nylas.logging.sentry import log_uncaught_errors
 from sqlalchemy import desc, func

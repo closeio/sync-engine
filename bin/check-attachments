@@ -5,7 +5,6 @@ from gevent import monkey
 monkey.patch_all()
 
 import datetime
-import traceback
 from collections import defaultdict
 
 import click

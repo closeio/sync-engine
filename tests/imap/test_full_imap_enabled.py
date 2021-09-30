@@ -1,4 +1,3 @@
-import pytest
 from imapclient import IMAPClient
 from mock import Mock
 

@@ -222,7 +222,7 @@ def test_filtering(db, api_client, default_namespace):
     assert results["count"] == 4
 
     results = api_client.get_data(
-        "/threads?view=ids&to={}&limit=3".format("inboxapptest@gmail.com", 3)
+        "/threads?view=ids&to={}&limit=3".format("inboxapptest@gmail.com")
     )
 
     assert len(results) == 3

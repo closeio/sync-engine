@@ -71,7 +71,6 @@ from gevent import Greenlet
 from nylas.logging import get_logger
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import load_only
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.basicauth import ValidationError

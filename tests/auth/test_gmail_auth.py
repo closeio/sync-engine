@@ -1,7 +1,4 @@
-import copy
-
 import attr
-import mock
 import pytest
 
 from inbox.auth.google import GoogleAccountData, GoogleAuthHandler

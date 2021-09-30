@@ -63,8 +63,10 @@ jobs:
             docker-compose run app bash -ec '
               pip install -e . \
               && bin/wait-for-it.sh mysql:3306 \
-              && NYLAS_ENV=test py.test tests/
+              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
+              && coverage html -d pythoncov
             '
+
       - run:
           name: Push the tested image to docker hub
           environment:
@@ -79,6 +81,13 @@ jobs:
             docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}"
             docker push "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}"
             docker push "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}"
+
+      - store_artifacts:
+          path: pythoncov
+
+      - store_artifacts:
+          path: .circleci/artifacts.html
+          destination: artifacts.html
 
 workflows:
   version: 2

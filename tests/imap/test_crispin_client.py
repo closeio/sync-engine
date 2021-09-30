@@ -658,7 +658,7 @@ def test_gmail_many_folders_one_role(monkeypatch, constants):
     # in both cases, only one should come out flagged.
     folders = constants["gmail_folders"]
     duplicates = [
-        (("\HasNoChildren"), "/", u"[Imap]/Trash"),
+        (("\\HasNoChildren"), "/", u"[Imap]/Trash"),
         (("\\HasNoChildren"), "/", u"[Imap]/Sent"),
     ]
     folders += duplicates
@@ -744,7 +744,7 @@ def test_imap_many_folders_one_role(monkeypatch, constants):
     """
     folders = constants["imap_folders"]
     duplicates = [
-        (("\HasNoChildren", "\\Trash"), "/", u"[Gmail]/Trash"),
+        (("\\HasNoChildren", "\\Trash"), "/", u"[Gmail]/Trash"),
         (("\\HasNoChildren"), "/", u"[Gmail]/Sent"),
     ]
     folders += duplicates

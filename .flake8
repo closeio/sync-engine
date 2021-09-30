@@ -14,8 +14,6 @@ ignore=
     F522
     # TODO: expected 2 blank lines after class or function definition
     E305
-    # TODO: invalid escape sequence
-    W605
     # TODO: too many leading '#' for block comment
     E266
     # do not use bare 'except'

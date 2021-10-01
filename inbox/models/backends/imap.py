@@ -209,7 +209,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
     @property
     def categories(self):
-        categories = set([label.category for label in self.labels])
+        categories = set([lbl.category for lbl in self.labels])
         categories.add(self.folder.category)
         return categories
 

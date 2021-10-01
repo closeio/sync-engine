@@ -168,7 +168,7 @@ class SyncbackService(gevent.Greenlet):
             return False
 
         log_entry = log_entries[0]
-        action_log_ids = [l.id for l in log_entries]
+        action_log_ids = [entry.id for entry in log_entries]
         # Check if there was a pending move action that recently completed.
         threshold = datetime.utcnow() - timedelta(seconds=90)
         actionlog = (
@@ -212,7 +212,7 @@ class SyncbackService(gevent.Greenlet):
         account_id = namespace.account.id
         semaphore = self.account_semaphores[account_id]
 
-        actions = set([l.action for l in log_entries])
+        actions = set([entry.action for entry in log_entries])
         assert len(actions) == 1
         action = actions.pop()
 
@@ -243,9 +243,9 @@ class SyncbackService(gevent.Greenlet):
                 .all()
             )
 
-        record_ids = [l.record_id for l in log_entries]
+        record_ids = [entry.record_id for entry in log_entries]
 
-        log_entry_ids = [l.id for l in log_entries]
+        log_entry_ids = [entry.id for entry in log_entries]
 
         if action in ("move", "mark_unread"):
             extra_args = log_entries[-1].extra_args

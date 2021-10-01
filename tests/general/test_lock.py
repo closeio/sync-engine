@@ -8,51 +8,39 @@ from gevent import sleep, spawn
 from inbox.util.file import Lock
 
 
-def lock(block, filename=None):
+def tmp_lock(block, filename=None):
     if filename is None:
         handle, filename = tempfile.mkstemp()
     return Lock(filename, block=block)
 
 
-@pytest.fixture
-def b_lock():
-    """ Blocking lock fixture. """
-    return lock(block=True)
-
-
-@pytest.fixture
-def nb_lock():
-    """ Non-blocking lock fixture. """
-    return lock(block=False)
-
-
-def grab_lock(l):
+def grab_lock(lock):
     """ Stub fn to grab lock inside a Greenlet. """
-    l.acquire()
-    print "Got the lock again", l.filename
-    l.release()
+    lock.acquire()
+    print "Got the lock again", lock.filename
+    lock.release()
 
 
-def test_nb_lock(nb_lock):
-    with nb_lock as l:
-        filename = l.filename
+def test_non_blocking_lock():
+    with tmp_lock(block=False) as lock:
+        filename = lock.filename
         with pytest.raises(IOError):
-            with lock(block=False, filename=filename):
+            with tmp_lock(block=False, filename=filename):
                 pass
     # Should be able to acquire the lock again after the scope ends (also
     # testing that the non-context-manager acquire works).
-    l.acquire()
+    lock.acquire()
     # Should NOT be able to take the same lock from a Greenlet.
-    g = spawn(grab_lock, l)
+    g = spawn(grab_lock, lock)
     g.join()
     assert not g.successful(), "greenlet should throw error"
-    l.release()
+    lock.release()
 
 
-def test_b_lock(b_lock):
-    with b_lock as l:
+def test_blocking_lock():
+    with tmp_lock(block=True) as lock:
         # A greenlet should hang forever if it tries to acquire this lock.
-        g = spawn(grab_lock, l)
+        g = spawn(grab_lock, lock)
         # Wait long enough that the greenlet ought to be able to finish if
         # it's not blocking, but not long enough to make the test suite hella
         # slow.

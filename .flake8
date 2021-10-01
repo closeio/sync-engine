@@ -6,8 +6,6 @@ ignore=
     F811
     # TODO: 'module' imported but unused
     F401
-    # TODO: ambiguous variable name 'x'
-    E741
     # TODO: expected 2 blank lines after class or function definition
     E305
     # TODO: invalid escape sequence

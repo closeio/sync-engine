@@ -156,14 +156,17 @@ def test_adding_trash_or_spam_removes_inbox(
     resp_data = api_client.get_data("/messages/{}".format(message.public_id))
     labels = resp_data["labels"]
     assert len(labels) == 2
-    assert set([l["name"] for l in labels]) == set(["all", "inbox"])
+    assert set([lbl["name"] for lbl in labels]) == set(["all", "inbox"])
 
     # Adding 'trash'/ 'spam' removes 'inbox' (and 'all'),
     # irrespective of whether it's provided in the request or not.
     label_to_add = folder_map[label]
     response = api_client.put_data(
         "/messages/{}".format(message.public_id),
-        {"label_ids": [label_to_add.category.public_id] + [l["id"] for l in labels]},
+        {
+            "label_ids": [label_to_add.category.public_id]
+            + [lbl["id"] for lbl in labels]
+        },
     )
     labels = json.loads(response.data)["labels"]
     assert len(labels) == 1
@@ -186,21 +189,21 @@ def test_adding_a_mutually_exclusive_label_does_not_affect_custom_labels(
         resp_data = api_client.get_data("/messages/{}".format(message.public_id))
         labels = resp_data["labels"]
         assert len(labels) == 2
-        assert key in [l["name"] for l in labels]
-        assert "<3" in [l["display_name"] for l in labels]
+        assert key in [lbl["name"] for lbl in labels]
+        assert "<3" in [lbl["display_name"] for lbl in labels]
 
         # Adding only 'all'/ 'trash'/ 'spam' does not change custom labels.
         response = api_client.put_data(
             "/messages/{}".format(message.public_id),
             {
                 "label_ids": [label_to_add.category.public_id]
-                + [l["id"] for l in labels]
+                + [lbl["id"] for lbl in labels]
             },
         )
         labels = json.loads(response.data)["labels"]
         assert len(labels) == 2
-        assert label in [l["name"] for l in labels]
-        assert "<3" in [l["display_name"] for l in labels]
+        assert label in [lbl["name"] for lbl in labels]
+        assert "<3" in [lbl["display_name"] for lbl in labels]
 
 
 @pytest.mark.parametrize("label", ["all", "trash", "spam"])
@@ -230,7 +233,7 @@ def test_adding_inbox_adds_all_and_removes_trash_spam(
     db.session.commit()
     labels = json.loads(response.data)["labels"]
     assert len(labels) == 2
-    assert set([l["name"] for l in labels]) == set(["all", "inbox"])
+    assert set([lbl["name"] for lbl in labels]) == set(["all", "inbox"])
 
 
 @pytest.mark.parametrize("label", ["all", "trash", "spam"])
@@ -257,8 +260,8 @@ def test_adding_a_custom_label_preserves_other_labels(
     )
     labels = json.loads(response.data)["labels"]
     assert len(labels) == 2
-    assert set([l["name"] for l in labels]) == set([label, None])
-    assert "<3" in [l["display_name"] for l in labels]
+    assert set([lbl["name"] for lbl in labels]) == set([label, None])
+    assert "<3" in [lbl["display_name"] for lbl in labels]
 
 
 @pytest.mark.parametrize("label", ["all", "trash", "spam"])
@@ -284,5 +287,5 @@ def test_removing_a_mutually_exclusive_label_does_not_orphan_a_message(
     )
     labels = json.loads(response.data)["labels"]
     assert len(labels) == 2
-    assert set([l["name"] for l in labels]) == set([label, None])
-    assert "<3" in [l["display_name"] for l in labels]
+    assert set([lbl["name"] for lbl in labels]) == set([label, None])
+    assert "<3" in [lbl["display_name"] for lbl in labels]

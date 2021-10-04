@@ -85,8 +85,6 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
 
     maybe_enable_rollbar()
 
-    os.environ["SENTRY_DSN"] = inbox_config.get("SENTRY_DSN", "")
-
     if config is not None:
         from inbox.util.startup import load_overrides
         config_path = os.path.abspath(config)

@@ -11,12 +11,12 @@ monkey.patch_all()
 import os
 
 import click
-from nylas.logging import configure_logging
 from setproctitle import setproctitle
 
 from inbox.config import config as inbox_config
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.util.startup import preflight
+from nylas.logging import configure_logging
 
 setproctitle("nylas-contact-search-index-service")
 
@@ -38,10 +38,6 @@ def main(prod, config):
         from inbox.util.startup import load_overrides
         config_path = os.path.abspath(config)
         load_overrides(config_path)
-
-    if 'CONTACTS_SEARCH' in inbox_config and 'SENTRY_DSN' in \
-            inbox_config['CONTACTS_SEARCH']:
-        os.environ['SENTRY_DSN'] = inbox_config['CONTACTS_SEARCH']['SENTRY_DSN']
 
     # import here to make sure config overrides are loaded
     from inbox.transactions.search import ContactSearchIndexService

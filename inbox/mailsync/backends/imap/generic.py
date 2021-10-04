@@ -558,7 +558,6 @@ class FolderSyncEngine(Greenlet):
             return None
 
         # Check if the message is valid.
-        # https://sentry.nylas.com/sentry/sync-prod/group/3387/
         if msg.body is None:
             log.warning("Server returned a message with an empty body.")
             return None

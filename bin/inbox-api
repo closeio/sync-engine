@@ -30,8 +30,8 @@ except ImportError:
 
 import click
 from gevent.pywsgi import WSGIServer
-from nylas.api.wsgi import NylasWSGIHandler
 
+from inbox.api.wsgi import NylasWSGIHandler
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.logging import configure_logging, get_logger
 from inbox.mailsync.frontend import SyncbackHTTPFrontend

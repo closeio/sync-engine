@@ -1,9 +1,9 @@
 import base64
 
 import requests
-from nylas.logging import get_logger
 
 from inbox.auth.oauth import OAuthRequestsWrapper
+from inbox.logging import get_logger
 from inbox.models.backends.oauth import token_manager
 from inbox.s3.exc import EmailDeletedException, TemporaryEmailFetchException
 

@@ -1,9 +1,9 @@
 import attr
-from nylas.logging import get_logger
 
 from inbox.basicauth import ImapSupportDisabledError, OAuthError
 from inbox.config import config
 from inbox.crispin import GmailCrispinClient
+from inbox.logging import get_logger
 from inbox.models import Namespace
 from inbox.models.backends.gmail import GmailAccount
 from inbox.models.secret import SecretType

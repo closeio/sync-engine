@@ -10,7 +10,6 @@ from bson import EPOCH_NAIVE, json_util
 # Kind of a ridiculous solution, but works.
 json_util.EPOCH_AWARE = EPOCH_NAIVE
 
-from nylas.logging import get_logger
 from sqlalchemy import String, Text, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext import baked
@@ -20,6 +19,7 @@ from sqlalchemy.interfaces import PoolListener
 from sqlalchemy.sql import operators
 from sqlalchemy.types import BINARY, TypeDecorator
 
+from inbox.logging import get_logger
 from inbox.util.encoding import base36decode, base36encode
 
 log = get_logger()

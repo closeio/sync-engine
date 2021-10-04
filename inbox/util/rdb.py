@@ -9,7 +9,7 @@ import gevent_openssl
 gevent_openssl.monkey_patch()
 from code import InteractiveConsole
 
-from nylas.logging import get_logger
+from inbox.logging import get_logger
 
 log = get_logger()
 

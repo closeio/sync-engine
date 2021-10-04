@@ -1,9 +1,9 @@
 from backports import ssl
 from imapclient import IMAPClient
-from nylas.logging import get_logger
 from OpenSSL._util import lib as ossllib
 
 from inbox.basicauth import SSLNotSupportedError
+from inbox.logging import get_logger
 
 log = get_logger()
 

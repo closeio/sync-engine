@@ -7,11 +7,11 @@ import smtplib
 import time
 import traceback
 
-import nylas.logging
 import pytest
 from flanker import mime
 
 import inbox.api.ns_api
+import inbox.logging
 from inbox.basicauth import OAuthError
 from inbox.models import Event, Message
 from inbox.sendmail.smtp.postel import _substitute_bcc
@@ -848,25 +848,8 @@ def patch_crispin_del_sent(monkeypatch):
     monkeypatch.setattr("inbox.api.ns_api.writable_connection_pool", fake_conn_pool)
 
 
-@pytest.fixture
-def patch_sentry_to_raise(monkeypatch):
-    # This makes it so calls to sentry instead raise an exception in the test
-    # and fail it. This is used to test the multi-send delete endpoint, where
-    # we wrap sent message deletion in a catch-all but still report to sentry.
-    def make_sentry_raise():
-        traceback.print_exc()
-        raise
-
-    monkeypatch.setattr(nylas.logging.sentry, "sentry_alert", make_sentry_raise)
-
-
 def test_multisend_session(
-    api_client,
-    multisend,
-    multisend2,
-    patch_smtp,
-    patch_crispin_del_sent,
-    patch_sentry_to_raise,
+    api_client, multisend, multisend2, patch_smtp, patch_crispin_del_sent,
 ):
 
     r = api_client.post_data("/send-multiple/" + multisend["id"], multisend["send_req"])

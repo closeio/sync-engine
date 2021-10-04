@@ -4,8 +4,8 @@ from json import JSONEncoder, dumps
 
 import arrow
 from flask import Response
-from nylas.logging import get_logger
 
+from inbox.logging import get_logger
 from inbox.models import (
     Account,
     Block,

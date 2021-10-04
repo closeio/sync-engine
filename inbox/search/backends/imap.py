@@ -2,12 +2,12 @@ import socket
 from imaplib import IMAP4
 
 from imapclient import IMAPClient
-from nylas.logging import get_logger
 from sqlalchemy import desc
 
 from inbox.api.kellogs import APIEncoder
 from inbox.basicauth import NotSupportedError, ValidationError
 from inbox.crispin import CrispinClient, FolderMissingError
+from inbox.logging import get_logger
 from inbox.mailsync.backends.imap.generic import UidInvalid, uidvalidity_cb
 from inbox.models import Account, Folder, Message, Thread
 from inbox.models.backends.imap import ImapUid

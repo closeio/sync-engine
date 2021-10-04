@@ -1,9 +1,10 @@
 import sys
 import traceback
 
+import rollbar
 from flask import jsonify, make_response, request
-from nylas.logging.log import create_error_log_context, get_logger
-from nylas.logging.sentry import sentry_alert
+
+from inbox.logging import create_error_log_context, get_logger
 
 log = get_logger()
 
@@ -14,15 +15,14 @@ def get_request_uid(headers):
     return headers.get("X-Unique-ID")
 
 
-def log_exception(exc_info, send_to_sentry=True, **kwargs):
+def log_exception(exc_info, **kwargs):
     """ Add exception info to the log context for the request.
 
     We do not log in a separate log statement in order to make debugging
     easier. As a bonus, this reduces log volume somewhat.
 
     """
-    if send_to_sentry:
-        sentry_alert()
+    rollbar.report_exc_info(exc_info)
 
     if not is_live_env():
         print
@@ -108,7 +108,7 @@ class AccountDoesNotExistError(APIException):
 
 
 def err(http_code, message, **kwargs):
-    """ Handle unexpected errors, including sending the traceback to Sentry. """
+    """ Handle unexpected errors, including sending the traceback to Rollbar. """
     log_exception(sys.exc_info(), user_error_message=message, **kwargs)
     resp = {"type": "api_error", "message": message}
     resp.update(kwargs)

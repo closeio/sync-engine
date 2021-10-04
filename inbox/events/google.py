@@ -9,7 +9,6 @@ import uuid
 import arrow
 import gevent
 import requests
-from nylas.logging import get_logger
 
 from inbox.auth.oauth import OAuthRequestsWrapper
 from inbox.basicauth import AccessNotEnabledError
@@ -20,6 +19,7 @@ from inbox.events.util import (
     parse_datetime,
     parse_google_time,
 )
+from inbox.logging import get_logger
 from inbox.models import Account, Calendar
 from inbox.models.backends.oauth import token_manager
 from inbox.models.event import EVENT_STATUSES, Event

@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from nylas.logging import get_logger
 from sqlalchemy import Column, DateTime, ForeignKey, String
 
 from inbox.basicauth import ConnectionError, OAuthError
 from inbox.config import config
+from inbox.logging import get_logger
 from inbox.models.backends.imap import ImapAccount
 from inbox.models.backends.oauth import OAuthAccount
 from inbox.models.base import MailSyncBase

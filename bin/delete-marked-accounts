@@ -8,6 +8,8 @@ Includes:
 * Account liveness/status data (in Redis).
 
 """
+from __future__ import absolute_import
+
 from gevent import monkey
 
 monkey.patch_all()
@@ -16,10 +18,10 @@ import logging
 
 import click
 import gevent
-from nylas.logging import configure_logging, get_logger
 
 from inbox.config import config
 from inbox.error_handling import maybe_enable_rollbar
+from inbox.logging import configure_logging, get_logger
 from inbox.models.util import batch_delete_namespaces, get_accounts_to_delete
 
 configure_logging(logging.INFO)

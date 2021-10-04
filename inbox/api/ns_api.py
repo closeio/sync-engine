@@ -130,7 +130,7 @@ except ImportError:
     pass
 
 
-from nylas.logging import get_logger
+from inbox.logging import get_logger
 
 log = get_logger()
 

@@ -4,7 +4,6 @@ import time
 from datetime import datetime, timedelta
 
 import pytest
-from nylas.logging import configure_logging
 
 import inbox.heartbeat.config as heartbeat_config
 from inbox.config import config
@@ -15,6 +14,7 @@ from inbox.heartbeat.store import (
     HeartbeatStatusProxy,
     HeartbeatStore,
 )
+from inbox.logging import configure_logging
 
 configure_logging(config.get("LOGLEVEL"))
 

@@ -1,10 +1,10 @@
 from gevent import sleep
 from gevent.coros import BoundedSemaphore
 from gevent.pool import Group
-from nylas.logging import get_logger
 
 from inbox.basicauth import ValidationError
 from inbox.crispin import connection_pool, retry_crispin
+from inbox.logging import get_logger
 from inbox.mailsync.backends.base import BaseMailSyncMonitor
 from inbox.mailsync.backends.imap.generic import FolderSyncEngine
 from inbox.mailsync.gc import DeleteHandler

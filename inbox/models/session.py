@@ -2,7 +2,6 @@ import sys
 import time
 from contextlib import contextmanager
 
-from nylas.logging import find_first_app_frame_and_name, get_logger
 from sqlalchemy import event
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.horizontal_shard import ShardedSession
@@ -10,6 +9,7 @@ from sqlalchemy.orm.session import Session
 
 from inbox.config import config
 from inbox.ignition import engine_manager
+from inbox.logging import find_first_app_frame_and_name, get_logger
 from inbox.util.stats import statsd_client
 
 log = get_logger()
@@ -49,7 +49,7 @@ def new_session(engine, versioned=True):
             ignores=[
                 "sqlalchemy",
                 "inbox.models.session",
-                "nylas.logging",
+                "inbox.logging",
                 "contextlib",
             ]
         )

@@ -7,10 +7,10 @@ import gdata.auth
 import gdata.client
 import gdata.contacts.client
 import gevent
-from nylas.logging import get_logger
 
 from inbox.auth.google import GoogleAuthHandler
 from inbox.basicauth import ConnectionError, OAuthError, ValidationError
+from inbox.logging import get_logger
 from inbox.models import Contact
 from inbox.models.backends.gmail import GmailAccount
 from inbox.models.backends.oauth import token_manager

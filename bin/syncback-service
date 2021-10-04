@@ -16,11 +16,11 @@ gevent_openssl.monkey_patch()
 import os
 
 import click
-from nylas.logging import configure_logging
 from setproctitle import setproctitle
 
 from inbox.config import config as inbox_config
 from inbox.error_handling import maybe_enable_rollbar
+from inbox.logging import configure_logging
 from inbox.mailsync.frontend import SyncbackHTTPFrontend
 from inbox.transactions.actions import SyncbackService
 from inbox.util.logging_helper import reconfigure_logging
@@ -56,8 +56,6 @@ def main(prod, config, process_num, syncback_id, enable_tracer,
     level = os.environ.get('LOGLEVEL', inbox_config.get('LOGLEVEL'))
     configure_logging(log_level=level)
     reconfigure_logging()
-
-    os.environ["SENTRY_DSN"] = inbox_config.get("SENTRY_DSN", "")
 
     total_processes = int(os.environ.get('SYNCBACK_PROCESSES', 1))
 

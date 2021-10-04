@@ -4,6 +4,8 @@ Deletes entries in the transaction older than `days_ago` days( as measured by
 the created_at column)
 
 """
+from __future__ import absolute_import
+
 from gevent import monkey
 
 monkey.patch_all()
@@ -12,10 +14,10 @@ import logging
 
 import click
 import gevent
-from nylas.logging import configure_logging, get_logger
 
 from inbox.config import config
 from inbox.error_handling import maybe_enable_rollbar
+from inbox.logging import configure_logging, get_logger
 from inbox.models.util import purge_transactions
 
 configure_logging(logging.INFO)

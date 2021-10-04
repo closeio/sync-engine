@@ -26,9 +26,9 @@ from datetime import datetime, timedelta
 
 import gevent
 from gevent.lock import Semaphore
-from nylas.logging import get_logger
 from sqlalchemy.orm import joinedload, load_only
 
+from inbox.logging import get_logger
 from inbox.mailsync.backends.base import THROTTLE_COUNT, THROTTLE_WAIT
 from inbox.mailsync.backends.imap import common
 from inbox.mailsync.backends.imap.generic import FolderSyncEngine

@@ -2,11 +2,11 @@ import datetime
 
 import gevent
 from imapclient.imap_utf7 import encode as utf7_encode
-from nylas.logging import get_logger
 from sqlalchemy import func
 from sqlalchemy.orm import load_only
 
 from inbox.crispin import connection_pool
+from inbox.logging import get_logger
 from inbox.mailsync.backends.imap import common
 from inbox.mailsync.backends.imap.generic import uidvalidity_cb
 from inbox.models import Message, Thread

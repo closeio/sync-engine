@@ -1,10 +1,10 @@
 import requests
-from nylas.logging import get_logger
 from sqlalchemy import desc
 
 from inbox.api.kellogs import APIEncoder
 from inbox.auth.oauth import OAuthRequestsWrapper
 from inbox.basicauth import OAuthError
+from inbox.logging import get_logger
 from inbox.models import Account, Message, Thread
 from inbox.models.backends.oauth import token_manager
 from inbox.models.session import session_scope

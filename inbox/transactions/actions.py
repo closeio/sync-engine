@@ -16,8 +16,6 @@ import gevent
 import gevent.event
 from gevent.coros import BoundedSemaphore
 from gevent.queue import Queue
-from nylas.logging import get_logger
-from nylas.logging.sentry import log_uncaught_errors
 from sqlalchemy import desc
 
 from inbox.actions.base import (
@@ -40,8 +38,10 @@ from inbox.actions.base import (
 )
 from inbox.config import config
 from inbox.crispin import writable_connection_pool
+from inbox.error_handling import log_uncaught_errors
 from inbox.events.actions.base import create_event, delete_event, update_event
 from inbox.ignition import engine_manager
+from inbox.logging import get_logger
 from inbox.models import ActionLog, Event
 from inbox.models.session import session_scope, session_scope_by_shard_id
 from inbox.util.concurrency import retry_with_logging

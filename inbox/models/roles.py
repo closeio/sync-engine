@@ -1,10 +1,10 @@
 from hashlib import sha256
 
 from flanker import mime
-from nylas.logging import get_logger
 from sqlalchemy import Column, Integer, String
 
 from inbox.config import config
+from inbox.logging import get_logger
 from inbox.s3.base import get_raw_from_provider
 from inbox.util import blockstore
 from inbox.util.stats import statsd_client

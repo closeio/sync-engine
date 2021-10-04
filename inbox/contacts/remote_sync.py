@@ -1,11 +1,11 @@
 from collections import Counter
 from datetime import datetime
 
-from nylas.logging import get_logger
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.contacts.google import GoogleContactsProvider
 from inbox.contacts.icloud import ICloudContactsProvider
+from inbox.logging import get_logger
 from inbox.models import Account, Contact
 from inbox.models.session import session_scope
 from inbox.sync.base_sync import BaseSyncMonitor

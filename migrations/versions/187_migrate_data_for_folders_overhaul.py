@@ -10,11 +10,11 @@ Create Date: 2015-07-09 00:23:04.918833
 revision = "334b33f18b4f"
 down_revision = "23e204cd1d91"
 
-from nylas.logging import configure_logging, get_logger
 from sqlalchemy import asc
 from sqlalchemy.orm import joinedload, load_only, subqueryload
 
 from inbox.config import config
+from inbox.logging import configure_logging, get_logger
 
 configure_logging(config.get("LOGLEVEL"))
 log = get_logger()

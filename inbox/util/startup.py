@@ -5,9 +5,8 @@ import os
 import sys
 import time
 
-from nylas.logging import get_logger
-
 from inbox.config import config
+from inbox.logging import get_logger
 
 log = get_logger()
 

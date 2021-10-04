@@ -2,7 +2,6 @@ import datetime
 import itertools
 from collections import defaultdict
 
-from nylas.logging import get_logger
 from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import (
     backref,
@@ -12,6 +11,7 @@ from sqlalchemy.orm import (
     validates,
 )
 
+from inbox.logging import get_logger
 from inbox.models.base import MailSyncBase
 from inbox.models.mixins import (
     DeletedAtMixin,

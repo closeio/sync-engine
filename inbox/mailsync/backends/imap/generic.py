@@ -68,12 +68,12 @@ from datetime import datetime, timedelta
 
 import gevent
 from gevent import Greenlet
-from nylas.logging import get_logger
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.basicauth import ValidationError
+from inbox.logging import get_logger
 from inbox.util.concurrency import retry_with_logging
 from inbox.util.debug import bind_context
 from inbox.util.itert import chunk
@@ -558,7 +558,6 @@ class FolderSyncEngine(Greenlet):
             return None
 
         # Check if the message is valid.
-        # https://sentry.nylas.com/sentry/sync-prod/group/3387/
         if msg.body is None:
             log.warning("Server returned a message with an empty body.")
             return None

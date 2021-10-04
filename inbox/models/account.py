@@ -2,8 +2,6 @@ import os
 import traceback
 from datetime import datetime
 
-from nylas.logging import get_logger
-from nylas.logging.sentry import log_uncaught_errors
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -22,6 +20,8 @@ from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import false
 
 from inbox.config import config
+from inbox.error_handling import log_uncaught_errors
+from inbox.logging import get_logger
 from inbox.models.base import MailSyncBase
 from inbox.models.calendar import Calendar
 from inbox.models.mixins import (

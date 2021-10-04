@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from nylas.logging import get_logger
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.api.err import InputError
 from inbox.api.validation import valid_public_id
+from inbox.logging import get_logger
 from inbox.models import Category, MessageCategory
 from inbox.models.action_log import schedule_action
 

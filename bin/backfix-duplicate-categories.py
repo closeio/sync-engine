@@ -7,12 +7,12 @@
 from itertools import chain
 
 import click
-from nylas.logging import configure_logging, get_logger
 from sqlalchemy import func
 from sqlalchemy.sql import and_, exists
 
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.ignition import engine_manager
+from inbox.logging import configure_logging, get_logger
 from inbox.models import Category, MessageCategory
 from inbox.models.session import session_scope_by_shard_id
 

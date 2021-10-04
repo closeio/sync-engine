@@ -5,8 +5,7 @@
 from collections import defaultdict
 from imaplib import IMAP4
 
-from nylas.logging import get_logger
-
+from inbox.logging import get_logger
 from inbox.mailsync.backends.imap.generic import uidvalidity_cb
 from inbox.models import Account, Category, Folder, Message
 from inbox.models.backends.imap import ImapUid

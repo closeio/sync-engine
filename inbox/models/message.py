@@ -6,7 +6,6 @@ from collections import defaultdict
 from hashlib import sha256
 
 from flanker import mime
-from nylas.logging import get_logger
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -32,6 +31,7 @@ from sqlalchemy.orm import (
 from sqlalchemy.sql.expression import false
 
 from inbox.config import config
+from inbox.logging import get_logger
 from inbox.models.base import MailSyncBase
 from inbox.models.category import Category
 from inbox.models.mixins import (

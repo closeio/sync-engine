@@ -68,12 +68,12 @@ from datetime import datetime, timedelta
 
 import gevent
 from gevent import Greenlet
-from nylas.logging import get_logger
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.basicauth import ValidationError
+from inbox.logging import get_logger
 from inbox.util.concurrency import retry_with_logging
 from inbox.util.debug import bind_context
 from inbox.util.itert import chunk

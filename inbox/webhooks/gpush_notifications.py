@@ -1,9 +1,9 @@
 from flask import Blueprint, g, jsonify, make_response, request
-from nylas.logging import get_logger
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.api.err import APIException, InputError, NotFoundError
 from inbox.api.validation import valid_public_id
+from inbox.logging import get_logger
 
 log = get_logger()
 import limitlion

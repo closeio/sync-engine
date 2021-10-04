@@ -1,7 +1,7 @@
 from gevent import Greenlet, GreenletExit, event
-from nylas.logging import get_logger
 
 from inbox.config import config
+from inbox.logging import get_logger
 from inbox.models.session import session_scope
 from inbox.util.concurrency import retry_with_logging
 from inbox.util.debug import bind_context

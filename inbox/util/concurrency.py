@@ -6,11 +6,11 @@ import _mysql_exceptions
 import gevent
 from backports import ssl
 from gevent import socket
-from nylas.logging import create_error_log_context, get_logger
-from nylas.logging.sentry import log_uncaught_errors
 from redis import TimeoutError
 from sqlalchemy.exc import StatementError
 
+from inbox.logging import create_error_log_context, get_logger
+from inbox.logging.sentry import log_uncaught_errors
 from inbox.models import Account
 from inbox.models.session import session_scope
 

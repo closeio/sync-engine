@@ -4,7 +4,8 @@ import re
 
 import htmlentitydefs
 from HTMLParser import HTMLParseError, HTMLParser
-from nylas.logging import get_logger
+
+from inbox.logging import get_logger
 
 
 # http://stackoverflow.com/questions/753052/strip-html-from-strings-in-python

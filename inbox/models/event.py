@@ -5,7 +5,6 @@ from email.utils import parseaddr
 
 import arrow
 from dateutil.parser import parse as date_parse
-from nylas.logging import get_logger
 from sqlalchemy import (
     Boolean,
     Column,
@@ -22,6 +21,7 @@ from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.orm import backref, reconstructor, relationship, validates
 from sqlalchemy.types import TypeDecorator
 
+from inbox.logging import get_logger
 from inbox.models.base import MailSyncBase
 from inbox.models.calendar import Calendar
 from inbox.models.message import Message

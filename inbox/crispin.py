@@ -34,11 +34,11 @@ from backports import ssl
 from gevent import socket
 from gevent.lock import BoundedSemaphore
 from gevent.queue import Queue
-from nylas.logging import get_logger
 from sqlalchemy.orm import joinedload
 
 from inbox.basicauth import GmailSettingError
 from inbox.folder_edge_cases import localized_folder_names
+from inbox.logging import get_logger
 from inbox.models import Account
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.gmail import GmailAccount

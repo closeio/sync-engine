@@ -1,7 +1,6 @@
 import json
 from datetime import datetime
 
-from nylas.logging import get_logger
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -19,6 +18,7 @@ from sqlalchemy.orm import backref, object_session, relationship
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.sql.expression import false
 
+from inbox.logging import get_logger
 from inbox.models.account import Account
 from inbox.models.base import MailSyncBase
 from inbox.models.folder import Folder

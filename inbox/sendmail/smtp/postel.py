@@ -5,7 +5,7 @@ import smtplib
 import socket
 import ssl
 
-from nylas.logging import get_logger
+from inbox.logging import get_logger
 
 log = get_logger()
 from util import SMTP_ERRORS

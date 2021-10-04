@@ -1,9 +1,9 @@
 import arrow
 from dateutil.rrule import FR, MO, SA, SU, TH, TU, WE, rrule, rruleset, rrulestr
-from nylas.logging import get_logger
 from timezones import timezones_table
 
 from inbox.events.util import parse_rrule_datetime
+from inbox.logging import get_logger
 from inbox.models.event import RecurringEvent, RecurringEventOverride
 
 log = get_logger()

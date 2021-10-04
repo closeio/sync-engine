@@ -2,7 +2,6 @@ from flask import Flask, g, jsonify, make_response, request
 from flask.ext.restful import reqparse
 from metrics_api import app as metrics_api
 from ns_api import DEFAULT_LIMIT, app as ns_api
-from nylas.logging import get_logger
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.exceptions import HTTPException, default_exceptions
 
@@ -18,6 +17,7 @@ from inbox.api.validation import (
 from inbox.auth.generic import GenericAccountData, GenericAuthHandler
 from inbox.auth.google import GoogleAccountData, GoogleAuthHandler
 from inbox.auth.microsoft import MicrosoftAccountData, MicrosoftAuthHandler
+from inbox.logging import get_logger
 from inbox.models import Account, Namespace
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.gmail import GOOGLE_EMAIL_SCOPE, GmailAccount

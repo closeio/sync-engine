@@ -1,9 +1,9 @@
-from nylas.logging import get_logger
 from sqlalchemy import Column, DateTime, ForeignKey, String, bindparam
 from sqlalchemy.orm import backref, relationship, synonym, validates
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.schema import UniqueConstraint
 
+from inbox.logging import get_logger
 from inbox.models.base import MailSyncBase
 from inbox.models.category import Category, CategoryNameString, sanitize_name
 from inbox.models.constants import MAX_INDEXABLE_LENGTH

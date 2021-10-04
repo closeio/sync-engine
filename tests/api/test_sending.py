@@ -7,11 +7,11 @@ import smtplib
 import time
 import traceback
 
-import nylas.logging
 import pytest
 from flanker import mime
 
 import inbox.api.ns_api
+import inbox.logging
 from inbox.basicauth import OAuthError
 from inbox.models import Event, Message
 from inbox.sendmail.smtp.postel import _substitute_bcc
@@ -857,7 +857,7 @@ def patch_sentry_to_raise(monkeypatch):
         traceback.print_exc()
         raise
 
-    monkeypatch.setattr(nylas.logging.sentry, "sentry_alert", make_sentry_raise)
+    monkeypatch.setattr(inbox.logging.sentry, "sentry_alert", make_sentry_raise)
 
 
 def test_multisend_session(

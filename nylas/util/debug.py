@@ -6,7 +6,7 @@ import traceback
 import gevent._threading
 import greenlet
 
-from nylas.logging import get_logger
+from inbox.logging import get_logger
 
 MAX_BLOCKING_TIME = 5
 

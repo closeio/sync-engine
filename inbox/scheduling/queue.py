@@ -22,11 +22,11 @@ this happens atomically.
 import itertools
 
 import gevent
-from nylas.logging import get_logger
 from redis import StrictRedis
 
 from inbox.config import config
 from inbox.ignition import engine_manager
+from inbox.logging import get_logger
 from inbox.models import Account
 from inbox.models.session import session_scope_by_shard_id
 from inbox.util.concurrency import retry_with_logging

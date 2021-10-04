@@ -5,10 +5,11 @@ import os
 import random
 import re
 
-import nylas.logging.sentry
 import rollbar
-from nylas.logging import get_logger
 from rollbar.logger import RollbarHandler
+
+import inbox.logging.sentry
+from inbox.logging import get_logger
 
 log = get_logger()
 
@@ -49,7 +50,7 @@ def handle_uncaught_exception(*args, **kwargs):
 # This while hacky is the easiest way to report unhandeled exceptions for now.
 # The code lives in nylas-production-python and
 # assumes that they are handled by Sentry, but we monkeypatch it to Rollbar.
-nylas.logging.sentry.sentry_alert = handle_uncaught_exception
+inbox.logging.sentry.sentry_alert = handle_uncaught_exception
 
 
 def ignore_handler(message_filters, payload, **kw):

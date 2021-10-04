@@ -1,8 +1,8 @@
 from gevent import Greenlet, event, sleep
-from nylas.logging import get_logger
 
 from inbox.basicauth import ConnectionError, ValidationError
 from inbox.heartbeat.store import HeartbeatStatusProxy
+from inbox.logging import get_logger
 from inbox.models import Account
 from inbox.models.session import session_scope
 from inbox.util.concurrency import retry_with_logging

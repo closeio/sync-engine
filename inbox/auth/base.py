@@ -1,10 +1,10 @@
 import socket
 
 from imapclient import IMAPClient
-from nylas.logging import get_logger
 
 from inbox.basicauth import NotSupportedError, UserRecoverableConfigError
 from inbox.crispin import CrispinClient
+from inbox.logging import get_logger
 from inbox.sendmail.smtp.postel import SMTPClient
 
 from .utils import create_imap_connection

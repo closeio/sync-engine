@@ -5,7 +5,6 @@ import arrow
 import pytest
 from dateutil import tz
 from dateutil.rrule import rrulestr
-from nylas.logging import get_logger
 
 from inbox.events.recurring import (
     get_start_times,
@@ -14,6 +13,7 @@ from inbox.events.recurring import (
     rrule_to_json,
 )
 from inbox.events.remote_sync import handle_event_updates
+from inbox.logging import get_logger
 from inbox.models.event import Event, RecurringEvent, RecurringEventOverride
 from inbox.models.when import Date, DateSpan, Time, TimeSpan
 

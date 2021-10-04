@@ -10,8 +10,6 @@ foobar+no_all_mail@gmail.com.
 * OAuth error during scope acceptance
 
 """
-from nylas.logging import get_logger
-
 from inbox.auth.gmail import GmailAuthHandler
 from inbox.basicauth import (
     GmailSettingError,
@@ -19,6 +17,7 @@ from inbox.basicauth import (
     OAuthError,
     UserRecoverableConfigError,
 )
+from inbox.logging import get_logger
 from inbox.models import Namespace
 from inbox.models.backends.gmail import GmailAccount
 

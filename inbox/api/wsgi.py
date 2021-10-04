@@ -5,7 +5,7 @@ import gunicorn.glogging
 from gevent.pywsgi import WSGIHandler, WSGIServer
 from gunicorn.workers.ggevent import GeventWorker
 
-from nylas.logging import configure_logging, get_logger
+from inbox.logging import configure_logging, get_logger
 from nylas.util.debug import Tracer
 
 log = get_logger()

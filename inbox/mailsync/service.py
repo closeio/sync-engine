@@ -4,8 +4,6 @@ import time
 
 import gevent
 from gevent.lock import BoundedSemaphore
-from nylas.logging import get_logger
-from nylas.logging.sentry import log_uncaught_errors
 from sqlalchemy import and_, or_
 from sqlalchemy.exc import OperationalError
 
@@ -13,6 +11,8 @@ from inbox.config import config
 from inbox.contacts.remote_sync import ContactSync
 from inbox.events.remote_sync import EventSync, GoogleEventSync
 from inbox.heartbeat.status import clear_heartbeat_status
+from inbox.logging import get_logger
+from inbox.logging.sentry import log_uncaught_errors
 from inbox.mailsync.backends import module_registry
 from inbox.models import Account
 from inbox.models.session import global_session_scope, session_scope

@@ -7,10 +7,10 @@ from warnings import filterwarnings
 import gevent
 import limitlion
 import redis
-from nylas.logging import find_first_app_frame_and_name, get_logger
 from sqlalchemy import create_engine, event
 
 from inbox.config import config
+from inbox.logging import find_first_app_frame_and_name, get_logger
 from inbox.sqlalchemy_ext.util import (
     ForceStrictMode,
     disabled_dubiously_many_queries_warning,
@@ -98,7 +98,7 @@ def engine(
         log = get_logger()
         context = log._context._dict.copy()
         f, name = find_first_app_frame_and_name(
-            ignores=["sqlalchemy", "inbox.ignition", "nylas.logging"]
+            ignores=["sqlalchemy", "inbox.ignition", "inbox.logging"]
         )
         source = "{}:{}".format(name, f.f_lineno)
 

@@ -2,8 +2,8 @@ import json
 import time
 
 import gevent
-from nylas.logging import get_logger
 
+from inbox.logging import get_logger
 from inbox.models.account import Account
 from inbox.models.session import session_scope
 from inbox.scheduling import event_queue

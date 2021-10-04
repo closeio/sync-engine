@@ -6,12 +6,12 @@ Create event contact associations for events that don't have any.
 from __future__ import division
 
 import click
-from nylas.logging import configure_logging, get_logger
 from sqlalchemy import asc
 
 from inbox.contacts.processing import update_contacts_from_event
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.ignition import engine_manager
+from inbox.logging import configure_logging, get_logger
 from inbox.models import Event
 from inbox.models.session import session_scope_by_shard_id
 from inbox.models.util import limitlion

@@ -1,4 +1,3 @@
-from nylas.logging import get_logger
 from sqlalchemy import (
     BigInteger,
     Column,
@@ -12,6 +11,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
+from inbox.logging import get_logger
 from inbox.models.base import MailSyncBase
 from inbox.models.mixins import DeletedAtMixin, UpdatedAtMixin
 from inbox.models.namespace import Namespace

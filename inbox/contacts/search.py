@@ -3,10 +3,10 @@ import re
 
 import boto3
 from flanker.addresslib import address
-from nylas.logging import get_logger
 from sqlalchemy.orm import joinedload
 
 from inbox.config import config
+from inbox.logging import get_logger
 from inbox.models import Contact
 from inbox.models.session import session_scope
 from inbox.sqlalchemy_ext.util import safer_yield_per

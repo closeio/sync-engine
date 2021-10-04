@@ -11,9 +11,9 @@ import gevent.hub
 import greenlet
 import psutil
 import thread
-from nylas.logging import get_logger
 
 from inbox.config import config
+from inbox.logging import get_logger
 from inbox.util.concurrency import retry_with_logging
 from inbox.util.stats import get_statsd_client
 

@@ -1,12 +1,12 @@
 from datetime import datetime
 
-from nylas.logging import get_logger
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, String
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy.orm.exc import MultipleResultsFound
 from sqlalchemy.schema import UniqueConstraint
 
+from inbox.logging import get_logger
 from inbox.models.base import MailSyncBase
 from inbox.models.constants import MAX_INDEXABLE_LENGTH
 from inbox.models.mixins import (

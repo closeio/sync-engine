@@ -1,9 +1,9 @@
 import json
 
-from nylas.logging import get_logger
 from redis import StrictRedis
 
 from inbox.config import config
+from inbox.logging import get_logger
 
 log = get_logger()
 

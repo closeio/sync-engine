@@ -6,12 +6,13 @@ import logging
 import os
 import random
 import re
+import sys
 
 import rollbar
 from rollbar.logger import RollbarHandler
 
 import inbox.error_handling
-from inbox.logging import get_logger
+from inbox.logging import create_error_log_context, get_logger
 
 log = get_logger()
 
@@ -43,11 +44,6 @@ class SyncEngineRollbarHandler(RollbarHandler):
         }
 
         return super(SyncEngineRollbarHandler, self).emit(record)
-
-
-import sys
-
-from inbox.logging import create_error_log_context, get_logger
 
 
 def log_uncaught_errors(logger=None, **kwargs):

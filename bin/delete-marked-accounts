@@ -8,6 +8,8 @@ Includes:
 * Account liveness/status data (in Redis).
 
 """
+from __future__ import absolute_import
+
 from gevent import monkey
 
 monkey.patch_all()

@@ -5,6 +5,8 @@ Logging configuration.
 Mostly based off http://www.structlog.org/en/16.1.0/standard-library.html.
 
 """
+from __future__ import absolute_import
+
 import logging
 import logging.handlers
 import os

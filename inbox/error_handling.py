@@ -11,7 +11,6 @@ import sys
 import rollbar
 from rollbar.logger import RollbarHandler
 
-import inbox.error_handling
 from inbox.logging import create_error_log_context, get_logger
 
 log = get_logger()

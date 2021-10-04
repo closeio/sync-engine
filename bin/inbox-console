@@ -10,6 +10,7 @@ from setproctitle import setproctitle
 setproctitle('inbox-console')
 
 import click
+
 from inbox.logging import get_logger
 
 log = get_logger()

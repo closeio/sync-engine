@@ -1,8 +1,8 @@
 import sys
 import traceback
 
-from flask import jsonify, make_response, request
 import rollbar
+from flask import jsonify, make_response, request
 
 from inbox.logging import create_error_log_context, get_logger
 

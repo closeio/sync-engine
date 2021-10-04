@@ -10,12 +10,12 @@ from collections import defaultdict
 import click
 import gevent
 from gevent.pool import Pool
-from nylas.logging import configure_logging, get_logger
 from sqlalchemy import true
 from sqlalchemy.sql.expression import func
 
 from inbox.crispin import connection_pool
 from inbox.error_handling import maybe_enable_rollbar
+from inbox.logging import configure_logging, get_logger
 from inbox.models import Account, Block
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.session import (

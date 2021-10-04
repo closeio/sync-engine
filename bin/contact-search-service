@@ -15,8 +15,8 @@ from setproctitle import setproctitle
 
 from inbox.config import config as inbox_config
 from inbox.error_handling import maybe_enable_rollbar
+from inbox.logging import configure_logging
 from inbox.util.startup import preflight
-from nylas.logging import configure_logging
 
 setproctitle("nylas-contact-search-index-service")
 

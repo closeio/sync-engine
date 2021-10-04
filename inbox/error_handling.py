@@ -8,7 +8,7 @@ import re
 import rollbar
 from rollbar.logger import RollbarHandler
 
-import inbox.logging.sentry
+import inbox.error_handling
 from inbox.logging import get_logger
 
 log = get_logger()
@@ -43,14 +43,25 @@ class SyncEngineRollbarHandler(RollbarHandler):
         return super(SyncEngineRollbarHandler, self).emit(record)
 
 
-def handle_uncaught_exception(*args, **kwargs):
+import sys
+
+from inbox.logging import create_error_log_context, get_logger
+
+
+def log_uncaught_errors(logger=None, **kwargs):
+    """
+    Helper to log uncaught exceptions.
+
+    Parameters
+    ----------
+    logger: structlog.BoundLogger, optional
+        The logging object to write to.
+
+    """
+    logger = logger or get_logger()
+    kwargs.update(create_error_log_context(sys.exc_info()))
+    logger.error("Uncaught error", **kwargs)
     rollbar.report_exc_info()
-
-
-# This while hacky is the easiest way to report unhandeled exceptions for now.
-# The code lives in nylas-production-python and
-# assumes that they are handled by Sentry, but we monkeypatch it to Rollbar.
-inbox.logging.sentry.sentry_alert = handle_uncaught_exception
 
 
 def ignore_handler(message_filters, payload, **kw):

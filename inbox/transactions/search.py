@@ -11,9 +11,9 @@ from inbox.contacts.search import (
     cloudsearch_contact_repr,
     get_doc_service,
 )
+from inbox.error_handling import log_uncaught_errors
 from inbox.ignition import engine_manager
 from inbox.logging import get_logger
-from inbox.logging.sentry import log_uncaught_errors
 from inbox.models import Contact, Transaction
 from inbox.models.search import ContactSearchIndexCursor
 from inbox.models.session import session_scope_by_shard_id

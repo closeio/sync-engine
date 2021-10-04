@@ -7,10 +7,10 @@ import limitlion
 from sqlalchemy import desc, func
 from sqlalchemy.orm.exc import NoResultFound
 
+from inbox.error_handling import log_uncaught_errors
 from inbox.heartbeat.status import clear_heartbeat_status
 from inbox.ignition import redis_txn
 from inbox.logging import get_logger
-from inbox.logging.sentry import log_uncaught_errors
 from inbox.models import Account, Block, Message, Namespace
 from inbox.models.session import session_scope, session_scope_by_shard_id
 from inbox.models.transaction import TXN_REDIS_KEY, Transaction

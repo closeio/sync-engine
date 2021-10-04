@@ -9,8 +9,8 @@ from gevent import socket
 from redis import TimeoutError
 from sqlalchemy.exc import StatementError
 
+from inbox.error_handling import log_uncaught_errors
 from inbox.logging import create_error_log_context, get_logger
-from inbox.logging.sentry import log_uncaught_errors
 from inbox.models import Account
 from inbox.models.session import session_scope
 

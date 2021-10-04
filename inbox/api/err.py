@@ -3,8 +3,7 @@ import traceback
 
 from flask import jsonify, make_response, request
 
-from inbox.logging.log import create_error_log_context, get_logger
-from inbox.logging.sentry import sentry_alert
+from inbox.logging import create_error_log_context, get_logger
 
 log = get_logger()
 
@@ -22,9 +21,6 @@ def log_exception(exc_info, send_to_sentry=True, **kwargs):
     easier. As a bonus, this reduces log volume somewhat.
 
     """
-    if send_to_sentry:
-        sentry_alert()
-
     if not is_live_env():
         print
         traceback.print_exc()

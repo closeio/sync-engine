@@ -1,7 +1,5 @@
 import json
 
-from tests.api.base import api_client
-
 
 def test_create_generic_account(db, api_client):
     resp = api_client.post_data(

@@ -1,8 +1,6 @@
 import json
 from base64 import b64encode
 
-from pytest import fixture, yield_fixture
-
 
 def new_api_client(db, namespace):
     from inbox.api.srv import app
@@ -10,20 +8,6 @@ def new_api_client(db, namespace):
     app.config["TESTING"] = True
     with app.test_client() as c:
         return TestAPIClient(c, namespace.public_id)
-
-
-@yield_fixture
-def api_client(db, default_namespace):
-    from inbox.api.srv import app
-
-    app.config["TESTING"] = True
-    with app.test_client() as c:
-        yield TestAPIClient(c, default_namespace.public_id)
-
-
-@fixture
-def imap_api_client(db, generic_account):
-    return new_api_client(db, generic_account.namespace)
 
 
 class TestAPIClient(object):

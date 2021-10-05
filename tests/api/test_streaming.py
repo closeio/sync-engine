@@ -6,13 +6,10 @@ from gevent import Greenlet
 
 from inbox.util.url import url_concat
 
-from tests.api.base import api_client
 from tests.util.base import add_fake_message
 
 GEVENT_EPSILON = 0.5  # Greenlet switching time. VMs on Macs suck :()
 LONGPOLL_EPSILON = 2 + GEVENT_EPSILON  # API implementation polls every second
-
-__all__ = ["api_client"]
 
 
 @pytest.yield_fixture

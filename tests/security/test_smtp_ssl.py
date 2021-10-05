@@ -10,7 +10,7 @@ import sys
 import gevent
 import pytest
 
-from tests.api.base import api_client, new_api_client
+from tests.api.base import new_api_client
 from tests.util.base import default_account
 
 smtpd.DEBUGSTREAM = sys.stderr

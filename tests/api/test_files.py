@@ -10,10 +10,6 @@ import pytest
 from inbox.models import Block, Part
 from inbox.util.testutils import FILENAMES
 
-from tests.api.base import api_client
-
-__all__ = ["api_client"]
-
 
 @pytest.fixture
 def draft(db, default_account):

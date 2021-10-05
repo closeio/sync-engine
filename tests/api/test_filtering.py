@@ -7,10 +7,9 @@ from sqlalchemy import desc
 from inbox.models import Block, Category, Message, Namespace, Thread
 from inbox.util.misc import dt_to_timestamp
 
-from tests.api.base import api_client
 from tests.util.base import add_fake_message, add_fake_thread, test_client
 
-__all__ = ["api_client", "test_client"]
+__all__ = ["test_client"]
 
 
 def test_filtering(db, api_client, default_namespace):

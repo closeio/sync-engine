@@ -52,8 +52,9 @@ RUN \
   virtualenv /opt/venv && \
   pip install setuptools==44.0.0 && \
   pip install pip==20.3.4 && \
-  pip install -r requirements_frozen.txt && \
-  pip install -e .
+  pip install --no-deps -r requirements_frozen.txt && \
+  pip install -e . && \
+  pip check
 
 RUN ln -s /opt/app/bin/wait-for-it.sh /opt/venv/bin/
 

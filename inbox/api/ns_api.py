@@ -59,7 +59,6 @@ from inbox.api.validation import (
     strict_bool,
     strict_parse_args,
     timestamp,
-    valid_account,
     valid_category_type,
     valid_delta_object_types,
     valid_display_name,

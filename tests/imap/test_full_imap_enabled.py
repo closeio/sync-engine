@@ -1,9 +1,6 @@
 from imapclient import IMAPClient
 from mock import Mock
 
-from inbox.auth.generic import GenericAuthHandler
-from inbox.basicauth import UserRecoverableConfigError
-
 
 class MockIMAPClient(IMAPClient):
     def __init__(self):

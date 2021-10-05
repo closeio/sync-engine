@@ -9,12 +9,24 @@ import gevent_openssl
 
 gevent_openssl.monkey_patch()
 
+from pytest import yield_fixture
+
 from inbox.util.testutils import files  # noqa
 from inbox.util.testutils import mock_dns_resolver  # noqa
 from inbox.util.testutils import mock_imapclient  # noqa
 from inbox.util.testutils import mock_smtp_get_connection  # noqa
-from inbox.util.testutils import uploaded_file_ids
+from inbox.util.testutils import uploaded_file_ids  # noqa
 
+from tests.api.base import TestAPIClient
 from tests.util.base import *  # noqa
 
 from inbox.util.testutils import dump_dns_queries  # noqa; noqa
+
+
+@yield_fixture
+def api_client(db, default_namespace):
+    from inbox.api.srv import app
+
+    app.config["TESTING"] = True
+    with app.test_client() as c:
+        yield TestAPIClient(c, default_namespace.public_id)

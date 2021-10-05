@@ -2,10 +2,9 @@ import json
 
 import pytest
 
-from tests.api.base import api_client
 from tests.util.base import calendar
 
-__all__ = ["calendar", "api_client"]
+__all__ = ["calendar"]
 
 
 # TODO(emfree) WTF is all this crap anyways?

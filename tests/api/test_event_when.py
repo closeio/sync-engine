@@ -3,10 +3,6 @@ import json
 import arrow
 import pytest
 
-from tests.api.base import api_client
-
-__all__ = ["api_client"]
-
 
 class CreateError(Exception):
     pass

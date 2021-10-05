@@ -2,10 +2,9 @@ from sqlalchemy import true
 
 from inbox.models import Calendar
 
-from tests.api.base import api_client
 from tests.util.base import add_fake_event, db, default_namespace
 
-__all__ = ["api_client", "db", "default_namespace"]
+__all__ = ["db", "default_namespace"]
 
 
 def test_get_calendar(db, default_namespace, api_client):

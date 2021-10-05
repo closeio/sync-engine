@@ -1,5 +1,5 @@
 # flake8: noqa: F811
-from tests.api.base import api_client, new_api_client
+from tests.api.base import new_api_client
 from tests.util.base import add_fake_yahoo_account, db, generic_account, gmail_account
 
 __all__ = ["db", "api_client", "generic_account", "gmail_account"]

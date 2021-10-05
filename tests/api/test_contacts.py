@@ -1,9 +1,8 @@
 from inbox.models import Contact
 
-from tests.api.base import api_client
 from tests.util.base import contact_sync, contacts_provider
 
-__all__ = ["contacts_provider", "contact_sync", "api_client"]
+__all__ = ["contacts_provider", "contact_sync"]
 
 
 def test_api_list(contacts_provider, contact_sync, db, api_client, default_namespace):

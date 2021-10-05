@@ -77,7 +77,6 @@ packaging==20.9
 pathlib2==2.3.6
 pbr==3.1.1
 pep8==1.4.6
-pkg-resources==0.0.0
 pluggy==0.13.1
 ply==3.10
 psutil==3.3.0

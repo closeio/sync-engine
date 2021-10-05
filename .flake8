@@ -2,8 +2,6 @@
 ignore=
     # TODO: undefined name 'name'
     F821
-    # TODO: redefinition of unused 'symbol' from line n
-    F811
     # TODO: 'module' imported but unused
     F401
     # TODO: expected 2 blank lines after class or function definition

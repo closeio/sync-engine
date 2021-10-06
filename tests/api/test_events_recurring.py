@@ -23,7 +23,7 @@ def recurring_event(db, default_namespace, request):
         .order_by("id")
         .first()
     )
-    ev = Event(
+    ev = Event.create(
         namespace_id=default_namespace.id,
         calendar=cal,
         title="recurring-weekly",
@@ -144,7 +144,7 @@ def test_api_expand_recurring_before_after(db, api_client, recurring_event):
 def test_api_override_serialization(db, api_client, default_namespace, recurring_event):
     event = recurring_event
 
-    override = Event(
+    override = Event.create(
         original_start_time=event.start,
         master_event_uid=event.uid,
         namespace_id=default_namespace.id,

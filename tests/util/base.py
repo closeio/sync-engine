@@ -484,7 +484,7 @@ def add_fake_event(
     start = start or datetime.utcnow()
     end = end or (datetime.utcnow() + timedelta(seconds=1))
     calendar = calendar or add_fake_calendar(db_session, namespace_id)
-    event = Event(
+    event = Event.create(
         namespace_id=namespace_id,
         calendar=calendar,
         title=title,

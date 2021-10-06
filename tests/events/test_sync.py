@@ -71,21 +71,31 @@ def calendar_response_with_delete():
 def event_response(calendar_uid, sync_from_time):
     if calendar_uid == "first_calendar_uid":
         return [
-            Event(uid="first_event_uid", title="Plotting Meeting", **default_params),
-            Event(uid="second_event_uid", title="Scheming meeting", **default_params),
-            Event(uid="third_event_uid", title="Innocent Meeting", **default_params),
+            Event.create(
+                uid="first_event_uid", title="Plotting Meeting", **default_params
+            ),
+            Event.create(
+                uid="second_event_uid", title="Scheming meeting", **default_params
+            ),
+            Event.create(
+                uid="third_event_uid", title="Innocent Meeting", **default_params
+            ),
         ]
     else:
         return [
-            Event(uid="second_event_uid", title="Plotting Meeting", **default_params),
-            Event(uid="third_event_uid", title="Scheming meeting", **default_params),
+            Event.create(
+                uid="second_event_uid", title="Plotting Meeting", **default_params
+            ),
+            Event.create(
+                uid="third_event_uid", title="Scheming meeting", **default_params
+            ),
         ]
 
 
 def event_response_with_update(calendar_uid, sync_from_time):
     if calendar_uid == "first_calendar_uid":
         return [
-            Event(
+            Event.create(
                 uid="first_event_uid",
                 title="Top Secret Plotting Meeting",
                 **default_params
@@ -95,7 +105,7 @@ def event_response_with_update(calendar_uid, sync_from_time):
 
 def event_response_with_participants_update(calendar_uid, sync_from_time):
     if calendar_uid == "first_calendar_uid":
-        new_events = [Event(uid="first_event_uid", **default_params)]
+        new_events = [Event.create(uid="first_event_uid", **default_params)]
         new_events[0].participants = [
             {"name": "Johnny Thunders", "email": "johnny@thunde.rs"}
         ]
@@ -104,7 +114,9 @@ def event_response_with_participants_update(calendar_uid, sync_from_time):
 
 def event_response_with_delete(calendar_uid, sync_from_time):
     if calendar_uid == "first_calendar_uid":
-        return [Event(uid="first_event_uid", status="cancelled", **default_params)]
+        return [
+            Event.create(uid="first_event_uid", status="cancelled", **default_params)
+        ]
 
 
 def test_handle_changes(db, generic_account):

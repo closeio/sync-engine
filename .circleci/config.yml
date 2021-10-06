@@ -88,6 +88,51 @@ jobs:
       - store_artifacts:
           path: .circleci/artifacts.html
           destination: artifacts.html
+  build_arm:
+    machine:
+      image: ubuntu-2004:202101-01
+    resource_class: arm.medium
+    working_directory: ~/sync-engine
+
+    steps:
+      - checkout
+
+      - run:
+          name: build sync-engine image
+          command: docker-compose build app
+
+      - run:
+          name: run tests
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker-compose run app bash -ec '
+              pip install -e . \
+              && bin/wait-for-it.sh mysql:3306 \
+              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
+              && coverage html -d pythoncov
+            '
+
+      - run:
+          name: Push the tested image to docker hub
+          environment:
+            PROJECT: sync-engine
+            PROJECT_NAMESPACE: closeio
+          command: |
+            PROJECT_VSN="$CIRCLE_BRANCH"
+            PROJECT_SHA="$CIRCLE_SHA1"
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            # tag and push both sync-engine:master and sync-engine:<sha1>
+            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-arm"
+            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-arm"
+            docker push "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-arm"
+            docker push "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-arm"
+
+      - store_artifacts:
+          path: pythoncov
+
+      - store_artifacts:
+          path: .circleci/artifacts.html
+          destination: artifacts.html
 
 workflows:
   version: 2
@@ -96,3 +141,4 @@ workflows:
       - static-code-analysis
       - static-code-analysis-flake8
       - build
+      - build_arm

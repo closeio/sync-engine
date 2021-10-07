@@ -30,6 +30,7 @@ RUN DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get dist-upgrade -y 
   telnet \
   tzdata \
   vim \
+  libffi-dev \
   && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir /etc/inboxapp && \

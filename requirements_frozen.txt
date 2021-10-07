@@ -42,7 +42,7 @@ gevent-openssl==1.2
 gevent-socketio==0.3.5rc2
 gevent-websocket==0.10.1
 greenlet==0.4.9
-gunicorn==19.4.5
+gunicorn==19.10.0
 guppy==0.1.10
 hiredis==0.1.5
 html2text==2014.9.8

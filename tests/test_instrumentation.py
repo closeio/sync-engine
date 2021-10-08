@@ -22,5 +22,6 @@ def test_greenlet_tracer(monkeypatch):
     assert method == "info"
     assert args == ("greenlet stats",)
     assert kwargs["total_time"] >= logging_interval
+    assert kwargs["pending_avgs"] == {1: 0, 5: 0, 15: 0}  # always 0 after one cycle
 
     greenlet_tracer.stop()

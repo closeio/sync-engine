@@ -51,7 +51,6 @@ html2text==2014.9.8
 httplib2==0.8
 hypothesis==4.57.1
 icalendar==3.9.1
-iconv==1.0
 idna==2.6
 git+https://github.com/closeio/imapclient.git@aca1b9b3624f28dca8fdf5e140704c8b7d57820f#egg=imapclient
 importlib-metadata==2.1.1

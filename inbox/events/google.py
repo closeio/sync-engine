@@ -577,7 +577,7 @@ def parse_event_response(event, read_only_calendar):
     elif visibility == "confidential":
         visibility = "private"
 
-    return Event(
+    return Event.create(
         uid=uid,
         raw_data=raw_data,
         title=title,

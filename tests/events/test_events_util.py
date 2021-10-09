@@ -19,7 +19,7 @@ def test_base36_validation():
 def test_event_organizer_parsing():
     from inbox.models.event import Event
 
-    e = Event()
+    e = Event.create()
     e.owner = "Jean Lecanuet <jean.lecanuet@orange.fr>"
     assert e.organizer_email == "jean.lecanuet@orange.fr"
 
@@ -54,7 +54,7 @@ def test_unicode_event_truncation(db, default_account):
     emoji_str = u"".join([u"😁" for i in range(300)])
     title = "".join(["a" for i in range(2000)])
 
-    e = Event(
+    e = Event.create(
         raw_data="",
         busy=True,
         all_day=False,
@@ -79,7 +79,7 @@ def test_unicode_event_truncation(db, default_account):
     assert len(e.title) == 1024
     assert len(e.uid) == 767
 
-    e = RecurringEventOverride(
+    e = Event.create(
         raw_data="",
         busy=True,
         all_day=False,
@@ -106,7 +106,7 @@ def test_unicode_event_truncation(db, default_account):
 def test_event_emails():
     from inbox.models.event import Event
 
-    e = Event()
+    e = Event.create()
 
     e.description = "Email: test@example.com."
     assert e.emails_from_description == ["test@example.com"]

@@ -395,7 +395,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
             return []
 
     @classmethod
-    def __new__(cls, *args, **kwargs):
+    def create(cls, **kwargs):
         # Decide whether or not to instantiate a RecurringEvent/Override
         # based on the kwargs we get.
         cls_ = cls
@@ -407,7 +407,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
             cls_ = RecurringEvent
         if master_event_uid:
             cls_ = RecurringEventOverride
-        return object.__new__(cls_, *args, **kwargs)
+        return cls_(**kwargs)
 
     def __init__(self, **kwargs):
         # Allow arguments for all subclasses to be passed to main constructor

@@ -50,7 +50,7 @@ def test_token(db, config, encrypt):
 
     """
     config["ENCRYPT_SECRETS"] = encrypt
-    token = "tH*$&123abcº™™∞"
+    token = u"tH*$&123abcº™™∞"
 
     email = "vault.test@localhost.com"
     account_data = GoogleAccountData(
@@ -78,11 +78,14 @@ def test_token(db, config, encrypt):
     if encrypt:
         assert secret._secret != token, "token not encrypted"
     else:
-        assert secret._secret == token, "token encrypted when encryption disabled"
+        assert secret._secret == token.encode(
+            "utf-8"
+        ), "token encrypted when encryption disabled"
 
     decrypted_secret = secret.secret
     assert (
-        decrypted_secret == token and account.refresh_token == decrypted_secret
+        decrypted_secret == token.encode("utf-8")
+        and account.refresh_token == decrypted_secret
     ), "token not decrypted correctly"
 
     # db.session.delete(account.auth_credentials[0])
@@ -113,7 +116,7 @@ def test_token_inputs(db, config, encrypt, default_account):
     secret = db.session.query(Secret).get(secret_id)
 
     assert not isinstance(secret.secret, str), "secret cannot be unicode"
-    assert secret.secret == unicode_token, "token not decrypted correctly"
+    assert secret.secret == unicode_token.encode(), "token not decrypted correctly"
 
     with pytest.raises(ValueError) as e:
         default_account.refresh_token = invalid_token
@@ -125,4 +128,4 @@ def test_token_inputs(db, config, encrypt, default_account):
 
     assert f.typename == "ValueError", "token cannot contain NULL byte"
 
-    assert default_account.refresh_token == unicode_token
+    assert default_account.refresh_token == unicode_token.encode()

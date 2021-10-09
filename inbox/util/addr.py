@@ -34,10 +34,9 @@ def parse_mimepart_address_header(mimepart, header_name):
     # (1) You can have multiple occurrences of the same header;
     # (2) Phrases or comments can be RFC2047-style encoded words;
     # (3) Everything is terrible.
-    # Here, for each occurrence of the header in question, we first parse
-    # it into a list of (phrase, addrspec) tuples and then use flanker to
-    # decode any encoded words.
-    # You want to do it in that order, because otherwise if you get a header
+    # Here, for each occurrence of the header in question, we parse
+    # it into a list of EmailAddress objects
+    # You want to do it using flanker, because otherwise if you get a header
     # like
     # From: =?utf-8?Q?FooCorp=2C=20Inc.=? <info@foocorp.com>
     # you can end up parsing 'FooCorp, Inc. <info@foocorp.com> (note lack of

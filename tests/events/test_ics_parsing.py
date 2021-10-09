@@ -248,7 +248,7 @@ def test_multiple_events(db, default_account):
     assert len(ev0.participants) == 0
     assert len(ev1.participants) == 0
 
-    assert ev1.start == arrow.get(2015, 03, 17, 0, 0)
+    assert ev1.start == arrow.get(2015, 3, 17, 0, 0)
 
 
 def test_icalendar_import(db, generic_account, message):

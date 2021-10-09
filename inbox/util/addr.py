@@ -1,6 +1,5 @@
 import re
 
-import rfc822
 from flanker.addresslib import address
 from flanker.mime.message.headers.encodedword import decode
 from flanker.mime.message.headers.parsing import normalize
@@ -46,8 +45,8 @@ def parse_mimepart_address_header(mimepart, header_name):
     # Consult RFC822 Section 6.1 and RFC2047 section 5 for details.
     addresses = set()
     for section in mimepart.headers._v.getall(normalize(header_name)):
-        for phrase, addrspec in rfc822.AddressList(section).addresslist:
-            addresses.add((decode(phrase), decode(addrspec)))
+        for addr in address.parse_list(section):
+            addresses.add((addr.display_name, addr.address))
 
     # Return a list of lists because it makes it easier to compare an address
     # field to one which has been fetched from the db.

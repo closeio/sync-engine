@@ -46,7 +46,7 @@ jobs:
 
   build:
     machine:
-      image: ubuntu-1604:201903-01 
+      image: ubuntu-1604:201903-01
     working_directory: ~/sync-engine
 
     steps:
@@ -88,6 +88,56 @@ jobs:
       - store_artifacts:
           path: .circleci/artifacts.html
           destination: artifacts.html
+
+  build-python3.6:
+    machine:
+      image: ubuntu-1604:201903-01
+    working_directory: ~/sync-engine
+
+    steps:
+      - checkout
+
+      - run:
+          name: build sync-engine image
+          command: docker-compose build --build-arg PYTHON_VERSION=3.6 app
+
+      - run:
+          name: run tests
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker-compose run app bash -ec '
+              pip install -e . \
+              && bin/wait-for-it.sh mysql:3306 \
+              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
+              && coverage html -d pythoncov
+            '
+      # Not pushing Python 3.6 image of the time being
+
+  build-python3.8:
+    machine:
+      image: ubuntu-1604:201903-01 
+    working_directory: ~/sync-engine
+
+    steps:
+      - checkout
+
+      - run:
+          name: build sync-engine image
+          command: docker-compose build --build-arg PYTHON_VERSION=3.8 app
+
+      - run:
+          name: run tests
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker-compose run app bash -ec '
+              pip install -e . \
+              && bin/wait-for-it.sh mysql:3306 \
+              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
+              && coverage html -d pythoncov
+            '
+
+      # Not pushing Python 3.8 image of the time being
+
   build_arm:
     machine:
       image: ubuntu-2004:202101-01

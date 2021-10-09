@@ -512,7 +512,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
             batch = []
             while dl_size < max_download_bytes and len(batch) < max_download_count:
                 try:
-                    uid = expanded_pending_uids.next()
+                    uid = next(expanded_pending_uids)
                 except StopIteration:
                     break
                 batch.append(uid)

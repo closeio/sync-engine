@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import random
 
 from boto import ec2
@@ -30,7 +32,7 @@ def get_sync_hosts_in_zone(zone, level, include_debug=False):
                         continue
                     instances.append(i)
         except:
-            print "Unable to connect to region {}".format(region.name)
+            print("Unable to connect to region {}".format(region.name))
             raise
     return [
         {
@@ -70,7 +72,7 @@ def get_random_sync_host(level):
             )
 
         except:
-            print "Unable to connect to region {}".format(region.name)
+            print("Unable to connect to region {}".format(region.name))
             raise
 
     instance = random.choice(instances)

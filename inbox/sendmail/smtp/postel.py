@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import base64
 import itertools
 import re
@@ -8,8 +10,6 @@ import ssl
 from inbox.logging import get_logger
 
 log = get_logger()
-from util import SMTP_ERRORS
-
 from inbox.basicauth import OAuthError
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.imap import ImapAccount
@@ -19,6 +19,8 @@ from inbox.providers import provider_info
 from inbox.sendmail.base import SendMailException, generate_attachments
 from inbox.sendmail.message import create_email
 from inbox.util.blockstore import get_from_blockstore
+
+from .util import SMTP_ERRORS
 
 # TODO[k]: Other types (LOGIN, XOAUTH, PLAIN-CLIENTTOKEN, CRAM-MD5)
 AUTH_EXTNS = {"oauth2": "XOAUTH2", "password": "PLAIN"}

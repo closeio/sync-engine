@@ -1,14 +1,17 @@
+from __future__ import absolute_import, print_function
+
 # gmail-specific label handling tests.
 import random
 from datetime import datetime
 
 import pytest
-from conftest import gmail_accounts, timeout_loop
 
 from inbox.crispin import writable_connection_pool
 from inbox.mailsync.backends.imap.generic import uidvalidity_cb
 from inbox.models import Account
 from inbox.models.session import session_scope
+
+from .conftest import gmail_accounts, timeout_loop
 
 
 @timeout_loop("tag_add")
@@ -43,12 +46,12 @@ def test_gmail_labels(client):
         connection_pool = writable_connection_pool(account.id, pool_size=1)
         with connection_pool.get() as crispin_client:
             labelname = "custom-label" + datetime.now().strftime("%s.%f")
-            print "Label: %s" % labelname
+            print("Label: %s" % labelname)
 
             folder_name = crispin_client.folder_names()["all"]
             crispin_client.select_folder(folder_name, uidvalidity_cb)
 
-            print "Subject : %s" % thread.subject
+            print("Subject : %s" % thread.subject)
             uids = crispin_client.search_uids(["SUBJECT", thread.subject])
             g_thrid = crispin_client.g_metadata(uids).items()[0][1].thrid
 

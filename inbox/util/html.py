@@ -5,7 +5,7 @@ import re
 from builtins import chr
 from html.parser import HTMLParser
 
-HTMLParseError = None  # https://stackoverflow.com/questions/59968707/python-3-equivalent-of-htmlparseerror
+import future.utils
 
 from inbox.logging import get_logger
 
@@ -18,6 +18,8 @@ class HTMLTagStripper(HTMLParser):
         self.reset()
         self.fed = []
         self.strip_tag_contents_mode = False
+
+        super(HTMLTagStripper, self).__init__()
 
     def handle_starttag(self, tag, attrs):
         # Replace <br>, <div> tags by spaces
@@ -37,15 +39,17 @@ class HTMLTagStripper(HTMLParser):
         if not self.strip_tag_contents_mode:
             self.fed.append(d)
 
-    def handle_charref(self, d):
-        try:
-            if d.startswith("x"):
-                val = int(d[1:], 16)
-            else:
-                val = int(d)
-            self.fed.append(chr(val))
-        except (ValueError, OverflowError):
-            return
+    if future.utils.PY2:
+
+        def handle_charref(self, d):
+            try:
+                if d.startswith("x"):
+                    val = int(d[1:], 16)
+                else:
+                    val = int(d)
+                self.fed.append(chr(val))
+            except (ValueError, OverflowError):
+                return
 
     def handle_entityref(self, d):
         try:
@@ -62,7 +66,7 @@ def strip_tags(html):
     s = HTMLTagStripper()
     try:
         s.feed(html)
-    except HTMLParseError:
+    except Exception:
         get_logger().error("error stripping tags", raw_html=html)
     return s.get_data()
 

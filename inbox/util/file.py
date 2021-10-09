@@ -2,6 +2,7 @@ import errno
 import fcntl
 import os
 import string
+from builtins import object
 
 from gevent.coros import BoundedSemaphore
 

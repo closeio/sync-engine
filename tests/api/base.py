@@ -1,5 +1,6 @@
 import json
 from base64 import b64encode
+from builtins import object
 
 
 def new_api_client(db, namespace):

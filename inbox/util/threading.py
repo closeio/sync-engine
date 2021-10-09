@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+from future import standard_library
+
+standard_library.install_aliases()
 from operator import attrgetter
 
 from sqlalchemy import desc

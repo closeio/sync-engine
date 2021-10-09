@@ -1,4 +1,5 @@
 import json
+from builtins import zip
 
 from sqlalchemy.orm.exc import NoResultFound
 

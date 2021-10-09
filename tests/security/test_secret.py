@@ -112,7 +112,7 @@ def test_token_inputs(db, config, encrypt, default_account):
     secret_id = default_account.refresh_token_id
     secret = db.session.query(Secret).get(secret_id)
 
-    assert not isinstance(secret.secret, unicode), "secret cannot be unicode"
+    assert not isinstance(secret.secret, str), "secret cannot be unicode"
     assert secret.secret == unicode_token, "token not decrypted correctly"
 
     with pytest.raises(ValueError) as e:

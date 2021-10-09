@@ -1,6 +1,7 @@
 from collections import Counter
 from datetime import datetime
 
+from past.builtins import basestring
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.contacts.google import GoogleContactsProvider

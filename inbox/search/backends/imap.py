@@ -1,4 +1,5 @@
 import socket
+from builtins import object
 from imaplib import IMAP4
 
 from imapclient import IMAPClient

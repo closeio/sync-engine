@@ -1,7 +1,8 @@
 import time
 import weakref
+from builtins import object, str
 from socket import gethostname
-from urllib import quote_plus as urlquote
+from urllib.parse import quote_plus as urlquote
 from warnings import filterwarnings
 
 import gevent
@@ -173,7 +174,7 @@ class EngineManager(object):
         return self._engine_zones[self.shard_key_for_id(id_)]
 
     def shards_for_zone(self, zone):
-        return [k for k, z in self._engine_zones.items() if z == zone]
+        return [k for k, z in list(self._engine_zones.items()) if z == zone]
 
 
 engine_manager = EngineManager(
@@ -200,7 +201,7 @@ def init_db(engine, key=0):
     # to execute this function multiple times.
     # STOPSHIP(emfree): verify
     increment = (key << 48) + 1
-    for table in MailSyncBase.metadata.tables.values():
+    for table in list(MailSyncBase.metadata.tables.values()):
         event.listen(
             table,
             "after_create",

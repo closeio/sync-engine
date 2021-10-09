@@ -1,6 +1,7 @@
 import platform
 import random
 import time
+from builtins import object
 
 import gevent
 from gevent.lock import BoundedSemaphore
@@ -73,18 +74,19 @@ class SyncService(object):
         self.process_identifier = process_identifier
         self.monitor_cls_for = {
             mod.PROVIDER: getattr(mod, mod.SYNC_MONITOR_CLS)
-            for mod in module_registry.values()
+            for mod in list(module_registry.values())
             if hasattr(mod, "SYNC_MONITOR_CLS")
         }
 
-        for p_name, p in providers.iteritems():
+        for p_name, p in providers.items():
             if p_name not in self.monitor_cls_for:
                 self.monitor_cls_for[p_name] = self.monitor_cls_for["generic"]
 
         self.log = get_logger()
         self.log.bind(process_number=process_number)
         self.log.info(
-            "starting mail sync process", supported_providers=module_registry.keys()
+            "starting mail sync process",
+            supported_providers=list(module_registry.keys()),
         )
 
         self.syncing_accounts = set()
@@ -340,11 +342,11 @@ class SyncService(object):
 
     def stop(self, *args):
         self.log.info("stopping mail sync process")
-        for k, v in self.email_sync_monitors.iteritems():
+        for k, v in self.email_sync_monitors.items():
             gevent.kill(v)
-        for k, v in self.contact_sync_monitors.iteritems():
+        for k, v in self.contact_sync_monitors.items():
             gevent.kill(v)
-        for k, v in self.event_sync_monitors.iteritems():
+        for k, v in self.event_sync_monitors.items():
             gevent.kill(v)
         self.keep_running = False
 

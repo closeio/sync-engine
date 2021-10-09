@@ -2,6 +2,7 @@
 Generic OAuth class that provides abstraction for access and
 refresh tokens.
 """
+from builtins import object, str
 from datetime import datetime, timedelta
 
 from sqlalchemy import Column, ForeignKey
@@ -59,11 +60,11 @@ class OAuthAccount(object):
     @refresh_token.setter
     def refresh_token(self, value):
         # Must be a valid UTF-8 byte sequence without NULL bytes.
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             value = value.encode("utf-8")
 
         try:
-            unicode(value, "utf-8")
+            str(value, "utf-8")
         except UnicodeDecodeError:
             raise ValueError("Invalid refresh_token")
 

@@ -1,5 +1,6 @@
 import math
 import time
+from builtins import range
 from collections import OrderedDict
 
 import gevent
@@ -248,7 +249,7 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False):
         filters[table] = ("account_id", account_id)
     filters["namespace"] = ("id", namespace_id)
 
-    for table, (column, id_) in filters.iteritems():
+    for table, (column, id_) in filters.items():
         log.info("Performing bulk deletion", table=table)
         start = time.time()
 

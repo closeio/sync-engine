@@ -1,3 +1,6 @@
+from future import standard_library
+
+standard_library.install_aliases()
 from datetime import datetime
 
 from flanker import mime
@@ -319,7 +322,9 @@ def test_transaction_objects_mapped_for_all_models(db, default_namespace):
     transaction_objects() function.
 
     """
-    assert set(HasRevisions.__subclasses__()).issubset(transaction_objects().values())
+    assert set(HasRevisions.__subclasses__()).issubset(
+        list(transaction_objects().values())
+    )
 
 
 def test_accounttransactions(db, default_namespace):

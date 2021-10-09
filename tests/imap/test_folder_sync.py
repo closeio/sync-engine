@@ -73,7 +73,7 @@ def test_initial_sync(db, generic_account, inbox_folder, mock_imapclient):
 
     saved_message_hashes = {u.message.data_sha256 for u in saved_uids}
     assert saved_message_hashes == {
-        sha256(v["BODY[]"]).hexdigest() for v in uid_dict.values()
+        sha256(v["BODY[]"]).hexdigest() for v in list(uid_dict.values())
     }
 
 
@@ -123,7 +123,7 @@ def test_condstore_flags_refresh(
     folder_sync_engine.initial_sync()
 
     # Change the labels provided by the mock IMAP server
-    for k, v in mock_imapclient._data[all_mail_folder.name].items():
+    for k, v in list(mock_imapclient._data[all_mail_folder.name].items()):
         v["X-GM-LABELS"] = ("newlabel",)
         v["MODSEQ"] = (k,)
 

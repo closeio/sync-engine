@@ -6,6 +6,7 @@ import re
 import smtplib
 import time
 import traceback
+from builtins import next, object
 
 import pytest
 from flanker import mime

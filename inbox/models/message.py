@@ -68,7 +68,7 @@ def _trim_filename(s, namespace_id, max_len=255):
     # If `s` is not stored as a unicode string, but contains unicode
     # characters, len will return the wrong value (bytes not chars).
     # Convert it to unicode first.
-    if not isinstance(s, unicode):
+    if not isinstance(s, str):
         s = s.decode("utf-8", "ignore")
 
     if len(s) > max_len:
@@ -282,7 +282,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             )
         # stop trickle-down bugs
         assert account.namespace is not None
-        assert not isinstance(body_string, unicode)
+        assert not isinstance(body_string, str)
 
         msg = Message()
 
@@ -512,7 +512,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         part.content_id = content_id
         part.content_disposition = content_disposition
         data = data or ""
-        if isinstance(data, unicode):
+        if isinstance(data, str):
             data = data.encode("utf-8", "strict")
         block.data = data
 
@@ -604,7 +604,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             deduped_participants[address].add(phrase.strip())
 
         p = []
-        for address, phrases in deduped_participants.iteritems():
+        for address, phrases in deduped_participants.items():
             for phrase in phrases:
                 if phrase != "" or len(phrases) == 1:
                     p.append((phrase, address))

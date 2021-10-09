@@ -3,6 +3,7 @@ import contextlib
 import imaplib
 import re
 import time
+from builtins import map, object, range, str
 
 import imapclient
 
@@ -409,7 +410,7 @@ class CrispinClient(object):
             log.error("IMAPClient error selecting folder. May be deleted", error=str(e))
             raise
 
-        select_info["UIDVALIDITY"] = long(select_info["UIDVALIDITY"])
+        select_info["UIDVALIDITY"] = int(select_info["UIDVALIDITY"])
         self.selected_folder = (folder, select_info)
         # Don't propagate cached information from previous session
         self._folder_names = None
@@ -474,7 +475,7 @@ class CrispinClient(object):
         # Sync inbox folder first, then sent, then others.
         to_sync = have_folders["inbox"]
         to_sync.extend(have_folders.get("sent", []))
-        for role, folder_names in have_folders.items():
+        for role, folder_names in list(have_folders.items()):
             if role == "inbox" or role == "sent":
                 continue
             to_sync.extend(folder_names)
@@ -575,7 +576,7 @@ class CrispinClient(object):
             if folder.role in missing_roles:
                 del missing_roles[folder.role]
 
-        return missing_roles.keys()
+        return list(missing_roles.keys())
 
     def _guess_role(self, folder):
         """
@@ -670,7 +671,7 @@ class CrispinClient(object):
         criteria.
 
         """
-        return sorted([long(uid) for uid in self.conn.search(criteria)])
+        return sorted([int(uid) for uid in self.conn.search(criteria)])
 
     def all_uids(self):
         """ Fetch all UIDs associated with the currently selected folder.
@@ -718,7 +719,7 @@ class CrispinClient(object):
         log.debug(
             "Requested all UIDs", search_time=elapsed, total_uids=len(fetch_result)
         )
-        return sorted([long(uid) for uid in fetch_result])
+        return sorted([int(uid) for uid in fetch_result])
 
     def uids(self, uids):
         uid_set = set(uids)
@@ -757,18 +758,18 @@ class CrispinClient(object):
                     )
                     raise
 
-        for uid in sorted(raw_messages.iterkeys(), key=long):
+        for uid in sorted(iter(raw_messages.keys()), key=int):
             # Skip handling unsolicited FETCH responses
             if uid not in uid_set:
                 continue
             msg = raw_messages[uid]
-            if msg.keys() == ["SEQ"]:
+            if list(msg.keys()) == ["SEQ"]:
                 log.error("No data returned for UID, skipping", uid=uid)
                 continue
 
             messages.append(
                 RawMessage(
-                    uid=long(uid),
+                    uid=int(uid),
                     internaldate=msg["INTERNALDATE"],
                     flags=msg["FLAGS"],
                     body=msg["BODY[]"],
@@ -793,7 +794,7 @@ class CrispinClient(object):
         uid_set = set(uids)
         return {
             uid: Flags(ret["FLAGS"], None)
-            for uid, ret in data.items()
+            for uid, ret in list(data.items())
             if uid in uid_set
         }
 
@@ -859,7 +860,7 @@ class CrispinClient(object):
         # priori (by subject or date, etc.)
         matching_draft_headers = self.fetch_headers(all_uids)
         results = []
-        for uid, response in matching_draft_headers.iteritems():
+        for uid, response in matching_draft_headers.items():
             headers = response["BODY[HEADER]"]
             parser = HeaderParser()
             header = parser.parsestr(headers).get(header_name)
@@ -957,7 +958,7 @@ class CrispinClient(object):
         )
         return {
             uid: Flags(ret["FLAGS"], ret["MODSEQ"][0] if "MODSEQ" in ret else None)
-            for uid, ret in data.items()
+            for uid, ret in list(data.items())
         }
 
 
@@ -1013,7 +1014,7 @@ class GmailCrispinClient(CrispinClient):
                 self._decode_labels(ret["X-GM-LABELS"]),
                 ret["MODSEQ"][0] if "MODSEQ" in ret else None,
             )
-            for uid, ret in data.items()
+            for uid, ret in list(data.items())
             if uid in uid_set
         }
 
@@ -1024,7 +1025,7 @@ class GmailCrispinClient(CrispinClient):
             modifiers=["CHANGEDSINCE {}".format(modseq)],
         )
         results = {}
-        for uid, ret in data.items():
+        for uid, ret in list(data.items()):
             if "FLAGS" not in ret or "X-GM-LABELS" not in ret:
                 # We might have gotten an unsolicited fetch response that
                 # doesn't have all the data we asked for -- if so, explicitly
@@ -1053,7 +1054,9 @@ class GmailCrispinClient(CrispinClient):
         """
         data = self.conn.fetch(uids, ["X-GM-MSGID"])
         uid_set = set(uids)
-        return {uid: ret["X-GM-MSGID"] for uid, ret in data.items() if uid in uid_set}
+        return {
+            uid: ret["X-GM-MSGID"] for uid, ret in list(data.items()) if uid in uid_set
+        }
 
     def g_msgid_to_uids(self, g_msgid):
         """
@@ -1064,7 +1067,7 @@ class GmailCrispinClient(CrispinClient):
         -------
         list
         """
-        uids = [long(uid) for uid in self.conn.search(["X-GM-MSGID", g_msgid])]
+        uids = [int(uid) for uid in self.conn.search(["X-GM-MSGID", g_msgid])]
         # UIDs ascend over time; return in order most-recent first
         return sorted(uids, reverse=True)
 
@@ -1150,19 +1153,19 @@ class GmailCrispinClient(CrispinClient):
 
         messages = []
         uid_set = set(uids)
-        for uid in sorted(raw_messages.iterkeys(), key=long):
+        for uid in sorted(iter(raw_messages.keys()), key=int):
             # Skip handling unsolicited FETCH responses
             if uid not in uid_set:
                 continue
             msg = raw_messages[uid]
             messages.append(
                 RawMessage(
-                    uid=long(uid),
+                    uid=int(uid),
                     internaldate=msg["INTERNALDATE"],
                     flags=msg["FLAGS"],
                     body=msg["BODY[]"],
-                    g_thrid=long(msg["X-GM-THRID"]),
-                    g_msgid=long(msg["X-GM-MSGID"]),
+                    g_thrid=int(msg["X-GM-THRID"]),
+                    g_msgid=int(msg["X-GM-MSGID"]),
                     g_labels=self._decode_labels(msg["X-GM-LABELS"]),
                 )
             )
@@ -1189,7 +1192,7 @@ class GmailCrispinClient(CrispinClient):
         uid_set = set(uids)
         return {
             uid: GMetadata(ret["X-GM-MSGID"], ret["X-GM-THRID"], ret["RFC822.SIZE"])
-            for uid, ret in data.items()
+            for uid, ret in list(data.items())
             if uid in uid_set
         }
 
@@ -1202,7 +1205,7 @@ class GmailCrispinClient(CrispinClient):
         -------
         list
         """
-        uids = [long(uid) for uid in self.conn.search(["X-GM-THRID", g_thrid])]
+        uids = [int(uid) for uid in self.conn.search(["X-GM-THRID", g_thrid])]
         # UIDs ascend over time; return in order most-recent first
         return sorted(uids, reverse=True)
 
@@ -1210,7 +1213,7 @@ class GmailCrispinClient(CrispinClient):
         return self.conn.search(["HEADER", header_name, header_value])
 
     def _decode_labels(self, labels):
-        return map(imapclient.imap_utf7.decode, labels)
+        return list(map(imapclient.imap_utf7.decode, labels))
 
     def delete_draft(self, message_id_header):
         """
@@ -1260,8 +1263,8 @@ class GmailCrispinClient(CrispinClient):
         self.conn.remove_gmail_labels(matching_uids, ["\\Draft"])
 
         gm_msgids = self.g_msgids(matching_uids)
-        for msgid in gm_msgids.values():
-            if msgid == sent_gm_msgids.values()[0]:
+        for msgid in list(gm_msgids.values()):
+            if msgid == list(sent_gm_msgids.values())[0]:
                 raise DraftDeletionException(
                     "Send and draft should have been reconciled as "
                     "different messages."
@@ -1270,7 +1273,7 @@ class GmailCrispinClient(CrispinClient):
         self.conn.copy(matching_uids, trash_folder_name)
         self.conn.select_folder(trash_folder_name)
 
-        for msgid in gm_msgids.values():
+        for msgid in list(gm_msgids.values()):
             uids = self.g_msgid_to_uids(msgid)
             self.conn.delete_messages(uids, silent=True)
 

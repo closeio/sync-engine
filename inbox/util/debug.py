@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import signal
+from builtins import str
 from functools import wraps
 
 from pyinstrument import Profiler

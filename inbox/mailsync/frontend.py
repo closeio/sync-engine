@@ -1,3 +1,5 @@
+from builtins import object
+
 import gevent
 import gevent._threading  # This is a clone of the *real* threading module
 from flask import Flask, jsonify, request

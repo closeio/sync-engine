@@ -101,7 +101,7 @@ def test_create_and_get_draft(api_client, example_draft):
     assert len(matching_saved_drafts) == 1
     saved_draft = matching_saved_drafts[0]
 
-    assert all(saved_draft[k] == v for k, v in example_draft.iteritems())
+    assert all(saved_draft[k] == v for k, v in example_draft.items())
 
 
 def test_create_draft_replying_to_thread(api_client, thread, message):

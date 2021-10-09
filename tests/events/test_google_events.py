@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import json
+from builtins import zip
 
 import arrow
 import gevent

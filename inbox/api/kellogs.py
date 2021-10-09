@@ -1,5 +1,6 @@
 import calendar
 import datetime
+from builtins import object, str
 from json import JSONEncoder, dumps
 
 import arrow
@@ -349,7 +350,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
     elif isinstance(obj, When):
         # Get time dictionary e.g. 'start_time': x, 'end_time': y or 'date': z
         times = obj.get_time_dict()
-        resp = {k: encode(v) for k, v in times.iteritems()}
+        resp = {k: encode(v) for k, v in times.items()}
         resp["object"] = _get_lowercase_class_name(obj)
         return resp
 

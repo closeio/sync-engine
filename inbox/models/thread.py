@@ -156,7 +156,7 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
             ):
                 deduped_participants[address].add(phrase.strip())
         p = []
-        for address, phrases in deduped_participants.iteritems():
+        for address, phrases in deduped_participants.items():
             for phrase in phrases:
                 if phrase != "" or len(phrases) == 1:
                     p.append((phrase, address))

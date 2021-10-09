@@ -1,4 +1,5 @@
 import abc
+from builtins import map, object
 from datetime import datetime
 
 from sqlalchemy import Boolean, Column, DateTime, String, func, inspect, sql
@@ -91,7 +92,7 @@ class AddressComparator(Comparator):
         return self.__clause_element__().like(term, escape=escape)
 
     def in_(self, addresses):
-        return self.__clause_element__().in_(map(canonicalize_address, addresses))
+        return self.__clause_element__().in_(list(map(canonicalize_address, addresses)))
 
 
 class CaseInsensitiveComparator(Comparator):

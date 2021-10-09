@@ -7,9 +7,11 @@ import os
 import pkgutil
 import re
 import subprocess
+from builtins import object, str
 
 import dns
 import pytest
+from past.builtins import basestring
 
 from inbox.basicauth import ValidationError
 
@@ -180,20 +182,24 @@ class MockIMAPClient(object):
         assert isinstance(criteria, list)
         uid_dict = self._data[self.selected_folder]
         if criteria == ["ALL"]:
-            return uid_dict.keys()
+            return list(uid_dict.keys())
         if criteria == ["X-GM-LABELS", "inbox"]:
-            return [k for k, v in uid_dict.items() if ("\\Inbox,") in v["X-GM-LABELS"]]
+            return [
+                k for k, v in list(uid_dict.items()) if ("\\Inbox,") in v["X-GM-LABELS"]
+            ]
         if criteria[0] == "HEADER":
             name, value = criteria[1:]
             headerstring = "{}: {}".format(name, value).lower()
             # Slow implementation, but whatever
             return [
-                u for u, v in uid_dict.items() if headerstring in v["BODY[]"].lower()
+                u
+                for u, v in list(uid_dict.items())
+                if headerstring in v["BODY[]"].lower()
             ]
         if criteria[0] in ["X-GM-THRID", "X-GM-MSGID"]:
             assert len(criteria) == 2
             thrid = criteria[1]
-            return [u for u, v in uid_dict.items() if v[criteria[0]] == thrid]
+            return [u for u, v in list(uid_dict.items()) if v[criteria[0]] == thrid]
         raise ValueError("unsupported test criteria: {!r}".format(criteria))
 
     def select_folder(self, folder_name, readonly=False):
@@ -207,7 +213,7 @@ class MockIMAPClient(object):
         if "BODY.PEEK[]" in data:
             data.remove("BODY.PEEK[]")
             data.append("BODY[]")
-        if isinstance(items, (int, long)):
+        if isinstance(items, (int, int)):
             items = [items]
         elif isinstance(items, basestring) and re.match(r"[0-9]+:\*", items):
             min_uid = int(items.split(":")[0])
@@ -220,7 +226,9 @@ class MockIMAPClient(object):
         for u in items:
             if u in uid_dict:
                 resp[u] = {
-                    k: v for k, v in uid_dict[u].items() if k in data or k == "MODSEQ"
+                    k: v
+                    for k, v in list(uid_dict[u].items())
+                    if k in data or k == "MODSEQ"
                 }
         return resp
 
@@ -254,7 +262,7 @@ class MockIMAPClient(object):
         lastuid = max(folder_data) if folder_data else 0
         resp = {"UIDNEXT": lastuid + 1, "UIDVALIDITY": self.uidvalidity}
         if data and "HIGHESTMODSEQ" in data:
-            resp["HIGHESTMODSEQ"] = max(v["MODSEQ"] for v in folder_data.values())
+            resp["HIGHESTMODSEQ"] = max(v["MODSEQ"] for v in list(folder_data.values()))
         return resp
 
     def delete_messages(self, uids, silent=False):

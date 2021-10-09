@@ -1,5 +1,6 @@
 import json
 import re
+from builtins import object
 
 import boto3
 from flanker.addresslib import address
@@ -107,7 +108,7 @@ class ContactSearchClient(object):
         return self.search_service.search(**kwargs)
 
     def _ids_from_results(self, results):
-        return [long(hit["id"]) for hit in results["hits"]["hit"]]
+        return [int(hit["id"]) for hit in results["hits"]["hit"]]
 
     def fetch_matching_ids_page(self, **kwargs):
         """ Fetch a single page of search result IDs.
@@ -199,7 +200,7 @@ def index_namespace(namespace_id):
             )
             for contact in safer_yield_per(query, Contact.id, 0, 1000):
                 log.info("indexing", contact_id=contact.id)
-                current_records.add(long(contact.id))
+                current_records.add(int(contact.id))
                 contact_object = cloudsearch_contact_repr(contact)
                 docs.append({"type": "add", "id": contact.id, "fields": contact_object})
                 if len(docs) > DOC_UPLOAD_CHUNK_SIZE:

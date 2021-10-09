@@ -1,5 +1,6 @@
 import json
 import time
+from builtins import object, str
 
 import gevent
 

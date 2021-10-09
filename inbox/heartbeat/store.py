@@ -1,5 +1,6 @@
 import itertools
 import time
+from builtins import map, object, str
 
 # We're doing this weird rename import to make it easier to monkeypatch
 # get_redis_client. That's the only way we have to test our very brittle
@@ -53,7 +54,7 @@ class HeartbeatStatusKey(object):
 
     @classmethod
     def from_string(cls, string_key):
-        account_id, folder_id = map(int, string_key.split(":"))
+        account_id, folder_id = list(map(int, string_key.split(":")))
         return cls(account_id, folder_id)
 
 

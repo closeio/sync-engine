@@ -22,7 +22,7 @@ def fake_imap_accounts(db):
         "imap": "heyhey@mycustomimap.com",
     }
     accounts = {"gmail": add_fake_gmail_account(db.session)}
-    for provider, email in imap_account_data.items():
+    for provider, email in list(imap_account_data.items()):
         accounts[provider] = add_fake_imap_account(
             db.session, provider, email, "sEcr3T"
         )
@@ -30,6 +30,6 @@ def fake_imap_accounts(db):
 
 
 def test_provider_setting(db, fake_imap_accounts):
-    for provider, account in fake_imap_accounts.items():
+    for provider, account in list(fake_imap_accounts.items()):
         assert account.provider == provider
         assert account.verbose_provider == provider

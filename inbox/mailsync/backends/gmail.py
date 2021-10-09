@@ -21,6 +21,7 @@ user always gets the full thread when they look at mail.
 """
 from __future__ import division
 
+from builtins import next
 from collections import OrderedDict
 from datetime import datetime, timedelta
 
@@ -317,9 +318,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 msg_uids = crispin_client.all_uids()
                 mapping = {
                     g_msgid: msg_uid
-                    for msg_uid, g_msgid in crispin_client.g_msgids(
-                        msg_uids
-                    ).iteritems()
+                    for msg_uid, g_msgid in crispin_client.g_msgids(msg_uids).items()
                 }
             imap_uid_entries = (
                 db_session.query(ImapUid)
@@ -483,7 +482,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
             else:
                 thrids[g_thrid] = [uid]
 
-        for g_thrid, uids in thrids.items():
+        for g_thrid, uids in list(thrids.items()):
             g_msgid = metadata[uids[0]].g_msgid
             # Because `uids` is ordered newest-to-oldest here, uids[0] is the
             # last UID on the thread. If g_thrid is equal to its g_msgid, that
@@ -546,7 +545,7 @@ def g_msgids(namespace_id, session, in_):
     # Easiest way to account-filter Messages is to namespace-filter from
     # the associated thread. (Messages may not necessarily have associated
     # ImapUids.)
-    in_ = {long(i) for i in in_}  # in case they are strings
+    in_ = {int(i) for i in in_}  # in case they are strings
     if len(in_) > 1000:
         # If in_ is really large, passing all the values to MySQL can get
         # deadly slow. (Approximate threshold empirically determined)

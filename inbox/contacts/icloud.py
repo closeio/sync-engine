@@ -1,6 +1,8 @@
 """Provide iCloud contacts"""
 from __future__ import absolute_import
 
+from builtins import object
+
 import lxml.etree as ET
 
 from inbox.contacts.carddav import supports_carddav

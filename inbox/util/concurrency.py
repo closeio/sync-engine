@@ -6,6 +6,7 @@ import _mysql_exceptions
 import gevent
 from backports import ssl
 from gevent import socket
+from past.builtins import basestring
 from redis import TimeoutError
 from sqlalchemy.exc import StatementError
 

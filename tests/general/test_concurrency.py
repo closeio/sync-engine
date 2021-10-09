@@ -1,4 +1,5 @@
 import time
+from builtins import object
 
 import _mysql_exceptions
 import pytest

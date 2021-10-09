@@ -1,8 +1,11 @@
 """Utilities for validating user input to the API."""
+from builtins import str
+
 import arrow
 from arrow.parser import ParserError
 from flanker.addresslib import address
 from flask.ext.restful import reqparse
+from past.builtins import basestring
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.api.err import (
@@ -24,7 +27,7 @@ MAX_LIMIT = 1000
 
 class ValidatableArgument(reqparse.Argument):
     def handle_validation_error(self, error):
-        raise InputError(unicode(error))
+        raise InputError(str(error))
 
 
 # Custom parameter types
@@ -370,7 +373,7 @@ def noop_event_update(event, data):
 
     e_participants = {p["email"]: p for p in e.participants}
     event_participants = {p["email"]: p for p in event.participants}
-    if len(e_participants.keys()) != len(event_participants.keys()):
+    if len(list(e_participants.keys())) != len(list(event_participants.keys())):
         return False
 
     for email in e_participants:

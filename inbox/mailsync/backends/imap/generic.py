@@ -740,9 +740,9 @@ class FolderSyncEngine(Greenlet):
             lastseenuid = common.lastseenuid(
                 self.account_id, db_session, self.folder_id
             )
-        latest_uids = crispin_client.conn.fetch(
-            "{}:*".format(lastseenuid + 1), ["UID"]
-        ).keys()
+        latest_uids = list(
+            crispin_client.conn.fetch("{}:*".format(lastseenuid + 1), ["UID"]).keys()
+        )
         new_uids = set(latest_uids) - {lastseenuid}
         if new_uids:
             for uid in sorted(new_uids):
@@ -789,7 +789,7 @@ class FolderSyncEngine(Greenlet):
         # objects into the SQLAlchemy session and then issue lots of commits;
         # we avoid that by batching.
         flag_batches = chunk(
-            sorted(changed_flags.items(), key=lambda k_v: k_v[1].modseq),
+            sorted(list(changed_flags.items()), key=lambda k_v: k_v[1].modseq),
             CONDSTORE_FLAGS_REFRESH_BATCH_SIZE,
         )
         for flag_batch in flag_batches:
@@ -881,7 +881,7 @@ class FolderSyncEngine(Greenlet):
         log.debug(
             "Changed flags refresh response, persisting changes", max_uids=max_uids
         )
-        expunged_uids = set(local_uids).difference(flags.keys())
+        expunged_uids = set(local_uids).difference(list(flags.keys()))
         with self.syncmanager_lock:
             common.remove_deleted_uids(self.account_id, self.folder_id, expunged_uids)
         with self.syncmanager_lock:

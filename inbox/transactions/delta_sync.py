@@ -184,7 +184,7 @@ def format_transactions_after_pointer(
         for trx in transactions:
             trxs_by_obj_type[trx.object_type].append(trx)
 
-        for obj_type, trxs in trxs_by_obj_type.items():
+        for obj_type, trxs in list(trxs_by_obj_type.items()):
             # Build a dictionary mapping pairs (record_id, command) to
             # transaction. If successive modifies for a given record id appear
             # in the list of transactions, this will only keep the latest
@@ -196,7 +196,9 @@ def format_transactions_after_pointer(
             }
             # Load all referenced not-deleted objects.
             ids_to_query = [
-                trx.record_id for trx in latest_trxs.values() if trx.command != "delete"
+                trx.record_id
+                for trx in list(latest_trxs.values())
+                if trx.command != "delete"
             ]
 
             object_cls = transaction_objects()[obj_type]
@@ -230,7 +232,7 @@ def format_transactions_after_pointer(
                 else:
                     objects = {obj.id: obj for obj in query}
 
-            for key, trx in latest_trxs.items():
+            for key, trx in list(latest_trxs.items()):
                 oldest_trx = oldest_trxs[key]
                 delta = {
                     "object": trx.object_type,

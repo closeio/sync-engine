@@ -9,6 +9,7 @@ talking to the same database backend things could go really badly.
 """
 import random
 import weakref
+from builtins import object, zip
 from collections import defaultdict
 from datetime import datetime, timedelta
 
@@ -134,7 +135,7 @@ class SyncbackService(gevent.Greenlet):
         # running SyncbackServices.
         self.log = logger.new(component="syncback")
         syncback_assignments = {
-            int(k): v for k, v in config.get("SYNCBACK_ASSIGNMENTS", {}).items()
+            int(k): v for k, v in list(config.get("SYNCBACK_ASSIGNMENTS", {}).items())
         }
         if syncback_id in syncback_assignments:
             self.keys = [
@@ -733,7 +734,7 @@ class SyncbackTask(object):
     def _get_records_and_actions_to_process(self):
         records_to_process = []
         action_ids_to_process = []
-        action_log_record_map = dict(zip(self.action_log_ids, self.record_ids))
+        action_log_record_map = dict(list(zip(self.action_log_ids, self.record_ids)))
         with session_scope(self.account_id) as db_session:
             action_log_entries = db_session.query(ActionLog).filter(
                 ActionLog.id.in_(self.action_log_ids)

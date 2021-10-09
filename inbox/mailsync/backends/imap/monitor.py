@@ -1,3 +1,6 @@
+from future import standard_library
+
+standard_library.install_aliases()
 from gevent import sleep
 from gevent.coros import BoundedSemaphore
 from gevent.pool import Group
@@ -114,7 +117,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
 
         # Set the should_run bit for existing folders to True (it's True by
         # default for new ones.)
-        for f in local_folders.values():
+        for f in list(local_folders.values()):
             if f.imapsyncstatus:
                 f.imapsyncstatus.sync_should_run = True
 

@@ -72,7 +72,7 @@ class MockGmailAuthHandler(GmailAuthHandler):
         return account
 
     def verify_config(self, account):
-        for key, response in fake_responses.iteritems():
+        for key, response in fake_responses.items():
             if key in account.email_address:
                 return response(key)
         # Raise an exception to prevent committing test accounts

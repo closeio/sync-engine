@@ -220,7 +220,7 @@ def test_gmail_body(gmail_client, constants):
     body = constants["body"]
     assert gmail_client.uids([uid]) == [
         RawMessage(
-            uid=long(uid),
+            uid=int(uid),
             internaldate=datetime(2015, 3, 2, 23, 36, 20),
             flags=flags,
             body=body,
@@ -258,7 +258,7 @@ def test_body(generic_client, constants):
 
     assert generic_client.uids([uid]) == [
         RawMessage(
-            uid=long(uid),
+            uid=int(uid),
             internaldate=datetime(2015, 3, 2, 23, 36, 20),
             flags=flags,
             body=body,
@@ -293,7 +293,7 @@ def test_internaldate(generic_client, constants):
         uid = constants["uid"]
         assert generic_client.uids([uid]) == [
             RawMessage(
-                uid=long(uid),
+                uid=int(uid),
                 internaldate=native_date,
                 flags=constants["flags"],
                 body=constants["body"],
@@ -351,7 +351,7 @@ def test_gmail_folders(monkeypatch, constants):
 def generic_folder_checks(raw_folders, role_map, client, provider):
 
     # Should not contain the `\\Noselect' folder
-    assert filter(lambda y: "\\Noselect" in y, map(lambda x: x[0], raw_folders)) == []
+    assert [y for y in [x[0] for x in raw_folders] if "\\Noselect" in y] == []
     if provider == "gmail":
         assert {f.display_name: f.role for f in raw_folders} == role_map
     elif provider == "imap":
@@ -680,7 +680,7 @@ def test_gmail_many_folders_one_role(monkeypatch, constants):
         "starred",
     ]:
         assert role in folder_names
-        test_set = filter(lambda x: x == role, map(lambda y: y.role, raw_folders))
+        test_set = [x for x in [y.role for y in raw_folders] if x == role]
         assert len(test_set) == 1, "assigned wrong number of {}".format(role)
 
         names = folder_names[role]
@@ -756,5 +756,5 @@ def test_imap_many_folders_one_role(monkeypatch, constants):
     for role in ["inbox", "trash", "drafts", "sent", "spam"]:
         assert role in folder_names
         number_roles = 2 if (role in ["sent", "trash"]) else 1
-        test_set = filter(lambda x: x == role, map(lambda y: y.role, raw_folders))
+        test_set = [x for x in [y.role for y in raw_folders] if x == role]
         assert len(test_set) == number_roles, "assigned wrong number of {}".format(role)

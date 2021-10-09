@@ -20,6 +20,8 @@ TODOs
 
 """
 
+from builtins import object
+
 import lxml.etree as ET
 import requests
 

@@ -1,3 +1,5 @@
+from builtins import str
+
 from sqlalchemy import BigInteger, Column, Enum, Index, String, func, inspect
 from sqlalchemy.orm import relationship
 

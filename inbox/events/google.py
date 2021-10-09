@@ -1,10 +1,16 @@
 """Provide Google Calendar events."""
+from future import standard_library
+
+standard_library.install_aliases()
 import datetime
 import json
 import random
 import time
-import urllib
+import urllib.error
+import urllib.parse
+import urllib.request
 import uuid
+from builtins import object, str
 
 import arrow
 import gevent
@@ -136,7 +142,7 @@ class GoogleEventsProvider(object):
             sync_from_time = datetime.datetime.isoformat(sync_from_time) + "Z"
 
         url = "https://www.googleapis.com/calendar/v3/" "calendars/{}/events".format(
-            urllib.quote(calendar_uid)
+            urllib.parse.quote(calendar_uid)
         )
         try:
             return self._get_resource_list(url, updatedMin=sync_from_time)
@@ -226,7 +232,7 @@ class GoogleEventsProvider(object):
         """ Makes a POST/PUT/DELETE request for a particular event. """
         event_uid = event_uid or ""
         url = "https://www.googleapis.com/calendar/v3/" "calendars/{}/events/{}".format(
-            urllib.quote(calendar_uid), urllib.quote(event_uid)
+            urllib.parse.quote(calendar_uid), urllib.parse.quote(event_uid)
         )
         token = self._get_access_token()
         response = requests.request(
@@ -319,7 +325,7 @@ class GoogleEventsProvider(object):
         """
         token = self._get_access_token_for_push_notifications(account)
         receiving_url = CALENDAR_LIST_WEBHOOK_URL.format(
-            urllib.quote(account.public_id)
+            urllib.parse.quote(account.public_id)
         )
 
         one_week = datetime.timedelta(weeks=1)
@@ -366,8 +372,10 @@ class GoogleEventsProvider(object):
 
         """
         token = self._get_access_token_for_push_notifications(account)
-        watch_url = WATCH_EVENTS_URL.format(urllib.quote(calendar.uid))
-        receiving_url = EVENTS_LIST_WEHOOK_URL.format(urllib.quote(calendar.public_id))
+        watch_url = WATCH_EVENTS_URL.format(urllib.parse.quote(calendar.uid))
+        receiving_url = EVENTS_LIST_WEHOOK_URL.format(
+            urllib.parse.quote(calendar.public_id)
+        )
 
         one_week = datetime.timedelta(weeks=1)
         in_a_week = datetime.datetime.utcnow() + one_week
@@ -615,7 +623,7 @@ def _dump_event(event):
 
     if event.participants:
         dump["attendees"] = []
-        inverse_status_map = {value: key for key, value in STATUS_MAP.items()}
+        inverse_status_map = {value: key for key, value in list(STATUS_MAP.items())}
         for participant in event.participants:
             attendee = {}
             if "name" in participant:

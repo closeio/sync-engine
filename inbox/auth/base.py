@@ -1,4 +1,5 @@
 import socket
+from builtins import object
 
 from imapclient import IMAPClient
 

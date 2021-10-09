@@ -1,11 +1,12 @@
 """Provide Google contacts."""
 import posixpath
 import random
+from builtins import object
 from datetime import datetime
 
-import gdata.auth
-import gdata.client
-import gdata.contacts.client
+# import gdata.auth
+# import gdata.client
+# import gdata.contacts.client
 import gevent
 
 from inbox.auth.google import GoogleAuthHandler

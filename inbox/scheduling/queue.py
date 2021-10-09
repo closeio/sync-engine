@@ -20,6 +20,7 @@ this happens atomically.
 """
 
 import itertools
+from builtins import object
 
 import gevent
 from redis import StrictRedis
@@ -88,7 +89,7 @@ class QueueClient(object):
         Returns a dictionary of all currently assigned key/value pairs (keys
         are coerced to integers).
         """
-        return {int(k): v for k, v in self.redis.hgetall(self._hash).items()}
+        return {int(k): v for k, v in list(self.redis.hgetall(self._hash).items())}
 
     def enqueue(self, key):
         """
@@ -178,10 +179,10 @@ class QueuePopulator(object):
         runnable_accounts = self.runnable_accounts()
         disabled_accounts = {
             k: v
-            for k, v in self.queue_client.assigned().items()
+            for k, v in list(self.queue_client.assigned().items())
             if k not in runnable_accounts
         }
-        for account_id, sync_host in disabled_accounts.items():
+        for account_id, sync_host in list(disabled_accounts.items()):
             log.info("Removing disabled account", account_id=account_id)
             self.queue_client.unassign(account_id, sync_host)
 

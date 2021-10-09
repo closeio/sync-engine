@@ -245,7 +245,7 @@ UTC_friendly_timezones = {
 
 # UTC and GMT are equivalent, and some servers can send the GMT version
 GMT_friendly_timezones = {
-    k.replace("(UTC", "(GMT"): v for k, v in UTC_friendly_timezones.items()
+    k.replace("(UTC", "(GMT"): v for k, v in list(UTC_friendly_timezones.items())
 }
 
 # Also add the Olson DB timezones (e.g: Europe/Paris, etc.)

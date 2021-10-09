@@ -142,7 +142,9 @@ def index():
                     elif folder_status_id == EVENT_SYNC_FOLDER_ID:
                         events_alive = folder_status.alive
 
-                email_alive = all(f["alive"] for f in account_folder_data.values())
+                email_alive = all(
+                    f["alive"] for f in list(account_folder_data.values())
+                )
 
                 alive = True
                 if account.sync_email and not email_alive:
@@ -151,7 +153,7 @@ def index():
                     alive = False
 
                 email_initial_sync = any(
-                    f["state"] == "initial" for f in account_folder_data.values()
+                    f["state"] == "initial" for f in list(account_folder_data.values())
                 )
                 events_initial_sync = any(
                     c["state"] == "initial" for c in account_calendar_data
@@ -159,10 +161,12 @@ def index():
                 initial_sync = email_initial_sync or events_initial_sync
 
                 total_uids = sum(
-                    f["remote_uid_count"] or 0 for f in account_folder_data.values()
+                    f["remote_uid_count"] or 0
+                    for f in list(account_folder_data.values())
                 )
                 remaining_uids = sum(
-                    f["download_uid_count"] or 0 for f in account_folder_data.values()
+                    f["download_uid_count"] or 0
+                    for f in list(account_folder_data.values())
                 )
                 if total_uids:
                     progress = 100.0 / total_uids * (total_uids - remaining_uids)
@@ -210,7 +214,7 @@ def index():
                     "provider_name": account.provider,
                     "email_address": account.email_address,
                     "folders": sorted(
-                        folder_data[account.id].values(), key=itemgetter("name")
+                        list(folder_data[account.id].values()), key=itemgetter("name")
                     ),
                     "calendars": sorted(
                         calendar_data[account.id], key=itemgetter("name")

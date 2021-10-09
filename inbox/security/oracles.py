@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 import enum  # Python 3 style enums from enum34
+from builtins import object
 
 import nacl.secret
 import nacl.utils
@@ -90,7 +91,7 @@ class _EncryptionOracle(object):
             encryption_scheme = self.default_scheme
 
         # sanity check
-        if isinstance(plaintext, unicode):
+        if isinstance(plaintext, str):
             raise TypeError("plaintext should be bytes, not unicode")
         if not isinstance(encryption_scheme, enum.Enum):
             raise TypeError("encryption_scheme should be an Enum")
@@ -158,9 +159,9 @@ class _DecryptionOracle(_EncryptionOracle):
         encryption_scheme_value = encryption_scheme  # expect an Enum value
 
         # sanity check
-        if isinstance(ciphertext, unicode):
+        if isinstance(ciphertext, str):
             raise TypeError("ciphertext should be bytes, not unicode")
-        if not isinstance(encryption_scheme_value, (int, long)):
+        if not isinstance(encryption_scheme_value, (int, int)):
             raise TypeError("encryption_scheme_value should be a number")
         if not 0 <= encryption_scheme_value <= 2 ** 31 - 1:
             raise ValueError("encryption_scheme_value out of range")

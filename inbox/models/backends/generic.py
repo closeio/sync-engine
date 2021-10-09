@@ -1,3 +1,5 @@
+from builtins import str
+
 from sqlalchemy import Boolean, Column, ForeignKey, String
 from sqlalchemy.orm import relationship
 
@@ -63,11 +65,11 @@ class GenericAccount(ImapAccount):
 
     def valid_password(self, value):
         # Must be a valid UTF-8 byte sequence without NULL bytes.
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             value = value.encode("utf-8")
 
         try:
-            unicode(value, "utf-8")
+            str(value, "utf-8")
         except UnicodeDecodeError:
             raise ValueError("Invalid password")
 

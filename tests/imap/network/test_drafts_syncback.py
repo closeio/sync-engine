@@ -1,4 +1,5 @@
 import uuid
+from builtins import str
 from datetime import datetime
 
 import pytest

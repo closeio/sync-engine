@@ -29,6 +29,7 @@ from __future__ import absolute_import, print_function
 import base64
 import logging
 import sys
+from builtins import range, str
 from collections import defaultdict
 
 import vobject
@@ -246,11 +247,11 @@ class VCard(defaultdict):
         self.edited = 0
 
     def serialize(self):
-        return self.items().__repr__()
+        return list(self.items()).__repr__()
 
     @property
     def name(self):
-        return unicode(self["N"][0][0]) if self["N"] else ""
+        return str(self["N"][0][0]) if self["N"] else ""
 
     @name.setter
     def name(self, value):
@@ -260,14 +261,14 @@ class VCard(defaultdict):
 
     @property
     def fname(self):
-        return unicode(self["FN"][0][0]) if self["FN"] else ""
+        return str(self["FN"][0][0]) if self["FN"] else ""
 
     @fname.setter
     def fname(self, value):
         self["FN"][0] = (value, {})
 
     def alt_keys(self):
-        keylist = self.keys()
+        keylist = list(self.keys())
         for one in [x for x in ["FN", "N", "VERSION"] if x in keylist]:
             keylist.remove(one)
         keylist.sort()
@@ -327,7 +328,7 @@ class VCard(defaultdict):
 
     def _line_helper(self, line):
         collector = list()
-        for key in line[1].keys():
+        for key in list(line[1].keys()):
             collector.append(key + "=" + ",".join(line[1][key]))
         if collector == list():
             return ""
@@ -349,7 +350,7 @@ class VCard(defaultdict):
             choice = string.ascii_uppercase + string.digits
             return "".join([random.choice(choice) for _ in range(36)])
 
-        if "UID" not in self.keys():
+        if "UID" not in list(self.keys()):
             self["UID"] = [(generate_random_uid(), dict())]
         collector = list()
         collector.append("BEGIN:VCARD")

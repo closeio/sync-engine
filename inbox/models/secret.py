@@ -37,7 +37,7 @@ class Secret(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
     @secret.setter
     def secret(self, plaintext):
-        if isinstance(plaintext, unicode):
+        if isinstance(plaintext, str):
             plaintext = plaintext.encode("utf8")
         if not isinstance(plaintext, bytes):
             raise TypeError("Invalid secret")

@@ -1,3 +1,6 @@
+from future import standard_library
+
+standard_library.install_aliases()
 import datetime
 import json
 
@@ -40,7 +43,7 @@ def setup_account(message, thread, label, contact, event):
 
 def test_read_endpoints(db, setup_account, api_client, default_account):
     # Read operations succeed.
-    for resource, public_id in setup_account.items():
+    for resource, public_id in list(setup_account.items()):
         endpoint = "/{}s".format(resource)
         r = api_client.get_raw(endpoint)
         assert r.status_code == 200
@@ -53,7 +56,7 @@ def test_read_endpoints(db, setup_account, api_client, default_account):
     db.session.commit()
 
     # Read operations on an invalid account also succeed.
-    for resource, public_id in setup_account.items():
+    for resource, public_id in list(setup_account.items()):
         endpoint = "/{}s".format(resource)
         r = api_client.get_raw(endpoint)
         assert r.status_code == 200

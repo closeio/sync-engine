@@ -1,6 +1,10 @@
+from future import standard_library
+
+standard_library.install_aliases()
 import json
 import os
 import uuid
+from builtins import object, range, str
 from datetime import datetime, timedelta
 
 import mock
@@ -104,7 +108,7 @@ def patch_network_functions(monkeypatch):
     """
     import inbox.actions.backends
 
-    for backend in inbox.actions.backends.module_registry.values():
+    for backend in list(inbox.actions.backends.module_registry.values()):
         for method_name in backend.__all__:
             monkeypatch.setattr(
                 backend.__name__ + "." + method_name, lambda *args, **kwargs: None
@@ -697,14 +701,14 @@ def mock_client():
     # Adding a couple of methods we use that mockredis doesn't support yet.
     def scan_iter_patch(match=None, count=100):
         match = str(match).replace("*", "")
-        return filter(lambda k: k.startswith(match), mock_client.keys())
+        return [k for k in list(mock_client.keys()) if k.startswith(match)]
 
     mock_client.scan_iter = scan_iter_patch
     mock_client.reset = lambda: True
 
     def zscan_iter_patch(key, match=None):
         match = str(match).replace("*", "")
-        return filter(lambda k: k.startswith(match), mock_client.zrange(key, 0, -1))
+        return [k for k in mock_client.zrange(key, 0, -1) if k.startswith(match)]
 
     mock_client.zscan_iter = zscan_iter_patch
     return mock_client

@@ -13,6 +13,7 @@ import os
 import re
 import sys
 import traceback
+from builtins import str
 
 import colorlog
 import gevent
@@ -197,7 +198,7 @@ def _safe_encoding_renderer(_, __, event_dict):
     for key in event_dict:
         entry = event_dict[key]
         if isinstance(entry, str):
-            event_dict[key] = unicode(entry, encoding="utf-8", errors="replace")
+            event_dict[key] = str(entry, encoding="utf-8", errors="replace")
 
     return event_dict
 

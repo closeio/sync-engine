@@ -1,3 +1,5 @@
+from builtins import map
+
 from gevent import Greenlet, GreenletExit, event
 
 from inbox.config import config
@@ -89,5 +91,7 @@ class BaseMailSyncMonitor(Greenlet):
     def _cleanup(self):
         self.sync.kill()
         with session_scope(self.namespace_id) as mailsync_db_session:
-            map(lambda x: x.set_stopped(mailsync_db_session), self.folder_monitors)
+            list(
+                map(lambda x: x.set_stopped(mailsync_db_session), self.folder_monitors)
+            )
         self.folder_monitors.kill()

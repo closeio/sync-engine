@@ -1,5 +1,6 @@
+from html.parser import HTMLParser
+
 import requests
-from HTMLParser import HTMLParser
 
 from inbox.auth.gmail import GmailAuthHandler
 from inbox.util.url import url_concat

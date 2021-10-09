@@ -60,16 +60,24 @@ def get_random_sync_host(level):
                 for instance in reservation.instances:
                     instances.append(instance)
 
-            instances = filter(lambda instance: instance.state == "running", instances)
-            instances = filter(
-                lambda instance: instance.tags.get("Role") == "sync", instances
-            )
-            instances = filter(
-                lambda instance: instance.tags.get("Level") == level, instances
-            )
-            instances = filter(
-                lambda instance: instance.tags.get("Debug") == "false", instances
-            )
+            instances = [
+                instance for instance in instances if instance.state == "running"
+            ]
+            instances = [
+                instance
+                for instance in instances
+                if instance.tags.get("Role") == "sync"
+            ]
+            instances = [
+                instance
+                for instance in instances
+                if instance.tags.get("Level") == level
+            ]
+            instances = [
+                instance
+                for instance in instances
+                if instance.tags.get("Debug") == "false"
+            ]
 
         except:
             print("Unable to connect to region {}".format(region.name))

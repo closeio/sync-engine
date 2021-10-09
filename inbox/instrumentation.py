@@ -1,3 +1,6 @@
+from __future__ import division
+
+import _thread
 import collections
 import math
 import signal
@@ -5,12 +8,13 @@ import socket
 import sys
 import time
 import traceback
+from builtins import object, str
 
 import gevent._threading  # This is a clone of the *real* threading module
 import gevent.hub
 import greenlet
 import psutil
-import thread
+from past.utils import old_div
 
 from inbox.config import config
 from inbox.logging import get_logger
@@ -61,7 +65,7 @@ class ProfileCollector(object):
         elapsed = time.time() - self._started
         lines = ["elapsed {}".format(elapsed), "granularity {}".format(self.interval)]
         ordered_stacks = sorted(
-            self._stack_counts.items(), key=lambda kv: kv[1], reverse=True
+            list(self._stack_counts.items()), key=lambda kv: kv[1], reverse=True
         )
         lines.extend(["{} {}".format(frame, count) for frame, count in ordered_stacks])
         return "\n".join(lines) + "\n"
@@ -130,7 +134,7 @@ class GreenletTracer(object):
 
     def stats(self):
         total_time = time.time() - self.start_time
-        idle_fraction = self.time_spent_by_context.get("hub", 0) / total_time
+        idle_fraction = old_div(self.time_spent_by_context.get("hub", 0), total_time)
         return {
             "times": self.time_spent_by_context,
             "idle_fraction": idle_fraction,
@@ -143,7 +147,9 @@ class GreenletTracer(object):
     def log_stats(self, max_stats=60):
         total_time = round(time.time() - self.start_time, 2)
         greenlets_by_cost = sorted(
-            self.time_spent_by_context.items(), key=lambda k_v: k_v[1], reverse=True
+            list(self.time_spent_by_context.items()),
+            key=lambda k_v: k_v[1],
+            reverse=True,
         )
         formatted_times = {k: round(v, 2) for k, v in greenlets_by_cost[:max_stats]}
         self.log.info(
@@ -195,26 +201,26 @@ class GreenletTracer(object):
         # exponentially-damped moving average of the number of greenlets that
         # are waiting to run.
         pendingcnt = self._hub.loop.pendingcnt
-        for k, v in self.pending_avgs.items():
-            exp = math.exp(-self.sampling_interval / (60.0 * k))
+        for k, v in list(self.pending_avgs.items()):
+            exp = math.exp(old_div(-self.sampling_interval, (60.0 * k)))
             self.pending_avgs[k] = exp * v + (1.0 - exp) * pendingcnt
 
     def _calculate_cpu_avgs(self):
         times = self.process.cpu_times()
         new_total_time = times.user + times.system
         delta = new_total_time - self.total_cpu_time
-        for k, v in self.cpu_avgs.items():
-            exp = math.exp(-self.sampling_interval / (60.0 * k))
+        for k, v in list(self.cpu_avgs.items()):
+            exp = math.exp(old_div(-self.sampling_interval, (60.0 * k)))
             self.cpu_avgs[k] = exp * v + (1.0 - exp) * delta
         self.total_cpu_time = new_total_time
 
     def _publish_load_avgs(self):
-        for k, v in self.pending_avgs.items():
+        for k, v in list(self.pending_avgs.items()):
             path = "greenlet_tracer.pending_avg.{}.{}.{:02d}".format(
                 self.hostname, self.process_name, k
             )
             self.statsd_client.gauge(path, v)
-        for k, v in self.cpu_avgs.items():
+        for k, v in list(self.cpu_avgs.items()):
             path = "greenlet_tracer.cpu_avg.{}.{}.{:02d}".format(
                 self.hostname, self.process_name, k
             )
@@ -277,7 +283,7 @@ class KillerGreenletTracer(GreenletTracer):
             context=getattr(active_greenlet, "context", None),
             blocking_greenlet_id=id(active_greenlet),
         )
-        thread.interrupt_main()
+        _thread.interrupt_main()
 
 
 MAX_BLOCKING_TIME = 5
@@ -318,7 +324,9 @@ class Tracer(object):
     def log_stats(self, max_stats=60):
         total_time = round(time.time() - self.start_time, 2)
         greenlets_by_cost = sorted(
-            self.time_spent_by_context.items(), key=lambda k_v1: k_v1[1], reverse=True
+            list(self.time_spent_by_context.items()),
+            key=lambda k_v1: k_v1[1],
+            reverse=True,
         )
         formatted_times = {k: round(v, 2) for k, v in greenlets_by_cost[:max_stats]}
         self.log.info(

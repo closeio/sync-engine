@@ -34,7 +34,7 @@ else:
 
 def save_to_blockstore(data_sha256, data):
     assert data is not None
-    assert type(data) is not unicode
+    assert type(data) is not str
 
     if len(data) == 0:
         log.warning("Not saving 0-length data blob")
@@ -160,7 +160,7 @@ def _get_from_disk(data_sha256):
 
 
 def _delete_from_s3_bucket(data_sha256_hashes, bucket_name):
-    data_sha256_hashes = filter(None, data_sha256_hashes)
+    data_sha256_hashes = [_f for _f in data_sha256_hashes if _f]
     if not data_sha256_hashes:
         return None
 

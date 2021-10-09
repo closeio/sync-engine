@@ -1,5 +1,6 @@
 import socket
 import sys
+from builtins import str
 
 from gevent import monkey
 
@@ -91,7 +92,7 @@ class RemoteConsole(InteractiveConsole):
                     self.handle.flush()
                     # Can be None if sys.stdin was redefined
                     encoding = getattr(sys.stdin, "encoding", None)
-                    if encoding and not isinstance(line, unicode):
+                    if encoding and not isinstance(line, str):
                         line = line.decode(encoding)
                 except EOFError:
                     self.terminate()

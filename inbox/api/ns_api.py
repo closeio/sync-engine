@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import uuid
+from builtins import str
 from collections import namedtuple
 from datetime import datetime
 from hashlib import sha256
@@ -1471,7 +1472,7 @@ def file_delete_api(public_id):
 @app.route("/files/", methods=["POST"])
 def file_upload_api():
     all_files = []
-    for name, uploaded in request.files.iteritems():
+    for name, uploaded in request.files.items():
         request.environ["log_context"].setdefault("filenames", []).append(name)
         f = Block()
         f.namespace = g.namespace
@@ -2059,7 +2060,7 @@ def sync_deltas():
 def generate_cursor():
     data = request.get_json(force=True)
 
-    if data.keys() != ["start"] or not isinstance(data["start"], int):
+    if list(data.keys()) != ["start"] or not isinstance(data["start"], int):
         raise InputError(
             "generate_cursor request body must have the format "
             '{"start": <Unix timestamp> (seconds)}'
@@ -2221,7 +2222,7 @@ def groups_intrinsic():
     if use_cached_data:
         result = cached_data
         new_guys = calculate_group_counts(messages, from_email)
-        for k, v in new_guys.items():
+        for k, v in list(new_guys.items()):
             if k in result:
                 result[k] += v
             else:
@@ -2232,7 +2233,7 @@ def groups_intrinsic():
         g.db_session.add(dpcache)
         g.db_session.commit()
 
-    result = sorted(result.items(), key=lambda x: x[1], reverse=True)
+    result = sorted(list(result.items()), key=lambda x: x[1], reverse=True)
     return g.encoder.jsonify(result)
 
 
@@ -2267,7 +2268,7 @@ def contact_rankings():
     if use_cached_data:
         new_guys = calculate_contact_scores(messages, time_dependent=False)
         result = cached_data
-        for k, v in new_guys.items():
+        for k, v in list(new_guys.items()):
             if k in result:
                 result[k] += v
             else:
@@ -2278,5 +2279,5 @@ def contact_rankings():
         g.db_session.add(dpcache)
         g.db_session.commit()
 
-    result = sorted(result.items(), key=lambda x: x[1], reverse=True)
+    result = sorted(list(result.items()), key=lambda x: x[1], reverse=True)
     return g.encoder.jsonify(result)

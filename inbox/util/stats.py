@@ -1,3 +1,5 @@
+from builtins import str
+
 import statsd
 
 from inbox.config import config

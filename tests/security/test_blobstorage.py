@@ -1,4 +1,5 @@
 import zlib
+from builtins import chr
 
 import hypothesis
 from hypothesis import strategies as s

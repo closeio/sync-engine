@@ -1,3 +1,4 @@
+from builtins import object
 from hashlib import sha256
 
 from flanker import mime
@@ -98,7 +99,7 @@ class Blob(object):
 
                             data = mimepart.body
 
-                            if isinstance(data, unicode):
+                            if isinstance(data, str):
                                 data = data.encode("utf-8", "strict")
 
                             if data is None:
@@ -135,7 +136,7 @@ class Blob(object):
     @data.setter
     def data(self, value):
         assert value is not None
-        assert type(value) is not unicode
+        assert type(value) is not str
 
         # Cache value in memory. Otherwise message-parsing incurs a disk or S3
         # roundtrip.

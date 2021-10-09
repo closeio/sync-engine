@@ -2,6 +2,7 @@
 # flake8: noqa: F401, F811
 import datetime
 import json
+from builtins import object, zip
 
 import mock
 import pytest

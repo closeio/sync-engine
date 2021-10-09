@@ -1,5 +1,8 @@
+from builtins import str
+
+
 def base36encode(number):
-    if not isinstance(number, (int, long)):
+    if not isinstance(number, (int, int)):
         raise TypeError("number must be an integer")
     if number < 0:
         raise ValueError("number must be positive")
@@ -23,6 +26,6 @@ def unicode_safe_truncate(s, max_length):
     Implements unicode-safe truncation and trims whitespace for a given input
     string, number or unicode string.
     """
-    if not isinstance(s, unicode):
+    if not isinstance(s, str):
         s = str(s).decode("utf-8", "ignore")
     return s.rstrip()[:max_length]

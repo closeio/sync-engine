@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import cgi
+import html.entities
 import re
+from builtins import chr
+from html.parser import HTMLParser
 
-import htmlentitydefs
-from HTMLParser import HTMLParseError, HTMLParser
+HTMLParseError = None  # https://stackoverflow.com/questions/59968707/python-3-equivalent-of-htmlparseerror
 
 from inbox.logging import get_logger
 
@@ -41,13 +43,13 @@ class HTMLTagStripper(HTMLParser):
                 val = int(d[1:], 16)
             else:
                 val = int(d)
-            self.fed.append(unichr(val))
+            self.fed.append(chr(val))
         except (ValueError, OverflowError):
             return
 
     def handle_entityref(self, d):
         try:
-            val = unichr(htmlentitydefs.name2codepoint[d])
+            val = chr(html.entities.name2codepoint[d])
         except KeyError:
             return
         self.fed.append(val)
@@ -67,7 +69,7 @@ def strip_tags(html):
 
 # https://djangosnippets.org/snippets/19/
 re_string = re.compile(
-    ur"(?P<htmlchars>[<&>])|(?P<space>^[ \t]+)|(?P<lineend>\n)|(?P<protocol>(^|\s)((http|ftp)://.*?))(\s|$)",
+    r"(?P<htmlchars>[<&>])|(?P<space>^[ \t]+)|(?P<lineend>\n)|(?P<protocol>(^|\s)((http|ftp)://.*?))(\s|$)",
     re.S | re.M | re.I | re.U,
 )  # noqa
 

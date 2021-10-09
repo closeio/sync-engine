@@ -1,4 +1,5 @@
 import json
+from builtins import object, str
 
 import pytest
 
@@ -7,7 +8,7 @@ from inbox.ignition import redis_txn
 from tests.util.base import add_fake_message
 
 
-class TestGlobalDeltas:
+class TestGlobalDeltas(object):
     @pytest.fixture(autouse=True)
     def clear_redis(self):
         redis_txn.flushdb()

@@ -109,13 +109,17 @@ def test_remote_unread_syncback(db, config):
     with crispin_client(account.id, account.provider) as client:
         client.select_folder(account.all_folder.name, uidvalidity_cb)
         uids = client.find_messages(g_thrid)
-        assert not any("\\Seen" in flags for flags, _ in client.flags(uids).values())
+        assert not any(
+            "\\Seen" in flags for flags, _ in list(client.flags(uids).values())
+        )
 
         set_remote_unread(account, THREAD_ID, False, db.session)
-        assert all("\\Seen" in flags for flags, _ in client.flags(uids).values())
+        assert all("\\Seen" in flags for flags, _ in list(client.flags(uids).values()))
 
         set_remote_unread(account, THREAD_ID, True, db.session)
-        assert not any("\\Seen" in flags for flags, _ in client.flags(uids).values())
+        assert not any(
+            "\\Seen" in flags for flags, _ in list(client.flags(uids).values())
+        )
 
 
 # TODO: Test more of the different cases here.

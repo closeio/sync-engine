@@ -1,5 +1,6 @@
 import random
 import uuid
+from builtins import object, range
 from datetime import datetime, timedelta
 
 import pytest
@@ -37,7 +38,7 @@ def format_datetime(dt):
     return "'{}'".format(dt.strftime("%Y-%m-%d %H:%M:%S"))
 
 
-class TestTransactionDeletion:
+class TestTransactionDeletion(object):
     """
     Test transaction deletion. These tests arbitrarily chose 30 days for
     `days_ago`.
@@ -64,7 +65,7 @@ class TestTransactionDeletion:
         create_transaction(db, now - timedelta(days=30), default_namespace.id)
 
         # Transactions older than 30 days should be deleted
-        for i in xrange(10):
+        for i in range(10):
             create_transaction(db, now - timedelta(days=31 + i), default_namespace.id)
 
         return t0

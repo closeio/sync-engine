@@ -210,7 +210,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
 
     def _merge_participant_attributes(self, left, right):
         """Merge right into left. Right takes precedence unless it's null."""
-        for attribute in right.keys():
+        for attribute in list(right.keys()):
             # Special cases:
             if right[attribute] is None:
                 continue
@@ -276,7 +276,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
                 else:
                     self_hash[name] = participant
 
-        return self_hash.values()
+        return list(self_hash.values())
 
     def update(self, event):
         if event.namespace is not None and event.namespace.id is not None:
@@ -411,7 +411,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
 
     def __init__(self, **kwargs):
         # Allow arguments for all subclasses to be passed to main constructor
-        for k in kwargs.keys():
+        for k in list(kwargs.keys()):
             if not hasattr(type(self), k):
                 del kwargs[k]
         super(Event, self).__init__(**kwargs)
@@ -502,7 +502,7 @@ class RecurringEvent(Event):
         events = list(overrides)
         overridden_starts = [e.original_start_time for e in events]
         # Remove cancellations from the override set
-        events = filter(lambda e: not e.cancelled, events)
+        events = [e for e in events if not e.cancelled]
         # If an override has not changed the start time for an event, including
         # if the override is a cancellation, the RRULE doesn't include an
         # exception for it. Filter out unnecessary inflated events

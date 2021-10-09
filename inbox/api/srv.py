@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+from builtins import str
+
 from flask import Flask, g, jsonify, make_response, request
 from flask.ext.restful import reqparse
 from sqlalchemy.orm.exc import NoResultFound
@@ -55,7 +57,7 @@ def default_json_error(ex):
 
 
 # Patch all error handlers in werkzeug
-for code in default_exceptions.iterkeys():
+for code in default_exceptions.keys():
     app.error_handler_spec[None][code] = default_json_error
 
 

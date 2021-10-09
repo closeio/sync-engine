@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+from builtins import map, str
+
 import arrow
 from dateutil.rrule import FR, MO, SA, SU, TH, TU, WE, rrule, rruleset, rrulestr
 
@@ -144,8 +146,8 @@ def get_start_times(event, start=None, end=None):
 
             # We want naive-everything for all-day events.
             if event.all_day:
-                excl_dates = map(lambda x: x.naive, excl_dates)
-            map(rrules.exdate, excl_dates)
+                excl_dates = [x.naive for x in excl_dates]
+            list(map(rrules.exdate, excl_dates))
 
         # Return all start times between start and end, including start and
         # end themselves if they obey the rule.
@@ -176,7 +178,7 @@ def rrule_to_json(r):
         r = parse_rrule(r)
     info = vars(r)
     j = {}
-    for field, value in info.iteritems():
+    for field, value in info.items():
         if isinstance(value, tuple) and len(value) == 1:
             value = value[0]
         if field[0] == "_":

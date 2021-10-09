@@ -1,3 +1,5 @@
+from builtins import object, range
+
 import requests
 from sqlalchemy import desc
 

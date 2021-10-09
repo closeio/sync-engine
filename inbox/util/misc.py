@@ -2,6 +2,7 @@ import pkgutil
 import re
 import sys
 import time
+from builtins import object, str
 from datetime import datetime
 from email.utils import mktime_tz, parsedate_tz
 
@@ -167,7 +168,7 @@ def register_backends(base_name, base_path):
         if hasattr(module, "PROVIDER"):
             provider_name = module.PROVIDER
             if provider_name == "generic":
-                for p_name, p in providers.items():
+                for p_name, p in list(providers.items()):
                     p_type = p.get("type", None)
                     if p_type == "generic" and p_name not in mod_for:
                         mod_for[p_name] = module

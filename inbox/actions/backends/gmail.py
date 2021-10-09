@@ -1,5 +1,6 @@
 """ Operations for syncing back local datastore changes to Gmail. """
 
+from builtins import map
 from imaplib import IMAP4
 
 import imapclient
@@ -15,7 +16,7 @@ __all__ = ["remote_create_label", "remote_update_label", "remote_delete_label"]
 
 
 def _encode_labels(labels):
-    return map(imapclient.imap_utf7.encode, labels)
+    return list(map(imapclient.imap_utf7.encode, labels))
 
 
 def remote_change_labels(
@@ -25,12 +26,12 @@ def remote_change_labels(
     with session_scope(account_id) as db_session:
         for message_id in message_ids:
             folder_uids_map = uids_by_folder(message_id, db_session)
-            for folder_name, uids in folder_uids_map.items():
+            for folder_name, uids in list(folder_uids_map.items()):
                 if folder_name not in uids_for_message:
                     uids_for_message[folder_name] = []
                 uids_for_message[folder_name].extend(uids)
 
-    for folder_name, uids in uids_for_message.items():
+    for folder_name, uids in list(uids_for_message.items()):
         crispin_client.select_folder_if_necessary(folder_name, uidvalidity_cb)
         if len(added_labels) > 0:
             crispin_client.conn.add_gmail_labels(

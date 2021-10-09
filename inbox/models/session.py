@@ -1,5 +1,6 @@
 import sys
 import time
+from builtins import str
 from contextlib import contextmanager
 
 from sqlalchemy import event
@@ -217,7 +218,7 @@ def query_chooser(query):
 
 @contextmanager
 def global_session_scope():
-    shards = {str(k): v for k, v in engine_manager.engines.items()}
+    shards = {str(k): v for k, v in list(engine_manager.engines.items())}
     session = ShardedSession(
         shard_chooser=shard_chooser,
         id_chooser=id_chooser,

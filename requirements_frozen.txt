@@ -112,7 +112,7 @@ regex==2018.1.10
 requests==2.11.0
 rollbar==0.16.1
 scandir==1.10.0
-setproctitle==1.1.8
+setproctitle==1.1.10
 setuptools==44.0.0
 simplegeneric==0.8.1
 simplejson==3.6.0

@@ -1,4 +1,6 @@
+# syntax = docker/dockerfile:1.3
 FROM ubuntu:xenial-20210804
+ARG PYTHON_VERSION=2.7
 
 RUN groupadd -g 5000 sync-engine \
   && useradd -d /home/sync-engine -m -u 5000 -g 5000 sync-engine
@@ -11,8 +13,6 @@ RUN DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get dist-upgrade -y 
   g++ \
   git \
   python-dev \
-  python-pip \
-  python-virtualenv \
   wget \
   gettext-base \
   language-pack-en \
@@ -31,7 +31,21 @@ RUN DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get dist-upgrade -y 
   tzdata \
   vim \
   libffi-dev \
+  software-properties-common \
   && rm -rf /var/lib/apt/lists/*
+
+RUN if [ "${PYTHON_VERSION}" != "2.7" ]; \
+  then \
+    add-apt-repository ppa:deadsnakes/ppa; \
+    DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y python"${PYTHON_VERSION}" python"${PYTHON_VERSION}"-dev; \
+  fi; \
+  if [ "${PYTHON_VERSION}" == "3.8" ]; then DEBIAN_FRONTEND=noninteractive apt-get install python"${PYTHON_VERSION}"-distutils; fi; \
+  rm -rf /var/lib/apt/lists/*
+
+RUN curl -O https://bootstrap.pypa.io/pip/2.7/get-pip.py && \
+  python"${PYTHON_VERSION}" get-pip.py && \
+  python"${PYTHON_VERSION}" -m pip install --upgrade pip==20.3.4 && \
+  python"${PYTHON_VERSION}" -m pip install virtualenv==20.8.1
 
 RUN mkdir /etc/inboxapp && \
   chown sync-engine:sync-engine /etc/inboxapp && \
@@ -50,12 +64,13 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 COPY --chown=sync-engine:sync-engine ./ ./
 RUN \
-  virtualenv /opt/venv && \
-  pip install setuptools==44.0.0 && \
-  pip install pip==20.3.4 && \
-  pip install --no-deps -r requirements_frozen.txt && \
-  pip install -e . && \
-  pip check
+  --mount=type=cache,target=/home/sync-engine/.cache/pip,uid=5000,gid=5000 \
+  python"${PYTHON_VERSION}" -m virtualenv /opt/venv && \
+  /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install setuptools==44.0.0 pip==20.3.4 && \
+  /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install --no-deps -r requirements_frozen.txt && \
+  /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install -e .
+
+RUN /opt/venv/bin/python"${PYTHON_VERSION}" -m pip check
 
 RUN ln -s /opt/app/bin/wait-for-it.sh /opt/venv/bin/
 

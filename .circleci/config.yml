@@ -89,7 +89,7 @@ jobs:
           path: .circleci/artifacts.html
           destination: artifacts.html
 
-  build-python3.6:
+  build-python36:
     machine:
       image: ubuntu-1604:201903-01
     working_directory: ~/sync-engine
@@ -113,7 +113,7 @@ jobs:
             '
       # Not pushing Python 3.6 image of the time being
 
-  build-python3.8:
+  build-python38:
     machine:
       image: ubuntu-1604:201903-01 
     working_directory: ~/sync-engine
@@ -176,4 +176,6 @@ workflows:
       - static-code-analysis
       - static-code-analysis-flake8
       - build
+      - build-python36
+      - build-python38
       - build_arm

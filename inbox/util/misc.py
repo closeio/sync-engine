@@ -5,6 +5,8 @@ import time
 from datetime import datetime
 from email.utils import mktime_tz, parsedate_tz
 
+import future.utils
+
 from inbox.logging import get_logger
 from inbox.providers import providers
 
@@ -142,7 +144,9 @@ def load_modules(base_name, base_path):
         full_module_name = "{}.{}".format(base_name, module_name)
 
         if full_module_name not in sys.modules:
-            module = importer.find_module(module_name).load_module(full_module_name)
+            module = importer.find_module(module_name).load_module(
+                full_module_name if future.utils.PY2 else module_name
+            )
         else:
             module = sys.modules[full_module_name]
         modules.append(module)
@@ -163,7 +167,7 @@ def register_backends(base_name, base_path):
         if hasattr(module, "PROVIDER"):
             provider_name = module.PROVIDER
             if provider_name == "generic":
-                for p_name, p in providers.iteritems():
+                for p_name, p in providers.items():
                     p_type = p.get("type", None)
                     if p_type == "generic" and p_name not in mod_for:
                         mod_for[p_name] = module

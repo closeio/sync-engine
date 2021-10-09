@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+import hashlib
 import json
 import os
 from datetime import datetime
 
-import md5
 import mock
 import pytest
 
@@ -145,8 +145,8 @@ def test_download(api_client, uploaded_file_ids, filename):
         original_filename.encode("utf-8"),
     )
     local_data = open(path, "rb").read()
-    local_md5 = md5.new(local_data).digest()
-    dl_md5 = md5.new(data).digest()
+    local_md5 = hashlib.md5(local_data).digest()
+    dl_md5 = hashlib.md5(data).digest()
     assert local_md5 == dl_md5
 
 

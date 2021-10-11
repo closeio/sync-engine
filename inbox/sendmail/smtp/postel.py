@@ -93,7 +93,7 @@ class SMTP(smtplib.SMTP):
 def _transform_ssl_error(strerror):
     """
     Clean up errors like:
-    _ssl.c:510: error:14090086:SSL routines:SSL3_GET_SERVER_CERTIFICATE:certificate verify failed  # noqa
+    _ssl.c:510: error:14090086:SSL routines:SSL3_GET_SERVER_CERTIFICATE:certificate verify failed
 
     """
     if strerror is None:

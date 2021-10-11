@@ -80,7 +80,7 @@ def start_client_console(user_email_address=None):
         sys.exit(
             "You need to have the Nylas Python SDK installed to use this" " option."
         )
-    client = NylasTestClient(user_email_address)  # noqa
+    client = NylasTestClient(user_email_address)  # noqa: F841
     IPython.embed(
         banner1=("You can access a Nylas API client " "using the 'client' variable.")
     )

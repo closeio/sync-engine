@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# flake8: noqa: F811
 
 from datetime import datetime
 

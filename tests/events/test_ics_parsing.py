@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# flake8: noqa: F401
 import arrow
 import pytest
 
@@ -11,7 +10,6 @@ from tests.util.base import (
     absolute_path,
     add_fake_calendar,
     add_fake_msg_with_calendar_part,
-    generic_account,
 )
 
 FIXTURES = "./events/fixtures/"
@@ -387,7 +385,7 @@ def test_rsvp_merging(db, generic_account, message):
     with open(absolute_path(FIXTURES + "invite_w_rsvps_4.ics")) as fd:
         ics_data = fd.read()
 
-    msg4 = add_fake_msg_with_calendar_part(db.session, generic_account, ics_data)
+    add_fake_msg_with_calendar_part(db.session, generic_account, ics_data)
 
     import_attached_events(db.session, generic_account, msg3)
 

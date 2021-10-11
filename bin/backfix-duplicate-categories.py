@@ -106,7 +106,7 @@ def backfix_shard(shard_id, dry_run):
                             db_session.query(MessageCategory)
                             .filter(MessageCategory.category_id == category_id)
                             .all()
-                        )  # noqa
+                        )
 
                         for mc in messagecategories:
                             # Its possible for a message to be associated with

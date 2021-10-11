@@ -102,6 +102,10 @@ jobs:
           command: docker-compose build --build-arg PYTHON_VERSION=3.6 app || true
 
       - run:
+          name: don't run the tests since images do not build yet
+          command: circleci-agent step halt
+
+      - run:
           name: run tests
           command: |
             docker login -u $DOCKER_USER -p $DOCKER_PASS
@@ -110,8 +114,8 @@ jobs:
               && bin/wait-for-it.sh mysql:3306 \
               && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
               && coverage html -d pythoncov
-            ' || true
-      # Not pushing Python 3.6 image of the time being
+            '
+      # Not pushing Python 3.6 image for the time being
 
   build-python38:
     machine:
@@ -126,6 +130,10 @@ jobs:
           command: docker-compose build --build-arg PYTHON_VERSION=3.8 app || true
 
       - run:
+          name: don't run the tests since images do not build yet
+          command: circleci-agent step halt
+
+      - run:
           name: run tests
           command: |
             docker login -u $DOCKER_USER -p $DOCKER_PASS
@@ -134,9 +142,9 @@ jobs:
               && bin/wait-for-it.sh mysql:3306 \
               && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
               && coverage html -d pythoncov
-            ' || true
+            '
 
-      # Not pushing Python 3.8 image of the time being
+      # Not pushing Python 3.8 image for the time being
 
   build_arm:
     machine:

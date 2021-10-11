@@ -44,7 +44,9 @@ BAD_TOKEN = "1234567890abcdefg"
 def test_invalid_basic_auth(db, generic_account):  # noqa
     api_client = new_api_client(db, generic_account.namespace)
     api_client.auth_header = {
-        "Authorization": "Basic {}".format(b64encode(BAD_TOKEN + ":"))
+        "Authorization": "Basic {}".format(
+            b64encode((BAD_TOKEN + ":").encode()).decode()
+        )
     }
 
     response = api_client.get_raw("/account")

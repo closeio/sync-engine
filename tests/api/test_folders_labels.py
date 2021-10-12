@@ -1,4 +1,3 @@
-# flake8: noqa: F811
 import json
 from datetime import datetime
 
@@ -17,7 +16,7 @@ from tests.util.base import (
     thread,
 )
 
-__all__ = ["api_client", "thread", "generic_account", "gmail_account"]
+__all__ = ["thread", "generic_account", "gmail_account"]
 
 
 @pytest.fixture

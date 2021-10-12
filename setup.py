@@ -58,9 +58,6 @@ setup(
         "bin/syncback-stats",
         "bin/set-desired-host",
         "bin/get-accounts-for-host",
-        "bin/deferred-migration-service",
-        "bin/balance-fleet",
-        "bin/get-account-loads",
         "bin/restart-forgotten-accounts",
     ],
     # See:

@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-# flake8: noqa: F811
 import contextlib
 import json
 import re
 import smtplib
 import time
-import traceback
 from builtins import next, object
 
 import pytest
@@ -19,7 +17,7 @@ from inbox.sendmail.smtp.postel import _substitute_bcc
 
 from tests.util.base import imported_event, message, thread
 
-__all__ = ["thread", "message", "api_client", "imported_event"]
+__all__ = ["thread", "message", "imported_event"]
 
 
 class MockTokenManager(object):
@@ -999,7 +997,6 @@ def test_inline_html_image_send(patch_smtp, api_client, uploaded_file_ids):
         "/send",
         {
             "subject": "Inline image test",
-            "body": "Before image\r\n[cid:{}]\r\nAfter image".format(file_id),
             "body": '<html><body><div></div><img src="cid:{}"><div></div></body></html>'.format(
                 file_id
             ),

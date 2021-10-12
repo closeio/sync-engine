@@ -75,7 +75,7 @@ def strip_tags(html):
 re_string = re.compile(
     r"(?P<htmlchars>[<&>])|(?P<space>^[ \t]+)|(?P<lineend>\n)|(?P<protocol>(^|\s)((http|ftp)://.*?))(\s|$)",
     re.S | re.M | re.I | re.U,
-)  # noqa
+)
 
 
 def plaintext2html(text, tabstop=4):

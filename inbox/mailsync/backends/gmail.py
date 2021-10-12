@@ -95,7 +95,7 @@ class GmailSyncMonitor(ImapSyncMonitor):
 
             if folder.category:
                 if folder.category.display_name != raw_folder.display_name:
-                    folder.category.display_name = raw_folder.display_name  # noqa
+                    folder.category.display_name = raw_folder.display_name
             else:
                 log.info(
                     "Creating category for folder",
@@ -162,7 +162,7 @@ class GmailSyncMonitor(ImapSyncMonitor):
             for label in db_session.query(Label).filter(
                 Label.account_id == self.account_id, Label.deleted_at.is_(None)
             )
-        }  # noqa
+        }
 
         # Is it the first time we've been syncing folders?
         # It's important to know this because we don't want to

@@ -28,7 +28,7 @@ and then inspect the heap, like this:
 
 Happy hacking!
 
-"""  # noqa
+"""
 
 
 class RemoteConsole(InteractiveConsole):
@@ -72,7 +72,7 @@ class RemoteConsole(InteractiveConsole):
             sys.ps2
         except AttributeError:
             sys.ps2 = "... "
-        cprt = 'Type "help", "copyright", "credits" or "license" for more information.'  # noqa
+        cprt = 'Type "help", "copyright", "credits" or "license" for more information.'
         if banner is None:
             self.write(
                 "Python %s on %s\n%s\n(%s)\n"

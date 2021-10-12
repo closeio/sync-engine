@@ -2,15 +2,18 @@
 import cgi
 import re
 import sys
-from html.entities import name2codepoint
-from html.parser import HTMLParser
 
-try:  # TODO: Remove this in Python 3 only
-    from html.parser import HTMLParseError
-except ImportError:
+if sys.version_info >= (3,):
+    from html.entities import name2codepoint
+    from html.parser import HTMLParser
 
     class HTMLParseError(Exception):
         pass
+
+
+else:  # TODO remove this when Python 3 only
+    from htmlentitydefs import name2codepoint
+    from HTMLParser import HTMLParser, HTMLParseError
 
 
 from inbox.logging import get_logger
@@ -25,7 +28,7 @@ class HTMLTagStripper(HTMLParser):
         self.fed = []
         self.strip_tag_contents_mode = False
 
-        super(HTMLTagStripper, self).__init__()
+        HTMLParser.__init__(self)
 
     def handle_starttag(self, tag, attrs):
         # Replace <br>, <div> tags by spaces

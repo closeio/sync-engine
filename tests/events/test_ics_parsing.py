@@ -540,7 +540,7 @@ def test_truncate_bogus_sequence_numbers(db, default_account):
 
     # Check that the sequence number got truncated to the biggest possible
     # number.
-    assert ev.sequence_number == 2147483647L
+    assert ev.sequence_number == 2147483647
 
 
 def test_handle_missing_sequence_number(db, default_account):

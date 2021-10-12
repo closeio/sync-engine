@@ -789,7 +789,9 @@ class FolderSyncEngine(Greenlet):
         # objects into the SQLAlchemy session and then issue lots of commits;
         # we avoid that by batching.
         flag_batches = chunk(
-            sorted(list(changed_flags.items()), key=lambda k_v: k_v[1].modseq),
+            sorted(
+                changed_flags.items(), key=lambda key_and_value: key_and_value[1].modseq
+            ),
             CONDSTORE_FLAGS_REFRESH_BATCH_SIZE,
         )
         for flag_batch in flag_batches:

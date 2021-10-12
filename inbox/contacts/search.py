@@ -124,7 +124,7 @@ class ContactSearchClient(object):
 
     def fetch_all_matching_ids(self):
         """ Fetches *all* match IDs, even if there are tens of thousands. """
-        # see http://docs.aws.amazon.com/cloudsearch/latest/developerguide/paginating-results.html#deep-paging # noqa
+        # see http://docs.aws.amazon.com/cloudsearch/latest/developerguide/paginating-results.html#deep-paging
         #
         # boto limited page size to 500; not sure what boto3's limit is.
         # If higher, consider cranking up quite a bit since only IDs are

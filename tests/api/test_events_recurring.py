@@ -8,8 +8,6 @@ from inbox.models import Calendar, Event
 
 from tests.util.base import message
 
-__all__ = ["api_client"]
-
 
 @pytest.fixture(params=[{"all_day": True}, {"all_day": False}])
 def recurring_event(db, default_namespace, request):

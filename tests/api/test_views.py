@@ -1,10 +1,9 @@
-# flake8: noqa: F811
 import pytest
 
 from tests.api.base import new_api_client
 from tests.util.base import generic_account
 
-__all__ = ["api_client", "generic_account"]
+__all__ = ["generic_account"]
 
 
 # Label views should only work for Gmail accounts. folders 404

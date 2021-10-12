@@ -89,11 +89,11 @@ def test_when_spans_arent_spans():
 def test_parse_datetime():
     t = "20140104T102030Z"
     dt = parse_datetime(t)
-    assert dt == arrow.get(2014, 01, 04, 10, 20, 30)
+    assert dt == arrow.get(2014, 1, 4, 10, 20, 30)
 
     t = "2014-01-15T17:00:00-05:00"
     dt = parse_datetime(t)
-    assert dt == arrow.get(2014, 01, 15, 22, 00, 00)
+    assert dt == arrow.get(2014, 1, 15, 22, 0, 0)
 
     t = None
     dt = parse_datetime(t)
@@ -101,7 +101,7 @@ def test_parse_datetime():
 
     t = 1426008600
     dt = parse_datetime(t)
-    assert dt == arrow.get(2015, 03, 10, 17, 30, 00)
+    assert dt == arrow.get(2015, 3, 10, 17, 30, 0)
 
 
 def test_time_parse():
@@ -121,11 +121,11 @@ def test_time_parse():
 def test_parse_google_time():
     t = {"dateTime": "2012-10-15T17:00:00-07:00", "timeZone": "America/Los_Angeles"}
     gt = parse_google_time(t)
-    assert gt.to("utc") == arrow.get(2012, 10, 16, 00, 00, 00)
+    assert gt.to("utc") == arrow.get(2012, 10, 16, 0, 0, 0)
 
     t = {"dateTime": "2012-10-15T13:00:00+01:00"}
     gt = parse_google_time(t)
-    assert gt.to("utc") == arrow.get(2012, 10, 15, 12, 00, 00)
+    assert gt.to("utc") == arrow.get(2012, 10, 15, 12, 0, 0)
 
     t = {"date": "2012-10-15"}
     gt = parse_google_time(t)
@@ -136,8 +136,8 @@ def test_google_to_event_time():
     start = {"dateTime": "2012-10-15T17:00:00-07:00", "timeZone": "America/Los_Angeles"}
     end = {"dateTime": "2012-10-15T17:25:00-07:00", "timeZone": "America/Los_Angeles"}
     event_time = google_to_event_time(start, end)
-    assert event_time.start == arrow.get(2012, 10, 16, 00, 00, 00)
-    assert event_time.end == arrow.get(2012, 10, 16, 00, 25, 00)
+    assert event_time.start == arrow.get(2012, 10, 16, 0, 0, 0)
+    assert event_time.end == arrow.get(2012, 10, 16, 0, 25, 0)
     assert event_time.all_day is False
 
     start = {"date": "2012-10-15"}
@@ -152,8 +152,8 @@ def test_google_to_event_time_reverse():
     end = {"dateTime": "2012-10-15T17:00:00-07:00", "timeZone": "America/Los_Angeles"}
     start = {"dateTime": "2012-10-15T17:25:00-07:00", "timeZone": "America/Los_Angeles"}
     event_time = google_to_event_time(start, end)
-    assert event_time.start == arrow.get(2012, 10, 16, 00, 00, 00)
-    assert event_time.end == arrow.get(2012, 10, 16, 00, 25, 00)
+    assert event_time.start == arrow.get(2012, 10, 16, 0, 0, 0)
+    assert event_time.end == arrow.get(2012, 10, 16, 0, 25, 0)
     assert event_time.all_day is False
 
     start = {"date": "2012-10-15"}

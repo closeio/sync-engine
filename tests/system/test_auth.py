@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import pytest
 
@@ -13,7 +13,7 @@ try:
     # credentials.
     from accounts import broken_credentials
 except ImportError:
-    print "test_auth.py: Warning -- No broken accounts credentials."
+    print("test_auth.py: Warning -- No broken accounts credentials.")
     broken_credentials = []
 
 

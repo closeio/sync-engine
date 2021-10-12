@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import attr
 
 from inbox.basicauth import OAuthError
@@ -83,8 +85,8 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
             url_args["login_hint"] = email_address
         url = url_concat(self.OAUTH_AUTHENTICATE_URL, url_args)
 
-        print "To authorize Nylas, visit this URL and follow the directions:"
-        print "\n{}".format(url)
+        print("To authorize Nylas, visit this URL and follow the directions:")
+        print("\n{}".format(url))
 
         while True:
             auth_code = raw_input("Enter authorization code: ").strip()
@@ -99,4 +101,4 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
                     sync_email=True,
                 )
             except OAuthError:
-                print "\nInvalid authorization code, try again...\n"
+                print("\nInvalid authorization code, try again...\n")

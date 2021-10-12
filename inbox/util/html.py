@@ -1,11 +1,21 @@
 # -*- coding: utf-8 -*-
 import cgi
-import html.entities
 import re
-from builtins import chr
-from html.parser import HTMLParser
+import sys
 
-import future.utils
+if sys.version_info >= (3,):
+    unichr = chr
+    from html.entities import name2codepoint
+    from html.parser import HTMLParser
+
+    class HTMLParseError(Exception):
+        pass
+
+
+else:  # TODO remove this when Python 3 only
+    from htmlentitydefs import name2codepoint
+    from HTMLParser import HTMLParser, HTMLParseError
+
 
 from inbox.logging import get_logger
 
@@ -19,7 +29,7 @@ class HTMLTagStripper(HTMLParser):
         self.fed = []
         self.strip_tag_contents_mode = False
 
-        super(HTMLTagStripper, self).__init__()
+        HTMLParser.__init__(self)
 
     def handle_starttag(self, tag, attrs):
         # Replace <br>, <div> tags by spaces
@@ -39,7 +49,8 @@ class HTMLTagStripper(HTMLParser):
         if not self.strip_tag_contents_mode:
             self.fed.append(d)
 
-    if future.utils.PY2:
+    # TODO: Remove this in Python 3 only
+    if sys.version_info < (3,):
 
         def handle_charref(self, d):
             try:
@@ -47,13 +58,13 @@ class HTMLTagStripper(HTMLParser):
                     val = int(d[1:], 16)
                 else:
                     val = int(d)
-                self.fed.append(chr(val))
+                self.fed.append(unichr(val))
             except (ValueError, OverflowError):
                 return
 
     def handle_entityref(self, d):
         try:
-            val = chr(html.entities.name2codepoint[d])
+            val = unichr(name2codepoint[d])
         except KeyError:
             return
         self.fed.append(val)
@@ -66,8 +77,8 @@ def strip_tags(html):
     s = HTMLTagStripper()
     try:
         s.feed(html)
-    except Exception:
-        get_logger().error("error stripping tags", raw_html=html)
+    except HTMLParseError:
+        get_logger().error("error stripping tags", raw_html=html, exc_info=True)
     return s.get_data()
 
 

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import json
 
 import arrow
@@ -33,7 +35,7 @@ def cmp_event_attrs(event1, event2):
         "recurrence",
     ):
         if getattr(event1, attr) != getattr(event2, attr):
-            print attr, getattr(event1, attr), getattr(event2, attr)
+            print(attr, getattr(event1, attr), getattr(event2, attr))
     return all(
         getattr(event1, attr) == getattr(event2, attr)
         for attr in (
@@ -272,7 +274,7 @@ def test_event_parsing():
     assert found_cancelled_event
 
     for obtained, expected in zip(updates, expected_updates):
-        print obtained, expected
+        print(obtained, expected)
         assert cmp_event_attrs(obtained, expected)
 
     # Test read-only support

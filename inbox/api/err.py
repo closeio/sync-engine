@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import sys
 import traceback
 
@@ -25,9 +27,9 @@ def log_exception(exc_info, **kwargs):
     rollbar.report_exc_info(exc_info)
 
     if not is_live_env():
-        print
+        print()
         traceback.print_exc()
-        print
+        print()
 
     new_log_context = create_error_log_context(exc_info)
     new_log_context.update(kwargs)

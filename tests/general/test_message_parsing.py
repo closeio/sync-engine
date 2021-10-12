@@ -373,6 +373,16 @@ def test_address_parsing():
     parsed = parse_mimepart_address_header(mimepart, "To")
     assert parsed == [["", "alice@foocorp.com"], ["", "bob@foocorp.com"]]
 
+    # Multiple addresses on one header
+    mimepart = mime.from_string("To: alice@foocorp.com, bob@foocorp.com")
+    parsed = parse_mimepart_address_header(mimepart, "To")
+    assert parsed == [["", "alice@foocorp.com"], ["", "bob@foocorp.com"]]
+
+    # Non ASCII
+    mimepart = mime.from_string("To: =?UTF-8?Q?Pawe=C5=82?= <pawel@example.com>")
+    parsed = parse_mimepart_address_header(mimepart, "To")
+    assert parsed == [[u"Paweł", "pawel@example.com"]]
+
 
 def test_handle_bad_content_disposition(
     db, default_account, default_namespace, mime_message

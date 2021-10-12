@@ -1,3 +1,4 @@
+import email.utils
 import re
 
 import rfc822
@@ -46,7 +47,9 @@ def parse_mimepart_address_header(mimepart, header_name):
     # Consult RFC822 Section 6.1 and RFC2047 section 5 for details.
     addresses = set()
     for section in mimepart.headers._v.getall(normalize(header_name)):
-        for phrase, addrspec in rfc822.AddressList(section).addresslist:
+        for phrase, addrspec in email.utils.getaddresses([section]):
+            if not addrspec:
+                continue
             addresses.add((decode(phrase), decode(addrspec)))
 
     # Return a list of lists because it makes it easier to compare an address

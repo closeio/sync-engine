@@ -4,6 +4,7 @@ import re
 import sys
 
 if sys.version_info >= (3,):
+    unichr = chr
     from html.entities import name2codepoint
     from html.parser import HTMLParser
 

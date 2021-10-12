@@ -1,7 +1,6 @@
 import email.utils
 import re
 
-import rfc822
 from flanker.addresslib import address
 from flanker.mime.message.headers.encodedword import decode
 from flanker.mime.message.headers.parsing import normalize

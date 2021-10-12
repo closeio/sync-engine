@@ -248,8 +248,8 @@ def test_event_parsing():
             description=None,
             read_only=False,
             busy=False,
-            start=arrow.get(2014, 06, 15),
-            end=arrow.get(2014, 06, 15),
+            start=arrow.get(2014, 6, 15),
+            end=arrow.get(2014, 6, 15),
             all_day=True,
             owner="Holidays in United States <en.usa#holiday@group.v.calendar.google.com>",
             participants=[],
@@ -349,8 +349,8 @@ def test_handle_offset_all_day_events():
         description=None,
         read_only=False,
         busy=False,
-        start=arrow.get(2014, 03, 15),
-        end=arrow.get(2014, 03, 15),
+        start=arrow.get(2014, 3, 15),
+        end=arrow.get(2014, 3, 15),
         all_day=True,
         owner="Ben Bitdiddle <ben.bitdiddle2222@gmail.com>",
         participants=[],
@@ -553,7 +553,7 @@ def test_recurrence_creation():
     assert isinstance(event, RecurringEvent)
     assert event.rrule == "RRULE:FREQ=WEEKLY;UNTIL=20150209T075959Z;BYDAY=MO"
     assert event.exdate == "EXDATE;TZID=America/Los_Angeles:20150208T010000"
-    assert event.until == arrow.get(2015, 02, 9, 7, 59, 59)
+    assert event.until == arrow.get(2015, 2, 9, 7, 59, 59)
     assert event.start_timezone == "America/Los_Angeles"
 
 
@@ -606,7 +606,7 @@ def test_override_creation():
     event = parse_event_response(event, False)
     assert isinstance(event, RecurringEventOverride)
     assert event.master_event_uid == "tn7krk4cekt8ag3pk6gapqqbro"
-    assert event.original_start_time == arrow.get(2012, 10, 23, 00, 00, 00)
+    assert event.original_start_time == arrow.get(2012, 10, 23, 0, 0, 0)
 
 
 def test_cancelled_override_creation():

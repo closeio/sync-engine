@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import pytest
 from client import NylasTestClient
 from conftest import API_BASE, create_account, credentials, timeout_loop
@@ -10,7 +12,7 @@ try:
     # credentials.
     from accounts import broken_credentials
 except ImportError:
-    print "test_auth.py: Warning -- No broken accounts credentials."
+    print("test_auth.py: Warning -- No broken accounts credentials.")
     broken_credentials = []
 
 

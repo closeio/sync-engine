@@ -1,8 +1,11 @@
+from __future__ import absolute_import
+
 import pytest
-from client import NylasTestClient
-from conftest import API_BASE, create_account, credentials, timeout_loop
 
 from inbox.models.session import session_scope
+
+from .client import NylasTestClient
+from .conftest import API_BASE, create_account, credentials, timeout_loop
 
 try:
     # If there's no broken accounts file, well, tough luck but don't crash.

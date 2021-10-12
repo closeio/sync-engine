@@ -1,3 +1,4 @@
+import email.utils
 import re
 
 from flanker.addresslib import address
@@ -44,8 +45,10 @@ def parse_mimepart_address_header(mimepart, header_name):
     # Consult RFC822 Section 6.1 and RFC2047 section 5 for details.
     addresses = set()
     for section in mimepart.headers._v.getall(normalize(header_name)):
-        for addr in address.parse_list(section):
-            addresses.add((addr.display_name, addr.address))
+        for phrase, addrspec in email.utils.getaddresses([section]):
+            if not addrspec:
+                continue
+            addresses.add((decode(phrase), decode(addrspec)))
 
     # Return a list of lists because it makes it easier to compare an address
     # field to one which has been fetched from the db.

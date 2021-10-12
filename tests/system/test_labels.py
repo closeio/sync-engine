@@ -1,16 +1,17 @@
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 # gmail-specific label handling tests.
 import random
 from datetime import datetime
 
 import pytest
-from conftest import gmail_accounts, timeout_loop
 
 from inbox.crispin import writable_connection_pool
 from inbox.mailsync.backends.imap.generic import uidvalidity_cb
 from inbox.models import Account
 from inbox.models.session import session_scope
+
+from .conftest import gmail_accounts, timeout_loop
 
 
 @timeout_loop("tag_add")

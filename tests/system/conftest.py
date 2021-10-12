@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 # This file contains pytest fixtures as well as some config
 import os
@@ -13,12 +13,12 @@ TEST_GRANULARITY_CHECK_SECS = 0.1
 
 from time import sleep, time
 
-from client import NylasTestClient
-from google_auth_helper import google_auth
-from outlook_auth_helper import outlook_auth
-
 from inbox.auth.base import handler_from_provider
 from inbox.util.url import provider_from_address
+
+from .client import NylasTestClient
+from .google_auth_helper import google_auth
+from .outlook_auth_helper import outlook_auth
 
 # we don't want to commit passwords to the repo.
 # load them from an external json file.

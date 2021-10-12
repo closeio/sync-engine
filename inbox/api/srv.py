@@ -1,7 +1,7 @@
+from __future__ import absolute_import
+
 from flask import Flask, g, jsonify, make_response, request
 from flask.ext.restful import reqparse
-from metrics_api import app as metrics_api
-from ns_api import DEFAULT_LIMIT, app as ns_api
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.exceptions import HTTPException, default_exceptions
 
@@ -26,6 +26,9 @@ from inbox.models.secret import SecretType
 from inbox.models.session import global_session_scope
 from inbox.util.logging_helper import reconfigure_logging
 from inbox.webhooks.gpush_notifications import app as webhooks_api
+
+from .metrics_api import app as metrics_api
+from .ns_api import DEFAULT_LIMIT, app as ns_api
 
 app = Flask(__name__)
 # Handle both /endpoint and /endpoint/ without redirecting.

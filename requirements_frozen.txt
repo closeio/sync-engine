@@ -9,7 +9,7 @@ git+https://github.com/closeio/authalligator-client.git@fe93c9d2333d2949e44c48a2
 backports.functools-lru-cache==1.4
 backports.shutil_get_terminal_size==1.0
 backports.ssl==0.0.9
-boto==2.10.0
+boto==2.32.0
 boto3==1.1.4
 botocore==1.2.11
 bumpversion==0.5.3

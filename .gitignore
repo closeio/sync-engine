@@ -16,6 +16,7 @@ node_modules
 /tests/output
 /tests/coverage
 /tests/.cache
+/tests/.pytest_cache
 htmlcov
 /cache
 /config.json

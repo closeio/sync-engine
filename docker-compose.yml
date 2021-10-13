@@ -19,10 +19,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.minio
+    hostname: sync-engine.minio
     environment:
        - MINIO_ROOT_USER=sync-engine
        - MINIO_ROOT_PASSWORD=sync-engine
        - MINIO_BUCKET_NAME=sync-engine
+       - MINIO_DOMAIN=minio
 
   app:
     build:

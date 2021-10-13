@@ -54,12 +54,7 @@ def _save_to_s3(data_sha256, data):
     _save_to_s3_bucket(data_sha256, config.get("TEMP_MESSAGE_STORE_BUCKET_NAME"), data)
 
 
-def _save_to_s3_bucket(data_sha256, bucket_name, data):
-    assert "AWS_ACCESS_KEY_ID" in config, "Need AWS key!"
-    assert "AWS_SECRET_ACCESS_KEY" in config, "Need AWS secret!"
-    start = time.time()
-
-    # Boto pools connections at the class level
+def get_s3_bucket(bucket_name):
     conn = S3Connection(
         config.get("AWS_ACCESS_KEY_ID"),
         config.get("AWS_SECRET_ACCESS_KEY"),
@@ -67,7 +62,16 @@ def _save_to_s3_bucket(data_sha256, bucket_name, data):
         port=config.get("AWS_S3_PORT"),
         is_secure=config.get("AWS_S3_IS_SECURE"),
     )
-    bucket = conn.get_bucket(bucket_name, validate=False)
+    return conn.get_bucket(bucket_name, validate=False)
+
+
+def _save_to_s3_bucket(data_sha256, bucket_name, data):
+    assert "AWS_ACCESS_KEY_ID" in config, "Need AWS key!"
+    assert "AWS_SECRET_ACCESS_KEY" in config, "Need AWS secret!"
+    start = time.time()
+
+    # Boto pools connections at the class level
+    bucket = get_s3_bucket(bucket_name)
 
     # See if it already exists; if so, don't recreate.
     key = bucket.get_key(data_sha256)
@@ -133,10 +137,7 @@ def _get_from_s3_bucket(data_sha256, bucket_name):
     if not data_sha256:
         return None
 
-    conn = S3Connection(
-        config.get("AWS_ACCESS_KEY_ID"), config.get("AWS_SECRET_ACCESS_KEY")
-    )
-    bucket = conn.get_bucket(bucket_name, validate=False)
+    bucket = get_s3_bucket(bucket_name)
 
     key = bucket.get_key(data_sha256)
 
@@ -169,10 +170,7 @@ def _delete_from_s3_bucket(data_sha256_hashes, bucket_name):
     start = time.time()
 
     # Boto pools connections at the class level
-    conn = S3Connection(
-        config.get("AWS_ACCESS_KEY_ID"), config.get("AWS_SECRET_ACCESS_KEY")
-    )
-    bucket = conn.get_bucket(bucket_name, validate=False)
+    bucket = get_s3_bucket(bucket_name)
 
     bucket.delete_keys([key for key in data_sha256_hashes], quiet=True)
 

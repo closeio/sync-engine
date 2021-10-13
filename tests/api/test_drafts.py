@@ -182,28 +182,20 @@ def test_drafts_filter(api_client, example_draft):
 
 
 @pytest.fixture
-def change_blockstore_backend(monkeypatch):
-    def _change_blockstore_backend(backend):
-        if backend == "disk":
-            monkeypatch.setattr("inbox.util.blockstore.STORE_MSG_ON_S3", False)
-        elif backend == "s3":
-            monkeypatch.setattr("inbox.util.blockstore.STORE_MSG_ON_S3", True)
-        else:
-            raise AssertionError("Unknown blockstore backend {}".format(backend))
-
-    return _change_blockstore_backend
+def blockstore_backend(monkeypatch, request):
+    if request.param == "disk":
+        monkeypatch.setattr("inbox.util.blockstore.STORE_MSG_ON_S3", False)
+    elif request.param == "s3":
+        monkeypatch.setattr("inbox.util.blockstore.STORE_MSG_ON_S3", True)
+    else:
+        raise AssertionError("Unknown blockstore backend {}".format(request.param))
 
 
-@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"])
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_create_draft_with_attachments(
-    change_blockstore_backend,
-    blockstore_backend,
-    api_client,
-    attachments,
-    example_draft,
+    api_client, attachments, example_draft,
 ):
-    change_blockstore_backend(blockstore_backend)
-
     attachment_ids = []
     upload_path = "/files"
     for filename, path in attachments:

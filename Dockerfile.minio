@@ -1,0 +1,8 @@
+FROM minio/minio:RELEASE.2021-01-16T02-19-44Z
+
+RUN curl https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/bin/mc && chmod a+x /usr/bin/mc
+
+COPY minio_entrypoint.sh /minio_entrypoint.sh
+RUN chmod a+x /minio_entrypoint.sh
+
+ENTRYPOINT ["/minio_entrypoint.sh"]

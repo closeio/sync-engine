@@ -60,7 +60,7 @@ def get_s3_bucket(bucket_name):
         config.get("AWS_SECRET_ACCESS_KEY"),
         host=config.get("AWS_S3_HOST", S3Connection.DefaultHost),
         port=config.get("AWS_S3_PORT"),
-        is_secure=config.get("AWS_S3_IS_SECURE"),
+        is_secure=config.get("AWS_S3_IS_SECURE", True),
     )
     return conn.get_bucket(bucket_name, validate=False)
 

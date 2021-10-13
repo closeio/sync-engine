@@ -75,10 +75,7 @@ class HTMLTagStripper(HTMLParser):
 
 def strip_tags(html):
     s = HTMLTagStripper()
-    try:
-        s.feed(html)
-    except HTMLParseError:
-        get_logger().error("error stripping tags", raw_html=html, exc_info=True)
+    s.feed(html)
     return s.get_data()
 
 

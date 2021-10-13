@@ -181,7 +181,24 @@ def test_drafts_filter(api_client, example_draft):
     assert len(results) == 1
 
 
-def test_create_draft_with_attachments(api_client, attachments, example_draft):
+@pytest.fixture
+def change_blockstore_backend(monkeypatch):
+    def _change_blockstore_backend(backend):
+        if backend == "disk":
+            monkeypatch.setattr("inbox.util.blockstore.STORE_MSG_ON_S3", False)
+        elif backend == "s3":
+            monkeypatch.setattr("inbox.util.blockstore.STORE_MSG_ON_S3", True)
+        else:
+            raise AssertionError("Unknown blockstore backend {}".format(backend))
+
+    return _change_blockstore_backend
+
+
+def test_create_draft_with_attachments(
+    change_blockstore_backend, api_client, attachments, example_draft
+):
+    change_blockstore_backend("s3")
+
     attachment_ids = []
     upload_path = "/files"
     for filename, path in attachments:

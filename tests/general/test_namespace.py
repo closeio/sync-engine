@@ -79,8 +79,6 @@ def add_completely_fake_account(db, email="test@nylas.com"):
     return fake_account
 
 
-@pytest.mark.usefixtures("blockstore_backend")
-@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_get_accounts_to_delete(db):
     from inbox.models import Account
     from inbox.models.util import get_accounts_to_delete

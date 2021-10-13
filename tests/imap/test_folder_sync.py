@@ -50,8 +50,6 @@ def trash_folder(db, default_account):
     )
 
 
-@pytest.mark.usefixtures("blockstore_backend")
-@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_initial_sync(db, generic_account, inbox_folder, mock_imapclient):
     # We should really be using hypothesis.given() to generate lots of
     # different uid sets, but it's not trivial to ensure that no state is
@@ -79,8 +77,6 @@ def test_initial_sync(db, generic_account, inbox_folder, mock_imapclient):
     }
 
 
-@pytest.mark.usefixtures("blockstore_backend")
-@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_new_uids_synced_when_polling(
     db, generic_account, inbox_folder, mock_imapclient
 ):
@@ -109,6 +105,7 @@ def test_new_uids_synced_when_polling(
 def test_condstore_flags_refresh(
     db, default_account, all_mail_folder, mock_imapclient, monkeypatch
 ):
+    db.session.query(ImapUid).delete()
     monkeypatch.setattr(
         "inbox.mailsync.backends.imap.generic.CONDSTORE_FLAGS_REFRESH_BATCH_SIZE", 10
     )

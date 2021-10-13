@@ -5,6 +5,7 @@ from json import JSONEncoder, dumps
 import arrow
 from flask import Response
 
+from inbox.events.timezones import timezones_table
 from inbox.logging import get_logger
 from inbox.models import (
     Account,
@@ -79,6 +80,15 @@ def encode(obj, namespace_public_id=None, expand=False, is_n1=False):
 
         log.error("object encoding failure", **error_context)
         raise
+
+
+def _convert_timezone_to_pytz(original_tz):
+    try:
+        return timezones_table[original_tz]
+    except KeyError:
+        # Should we log a rollbar here so someone can come in the table and add
+        # the value?
+        return original_tz
 
 
 def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
@@ -319,7 +329,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
         if isinstance(obj, RecurringEvent):
             resp["recurrence"] = {
                 "rrule": obj.recurring,
-                "timezone": obj.start_timezone,
+                "timezone": _convert_timezone_to_pytz(obj.start_timezone),
             }
         if isinstance(obj, RecurringEventOverride):
             resp["original_start_time"] = encode(obj.original_start_time)

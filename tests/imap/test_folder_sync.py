@@ -105,7 +105,6 @@ def test_new_uids_synced_when_polling(
 def test_condstore_flags_refresh(
     db, default_account, all_mail_folder, mock_imapclient, monkeypatch
 ):
-    db.session.query(ImapUid).delete()
     monkeypatch.setattr(
         "inbox.mailsync.backends.imap.generic.CONDSTORE_FLAGS_REFRESH_BATCH_SIZE", 10
     )

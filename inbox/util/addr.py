@@ -47,7 +47,7 @@ def parse_mimepart_address_header(mimepart, header_name):
     addresses = set()
     for section in mimepart.headers._v.getall(normalize(header_name)):
         for phrase, addrspec in email.utils.getaddresses([section]):
-            if not addrspec:
+            if not addrspec and not phrase:
                 continue
             addresses.add((decode(phrase), decode(addrspec)))
 

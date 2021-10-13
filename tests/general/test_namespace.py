@@ -3,6 +3,7 @@ from __future__ import print_function
 import random
 
 import gevent
+import pytest
 from freezegun import freeze_time
 from pytest import fixture
 from requests import Response
@@ -78,6 +79,8 @@ def add_completely_fake_account(db, email="test@nylas.com"):
     return fake_account
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_get_accounts_to_delete(db):
     from inbox.models import Account
     from inbox.models.util import get_accounts_to_delete
@@ -113,6 +116,8 @@ def test_get_accounts_to_delete(db):
     assert len(accounts_to_delete) == 4
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_bulk_namespace_deletion(db):
     from inbox.models import Account
     from inbox.models.util import batch_delete_namespaces, get_accounts_to_delete

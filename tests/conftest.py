@@ -9,7 +9,7 @@ import gevent_openssl
 
 gevent_openssl.monkey_patch()
 
-from pytest import yield_fixture
+from pytest import fixture, yield_fixture
 
 from inbox.util.testutils import files  # noqa
 from inbox.util.testutils import mock_dns_resolver  # noqa
@@ -30,3 +30,13 @@ def api_client(db, default_namespace):
     app.config["TESTING"] = True
     with app.test_client() as c:
         yield TestAPIClient(c, default_namespace.public_id)
+
+
+@fixture
+def blockstore_backend(monkeypatch, request):
+    if request.param == "disk":
+        monkeypatch.setattr("inbox.util.blockstore.STORE_MSG_ON_S3", False)
+    elif request.param == "s3":
+        monkeypatch.setattr("inbox.util.blockstore.STORE_MSG_ON_S3", True)
+    else:
+        raise AssertionError("Unknown blockstore backend {}".format(request.param))

@@ -181,16 +181,6 @@ def test_drafts_filter(api_client, example_draft):
     assert len(results) == 1
 
 
-@pytest.fixture
-def blockstore_backend(monkeypatch, request):
-    if request.param == "disk":
-        monkeypatch.setattr("inbox.util.blockstore.STORE_MSG_ON_S3", False)
-    elif request.param == "s3":
-        monkeypatch.setattr("inbox.util.blockstore.STORE_MSG_ON_S3", True)
-    else:
-        raise AssertionError("Unknown blockstore backend {}".format(request.param))
-
-
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_create_draft_with_attachments(

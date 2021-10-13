@@ -194,10 +194,15 @@ def change_blockstore_backend(monkeypatch):
     return _change_blockstore_backend
 
 
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"])
 def test_create_draft_with_attachments(
-    change_blockstore_backend, api_client, attachments, example_draft
+    change_blockstore_backend,
+    blockstore_backend,
+    api_client,
+    attachments,
+    example_draft,
 ):
-    change_blockstore_backend("s3")
+    change_blockstore_backend(blockstore_backend)
 
     attachment_ids = []
     upload_path = "/files"

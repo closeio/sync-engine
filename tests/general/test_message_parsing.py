@@ -456,6 +456,18 @@ def test_calculate_snippet():
     body = '<div dir="ltr">line1<div>line2</div><div>line3</div><div><br></div></div>'
     assert m.calculate_html_snippet(body) == "line1 line2 line3"
 
+    # check decimal HTML character references
+    body = "Stra&#223;e"
+    assert m.calculate_html_snippet(body) == u"Straße"
+
+    # check hex HTML character references
+    body = "Pawe&#x00142;"
+    assert m.calculate_html_snippet(body) == u"Paweł"
+
+    # check entity references
+    body = "&euro;"
+    assert m.calculate_html_snippet(body) == u"€"
+
     # Check that snippets are properly truncated to 191 characters.
     body = """Etenim quid est, <strong>Catilina</strong>, quod iam amplius
               exspectes, si neque nox tenebris obscurare coetus nefarios nec

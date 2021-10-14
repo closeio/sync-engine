@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import random
 
 import gevent
@@ -266,7 +268,7 @@ def test_namespace_deletion(db, default_account):
 
     for m in models:
         c = db.session.query(m).filter(m.namespace_id == namespace_id).count()
-        print "count for", m, ":", c
+        print("count for", m, ":", c)
         assert c != 0
 
     fake_account = add_generic_imap_account(db.session)
@@ -334,7 +336,7 @@ def test_namespace_delete_cascade(db, default_account):
 
     for m in models:
         c = db.session.query(m).filter(m.namespace_id == namespace_id).count()
-        print "count for", m, ":", c
+        print("count for", m, ":", c)
         assert c != 0
 
     fake_account = add_generic_imap_account(db.session)

@@ -112,13 +112,21 @@ class GreenletTracer(object):
         # thread.
         self.statsd_client = get_statsd_client()
         self.start_time = time.time()
+        self._stopping = False
+        self._thread_id = None
 
     def start(self):
         self.start_time = time.time()
         greenlet.settrace(self._trace)
         # Spawn a separate OS thread to periodically check if the active
         # greenlet on the main thread is blocking.
-        gevent._threading.start_new_thread(self._monitoring_thread, ())
+        self._thread_id = gevent._threading.start_new_thread(
+            self._monitoring_thread, ()
+        )
+
+    def stop(self):
+        assert self._thread_id, "Tracer not started"
+        self._stopping = True
 
     def stats(self):
         total_time = time.time() - self.start_time
@@ -215,7 +223,7 @@ class GreenletTracer(object):
     def _monitoring_thread(self):
         # Logger needs to be instantiated in new thread.
         self.log = get_logger()
-        while True:
+        while not self._stopping:
             retry_with_logging(self._run_impl, self.log)
 
     def _run_impl(self):
@@ -310,7 +318,9 @@ class Tracer(object):
     def log_stats(self, max_stats=60):
         total_time = round(time.time() - self.start_time, 2)
         greenlets_by_cost = sorted(
-            self.time_spent_by_context.items(), key=lambda (k, v): v, reverse=True
+            self.time_spent_by_context.items(),
+            key=lambda key_and_value: key_and_value[1],
+            reverse=True,
         )
         formatted_times = {k: round(v, 2) for k, v in greenlets_by_cost[:max_stats]}
         self.log.info(
@@ -320,7 +330,8 @@ class Tracer(object):
             total_time=total_time,
         )
 
-    def _trace(self, event, (origin, target)):
+    def _trace(self, event, origin_and_target):
+        (origin, target) = origin_and_target
         self.total_switches += 1
         current_time = time.time()
         if self.gather_stats and self._last_switch_time is not None:

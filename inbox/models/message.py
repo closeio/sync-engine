@@ -90,7 +90,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     namespace_id = Column(BigInteger, index=True, nullable=False)
     namespace = relationship(
         "Namespace",
-        primaryjoin="foreign(Message.namespace_id) == remote(Namespace.id)",  # noqa
+        primaryjoin="foreign(Message.namespace_id) == remote(Namespace.id)",
         load_on_pending=True,
     )
 
@@ -98,7 +98,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     thread_id = Column(BigInteger, index=True, nullable=False)
     _thread = relationship(
         "Thread",
-        primaryjoin="foreign(Message.thread_id) == remote(Thread.id)",  # noqa
+        primaryjoin="foreign(Message.thread_id) == remote(Thread.id)",
         backref=backref(
             "messages", order_by="Message.received_date", cascade="all, delete-orphan"
         ),
@@ -232,7 +232,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     # foreign key gets updated when the parent is deleted.
     reply_to_message = relationship(
         "Message",
-        primaryjoin="foreign(Message.reply_to_message_id) == remote(Message.id)",  # noqa
+        primaryjoin="foreign(Message.reply_to_message_id) == remote(Message.id)",
         backref="replies",
     )
 
@@ -754,7 +754,7 @@ class MessageCategory(MailSyncBase):
     message_id = Column(BigInteger, nullable=False)
     message = relationship(
         "Message",
-        primaryjoin="foreign(MessageCategory.message_id) == remote(Message.id)",  # noqa
+        primaryjoin="foreign(MessageCategory.message_id) == remote(Message.id)",
         backref=backref(
             "messagecategories", collection_class=set, cascade="all, delete-orphan"
         ),
@@ -763,7 +763,7 @@ class MessageCategory(MailSyncBase):
     category_id = Column(BigInteger, nullable=False, index=True)
     category = relationship(
         Category,
-        primaryjoin="foreign(MessageCategory.category_id) == remote(Category.id)",  # noqa
+        primaryjoin="foreign(MessageCategory.category_id) == remote(Category.id)",
         backref=backref(
             "messagecategories", cascade="all, delete-orphan", lazy="dynamic"
         ),

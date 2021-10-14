@@ -1,4 +1,3 @@
-# flake8: noqa: F811
 import json
 
 import mock
@@ -20,7 +19,6 @@ from tests.util.base import (
 )
 
 __all__ = [
-    "api_client",
     "default_namespace",
     "new_message_from_synced",
     "mime_message",
@@ -198,9 +196,7 @@ def test_expanded_threads(stub_message, api_client, api_version):
     _check_json_thread(resp_dict)
 
     # /threads/
-    resp = api_client.get_raw(
-        "/threads/?view=expanded".format(stub_message.thread.public_id), headers=headers
-    )
+    resp = api_client.get_raw("/threads/?view=expanded", headers=headers)
     assert resp.status_code == 200
     resp_dict = json.loads(resp.data)
 

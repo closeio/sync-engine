@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# flake8: noqa: F401, F811
 import datetime
 import json
 
@@ -19,8 +18,6 @@ from tests.util.base import (
     add_fake_message,
     add_fake_thread,
 )
-
-__all__ = ["api_client"]
 
 
 @fixture

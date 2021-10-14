@@ -38,7 +38,7 @@ def main(dry_run, number, hostname, process):
         if process is not None:
             hostname = ':'.join([hostname, process])
         to_unschedule = db_session.query(Account.id). \
-                filter(Account.sync_host.like('{}%'.format(hostname)))
+            filter(Account.sync_host.like('{}%'.format(hostname)))
         if number:
             to_unschedule = to_unschedule.limit(number)
         to_unschedule = [id_ for id_, in to_unschedule.all()]

@@ -1,14 +1,17 @@
+from __future__ import absolute_import
+
 import datetime
 import random
 import time
 
 import pytest
-from conftest import calendar_accounts, timeout_loop
 
 from inbox.client.errors import NotFoundError
 from inbox.ignition import main_engine
 from inbox.models import ActionLog
 from inbox.models.session import new_session
+
+from .conftest import calendar_accounts, timeout_loop
 
 random.seed(None)
 

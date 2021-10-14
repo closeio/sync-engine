@@ -16,7 +16,6 @@ RUN DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get dist-upgrade -y 
   gettext-base \
   language-pack-en \
   libcurl4-openssl-dev \
-  liblua5.2-dev \
   libmysqlclient-dev \
   libxml2-dev \
   libxslt-dev \

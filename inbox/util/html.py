@@ -74,6 +74,14 @@ class HTMLTagStripper(HTMLParser):
 
 
 def strip_tags(html):
+    """
+    Return textual content of HTML.
+    Remove title, script and style alltogether. Replace br and div
+    with space. Expand HTML entities.
+
+    This function can potentially raise HTMLParseError if fed invalid html.
+    You are responsible for handling it in the calling function.
+    """
     s = HTMLTagStripper()
     s.feed(html)
     return s.get_data()

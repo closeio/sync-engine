@@ -82,12 +82,11 @@ def encode(obj, namespace_public_id=None, expand=False, is_n1=False):
         raise
 
 
-def _convert_timezone_to_pytz(original_tz):
+def _convert_timezone_to_iana_tz(original_tz):
     try:
         return timezones_table[original_tz]
     except KeyError:
-        # Should we log a rollbar here so someone can come in the table and add
-        # the value?
+        log.error("Bad timezone idetifier", original_tz=original_tz)
         return original_tz
 
 
@@ -329,7 +328,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
         if isinstance(obj, RecurringEvent):
             resp["recurrence"] = {
                 "rrule": obj.recurring,
-                "timezone": _convert_timezone_to_pytz(obj.start_timezone),
+                "timezone": _convert_timezone_to_iana_tz(obj.start_timezone),
             }
         if isinstance(obj, RecurringEventOverride):
             resp["original_start_time"] = encode(obj.original_start_time)

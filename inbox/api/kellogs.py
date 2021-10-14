@@ -86,7 +86,7 @@ def _convert_timezone_to_iana_tz(original_tz):
     try:
         return timezones_table[original_tz]
     except KeyError:
-        log.error("Bad timezone idetifier", original_tz=original_tz)
+        log.error("Bad IANA timezone identifier", original_tz=original_tz)
         return original_tz
 
 

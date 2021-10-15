@@ -42,21 +42,31 @@ http_server = None
 
 
 @click.command()
-@click.option('--prod/--no-prod', default=False,
-              help='Disables the autoreloader and potentially other '
-                   'non-production features.')
-@click.option('--start-syncback/--no-start-syncback', default=True,
-              help='Also start the syncback service')
-@click.option('--enable-tracer/--disable-tracer', default=True,
-              help='Disables the stuck greenlet tracer')
-@click.option('--enable-profiler/--disable-profiler', default=False,
-              help='Enables the CPU profiler web API')
-@click.option('-c', '--config', default=None,
-              help='Path to JSON configuration file.')
-@click.option('-p', '--port', default=5555, help='Port to run flask app on.')
+@click.option(
+    "--prod/--no-prod",
+    default=False,
+    help="Disables the autoreloader and potentially other " "non-production features.",
+)
+@click.option(
+    "--start-syncback/--no-start-syncback",
+    default=True,
+    help="Also start the syncback service",
+)
+@click.option(
+    "--enable-tracer/--disable-tracer",
+    default=True,
+    help="Disables the stuck greenlet tracer",
+)
+@click.option(
+    "--enable-profiler/--disable-profiler",
+    default=False,
+    help="Enables the CPU profiler web API",
+)
+@click.option("-c", "--config", default=None, help="Path to JSON configuration file.")
+@click.option("-p", "--port", default=5555, help="Port to run flask app on.")
 def main(prod, start_syncback, enable_tracer, config, port, enable_profiler):
     """ Launch the Nylas API service. """
-    level = os.environ.get('LOGLEVEL', inbox_config.get('LOGLEVEL'))
+    level = os.environ.get("LOGLEVEL", inbox_config.get("LOGLEVEL"))
     configure_logging(log_level=level)
 
     maybe_enable_rollbar()
@@ -70,8 +80,10 @@ def main(prod, start_syncback, enable_tracer, config, port, enable_profiler):
     else:
         preflight()
         from werkzeug.serving import run_with_reloader
-        run_with_reloader(lambda: start(port, start_syncback, enable_tracer,
-                                        enable_profiler))
+
+        run_with_reloader(
+            lambda: start(port, start_syncback, enable_tracer, enable_profiler)
+        )
 
 
 def start(port, start_syncback, enable_tracer, enable_profiler):
@@ -85,24 +97,27 @@ def start(port, start_syncback, enable_tracer, enable_profiler):
         from inbox.transactions.actions import SyncbackService
 
         if enable_profiler:
-            inbox_config['DEBUG_PROFILING_ON'] = True
-        enable_profiler_api = inbox_config.get('DEBUG_PROFILING_ON')
+            inbox_config["DEBUG_PROFILING_ON"] = True
+        enable_profiler_api = inbox_config.get("DEBUG_PROFILING_ON")
 
         syncback = SyncbackService(0, 0, 1)
-        profiling_frontend = SyncbackHTTPFrontend(int(port) + 1, enable_tracer, enable_profiler_api)
+        profiling_frontend = SyncbackHTTPFrontend(
+            int(port) + 1, enable_tracer, enable_profiler_api
+        )
         profiling_frontend.start()
         syncback.start()
 
     nylas_logger = get_logger()
 
-    http_server = WSGIServer(('', int(port)), app, log=nylas_logger,
-                             handler_class=NylasWSGIHandler)
-    nylas_logger.info('Starting API server', port=port)
+    http_server = WSGIServer(
+        ("", int(port)), app, log=nylas_logger, handler_class=NylasWSGIHandler
+    )
+    nylas_logger.info("Starting API server", port=port)
     http_server.serve_forever()
 
     if start_syncback:
         syncback.join()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

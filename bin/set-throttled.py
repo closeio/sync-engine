@@ -38,10 +38,10 @@ def throttle(options):
 
 def main():
     parser = optparse.OptionParser()
-    parser.add_option('--throttled', action="store_true", default=False)
-    parser.add_option('--unthrottled', action="store_true", default=False)
-    parser.add_option('--id', action="store", dest="account_id", default=None)
-    parser.add_option('--stdin', action="store_true", default=False)
+    parser.add_option("--throttled", action="store_true", default=False)
+    parser.add_option("--unthrottled", action="store_true", default=False)
+    parser.add_option("--id", action="store", dest="account_id", default=None)
+    parser.add_option("--stdin", action="store_true", default=False)
     options, remainder = parser.parse_args(sys.argv[1:])
     if all(opt is False for opt in [options.throttled, options.unthrottled]):
         print_usage()
@@ -64,5 +64,6 @@ def main():
             options.account_id = id
             throttle(options)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

@@ -8,7 +8,7 @@ from inbox.models.session import global_session_scope
 
 
 @click.command()
-@click.argument('hostname')
+@click.argument("hostname")
 def main(hostname):
     maybe_enable_rollbar()
 

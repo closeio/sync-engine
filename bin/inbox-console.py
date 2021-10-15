@@ -7,7 +7,7 @@ import gevent_openssl
 gevent_openssl.monkey_patch()
 from setproctitle import setproctitle
 
-setproctitle('inbox-console')
+setproctitle("inbox-console")
 
 import click
 
@@ -20,10 +20,13 @@ from inbox.error_handling import maybe_enable_rollbar
 
 
 @click.command()
-@click.option('-e', '--email_address', default=None,
-              help='Initialize a crispin client for a particular account.')
-@click.option('-c', '--client', is_flag=True,
-              help='Start a repl with an APIClient')
+@click.option(
+    "-e",
+    "--email_address",
+    default=None,
+    help="Initialize a crispin client for a particular account.",
+)
+@click.option("-c", "--client", is_flag=True, help="Start a repl with an APIClient")
 def console(email_address, client):
     """ REPL for Nylas. """
     maybe_enable_rollbar()
@@ -34,5 +37,5 @@ def console(email_address, client):
         start_console(email_address)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     console()

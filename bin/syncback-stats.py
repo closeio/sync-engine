@@ -24,20 +24,27 @@ def main():
     for key in engine_manager.engines:
         with session_scope_by_shard_id(key) as db_session:
             total_pending_actions = 0
-            for c, namespace_id in db_session.query(
-                    func.count(ActionLog.namespace_id),
-                    ActionLog.namespace_id).join(Namespace).join(Account)\
-                    .filter(
-                        ActionLog.discriminator == 'actionlog',
-                        Account.sync_state != 'invalid',
-                        ActionLog.status == 'pending')\
-                    .group_by(ActionLog.namespace_id):
-                print "{} (pending actions), {} (shard), {} (namespace)"\
-                    .format(c, key, namespace_id)
+            for c, namespace_id in (
+                db_session.query(
+                    func.count(ActionLog.namespace_id), ActionLog.namespace_id
+                )
+                .join(Namespace)
+                .join(Account)
+                .filter(
+                    ActionLog.discriminator == "actionlog",
+                    Account.sync_state != "invalid",
+                    ActionLog.status == "pending",
+                )
+                .group_by(ActionLog.namespace_id)
+            ):
+                print "{} (pending actions), {} (shard), {} (namespace)".format(
+                    c, key, namespace_id
+                )
                 total_pending_actions += c
             print "total pending actions for shard {}: {}".format(
-                key, total_pending_actions)
+                key, total_pending_actions
+            )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -27,7 +27,7 @@ from inbox.s3.base import get_raw_from_provider
 from inbox.s3.exc import EmailFetchException, TemporaryEmailFetchException
 
 configure_logging()
-log = get_logger(purpose='separator-backfix')
+log = get_logger(purpose="separator-backfix")
 
 NUM_MESSAGES = 10
 
@@ -44,25 +44,31 @@ def process_account(account_id):
 
         for i in range(NUM_MESSAGES):
             with session_scope(account_id) as db_session:
-                block = db_session.query(Block).filter(
-                    Block.namespace_id == acc.namespace.id,
-                    Block.created_at < one_month_ago).order_by(
-                    func.rand()).limit(1).first()
+                block = (
+                    db_session.query(Block)
+                    .filter(
+                        Block.namespace_id == acc.namespace.id,
+                        Block.created_at < one_month_ago,
+                    )
+                    .order_by(func.rand())
+                    .limit(1)
+                    .first()
+                )
 
                 if block is None:
                     continue
 
                 if len(block.parts) == 0:
-                    ret['null_failures'] += 1
+                    ret["null_failures"] += 1
                     continue
 
                 message = block.parts[0].message
                 raw_mime = get_raw_from_provider(message)
 
-            if raw_mime != '':
-                ret['successes'] += 1
+            if raw_mime != "":
+                ret["successes"] += 1
             else:
-                ret['null_failures'] += 1
+                ret["null_failures"] += 1
     except Exception as e:
         ret[type(e).__name__] += 1
 
@@ -70,14 +76,18 @@ def process_account(account_id):
 
 
 @click.command()
-@click.option('--num-accounts', type=int, default=1500)
+@click.option("--num-accounts", type=int, default=1500)
 def main(num_accounts):
     maybe_enable_rollbar()
 
     with global_session_scope() as db_session:
-        accounts = db_session.query(Account).filter(
-            Account.sync_should_run == true()).order_by(func.rand()).limit(
-            num_accounts).all()
+        accounts = (
+            db_session.query(Account)
+            .filter(Account.sync_should_run == true())
+            .order_by(func.rand())
+            .limit(num_accounts)
+            .all()
+        )
 
         accounts = [acc.id for acc in accounts][:num_accounts]
         db_session.expunge_all()
@@ -96,5 +106,5 @@ def main(num_accounts):
     print global_results
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

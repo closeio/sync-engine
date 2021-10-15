@@ -26,9 +26,11 @@ def check_accounts():
     poll_interval = 30
 
     with global_session_scope() as db_session:
-        not_syncing_accounts = set(db_session.query(Account.id).
-                                   filter(Account.sync_should_run,
-                                          Account.sync_host.is_(None)))
+        not_syncing_accounts = set(
+            db_session.query(Account.id).filter(
+                Account.sync_should_run, Account.sync_host.is_(None)
+            )
+        )
         still_not_syncing_accounts = accounts_without_sync_host & not_syncing_accounts
 
         for account_id in still_not_syncing_accounts:
@@ -45,15 +47,19 @@ def check_accounts():
             # the object isn't dirty. By clearing the desired_sync_host we allow
             # any worker to claim the account.
             if account.desired_sync_host is None:
-                queue = shared_sync_event_queue_for_zone(engine_manager.zone_for_id(account.id))
-                queue.send_event({'event': 'migrate', 'id': account.id})
+                queue = shared_sync_event_queue_for_zone(
+                    engine_manager.zone_for_id(account.id)
+                )
+                queue.send_event({"event": "migrate", "id": account.id})
             else:
                 account.desired_sync_host = None
 
-            log.warning("Account appears to be unclaimed, "
-                        "clearing desired_sync_host, "
-                        "notifying shared sync queue",
-                        account_id=account.id)
+            log.warning(
+                "Account appears to be unclaimed, "
+                "clearing desired_sync_host, "
+                "notifying shared sync queue",
+                account_id=account.id,
+            )
             db_session.commit()
 
         accounts_without_sync_host = not_syncing_accounts

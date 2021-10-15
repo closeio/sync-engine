@@ -22,20 +22,22 @@ setproctitle("nylas-contact-search-index-service")
 
 
 @click.command()
-@click.option('--prod/--no-prod', default=False,
-              help='Disables the autoreloader and potentially other '
-                   'non-production features.')
-@click.option('-c', '--config', default=None,
-              help='Path to JSON configuration file.')
+@click.option(
+    "--prod/--no-prod",
+    default=False,
+    help="Disables the autoreloader and potentially other " "non-production features.",
+)
+@click.option("-c", "--config", default=None, help="Path to JSON configuration file.")
 def main(prod, config):
     """ Launch the contact search index service. """
-    level = os.environ.get('LOGLEVEL', inbox_config.get('LOGLEVEL'))
+    level = os.environ.get("LOGLEVEL", inbox_config.get("LOGLEVEL"))
     configure_logging(log_level=level)
 
     maybe_enable_rollbar()
 
     if config is not None:
         from inbox.util.startup import load_overrides
+
         config_path = os.path.abspath(config)
         load_overrides(config_path)
 
@@ -51,5 +53,5 @@ def main(prod, config):
     contact_search_indexer.join()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

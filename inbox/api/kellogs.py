@@ -83,6 +83,9 @@ def encode(obj, namespace_public_id=None, expand=False, is_n1=False):
 
 
 def _convert_timezone_to_iana_tz(original_tz):
+    if original_tz is None:
+        return None
+
     try:
         return timezones_table[original_tz]
     except KeyError:

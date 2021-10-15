@@ -263,9 +263,42 @@ awful_timezones = {
     "US/EST": "America/New_York",
 }
 
+GMT_awful_timezones = {
+    "GMT+12:00": "Etc/GMT+12",
+    "GMT+11:00": "Etc/GMT+11",
+    "GMT+10:00": "Etc/GMT+10",
+    "GMT+09:00": "Etc/GMT+9",
+    "GMT+08:00": "Etc/GMT+8",
+    "GMT+07:00": "Etc/GMT+7",
+    "GMT+06:00": "Etc/GMT+6",
+    "GMT+05:00": "Etc/GMT+5",
+    "GMT+04:00": "Etc/GMT+4",
+    "GMT+03:00": "Etc/GMT+3",
+    "GMT+02:00": "Etc/GMT+2",
+    "GMT+01:00": "Etc/GMT+1",
+    "GMT+00:00": "Etc/GMT",
+    "GMT": "Etc/GMT",
+    "GMT-00:00": "Etc/GMT",
+    "GMT-01:00": "Etc/GMT-1",
+    "GMT-02:00": "Etc/GMT-2",
+    "GMT-03:00": "Etc/GMT-3",
+    "GMT-04:00": "Etc/GMT-4",
+    "GMT-05:00": "Etc/GMT-5",
+    "GMT-06:00": "Etc/GMT-6",
+    "GMT-07:00": "Etc/GMT-7",
+    "GMT-08:00": "Etc/GMT-8",
+    "GMT-09:00": "Etc/GMT-9",
+    "GMT-10:00": "Etc/GMT-10",
+    "GMT-11:00": "Etc/GMT-11",
+    "GMT-12:00": "Etc/GMT-12",
+    "GMT-13:00": "Etc/GMT-13",
+    "GMT-14:00": "Etc/GMT-14",
+}
+
 timezones_table = {}
 timezones_table.update(windows_timezones)
 timezones_table.update(olson_timezones)
 timezones_table.update(UTC_friendly_timezones)
 timezones_table.update(GMT_friendly_timezones)
 timezones_table.update(awful_timezones)
+timezones_table.update(GMT_awful_timezones)

@@ -50,7 +50,7 @@ from inbox.sqlalchemy_ext.util import (
 from inbox.util.addr import parse_mimepart_address_header
 from inbox.util.blockstore import save_to_blockstore
 from inbox.util.encoding import unicode_safe_truncate
-from inbox.util.html import plaintext2html, strip_tags
+from inbox.util.html import HTMLParseError, plaintext2html, strip_tags
 from inbox.util.misc import get_internaldate, parse_references
 
 log = get_logger()
@@ -558,7 +558,14 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             self.snippet = u""
 
     def calculate_html_snippet(self, text):
-        text = strip_tags(text)
+        try:
+            text = strip_tags(text)
+        except HTMLParseError:
+            log.error(
+                "error stripping tags", message_nylas_uid=self.nylas_uid, exc_info=True
+            )
+            text = ""
+
         return self.calculate_plaintext_snippet(text)
 
     def calculate_plaintext_snippet(self, text):

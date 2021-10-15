@@ -1,4 +1,5 @@
-from builtins import str
+import builtins
+import sys
 
 
 def base36encode(number):
@@ -26,6 +27,9 @@ def unicode_safe_truncate(s, max_length):
     Implements unicode-safe truncation and trims whitespace for a given input
     string, number or unicode string.
     """
-    if not isinstance(s, str):
-        s = str(s).decode("utf-8", "ignore")
+    if isinstance(s, bytes):
+        s = s.decode("utf-8", "ignore")
+    else:
+        s = (builtins.unicode if sys.version_info < (3,) else str)(s)
+
     return s.rstrip()[:max_length]

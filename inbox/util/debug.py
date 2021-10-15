@@ -1,4 +1,6 @@
 """Utilities for debugging failures in development/staging."""
+from __future__ import print_function
+
 import signal
 from functools import wraps
 
@@ -12,7 +14,7 @@ def profile(func):
         profiler.start()
         r = func(*args, **kwargs)
         profiler.stop()
-        print profiler.output_text(color=True)
+        print(profiler.output_text(color=True))
         return r
 
     return wrapper
@@ -26,7 +28,7 @@ def attach_pyinstrument_profiler():
     profiler.start()
 
     def handle_signal(signum, frame):
-        print profiler.output_text(color=True)
+        print(profiler.output_text(color=True))
         # Work around an arguable bug in pyinstrument in which output gets
         # frozen after the first call to profiler.output_text()
         delattr(profiler, "_root_frame")

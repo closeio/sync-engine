@@ -1,3 +1,5 @@
+from __future__ import absolute_import, print_function
+
 # This file contains pytest fixtures as well as some config
 import os
 import platform
@@ -11,12 +13,12 @@ TEST_GRANULARITY_CHECK_SECS = 0.1
 
 from time import sleep, time
 
-from client import NylasTestClient
-from google_auth_helper import google_auth
-from outlook_auth_helper import outlook_auth
-
 from inbox.auth.base import handler_from_provider
 from inbox.util.url import provider_from_address
+
+from .client import NylasTestClient
+from .google_auth_helper import google_auth
+from .outlook_auth_helper import outlook_auth
 
 # we don't want to commit passwords to the repo.
 # load them from an external json file.
@@ -39,7 +41,7 @@ try:
     ]
 
 except ImportError:
-    print (
+    print(
         "Error: test accounts file not found. "
         "You need to create accounts.py\n"
         "File format: credentials = [{'user': 'bill@example.com', "
@@ -52,7 +54,7 @@ def timeout_loop(name):
     def wrap(f):
         def wrapped_f(*args, **kwargs):
             client = args[0]
-            print "Waiting for: {}...".format(name)
+            print("Waiting for: {}...".format(name))
             success = False
             start_time = time()
             while time() - start_time < TEST_MAX_DURATION_SECS:
@@ -74,7 +76,7 @@ def timeout_loop(name):
 
 
 def format_test_result(function_name, provider, email, start_time):
-    print "%s\t%s\t%s\t%f" % (function_name, provider, email, time() - start_time)
+    print("%s\t%s\t%s\t%f" % (function_name, provider, email, time() - start_time))
 
 
 def create_account(db_session, email, password):

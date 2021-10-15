@@ -1,4 +1,3 @@
-# flake8: noqa: F401
 import urllib
 
 import arrow
@@ -6,49 +5,67 @@ import pytest
 
 from inbox.models import Calendar, Event
 
-from tests.util.base import message
 
-__all__ = ["api_client"]
+@pytest.fixture
+def make_recurring_event(db, default_namespace):
+    def _make_recurring_event(**kwargs):
+        default_kwargs = {
+            "namespace_id": default_namespace.id,
+            "title": "recurring-weekly",
+            "description": "",
+            "uid": "recurapitest",
+            "location": "",
+            "busy": False,
+            "read_only": False,
+            "reminders": "",
+            "recurrence": [
+                "RRULE:FREQ=WEEKLY",
+                "EXDATE:20150324T013000,20150331T013000Z",
+            ],
+            "start": arrow.get(2015, 3, 17, 1, 30, 0),
+            "end": arrow.get(2015, 3, 17, 1, 45, 0),
+            "all_day": False,
+            "is_owner": True,
+            "participants": [],
+            "provider_name": "inbox",
+            "raw_data": "",
+            "original_start_tz": "America/Los_Angeles",
+            "original_start_time": None,
+            "master_event_uid": None,
+            "source": "local",
+        }
+        if "calendar" not in kwargs:
+            default_kwargs["calendar"] = (
+                db.session.query(Calendar)
+                .filter_by(namespace_id=default_namespace.id)
+                .order_by("id")
+                .first()
+            )
+        default_kwargs.update(kwargs)
+
+        ev = Event(**default_kwargs)
+        db.session.add(ev)
+        db.session.commit()
+        return ev
+
+    return _make_recurring_event
 
 
 @pytest.fixture(params=[{"all_day": True}, {"all_day": False}])
-def recurring_event(db, default_namespace, request):
+def recurring_event(request, make_recurring_event):
     params = request.param
     all_day = params.get("all_day", False)
+    return make_recurring_event(all_day=all_day)
 
-    rrule = ["RRULE:FREQ=WEEKLY", "EXDATE:20150324T013000,20150331T013000Z"]
-    cal = (
-        db.session.query(Calendar)
-        .filter_by(namespace_id=default_namespace.id)
-        .order_by("id")
-        .first()
-    )
-    ev = Event(
-        namespace_id=default_namespace.id,
-        calendar=cal,
-        title="recurring-weekly",
-        description="",
-        uid="recurapitest",
-        location="",
-        busy=False,
-        read_only=False,
-        reminders="",
-        recurrence=rrule,
-        start=arrow.get(2015, 3, 17, 1, 30, 00),
-        end=arrow.get(2015, 3, 17, 1, 45, 00),
-        all_day=all_day,
-        is_owner=True,
-        participants=[],
-        provider_name="inbox",
-        raw_data="",
-        original_start_tz="America/Los_Angeles",
-        original_start_time=None,
-        master_event_uid=None,
-        source="local",
-    )
-    db.session.add(ev)
-    db.session.commit()
-    return ev
+
+@pytest.fixture
+def recurring_event_with_invalid_tz(make_recurring_event):
+    return make_recurring_event(original_start_tz="GMT+09:00")
+
+
+@pytest.fixture
+def recurring_event_with_bonkers_tz(make_recurring_event):
+    return make_recurring_event(original_start_tz="ThisAint/NoTimeZone")
 
 
 def test_api_expand_recurring(db, api_client, recurring_event):
@@ -197,3 +214,32 @@ def test_api_expand_recurring_message(db, api_client, message, recurring_event):
     for event in all_events:
         assert event["master_event_id"] is not None
         assert "message_id" not in event
+
+
+def test_api_get_specific_event(db, api_client, recurring_event):
+    event = api_client.get_data("/events/{}".format(recurring_event.public_id))
+    assert event["calendar_id"] == recurring_event.calendar.public_id
+    assert event["title"] == "recurring-weekly"
+    assert event["recurrence"] is not None
+
+
+def test_get_specific_event_invalid_tz_fixed(
+    db, api_client, recurring_event_with_invalid_tz
+):
+    event = api_client.get_data(
+        "/events/{}".format(recurring_event_with_invalid_tz.public_id)
+    )
+    assert event["calendar_id"] == recurring_event_with_invalid_tz.calendar.public_id
+    assert event["title"] == "recurring-weekly"
+    assert event["recurrence"]["timezone"] == "Etc/GMT+9"
+
+
+def test_get_specific_event_with_bonkers_tz(
+    db, api_client, recurring_event_with_bonkers_tz
+):
+    event = api_client.get_data(
+        "/events/{}".format(recurring_event_with_bonkers_tz.public_id)
+    )
+    assert event["calendar_id"] == recurring_event_with_bonkers_tz.calendar.public_id
+    assert event["title"] == "recurring-weekly"
+    assert event["recurrence"]["timezone"] == "ThisAint/NoTimeZone"

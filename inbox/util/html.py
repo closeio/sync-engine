@@ -1,9 +1,21 @@
 # -*- coding: utf-8 -*-
 import cgi
 import re
+import sys
 
-import htmlentitydefs
-from HTMLParser import HTMLParseError, HTMLParser
+if sys.version_info >= (3,):
+    unichr = chr
+    from html.entities import name2codepoint
+    from html.parser import HTMLParser
+
+    class HTMLParseError(Exception):
+        pass
+
+
+else:  # TODO remove this when Python 3 only
+    from htmlentitydefs import name2codepoint
+    from HTMLParser import HTMLParser, HTMLParseError
+
 
 from inbox.logging import get_logger
 
@@ -16,6 +28,8 @@ class HTMLTagStripper(HTMLParser):
         self.reset()
         self.fed = []
         self.strip_tag_contents_mode = False
+
+        HTMLParser.__init__(self)
 
     def handle_starttag(self, tag, attrs):
         # Replace <br>, <div> tags by spaces
@@ -35,19 +49,22 @@ class HTMLTagStripper(HTMLParser):
         if not self.strip_tag_contents_mode:
             self.fed.append(d)
 
-    def handle_charref(self, d):
-        try:
-            if d.startswith("x"):
-                val = int(d[1:], 16)
-            else:
-                val = int(d)
-            self.fed.append(unichr(val))
-        except (ValueError, OverflowError):
-            return
+    # TODO: Remove this in Python 3 only
+    if sys.version_info < (3,):
+
+        def handle_charref(self, d):
+            try:
+                if d.startswith("x"):
+                    val = int(d[1:], 16)
+                else:
+                    val = int(d)
+                self.fed.append(unichr(val))
+            except (ValueError, OverflowError):
+                return
 
     def handle_entityref(self, d):
         try:
-            val = unichr(htmlentitydefs.name2codepoint[d])
+            val = unichr(name2codepoint[d])
         except KeyError:
             return
         self.fed.append(val)
@@ -57,11 +74,16 @@ class HTMLTagStripper(HTMLParser):
 
 
 def strip_tags(html):
+    """
+    Return textual content of HTML.
+    Remove title, script and style alltogether. Replace br and div
+    with space. Expand HTML entities.
+
+    This function can potentially raise HTMLParseError if fed invalid html.
+    You are responsible for handling it in the calling function.
+    """
     s = HTMLTagStripper()
-    try:
-        s.feed(html)
-    except HTMLParseError:
-        get_logger().error("error stripping tags", raw_html=html)
+    s.feed(html)
     return s.get_data()
 
 
@@ -69,7 +91,7 @@ def strip_tags(html):
 re_string = re.compile(
     ur"(?P<htmlchars>[<&>])|(?P<space>^[ \t]+)|(?P<lineend>\n)|(?P<protocol>(^|\s)((http|ftp)://.*?))(\s|$)",
     re.S | re.M | re.I | re.U,
-)  # noqa
+)
 
 
 def plaintext2html(text, tabstop=4):

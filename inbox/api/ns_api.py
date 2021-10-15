@@ -732,7 +732,7 @@ def folders_labels_query_api():
 
     results = results.filter(
         Category.namespace_id == g.namespace.id, Category.deleted_at == EPOCH
-    )  # noqa
+    )
     results = results.order_by(asc(Category.id))
 
     if args["view"] == "count":
@@ -768,7 +768,7 @@ def folders_labels_api_impl(public_id):
                 Category.deleted_at == EPOCH,
             )
             .one()
-        )  # noqa
+        )
     except NoResultFound:
         raise NotFoundError("Object not found")
     return g.encoder.jsonify(category)
@@ -846,7 +846,7 @@ def folder_label_update_api(public_id):
                 Category.deleted_at == EPOCH,
             )
             .one()
-        )  # noqa
+        )
     except NoResultFound:
         raise InputError("Couldn't find {} {}".format(category_type, public_id))
     if category.name:
@@ -910,7 +910,7 @@ def folder_label_delete_api(public_id):
                 Category.deleted_at == EPOCH,
             )
             .one()
-        )  # noqa
+        )
     except NoResultFound:
         raise InputError("Couldn't find {} {}".format(category_type, public_id))
     if category.name:

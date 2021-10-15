@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 import time
 
 import pytest
-from conftest import all_accounts, timeout_loop
 
 from inbox.client.errors import NotFoundError
+
+from .conftest import all_accounts, timeout_loop
 
 
 @timeout_loop("file")

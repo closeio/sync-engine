@@ -1,4 +1,3 @@
-# flake8: noqa: F401, F811
 """Remove EASFolderSyncStatus + Folder rows for folders we never sync
 
 Revision ID: 2a748760ac63

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
+
 import contextlib
 import json
 import os
@@ -130,7 +132,7 @@ def dump_dns_queries(monkeypatch):
 
     monkeypatch.setattr("dns.resolver.Resolver.query", mock_query)
     yield
-    print json.dumps(query_results, indent=4, sort_keys=True)
+    print(json.dumps(query_results, indent=4, sort_keys=True))
 
 
 class MockIMAPClient(object):

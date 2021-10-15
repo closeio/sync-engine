@@ -1,8 +1,11 @@
+from __future__ import absolute_import, print_function
+
 import pytest
-from client import NylasTestClient
-from conftest import API_BASE, create_account, credentials, timeout_loop
 
 from inbox.models.session import session_scope
+
+from .client import NylasTestClient
+from .conftest import API_BASE, create_account, credentials, timeout_loop
 
 try:
     # If there's no broken accounts file, well, tough luck but don't crash.
@@ -10,7 +13,7 @@ try:
     # credentials.
     from accounts import broken_credentials
 except ImportError:
-    print "test_auth.py: Warning -- No broken accounts credentials."
+    print("test_auth.py: Warning -- No broken accounts credentials.")
     broken_credentials = []
 
 

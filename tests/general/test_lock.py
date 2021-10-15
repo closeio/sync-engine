@@ -1,4 +1,5 @@
 """ Tests for file lock implementation. """
+from __future__ import print_function
 
 import tempfile
 
@@ -17,7 +18,7 @@ def tmp_lock(block, filename=None):
 def grab_lock(lock):
     """ Stub fn to grab lock inside a Greenlet. """
     lock.acquire()
-    print "Got the lock again", lock.filename
+    print("Got the lock again", lock.filename)
     lock.release()
 
 

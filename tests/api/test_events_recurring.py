@@ -43,7 +43,7 @@ def make_recurring_event(db, default_namespace):
             )
         default_kwargs.update(kwargs)
 
-        ev = Event(**default_kwargs)
+        ev = Event.create(**default_kwargs)
         db.session.add(ev)
         db.session.commit()
         return ev
@@ -161,7 +161,7 @@ def test_api_expand_recurring_before_after(db, api_client, recurring_event):
 def test_api_override_serialization(db, api_client, default_namespace, recurring_event):
     event = recurring_event
 
-    override = Event(
+    override = Event.create(
         original_start_time=event.start,
         master_event_uid=event.uid,
         namespace_id=default_namespace.id,

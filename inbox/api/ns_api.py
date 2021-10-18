@@ -1107,7 +1107,7 @@ def event_create_api():
         if "status" not in p:
             p["status"] = "noreply"
 
-    event = Event(
+    event = Event.create(
         calendar=calendar,
         namespace=g.namespace,
         uid=uuid.uuid4().hex,

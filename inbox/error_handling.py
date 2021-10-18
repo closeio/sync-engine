@@ -61,18 +61,30 @@ def log_uncaught_errors(logger=None, **kwargs):
     rollbar.report_exc_info()
 
 
-def ignore_handler(message_filters, payload, **kw):
-    title = payload["data"].get("title")
-    exception_message = (
-        payload["data"]
-        .get("body", {})
-        .get("trace", {})
-        .get("exception", {})
-        .get("message")
-    )
+GROUP_EXCEPTION_CLASSES = [
+    "GreenletExit",
+    "LoopExit",
+    "ResourceClosedError",
+    "ObjectDeletedError",
+    "MailsyncError",
+    "Timeout",
+    "ReadTimeout",
+    "ProgrammingError",
+]
 
-    if not (title or exception_message):
+
+def payload_handler(message_filters, payload, **kw):
+    title = payload["data"].get("title")
+    exception = payload["data"].get("body", {}).get("trace", {}).get("exception", {})
+
+    exception_message = exception.get("message")
+    exception_class = exception.get("class")
+
+    if not (title or exception_message or exception_class):
         return payload
+
+    if exception_class in GROUP_EXCEPTION_CLASSES:
+        payload["data"]["fingerprint"] = exception_class
 
     for regex, threshold in message_filters:
         if regex.search(title or exception_message) and random.random() >= threshold:
@@ -119,9 +131,8 @@ def maybe_enable_rollbar():
     logger.addHandler(rollbar_handler)
 
     message_filters = get_message_filters()
-    if message_filters:
-        rollbar.events.add_payload_handler(
-            functools.partial(ignore_handler, message_filters)
-        )
+    rollbar.events.add_payload_handler(
+        functools.partial(payload_handler, message_filters)
+    )
 
     log.info("Rollbar enabled")

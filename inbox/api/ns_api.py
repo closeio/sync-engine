@@ -1576,8 +1576,8 @@ def file_download_api(public_id):
     try:
         name = name.encode("latin-1")
     except UnicodeEncodeError:
-        name = "=?utf-8?b?" + base64.b64encode(name.encode("utf-8")) + "?="
-    response.headers["Content-Disposition"] = "attachment; filename={0}".format(name)
+        name = b"=?utf-8?b?" + base64.b64encode(name.encode("utf-8")) + b"?="
+    response.headers["Content-Disposition"] = b"attachment; filename=" + name
 
     request.environ["log_context"]["headers"] = response.headers
     return response

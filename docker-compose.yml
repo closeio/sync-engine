@@ -16,9 +16,7 @@ services:
       PYTHONDONTWRITEBYTECODE: 1
 
   minio:
-    build:
-      context: .
-      dockerfile: Dockerfile.minio
+    image: closeio/minio:branch-main
     hostname: sync-engine.minio
     environment:
        - MINIO_ROOT_USER=sync-engine

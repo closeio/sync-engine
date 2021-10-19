@@ -62,6 +62,11 @@ MAX_LENS = {
 }
 
 
+# Used to protect programmers from calling wrong constructor
+# to create events
+_EVENT_CREATED_SANELY_SENTINEL = object()
+
+
 def time_parse(x):
     return arrow.get(x).to("utc").naive
 
@@ -399,6 +404,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
         # Decide whether or not to instantiate a RecurringEvent/Override
         # based on the kwargs we get.
         cls_ = cls
+        kwargs["__event_created_sanely"] = _EVENT_CREATED_SANELY_SENTINEL
         recurrence = kwargs.get("recurrence")
         master_event_uid = kwargs.get("master_event_uid")
         if recurrence and master_event_uid:
@@ -410,6 +416,16 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
         return cls_(**kwargs)
 
     def __init__(self, **kwargs):
+        if (
+            not kwargs.pop("__event_created_sanely", None)
+            is _EVENT_CREATED_SANELY_SENTINEL
+        ):
+            raise AssertionError(
+                "Use Event.create with appropriate keyword args "
+                "instead of constructing Event, RecurringEvent or RecurringEventOverride "
+                "directly"
+            )
+
         # Allow arguments for all subclasses to be passed to main constructor
         for k in list(kwargs.keys()):
             if not hasattr(type(self), k):

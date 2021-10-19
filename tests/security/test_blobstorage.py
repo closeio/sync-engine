@@ -17,7 +17,7 @@ def test_blobstorage(config, sample_input, encrypt):
 def test_encoded_format(config, sample_input, encrypt):
     config["ENCRYPT_SECRETS"] = encrypt
     encoded = encode_blob(sample_input)
-    assert encoded.startswith(chr(encrypt) + "\x00\x00\x00\x00")
+    assert encoded.startswith((b"\x01" if encrypt else b"\x00") + b"\x00\x00\x00\x00")
     data = encoded[5:]
     if encrypt:
         assert data != sample_input
@@ -32,5 +32,7 @@ def test_message_body_storage(config, message, sample_input, encrypt):
     message.body = None
     assert message._compacted_body is None
     message.body = sample_input
-    assert message._compacted_body.startswith(chr(encrypt) + "\x00\x00\x00\x00")
+    assert message._compacted_body.startswith(
+        (b"\x01" if encrypt else b"\x00") + b"\x00\x00\x00\x00"
+    )
     assert message.body == sample_input

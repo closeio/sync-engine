@@ -46,7 +46,7 @@ jobs:
 
   build:
     machine:
-      image: ubuntu-1604:201903-01 
+      image: ubuntu-1604:201903-01
     working_directory: ~/sync-engine
 
     steps:
@@ -89,6 +89,94 @@ jobs:
           path: .circleci/artifacts.html
           destination: artifacts.html
 
+  build-python36:
+    machine:
+      image: ubuntu-1604:201903-01
+    working_directory: ~/sync-engine
+
+    steps:
+      - checkout
+
+      - run:
+          name: build sync-engine image
+          command: docker-compose build --build-arg PYTHON_VERSION=3.6 app || true
+
+      - run:
+          name: don't run the tests since images do not build yet
+          command: circleci-agent step halt
+
+      - run:
+          name: run tests
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker-compose run app bash -ec '
+              pip install -e . \
+              && bin/wait-for-it.sh mysql:3306 \
+              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
+              && coverage html -d pythoncov
+            '
+      # Not pushing Python 3.6 image for the time being
+
+  build-python38:
+    machine:
+      image: ubuntu-1604:201903-01 
+    working_directory: ~/sync-engine
+
+    steps:
+      - checkout
+
+      - run:
+          name: build sync-engine image
+          command: docker-compose build --build-arg PYTHON_VERSION=3.8 app || true
+
+      - run:
+          name: don't run the tests since images do not build yet
+          command: circleci-agent step halt
+
+      - run:
+          name: run tests
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker-compose run app bash -ec '
+              pip install -e . \
+              && bin/wait-for-it.sh mysql:3306 \
+              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
+              && coverage html -d pythoncov
+            '
+
+      # Not pushing Python 3.8 image for the time being
+
+  build_arm:
+    machine:
+      image: ubuntu-2004:202101-01
+    resource_class: arm.medium
+    working_directory: ~/sync-engine
+
+    steps:
+      - checkout
+
+      - run:
+          name: build sync-engine image
+          command: docker-compose build app
+
+      # Not running tests for arm.
+      # mysql:5.7.31 has no arm image (arm images start at version 8)
+
+      - run:
+          name: Push the tested image to docker hub
+          environment:
+            PROJECT: sync-engine
+            PROJECT_NAMESPACE: closeio
+          command: |
+            PROJECT_VSN="$CIRCLE_BRANCH"
+            PROJECT_SHA="$CIRCLE_SHA1"
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            # tag and push both sync-engine:master and sync-engine:<sha1>
+            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-arm64"
+            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-arm64"
+            docker push "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-arm64"
+            docker push "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-arm64"
+
 workflows:
   version: 2
   workflow:
@@ -96,3 +184,6 @@ workflows:
       - static-code-analysis
       - static-code-analysis-flake8
       - build
+      - build-python36
+      - build-python38
+      - build_arm

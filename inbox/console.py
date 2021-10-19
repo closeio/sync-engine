@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import sys
 
 import IPython
@@ -19,19 +21,21 @@ def user_console(user_email_address):
         if len(result) == 1:
             account = result[0]
         elif len(result) > 1:
-            print "\n{} accounts found for that email.\n".format(len(result))
+            print("\n{} accounts found for that email.\n".format(len(result)))
             for idx, acc in enumerate(result):
-                print "[{}] - {} {} {}".format(
-                    idx,
-                    acc.provider,
-                    acc.namespace.email_address,
-                    acc.namespace.public_id,
+                print(
+                    "[{}] - {} {} {}".format(
+                        idx,
+                        acc.provider,
+                        acc.namespace.email_address,
+                        acc.namespace.public_id,
+                    )
                 )
             choice = int(raw_input("\nWhich # do you want to select? "))
             account = result[choice]
 
         if account is None:
-            print "No account found with email '{}'".format(user_email_address)
+            print("No account found with email '{}'".format(user_email_address))
             return
 
         if account.provider == "eas":
@@ -80,7 +84,7 @@ def start_client_console(user_email_address=None):
         sys.exit(
             "You need to have the Nylas Python SDK installed to use this" " option."
         )
-    client = NylasTestClient(user_email_address)  # noqa
+    client = NylasTestClient(user_email_address)  # noqa: F841
     IPython.embed(
         banner1=("You can access a Nylas API client " "using the 'client' variable.")
     )

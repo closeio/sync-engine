@@ -1,3 +1,16 @@
+from __future__ import absolute_import
+
+import random
+
+import pytest
+
+from inbox.client.errors import NotFoundError
+from inbox.events.google import GoogleEventsProvider
+from inbox.models import Account
+
+from .conftest import gmail_accounts, timeout_loop
+from .test_events import real_db, real_test_event_crud
+
 # flake8: noqa: F401, F811
 
 # Google calendar-specific event creation tests.
@@ -7,15 +20,6 @@
 # these functions to check instead for changes to the event on
 # the Google backend.
 
-import random
-
-import pytest
-from conftest import gmail_accounts, timeout_loop
-from test_events import real_db, real_test_event_crud
-
-from inbox.client.errors import NotFoundError
-from inbox.events.google import GoogleEventsProvider
-from inbox.models import Account
 
 random.seed(None)
 

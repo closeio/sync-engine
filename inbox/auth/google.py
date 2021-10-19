@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import attr
 
 from inbox.basicauth import ImapSupportDisabledError, OAuthError
@@ -86,8 +88,8 @@ class GoogleAuthHandler(OAuthAuthHandler):
             url_args["login_hint"] = email_address
         url = url_concat(self.OAUTH_AUTHENTICATE_URL, url_args)
 
-        print "To authorize Nylas, visit this URL and follow the directions:"
-        print "\n{}".format(url)
+        print("To authorize Nylas, visit this URL and follow the directions:")
+        print("\n{}".format(url))
 
         while True:
             auth_code = raw_input("Enter authorization code: ").strip()
@@ -104,7 +106,7 @@ class GoogleAuthHandler(OAuthAuthHandler):
                     sync_events=True,
                 )
             except OAuthError:
-                print "\nInvalid authorization code, try again...\n"
+                print("\nInvalid authorization code, try again...\n")
 
     def verify_account(self, account):
         """

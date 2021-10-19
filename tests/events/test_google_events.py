@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import json
 
 import arrow
@@ -33,7 +35,7 @@ def cmp_event_attrs(event1, event2):
         "recurrence",
     ):
         if getattr(event1, attr) != getattr(event2, attr):
-            print attr, getattr(event1, attr), getattr(event2, attr)
+            print(attr, getattr(event1, attr), getattr(event2, attr))
     return all(
         getattr(event1, attr) == getattr(event2, attr)
         for attr in (
@@ -216,7 +218,7 @@ def test_event_parsing():
     ]
     expected_deletes = ["3uisajkmdjqo43tfc3ig1l5hek"]
     expected_updates = [
-        RecurringEvent(
+        Event.create(
             uid="tn7krk4cekt8ag3pk6gapqqbro",
             title="BOD Meeting",
             description=None,
@@ -242,14 +244,14 @@ def test_event_parsing():
                 },
             ],
         ),
-        Event(
+        Event.create(
             uid="20140615_60o30dr564o30c1g60o30dr4ck",
             title="Fathers' Day",
             description=None,
             read_only=False,
             busy=False,
-            start=arrow.get(2014, 06, 15),
-            end=arrow.get(2014, 06, 15),
+            start=arrow.get(2014, 6, 15),
+            end=arrow.get(2014, 6, 15),
             all_day=True,
             owner="Holidays in United States <en.usa#holiday@group.v.calendar.google.com>",
             participants=[],
@@ -272,7 +274,7 @@ def test_event_parsing():
     assert found_cancelled_event
 
     for obtained, expected in zip(updates, expected_updates):
-        print obtained, expected
+        print(obtained, expected)
         assert cmp_event_attrs(obtained, expected)
 
     # Test read-only support
@@ -343,14 +345,14 @@ def test_handle_offset_all_day_events():
         "updated": "2014-01-09T03:33:02.000Z",
         "visibility": "public",
     }
-    expected = Event(
+    expected = Event.create(
         uid="20140615_60o30dr564o30c1g60o30dr4ck",
         title="Ides of March",
         description=None,
         read_only=False,
         busy=False,
-        start=arrow.get(2014, 03, 15),
-        end=arrow.get(2014, 03, 15),
+        start=arrow.get(2014, 3, 15),
+        end=arrow.get(2014, 3, 15),
         all_day=True,
         owner="Ben Bitdiddle <ben.bitdiddle2222@gmail.com>",
         participants=[],
@@ -553,7 +555,7 @@ def test_recurrence_creation():
     assert isinstance(event, RecurringEvent)
     assert event.rrule == "RRULE:FREQ=WEEKLY;UNTIL=20150209T075959Z;BYDAY=MO"
     assert event.exdate == "EXDATE;TZID=America/Los_Angeles:20150208T010000"
-    assert event.until == arrow.get(2015, 02, 9, 7, 59, 59)
+    assert event.until == arrow.get(2015, 2, 9, 7, 59, 59)
     assert event.start_timezone == "America/Los_Angeles"
 
 
@@ -606,7 +608,7 @@ def test_override_creation():
     event = parse_event_response(event, False)
     assert isinstance(event, RecurringEventOverride)
     assert event.master_event_uid == "tn7krk4cekt8ag3pk6gapqqbro"
-    assert event.original_start_time == arrow.get(2012, 10, 23, 00, 00, 00)
+    assert event.original_start_time == arrow.get(2012, 10, 23, 0, 0, 0)
 
 
 def test_cancelled_override_creation():

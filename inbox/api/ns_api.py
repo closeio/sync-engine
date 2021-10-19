@@ -731,7 +731,7 @@ def folders_labels_query_api():
 
     results = results.filter(
         Category.namespace_id == g.namespace.id, Category.deleted_at == EPOCH
-    )  # noqa
+    )
     results = results.order_by(asc(Category.id))
 
     if args["view"] == "count":
@@ -767,7 +767,7 @@ def folders_labels_api_impl(public_id):
                 Category.deleted_at == EPOCH,
             )
             .one()
-        )  # noqa
+        )
     except NoResultFound:
         raise NotFoundError("Object not found")
     return g.encoder.jsonify(category)
@@ -845,7 +845,7 @@ def folder_label_update_api(public_id):
                 Category.deleted_at == EPOCH,
             )
             .one()
-        )  # noqa
+        )
     except NoResultFound:
         raise InputError("Couldn't find {} {}".format(category_type, public_id))
     if category.name:
@@ -909,7 +909,7 @@ def folder_label_delete_api(public_id):
                 Category.deleted_at == EPOCH,
             )
             .one()
-        )  # noqa
+        )
     except NoResultFound:
         raise InputError("Couldn't find {} {}".format(category_type, public_id))
     if category.name:
@@ -1106,7 +1106,7 @@ def event_create_api():
         if "status" not in p:
             p["status"] = "noreply"
 
-    event = Event(
+    event = Event.create(
         calendar=calendar,
         namespace=g.namespace,
         uid=uuid.uuid4().hex,
@@ -1575,8 +1575,8 @@ def file_download_api(public_id):
     try:
         name = name.encode("latin-1")
     except UnicodeEncodeError:
-        name = "=?utf-8?b?" + base64.b64encode(name.encode("utf-8")) + "?="
-    response.headers["Content-Disposition"] = "attachment; filename={0}".format(name)
+        name = b"=?utf-8?b?" + base64.b64encode(name.encode("utf-8")) + b"?="
+    response.headers["Content-Disposition"] = b"attachment; filename=" + name
 
     request.environ["log_context"]["headers"] = response.headers
     return response

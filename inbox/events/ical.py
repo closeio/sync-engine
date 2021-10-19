@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import sys
 import traceback
 from datetime import date, datetime
@@ -10,8 +12,6 @@ import requests
 from flanker import mime
 from html2text import html2text
 from icalendar import Calendar as iCalendar
-from timezones import timezones_table
-from util import serialize_datetime, valid_base36
 
 from inbox.config import config
 from inbox.contacts.processing import update_contacts_from_event
@@ -20,6 +20,9 @@ from inbox.logging import get_logger
 from inbox.models.action_log import schedule_action
 from inbox.models.event import EVENT_STATUSES, Event
 from inbox.util.addr import canonicalize_address
+
+from .timezones import timezones_table
+from .util import serialize_datetime, valid_base36
 
 log = get_logger()
 
@@ -244,7 +247,7 @@ def events_from_ics(namespace, calendar, ics_str):
             if sequence_number > 2147483647:
                 sequence_number = 2147483647
 
-            event = Event(
+            event = Event.create(
                 namespace=namespace,
                 calendar=calendar,
                 uid=uid,

@@ -4,7 +4,7 @@ import os
 import string
 import sys
 
-from gevent.coros import BoundedSemaphore
+from gevent.lock import BoundedSemaphore
 
 if sys.version_info < (3,):
     import builtins

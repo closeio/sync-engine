@@ -5,6 +5,7 @@ import os
 from collections import defaultdict
 from hashlib import sha256
 
+import past.builtins
 from flanker import mime
 from sqlalchemy import (
     BigInteger,
@@ -68,7 +69,7 @@ def _trim_filename(s, namespace_id, max_len=255):
     # If `s` is not stored as a unicode string, but contains unicode
     # characters, len will return the wrong value (bytes not chars).
     # Convert it to unicode first.
-    if not isinstance(s, str):
+    if not isinstance(s, past.builtins.unicode):
         s = s.decode("utf-8", "ignore")
 
     if len(s) > max_len:

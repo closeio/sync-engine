@@ -381,10 +381,10 @@ def test_pagination():
     first_response.status_code = 200
     first_response._content = json.dumps(
         {"items": ["A", "B", "C"], "nextPageToken": "CjkKKzlhb2tkZjNpZTMwNjhtZThllU"}
-    )
+    ).encode()
     second_response = requests.Response()
     second_response.status_code = 200
-    second_response._content = json.dumps({"items": ["D", "E"]})
+    second_response._content = json.dumps({"items": ["D", "E"]}).encode()
 
     requests.get = mock.Mock(side_effect=[first_response, second_response])
     provider = GoogleEventsProvider(1, 1)
@@ -399,7 +399,7 @@ def test_handle_http_401():
 
     second_response = requests.Response()
     second_response.status_code = 200
-    second_response._content = json.dumps({"items": ["A", "B", "C"]})
+    second_response._content = json.dumps({"items": ["A", "B", "C"]}).encode()
 
     requests.get = mock.Mock(side_effect=[first_response, second_response])
     provider = GoogleEventsProvider(1, 1)
@@ -428,11 +428,11 @@ def test_handle_quota_exceeded():
                 "message": "User Rate Limit Exceeded",
             }
         }
-    )
+    ).encode()
 
     second_response = requests.Response()
     second_response.status_code = 200
-    second_response._content = json.dumps({"items": ["A", "B", "C"]})
+    second_response._content = json.dumps({"items": ["A", "B", "C"]}).encode()
 
     requests.get = mock.Mock(side_effect=[first_response, second_response])
     provider = GoogleEventsProvider(1, 1)
@@ -450,7 +450,7 @@ def test_handle_internal_server_error():
 
     second_response = requests.Response()
     second_response.status_code = 200
-    second_response._content = json.dumps({"items": ["A", "B", "C"]})
+    second_response._content = json.dumps({"items": ["A", "B", "C"]}).encode()
 
     requests.get = mock.Mock(side_effect=[first_response, second_response])
     provider = GoogleEventsProvider(1, 1)
@@ -479,7 +479,7 @@ def test_handle_api_not_enabled():
                 ],
             }
         }
-    )
+    ).encode()
 
     requests.get = mock.Mock(return_value=response)
     provider = GoogleEventsProvider(1, 1)
@@ -491,7 +491,7 @@ def test_handle_api_not_enabled():
 def test_handle_other_errors():
     response = requests.Response()
     response.status_code = 403
-    response._content = "This is not the JSON you're looking for"
+    response._content = b"This is not the JSON you're looking for"
     requests.get = mock.Mock(return_value=response)
     provider = GoogleEventsProvider(1, 1)
     provider._get_access_token = mock.Mock(return_value="token")

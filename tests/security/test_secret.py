@@ -1,4 +1,7 @@
 # -*- coding: UTF-8 -*-
+import builtins
+import sys
+
 import pytest
 
 from inbox.auth.google import GoogleAccountData, GoogleAuthHandler
@@ -115,8 +118,12 @@ def test_token_inputs(db, config, encrypt, default_account):
     secret_id = default_account.refresh_token_id
     secret = db.session.query(Secret).get(secret_id)
 
-    assert not isinstance(secret.secret, str), "secret cannot be unicode"
-    assert secret.secret == unicode_token.encode(), "token not decrypted correctly"
+    assert not isinstance(
+        secret.secret, builtins.unicode if sys.version_info < (3,) else str
+    ), "secret cannot be unicode"
+    assert secret.secret == unicode_token.encode(
+        "utf-8"
+    ), "token not decrypted correctly"
 
     with pytest.raises(ValueError) as e:
         default_account.refresh_token = invalid_token
@@ -128,4 +135,4 @@ def test_token_inputs(db, config, encrypt, default_account):
 
     assert f.typename == "ValueError", "token cannot contain NULL byte"
 
-    assert default_account.refresh_token == unicode_token.encode()
+    assert default_account.refresh_token == unicode_token.encode("utf-8")

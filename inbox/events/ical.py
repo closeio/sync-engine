@@ -247,7 +247,7 @@ def events_from_ics(namespace, calendar, ics_str):
             if sequence_number > 2147483647:
                 sequence_number = 2147483647
 
-            event = Event(
+            event = Event.create(
                 namespace=namespace,
                 calendar=calendar,
                 uid=uid,

@@ -390,9 +390,9 @@ class CrispinClient(object):
             # checking for Yahoo / Gmail / Outlook (Hotmail) specific errors:
             # TODO: match with FolderSyncEngine.get_new_uids
             if (
-                "[NONEXISTENT] Unknown Mailbox:" in e.message
-                or "does not exist" in e.message
-                or "doesn't exist" in e.message
+                "[NONEXISTENT] Unknown Mailbox:" in e.args[0]
+                or "does not exist" in e.args[0]
+                or "doesn't exist" in e.args[0]
             ):
                 raise FolderMissingError(folder)
 

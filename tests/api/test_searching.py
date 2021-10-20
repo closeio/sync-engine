@@ -506,7 +506,7 @@ def test_streaming_search_results(
     assert isinstance(search_client, IMAPSearchClient)
 
     url = "/{}/search/streaming?q=fantastic".format(endpoint)
-    raw_data = imap_api_client.get_raw(url).data
+    raw_data = imap_api_client.get_raw(url).get_data(as_text=True)
     assert len(conn._responses) == 0, "Search should go through both folders"
 
     # The API returns JSON lists separated by '\n'

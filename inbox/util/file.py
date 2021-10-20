@@ -2,8 +2,18 @@ import errno
 import fcntl
 import os
 import string
+import sys
 
-from gevent.coros import BoundedSemaphore
+from gevent.lock import BoundedSemaphore
+
+if sys.version_info < (3,):
+    import builtins
+
+    file_like = builtins.file
+else:
+    import io
+
+    file_like = io.IOBase
 
 
 def safe_filename(filename):
@@ -86,7 +96,7 @@ class Lock(object):
     TIMEOUT = 60
 
     def __init__(self, f, block=True):
-        if isinstance(f, file):
+        if isinstance(f, file_like):
             self.filename = f.name
             self.handle = f if not f.closed else open(f, "w")
         else:

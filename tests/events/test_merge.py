@@ -3,7 +3,7 @@ from inbox.models.event import Event
 
 
 def fake_event():
-    return Event(
+    return Event.create(
         title="The fifth element",
         participants=[
             {
@@ -17,7 +17,7 @@ def fake_event():
 
 
 def fake_event2():
-    return Event(
+    return Event.create(
         title="The fifth element",
         participants=[
             {

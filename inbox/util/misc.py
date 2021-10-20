@@ -5,6 +5,7 @@ import time
 from builtins import object, str
 from datetime import datetime
 from email.utils import mktime_tz, parsedate_tz
+from importlib import import_module
 
 import future.utils
 
@@ -141,13 +142,11 @@ def load_modules(base_name, base_path):
     """
     modules = []
 
-    for importer, module_name, _ in pkgutil.iter_modules(base_path):
+    for _, module_name, _ in pkgutil.iter_modules(base_path):
         full_module_name = "{}.{}".format(base_name, module_name)
 
         if full_module_name not in sys.modules:
-            module = importer.find_module(module_name).load_module(
-                full_module_name if future.utils.PY2 else module_name
-            )
+            module = import_module(full_module_name)
         else:
             module = sys.modules[full_module_name]
         modules.append(module)

@@ -157,7 +157,7 @@ class IMAPSearchClient(object):
         self._open_crispin_connection(db_session)
 
         try:
-            criteria = ["TEXT", search_query.encode("ascii")]
+            criteria = [b"TEXT", search_query.encode("ascii")]
             charset = None
         except UnicodeEncodeError:
             criteria = [u"TEXT", search_query]

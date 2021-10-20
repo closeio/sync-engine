@@ -317,8 +317,11 @@ def create_error_log_context(exc_info):
     if hasattr(exc_value, "code"):
         out["error_code"] = exc_value.code
 
-    if hasattr(exc_value, "message"):
-        out["error_message"] = exc_value.message
+    if hasattr(exc_value, "args") and hasattr(exc_value.args, "__getitem__"):
+        try:
+            out["error_message"] = exc_value.args[0]
+        except IndexError:
+            pass
 
     try:
         if exc_tb:

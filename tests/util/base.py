@@ -1,6 +1,7 @@
 import json
 import os
 import uuid
+from builtins import range
 from datetime import datetime, timedelta
 
 import mock

@@ -4,6 +4,7 @@ from __future__ import print_function
 import json
 import random
 import string
+from builtins import range
 
 DICT_FILE = "/etc/dictionaries-common/words"
 

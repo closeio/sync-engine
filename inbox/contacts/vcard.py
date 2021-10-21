@@ -29,6 +29,7 @@ from __future__ import absolute_import, print_function
 import base64
 import logging
 import sys
+from builtins import range
 from collections import defaultdict
 
 import vobject

@@ -1,4 +1,3 @@
-# syntax = docker/dockerfile:1.3
 FROM ubuntu:xenial-20210804
 ARG PYTHON_VERSION=2.7
 
@@ -63,7 +62,6 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 COPY --chown=sync-engine:sync-engine ./ ./
 RUN \
-  --mount=type=cache,target=/home/sync-engine/.cache/pip,uid=5000,gid=5000 \
   python"${PYTHON_VERSION}" -m virtualenv /opt/venv && \
   /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install setuptools==44.0.0 pip==20.3.4 && \
   /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install --no-deps -r requirements_frozen.txt && \
@@ -75,5 +73,4 @@ RUN ln -s /opt/app/bin/wait-for-it.sh /opt/venv/bin/
 
 ENV \
   LANG="en_US.UTF-8" \
-  LC_ALL="en_US.UTF-8" \
-  PYTHONDONTWRITEBYTECODE=1
+  LC_ALL="en_US.UTF-8"

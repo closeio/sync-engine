@@ -1,3 +1,6 @@
+from future import standard_library
+
+standard_library.install_aliases()
 from datetime import datetime
 
 from inbox.api.err import err

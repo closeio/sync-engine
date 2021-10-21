@@ -1,6 +1,9 @@
 from __future__ import absolute_import, print_function
 
 # gmail-specific label handling tests.
+from future import standard_library
+
+standard_library.install_aliases()
 import random
 from datetime import datetime
 

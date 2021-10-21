@@ -33,22 +33,24 @@ cls_for_type = dict(
     thread=Thread,
     event=Event,
     calendar=Calendar,
-    transaction=Transaction)
+    transaction=Transaction,
+)
 
 try:
     from inbox.models.backends.eas import EASFolderSyncStatus
-    cls_for_type['easfoldersyncstatus'] = EASFolderSyncStatus
+
+    cls_for_type["easfoldersyncstatus"] = EASFolderSyncStatus
 except ImportError:
     pass
 
 
 @click.command()
-@click.option('--type', '-t', type=str, required=True)
-@click.option('--id', type=str, default=None)
-@click.option('--public-id', type=str, default=None)
-@click.option('--account-id', type=str, default=None)
-@click.option('--namespace-id', type=str, default=None)
-@click.option('--readwrite', is_flag=True, default=False)
+@click.option("--type", "-t", type=str, required=True)
+@click.option("--id", type=str, default=None)
+@click.option("--public-id", type=str, default=None)
+@click.option("--account-id", type=str, default=None)
+@click.option("--namespace-id", type=str, default=None)
+@click.option("--readwrite", is_flag=True, default=False)
 def main(type, id, public_id, account_id, namespace_id, readwrite):
     maybe_enable_rollbar()
 
@@ -89,5 +91,5 @@ Note that the db session is read-only, unless if you start this script with --re
                 db_session.rollback()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

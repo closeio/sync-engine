@@ -8,10 +8,10 @@ from inbox.models.session import global_session_scope
 
 
 @click.command()
-@click.argument('account_id')
-@click.option('--desired-host')
-@click.option('--dry-run', is_flag=True)
-@click.option('--toggle-sync', is_flag=True)
+@click.argument("account_id")
+@click.option("--desired-host")
+@click.option("--dry-run", is_flag=True)
+@click.option("--toggle-sync", is_flag=True)
 def main(account_id, desired_host, dry_run, toggle_sync):
     maybe_enable_rollbar()
 

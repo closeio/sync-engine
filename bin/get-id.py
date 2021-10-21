@@ -28,13 +28,14 @@ cls_for_type = dict(
     thread=Thread,
     event=Event,
     calendar=Calendar,
-    transaction=Transaction)
+    transaction=Transaction,
+)
 
 
 @click.command()
-@click.option('--type', '-t', type=str, required=True)
-@click.option('--id', type=str, default=None)
-@click.option('--public-id', type=str, default=None)
+@click.option("--type", "-t", type=str, required=True)
+@click.option("--id", type=str, default=None)
+@click.option("--public-id", type=str, default=None)
 def main(type, id, public_id):
     maybe_enable_rollbar()
 
@@ -52,13 +53,12 @@ def main(type, id, public_id):
 
     with global_session_scope() as db_session:
         if public_id:
-            obj = db_session.query(cls).filter(cls.public_id == public_id)\
-                .one()
+            obj = db_session.query(cls).filter(cls.public_id == public_id).one()
             print obj.id
         elif id:
             obj = db_session.query(cls).filter(cls.id == id).one()
             print obj.public_id
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

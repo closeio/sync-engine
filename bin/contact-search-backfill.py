@@ -18,7 +18,7 @@ log = get_logger()
 
 
 @click.command()
-@click.argument('namespace_ids', nargs=-1)
+@click.argument("namespace_ids", nargs=-1)
 def main(namespace_ids):
     """
     Idempotently index the given namespace_ids.
@@ -27,10 +27,9 @@ def main(namespace_ids):
     maybe_enable_rollbar()
 
     for namespace_id in namespace_ids:
-        log.info("indexing namespace {namespace_id}".format(
-                 namespace_id=namespace_id))
+        log.info("indexing namespace {namespace_id}".format(namespace_id=namespace_id))
         index_namespace(namespace_id)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

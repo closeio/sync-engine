@@ -3,7 +3,7 @@ import contextlib
 import imaplib
 import re
 import time
-from builtins import map, object, range, str
+from builtins import object, range, str
 
 import imapclient
 

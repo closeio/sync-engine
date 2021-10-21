@@ -701,7 +701,7 @@ def mock_client():
     # Adding a couple of methods we use that mockredis doesn't support yet.
     def scan_iter_patch(match=None, count=100):
         match = str(match).replace("*", "")
-        return [k for k in list(mock_client.keys()) if k.startswith(match)]
+        return [k for k in mock_client.keys() if k.startswith(match)]
 
     mock_client.scan_iter = scan_iter_patch
     mock_client.reset = lambda: True

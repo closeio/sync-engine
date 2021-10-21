@@ -5,6 +5,7 @@ import os
 from collections import defaultdict
 from hashlib import sha256
 
+import future.utils
 import past.builtins
 from flanker import mime
 from future.utils import iteritems
@@ -282,9 +283,16 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             raise ValueError(
                 "Required keyword arguments: account, mid, folder_name, " "body_string"
             )
+
+        if future.utils.PY3 and isinstance(body_string, str):
+            # body_string is only allowed to have ASCII characters at this point,
+            # if the original message contained non ASCII chars, it was
+            # encoded in UTF-8 and then base64-ed or quoted-printable
+            body_string = body_string.encode("ascii")
+
         # stop trickle-down bugs
         assert account.namespace is not None
-        assert not isinstance(body_string, unicode)
+        assert isinstance(body_string, bytes)
 
         msg = Message()
 
@@ -464,7 +472,9 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             if data is None:
                 return
             normalized_data = data.encode("utf-8", "strict")
-            normalized_data = normalized_data.replace("\r\n", "\n").replace("\r", "\n")
+            normalized_data = normalized_data.replace(b"\r\n", b"\n").replace(
+                b"\r", b"\n"
+            )
             if content_type == "text/html":
                 html_parts.append(normalized_data)
             elif content_type == "text/plain":
@@ -541,8 +551,8 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             self.snippet = ""
 
     def calculate_body(self, html_parts, plain_parts, store_body=True):
-        html_body = "".join(html_parts).decode("utf-8").strip()
-        plain_body = "\n".join(plain_parts).decode("utf-8").strip()
+        html_body = b"".join(html_parts).decode("utf-8").strip()
+        plain_body = b"\n".join(plain_parts).decode("utf-8").strip()
         if html_body:
             self.snippet = self.calculate_html_snippet(html_body)
             if store_body:

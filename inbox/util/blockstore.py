@@ -34,7 +34,7 @@ else:
 
 def save_to_blockstore(data_sha256, data):
     assert data is not None
-    assert type(data) is not unicode
+    assert isinstance(data, bytes)
 
     if len(data) == 0:
         log.warning("Not saving 0-length data blob")

@@ -240,7 +240,7 @@ def test_save_parts_without_disposition_as_attachments(db, default_account):
     assert len(m.parts) == 1
     assert m.parts[0].content_disposition == "attachment"
     assert m.parts[0].block.content_type == "image/png"
-    assert m.parts[0].block.data == "filler"
+    assert m.parts[0].block.data == b"filler"
     assert (
         db.session.query(Block)
         .filter(Block.namespace_id == default_account.namespace.id)

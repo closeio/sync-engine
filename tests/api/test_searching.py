@@ -391,7 +391,7 @@ def test_imap_message_search(
     else:
         messages = imap_api_client.get_data("/messages/search?" "q=blah%20blah%20blah")
 
-    imap_connection.assert_search(["TEXT", "blah blah blah"])
+    imap_connection.assert_search([b"TEXT", b"blah blah blah"])
     assert_search_result(sorted_imap_messages, messages)
 
 
@@ -415,7 +415,7 @@ def test_imap_thread_search(
     else:
         threads = imap_api_client.get_data("/threads/search?q=blah%20blah%20blah")
 
-    imap_connection.assert_search(["TEXT", "blah blah blah"])
+    imap_connection.assert_search([b"TEXT", b"blah blah blah"])
     assert_search_result(sorted_imap_threads, threads)
 
 

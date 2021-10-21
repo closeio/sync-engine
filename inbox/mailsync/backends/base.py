@@ -89,5 +89,6 @@ class BaseMailSyncMonitor(Greenlet):
     def _cleanup(self):
         self.sync.kill()
         with session_scope(self.namespace_id) as mailsync_db_session:
-            map(lambda x: x.set_stopped(mailsync_db_session), self.folder_monitors)
+            for x in self.folder_monitors:
+                x.set_stopped(mailsync_db_session)
         self.folder_monitors.kill()

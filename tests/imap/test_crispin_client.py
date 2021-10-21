@@ -10,6 +10,7 @@ from datetime import datetime
 import imapclient
 import mock
 import pytest
+from past.builtins import long
 
 from inbox.crispin import (
     CrispinClient,

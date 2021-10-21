@@ -27,6 +27,7 @@ from datetime import datetime, timedelta
 
 import gevent
 from gevent.lock import Semaphore
+from past.builtins import long
 from sqlalchemy.orm import joinedload, load_only
 
 from inbox.logging import get_logger

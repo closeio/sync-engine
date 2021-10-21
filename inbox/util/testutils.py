@@ -11,7 +11,7 @@ from builtins import object, str
 
 import dns
 import pytest
-from past.builtins import basestring
+from past.builtins import basestring, long
 
 from inbox.basicauth import ValidationError
 

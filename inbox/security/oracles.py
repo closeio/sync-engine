@@ -5,6 +5,7 @@ from builtins import object
 
 import nacl.secret
 import nacl.utils
+from past.builtins import long
 
 from inbox.config import config
 

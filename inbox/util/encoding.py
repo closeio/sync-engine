@@ -1,6 +1,8 @@
 import builtins
 import sys
 
+from past.builtins import long
+
 
 def base36encode(number):
     if not isinstance(number, (int, int)):

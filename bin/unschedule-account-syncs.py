@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 import click
 
 from inbox.error_handling import maybe_enable_rollbar
@@ -26,7 +28,7 @@ def main(dry_run, number, hostname, process):
             "unschedule ALL syncs on the host. Proceed? [Y/n] "
         )
         if raw_input(message).strip().lower() == "n":
-            print "Will not proceed"
+            print("Will not proceed")
             return
 
     if not dry_run:
@@ -37,7 +39,7 @@ def main(dry_run, number, hostname, process):
             )
         )
         if raw_input(message).strip().lower() == "n":
-            print "Bailing out"
+            print("Bailing out")
             return
 
     with global_session_scope() as db_session:
@@ -55,10 +57,10 @@ def main(dry_run, number, hostname, process):
     for account_id in to_unschedule:
         with session_scope(account_id) as db_session:
             if dry_run:
-                print "Would unassign", account_id
+                print("Would unassign", account_id)
             else:
                 account = db_session.query(Account).get(account_id)
-                print "Unassigning", account.id
+                print("Unassigning", account.id)
                 account.desired_sync_host = None
                 account.sync_host = None
                 db_session.commit()

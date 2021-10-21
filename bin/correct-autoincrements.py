@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import click
 
 from inbox.config import config
@@ -27,14 +29,14 @@ def reset_db(dry_run):
             engine = engine_manager.engines[key]
             schema = shard["SCHEMA_NAME"]
 
-            print "Resetting invalid autoincrements for database: {}".format(schema)
+            print("Resetting invalid autoincrements for database: {}".format(schema))
             reset_tables = reset_invalid_autoincrements(engine, schema, key, dry_run)
             if dry_run:
-                print "dry_run=True"
+                print("dry_run=True")
             if reset_tables:
-                print "Reset tables: {}".format(", ".join(reset_tables))
+                print("Reset tables: {}".format(", ".join(reset_tables)))
             else:
-                print "Schema {} okay".format(schema)
+                print("Schema {} okay".format(schema))
 
 
 if __name__ == "__main__":

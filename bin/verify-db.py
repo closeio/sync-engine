@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 from inbox.config import config
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.ignition import EngineManager, verify_db
@@ -22,7 +24,7 @@ def main():
             engine = engine_manager.engines[key]
             schema = shard["SCHEMA_NAME"]
 
-            print "Verifying database: {}".format(schema)
+            print("Verifying database: {}".format(schema))
             verify_db(engine, schema, key)
 
 

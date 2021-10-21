@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # Query the id corresponding to a public id and vice-versa.
 
+from __future__ import print_function
+
 import sys
 
 import click
@@ -42,22 +44,22 @@ def main(type, id, public_id):
     type = type.lower()
 
     if type not in cls_for_type:
-        print "Error: unknown type '{}'".format(type)
+        print("Error: unknown type '{}'".format(type))
         sys.exit(-1)
 
     cls = cls_for_type[type]
 
     if public_id is None and id is None:
-        print "Error: you should specify an id or public id to query."
+        print("Error: you should specify an id or public id to query.")
         sys.exit(-1)
 
     with global_session_scope() as db_session:
         if public_id:
             obj = db_session.query(cls).filter(cls.public_id == public_id).one()
-            print obj.id
+            print(obj.id)
         elif id:
             obj = db_session.query(cls).filter(cls.id == id).one()
-            print obj.public_id
+            print(obj.public_id)
 
 
 if __name__ == "__main__":

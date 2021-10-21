@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 import subprocess
 import sys
 
@@ -29,7 +31,7 @@ def main(shard_num):
 
     for key in creds.keys():
         if creds[key] is None:
-            print "Error: {key} is None".format(key=key)
+            print("Error: {key} is None".format(key=key))
             sys.exit(-1)
 
     proc = subprocess.Popen(

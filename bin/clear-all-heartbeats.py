@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 from sys import exit
 
 import click
@@ -42,7 +44,7 @@ def main(host, port, database):
         count += 1
 
     batch_client.execute()
-    print "{} heartbeats deleted!".format(count)
+    print("{} heartbeats deleted!".format(count))
     exit(0)
 
 

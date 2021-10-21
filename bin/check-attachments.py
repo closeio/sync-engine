@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # Check that we can fetch attachments for 99.9% of our syncing accounts.
+from __future__ import print_function
+
 from gevent import monkey
 
 monkey.patch_all()
@@ -103,7 +105,7 @@ def main(num_accounts):
 
             global_results[key] += ret[key]
 
-    print global_results
+    print(global_results)
 
 
 if __name__ == "__main__":

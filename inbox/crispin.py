@@ -5,6 +5,7 @@ import re
 import time
 
 import imapclient
+from past.builtins import long
 
 # Prevent "got more than 1000000 bytes" errors for servers that send more data.
 imaplib._MAXLINE = 10000000

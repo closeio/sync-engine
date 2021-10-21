@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 import os
 
 import alembic.command
@@ -51,7 +53,7 @@ def main(target_hostname, host_ip):
             )
 
             schema_name = shard["SCHEMA_NAME"]
-            print "Setting up database: {}".format(schema_name)
+            print("Setting up database: {}".format(schema_name))
 
             # Create the database IF needed.
             base_engine.execute(
@@ -69,12 +71,12 @@ def main(target_hostname, host_ip):
                 assert (
                     current_revision
                 ), "Need current revision in alembic_version table."
-                print "Already revisioned by alembic version: {}".format(
-                    current_revision
+                print(
+                    "Already revisioned by alembic version: {}".format(current_revision)
                 )
             else:
                 # Initialize shards, stamp alembic revision
-                print "Initializing database."
+                print("Initializing database.")
                 init_db(engine, int(key))
                 alembic_ini_filename = os.environ.get("ALEMBIC_INI_PATH", "alembic.ini")
                 assert os.path.isfile(
@@ -84,14 +86,14 @@ def main(target_hostname, host_ip):
                 # Alembic option values need to be strings.
                 alembic_cfg.set_main_option("shard_id", str(key))
 
-                print "Stamping with alembic revision."
+                print("Stamping with alembic revision.")
                 alembic.command.stamp(alembic_cfg, "head")
 
             # Verify the database has been set up with correct auto_increments.
-            print "Verifying database."
+            print("Verifying database.")
             verify_db(engine, schema_name, int(key))
 
-            print "Finished setting up database.\n"
+            print("Finished setting up database.\n")
 
 
 if __name__ == "__main__":

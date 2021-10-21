@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # throttle or unthrottle an account
+from __future__ import print_function
+
 import optparse
 import sys
 import time
@@ -10,11 +12,13 @@ from inbox.models.session import session_scope
 
 
 def print_usage():
-    print "usage:   set-throttled [--throttled|--unthrottled] --id 1000"
-    print "example: set-throttled --throttled --id 1000"
-    print "batch usage: set-throttled also accepts tab-separated input on stdin."
-    print "             echo 'karim@nylas.com	account_id' | set-throttled --throttled"
-    print "             bin/list-accounts --host precise64 --paying | set-throttled --unthrottled"
+    print("usage:   set-throttled [--throttled|--unthrottled] --id 1000")
+    print("example: set-throttled --throttled --id 1000")
+    print("batch usage: set-throttled also accepts tab-separated input on stdin.")
+    print("             echo 'karim@nylas.com	account_id' | set-throttled --throttled")
+    print(
+        "             bin/list-accounts --host precise64 --paying | set-throttled --unthrottled"
+    )
 
 
 def throttle(options):
@@ -27,10 +31,10 @@ def throttle(options):
             sys.exit(-1)
 
         if options.throttled:
-            print "Throttling account %s" % account.email_address
+            print("Throttling account %s" % account.email_address)
             account.throttled = True
         elif options.unthrottled:
-            print "Unthrottling account %s" % account.email_address
+            print("Unthrottling account %s" % account.email_address)
             account.throttled = False
 
         db_session.commit()

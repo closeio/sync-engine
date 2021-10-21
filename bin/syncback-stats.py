@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 from gevent import monkey
 
 monkey.patch_all()
@@ -37,12 +39,16 @@ def main():
                 )
                 .group_by(ActionLog.namespace_id)
             ):
-                print "{} (pending actions), {} (shard), {} (namespace)".format(
-                    c, key, namespace_id
+                print(
+                    "{} (pending actions), {} (shard), {} (namespace)".format(
+                        c, key, namespace_id
+                    )
                 )
                 total_pending_actions += c
-            print "total pending actions for shard {}: {}".format(
-                key, total_pending_actions
+            print(
+                "total pending actions for shard {}: {}".format(
+                    key, total_pending_actions
+                )
             )
 
 

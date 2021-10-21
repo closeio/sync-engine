@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import click
 from sqlalchemy.orm import load_only
 
@@ -31,8 +33,11 @@ def main():
         ):
 
             if acc.desired_sync_host is not None:
-                print "account {} assigned to {} but has sync_state 'stopped'" " ({}, {})".format(
-                    acc.id, acc.sync_host, acc.sync_should_run, acc.sync_host
+                print(
+                    "account {} assigned to {} but has sync_state 'stopped'"
+                    " ({}, {})".format(
+                        acc.id, acc.sync_host, acc.sync_should_run, acc.sync_host
+                    )
                 )
 
 

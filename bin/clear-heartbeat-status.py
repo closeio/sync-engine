@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 from sys import exit
 
 import click
@@ -22,9 +24,9 @@ log = get_logger()
 def main(host, port, account_id, folder_id, device_id):
     maybe_enable_rollbar()
 
-    print "Clearing heartbeat status..."
+    print("Clearing heartbeat status...")
     n = clear_heartbeat_status(account_id, folder_id, device_id, host, port)
-    print "{} folders cleared.".format(n)
+    print("{} folders cleared.".format(n))
     exit(0)
 
 

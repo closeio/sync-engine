@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # Query the id corresponding to a public id and vice-versa.
 
+from __future__ import print_function
+
 import sys
 
 import click
@@ -57,13 +59,13 @@ def main(type, id, public_id, account_id, namespace_id, readwrite):
     type = type.lower()
 
     if type not in cls_for_type:
-        print "Error: unknown type '{}'".format(type)
+        print("Error: unknown type '{}'".format(type))
         sys.exit(-1)
 
     cls = cls_for_type[type]
 
     if all([id, public_id, account_id, namespace_id]):
-        print "Error: you should specify an id or public id to query."
+        print("Error: you should specify an id or public id to query.")
         sys.exit(-1)
 
     with global_session_scope() as db_session:
@@ -87,7 +89,7 @@ Note that the db session is read-only, unless if you start this script with --re
             IPython.embed(banner1=banner)
 
             if readwrite is False:
-                print "Rolling-back db session."
+                print("Rolling-back db session.")
                 db_session.rollback()
 
 

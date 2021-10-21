@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 import os
 import sys
 
@@ -32,19 +34,19 @@ def main(revision_id):
             key = shard["ID"]
 
             try:
-                print "Stamping shard_id {}".format(key)
+                print("Stamping shard_id {}".format(key))
                 alembic_cfg = alembic.config.Config(alembic_ini_filename)
                 alembic_cfg.set_main_option("shard_id", str(key))
                 alembic.command.stamp(alembic_cfg, revision_id)
-                print "Stamped shard_id {}\n".format(key)
+                print("Stamped shard_id {}\n".format(key))
             except alembic.util.CommandError as e:
-                print "FAILED to stamp shard_id {} with error: {}".format(key, str(e))
+                print("FAILED to stamp shard_id {} with error: {}".format(key, str(e)))
                 continue
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print "usage: stamp-db revision_id"
+        print("usage: stamp-db revision_id")
         sys.exit(-1)
 
     main(sys.argv[1])

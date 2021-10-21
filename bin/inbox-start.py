@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 from gevent import monkey
 
 monkey.patch_all()
@@ -124,7 +126,7 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
         recursion_limit=sys.getrecursionlimit(),
     )
 
-    print >>sys.stderr, banner
+    print(banner, file=sys.stderr)
 
     if enable_profiler:
         inbox_config["DEBUG_PROFILING_ON"] = True
@@ -156,7 +158,7 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
 
     sync_service.run()
 
-    print >>sys.stderr, "\033[94mNylas Sync Engine exiting...\033[0m"
+    print("\033[94mNylas Sync Engine exiting...\033[0m", file=sys.stderr)
 
 
 if __name__ == "__main__":

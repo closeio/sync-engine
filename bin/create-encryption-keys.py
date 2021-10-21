@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 import binascii
 
 import nacl.secret
@@ -35,7 +37,7 @@ def main():
     # Update it
     try:
         with open(secrets_path, "a") as f:
-            print "Writing keys to secrets config file {0}".format(secrets_path)
+            print("Writing keys to secrets config file {0}".format(secrets_path))
             yaml.dump(data, f, default_flow_style=False)
     except IOError:
         raise Exception(

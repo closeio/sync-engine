@@ -23,8 +23,8 @@ configure_logging()
 def main():
     maybe_enable_rollbar()
 
-    setproctitle('scheduler')
-    zones = {h.get('ZONE') for h in config['DATABASE_HOSTS']}
+    setproctitle("scheduler")
+    zones = {h.get("ZONE") for h in config["DATABASE_HOSTS"]}
     threads = []
     for zone in zones:
         populator = QueuePopulator(zone)
@@ -33,5 +33,5 @@ def main():
     gevent.joinall(threads)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

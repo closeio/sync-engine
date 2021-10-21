@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import click
 from sqlalchemy.orm import load_only
 
@@ -20,16 +22,24 @@ def main():
     maybe_enable_rollbar()
 
     with global_session_scope() as db_session:
-        for acc in db_session.query(Account).options(
-                load_only('sync_state', 'sync_should_run', 'sync_host', 'desired_sync_host'))\
-                .filter(Account.sync_state == 'stopped'):
+        for acc in (
+            db_session.query(Account)
+            .options(
+                load_only(
+                    "sync_state", "sync_should_run", "sync_host", "desired_sync_host"
+                )
+            )
+            .filter(Account.sync_state == "stopped")
+        ):
 
             if acc.desired_sync_host is not None:
-                print "account {} assigned to {} but has sync_state 'stopped'"\
-                      " ({}, {})"\
-                    .format(acc.id, acc.sync_host,
-                            acc.sync_should_run, acc.sync_host)
+                print(
+                    "account {} assigned to {} but has sync_state 'stopped'"
+                    " ({}, {})".format(
+                        acc.id, acc.sync_host, acc.sync_should_run, acc.sync_host
+                    )
+                )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

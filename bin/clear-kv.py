@@ -14,8 +14,8 @@ from inbox.heartbeat.config import (
 
 
 @click.command()
-@click.option('--host', '-h', type=str)
-@click.option('--port', '-p', type=int, default=6379)
+@click.option("--host", "-h", type=str)
+@click.option("--port", "-p", type=int, default=6379)
 def main(host, port):
     maybe_enable_rollbar()
 
@@ -30,5 +30,5 @@ def main(host, port):
     exit(0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

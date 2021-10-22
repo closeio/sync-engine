@@ -1,6 +1,10 @@
 from __future__ import print_function
 
+from future import standard_library
+
+standard_library.install_aliases()
 import random
+from builtins import range
 
 import gevent
 from freezegun import freeze_time
@@ -42,7 +46,7 @@ def patch_requests_no_throttle(monkeypatch):
 
 
 def random_range(start, end):
-    return range(random.randrange(start, end))
+    return list(range(random.randrange(start, end)))
 
 
 def add_completely_fake_account(db, email="test@nylas.com"):

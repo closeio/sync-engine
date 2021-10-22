@@ -1,6 +1,10 @@
+from future import standard_library
+
+standard_library.install_aliases()
 import calendar
 import datetime
 import json
+from builtins import range
 
 from sqlalchemy import desc
 

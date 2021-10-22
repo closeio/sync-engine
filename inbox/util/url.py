@@ -1,6 +1,9 @@
+from future import standard_library
+
+standard_library.install_aliases()
 import re
 import socket
-from urllib import urlencode
+from urllib.parse import urlencode
 
 import dns
 from dns.resolver import NXDOMAIN, NoAnswer, NoNameservers, Resolver, Timeout

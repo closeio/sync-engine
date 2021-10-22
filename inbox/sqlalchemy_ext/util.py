@@ -5,6 +5,7 @@ import uuid
 import weakref
 
 from bson import EPOCH_NAIVE, json_util
+from future.utils import with_metaclass
 
 # Monkeypatch to not include tz_info in decoded JSON.
 # Kind of a ridiculous solution, but works.
@@ -76,12 +77,11 @@ class SQLAlchemyCompatibleAbstractMetaClass(DeclarativeMeta, abc.ABCMeta):
     pass
 
 
-class ABCMixin(object):
+class ABCMixin(with_metaclass(SQLAlchemyCompatibleAbstractMetaClass, object)):
     """Use this if you want a mixin class which is actually an abstract base
     class, for example in order to enforce that concrete subclasses define
     particular methods or properties."""
 
-    __metaclass__ = SQLAlchemyCompatibleAbstractMetaClass
     __abstract__ = True
 
 

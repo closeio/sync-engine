@@ -1,6 +1,7 @@
 from __future__ import division
 
 import datetime
+from builtins import range
 from collections import defaultdict
 
 from past.utils import old_div
@@ -152,9 +153,9 @@ def calculate_group_scores(messages, user_email):
 # Helper functions for calculating group scores
 def _expand_molecule_pool(molecules_dict):
     mditems = [(set(g), msgs) for (g, msgs) in molecules_dict.items()]
-    for i in xrange(len(mditems)):
+    for i in range(len(mditems)):
         g1, m1 = mditems[i]
-        for j in xrange(i, len(mditems)):
+        for j in range(i, len(mditems)):
             g2, m2 = mditems[j]
             new_molecule = tuple(sorted(list(g1.intersection(g2))))
             if len(new_molecule) >= MIN_GROUP_SIZE:
@@ -168,10 +169,10 @@ def _subsume_molecules(molecules_list, get_message_list_weight):
     is_subsumed = [False] * len(molecules_list)
     mol_weights = [get_message_list_weight(m) for (_, m) in molecules_list]
 
-    for i in xrange(1, len(molecules_list)):
+    for i in range(1, len(molecules_list)):
         g1, m1 = molecules_list[i]  # Smaller group
         m1_size = mol_weights[i]
-        for j in xrange(i):
+        for j in range(i):
             if is_subsumed[j]:
                 continue
             g2, m2 = molecules_list[j]  # Bigger group
@@ -194,8 +195,8 @@ def _combine_similar_molecules(molecules_list):
     while new_guys_start_idx < len(molecules_list):
         combined = [False] * len(molecules_list)
         new_guys = []
-        for j in xrange(new_guys_start_idx, len(molecules_list)):
-            for i in xrange(0, j):
+        for j in range(new_guys_start_idx, len(molecules_list)):
+            for i in range(0, j):
                 if combined[i]:
                     continue
                 (g1, m1), (g2, m2) = molecules_list[i], molecules_list[j]

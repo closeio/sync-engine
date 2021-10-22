@@ -4,6 +4,7 @@ import enum  # Python 3 style enums from enum34
 
 import nacl.secret
 import nacl.utils
+from past.builtins import long
 
 from inbox.config import config
 

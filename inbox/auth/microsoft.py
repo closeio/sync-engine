@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from builtins import input
+
 import attr
 
 from inbox.basicauth import OAuthError
@@ -89,7 +91,7 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
         print("\n{}".format(url))
 
         while True:
-            auth_code = raw_input("Enter authorization code: ").strip()
+            auth_code = input("Enter authorization code: ").strip()
             try:
                 auth_response = self._get_authenticated_user(auth_code)
                 return MicrosoftAccountData(

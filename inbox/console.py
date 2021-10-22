@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import sys
+from builtins import input
 
 import IPython
 
@@ -31,7 +32,7 @@ def user_console(user_email_address):
                         acc.namespace.public_id,
                     )
                 )
-            choice = int(raw_input("\nWhich # do you want to select? "))
+            choice = int(input("\nWhich # do you want to select? "))
             account = result[choice]
 
         if account is None:

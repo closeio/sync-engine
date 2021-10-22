@@ -518,7 +518,7 @@ class RecurringEvent(Event):
         events = list(overrides)
         overridden_starts = [e.original_start_time for e in events]
         # Remove cancellations from the override set
-        events = filter(lambda e: not e.cancelled, events)
+        events = [e for e in events if not e.cancelled]
         # If an override has not changed the start time for an event, including
         # if the override is a cancellation, the RRULE doesn't include an
         # exception for it. Filter out unnecessary inflated events

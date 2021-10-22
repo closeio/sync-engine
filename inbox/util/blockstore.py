@@ -160,7 +160,7 @@ def _get_from_disk(data_sha256):
 
 
 def _delete_from_s3_bucket(data_sha256_hashes, bucket_name):
-    data_sha256_hashes = filter(None, data_sha256_hashes)
+    data_sha256_hashes = [hash_ for hash_ in data_sha256_hashes if hash_]
     if not data_sha256_hashes:
         return None
 

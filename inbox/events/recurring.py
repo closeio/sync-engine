@@ -144,8 +144,9 @@ def get_start_times(event, start=None, end=None):
 
             # We want naive-everything for all-day events.
             if event.all_day:
-                excl_dates = map(lambda x: x.naive, excl_dates)
-            map(rrules.exdate, excl_dates)
+                excl_dates = [x.naive for x in excl_dates]
+            for excl_date in excl_dates:
+                rrules.exdate(excl_date)
 
         # Return all start times between start and end, including start and
         # end themselves if they obey the rule.

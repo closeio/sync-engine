@@ -15,7 +15,7 @@ __all__ = ["remote_create_label", "remote_update_label", "remote_delete_label"]
 
 
 def _encode_labels(labels):
-    return map(imapclient.imap_utf7.encode, labels)
+    return [imapclient.imap_utf7.encode(label) for label in labels]
 
 
 def remote_change_labels(

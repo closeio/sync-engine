@@ -701,14 +701,14 @@ def mock_client():
     # Adding a couple of methods we use that mockredis doesn't support yet.
     def scan_iter_patch(match=None, count=100):
         match = str(match).replace("*", "")
-        return filter(lambda k: k.startswith(match), mock_client.keys())
+        return [k for k in mock_client.keys() if k.startswith(match)]
 
     mock_client.scan_iter = scan_iter_patch
     mock_client.reset = lambda: True
 
     def zscan_iter_patch(key, match=None):
         match = str(match).replace("*", "")
-        return filter(lambda k: k.startswith(match), mock_client.zrange(key, 0, -1))
+        return [k for k in mock_client.zrange(key, 0, -1) if k.startswith(match)]
 
     mock_client.zscan_iter = zscan_iter_patch
     return mock_client

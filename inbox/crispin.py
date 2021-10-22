@@ -1212,7 +1212,7 @@ class GmailCrispinClient(CrispinClient):
         return self.conn.search(["HEADER", header_name, header_value])
 
     def _decode_labels(self, labels):
-        return map(imapclient.imap_utf7.decode, labels)
+        return [imapclient.imap_utf7.decode(label) for label in labels]
 
     def delete_draft(self, message_id_header):
         """

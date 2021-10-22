@@ -53,7 +53,7 @@ class HeartbeatStatusKey(object):
 
     @classmethod
     def from_string(cls, string_key):
-        account_id, folder_id = map(int, string_key.split(":"))
+        account_id, folder_id = [int(part) for part in string_key.split(":")]
         return cls(account_id, folder_id)
 
 

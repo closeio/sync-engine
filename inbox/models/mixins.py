@@ -91,7 +91,9 @@ class AddressComparator(Comparator):
         return self.__clause_element__().like(term, escape=escape)
 
     def in_(self, addresses):
-        return self.__clause_element__().in_(map(canonicalize_address, addresses))
+        return self.__clause_element__().in_(
+            [canonicalize_address(address) for address in addresses]
+        )
 
 
 class CaseInsensitiveComparator(Comparator):

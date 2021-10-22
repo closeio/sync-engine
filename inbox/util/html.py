@@ -70,10 +70,12 @@ class HTMLTagStripper(HTMLParser):
         self.fed.append(val)
 
     def get_data(self):
+        # type: () -> str
         return u"".join(self.fed)
 
 
 def strip_tags(html):
+    # type: (str) -> str
     """
     Return textual content of HTML.
     Remove title, script and style alltogether. Replace br and div
@@ -89,12 +91,13 @@ def strip_tags(html):
 
 # https://djangosnippets.org/snippets/19/
 re_string = re.compile(
-    ur"(?P<htmlchars>[<&>])|(?P<space>^[ \t]+)|(?P<lineend>\n)|(?P<protocol>(^|\s)((http|ftp)://.*?))(\s|$)",
+    r"(?P<htmlchars>[<&>])|(?P<space>^[ \t]+)|(?P<lineend>\n)|(?P<protocol>(^|\s)((http|ftp)://.*?))(\s|$)",
     re.S | re.M | re.I | re.U,
 )
 
 
 def plaintext2html(text, tabstop=4):
+    # type: (str, int) -> str
     assert "\r" not in text, "newlines not normalized"
 
     def do_sub(m):

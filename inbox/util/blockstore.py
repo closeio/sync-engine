@@ -33,6 +33,7 @@ else:
 
 
 def save_to_blockstore(data_sha256, data):
+    # type: (str, bytes) -> None
     assert data is not None
     assert isinstance(data, bytes)
 
@@ -51,6 +52,7 @@ def save_to_blockstore(data_sha256, data):
 
 
 def _save_to_s3(data_sha256, data):
+    # type: (str, bytes) -> None
     assert (
         "TEMP_MESSAGE_STORE_BUCKET_NAME" in config
     ), "Need temp bucket name to store message data!"
@@ -59,6 +61,7 @@ def _save_to_s3(data_sha256, data):
 
 
 def _save_to_s3_bucket(data_sha256, bucket_name, data):
+    # type: (str, str, bytes) -> None
     assert "AWS_ACCESS_KEY_ID" in config, "Need AWS key!"
     assert "AWS_SECRET_ACCESS_KEY" in config, "Need AWS secret!"
     start = time.time()

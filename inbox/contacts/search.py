@@ -3,6 +3,7 @@ import re
 
 import boto3
 from flanker.addresslib import address
+from past.builtins import long
 from sqlalchemy.orm import joinedload
 
 from inbox.config import config

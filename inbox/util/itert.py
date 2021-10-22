@@ -24,7 +24,7 @@ def partition(pred, iterable):
             partition(is_odd, range(10)) --> 0 2 4 6 8   and  1 3 5 7 9
     """
     t1, t2 = itertools.tee(iterable)
-    return list(itertools.ifilterfalse(pred, t1)), [e for e in t2 if pred(e)]
+    return [e for e in t1 if not pred(e)], [e for e in t2 if pred(e)]
 
 
 def flatten(iterable):

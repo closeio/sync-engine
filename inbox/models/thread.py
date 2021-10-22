@@ -2,6 +2,7 @@ import datetime
 import itertools
 from collections import defaultdict
 
+from future.utils import iteritems
 from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import (
     backref,
@@ -156,7 +157,7 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
             ):
                 deduped_participants[address].add(phrase.strip())
         p = []
-        for address, phrases in deduped_participants.iteritems():
+        for address, phrases in iteritems(deduped_participants):
             for phrase in phrases:
                 if phrase != "" or len(phrases) == 1:
                     p.append((phrase, address))

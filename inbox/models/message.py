@@ -7,6 +7,7 @@ from hashlib import sha256
 
 import past.builtins
 from flanker import mime
+from future.utils import iteritems
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -612,7 +613,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             deduped_participants[address].add(phrase.strip())
 
         p = []
-        for address, phrases in deduped_participants.iteritems():
+        for address, phrases in iteritems(deduped_participants):
             for phrase in phrases:
                 if phrase != "" or len(phrases) == 1:
                     p.append((phrase, address))

@@ -2,6 +2,7 @@ import json
 
 import arrow
 import pytest
+from future.utils import iteritems
 
 
 class CreateError(Exception):
@@ -18,7 +19,7 @@ def _verify_create(ns_id, api_client, e_data):
     assert e_resp_data["account_id"] == ns_id
     assert e_resp_data["title"] == e_data["title"]
     assert e_resp_data["location"] == e_data["location"]
-    for k, v in e_data["when"].iteritems():
+    for k, v in iteritems(e_data["when"]):
         assert arrow.get(e_resp_data["when"][k]) == arrow.get(v)
     assert "id" in e_resp_data
     e_id = e_resp_data["id"]
@@ -28,7 +29,7 @@ def _verify_create(ns_id, api_client, e_data):
     assert e_get_resp["account_id"] == ns_id
     assert e_get_resp["id"] == e_id
     assert e_get_resp["title"] == e_data["title"]
-    for k, v in e_data["when"].iteritems():
+    for k, v in iteritems(e_data["when"]):
         assert arrow.get(e_get_resp["when"][k]) == arrow.get(v)
 
     return e_resp_data

@@ -4,6 +4,7 @@ import datetime
 from builtins import range
 from collections import defaultdict
 
+from future.utils import iteritems
 from past.utils import old_div
 
 """
@@ -135,7 +136,7 @@ def calculate_group_scores(messages, user_email):
     # Filter out infrequent molecules
     molecules_list = [
         (set(emails), set(msgs))
-        for (emails, msgs) in molecules_dict.iteritems()
+        for emails, msgs in iteritems(molecules_dict)
         if get_message_list_weight(msgs) >= MIN_MESSAGE_COUNT
     ]
 

@@ -7,6 +7,7 @@ from datetime import datetime
 
 import pytest
 from freezegun import freeze_time
+from future.utils import iteritems
 
 from tests.util.base import add_fake_message, add_fake_thread
 
@@ -101,7 +102,7 @@ def test_create_and_get_draft(api_client, example_draft):
     assert len(matching_saved_drafts) == 1
     saved_draft = matching_saved_drafts[0]
 
-    assert all(saved_draft[k] == v for k, v in example_draft.iteritems())
+    assert all(saved_draft[k] == v for k, v in iteritems(example_draft))
 
 
 def test_create_draft_replying_to_thread(api_client, thread, message):

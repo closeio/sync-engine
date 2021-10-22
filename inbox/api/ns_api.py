@@ -20,6 +20,7 @@ from flask import (
     stream_with_context,
 )
 from flask.ext.restful import reqparse
+from future.utils import iteritems
 from sqlalchemy import asc, func
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import joinedload, load_only
@@ -1471,7 +1472,7 @@ def file_delete_api(public_id):
 @app.route("/files/", methods=["POST"])
 def file_upload_api():
     all_files = []
-    for name, uploaded in request.files.iteritems():
+    for name, uploaded in iteritems(request.files):
         request.environ["log_context"].setdefault("filenames", []).append(name)
         f = Block()
         f.namespace = g.namespace
@@ -2059,7 +2060,7 @@ def sync_deltas():
 def generate_cursor():
     data = request.get_json(force=True)
 
-    if data.keys() != ["start"] or not isinstance(data["start"], int):
+    if list(data) != ["start"] or not isinstance(data["start"], int):
         raise InputError(
             "generate_cursor request body must have the format "
             '{"start": <Unix timestamp> (seconds)}'

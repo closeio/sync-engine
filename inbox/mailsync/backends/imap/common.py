@@ -133,7 +133,7 @@ def update_metadata(account_id, folder_id, folder_role, new_flags, session):
     change_count = 0
     for item in session.query(ImapUid).filter(
         ImapUid.account_id == account_id,
-        ImapUid.msg_uid.in_(new_flags.keys()),
+        ImapUid.msg_uid.in_(new_flags),
         ImapUid.folder_id == folder_id,
     ):
         flags = new_flags[item.msg_uid].flags

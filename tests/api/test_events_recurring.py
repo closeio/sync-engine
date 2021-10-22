@@ -1,4 +1,9 @@
-import urllib
+from future import standard_library
+
+standard_library.install_aliases()
+import urllib.error
+import urllib.parse
+import urllib.request
 
 import arrow
 import pytest
@@ -81,7 +86,7 @@ def test_api_expand_recurring(db, api_client, recurring_event):
     thirty_weeks = event.start.replace(weeks=+30).isoformat()
     starts_after = event.start.replace(days=-1).isoformat()
     recur = "expand_recurring=true&starts_after={}&ends_before={}".format(
-        urllib.quote_plus(starts_after), urllib.quote_plus(thirty_weeks)
+        urllib.parse.quote_plus(starts_after), urllib.parse.quote_plus(thirty_weeks)
     )
     all_events = api_client.get_data("/events?" + recur)
 
@@ -125,7 +130,7 @@ def test_api_expand_recurring(db, api_client, recurring_event):
 
 
 def urlsafe(dt):
-    return urllib.quote_plus(dt.isoformat())
+    return urllib.parse.quote_plus(dt.isoformat())
 
 
 def test_api_expand_recurring_before_after(db, api_client, recurring_event):

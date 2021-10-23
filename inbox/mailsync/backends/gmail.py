@@ -25,6 +25,7 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 
 import gevent
+from future.utils import iteritems
 from gevent.lock import Semaphore
 from past.builtins import long
 from sqlalchemy.orm import joinedload, load_only
@@ -318,9 +319,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 msg_uids = crispin_client.all_uids()
                 mapping = {
                     g_msgid: msg_uid
-                    for msg_uid, g_msgid in crispin_client.g_msgids(
-                        msg_uids
-                    ).iteritems()
+                    for msg_uid, g_msgid in iteritems(crispin_client.g_msgids(msg_uids))
                 }
             imap_uid_entries = (
                 db_session.query(ImapUid)

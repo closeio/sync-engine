@@ -7,6 +7,7 @@ from urllib.parse import urlencode
 
 import dns
 from dns.resolver import NXDOMAIN, NoAnswer, NoNameservers, Resolver, Timeout
+from future.utils import iteritems
 from tldextract import extract as tld_extract
 
 from inbox.logging import get_logger
@@ -113,7 +114,7 @@ def provider_from_address(email_address, dns_resolver=_dns_resolver):
     except NoAnswer:
         log.error("No answer from provider", domain=domain)
 
-    for (name, info) in providers.iteritems():
+    for name, info in iteritems(providers):
         provider_domains = info.get("domains", [])
 
         # If domain is in the list of known domains for a provider,
@@ -122,7 +123,7 @@ def provider_from_address(email_address, dns_resolver=_dns_resolver):
             if domain.endswith(d):
                 return name
 
-    for (name, info) in providers.iteritems():
+    for name, info in iteritems(providers):
         provider_mx = info.get("mx_servers", [])
 
         # If a retrieved mx_domain is in the list of stored MX domains for a
@@ -130,7 +131,7 @@ def provider_from_address(email_address, dns_resolver=_dns_resolver):
         if mx_match(mx_domains, provider_mx):
             return name
 
-    for (name, info) in providers.iteritems():
+    for name, info in iteritems(providers):
         provider_ns = info.get("ns_servers", [])
 
         # If a retrieved name server is in the list of stored name servers for

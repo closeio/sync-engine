@@ -5,7 +5,7 @@ import uuid
 import weakref
 
 from bson import EPOCH_NAIVE, json_util
-from future.utils import with_metaclass
+from future.utils import iteritems, with_metaclass
 
 # Monkeypatch to not include tz_info in decoded JSON.
 # Kind of a ridiculous solution, but works.
@@ -198,7 +198,7 @@ class MutableDict(Mutable, dict):
         self.changed()
 
     def update(self, *args, **kwargs):
-        for k, v in dict(*args, **kwargs).iteritems():
+        for k, v in iteritems(dict(*args, **kwargs)):
             self[k] = v
 
     # To support pickling:

@@ -56,7 +56,7 @@ def test_gmail_labels(client):
 
             print("Subject : %s" % thread.subject)
             uids = crispin_client.search_uids(["SUBJECT", thread.subject])
-            g_thrid = crispin_client.g_metadata(uids).items()[0][1].thrid
+            g_thrid = list(crispin_client.g_metadata(uids).items())[0][1].thrid
 
             crispin_client.add_label(g_thrid, labelname)
             wait_for_tag(client, thread.id, labelname)

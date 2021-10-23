@@ -55,7 +55,7 @@ def default_json_error(ex):
 
 
 # Patch all error handlers in werkzeug
-for code in default_exceptions.iterkeys():
+for code in default_exceptions:
     app.error_handler_spec[None][code] = default_json_error
 
 

@@ -247,7 +247,7 @@ class VCard(defaultdict):
         self.edited = 0
 
     def serialize(self):
-        return self.items().__repr__()
+        return repr(list(self.items()))
 
     @property
     def name(self):
@@ -268,7 +268,7 @@ class VCard(defaultdict):
         self["FN"][0] = (value, {})
 
     def alt_keys(self):
-        keylist = self.keys()
+        keylist = list(self)
         for one in [x for x in ["FN", "N", "VERSION"] if x in keylist]:
             keylist.remove(one)
         keylist.sort()
@@ -350,7 +350,7 @@ class VCard(defaultdict):
             choice = string.ascii_uppercase + string.digits
             return "".join([random.choice(choice) for _ in range(36)])
 
-        if "UID" not in self.keys():
+        if "UID" not in self:
             self["UID"] = [(generate_random_uid(), dict())]
         collector = list()
         collector.append("BEGIN:VCARD")

@@ -12,6 +12,8 @@ foobar+no_all_mail@gmail.com.
 """
 from __future__ import print_function
 
+from future.utils import iteritems
+
 from inbox.auth.gmail import GmailAuthHandler
 from inbox.basicauth import (
     GmailSettingError,
@@ -72,7 +74,7 @@ class MockGmailAuthHandler(GmailAuthHandler):
         return account
 
     def verify_config(self, account):
-        for key, response in fake_responses.iteritems():
+        for key, response in iteritems(fake_responses):
             if key in account.email_address:
                 return response(key)
         # Raise an exception to prevent committing test accounts

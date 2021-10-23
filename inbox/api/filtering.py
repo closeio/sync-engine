@@ -860,7 +860,7 @@ def metadata_for_app(app_id, limit, last, query_value, query_type, db_session):
         if query_type not in METADATA_QUERY_OPERATORS:
             raise ValueError(
                 "Invalid query operator for metadata query_type. Must be "
-                "one of {}".format(", ".join(METADATA_QUERY_OPERATORS.keys()))
+                "one of {}".format(", ".join(METADATA_QUERY_OPERATORS))
             )
         operator_filter = METADATA_QUERY_OPERATORS[query_type](query_value)
         query = query.filter(operator_filter)

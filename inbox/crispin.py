@@ -6,6 +6,7 @@ import time
 from builtins import range
 
 import imapclient
+from future.utils import iteritems
 from past.builtins import long
 
 # Prevent "got more than 1000000 bytes" errors for servers that send more data.
@@ -577,7 +578,7 @@ class CrispinClient(object):
             if folder.role in missing_roles:
                 del missing_roles[folder.role]
 
-        return missing_roles.keys()
+        return list(missing_roles)
 
     def _guess_role(self, folder):
         """
@@ -764,7 +765,7 @@ class CrispinClient(object):
             if uid not in uid_set:
                 continue
             msg = raw_messages[uid]
-            if msg.keys() == ["SEQ"]:
+            if list(msg) == ["SEQ"]:
                 log.error("No data returned for UID, skipping", uid=uid)
                 continue
 
@@ -861,7 +862,7 @@ class CrispinClient(object):
         # priori (by subject or date, etc.)
         matching_draft_headers = self.fetch_headers(all_uids)
         results = []
-        for uid, response in matching_draft_headers.iteritems():
+        for uid, response in iteritems(matching_draft_headers):
             headers = response["BODY[HEADER]"]
             parser = HeaderParser()
             header = parser.parsestr(headers).get(header_name)
@@ -1263,7 +1264,7 @@ class GmailCrispinClient(CrispinClient):
 
         gm_msgids = self.g_msgids(matching_uids)
         for msgid in gm_msgids.values():
-            if msgid == sent_gm_msgids.values()[0]:
+            if msgid == list(sent_gm_msgids.values())[0]:
                 raise DraftDeletionException(
                     "Send and draft should have been reconciled as "
                     "different messages."

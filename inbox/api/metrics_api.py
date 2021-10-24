@@ -258,6 +258,8 @@ def global_deltas():
         withscores=True,
         score_cast_func=int,
     )
+    txns = [(key.decode(), value) for key, value in txns]
+
     response = {
         "txnid_start": start_pointer,
         "txnid_end": max([t[1] for t in txns] or [start_pointer]),

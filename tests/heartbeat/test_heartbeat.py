@@ -83,7 +83,7 @@ def test_folder_publish_in_index(redis_client):
     proxy = proxy_for(1, 2)
     proxy.publish()
     client = heartbeat_config.get_redis_client()
-    assert "1" in client.keys()
+    assert "1" in [key.decode() for key in client.keys()]
 
     # Check the per-account folder-list index was populated correctly: it
     # should be a sorted set of all folder IDs for that account, with the
@@ -91,7 +91,7 @@ def test_folder_publish_in_index(redis_client):
     acct_folder_index = client.zrange("1", 0, -1, withscores=True)
     assert len(acct_folder_index) == 1
     key, timestamp = acct_folder_index[0]
-    assert key == "2"
+    assert key.decode() == "2"
     assert fuzzy_equals(proxy.heartbeat_at, timestamp)
 
 
@@ -107,7 +107,7 @@ def test_kill_device_multiple():
 
     assert len(folders) == 1
     f, ts = folders[0]
-    assert f == "2"
+    assert f.decode() == "2"
 
 
 # Test querying heartbeats

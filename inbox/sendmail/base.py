@@ -64,10 +64,14 @@ def create_draft_from_mime(account, raw_mime, db_session):
     # type: (Account, bytes, Any) -> Message
     our_uid = generate_public_id()  # base-36 encoded string
     new_headers = (
-        "X-INBOX-ID: {0}-0\r\n"
-        "Message-Id: <{0}-0@mailer.nylas.com>\r\n"
-        "User-Agent: NylasMailer/{1}\r\n"
-    ).format(our_uid, VERSION)
+        (
+            "X-INBOX-ID: {0}-0\r\n"
+            "Message-Id: <{0}-0@mailer.nylas.com>\r\n"
+            "User-Agent: NylasMailer/{1}\r\n"
+        )
+        .format(our_uid, VERSION)
+        .encode()
+    )
     new_body = new_headers + raw_mime
 
     with db_session.no_autoflush:

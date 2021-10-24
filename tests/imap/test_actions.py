@@ -150,10 +150,10 @@ def test_change_labels(db, default_account, message, folder, mock_imapclient):
             },
         )
         mock_imapclient.add_gmail_labels.assert_called_with(
-            [22], ["mot&APY-rhead", "&A7wDtQPEA6wDvQO,A7kDsQ-"], silent=True
+            [22], [b"mot&APY-rhead", b"&A7wDtQPEA6wDvQO,A7kDsQ-"], silent=True
         )
         mock_imapclient.remove_gmail_labels.assert_called_with(
-            [22], ["\\Inbox"], silent=True
+            [22], [b"\\Inbox"], silent=True
         )
 
 

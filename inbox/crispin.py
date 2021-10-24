@@ -4,7 +4,7 @@ import imaplib
 import re
 import time
 from builtins import range
-from typing import DefaultDict, Dict, List, Tuple
+from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple
 
 import imapclient
 from future.utils import iteritems
@@ -327,12 +327,13 @@ class CrispinClient(object):
     """
 
     def __init__(self, account_id, provider_info, email_address, conn, readonly=True):
+        # type: (int, Dict[str, Any], str, imaplib.IMAPClient, bool) -> None
         self.account_id = account_id
         self.provider_info = provider_info
         self.email_address = email_address
         # IMAP isn't stateless :(
-        self.selected_folder = None
-        self._folder_names = None
+        self.selected_folder = None  # type: Optional[Tuple[str, Dict[bytes, Any]]]
+        self._folder_names = None  # type: Optional[DefaultDict[str, List[str]]]
         self.conn = conn
         self.readonly = readonly
 
@@ -357,7 +358,8 @@ class CrispinClient(object):
         """
         return self.conn.list_folders()
 
-    def select_folder_if_necessary(self, folder, uidvalidity_cb):
+    def select_folder_if_necessary(self, folder_name, uidvalidity_callback):
+        # type: (str, Callable[[int, str, Dict[bytes, Any]], Dict[bytes, Any]]) -> Dict[bytes, Any]
         """ Selects a given folder if it isn't already the currently selected
         folder.
 
@@ -373,11 +375,14 @@ class CrispinClient(object):
         you care about having a non-stale value for HIGHESTMODSEQ then don't
         use this function.
         """
-        if self.selected_folder is None or folder != self.selected_folder[0]:
-            return self.select_folder(folder, uidvalidity_cb)
-        return uidvalidity_cb(self.account_id, folder, self.selected_folder[1])
+        if self.selected_folder is None or folder_name != self.selected_folder[0]:
+            return self.select_folder(folder_name, uidvalidity_callback)
+        return uidvalidity_callback(
+            self.account_id, folder_name, self.selected_folder[1]
+        )
 
-    def select_folder(self, folder, uidvalidity_cb):
+    def select_folder(self, folder_name, uidvalidity_callback):
+        # type: (str, Callable[[int, str, Dict[bytes, Any]], Dict[bytes, Any]]) -> Dict[bytes, Any]
         """ Selects a given folder.
 
         Makes sure to set the 'selected_folder' attribute to a
@@ -392,7 +397,9 @@ class CrispinClient(object):
         cached/out-of-date values for HIGHESTMODSEQ from the IMAP server.
         """
         try:
-            select_info = self.conn.select_folder(folder, readonly=self.readonly)
+            select_info = self.conn.select_folder(
+                folder_name, readonly=self.readonly
+            )  # type: Dict[bytes, Any]
         except imapclient.IMAPClient.Error as e:
             # Specifically point out folders that come back as missing by
             # checking for Yahoo / Gmail / Outlook (Hotmail) specific errors:
@@ -402,13 +409,13 @@ class CrispinClient(object):
                 or "does not exist" in e.args[0]
                 or "doesn't exist" in e.args[0]
             ):
-                raise FolderMissingError(folder)
+                raise FolderMissingError(folder_name)
 
             if "Access denied" in e.message:
                 # TODO: This is not the best exception name, but it does the
                 # expected thing here: We stop syncing the folder (but would
                 # attempt selecting the folder again later).
-                raise FolderMissingError(folder)
+                raise FolderMissingError(folder_name)
 
             # We can't assume that all errors here are caused by the folder
             # being deleted, as other connection errors could occur - but we
@@ -417,11 +424,11 @@ class CrispinClient(object):
             log.error("IMAPClient error selecting folder. May be deleted", error=str(e))
             raise
 
-        select_info["UIDVALIDITY"] = long(select_info["UIDVALIDITY"])
-        self.selected_folder = (folder, select_info)
+        select_info[b"UIDVALIDITY"] = int(select_info[b"UIDVALIDITY"])
+        self.selected_folder = (folder_name, select_info)
         # Don't propagate cached information from previous session
         self._folder_names = None
-        return uidvalidity_cb(self.account_id, folder, select_info)
+        return uidvalidity_callback(self.account_id, folder_name, select_info)
 
     @property
     def selected_folder_name(self):

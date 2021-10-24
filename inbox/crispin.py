@@ -4,6 +4,7 @@ import imaplib
 import re
 import time
 from builtins import range
+from typing import DefaultDict, Dict, List, Tuple
 
 import imapclient
 from future.utils import iteritems
@@ -66,6 +67,9 @@ RawMessage = namedtuple(
     "RawImapMessage", "uid internaldate flags body g_thrid g_msgid g_labels"
 )
 RawFolder = namedtuple("RawFolder", "display_name role")
+# class RawFolder(NamedTuple):
+#     display_name: str
+#     role: Optional[str]
 
 # Lazily-initialized map of account ids to lock objects.
 # This prevents multiple greenlets from concurrently creating duplicate
@@ -333,6 +337,7 @@ class CrispinClient(object):
         self.readonly = readonly
 
     def _fetch_folder_list(self):
+        # type: () -> List[Tuple[Tuple[bytes, ...], bytes, str]]
         r""" NOTE: XLIST is deprecated, so we just use LIST.
 
         An example response with some other flags:
@@ -436,16 +441,20 @@ class CrispinClient(object):
 
     @property
     def folder_separator(self):
+        # type: () -> str
         # We use the list command because it works for most accounts.
-        folders_list = self.conn.list_folders()
+        folders_list = (
+            self.conn.list_folders()
+        )  # type: List[Tuple[Tuple[bytes, ...], bytes, str]]
 
         if len(folders_list) == 0:
             return "."
 
-        return folders_list[0][1]
+        return folders_list[0][1].decode()
 
     @property
     def folder_prefix(self):
+        # type: () -> str
         # Unfortunately, some servers don't support the NAMESPACE command.
         # In this case, assume that there's no folder prefix.
         if self.conn.has_capability("NAMESPACE"):
@@ -455,6 +464,7 @@ class CrispinClient(object):
             return ""
 
     def sync_folders(self):
+        # () -> List[str]
         """
         List of folders to sync, in order of sync priority. Currently, that
         simply means inbox folder first.
@@ -467,15 +477,14 @@ class CrispinClient(object):
             Folders to sync (as strings).
 
         """
-        to_sync = []
-        have_folders = self.folder_names()
+        have_folders = self.folder_names()  # type: DefaultDict[str, List[str]]
 
         assert (
             "inbox" in have_folders
         ), "Missing required 'inbox' folder for account_id: {}".format(self.account_id)
 
         # Sync inbox folder first, then sent, then others.
-        to_sync = have_folders["inbox"]
+        to_sync = have_folders["inbox"]  # type: List[str]
         to_sync.extend(have_folders.get("sent", []))
         for role, folder_names in have_folders.items():
             if role == "inbox" or role == "sent":
@@ -485,6 +494,7 @@ class CrispinClient(object):
         return to_sync
 
     def folder_names(self, force_resync=False):
+        # type: (bool) -> DefaultDict[str, List[str]]
         """
         Return the folder names for the account as a mapping from
         recognized role: list of folder names,
@@ -508,13 +518,14 @@ class CrispinClient(object):
         if force_resync or self._folder_names is None:
             self._folder_names = defaultdict(list)
 
-            raw_folders = self.folders()
+            raw_folders = self.folders()  # type: List[RawFolder]
             for f in raw_folders:
                 self._folder_names[f.role].append(f.display_name)
 
         return self._folder_names
 
     def folders(self):
+        # type: () -> List[RawFolder]
         """
         Fetch the list of folders for the account from the remote, return as a
         list of RawFolder objects.
@@ -523,29 +534,33 @@ class CrispinClient(object):
         Always fetches the list of folders from the remote.
 
         """
-        raw_folders = []
+        raw_folders = []  # type: List[RawFolder]
 
         # Folders that provide basic functionality of email
         system_role_names = ["inbox", "sent", "trash", "spam"]
 
-        folders = self._fetch_folder_list()
+        folders = (
+            self._fetch_folder_list()
+        )  # type: List[Tuple[Tuple[bytes, ...], bytes, str]]
         for flags, delimiter, name in folders:
             if (
-                u"\\Noselect" in flags
-                or u"\\NoSelect" in flags
-                or u"\\NonExistent" in flags
+                b"\\Noselect" in flags
+                or b"\\NoSelect" in flags
+                or b"\\NonExistent" in flags
             ):
                 # Special folders that can't contain messages
                 continue
 
-            raw_folder = self._process_folder(name, flags)
+            raw_folder = self._process_folder(name, flags)  # type: RawFolder
             raw_folders.append(raw_folder)
 
         # Check to see if we have to guess the roles for any system role
-        missing_roles = self._get_missing_roles(raw_folders, system_role_names)
+        missing_roles = self._get_missing_roles(
+            raw_folders, system_role_names
+        )  # type: List[str]
         guessed_roles = [
             self._guess_role(folder.display_name) for folder in raw_folders
-        ]
+        ]  # type: List[str]
 
         for role in missing_roles:
             if guessed_roles.count(role) == 1:
@@ -557,6 +572,7 @@ class CrispinClient(object):
         return raw_folders
 
     def _get_missing_roles(self, folders, roles):
+        # type: (List[RawFolder], List[str]) -> List[str]
         """
         Given a list of folders, and a list of roles, returns a list
         a list of roles that did not appear in the list of folders
@@ -572,7 +588,7 @@ class CrispinClient(object):
         assert len(folders) > 0
         assert len(roles) > 0
 
-        missing_roles = {role: "" for role in roles}
+        missing_roles = {role: "" for role in roles}  # type: Dict[str, str]
         for folder in folders:
             # if role is in missing_roles, then we lied about it being missing
             if folder.role in missing_roles:
@@ -581,6 +597,7 @@ class CrispinClient(object):
         return list(missing_roles)
 
     def _guess_role(self, folder):
+        # type: (str) -> str
         """
         Given a folder, guess the system role that corresponds to that folder
 
@@ -600,6 +617,7 @@ class CrispinClient(object):
                 return role
 
     def _process_folder(self, display_name, flags):
+        # type: (str, Tuple[bytes, ...]) -> RawFolder
         """
         Determine the role for the remote folder from its `name` and `flags`.
 
@@ -624,7 +642,7 @@ class CrispinClient(object):
             "sent": "sent",
             "sent items": "sent",
             "trash": "trash",
-        }
+        }  # type: Dict[str, str]
 
         # Additionally we provide a custom mapping for providers that
         # don't fit into the defaults.
@@ -633,13 +651,13 @@ class CrispinClient(object):
         # Some providers also provide flags to determine common folders
         # Here we read these flags and apply the mapping
         flag_map = {
-            "\\Trash": "trash",
-            "\\Sent": "sent",
-            "\\Drafts": "drafts",
-            "\\Junk": "spam",
-            "\\Inbox": "inbox",
-            "\\Spam": "spam",
-        }
+            b"\\Trash": "trash",
+            b"\\Sent": "sent",
+            b"\\Drafts": "drafts",
+            b"\\Junk": "spam",
+            b"\\Inbox": "inbox",
+            b"\\Spam": "spam",
+        }  # type: Dict[bytes, str]
 
         role = default_folder_map.get(display_name.lower())
 
@@ -658,13 +676,15 @@ class CrispinClient(object):
         self.conn.create_folder(name)
 
     def condstore_supported(self):
+        # type: () -> bool
         # Technically QRESYNC implies CONDSTORE, although this is unlikely to
         # matter in practice.
-        capabilities = self.conn.capabilities()
-        return "CONDSTORE" in capabilities or "QRESYNC" in capabilities
+        capabilities = self.conn.capabilities()  # type: Tuple[bytes, ...]
+        return b"CONDSTORE" in capabilities or b"QRESYNC" in capabilities
 
     def idle_supported(self):
-        return "IDLE" in self.conn.capabilities()
+        # type: () -> bool
+        return b"IDLE" in self.conn.capabilities()
 
     def search_uids(self, criteria):
         """

@@ -62,13 +62,25 @@ __all__ = ["CrispinClient", "GmailCrispinClient"]
 Flags = namedtuple("Flags", "flags modseq")
 # class Flags(NamedTuple):
 #     flags: Tuple[bytes, ...]
-#     modseq: Any
+#     modseq: Optional[Any]
 # Flags includes labels on Gmail because Gmail doesn't use \Draft.
 GmailFlags = namedtuple("GmailFlags", "flags labels modseq")
+# class GmailFlags(NamedTuple):
+#     flags: Tuple[bytes, ...]
+#     labels: List[str]
+#     modseq: Optional[Any]
 GMetadata = namedtuple("GMetadata", "g_msgid g_thrid size")
 RawMessage = namedtuple(
     "RawImapMessage", "uid internaldate flags body g_thrid g_msgid g_labels"
 )
+# class RawMessage(NamedTuple):
+#     uid: int
+#     internaldate: datetime.datetime
+#     flags: Tuple[bytes, ...]
+#     body: bytes
+#     g_msgid: int
+#     g_thrid: int
+#     g_labels: List[str]
 RawFolder = namedtuple("RawFolder", "display_name role")
 # class RawFolder(NamedTuple):
 #     display_name: str
@@ -873,13 +885,14 @@ class CrispinClient(object):
         return self.conn.append(self.selected_folder_name, message, ["\\Seen"], date)
 
     def fetch_headers(self, uids):
+        # type: (List[int]) -> Dict[int, Dict[bytes, Any]]
         """
         Fetch headers for the given uids. Chunked because certain providers
         fail with 'Command line too large' if you feed them too many uids at
         once.
 
         """
-        headers = {}
+        headers = {}  # type: Dict[int, Dict[bytes, Any]]
         for uid_chunk in chunk(uids, 100):
             headers.update(self.conn.fetch(uid_chunk, ["BODY.PEEK[HEADER]"]))
         return headers
@@ -1001,6 +1014,7 @@ class GmailCrispinClient(CrispinClient):
     PROVIDER = "gmail"
 
     def sync_folders(self):
+        # type: () -> List[str]
         """
         Gmail-specific list of folders to sync.
 
@@ -1025,13 +1039,14 @@ class GmailCrispinClient(CrispinClient):
             )
 
         # If the account has Trash, Spam folders, sync those too.
-        to_sync = []
+        to_sync = []  # type: List[str]
         for folder in ["all", "trash", "spam"]:
             if folder in present_folders:
                 to_sync.append(present_folders[folder][0])
         return to_sync
 
     def flags(self, uids):
+        # type: (List[int]) -> Dict[int, GmailFlags]
         """
         Gmail-specific flags.
 
@@ -1041,7 +1056,9 @@ class GmailCrispinClient(CrispinClient):
             Mapping of `uid` : GmailFlags.
 
         """
-        data = self.conn.fetch(uids, ["FLAGS", "X-GM-LABELS"])
+        data = self.conn.fetch(
+            uids, ["FLAGS", "X-GM-LABELS"]
+        )  # type: Dict[int, Dict[bytes, Any]]
         uid_set = set(uids)
         return {
             uid: GmailFlags(
@@ -1135,6 +1152,7 @@ class GmailCrispinClient(CrispinClient):
         return self._folder_names
 
     def _process_folder(self, display_name, flags):
+        # type: (str, Tuple[bytes, ...]) -> RawFolder
         """
         Determine the canonical_name for the remote folder from its `name` and
         `flags`.
@@ -1145,16 +1163,16 @@ class GmailCrispinClient(CrispinClient):
 
         """
         flag_map = {
-            "\\Drafts": "drafts",
-            "\\Important": "important",
-            "\\Sent": "sent",
-            "\\Junk": "spam",
-            "\\Flagged": "starred",
-            "\\Trash": "trash",
+            b"\\Drafts": "drafts",
+            b"\\Important": "important",
+            b"\\Sent": "sent",
+            b"\\Junk": "spam",
+            b"\\Flagged": "starred",
+            b"\\Trash": "trash",
         }
 
         role = None
-        if "\\All" in flags:
+        if b"\\All" in flags:
             role = "all"
         elif display_name.lower() == "inbox":
             # Special-case the display name here. In Gmail, the inbox
@@ -1172,7 +1190,8 @@ class GmailCrispinClient(CrispinClient):
         return RawFolder(display_name=display_name, role=role)
 
     def uids(self, uids):
-        raw_messages = self.conn.fetch(
+        # type: (List[int]) -> List[RawMessage]
+        imap_messages = self.conn.fetch(
             uids,
             [
                 "BODY.PEEK[]",
@@ -1182,27 +1201,27 @@ class GmailCrispinClient(CrispinClient):
                 "X-GM-MSGID",
                 "X-GM-LABELS",
             ],
-        )
+        )  # type: Dict[int, Dict[bytes, Any]]
 
-        messages = []
+        raw_messages = []
         uid_set = set(uids)
-        for uid in sorted(raw_messages.iterkeys(), key=long):
+        for uid in sorted(imap_messages, key=long):
             # Skip handling unsolicited FETCH responses
             if uid not in uid_set:
                 continue
-            msg = raw_messages[uid]
-            messages.append(
+            imap_message = imap_messages[uid]
+            raw_messages.append(
                 RawMessage(
                     uid=long(uid),
-                    internaldate=msg["INTERNALDATE"],
-                    flags=msg["FLAGS"],
-                    body=msg["BODY[]"],
-                    g_thrid=long(msg["X-GM-THRID"]),
-                    g_msgid=long(msg["X-GM-MSGID"]),
-                    g_labels=self._decode_labels(msg["X-GM-LABELS"]),
+                    internaldate=imap_message[b"INTERNALDATE"],
+                    flags=imap_message[b"FLAGS"],
+                    body=imap_message[b"BODY[]"],
+                    g_thrid=int(imap_message[b"X-GM-THRID"]),
+                    g_msgid=int(imap_message[b"X-GM-MSGID"]),
+                    g_labels=self._decode_labels(imap_message[b"X-GM-LABELS"]),
                 )
             )
-        return messages
+        return raw_messages
 
     def g_metadata(self, uids):
         """

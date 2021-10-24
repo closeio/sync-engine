@@ -60,6 +60,9 @@ __all__ = ["CrispinClient", "GmailCrispinClient"]
 
 # Unify flags API across IMAP and Gmail
 Flags = namedtuple("Flags", "flags modseq")
+# class Flags(NamedTuple):
+#     flags: Tuple[bytes, ...]
+#     modseq: Any
 # Flags includes labels on Gmail because Gmail doesn't use \Draft.
 GmailFlags = namedtuple("GmailFlags", "flags labels modseq")
 GMetadata = namedtuple("GMetadata", "g_msgid g_thrid size")
@@ -703,6 +706,7 @@ class CrispinClient(object):
         return sorted([long(uid) for uid in self.conn.search(criteria)])
 
     def all_uids(self):
+        # type: () -> List[int]
         """ Fetch all UIDs associated with the currently selected folder.
 
         Returns
@@ -719,7 +723,7 @@ class CrispinClient(object):
 
         try:
             t = time.time()
-            fetch_result = self.conn.search(["ALL"])
+            fetch_result = self.conn.search(["ALL"])  # type: List[int]
         except imaplib.IMAP4.error as e:
             if e.message.find("UID SEARCH wrong arguments passed") >= 0:
                 # Search query must not have parentheses for Mail2World servers
@@ -751,21 +755,22 @@ class CrispinClient(object):
         return sorted([long(uid) for uid in fetch_result])
 
     def uids(self, uids):
+        # type: (List[int]) -> List[RawMessage]
         uid_set = set(uids)
-        messages = []
-        raw_messages = {}
+        imap_messages = {}  # type: Dict[int, Dict[bytes, Any]]
+        raw_messages = []  # type: List[RawMessage]
 
         for uid in uid_set:
             try:
                 # Microsoft IMAP server returns a bunch of crap which could
                 # corrupt other UID data. Also we don't always get a message
                 # back at the first try.
-                for n in range(3):
+                for _ in range(3):
                     result = self.conn.fetch(
                         uid, ["BODY.PEEK[]", "INTERNALDATE", "FLAGS"]
-                    )
+                    )  # type: Dict[int, Dict[bytes, Any]]
                     if uid in result:
-                        raw_messages[uid] = result[uid]
+                        imap_messages[uid] = result[uid]
                         break
             except imapclient.IMAPClient.Error as e:
                 if (
@@ -787,21 +792,21 @@ class CrispinClient(object):
                     )
                     raise
 
-        for uid in sorted(raw_messages.iterkeys(), key=long):
+        for uid in sorted(imap_messages, key=long):
             # Skip handling unsolicited FETCH responses
             if uid not in uid_set:
                 continue
-            msg = raw_messages[uid]
-            if list(msg) == ["SEQ"]:
+            imap_message = imap_messages[uid]
+            if list(imap_message) == [b"SEQ"]:
                 log.error("No data returned for UID, skipping", uid=uid)
                 continue
 
-            messages.append(
+            raw_messages.append(
                 RawMessage(
                     uid=long(uid),
-                    internaldate=msg["INTERNALDATE"],
-                    flags=msg["FLAGS"],
-                    body=msg["BODY[]"],
+                    internaldate=imap_message[b"INTERNALDATE"],
+                    flags=imap_message[b"FLAGS"],
+                    body=imap_message[b"BODY[]"],
                     # TODO: use data structure that isn't
                     # Gmail-specific
                     g_thrid=None,
@@ -809,9 +814,10 @@ class CrispinClient(object):
                     g_labels=None,
                 )
             )
-        return messages
+        return raw_messages
 
     def flags(self, uids):
+        # type: (List[int]) -> List[Flags]
         if len(uids) > 100:
             # Some backends abort the connection if you give them a really
             # long sequence set of individual UIDs, so instead fetch flags for
@@ -819,7 +825,7 @@ class CrispinClient(object):
             seqset = "{}:*".format(min(uids))
         else:
             seqset = uids
-        data = self.conn.fetch(seqset, ["FLAGS"])
+        data = self.conn.fetch(seqset, ["FLAGS"])  # type: Dict[int, Dict[bytes, Any]]
         uid_set = set(uids)
         return {
             uid: Flags(ret["FLAGS"], None)

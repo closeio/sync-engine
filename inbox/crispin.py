@@ -541,8 +541,8 @@ class CrispinClient(object):
             self._folder_names = defaultdict(list)
 
             raw_folders = self.folders()  # type: List[RawFolder]
-            for f in raw_folders:
-                self._folder_names[f.role].append(f.display_name)
+            for raw_folder in raw_folders:
+                self._folder_names[raw_folder.role].append(raw_folder.display_name)
 
         return self._folder_names
 
@@ -1095,6 +1095,7 @@ class GmailCrispinClient(CrispinClient):
         return results
 
     def g_msgids(self, uids):
+        # type: (List[int]) -> Dict[int, int]
         """
         X-GM-MSGIDs for the given UIDs.
 
@@ -1104,11 +1105,14 @@ class GmailCrispinClient(CrispinClient):
             Mapping of `uid` (long) : `g_msgid` (long)
 
         """
-        data = self.conn.fetch(uids, ["X-GM-MSGID"])
+        data = self.conn.fetch(
+            uids, ["X-GM-MSGID"]
+        )  # type: Dict[int, Dict[bytes, Any]]
         uid_set = set(uids)
         return {uid: ret["X-GM-MSGID"] for uid, ret in data.items() if uid in uid_set}
 
     def g_msgid_to_uids(self, g_msgid):
+        # type: (int) -> List[int]
         """
         Find all message UIDs in the selected folder with X-GM-MSGID equal to
         g_msgid.
@@ -1122,6 +1126,7 @@ class GmailCrispinClient(CrispinClient):
         return sorted(uids, reverse=True)
 
     def folder_names(self, force_resync=False):
+        # type: (bool) -> DefaultDict[str, List[str]]
         """
         Return the folder names ( == label names for Gmail) for the account
         as a mapping from recognized role: list of folder names in the
@@ -1145,9 +1150,9 @@ class GmailCrispinClient(CrispinClient):
         if force_resync or self._folder_names is None:
             self._folder_names = defaultdict(list)
 
-            raw_folders = self.folders()
-            for f in raw_folders:
-                self._folder_names[f.role].append(f.display_name)
+            raw_folders = self.folders()  # type: List[RawFolder]
+            for raw_folder in raw_folders:
+                self._folder_names[raw_folder.role].append(raw_folder.display_name)
 
         return self._folder_names
 

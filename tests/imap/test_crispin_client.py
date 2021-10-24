@@ -65,7 +65,7 @@ def constants():
     unicode_g_labels = [u"motörhead", u"μετάνοια", "\\Inbox"]
 
     internaldate = "02-Mar-2015 23:36:20 +0000"
-    body = "Delivered-To: ..."
+    body = b"Delivered-To: ..."
     body_size = len(body)
 
     # folder test constant
@@ -166,8 +166,8 @@ def test_g_metadata(gmail_client, constants):
     expected_resp = (
         "{seq} (X-GM-THRID {g_thrid} X-GM-MSGID {g_msgid} "
         "RFC822.SIZE {size} UID {uid} MODSEQ ({modseq}))".format(**constants)
-    )
-    unsolicited_resp = "1198 (UID 1731 MODSEQ (95244) FLAGS (\\Seen))"
+    ).encode()
+    unsolicited_resp = b"1198 (UID 1731 MODSEQ (95244) FLAGS (\\Seen))"
     patch_imap4(gmail_client, [expected_resp, unsolicited_resp])
     uid = constants["uid"]
     g_msgid = constants["g_msgid"]
@@ -180,8 +180,8 @@ def test_gmail_flags(gmail_client, constants):
     expected_resp = (
         "{seq} (FLAGS {flags} X-GM-LABELS {raw_g_labels} "
         "UID {uid} MODSEQ ({modseq}))".format(**constants)
-    )
-    unsolicited_resp = "1198 (UID 1731 MODSEQ (95244) FLAGS (\\Seen))"
+    ).encode()
+    unsolicited_resp = b"1198 (UID 1731 MODSEQ (95244) FLAGS (\\Seen))"
     patch_imap4(gmail_client, [expected_resp, unsolicited_resp])
     uid = constants["uid"]
     flags = constants["flags"]
@@ -194,8 +194,8 @@ def test_g_msgids(gmail_client, constants):
     expected_resp = (
         "{seq} (X-GM-MSGID {g_msgid} "
         "UID {uid} MODSEQ ({modseq}))".format(**constants)
-    )
-    unsolicited_resp = "1198 (UID 1731 MODSEQ (95244) FLAGS (\\Seen))"
+    ).encode()
+    unsolicited_resp = b"1198 (UID 1731 MODSEQ (95244) FLAGS (\\Seen))"
     patch_imap4(gmail_client, [expected_resp, unsolicited_resp])
     uid = constants["uid"]
     g_msgid = constants["g_msgid"]
@@ -207,11 +207,11 @@ def test_gmail_body(gmail_client, constants):
         "{seq} (X-GM-MSGID {g_msgid} X-GM-THRID {g_thrid} "
         "X-GM-LABELS {raw_g_labels} UID {uid} MODSEQ ({modseq}) "
         'INTERNALDATE "{internaldate}" FLAGS {flags} '
-        "BODY[] {{{body_size}}}".format(**constants),
+        "BODY[] {{{body_size}}}".format(**constants).encode(),
         constants["body"],
     )
-    unsolicited_resp = "1198 (UID 1731 MODSEQ (95244) FLAGS (\\Seen))"
-    patch_imap4(gmail_client, [expected_resp, ")", unsolicited_resp])
+    unsolicited_resp = b"1198 (UID 1731 MODSEQ (95244) FLAGS (\\Seen))"
+    patch_imap4(gmail_client, [expected_resp, b")", unsolicited_resp])
 
     uid = constants["uid"]
     flags = constants["flags"]
@@ -233,10 +233,11 @@ def test_gmail_body(gmail_client, constants):
 
 
 def test_flags(generic_client, constants):
-    expected_resp = "{seq} (FLAGS {flags} " "UID {uid} MODSEQ ({modseq}))".format(
-        **constants
+    expected_resp = (
+        "{seq} (FLAGS {flags} "
+        "UID {uid} MODSEQ ({modseq}))".format(**constants).encode()
     )
-    unsolicited_resp = "1198 (UID 1731 MODSEQ (95244) FLAGS (\\Seen))"
+    unsolicited_resp = b"1198 (UID 1731 MODSEQ (95244) FLAGS (\\Seen))"
     patch_imap4(generic_client, [expected_resp, unsolicited_resp])
     uid = constants["uid"]
     flags = constants["flags"]
@@ -247,11 +248,11 @@ def test_body(generic_client, constants):
     expected_resp = (
         "{seq} (UID {uid} MODSEQ ({modseq}) "
         'INTERNALDATE "{internaldate}" FLAGS {flags} '
-        "BODY[] {{{body_size}}}".format(**constants),
+        "BODY[] {{{body_size}}}".format(**constants).encode(),
         constants["body"],
     )
-    unsolicited_resp = "1198 (UID 1731 MODSEQ (95244) FLAGS (\\Seen))"
-    patch_imap4(generic_client, [expected_resp, ")", unsolicited_resp])
+    unsolicited_resp = b"1198 (UID 1731 MODSEQ (95244) FLAGS (\\Seen))"
+    patch_imap4(generic_client, [expected_resp, b")", unsolicited_resp])
 
     uid = constants["uid"]
     flags = constants["flags"]
@@ -286,10 +287,10 @@ def test_internaldate(generic_client, constants):
         expected_resp = (
             "{seq} (UID {uid} MODSEQ ({modseq}) "
             'INTERNALDATE "{internaldate}" FLAGS {flags} '
-            "BODY[] {{{body_size}}}".format(**constants),
+            "BODY[] {{{body_size}}}".format(**constants).encode(),
             constants["body"],
         )
-        patch_imap4(generic_client, [expected_resp, ")"])
+        patch_imap4(generic_client, [expected_resp, b")"])
 
         uid = constants["uid"]
         assert generic_client.uids([uid]) == [

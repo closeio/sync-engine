@@ -1109,7 +1109,7 @@ class GmailCrispinClient(CrispinClient):
             uids, ["X-GM-MSGID"]
         )  # type: Dict[int, Dict[bytes, Any]]
         uid_set = set(uids)
-        return {uid: ret["X-GM-MSGID"] for uid, ret in data.items() if uid in uid_set}
+        return {uid: ret[b"X-GM-MSGID"] for uid, ret in data.items() if uid in uid_set}
 
     def g_msgid_to_uids(self, g_msgid):
         # type: (int) -> List[int]

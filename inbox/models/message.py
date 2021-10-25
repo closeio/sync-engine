@@ -291,12 +291,6 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                 "Required keyword arguments: account, mid, folder_name, body_string"
             )
 
-        if future.utils.PY3 and isinstance(body_string, str):
-            # body_string is only allowed to have ASCII characters at this point,
-            # if the original message contained non ASCII chars, it was
-            # encoded in UTF-8 and then base64-ed or quoted-printable
-            body_string = body_string.encode("ascii")
-
         # stop trickle-down bugs
         assert account.namespace is not None
         assert isinstance(body_string, bytes)

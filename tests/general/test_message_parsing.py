@@ -126,7 +126,7 @@ def test_save_attachments(db, default_account):
             "application/pdf", "filler", "attached_file.pdf", "attachment"
         ),
     )
-    msg = create_from_synced(db, default_account, mime_msg.to_string())
+    msg = create_from_synced(db, default_account, mime_msg.to_string().encode())
     assert len(msg.parts) == 2
     assert all(part.content_disposition == "attachment" for part in msg.parts)
     assert {part.block.filename for part in msg.parts} == {
@@ -191,7 +191,7 @@ def test_concatenate_parts_for_body(db, default_account):
         mime.create.attachment("image/png", "more filler", disposition="inline"),
         mime.create.text("html", "<html>3rd part</html>"),
     )
-    m = create_from_synced(db, default_account, mime_msg.to_string())
+    m = create_from_synced(db, default_account, mime_msg.to_string().encode())
     assert (
         m.body == "<html>First part</html><html>Second part</html><html>3rd part</html>"
     )
@@ -216,7 +216,7 @@ def test_inline_parts_may_form_body_text(db, default_account):
         ),
         mime.create.attachment("text/plain", "Hello World!", disposition="inline"),
     )
-    m = create_from_synced(db, default_account, mime_msg.to_string())
+    m = create_from_synced(db, default_account, mime_msg.to_string().encode())
     assert m.body == "<html>Hello World!</html>"
     assert len(m.parts) == 0
     assert (
@@ -229,14 +229,14 @@ def test_inline_parts_may_form_body_text(db, default_account):
 
 def test_convert_plaintext_body_to_html(db, default_account):
     mime_msg = mime.create.text("plain", "Hello World!")
-    m = create_from_synced(db, default_account, mime_msg.to_string())
+    m = create_from_synced(db, default_account, mime_msg.to_string().encode())
     assert m.body == "<p>Hello World!</p>"
 
 
 def test_save_parts_without_disposition_as_attachments(db, default_account):
     mime_msg = mime.create.multipart("mixed")
     mime_msg.append(mime.create.attachment("image/png", "filler", disposition=None))
-    m = create_from_synced(db, default_account, mime_msg.to_string())
+    m = create_from_synced(db, default_account, mime_msg.to_string().encode())
     assert len(m.parts) == 1
     assert m.parts[0].content_disposition == "attachment"
     assert m.parts[0].block.content_type == "image/png"
@@ -256,7 +256,7 @@ def test_handle_long_filenames(db, default_account):
             "image/png", "filler", filename=990 * "A" + ".png", disposition="attachment"
         )
     )
-    m = create_from_synced(db, default_account, mime_msg.to_string())
+    m = create_from_synced(db, default_account, mime_msg.to_string().encode())
     assert len(m.parts) == 1
     saved_filename = m.parts[0].block.filename
     assert len(saved_filename) < 256
@@ -266,7 +266,7 @@ def test_handle_long_filenames(db, default_account):
 
 def test_handle_long_subjects(db, default_account, mime_message):
     mime_message.headers["Subject"] = 4096 * "A"
-    m = create_from_synced(db, default_account, mime_message.to_string())
+    m = create_from_synced(db, default_account, mime_message.to_string().encode())
     assert len(m.subject) < 256
 
 
@@ -281,7 +281,7 @@ def test_dont_use_attached_html_to_form_body(db, default_account):
             filename="attachment.html",
         ),
     )
-    m = create_from_synced(db, default_account, mime_msg.to_string())
+    m = create_from_synced(db, default_account, mime_msg.to_string().encode())
     assert len(m.parts) == 1
     assert m.parts[0].content_disposition == "attachment"
     assert m.parts[0].block.content_type == "text/html"
@@ -388,7 +388,7 @@ def test_handle_bad_content_disposition(
             "image/png", "filler", "attached_image.png", disposition="alternative"
         )
     )
-    m = create_from_synced(db, default_account, mime_message.to_string())
+    m = create_from_synced(db, default_account, mime_message.to_string().encode())
     assert m.namespace_id == default_namespace.id
     assert m.to_addr == [["Alice", "alice@example.com"]]
     assert m.cc_addr == [["Bob", "bob@example.com"]]
@@ -409,7 +409,7 @@ def test_store_full_body_on_parse_error(default_account, mime_message_with_bad_d
         139219,
         "[Gmail]/All Mail",
         received_date,
-        mime_message_with_bad_date.to_string(),
+        mime_message_with_bad_date.to_string().encode(),
     )
     assert get_from_blockstore(m.data_sha256)
 
@@ -499,7 +499,7 @@ def test_sanitize_subject(default_account, mime_message):
         22,
         "[Gmail]/All Mail",
         datetime.datetime.utcnow(),
-        mime_message.to_string(),
+        mime_message.to_string().encode(),
     )
     assert m.subject == u"Your UPS Package was delivered"
 

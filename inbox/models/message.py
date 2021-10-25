@@ -607,7 +607,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
     @property
     def participants(self):
-        # type: () -> List[Tuple(str, str)]
+        # type: () -> List[Tuple[str, str]]
         """
         Different messages in the thread may reference the same email
         address with different phrases. We partially deduplicate: if the same

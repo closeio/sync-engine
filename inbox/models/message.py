@@ -6,7 +6,6 @@ from collections import defaultdict
 from hashlib import sha256
 from typing import Any, DefaultDict, Dict, List, Optional, Set, Tuple, Union
 
-import future.utils
 from flanker import mime
 from flanker.mime.message.part import MimePart
 from future.utils import iteritems
@@ -435,11 +434,8 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     def _parse_mimepart(self, mid, mimepart, namespace_id, html_parts, plain_parts):
         # type: (int, MimePart, int, List[bytes], List[bytes]) -> None
         disposition, _ = mimepart.content_disposition
-        if disposition is not None:
-            assert isinstance(disposition, str)
         content_id = mimepart.headers.get("Content-Id")  # type: Optional[str]
         content_type, params = mimepart.content_type
-        assert isinstance(content_type, str)
 
         filename = mimepart.detected_file_name  # type: Optional[str]
         if filename == "":

@@ -1,4 +1,5 @@
 import pytest
+from past.builtins import basestring
 
 from tests.api.base import new_api_client
 from tests.util.base import generic_account

@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 from email.utils import mktime_tz, parsedate_tz
 from importlib import import_module
+from typing import List, Optional
 
 from inbox.logging import get_logger
 from inbox.providers import providers
@@ -48,6 +49,7 @@ def parse_ml_headers(headers):
 
 
 def parse_references(references, in_reply_to):
+    # type: (str, str) -> List[str]
     """
     Parse a References: header and returns an array of MessageIDs.
     The returned array contains the MessageID in In-Reply-To if
@@ -86,6 +88,7 @@ def dt_to_timestamp(dt):
 
 
 def get_internaldate(date, received):
+    # type: (Optional[str], Optional[str]) -> datetime
     """ Get the date from the headers. """
     if date is None:
         other, date = received.split(";")

@@ -3,6 +3,7 @@ import contextlib
 import struct
 import uuid
 import weakref
+from typing import Any, Optional
 
 from bson import EPOCH_NAIVE, json_util
 from future.utils import iteritems, with_metaclass
@@ -162,11 +163,13 @@ class Base36UID(TypeDecorator):
     impl = BINARY(16)  # 128 bit unsigned integer
 
     def process_bind_param(self, value, dialect):
+        # type: (Optional[str], Any) -> Optional[bytes]
         if not value:
             return None
         return b36_to_bin(value)
 
     def process_result_value(self, value, dialect):
+        # type: (Optional[bytes], Any) -> Optional[str]
         return int128_to_b36(value)
 
 
@@ -261,6 +264,7 @@ class MutableList(Mutable, list):
 
 
 def int128_to_b36(int128):
+    # type: (Optional[bytes]) -> Optional[str]
     """ int128: a 128 bit unsigned integer
         returns a base-36 string representation
     """
@@ -273,6 +277,7 @@ def int128_to_b36(int128):
 
 
 def b36_to_bin(b36_string):
+    # type: (str) -> bytes
     """ b36_string: a base-36 encoded string
         returns binary 128 bit unsigned integer
     """
@@ -282,6 +287,7 @@ def b36_to_bin(b36_string):
 
 
 def generate_public_id():
+    # type: () -> str
     """ Returns a base-36 string UUID """
     u = uuid.uuid4().bytes
     return int128_to_b36(u)

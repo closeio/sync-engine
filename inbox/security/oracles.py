@@ -26,6 +26,7 @@ def get_encryption_oracle(secret_name):
 
 
 def get_decryption_oracle(secret_name):
+    # type: (str) -> _DecryptionOracle
     """
     Return an decryption oracle for the given secret.
 
@@ -147,6 +148,7 @@ class _DecryptionOracle(_EncryptionOracle):
         )
 
     def decrypt(self, ciphertext, encryption_scheme):
+        # type (bytes, int) -> bytes
         """
         Decrypt the specified secret.
 
@@ -159,7 +161,7 @@ class _DecryptionOracle(_EncryptionOracle):
         encryption_scheme_value = encryption_scheme  # expect an Enum value
 
         # sanity check
-        if isinstance(ciphertext, unicode):
+        if not isinstance(ciphertext, bytes):
             raise TypeError("ciphertext should be bytes, not unicode")
         if not isinstance(encryption_scheme_value, (int, long)):
             raise TypeError("encryption_scheme_value should be a number")
@@ -173,7 +175,7 @@ class _DecryptionOracle(_EncryptionOracle):
         elif (
             encryption_scheme_value == EncryptionScheme.SECRETBOX_WITH_STATIC_KEY.value
         ):
-            return self._secret_box.decrypt(ciphertext)
+            return self._secret_box.decrypt(ciphertext)  # type: bytes
 
         else:
             raise ValueError(

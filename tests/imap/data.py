@@ -27,7 +27,7 @@ def build_mime_message(from_, to, cc, bcc, subject, body):
     msg.headers["To"] = _build_address_header(to)
     msg.headers["Cc"] = _build_address_header(cc)
     msg.headers["Bcc"] = _build_address_header(bcc)
-    return msg.to_string()
+    return msg.to_string().encode()
 
 
 def build_uid_data(internaldate, flags, body, g_labels, g_msgid, modseq):

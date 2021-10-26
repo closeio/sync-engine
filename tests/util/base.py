@@ -661,7 +661,7 @@ def new_message_from_synced(db, default_account, mime_message):
         139219,
         "[Gmail]/All Mail",
         received_date,
-        mime_message.to_string(),
+        mime_message.to_string().encode(),
     )
     assert new_msg.received_date == received_date
     new_msg.is_read = True
@@ -675,7 +675,7 @@ def add_fake_msg_with_calendar_part(db_session, account, ics_str, thread=None):
     parsed = mime.create.multipart("mixed")
     parsed.append(mime.create.attachment("text/calendar", ics_str, disposition=None))
     msg = Message.create_from_synced(
-        account, 22, "[Gmail]/All Mail", datetime.utcnow(), parsed.to_string()
+        account, 22, "[Gmail]/All Mail", datetime.utcnow(), parsed.to_string().encode()
     )
     msg.from_addr = [("Ben Bitdiddle", "ben@inboxapp.com")]
 

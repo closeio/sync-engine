@@ -92,7 +92,7 @@ class _EncryptionOracle(object):
             encryption_scheme = self.default_scheme
 
         # sanity check
-        if isinstance(plaintext, unicode):
+        if not isinstance(plaintext, bytes):
             raise TypeError("plaintext should be bytes, not unicode")
         if not isinstance(encryption_scheme, enum.Enum):
             raise TypeError("encryption_scheme should be an Enum")

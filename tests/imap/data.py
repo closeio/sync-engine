@@ -46,11 +46,12 @@ def build_uid_data(internaldate, flags, body, g_labels, g_msgid, modseq):
 # We don't want to worry about whacky encodings or pathologically long data
 # here, so just generate some basic, sane ASCII text.
 basic_text = s.text(string.ascii_letters, min_size=1, max_size=64)
+short_text = s.text(string.ascii_letters, min_size=1, max_size=32)
 
 
 # An email address of the form 'foo@bar'.
 address = s.builds(
-    lambda localpart, domain: "{}@{}".format(localpart, domain), basic_text, basic_text
+    lambda localpart, domain: "{}@{}".format(localpart, domain), short_text, short_text
 )
 
 

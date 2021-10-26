@@ -10,7 +10,7 @@ import subprocess
 
 import dns
 import pytest
-from past.builtins import long
+from past.builtins import basestring, long
 
 from inbox.basicauth import ValidationError
 

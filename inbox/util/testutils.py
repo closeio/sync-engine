@@ -161,7 +161,7 @@ class MockIMAPClient(object):
         pass
 
     def list_folders(self, directory=u"", pattern=u"*"):
-        return [("\\All", "/", "[Gmail]/All Mail")]
+        return [(b"\\All", b"/", "[Gmail]/All Mail")]
 
     def has_capability(self, capability):
         return False
@@ -183,7 +183,7 @@ class MockIMAPClient(object):
         if criteria == ["ALL"]:
             return list(uid_dict)
         if criteria == ["X-GM-LABELS", "inbox"]:
-            return [k for k, v in uid_dict.items() if ("\\Inbox,") in v["X-GM-LABELS"]]
+            return [k for k, v in uid_dict.items() if b"\\Inbox," in v[b"X-GM-LABELS"]]
         if criteria[0] == "HEADER":
             name, value = criteria[1:]
             headerstring = "{}: {}".format(name, value).lower()
@@ -255,9 +255,9 @@ class MockIMAPClient(object):
     def folder_status(self, folder_name, data=None):
         folder_data = self._data[folder_name]
         lastuid = max(folder_data) if folder_data else 0
-        resp = {"UIDNEXT": lastuid + 1, "UIDVALIDITY": self.uidvalidity}
+        resp = {b"UIDNEXT": lastuid + 1, b"UIDVALIDITY": self.uidvalidity}
         if data and "HIGHESTMODSEQ" in data:
-            resp["HIGHESTMODSEQ"] = max(v["MODSEQ"] for v in folder_data.values())
+            resp[b"HIGHESTMODSEQ"] = max(v[b"MODSEQ"] for v in folder_data.values())
         return resp
 
     def delete_messages(self, uids, silent=False):

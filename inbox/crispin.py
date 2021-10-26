@@ -455,11 +455,11 @@ class CrispinClient(object):
 
     @property
     def selected_uidvalidity(self):
-        return or_none(self.selected_folder_info, lambda i: i["UIDVALIDITY"])
+        return or_none(self.selected_folder_info, lambda i: i[b"UIDVALIDITY"])
 
     @property
     def selected_uidnext(self):
-        return or_none(self.selected_folder_info, lambda i: i.get("UIDNEXT"))
+        return or_none(self.selected_folder_info, lambda i: i.get(b"UIDNEXT"))
 
     @property
     def folder_separator(self):

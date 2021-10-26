@@ -212,7 +212,7 @@ class MockImapConnection(object):
         self.search_args = None
 
     def select_folder(self, name, **_):
-        return {"UIDVALIDITY": 123}
+        return {b"UIDVALIDITY": 123}
 
     def logout(self):
         pass

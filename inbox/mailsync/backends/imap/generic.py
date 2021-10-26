@@ -753,7 +753,7 @@ class FolderSyncEngine(Greenlet):
     def condstore_refresh_flags(self, crispin_client):
         new_highestmodseq = crispin_client.conn.folder_status(
             self.folder_name, ["HIGHESTMODSEQ"]
-        )["HIGHESTMODSEQ"]
+        )[b"HIGHESTMODSEQ"]
         # Ensure that we have an initial highestmodseq value stored before we
         # begin polling for changes.
         if self.highestmodseq is None:
@@ -977,7 +977,7 @@ class FolderSyncEngine(Greenlet):
     def uidvalidity_cb(self, account_id, folder_name, select_info):
         assert folder_name == self.folder_name
         assert account_id == self.account_id
-        selected_uidvalidity = select_info["UIDVALIDITY"]
+        selected_uidvalidity = select_info[b"UIDVALIDITY"]
         is_valid = self.uidvalidity is None or selected_uidvalidity <= self.uidvalidity
         if not is_valid:
             raise UidInvalid(

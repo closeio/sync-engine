@@ -42,9 +42,9 @@ def test_draft_updates(db, default_account, mock_imapclient):
     mock_imapclient._data["Trash"] = {}
     mock_imapclient._data["Sent Mail"] = {}
     mock_imapclient.list_folders = lambda: [
-        (("\\HasNoChildren", "\\Drafts"), "/", "Drafts"),
-        (("\\HasNoChildren", "\\Trash"), "/", "Trash"),
-        (("\\HasNoChildren", "\\Sent"), "/", "Sent Mail"),
+        ((b"\\HasNoChildren", b"\\Drafts"), b"/", "Drafts"),
+        ((b"\\HasNoChildren", b"\\Trash"), b"/", "Trash"),
+        ((b"\\HasNoChildren", b"\\Sent"), b"/", "Sent Mail"),
     ]
 
     pool = writable_connection_pool(default_account.id)

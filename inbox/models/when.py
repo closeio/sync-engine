@@ -1,6 +1,7 @@
 import abc
 
 import arrow
+from future.utils import with_metaclass
 
 
 def parse_as_when(raw):
@@ -27,7 +28,7 @@ def parse_utc(datetime):
     return arrow.get(datetime).to("utc")
 
 
-class When(object):
+class When(with_metaclass(abc.ABCMeta, object)):
     """
     Abstract class which can represent a moment in time or a span between
         two moments. Initialize one of its subclasses `Time`, `TimeSpan`,
@@ -39,7 +40,6 @@ class When(object):
 
     """
 
-    __metaclass__ = abc.ABCMeta  # Needed?
     json_keys = abc.abstractproperty()
     all_day = False
     spanning = False
@@ -88,8 +88,7 @@ class AllDayWhen(When):
     all_day = True
 
 
-class SpanningWhen(When):
-    __metaclass__ = abc.ABCMeta
+class SpanningWhen(with_metaclass(abc.ABCMeta, When)):
     spanning = True
     singular_cls = abc.abstractproperty()
 

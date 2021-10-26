@@ -62,6 +62,11 @@ MAX_LENS = {
 }
 
 
+# Used to protect programmers from calling wrong constructor
+# to create events
+_EVENT_CREATED_SANELY_SENTINEL = object()
+
+
 def time_parse(x):
     return arrow.get(x).to("utc").naive
 
@@ -276,7 +281,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
                 else:
                     self_hash[name] = participant
 
-        return self_hash.values()
+        return list(self_hash.values())
 
     def update(self, event):
         if event.namespace is not None and event.namespace.id is not None:
@@ -395,10 +400,11 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
             return []
 
     @classmethod
-    def __new__(cls, *args, **kwargs):
+    def create(cls, **kwargs):
         # Decide whether or not to instantiate a RecurringEvent/Override
         # based on the kwargs we get.
         cls_ = cls
+        kwargs["__event_created_sanely"] = _EVENT_CREATED_SANELY_SENTINEL
         recurrence = kwargs.get("recurrence")
         master_event_uid = kwargs.get("master_event_uid")
         if recurrence and master_event_uid:
@@ -407,9 +413,19 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
             cls_ = RecurringEvent
         if master_event_uid:
             cls_ = RecurringEventOverride
-        return object.__new__(cls_, *args, **kwargs)
+        return cls_(**kwargs)
 
     def __init__(self, **kwargs):
+        if (
+            not kwargs.pop("__event_created_sanely", None)
+            is _EVENT_CREATED_SANELY_SENTINEL
+        ):
+            raise AssertionError(
+                "Use Event.create with appropriate keyword args "
+                "instead of constructing Event, RecurringEvent or RecurringEventOverride "
+                "directly"
+            )
+
         # Allow arguments for all subclasses to be passed to main constructor
         for k in kwargs.keys():
             if not hasattr(type(self), k):
@@ -502,7 +518,7 @@ class RecurringEvent(Event):
         events = list(overrides)
         overridden_starts = [e.original_start_time for e in events]
         # Remove cancellations from the override set
-        events = filter(lambda e: not e.cancelled, events)
+        events = [e for e in events if not e.cancelled]
         # If an override has not changed the start time for an event, including
         # if the override is a cancellation, the RRULE doesn't include an
         # exception for it. Filter out unnecessary inflated events

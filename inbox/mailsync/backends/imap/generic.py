@@ -65,6 +65,7 @@ from __future__ import division
 import imaplib
 import time
 from datetime import datetime, timedelta
+from typing import Any, Dict
 
 import gevent
 from gevent import Greenlet
@@ -997,13 +998,14 @@ class UidInvalid(Exception):
 # This version is elsewhere in the codebase, so keep it for now
 # TODO(emfree): clean this up.
 def uidvalidity_cb(account_id, folder_name, select_info):
+    # type: (int, str, Dict[bytes, Any]) -> Dict[bytes, Any]
     assert (
         folder_name is not None and select_info is not None
     ), "must start IMAP session before verifying UIDVALIDITY"
     with session_scope(account_id) as db_session:
         saved_folder_info = common.get_folder_info(account_id, db_session, folder_name)
         saved_uidvalidity = or_none(saved_folder_info, lambda i: i.uidvalidity)
-    selected_uidvalidity = select_info["UIDVALIDITY"]
+    selected_uidvalidity = select_info[b"UIDVALIDITY"]
     if saved_folder_info:
         is_valid = (
             saved_uidvalidity is None or selected_uidvalidity <= saved_uidvalidity

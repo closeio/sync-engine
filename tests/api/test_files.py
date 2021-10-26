@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import os
+import sys
 from datetime import datetime
 from hashlib import md5
 
@@ -152,7 +153,9 @@ def test_download(api_client, uploaded_file_ids, filename):
         os.path.dirname(os.path.abspath(__file__)),
         "..",
         "data",
-        original_filename.encode("utf-8"),
+        original_filename.encode("utf-8")
+        if sys.version_info < (3,)
+        else original_filename,
     )
     local_data = open(path, "rb").read()
     local_md5 = md5(local_data).digest()
@@ -195,7 +198,7 @@ def test_direct_fetching(api_client, db, message, fake_attachment, monkeypatch):
         "raw_message_with_filename_attachment.txt",
     )
     data = ""
-    with open(path) as fd:
+    with open(path, "rb") as fd:
         data = fd.read()
 
     raw_mock = mock.Mock(return_value=data)

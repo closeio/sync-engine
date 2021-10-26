@@ -6,6 +6,7 @@ import re
 import smtplib
 import socket
 import ssl
+from builtins import range
 
 from inbox.logging import get_logger
 
@@ -320,6 +321,7 @@ class SMTPClient(object):
         SendMailException
             If the message couldn't be sent to all recipients successfully.
         """
+        last_error = None
         for _ in range(SMTP_MAX_RETRIES + 1):
             try:
                 with self._get_connection() as smtpconn:
@@ -337,10 +339,12 @@ class SMTPClient(object):
                             failures=failures,
                         )
             except smtplib.SMTPException as err:
+                last_error = err
                 self.log.error("Error sending", error=err, exc_info=True)
 
-        self.log.error("Max retries reached; failing to client", error=err)
-        self._handle_sending_exception(err)
+        assert last_error is not None
+        self.log.error("Max retries reached; failing to client", error=last_error)
+        self._handle_sending_exception(last_error)
 
     def _handle_sending_exception(self, err):
         if isinstance(err, smtplib.SMTPServerDisconnected):

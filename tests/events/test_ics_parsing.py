@@ -152,7 +152,7 @@ def test_self_sent_update(db, default_account, message):
     )
 
     # Create a copy of the event, and store it in the default calendar.
-    event_copy = Event()
+    event_copy = Event.create()
     event_copy.update(ev)
     event_copy.calendar = default_calendar
     db.session.add(event_copy)

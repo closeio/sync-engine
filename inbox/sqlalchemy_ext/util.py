@@ -3,8 +3,10 @@ import contextlib
 import struct
 import uuid
 import weakref
+from typing import Any, Optional
 
 from bson import EPOCH_NAIVE, json_util
+from future.utils import iteritems, with_metaclass
 
 # Monkeypatch to not include tz_info in decoded JSON.
 # Kind of a ridiculous solution, but works.
@@ -76,12 +78,11 @@ class SQLAlchemyCompatibleAbstractMetaClass(DeclarativeMeta, abc.ABCMeta):
     pass
 
 
-class ABCMixin(object):
+class ABCMixin(with_metaclass(SQLAlchemyCompatibleAbstractMetaClass, object)):
     """Use this if you want a mixin class which is actually an abstract base
     class, for example in order to enforce that concrete subclasses define
     particular methods or properties."""
 
-    __metaclass__ = SQLAlchemyCompatibleAbstractMetaClass
     __abstract__ = True
 
 
@@ -162,11 +163,13 @@ class Base36UID(TypeDecorator):
     impl = BINARY(16)  # 128 bit unsigned integer
 
     def process_bind_param(self, value, dialect):
+        # type: (Optional[str], Any) -> Optional[bytes]
         if not value:
             return None
         return b36_to_bin(value)
 
     def process_result_value(self, value, dialect):
+        # type: (Optional[bytes], Any) -> Optional[str]
         return int128_to_b36(value)
 
 
@@ -198,7 +201,7 @@ class MutableDict(Mutable, dict):
         self.changed()
 
     def update(self, *args, **kwargs):
-        for k, v in dict(*args, **kwargs).iteritems():
+        for k, v in iteritems(dict(*args, **kwargs)):
             self[k] = v
 
     # To support pickling:
@@ -261,6 +264,7 @@ class MutableList(Mutable, list):
 
 
 def int128_to_b36(int128):
+    # type: (Optional[bytes]) -> Optional[str]
     """ int128: a 128 bit unsigned integer
         returns a base-36 string representation
     """
@@ -273,6 +277,7 @@ def int128_to_b36(int128):
 
 
 def b36_to_bin(b36_string):
+    # type: (str) -> bytes
     """ b36_string: a base-36 encoded string
         returns binary 128 bit unsigned integer
     """
@@ -282,6 +287,7 @@ def b36_to_bin(b36_string):
 
 
 def generate_public_id():
+    # type: () -> str
     """ Returns a base-36 string UUID """
     u = uuid.uuid4().bytes
     return int128_to_b36(u)

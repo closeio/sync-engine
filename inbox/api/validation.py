@@ -346,7 +346,7 @@ def noop_event_update(event, data):
     # We do this by cloning the event, updating the fields and
     # comparing them. This is less cumbersome than having to think
     # about the multiple values of the `when` field.
-    e = Event()
+    e = Event.create()
     e.update(event)
     e.namespace = event.namespace
 

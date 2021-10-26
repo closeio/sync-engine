@@ -1,3 +1,6 @@
+from future import standard_library
+
+standard_library.install_aliases()
 import re
 from datetime import datetime
 
@@ -279,7 +282,7 @@ def update_draft(
 
     # Remove any attachments that aren't specified
     new_block_ids = [b.id for b in blocks]
-    for part in filter(lambda x: x.block_id not in new_block_ids, draft.parts):
+    for part in [x for x in draft.parts if x.block_id not in new_block_ids]:
         draft.parts.remove(part)
         db_session.delete(part)
 

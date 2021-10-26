@@ -29,8 +29,9 @@ def _data_file_path(h):
 
 
 def save_to_blockstore(data_sha256, data):
+    # type: (str, bytes) -> None
     assert data is not None
-    assert type(data) is not unicode
+    assert isinstance(data, bytes)
 
     if len(data) == 0:
         log.warning("Not saving 0-length data blob")
@@ -47,6 +48,7 @@ def save_to_blockstore(data_sha256, data):
 
 
 def _save_to_s3(data_sha256, data):
+    # type: (str, bytes) -> None
     assert (
         "TEMP_MESSAGE_STORE_BUCKET_NAME" in config
     ), "Need temp bucket name to store message data!"
@@ -66,6 +68,7 @@ def get_s3_bucket(bucket_name):
 
 
 def _save_to_s3_bucket(data_sha256, bucket_name, data):
+    # type: (str, str, bytes) -> None
     assert "AWS_ACCESS_KEY_ID" in config, "Need AWS key!"
     assert "AWS_SECRET_ACCESS_KEY" in config, "Need AWS secret!"
     start = time.time()
@@ -161,7 +164,7 @@ def _get_from_disk(data_sha256):
 
 
 def _delete_from_s3_bucket(data_sha256_hashes, bucket_name):
-    data_sha256_hashes = filter(None, data_sha256_hashes)
+    data_sha256_hashes = [hash_ for hash_ in data_sha256_hashes if hash_]
     if not data_sha256_hashes:
         return None
 

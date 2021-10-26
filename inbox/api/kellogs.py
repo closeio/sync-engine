@@ -4,7 +4,9 @@ from json import JSONEncoder, dumps
 
 import arrow
 from flask import Response
+from future.utils import iteritems
 
+from inbox.events.timezones import timezones_table
 from inbox.logging import get_logger
 from inbox.models import (
     Account,
@@ -79,6 +81,17 @@ def encode(obj, namespace_public_id=None, expand=False, is_n1=False):
 
         log.error("object encoding failure", **error_context)
         raise
+
+
+def _convert_timezone_to_iana_tz(original_tz):
+    if original_tz is None:
+        return None
+
+    try:
+        return timezones_table[original_tz]
+    except KeyError:
+        log.error("Bad IANA timezone identifier", original_tz=original_tz)
+        return original_tz
 
 
 def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
@@ -319,7 +332,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
         if isinstance(obj, RecurringEvent):
             resp["recurrence"] = {
                 "rrule": obj.recurring,
-                "timezone": obj.start_timezone,
+                "timezone": _convert_timezone_to_iana_tz(obj.start_timezone),
             }
         if isinstance(obj, RecurringEventOverride):
             resp["original_start_time"] = encode(obj.original_start_time)
@@ -349,7 +362,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
     elif isinstance(obj, When):
         # Get time dictionary e.g. 'start_time': x, 'end_time': y or 'date': z
         times = obj.get_time_dict()
-        resp = {k: encode(v) for k, v in times.iteritems()}
+        resp = {k: encode(v) for k, v in iteritems(times)}
         resp["object"] = _get_lowercase_class_name(obj)
         return resp
 

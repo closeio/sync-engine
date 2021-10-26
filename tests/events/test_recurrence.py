@@ -42,7 +42,7 @@ def recurring_event(
         ev = db.session.query(Event).filter_by(uid="myuid").first()
         if ev:
             db.session.delete(ev)
-    ev = Event(
+    ev = Event.create(
         namespace_id=account.namespace.id,
         calendar=calendar,
         title="recurring",
@@ -88,7 +88,7 @@ def recurring_override_instance(db, master, original_start, start, end):
     if ev:
         db.session.delete(ev)
     db.session.commit()
-    ev = Event(
+    ev = Event.create(
         original_start_time=original_start,
         master_event_uid=master.uid,
         namespace_id=master.namespace_id,
@@ -117,7 +117,7 @@ def test_link_events_from_override(db, default_account, calendar, other_calendar
     # from the override.
     master = recurring_event(db, default_account, calendar, TEST_EXDATE_RULE)
     original_start = parse_exdate(master)[0]
-    override = Event(
+    override = Event.create(
         original_start_time=original_start,
         master_event_uid=master.uid,
         namespace_id=master.namespace_id,
@@ -138,7 +138,7 @@ def test_linking_events_from_different_calendars(
     # In this case, we create two different recurring events.
     master = recurring_event(db, default_account, calendar, TEST_EXDATE_RULE)
     original_start = parse_exdate(master)[0]
-    override = Event(
+    override = Event.create(
         original_start_time=original_start,
         master_event_uid=master.uid,
         namespace_id=master.namespace_id,
@@ -367,7 +367,7 @@ def test_invalid_parseable_rrule_entry(db, default_account, calendar):
 
 
 def test_non_recurring_events_behave(db, default_account, calendar):
-    event = Event(
+    event = Event.create(
         namespace_id=default_account.namespace.id,
         calendar=calendar,
         title="not recurring",
@@ -451,7 +451,7 @@ def test_override_updated(db, default_account, calendar):
     # create a new Event, as if we just got it from Google
     master_uid = event.uid
     override_uid = master_uid + "_20140814T203000Z"
-    override = Event(
+    override = Event.create(
         title="new override from google",
         description="",
         uid=override_uid,
@@ -482,7 +482,7 @@ def test_override_updated(db, default_account, calendar):
     assert find_override.master_event_id == event.id
 
     # Update the same override, making sure we don't create two
-    override = Event(
+    override = Event.create(
         title="new override from google",
         description="",
         uid=override_uid,
@@ -537,7 +537,7 @@ def test_new_instance_cancelled(db, default_account, calendar):
     # as an override with cancelled status rather than deleting it.
     event = recurring_event(db, default_account, calendar, TEST_EXDATE_RULE)
     override_uid = event.uid + "_20140814T203000Z"
-    override = Event(
+    override = Event.create(
         title="CANCELLED",
         description="",
         uid=override_uid,
@@ -574,7 +574,7 @@ def test_new_instance_cancelled(db, default_account, calendar):
 
 def test_when_delta():
     # Test that the event length is calculated correctly
-    ev = Event(namespace_id=0)
+    ev = Event.create(namespace_id=0)
     # Time: minutes is 0 if start/end at same time
     ev.start = arrow.get(2015, 1, 1, 10, 0, 0)
     ev.end = arrow.get(2015, 1, 1, 10, 0, 0)

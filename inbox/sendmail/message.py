@@ -20,6 +20,7 @@ from flanker import mime
 from flanker.addresslib import address
 from flanker.addresslib.address import MAX_ADDRESS_LENGTH
 from flanker.addresslib.quote import smart_quote
+from flanker.mime.message.headers import WithParams
 from flanker.mime.message.headers.encoding import encode_string
 from html2text import html2text
 
@@ -96,7 +97,9 @@ def create_email(
 
     # Create a multipart/alternative message
     msg = mime.create.multipart("alternative")
-    msg.append(mime.create.text("plain", plaintext), mime.create.text("html", html))
+    html_part = mime.create.text("html", html)
+    html_part.content_encoding = WithParams("base64")
+    msg.append(mime.create.text("plain", plaintext), html_part)
 
     # Create an outer multipart/mixed message
     if attachments:

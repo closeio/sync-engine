@@ -4,8 +4,11 @@ import itertools
 import os
 from collections import defaultdict
 from hashlib import sha256
+from typing import Any, DefaultDict, Dict, List, Optional, Set, Tuple, Union
 
 from flanker import mime
+from flanker.mime.message.part import MimePart
+from future.utils import iteritems
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -32,6 +35,7 @@ from sqlalchemy.sql.expression import false
 
 from inbox.config import config
 from inbox.logging import get_logger
+from inbox.models.account import Account
 from inbox.models.base import MailSyncBase
 from inbox.models.category import Category
 from inbox.models.mixins import (
@@ -50,7 +54,7 @@ from inbox.sqlalchemy_ext.util import (
 from inbox.util.addr import parse_mimepart_address_header
 from inbox.util.blockstore import save_to_blockstore
 from inbox.util.encoding import unicode_safe_truncate
-from inbox.util.html import plaintext2html, strip_tags
+from inbox.util.html import HTMLParseError, plaintext2html, strip_tags
 from inbox.util.misc import get_internaldate, parse_references
 
 log = get_logger()
@@ -59,6 +63,7 @@ SNIPPET_LENGTH = 191
 
 
 def _trim_filename(s, namespace_id, max_len=255):
+    # type: (Optional[Union[str, bytes]], int, int) -> str
     if s is None:
         return s
 
@@ -68,7 +73,7 @@ def _trim_filename(s, namespace_id, max_len=255):
     # If `s` is not stored as a unicode string, but contains unicode
     # characters, len will return the wrong value (bytes not chars).
     # Convert it to unicode first.
-    if not isinstance(s, unicode):
+    if isinstance(s, bytes):
         s = s.decode("utf-8", "ignore")
 
     if len(s) > max_len:
@@ -203,6 +208,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     nylas_uid = Column(String(64), nullable=True, index=True, name="inbox_uid")
 
     def regenerate_nylas_uid(self):
+        # type: () -> None
         """
         The value of nylas_uid is simply the draft public_id and version,
         concatenated. Because the nylas_uid identifies the draft on the remote
@@ -237,6 +243,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     )
 
     def mark_for_deletion(self):
+        # type: () -> None
         """
         Mark this message to be deleted by an asynchronous delete
         handler.
@@ -246,6 +253,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
     @validates("subject")
     def sanitize_subject(self, key, value):
+        # type: (Any, Optional[str]) -> Optional[str]
         # Trim overlong subjects, and remove null bytes. The latter can result
         # when, for example, UTF-8 text decoded from an RFC2047-encoded header
         # contains null bytes.
@@ -257,6 +265,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
     @classmethod
     def create_from_synced(cls, account, mid, folder_name, received_date, body_string):
+        # type: (Account, int, str, Optional[datetime.datetime], bytes) -> Message
         """
         Parses message data and writes out db metadata and MIME blocks.
 
@@ -271,18 +280,19 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             The account backend-specific message identifier; it's only used for
             logging errors.
 
-        raw_message : str
+        body_string : bytes
             The full message including headers (encoded).
 
         """
         _rqd = [account, mid, folder_name, body_string]
         if not all([v is not None for v in _rqd]):
             raise ValueError(
-                "Required keyword arguments: account, mid, folder_name, " "body_string"
+                "Required keyword arguments: account, mid, folder_name, body_string"
             )
+
         # stop trickle-down bugs
         assert account.namespace is not None
-        assert not isinstance(body_string, unicode)
+        assert isinstance(body_string, bytes)
 
         msg = Message()
 
@@ -295,7 +305,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         msg.namespace_id = account.namespace.id
 
         try:
-            parsed = mime.from_string(body_string)
+            parsed = mime.from_string(body_string)  # type: MimePart
             # Non-persisted instance attribute used by EAS.
             msg.parsed_body = parsed
             msg._parse_metadata(
@@ -315,8 +325,8 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             msg._mark_error()
 
         if parsed is not None:
-            plain_parts = []
-            html_parts = []
+            plain_parts = []  # type: List[bytes]
+            html_parts = []  # type: List[bytes]
             for mimepart in parsed.walk(with_self=parsed.content_type.is_singlepart()):
                 try:
                     if mimepart.content_type.is_multipart():
@@ -340,14 +350,14 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                         mid=mid,
                     )
                     msg._mark_error()
-            store_body = config.get("STORE_MESSAGE_BODIES", True)
+            store_body = config.get("STORE_MESSAGE_BODIES", True)  # type: bool
             msg.calculate_body(html_parts, plain_parts, store_body=store_body)
 
             # Occasionally people try to send messages to way too many
             # recipients. In such cases, empty the field and treat as a parsing
             # error so that we don't break the entire sync.
             for field in ("to_addr", "cc_addr", "bcc_addr", "references", "reply_to"):
-                value = getattr(msg, field)
+                value = getattr(msg, field)  # type: List[Any]
                 if json_field_too_long(value):
                     log.error(
                         "Recipient field too long",
@@ -364,7 +374,8 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     def _parse_metadata(
         self, parsed, body_string, received_date, account_id, folder_name, mid
     ):
-        mime_version = parsed.headers.get("Mime-Version")
+        # type: (MimePart, bytes, Optional[datetime.datetime], int, str, int) -> None
+        mime_version = parsed.headers.get("Mime-Version")  # type: Optional[str]
         # sometimes MIME-Version is '1.0 (1.0)', hence the .startswith()
         if mime_version is not None and not mime_version.startswith("1.0"):
             log.warning(
@@ -375,7 +386,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                 mime_version=mime_version,
             )
 
-        self.subject = parsed.subject
+        self.subject = parsed.subject  # type: Optional[str]
         self.from_addr = parse_mimepart_address_header(parsed, "From")
         self.sender_addr = parse_mimepart_address_header(parsed, "Sender")
         self.reply_to = parse_mimepart_address_header(parsed, "Reply-To")
@@ -383,11 +394,11 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         self.cc_addr = parse_mimepart_address_header(parsed, "Cc")
         self.bcc_addr = parse_mimepart_address_header(parsed, "Bcc")
 
-        self.in_reply_to = parsed.headers.get("In-Reply-To")
+        self.in_reply_to = parsed.headers.get("In-Reply-To")  # type: Optional[str]
 
         # The RFC mandates that the Message-Id header must be at most 998
         # characters. Sadly, not everybody follows specs.
-        self.message_id_header = parsed.headers.get("Message-Id")
+        self.message_id_header = parsed.headers.get("Message-Id")  # type: Optional[str]
         if self.message_id_header and len(self.message_id_header) > 998:
             self.message_id_header = self.message_id_header[:998]
             log.warning(
@@ -411,7 +422,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         self.received_date = self.received_date.replace(microsecond=0)
 
         # Custom Nylas header
-        self.nylas_uid = parsed.headers.get("X-INBOX-ID")
+        self.nylas_uid = parsed.headers.get("X-INBOX-ID")  # type: Optional[str]
 
         # In accordance with JWZ (http://www.jwz.org/doc/threading.html)
         self.references = parse_references(
@@ -421,15 +432,16 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         self.size = len(body_string)  # includes headers text
 
     def _parse_mimepart(self, mid, mimepart, namespace_id, html_parts, plain_parts):
+        # type: (int, MimePart, int, List[bytes], List[bytes]) -> None
         disposition, _ = mimepart.content_disposition
-        content_id = mimepart.headers.get("Content-Id")
+        content_id = mimepart.headers.get("Content-Id")  # type: Optional[str]
         content_type, params = mimepart.content_type
 
-        filename = mimepart.detected_file_name
+        filename = mimepart.detected_file_name  # type: Optional[str]
         if filename == "":
             filename = None
 
-        data = mimepart.body
+        data = mimepart.body  # type: Optional[str]
 
         is_text = content_type.startswith("text")
         if disposition not in (None, "inline", "attachment"):
@@ -461,8 +473,10 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         if is_text:
             if data is None:
                 return
-            normalized_data = data.encode("utf-8", "strict")
-            normalized_data = normalized_data.replace("\r\n", "\n").replace("\r", "\n")
+            normalized_data = data.encode("utf-8", "strict")  # type: bytes
+            normalized_data = normalized_data.replace(b"\r\n", b"\n").replace(
+                b"\r", b"\n"
+            )
             if content_type == "text/html":
                 html_parts.append(normalized_data)
             elif content_type == "text/plain":
@@ -500,6 +514,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         namespace_id,
         mid,
     ):
+        # type: (Optional[str], str, str, Optional[str], Optional[str], int, int) -> None
         from inbox.models import Block, Part
 
         block = Block()
@@ -512,11 +527,12 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         part.content_id = content_id
         part.content_disposition = content_disposition
         data = data or ""
-        if isinstance(data, unicode):
+        if not isinstance(data, bytes):
             data = data.encode("utf-8", "strict")
         block.data = data
 
     def _mark_error(self):
+        # type: () -> None
         """
         Mark message as having encountered errors while parsing.
 
@@ -539,8 +555,9 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             self.snippet = ""
 
     def calculate_body(self, html_parts, plain_parts, store_body=True):
-        html_body = "".join(html_parts).decode("utf-8").strip()
-        plain_body = "\n".join(plain_parts).decode("utf-8").strip()
+        # type: (List[bytes], List[bytes], bool) -> None
+        html_body = b"".join(html_parts).decode("utf-8").strip()
+        plain_body = b"\n".join(plain_parts).decode("utf-8").strip()
         if html_body:
             self.snippet = self.calculate_html_snippet(html_body)
             if store_body:
@@ -558,20 +575,31 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             self.snippet = u""
 
     def calculate_html_snippet(self, text):
-        text = strip_tags(text)
+        # type: (str) -> str
+        try:
+            text = strip_tags(text)
+        except HTMLParseError:
+            log.error(
+                "error stripping tags", message_nylas_uid=self.nylas_uid, exc_info=True
+            )
+            text = ""
+
         return self.calculate_plaintext_snippet(text)
 
     def calculate_plaintext_snippet(self, text):
+        # type: (str) -> str
         return unicode_safe_truncate(" ".join(text.split()), SNIPPET_LENGTH)
 
     @property
     def body(self):
+        # type: () -> Optional[str]
         if self._compacted_body is None:
             return None
         return decode_blob(self._compacted_body).decode("utf-8")
 
     @body.setter
     def body(self, value):
+        # type: (Optional[str]) -> None
         if value is None:
             self._compacted_body = None
         else:
@@ -579,6 +607,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
     @property
     def participants(self):
+        # type: () -> List[Tuple[str, str]]
         """
         Different messages in the thread may reference the same email
         address with different phrases. We partially deduplicate: if the same
@@ -586,7 +615,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         separately return the (empty phrase, address) pair.
 
         """
-        deduped_participants = defaultdict(set)
+        deduped_participants = defaultdict(set)  # type: DefaultDict[str, Set[str]]
         chain = []
         if self.from_addr:
             chain.append(self.from_addr)
@@ -604,7 +633,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             deduped_participants[address].add(phrase.strip())
 
         p = []
-        for address, phrases in deduped_participants.iteritems():
+        for address, phrases in iteritems(deduped_participants):
             for phrase in phrases:
                 if phrase != "" or len(phrases) == 1:
                     p.append((phrase, address))
@@ -612,10 +641,12 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
     @property
     def attachments(self):
+        # type: () -> List[Part]
         return [part for part in self.parts if part.is_attachment]
 
     @property
     def api_attachment_metadata(self):
+        # type: () -> List[Dict[str, Any]]
         resp = []
         for part in self.parts:
             if not part.is_attachment:
@@ -648,15 +679,18 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
     @property
     def attached_event_files(self):
+        # type: () -> List[Part]
         return [
             part for part in self.parts if part.block.content_type == "text/calendar"
         ]
 
     @property
     def account(self):
+        # type: () -> Account
         return self.namespace.account
 
     def get_header(self, header, mid):
+        # type: (str, int) -> Optional[str]
         if self.decode_error:
             log.warning("Error getting message header", mid=mid)
             return
@@ -664,6 +698,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
     @classmethod
     def from_public_id(cls, public_id, namespace_id, db_session):
+        # type: (str, int, Any) -> Message
         q = bakery(lambda s: s.query(cls))
         q += lambda q: q.filter(
             Message.public_id == bindparam("public_id"),

@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 
+from future.utils import iteritems
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -141,7 +142,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             u"\\Answered": "is_answered",
             u"\\Flagged": "is_flagged",
         }
-        for flag, col in col_for_flag.iteritems():
+        for flag, col in iteritems(col_for_flag):
             prior_flag_value = getattr(self, col)
             new_flag_value = flag in new_flags
             if prior_flag_value != new_flag_value:
@@ -408,7 +409,7 @@ class ImapFolderSyncStatus(MailSyncBase, HasRunState, UpdatedAtMixin, DeletedAtM
         ]
 
         assert isinstance(metrics, dict)
-        for k in metrics.iterkeys():
+        for k in metrics:
             assert k in sync_status_metrics, k
 
         if self._metrics is not None:

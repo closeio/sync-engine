@@ -1,6 +1,7 @@
 # flake8: noqa: F401, F811
 import json
 import time
+from builtins import range
 from datetime import datetime, timedelta
 
 import pytest
@@ -134,7 +135,7 @@ def make_dead_heartbeat(store, proxies, account_id, folder_id, time_dead):
 def test_ping(random_heartbeats):
     # Get the lightweight ping (only checks indices) and make sure it conforms
     # to the expected format.
-    ping = get_ping_status(range(10))
+    ping = get_ping_status(list(range(10)))
     assert isinstance(ping, dict)
     assert sorted(ping.keys()) == sorted(random_heartbeats.keys())
     single = ping[0]

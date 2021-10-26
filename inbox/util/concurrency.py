@@ -119,7 +119,7 @@ def retry_with_logging(
 
         if mysql_error:
             for msg in TRANSIENT_MYSQL_MESSAGES:
-                if msg in mysql_error.message:
+                if msg in mysql_error.args[0]:
                     is_transient = True
 
         if is_transient:

@@ -10,6 +10,7 @@ import subprocess
 
 import dns
 import pytest
+from past.builtins import long
 
 from inbox.basicauth import ValidationError
 
@@ -180,7 +181,7 @@ class MockIMAPClient(object):
         assert isinstance(criteria, list)
         uid_dict = self._data[self.selected_folder]
         if criteria == ["ALL"]:
-            return uid_dict.keys()
+            return list(uid_dict)
         if criteria == ["X-GM-LABELS", "inbox"]:
             return [k for k, v in uid_dict.items() if ("\\Inbox,") in v["X-GM-LABELS"]]
         if criteria[0] == "HEADER":
@@ -188,9 +189,10 @@ class MockIMAPClient(object):
             headerstring = "{}: {}".format(name, value).lower()
             # Slow implementation, but whatever
             return [
-                u for u, v in uid_dict.items() if headerstring in v["BODY[]"].lower()
+                u for u, v in uid_dict.items() if headerstring in v[b"BODY[]"].lower()
             ]
         if criteria[0] in ["X-GM-THRID", "X-GM-MSGID"]:
+            criteria[0] = criteria[0].encode()
             assert len(criteria) == 2
             thrid = criteria[1]
             return [u for u, v in uid_dict.items() if v[criteria[0]] == thrid]
@@ -217,6 +219,7 @@ class MockIMAPClient(object):
                 if m:
                     modseq = int(m.group("modseq"))
                     items = {u for u in items if uid_dict[u]["MODSEQ"][0] > modseq}
+        data = [d.encode() for d in data]
         for u in items:
             if u in uid_dict:
                 resp[u] = {
@@ -229,12 +232,12 @@ class MockIMAPClient(object):
         uidnext = max(uid_dict) if uid_dict else 1
         uid_dict[uidnext] = {
             # TODO(emfree) save other attributes
-            "BODY[]": mimemsg,
-            "INTERNALDATE": None,
-            "X-GM-LABELS": (),
-            "FLAGS": (),
-            "X-GM-MSGID": x_gm_msgid,
-            "X-GM-THRID": x_gm_thrid,
+            b"BODY[]": mimemsg,
+            b"INTERNALDATE": None,
+            b"X-GM-LABELS": (),
+            b"FLAGS": (),
+            b"X-GM-MSGID": x_gm_msgid,
+            b"X-GM-THRID": x_gm_thrid,
         }
 
     def copy(self, matching_uids, folder_name):

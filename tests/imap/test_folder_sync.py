@@ -110,7 +110,7 @@ def test_condstore_flags_refresh(
     )
     uid_dict = uids.example()
     mock_imapclient.add_folder_data(all_mail_folder.name, uid_dict)
-    mock_imapclient.capabilities = lambda: ["CONDSTORE"]
+    mock_imapclient.capabilities = lambda: [b"CONDSTORE"]
 
     folder_sync_engine = FolderSyncEngine(
         default_account.id,
@@ -124,8 +124,8 @@ def test_condstore_flags_refresh(
 
     # Change the labels provided by the mock IMAP server
     for k, v in mock_imapclient._data[all_mail_folder.name].items():
-        v["X-GM-LABELS"] = ("newlabel",)
-        v["MODSEQ"] = (k,)
+        v[b"X-GM-LABELS"] = (b"newlabel",)
+        v[b"MODSEQ"] = (k,)
 
     folder_sync_engine.highestmodseq = 0
     # Don't sleep at the end of poll_impl before returning.

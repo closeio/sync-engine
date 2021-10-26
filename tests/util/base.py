@@ -1,6 +1,10 @@
+from future import standard_library
+
+standard_library.install_aliases()
 import json
 import os
 import uuid
+from builtins import range
 from datetime import datetime, timedelta
 
 import mock
@@ -484,7 +488,7 @@ def add_fake_event(
     start = start or datetime.utcnow()
     end = end or (datetime.utcnow() + timedelta(seconds=1))
     calendar = calendar or add_fake_calendar(db_session, namespace_id)
-    event = Event(
+    event = Event.create(
         namespace_id=namespace_id,
         calendar=calendar,
         title=title,
@@ -657,7 +661,7 @@ def new_message_from_synced(db, default_account, mime_message):
         139219,
         "[Gmail]/All Mail",
         received_date,
-        mime_message.to_string(),
+        mime_message.to_string().encode(),
     )
     assert new_msg.received_date == received_date
     new_msg.is_read = True
@@ -671,7 +675,7 @@ def add_fake_msg_with_calendar_part(db_session, account, ics_str, thread=None):
     parsed = mime.create.multipart("mixed")
     parsed.append(mime.create.attachment("text/calendar", ics_str, disposition=None))
     msg = Message.create_from_synced(
-        account, 22, "[Gmail]/All Mail", datetime.utcnow(), parsed.to_string()
+        account, 22, "[Gmail]/All Mail", datetime.utcnow(), parsed.to_string().encode()
     )
     msg.from_addr = [("Ben Bitdiddle", "ben@inboxapp.com")]
 
@@ -697,14 +701,14 @@ def mock_client():
     # Adding a couple of methods we use that mockredis doesn't support yet.
     def scan_iter_patch(match=None, count=100):
         match = str(match).replace("*", "")
-        return filter(lambda k: k.startswith(match), mock_client.keys())
+        return [k for k in mock_client.keys() if k.startswith(match)]
 
     mock_client.scan_iter = scan_iter_patch
     mock_client.reset = lambda: True
 
     def zscan_iter_patch(key, match=None):
         match = str(match).replace("*", "")
-        return filter(lambda k: k.startswith(match), mock_client.zrange(key, 0, -1))
+        return [k for k in mock_client.zrange(key, 0, -1) if k.startswith(match)]
 
     mock_client.zscan_iter = zscan_iter_patch
     return mock_client

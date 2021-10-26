@@ -5,15 +5,15 @@ from inbox.models.event import Event
 def test_rsvp_recipient(default_account, message):
     assert rsvp_recipient(None) is None
 
-    event = Event()
+    event = Event.create()
     event.owner = "Georges Perec <georges@gmail.com>"
     assert rsvp_recipient(event) == "georges@gmail.com"
 
-    event = Event()
+    event = Event.create()
     event.owner = "<perec@gmail.com>"
     assert rsvp_recipient(event) == "perec@gmail.com"
 
-    event = Event()
+    event = Event.create()
     event.owner = "perec@gmail.com"
     assert rsvp_recipient(event) == "perec@gmail.com"
 
@@ -21,7 +21,7 @@ def test_rsvp_recipient(default_account, message):
     assert rsvp_recipient(event) is None
 
     message.from_addr = [("Georges Perec", "georges@gmail.com")]
-    event = Event()
+    event = Event.create()
     event.owner = None
     event.message = message
     assert rsvp_recipient(event) == message.from_addr[0][1]

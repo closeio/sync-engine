@@ -1,9 +1,11 @@
+import email.utils
 import re
+from typing import List, Set, Tuple
 
-import rfc822
 from flanker.addresslib import address
 from flanker.mime.message.headers.encodedword import decode
 from flanker.mime.message.headers.parsing import normalize
+from flanker.mime.message.part import MimePart
 
 # Note that technically `'` is also allowed in the local part, but nobody
 # uses it in practice, so we'd rather extract <a href='email@example.com'>
@@ -31,6 +33,7 @@ def canonicalize_address(addr):
 
 
 def parse_mimepart_address_header(mimepart, header_name):
+    # type: (MimePart, str) -> List[List[str]]
     # Header parsing is complicated by the fact that:
     # (1) You can have multiple occurrences of the same header;
     # (2) Phrases or comments can be RFC2047-style encoded words;
@@ -44,9 +47,11 @@ def parse_mimepart_address_header(mimepart, header_name):
     # you can end up parsing 'FooCorp, Inc. <info@foocorp.com> (note lack of
     # quoting) into two separate addresses.
     # Consult RFC822 Section 6.1 and RFC2047 section 5 for details.
-    addresses = set()
+    addresses = set()  # type: Set[Tuple[str, str]]
     for section in mimepart.headers._v.getall(normalize(header_name)):
-        for phrase, addrspec in rfc822.AddressList(section).addresslist:
+        for phrase, addrspec in email.utils.getaddresses([section]):
+            if not addrspec and not phrase:
+                continue
             addresses.add((decode(phrase), decode(addrspec)))
 
     # Return a list of lists because it makes it easier to compare an address

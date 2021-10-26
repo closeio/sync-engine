@@ -109,7 +109,7 @@ def test_direct_fetching(stub_message_from_raw, api_client, mime_message, monkey
     save_mock = mock.Mock()
     monkeypatch.setattr("inbox.util.blockstore.save_to_blockstore", save_mock)
 
-    raw_mock = mock.Mock(return_value="Return contents")
+    raw_mock = mock.Mock(return_value=b"Return contents")
     monkeypatch.setattr("inbox.s3.backends.gmail.get_gmail_raw_contents", raw_mock)
 
     full_path = "/messages/{}".format(stub_message_from_raw.public_id)
@@ -119,7 +119,7 @@ def test_direct_fetching(stub_message_from_raw, api_client, mime_message, monkey
     for m in [get_mock, save_mock, raw_mock]:
         assert m.called
 
-    assert resp.data == "Return contents"
+    assert resp.data == b"Return contents"
 
 
 @pytest.mark.parametrize("api_version", API_VERSIONS)

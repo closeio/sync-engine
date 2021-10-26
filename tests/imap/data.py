@@ -32,14 +32,14 @@ def build_mime_message(from_, to, cc, bcc, subject, body):
 
 def build_uid_data(internaldate, flags, body, g_labels, g_msgid, modseq):
     return {
-        "INTERNALDATE": internaldate,
-        "FLAGS": flags,
-        "BODY[]": body,
-        "RFC822.SIZE": len(body),
-        "X-GM-LABELS": g_labels,
-        "X-GM-MSGID": g_msgid,
-        "X-GM-THRID": g_msgid,  # For simplicity
-        "MODSEQ": modseq,
+        b"INTERNALDATE": internaldate,
+        b"FLAGS": flags,
+        b"BODY[]": body,
+        b"RFC822.SIZE": len(body),
+        b"X-GM-LABELS": g_labels,
+        b"X-GM-MSGID": g_msgid,
+        b"X-GM-THRID": g_msgid,  # For simplicity
+        b"MODSEQ": modseq,
     }
 
 
@@ -74,9 +74,9 @@ randint = s.integers(min_value=0, max_value=1 << 63)
 uid_data = s.builds(
     build_uid_data,
     s.datetimes(),
-    s.sampled_from([(), ("\\Seen",)]),
+    s.sampled_from([(), (b"\\Seen",)]),
     mime_message,
-    s.sampled_from([(), ("\\Inbox",)]),
+    s.sampled_from([(), (b"\\Inbox",)]),
     randint,
     randint,
 )

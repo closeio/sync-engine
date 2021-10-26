@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from typing import List
 
 from future.utils import iteritems
 from sqlalchemy import (
@@ -127,6 +128,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     g_labels = Column(JSON, default=lambda: [], nullable=True)
 
     def update_flags(self, new_flags):
+        # type: (List[bytes]) -> None
         """
         Sets flag and g_labels values based on the new_flags and x_gm_labels
         parameters. Returns True if any values have changed compared to what we
@@ -134,7 +136,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
         """
         changed = False
-        new_flags = set(new_flags)
+        new_flags = set(flag.decode() for flag in new_flags)
         col_for_flag = {
             u"\\Draft": "is_draft",
             u"\\Seen": "is_seen",

@@ -455,11 +455,11 @@ class CrispinClient(object):
 
     @property
     def selected_uidvalidity(self):
-        return or_none(self.selected_folder_info, lambda i: i["UIDVALIDITY"])
+        return or_none(self.selected_folder_info, lambda i: i[b"UIDVALIDITY"])
 
     @property
     def selected_uidnext(self):
-        return or_none(self.selected_folder_info, lambda i: i.get("UIDNEXT"))
+        return or_none(self.selected_folder_info, lambda i: i.get(b"UIDNEXT"))
 
     @property
     def folder_separator(self):
@@ -840,7 +840,7 @@ class CrispinClient(object):
         data = self.conn.fetch(seqset, ["FLAGS"])  # type: Dict[int, Dict[bytes, Any]]
         uid_set = set(uids)
         return {
-            uid: Flags(ret["FLAGS"], None)
+            uid: Flags(ret[b"FLAGS"], None)
             for uid, ret in data.items()
             if uid in uid_set
         }
@@ -1062,9 +1062,9 @@ class GmailCrispinClient(CrispinClient):
         uid_set = set(uids)
         return {
             uid: GmailFlags(
-                ret["FLAGS"],
-                self._decode_labels(ret["X-GM-LABELS"]),
-                ret["MODSEQ"][0] if "MODSEQ" in ret else None,
+                ret[b"FLAGS"],
+                self._decode_labels(ret[b"X-GM-LABELS"]),
+                ret[b"MODSEQ"][0] if b"MODSEQ" in ret else None,
             )
             for uid, ret in data.items()
             if uid in uid_set
@@ -1248,7 +1248,7 @@ class GmailCrispinClient(CrispinClient):
         data = self.conn.fetch(seqset, ["X-GM-MSGID", "X-GM-THRID", "RFC822.SIZE"])
         uid_set = set(uids)
         return {
-            uid: GMetadata(ret["X-GM-MSGID"], ret["X-GM-THRID"], ret["RFC822.SIZE"])
+            uid: GMetadata(ret[b"X-GM-MSGID"], ret[b"X-GM-THRID"], ret[b"RFC822.SIZE"])
             for uid, ret in data.items()
             if uid in uid_set
         }

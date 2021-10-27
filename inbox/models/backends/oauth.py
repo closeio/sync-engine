@@ -59,11 +59,11 @@ class OAuthAccount(object):
     @refresh_token.setter
     def refresh_token(self, value):
         # Must be a valid UTF-8 byte sequence without NULL bytes.
-        if isinstance(value, unicode):
+        if not isinstance(value, bytes):
             value = value.encode("utf-8")
 
         try:
-            unicode(value, "utf-8")
+            value.decode("utf-8")
         except UnicodeDecodeError:
             raise ValueError("Invalid refresh_token")
 

@@ -6,6 +6,7 @@ import datetime
 import json
 from builtins import range
 
+from past.builtins import basestring
 from sqlalchemy import desc
 
 from inbox.models import Block, Category, Message, Namespace, Thread

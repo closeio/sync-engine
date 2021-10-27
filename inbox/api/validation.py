@@ -1,8 +1,11 @@
 """Utilities for validating user input to the API."""
+from builtins import str
+
 import arrow
 from arrow.parser import ParserError
 from flanker.addresslib import address
 from flask.ext.restful import reqparse
+from past.builtins import basestring
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.api.err import (
@@ -24,7 +27,7 @@ MAX_LIMIT = 1000
 
 class ValidatableArgument(reqparse.Argument):
     def handle_validation_error(self, error):
-        raise InputError(unicode(error))
+        raise InputError(str(error))
 
 
 # Custom parameter types

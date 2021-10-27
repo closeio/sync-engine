@@ -1,6 +1,7 @@
 import base64
 
 import requests
+from past.builtins import basestring
 
 from inbox.auth.oauth import OAuthRequestsWrapper
 from inbox.logging import get_logger

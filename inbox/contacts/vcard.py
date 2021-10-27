@@ -29,7 +29,7 @@ from __future__ import absolute_import, print_function
 import base64
 import logging
 import sys
-from builtins import range
+from builtins import range, str
 from collections import defaultdict
 
 import vobject
@@ -251,7 +251,7 @@ class VCard(defaultdict):
 
     @property
     def name(self):
-        return unicode(self["N"][0][0]) if self["N"] else ""
+        return str(self["N"][0][0]) if self["N"] else ""
 
     @name.setter
     def name(self, value):
@@ -261,7 +261,7 @@ class VCard(defaultdict):
 
     @property
     def fname(self):
-        return unicode(self["FN"][0][0]) if self["FN"] else ""
+        return str(self["FN"][0][0]) if self["FN"] else ""
 
     @fname.setter
     def fname(self, value):

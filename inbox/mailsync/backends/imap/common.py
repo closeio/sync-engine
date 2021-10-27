@@ -196,6 +196,11 @@ def remove_deleted_uids(account_id, folder_id, uids):
                     thread = message.thread
                     if thread is not None:
                         thread.messages.remove(message)
+                        # Thread.messages relationship is versinioned.
+                        # This early flush is needed so the configure_versioning logic
+                        # in inbox.model.sessions can work reliably on newer versions of
+                        # SQLAlchemy.
+                        db_session.flush()
                     db_session.delete(message)
                     if thread is not None and not thread.messages:
                         db_session.delete(thread)

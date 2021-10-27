@@ -119,7 +119,8 @@ simplejson==3.6.0
 singledispatch==3.4.0.3
 six==1.11.0
 sortedcontainers==2.4.0
-git+https://github.com/mhahnenberg/sqlalchemy.git@e5f7586346ce5fafe2c182f70bf6ef998aa59b68#egg=SQLAlchemy
+# git+https://github.com/mhahnenberg/sqlalchemy.git@e5f7586346ce5fafe2c182f70bf6ef998aa59b68#egg=SQLAlchemy
+sqlalchemy==1.4.26
 statsd==3.3.0
 structlog==17.2.0
 tldextract==1.7.5

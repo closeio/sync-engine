@@ -45,7 +45,13 @@ class OAuthAccount(object):
 
     @declared_attr
     def secret(cls):
-        return relationship("Secret", cascade="all", uselist=False, lazy="joined")
+        return relationship(
+            "Secret",
+            cascade="all",
+            uselist=False,
+            lazy="joined",
+            foreign_keys=[cls.refresh_token_id],
+        )
 
     @property
     def refresh_token(self):

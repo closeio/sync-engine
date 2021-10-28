@@ -114,8 +114,8 @@ def test_smtp_ssl_verification_bad_cert(
 
     api_client = new_api_client(db, local_smtp_account.namespace)
 
-    start = time.monotonic()
-    while len(asyncore.socket_map) < 1 and time.monotonic() - start < 15:
+    start = time.time()
+    while len(asyncore.socket_map) < 1 and time.time() - start < 15:
         gevent.sleep(0)  # let SMTP daemon start up
     r = api_client.post_data("/send", example_draft)
     assert r.status_code == 200

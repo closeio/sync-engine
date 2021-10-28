@@ -110,7 +110,7 @@ jobs:
               && bin/wait-for-it.sh mysql:3306 \
               && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
               && coverage html -d pythoncov
-            ' && true
+            ' || true
       # Not pushing Python 3.6 image for the time being
 
   build-python38:

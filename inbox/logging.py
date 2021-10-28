@@ -196,8 +196,8 @@ def _safe_encoding_renderer(_, __, event_dict):
     """
     for key in event_dict:
         entry = event_dict[key]
-        if isinstance(entry, str):
-            event_dict[key] = unicode(entry, encoding="utf-8", errors="replace")
+        if isinstance(entry, bytes):
+            event_dict[key] = entry.decode(entry, encoding="utf-8", errors="replace")
 
     return event_dict
 

@@ -14,13 +14,6 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-# TODO[mike]: This shold be removed once we've updated our base OS. openssl 1.0.1 doesn't support cross-signed certs
-# https://github.com/certifi/python-certifi/issues/26#issuecomment-138322515
-import certifi
-
-os.environ["REQUESTS_CA_BUNDLE"] = certifi.old_where()
-
-
 __all__ = ["config"]
 
 

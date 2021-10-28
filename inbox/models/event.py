@@ -427,7 +427,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
             )
 
         # Allow arguments for all subclasses to be passed to main constructor
-        for k in kwargs.keys():
+        for k in list(kwargs):
             if not hasattr(type(self), k):
                 del kwargs[k]
         super(Event, self).__init__(**kwargs)

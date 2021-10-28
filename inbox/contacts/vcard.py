@@ -29,10 +29,11 @@ from __future__ import absolute_import, print_function
 import base64
 import logging
 import sys
-from builtins import range, str
+from builtins import range
 from collections import defaultdict
 
 import vobject
+from past.builtins import unicode
 
 
 def list_clean(string):
@@ -251,7 +252,7 @@ class VCard(defaultdict):
 
     @property
     def name(self):
-        return str(self["N"][0][0]) if self["N"] else ""
+        return unicode(self["N"][0][0]) if self["N"] else ""
 
     @name.setter
     def name(self, value):
@@ -261,7 +262,7 @@ class VCard(defaultdict):
 
     @property
     def fname(self):
-        return str(self["FN"][0][0]) if self["FN"] else ""
+        return unicode(self["FN"][0][0]) if self["FN"] else ""
 
     @fname.setter
     def fname(self, value):

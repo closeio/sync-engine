@@ -2,7 +2,6 @@ from __future__ import absolute_import
 
 import sys
 import traceback
-from builtins import str
 from datetime import date, datetime
 from email.utils import formataddr
 
@@ -13,6 +12,7 @@ import requests
 from flanker import mime
 from html2text import html2text
 from icalendar import Calendar as iCalendar
+from past.builtins import unicode
 
 from inbox.config import config
 from inbox.contacts.processing import update_contacts_from_event
@@ -142,7 +142,7 @@ def events_from_ics(namespace, calendar, ics_str):
 
             description = component.get("description")
             if description is not None:
-                description = str(description)
+                description = unicode(description)
 
             event_status = component.get("status")
             if event_status is not None:
@@ -173,7 +173,7 @@ def events_from_ics(namespace, calendar, ics_str):
             organizer_name = None
             organizer_email = None
             if organizer:
-                organizer_email = str(organizer)
+                organizer_email = unicode(organizer)
                 if organizer_email.lower().startswith("mailto:"):
                     organizer_email = organizer_email[7:]
 
@@ -198,7 +198,7 @@ def events_from_ics(namespace, calendar, ics_str):
                 attendees = [attendees]
 
             for attendee in attendees:
-                email = str(attendee)
+                email = unicode(attendee)
                 # strip mailto: if it exists
                 if email.lower().startswith("mailto:"):
                     email = email[7:]

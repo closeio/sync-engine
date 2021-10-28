@@ -102,6 +102,7 @@ PyNaCl==0.3.0
 pyOpenSSL==17.5.0
 pyparsing==2.4.7
 pytest==4.6.11
+pytest-timeout==1.4.2
 pytest-cov==2.12.1
 git+https://github.com/nylas/dateutil.git@da336a366cd3f31e3bd7ca925e676e169189e48d#egg=python-dateutil
 python-magic==0.4.6

@@ -12,7 +12,7 @@ from sqlalchemy import create_engine, event
 from inbox.config import config
 from inbox.logging import find_first_app_frame_and_name, get_logger
 from inbox.sqlalchemy_ext.util import (
-    ForceStrictModePool,
+    ForceStrictMode,
     disabled_dubiously_many_queries_warning,
 )
 from inbox.util.stats import statsd_client
@@ -60,7 +60,7 @@ def engine(
 ):
     engine = create_engine(
         database_uri,
-        poolclass=ForceStrictModePool,
+        listeners=[ForceStrictMode()],
         isolation_level="READ COMMITTED",
         echo=echo,
         pool_size=pool_size,

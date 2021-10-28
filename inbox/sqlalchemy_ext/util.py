@@ -17,7 +17,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.ext import baked
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.ext.mutable import Mutable
-from sqlalchemy.pool import QueuePool
+from sqlalchemy.interfaces import PoolListener
 from sqlalchemy.sql import operators
 from sqlalchemy.types import BINARY, TypeDecorator
 
@@ -295,11 +295,6 @@ def generate_public_id():
 
 # Other utilities
 
-
-class ForceStrictModePool(QueuePool):
-    pass
-
-
 # My good old friend Enrico to the rescue:
 # http://www.enricozini.org/2012/tips/sa-sqlmode-traditional/
 #
@@ -307,15 +302,16 @@ class ForceStrictModePool(QueuePool):
 # application level to be extra safe.
 #
 # Without this, MySQL will silently insert invalid values in the database if
-@event.listens_for(ForceStrictModePool, "connect")
-def receive_connect(dbapi_connection, connection_record):
-    cur = dbapi_connection.cursor()
-    cur.execute(
-        "SET SESSION sql_mode='STRICT_TRANS_TABLES,STRICT_ALL_TABLES,"
-        "NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,"
-        "NO_ENGINE_SUBSTITUTION'"
-    )
-    cur = None
+# not running with sql-mode=traditional.
+class ForceStrictMode(PoolListener):
+    def connect(self, dbapi_con, connection_record):
+        cur = dbapi_con.cursor()
+        cur.execute(
+            "SET SESSION sql_mode='STRICT_TRANS_TABLES,STRICT_ALL_TABLES,"
+            "NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,"
+            "NO_ENGINE_SUBSTITUTION'"
+        )
+        cur = None
 
 
 def maybe_refine_query(query, subquery):

@@ -11,7 +11,7 @@ import sqlalchemy
 from inbox.config import config
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.ignition import EngineManager, build_uri, init_db, verify_db
-from inbox.sqlalchemy_ext.util import ForceStrictModePool
+from inbox.sqlalchemy_ext.util import ForceStrictMode
 
 
 @click.command()
@@ -48,7 +48,7 @@ def main(target_hostname, host_ip):
             )
             base_engine = sqlalchemy.create_engine(
                 base_uri,
-                poolclass=ForceStrictModePool,
+                listeners=[ForceStrictMode()],
                 connect_args={"binary_prefix": True},
             )
 

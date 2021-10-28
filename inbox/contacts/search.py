@@ -62,7 +62,7 @@ def _strip_non_numeric(phone_number):
 # unicodedata.category() returns 'Cc'), which cloudsearch will reject
 # Regex taken from Amazon docs:
 # http://docs.aws.amazon.com/cloudsearch/latest/developerguide/preparing-data.html#creating-document-batches
-control_chars_re = re.compile(ur"[^\u0009\u000a\u000d\u0020-\uD7FF\uE000-\uFFFD]")
+control_chars_re = re.compile(r"[^\u0009\u000a\u000d\u0020-\uD7FF\uE000-\uFFFD]")
 
 
 def cloudsearch_contact_repr(contact):

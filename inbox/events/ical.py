@@ -10,6 +10,7 @@ import icalendar
 import pytz
 import requests
 from flanker import mime
+from future.utils import iteritems
 from html2text import html2text
 from icalendar import Calendar as iCalendar
 from past.builtins import unicode
@@ -34,7 +35,7 @@ STATUS_MAP = {
     "DECLINED": "no",
     "TENTATIVE": "maybe",
 }
-INVERTED_STATUS_MAP = {value: key for key, value in STATUS_MAP.iteritems()}
+INVERTED_STATUS_MAP = {value: key for key, value in iteritems(STATUS_MAP)}
 
 
 def events_from_ics(namespace, calendar, ics_str):

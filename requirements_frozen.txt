@@ -41,11 +41,11 @@ funcsigs==1.0.2
 future==0.18.2
 futures==2.2.0
 gdata==2.0.18
-gevent==1.1.2
+gevent==21.8.0
 gevent-openssl==1.2
 gevent-socketio==0.3.5rc2
 gevent-websocket==0.10.1
-greenlet==0.4.9
+greenlet==1.1.2
 gunicorn==19.10.0
 guppy==0.1.10; python_version < '3.0'
 guppy3==3.1.2; python_version >= '3.0'
@@ -135,3 +135,5 @@ WebOb==1.7.4
 Werkzeug==0.14.1
 wrapt==1.10.11
 zipp==1.2.0
+zope.event==4.5.0
+zope.interface==5.4.0 

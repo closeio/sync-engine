@@ -11,7 +11,7 @@ backports.shutil_get_terminal_size==1.0
 backports.ssl==0.0.9
 boto==2.32.0
 boto3==1.17.112
-botocore==1.2.11
+botocore==1.20.112
 bumpversion==0.5.3
 cchardet==2.1.1
 certifi==2020.4.5.1

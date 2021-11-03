@@ -92,7 +92,7 @@ pyasn1==0.2.3
 pycparser==2.18
 pyflakes==0.7.3
 pygments==2.5.2
-pyinstrument==0.12
+pyinstrument==3.2.0
 pylint==1.5.1
 pymongo==2.5.2  # For json_util in bson
 Pympler==0.4.2

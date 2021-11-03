@@ -96,7 +96,7 @@ pyinstrument==3.2.0
 pyinstrument-cext==0.2.2
 pylint==1.5.1
 pymongo==2.5.2  # For json_util in bson
-Pympler==0.4.2
+Pympler==0.9
 PyMySQL==0.6.2
 PyNaCl==0.3.0
 pyOpenSSL==17.5.0

@@ -1,3 +1,7 @@
+from future import standard_library
+
+standard_library.install_aliases()
+
 import time
 import weakref
 from socket import gethostname

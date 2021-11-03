@@ -2,7 +2,7 @@ from future import standard_library
 
 standard_library.install_aliases()
 from gevent import sleep
-from gevent.coros import BoundedSemaphore
+from gevent.lock import BoundedSemaphore
 from gevent.pool import Group
 
 from inbox.basicauth import ValidationError

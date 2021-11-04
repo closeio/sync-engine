@@ -1,4 +1,5 @@
 import abc
+from typing import Union
 
 import arrow
 from future.utils import with_metaclass
@@ -24,7 +25,13 @@ def parse_as_when(raw):
 
 
 def parse_utc(datetime):
+    # type: (Union[float, int, str, arrow.Arrow]) -> arrow.Arrow
     # Arrow can handle epoch timestamps as well as most ISO-8601 strings
+    try:
+        datetime = float(datetime)
+    except (ValueError, TypeError):
+        pass
+
     return arrow.get(datetime).to("utc")
 
 

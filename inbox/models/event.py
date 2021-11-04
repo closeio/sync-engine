@@ -68,6 +68,11 @@ _EVENT_CREATED_SANELY_SENTINEL = object()
 
 
 def time_parse(x):
+    try:
+        x = float(x)
+    except ValueError:
+        pass
+
     return arrow.get(x).to("utc").naive
 
 

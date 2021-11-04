@@ -264,6 +264,8 @@ def raise_imap_error(self):
     raise IMAP4.error("Unexpected IDLE response")
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_gmail_initial_sync(db, default_account, all_mail_folder, mock_imapclient):
     uid_dict = uids.example()
     mock_imapclient.add_folder_data(all_mail_folder.name, uid_dict)

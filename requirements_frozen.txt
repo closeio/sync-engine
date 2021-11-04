@@ -114,7 +114,6 @@ scandir==1.10.0
 setproctitle==1.1.10
 setuptools==44.0.0
 simplegeneric==0.8.1
-simplejson==3.6.0
 singledispatch==3.4.0.3
 six==1.11.0
 sortedcontainers==2.4.0
@@ -125,7 +124,6 @@ tldextract==1.7.5
 toml==0.10.2
 traitlets==4.3.2
 typing==3.10.0.0; python_version < '3.5'
-uritemplate==0.6
 urllib3==1.22
 vobject==0.9.1
 wcwidth==0.2.5

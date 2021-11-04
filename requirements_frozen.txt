@@ -105,7 +105,7 @@ pytest-cov==2.12.1
 git+https://github.com/nylas/dateutil.git@da336a366cd3f31e3bd7ca925e676e169189e48d#egg=python-dateutil
 python-magic==0.4.6
 pytz==2017.3
-PyYAML==3.12
+PyYAML==5.4.1
 redis==2.10.6
 regex==2018.1.10
 requests==2.11.0

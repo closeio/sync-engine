@@ -10,8 +10,8 @@ backports.functools-lru-cache==1.4
 backports.shutil_get_terminal_size==1.0
 backports.ssl==0.0.9
 boto==2.32.0
-boto3==1.1.4
-botocore==1.2.11
+boto3==1.17.112
+botocore==1.20.112
 bumpversion==0.5.3
 cchardet==2.1.1
 certifi==2020.4.5.1
@@ -107,6 +107,7 @@ redis==2.10.6
 regex==2018.1.10
 requests==2.26.0
 rollbar==0.16.1
+s3transfer==0.4.2
 scandir==1.10.0
 setproctitle==1.1.10
 setuptools==44.0.0

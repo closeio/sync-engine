@@ -100,7 +100,7 @@ class GreenletTracer(object):
         self._last_switch_time = None
         self._switch_flag = False
         self._active_greenlet = None
-        self._main_thread_id = gevent._threading.get_ident()
+        self._main_thread_id = gevent._threading.get_thread_ident()
         self._hub = gevent.hub.get_hub()
         self.last_logged_stats = time.time()
         self.last_checked_blocking = time.time()
@@ -307,7 +307,7 @@ class Tracer(object):
         self._last_switch_time = None
         self._switch_flag = False
         self._active_greenlet = None
-        self._main_thread_id = gevent._threading.get_ident()
+        self._main_thread_id = gevent._threading.get_thread_ident()
         self._hub = gevent.hub.get_hub()
         self.log = get_logger()
 

@@ -103,7 +103,6 @@ pytest==4.6.11
 pytest-timeout==1.4.2
 pytest-cov==2.12.1
 git+https://github.com/nylas/dateutil.git@da336a366cd3f31e3bd7ca925e676e169189e48d#egg=python-dateutil
-python-magic==0.4.6
 pytz==2017.3
 PyYAML==3.12
 redis==2.10.6

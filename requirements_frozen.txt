@@ -96,7 +96,7 @@ pylint==1.5.1
 pymongo==2.5.2  # For json_util in bson
 Pympler==0.9
 PyMySQL==0.6.2
-PyNaCl==0.3.0
+PyNaCl==1.4.0
 pyOpenSSL==17.5.0
 pyparsing==2.4.7
 pytest==4.6.11

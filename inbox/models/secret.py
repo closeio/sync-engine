@@ -30,6 +30,7 @@ class Secret(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
     @property
     def secret(self):
+        # type: () -> bytes
         with get_decryption_oracle("SECRET_ENCRYPTION_KEY") as d_oracle:
             return d_oracle.decrypt(
                 self._secret, encryption_scheme=self.encryption_scheme

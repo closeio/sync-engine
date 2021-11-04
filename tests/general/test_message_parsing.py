@@ -3,6 +3,7 @@
 """Sanity-check our construction of a Message object from raw synced data."""
 import datetime
 import pkgutil
+import sys
 
 import pytest
 from flanker import mime
@@ -435,9 +436,13 @@ def test_parse_body_on_bad_attachment(default_account, raw_message_with_bad_atta
         received_date,
         raw_message_with_bad_attachment,
     )
-    assert m.decode_error
+    if sys.version_info < (3,):
+        assert m.decode_error
     assert "dingy blue carpet" in m.body
-    assert len(m.parts) == 0
+    assert len(m.parts) == 0 if sys.version_info < (3,) else 1
+    if sys.version_info >= (3,):
+        assert m.parts[0].is_attachment
+        assert m.parts[0].block.data.decode() == "EMPTY 😊\n"
 
 
 def test_calculate_snippet():

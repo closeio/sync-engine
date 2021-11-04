@@ -937,39 +937,39 @@ def test_multisend_message_rejected_for_security(
 def test_raw_bcc_replacements(patch_smtp, api_client):
     # Check that we're replacing "Bcc:" correctly from messages.
     res = _substitute_bcc(
-        "From: bob@foocorp.com\r\n"
-        "To: \r\n"
-        "Bcc: karim@nylas.com\r\n"
-        "Subject: "
-        "[go-nuts] Runtime Panic On Method"
-        "Call \r\n"
-        "Mime-Version: 1.0\r\n"
-        "Content-Type: "
-        "text/plain; charset=UTF-8\r\n"
-        "Content-Transfer-Encoding: 7bit\r\n"
-        "X-My-Custom-Header: Random"
-        "\r\n\r\n"
+        b"From: bob@foocorp.com\r\n"
+        b"To: \r\n"
+        b"Bcc: karim@nylas.com\r\n"
+        b"Subject: "
+        b"[go-nuts] Runtime Panic On Method"
+        b"Call \r\n"
+        b"Mime-Version: 1.0\r\n"
+        b"Content-Type: "
+        b"text/plain; charset=UTF-8\r\n"
+        b"Content-Transfer-Encoding: 7bit\r\n"
+        b"X-My-Custom-Header: Random"
+        b"\r\n\r\n"
     )
 
-    assert "karim@nylas.com" not in res
+    assert b"karim@nylas.com" not in res
 
     res = _substitute_bcc(
-        "From: bob@foocorp.com\r\n"
-        "To: \r\n"
-        "BCC: karim@nylas.com\r\n"
-        "Subject: "
-        "[go-nuts] Runtime BCC: On Method"
-        "Call \r\n"
-        "Mime-Version: 1.0\r\n"
-        "Content-Type: "
-        "text/plain; charset=UTF-8\r\n"
-        "Content-Transfer-Encoding: 7bit\r\n"
-        "X-My-Custom-Header: Random"
-        "\r\n\r\n"
+        b"From: bob@foocorp.com\r\n"
+        b"To: \r\n"
+        b"BCC: karim@nylas.com\r\n"
+        b"Subject: "
+        b"[go-nuts] Runtime BCC: On Method"
+        b"Call \r\n"
+        b"Mime-Version: 1.0\r\n"
+        b"Content-Type: "
+        b"text/plain; charset=UTF-8\r\n"
+        b"Content-Transfer-Encoding: 7bit\r\n"
+        b"X-My-Custom-Header: Random"
+        b"\r\n\r\n"
     )
 
-    assert "karim@nylas.com" not in res
-    assert "Runtime BCC:" in res
+    assert b"karim@nylas.com" not in res
+    assert b"Runtime BCC:" in res
 
 
 def test_inline_image_send(patch_smtp, api_client, uploaded_file_ids):

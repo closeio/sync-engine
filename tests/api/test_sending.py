@@ -969,7 +969,7 @@ def test_raw_bcc_replacements(patch_smtp, api_client):
     )
 
     assert b"karim@nylas.com" not in res
-    assert b"Runtime BCC:" in res
+    assert b"Runtime BCC: On MethodCall" in res
 
 
 def test_inline_image_send(patch_smtp, api_client, uploaded_file_ids):

@@ -11,25 +11,21 @@ log = get_logger()
 # TODO: store AWS credentials in a better way.
 STORE_MSG_ON_S3 = config.get("STORE_MESSAGES_ON_S3", None)
 
-if STORE_MSG_ON_S3:
-    from boto.s3.connection import S3Connection
-    from boto.s3.key import Key
-else:
-    from inbox.util.file import mkdirp
 
-    def _data_file_directory(h):
-        return os.path.join(
-            config.get_required("MSG_PARTS_DIRECTORY"),
-            h[0],
-            h[1],
-            h[2],
-            h[3],
-            h[4],
-            h[5],
-        )
+from boto.s3.connection import S3Connection
+from boto.s3.key import Key
 
-    def _data_file_path(h):
-        return os.path.join(_data_file_directory(h), h)
+from inbox.util.file import mkdirp
+
+
+def _data_file_directory(h):
+    return os.path.join(
+        config.get_required("MSG_PARTS_DIRECTORY"), h[0], h[1], h[2], h[3], h[4], h[5],
+    )
+
+
+def _data_file_path(h):
+    return os.path.join(_data_file_directory(h), h)
 
 
 def save_to_blockstore(data_sha256, data):
@@ -60,6 +56,17 @@ def _save_to_s3(data_sha256, data):
     _save_to_s3_bucket(data_sha256, config.get("TEMP_MESSAGE_STORE_BUCKET_NAME"), data)
 
 
+def get_s3_bucket(bucket_name):
+    conn = S3Connection(
+        config.get("AWS_ACCESS_KEY_ID"),
+        config.get("AWS_SECRET_ACCESS_KEY"),
+        host=config.get("AWS_S3_HOST", S3Connection.DefaultHost),
+        port=config.get("AWS_S3_PORT"),
+        is_secure=config.get("AWS_S3_IS_SECURE", True),
+    )
+    return conn.get_bucket(bucket_name, validate=False)
+
+
 def _save_to_s3_bucket(data_sha256, bucket_name, data):
     # type: (str, str, bytes) -> None
     assert "AWS_ACCESS_KEY_ID" in config, "Need AWS key!"
@@ -67,10 +74,7 @@ def _save_to_s3_bucket(data_sha256, bucket_name, data):
     start = time.time()
 
     # Boto pools connections at the class level
-    conn = S3Connection(
-        config.get("AWS_ACCESS_KEY_ID"), config.get("AWS_SECRET_ACCESS_KEY")
-    )
-    bucket = conn.get_bucket(bucket_name, validate=False)
+    bucket = get_s3_bucket(bucket_name)
 
     # See if it already exists; if so, don't recreate.
     key = bucket.get_key(data_sha256)
@@ -136,10 +140,7 @@ def _get_from_s3_bucket(data_sha256, bucket_name):
     if not data_sha256:
         return None
 
-    conn = S3Connection(
-        config.get("AWS_ACCESS_KEY_ID"), config.get("AWS_SECRET_ACCESS_KEY")
-    )
-    bucket = conn.get_bucket(bucket_name, validate=False)
+    bucket = get_s3_bucket(bucket_name)
 
     key = bucket.get_key(data_sha256)
 
@@ -172,10 +173,7 @@ def _delete_from_s3_bucket(data_sha256_hashes, bucket_name):
     start = time.time()
 
     # Boto pools connections at the class level
-    conn = S3Connection(
-        config.get("AWS_ACCESS_KEY_ID"), config.get("AWS_SECRET_ACCESS_KEY")
-    )
-    bucket = conn.get_bucket(bucket_name, validate=False)
+    bucket = get_s3_bucket(bucket_name)
 
     bucket.delete_keys([key for key in data_sha256_hashes], quiet=True)
 

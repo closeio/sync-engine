@@ -93,6 +93,8 @@ def raw_message_with_long_message_id():
     return pkgutil.get_data("tests", "data/raw_message_with_long_message_id.txt")
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_message_from_synced(db, new_message_from_synced, default_namespace):
     thread = add_fake_thread(db.session, default_namespace.id)
     m = new_message_from_synced
@@ -115,6 +117,8 @@ def test_message_from_synced(db, new_message_from_synced, default_namespace):
     assert len(m.parts) == 0
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_save_attachments(db, default_account):
     mime_msg = mime.create.multipart("mixed")
     mime_msg.append(

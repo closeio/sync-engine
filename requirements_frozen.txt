@@ -52,7 +52,7 @@ hiredis==0.1.5
 html2text==2014.9.8
 hypothesis==4.57.1
 icalendar==3.9.1
-idna==2.6
+idna==2.9
 git+https://github.com/closeio/imapclient.git@aca1b9b3624f28dca8fdf5e140704c8b7d57820f#egg=imapclient
 importlib-metadata==2.1.1
 ipaddress==1.0.19
@@ -106,6 +106,7 @@ PyYAML==5.4.1
 redis==2.10.6
 regex==2018.1.10
 requests==2.26.0
+requests-file==1.5.1
 rollbar==0.16.1
 s3transfer==0.4.2
 scandir==1.10.0
@@ -118,7 +119,7 @@ sortedcontainers==2.4.0
 git+https://github.com/mhahnenberg/sqlalchemy.git@e5f7586346ce5fafe2c182f70bf6ef998aa59b68#egg=SQLAlchemy
 statsd==3.3.0
 structlog==20.1.0
-tldextract==1.7.5
+tldextract==2.2.3
 toml==0.10.2
 traitlets==4.3.2
 typing==3.10.0.0; python_version < '3.5'

@@ -43,8 +43,6 @@ futures==2.2.0
 gdata==2.0.18
 gevent==21.8.0
 gevent-openssl==1.2
-gevent-socketio==0.3.5rc2
-gevent-websocket==0.10.1
 greenlet==1.1.2
 gunicorn==19.10.0
 guppy==0.1.10; python_version < '3.0'

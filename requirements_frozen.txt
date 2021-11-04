@@ -100,7 +100,7 @@ pyparsing==2.4.7
 pytest==4.6.11
 pytest-timeout==1.4.2
 pytest-cov==2.12.1
-git+https://github.com/nylas/dateutil.git@da336a366cd3f31e3bd7ca925e676e169189e48d#egg=python-dateutil
+python-dateutil==2.8.2
 pytz==2017.3
 PyYAML==5.4.1
 redis==2.10.6

@@ -47,7 +47,7 @@ greenlet==1.1.2
 gunicorn==19.10.0
 guppy==0.1.10; python_version < '3.0'
 guppy3==3.1.2; python_version >= '3.0'
-hiredis==0.1.5
+hiredis==1.1.0
 html2text==2014.9.8
 httplib2==0.8
 hypothesis==4.57.1

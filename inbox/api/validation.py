@@ -99,6 +99,9 @@ def offset(value):
 
 
 def valid_public_id(value):
+    if "_" in value:
+        raise InputError(u"Invalid id: {}".format(value))
+
     try:
         # raise ValueError on malformed public ids
         # raise TypeError if an integer is passed in

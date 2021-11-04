@@ -85,7 +85,6 @@ psutil==5.8.0
 ptyprocess==0.7.0
 prompt-toolkit==1.0.18
 py==1.10.0
-pyaml==14.5.7
 pyasn1==0.2.3
 pycparser==2.18
 pyflakes==0.7.3
@@ -103,7 +102,7 @@ pytest-timeout==1.4.2
 pytest-cov==2.12.1
 git+https://github.com/nylas/dateutil.git@da336a366cd3f31e3bd7ca925e676e169189e48d#egg=python-dateutil
 pytz==2017.3
-PyYAML==3.12
+PyYAML==5.4.1
 redis==2.10.6
 regex==2018.1.10
 requests==2.26.0

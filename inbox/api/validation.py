@@ -26,7 +26,7 @@ MAX_LIMIT = 1000
 
 
 class ValidatableArgument(reqparse.Argument):
-    def handle_validation_error(self, error):
+    def handle_validation_error(self, error, bundle_errors):
         raise InputError(str(error))
 
 

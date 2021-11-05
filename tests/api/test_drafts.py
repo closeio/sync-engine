@@ -182,7 +182,11 @@ def test_drafts_filter(api_client, example_draft):
     assert len(results) == 1
 
 
-def test_create_draft_with_attachments(api_client, attachments, example_draft):
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
+def test_create_draft_with_attachments(
+    api_client, attachments, example_draft,
+):
     attachment_ids = []
     upload_path = "/files"
     for filename, path in attachments:

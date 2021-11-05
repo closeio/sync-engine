@@ -108,11 +108,13 @@ def _transform_ssl_error(strerror):
 
 
 def _substitute_bcc(raw_message):
+    # type: (bytes) -> bytes
     """
     Substitute BCC in raw message.
     """
-    bcc_regexp = re.compile(r"^Bcc: [^\r\n]*\r\n", re.IGNORECASE | re.MULTILINE)
-    return bcc_regexp.sub("", raw_message)
+
+    bcc_regexp = re.compile(br"^Bcc: [^\r\n]*\r\n", re.IGNORECASE | re.MULTILINE)
+    return bcc_regexp.sub(b"", raw_message)
 
 
 class SMTPConnection(object):

@@ -51,7 +51,7 @@ guppy3==3.1.2; python_version >= '3.0'
 hiredis==1.1.0
 html2text==2019.8.11
 hypothesis==4.57.1
-icalendar==3.9.1
+icalendar==4.0.9
 idna==2.9
 git+https://github.com/closeio/imapclient.git@aca1b9b3624f28dca8fdf5e140704c8b7d57820f#egg=imapclient
 importlib-metadata==2.1.1

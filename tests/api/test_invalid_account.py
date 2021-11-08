@@ -36,7 +36,6 @@ def setup_account(message, thread, label, contact, event):
         "message": message.public_id,
         "thread": thread.public_id,
         "label": label.category.public_id,
-        "contact": contact.public_id,
         "event": event.public_id,
     }
 

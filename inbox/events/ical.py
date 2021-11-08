@@ -16,7 +16,6 @@ from icalendar import Calendar as iCalendar
 from past.builtins import unicode
 
 from inbox.config import config
-from inbox.contacts.processing import update_contacts_from_event
 from inbox.events.util import MalformedEventError
 from inbox.logging import get_logger
 from inbox.models.action_log import schedule_action
@@ -317,7 +316,6 @@ def process_invites(db_session, message, account, invites):
             event.message = message
 
             db_session.flush()
-            update_contacts_from_event(db_session, event, account.namespace.id)
         else:
             # This is an event we already have in the db.
             # Let's see if the version we have is older or newer.
@@ -340,9 +338,6 @@ def process_invites(db_session, message, account, invites):
 
                 db_session.flush()
                 existing_event.contacts = []
-                update_contacts_from_event(
-                    db_session, existing_event, account.namespace.id
-                )
 
 
 def _cleanup_nylas_uid(uid):

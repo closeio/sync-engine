@@ -26,7 +26,6 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import joinedload, load_only
 from sqlalchemy.orm.exc import NoResultFound
 
-import inbox.contacts.crud
 from inbox.actions.backends.generic import remote_delete_sent
 from inbox.api import filtering
 from inbox.api.err import (
@@ -71,13 +70,6 @@ from inbox.api.validation import (
     view,
 )
 from inbox.config import config
-from inbox.contacts.algorithms import (
-    calculate_contact_scores,
-    calculate_group_counts,
-    calculate_group_scores,
-    is_stale,
-)
-from inbox.contacts.search import ContactSearchClient
 from inbox.crispin import writable_connection_pool
 from inbox.events.ical import generate_rsvp, send_rsvp
 from inbox.events.util import removed_participants
@@ -955,71 +947,6 @@ def folder_label_delete_api(public_id):
     g.db_session.commit()
 
     return g.encoder.jsonify(None)
-
-
-#
-# Contacts
-##
-@app.route("/contacts/", methods=["GET"])
-def contact_api():
-    g.parser.add_argument("filter", type=bounded_str, default="", location="args")
-    g.parser.add_argument("view", type=bounded_str, location="args")
-
-    args = strict_parse_args(g.parser, request.args)
-    if args["view"] == "count":
-        results = g.db_session.query(func.count(Contact.id))
-    elif args["view"] == "ids":
-        results = g.db_session.query(Contact.public_id)
-    else:
-        results = g.db_session.query(Contact)
-
-    results = results.filter(Contact.namespace_id == g.namespace.id)
-
-    if args["filter"]:
-        results = results.filter(Contact.email_address == args["filter"])
-    results = results.with_hint(Contact, "USE INDEX (idx_namespace_created)").order_by(
-        asc(Contact.created_at)
-    )
-
-    if args["view"] == "count":
-        return g.encoder.jsonify({"count": results.scalar()})
-
-    if args["view"] != "ids":
-        results = results.options(
-            load_only("public_id", "_raw_address", "name"),
-            joinedload(Contact.phone_numbers),
-        )
-
-    results = results.limit(args["limit"]).offset(args["offset"]).all()
-    if args["view"] == "ids":
-        return g.encoder.jsonify([r for r, in results])
-
-    return g.encoder.jsonify(results)
-
-
-@app.route("/contacts/search", methods=["GET"])
-def contact_search_api():
-    g.parser.add_argument("q", type=bounded_str, location="args")
-    args = strict_parse_args(g.parser, request.args)
-    if not args["q"]:
-        err_string = "GET HTTP method must include query" " url parameter"
-        raise InputError(err_string)
-
-    search_client = ContactSearchClient(g.namespace.id)
-    results = search_client.search_contacts(
-        g.db_session, args["q"], offset=args["offset"], limit=args["limit"]
-    )
-    return g.encoder.jsonify(results)
-
-
-@app.route("/contacts/<public_id>", methods=["GET"])
-def contact_read_api(public_id):
-    # Get all data for an existing contact.
-    valid_public_id(public_id)
-    result = inbox.contacts.crud.read(g.namespace, g.db_session, public_id)
-    if result is None:
-        raise NotFoundError("Couldn't find contact {0}".format(public_id))
-    return g.encoder.jsonify(result)
 
 
 ##
@@ -2182,102 +2109,3 @@ def stream_changes():
         is_n1=is_n1,
     )
     return Response(stream_with_context(generator), mimetype="text/event-stream")
-
-
-##
-# Groups and Contact Rankings
-##
-
-
-@app.route("/groups/intrinsic")
-def groups_intrinsic():
-    g.parser.add_argument("force_recalculate", type=strict_bool, location="args")
-    args = strict_parse_args(g.parser, request.args)
-    try:
-        dpcache = (
-            g.db_session.query(DataProcessingCache)
-            .filter(DataProcessingCache.namespace_id == g.namespace.id)
-            .one()
-        )
-    except NoResultFound:
-        dpcache = DataProcessingCache(namespace_id=g.namespace.id)
-
-    last_updated = dpcache.contact_groups_last_updated
-    cached_data = dpcache.contact_groups
-
-    use_cached_data = (
-        not (is_stale(last_updated) or cached_data is None)
-        and args["force_recalculate"] is not True
-    )
-
-    if not use_cached_data:
-        last_updated = None
-
-    messages = filtering.messages_for_contact_scores(
-        g.db_session, g.namespace.id, last_updated
-    )
-
-    from_email = g.namespace.email_address
-
-    if use_cached_data:
-        result = cached_data
-        new_guys = calculate_group_counts(messages, from_email)
-        for k, v in new_guys.items():
-            if k in result:
-                result[k] += v
-            else:
-                result[k] = v
-    else:
-        result = calculate_group_scores(messages, from_email)
-        dpcache.contact_groups = result
-        g.db_session.add(dpcache)
-        g.db_session.commit()
-
-    result = sorted(result.items(), key=lambda x: x[1], reverse=True)
-    return g.encoder.jsonify(result)
-
-
-@app.route("/contacts/rankings")
-def contact_rankings():
-    g.parser.add_argument("force_recalculate", type=strict_bool, location="args")
-    args = strict_parse_args(g.parser, request.args)
-    try:
-        dpcache = (
-            g.db_session.query(DataProcessingCache)
-            .filter(DataProcessingCache.namespace_id == g.namespace.id)
-            .one()
-        )
-    except NoResultFound:
-        dpcache = DataProcessingCache(namespace_id=g.namespace.id)
-
-    last_updated = dpcache.contact_rankings_last_updated
-    cached_data = dpcache.contact_rankings
-
-    use_cached_data = (
-        not (is_stale(last_updated) or cached_data is None)
-        and args["force_recalculate"] is not True
-    )
-
-    if not use_cached_data:
-        last_updated = None
-
-    messages = filtering.messages_for_contact_scores(
-        g.db_session, g.namespace.id, last_updated
-    )
-
-    if use_cached_data:
-        new_guys = calculate_contact_scores(messages, time_dependent=False)
-        result = cached_data
-        for k, v in new_guys.items():
-            if k in result:
-                result[k] += v
-            else:
-                result[k] = v
-    else:
-        result = calculate_contact_scores(messages)
-        dpcache.contact_rankings = result
-        g.db_session.add(dpcache)
-        g.db_session.commit()
-
-    result = sorted(result.items(), key=lambda x: x[1], reverse=True)
-    return g.encoder.jsonify(result)

@@ -20,7 +20,6 @@ from sqlalchemy import bindparam, desc
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql.expression import func
 
-from inbox.contacts.processing import update_contacts_from_message
 from inbox.logging import get_logger
 from inbox.models import Account, ActionLog, Folder, Message, MessageCategory
 from inbox.models.backends.imap import ImapFolderInfo, ImapUid
@@ -267,8 +266,6 @@ def create_imap_message(db_session, account, folder, msg):
             folder.canonical_name == "drafts" or folder.canonical_name == "all"
         )
         update_message_metadata(db_session, account, new_message, is_draft)
-
-    update_contacts_from_message(db_session, new_message, account.namespace.id)
 
     return imapuid
 

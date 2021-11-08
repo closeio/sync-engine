@@ -10,16 +10,7 @@ __all__ = ["generic_account"]
 # Label views should only work for Gmail accounts. folders 404
 @pytest.mark.parametrize(
     "resource_name",
-    [
-        "messages",
-        "drafts",
-        "files",
-        "events",
-        "folders",
-        "labels",
-        "calendars",
-        "contacts",
-    ],
+    ["messages", "drafts", "files", "events", "folders", "labels", "calendars",],
 )
 def test_resource_views(
     resource_name,

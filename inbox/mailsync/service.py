@@ -9,7 +9,6 @@ from sqlalchemy import and_, or_
 from sqlalchemy.exc import OperationalError
 
 from inbox.config import config
-from inbox.contacts.remote_sync import ContactSync
 from inbox.error_handling import log_uncaught_errors
 from inbox.events.remote_sync import EventSync, GoogleEventSync
 from inbox.heartbeat.status import clear_heartbeat_status
@@ -296,16 +295,6 @@ class SyncService(object):
                     monitor.start()
 
                 info = acc.provider_info
-                if info.get("contacts", None) and acc.sync_contacts:
-                    contact_sync = ContactSync(
-                        acc.email_address,
-                        acc.verbose_provider,
-                        acc.id,
-                        acc.namespace.id,
-                    )
-                    self.contact_sync_monitors[acc.id] = contact_sync
-                    contact_sync.start()
-
                 if info.get("events", None) and acc.sync_events:
                     if USE_GOOGLE_PUSH_NOTIFICATIONS and acc.provider == "gmail":
                         event_sync = GoogleEventSync(

@@ -67,7 +67,6 @@ def test_exclude_and_include_object_types(db, api_client, thread, default_namesp
     responses = r.get_data(as_text=True).split("\n")
     parsed_responses = [json.loads(resp) for resp in responses if resp != ""]
     assert any(resp["object"] == "message" for resp in parsed_responses)
-    assert any(resp["object"] == "contact" for resp in parsed_responses)
 
     # And check that we don't get message/contact changes if we exclude them.
     url = url_concat(
@@ -79,7 +78,6 @@ def test_exclude_and_include_object_types(db, api_client, thread, default_namesp
     responses = r.get_data(as_text=True).split("\n")
     parsed_responses = [json.loads(resp) for resp in responses if resp != ""]
     assert not any(resp["object"] == "message" for resp in parsed_responses)
-    assert not any(resp["object"] == "contact" for resp in parsed_responses)
 
     # And check we only get message objects if we use include_types
     url = url_concat(
@@ -141,9 +139,9 @@ def test_longpoll_delta_newitem(db, api_client, default_namespace, thread):
     end_time = time.time()
     assert end_time - start_time < LONGPOLL_EPSILON
     parsed_responses = json.loads(longpoll_greenlet.value.data)
-    assert len(parsed_responses["deltas"]) == 3
+    assert len(parsed_responses["deltas"]) == 2
     assert set(k["object"] for k in parsed_responses["deltas"]) == set(
-        [u"message", u"contact", u"thread"]
+        [u"message", u"thread"]
     )
 
 

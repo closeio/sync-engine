@@ -347,7 +347,6 @@ def add_fake_message(
     g_msgid=None,
     add_sent_category=False,
 ):
-    from inbox.contacts.processing import update_contacts_from_message
     from inbox.models import Category, Message
 
     m = Message()
@@ -367,7 +366,6 @@ def add_fake_message(
 
     if thread:
         thread.messages.append(m)
-        update_contacts_from_message(db_session, m, thread.namespace.id)
 
         db_session.add(m)
         db_session.commit()

@@ -303,6 +303,8 @@ def configure_logging(log_level=None):
 
     imapclient_logger = logging.getLogger("imapclient.imapclient")
     imapclient_logger.setLevel(logging.ERROR)
+    imapclient_logger.propagate = False
+    imapclient_logger.disabled = True
 
 
 def create_error_log_context(exc_info):

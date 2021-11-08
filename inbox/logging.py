@@ -301,6 +301,9 @@ def configure_logging(log_level=None):
     root_logger.addHandler(tty_handler)
     root_logger.setLevel(log_level)
 
+    imapclient_logger = logging.getLogger("imapclient.imapclient")
+    imapclient_logger.setLevel(logging.ERROR)
+
 
 def create_error_log_context(exc_info):
     exc_type, exc_value, exc_tb = exc_info

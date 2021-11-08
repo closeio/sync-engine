@@ -301,10 +301,8 @@ def configure_logging(log_level=None):
     root_logger.addHandler(tty_handler)
     root_logger.setLevel(log_level)
 
-    imapclient_logger = logging.getLogger("imapclient.imapclient")
+    imapclient_logger = logging.getLogger("imapclient.imaplib")
     imapclient_logger.setLevel(logging.ERROR)
-    imapclient_logger.propagate = False
-    imapclient_logger.disabled = True
 
 
 def create_error_log_context(exc_info):

@@ -287,7 +287,7 @@ def configure_logging(log_level=None):
             },
         )
     else:
-        formatter = logging.Formatter("%(message)s")
+        formatter = logging.Formatter("%(name)s - %(levelname)-8s - %(message)s")
     tty_handler.setFormatter(formatter)
     tty_handler._nylas = True
 

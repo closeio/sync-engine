@@ -218,12 +218,12 @@ class MockIMAPClient(object):
                 m = re.match("CHANGEDSINCE (?P<modseq>[0-9]+)", modifiers[0])
                 if m:
                     modseq = int(m.group("modseq"))
-                    items = {u for u in items if uid_dict[u]["MODSEQ"][0] > modseq}
+                    items = {u for u in items if uid_dict[u][b"MODSEQ"][0] > modseq}
         data = [d.encode() for d in data]
         for u in items:
             if u in uid_dict:
                 resp[u] = {
-                    k: v for k, v in uid_dict[u].items() if k in data or k == "MODSEQ"
+                    k: v for k, v in uid_dict[u].items() if k in data or k == b"MODSEQ"
                 }
         return resp
 
@@ -257,7 +257,10 @@ class MockIMAPClient(object):
         lastuid = max(folder_data) if folder_data else 0
         resp = {b"UIDNEXT": lastuid + 1, b"UIDVALIDITY": self.uidvalidity}
         if data and "HIGHESTMODSEQ" in data:
-            resp[b"HIGHESTMODSEQ"] = max(v[b"MODSEQ"] for v in folder_data.values())
+            resp[b"HIGHESTMODSEQ"] = max(
+                v[b"MODSEQ"][0] if isinstance(v[b"MODSEQ"], tuple) else v[b"MODSEQ"]
+                for v in folder_data.values()
+            )
         return resp
 
     def delete_messages(self, uids, silent=False):

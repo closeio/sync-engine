@@ -301,9 +301,9 @@ def test_renamed_label_refresh(
 
     new_flags = {
         msg_uid: {
-            "FLAGS": ("\\Seen",),
-            "X-GM-LABELS": ("new label",),
-            "MODSEQ": ("23",),
+            b"FLAGS": (b"\\Seen",),
+            b"X-GM-LABELS": (b"new label",),
+            b"MODSEQ": (23,),
         }
     }
     mock_imapclient._data["[Gmail]/All mail"] = new_flags

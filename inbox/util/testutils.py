@@ -257,10 +257,7 @@ class MockIMAPClient(object):
         lastuid = max(folder_data) if folder_data else 0
         resp = {b"UIDNEXT": lastuid + 1, b"UIDVALIDITY": self.uidvalidity}
         if data and "HIGHESTMODSEQ" in data:
-            resp[b"HIGHESTMODSEQ"] = max(
-                v[b"MODSEQ"][0] if isinstance(v[b"MODSEQ"], tuple) else v[b"MODSEQ"]
-                for v in folder_data.values()
-            )
+            resp[b"HIGHESTMODSEQ"] = max(v[b"MODSEQ"][0] for v in folder_data.values())
         return resp
 
     def delete_messages(self, uids, silent=False):

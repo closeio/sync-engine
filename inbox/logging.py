@@ -251,6 +251,21 @@ def json_excepthook(etype, value, tb):
     log.error(**create_error_log_context((etype, value, tb)))
 
 
+class ConditionalFormatter(logging.Formatter):
+    def format(self, record):
+        if record.name == "inbox" or record.name.startswith("inbox."):
+            style = "%(message)s"
+        else:
+            style = "%(name)s - %(levelname)s: %(message)s"
+
+        if sys.version_info < (3,):
+            self._fmt = style
+        else:
+            self._style._fmt = style
+
+        return super(ConditionalFormatter, self).format(record)
+
+
 def configure_logging(log_level=None):
     """ Idempotently configure logging.
 
@@ -287,7 +302,7 @@ def configure_logging(log_level=None):
             },
         )
     else:
-        formatter = logging.Formatter("%(name)s - %(levelname)-8s - %(message)s")
+        formatter = ConditionalFormatter()
     tty_handler.setFormatter(formatter)
     tty_handler._nylas = True
 

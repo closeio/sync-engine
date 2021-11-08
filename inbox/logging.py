@@ -253,7 +253,12 @@ def json_excepthook(etype, value, tb):
 
 class ConditionalFormatter(logging.Formatter):
     def format(self, record):
-        if record.name == "inbox" or record.name.startswith("inbox."):
+        if (
+            record.name == "inbox"
+            or record.name.startswith("inbox.")
+            or record.name == "gunicorn"
+            or record.name.startswith("gunicorn.")
+        ):
             style = "%(message)s"
         else:
             style = "%(name)s - %(levelname)s: %(message)s"

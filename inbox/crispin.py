@@ -62,13 +62,13 @@ __all__ = ["CrispinClient", "GmailCrispinClient"]
 Flags = namedtuple("Flags", "flags modseq")
 # class Flags(NamedTuple):
 #     flags: Tuple[bytes, ...]
-#     modseq: Optional[Any]
+#     modseq: Optional[int]
 # Flags includes labels on Gmail because Gmail doesn't use \Draft.
 GmailFlags = namedtuple("GmailFlags", "flags labels modseq")
 # class GmailFlags(NamedTuple):
 #     flags: Tuple[bytes, ...]
 #     labels: List[str]
-#     modseq: Optional[Any]
+#     modseq: Optional[int]
 GMetadata = namedtuple("GMetadata", "g_msgid g_thrid size")
 RawMessage = namedtuple(
     "RawImapMessage", "uid internaldate flags body g_thrid g_msgid g_labels"
@@ -1001,11 +1001,12 @@ class CrispinClient(object):
         return r
 
     def condstore_changed_flags(self, modseq):
+        # type: (int) -> Dict[int, Flags]
         data = self.conn.fetch(
             "1:*", ["FLAGS"], modifiers=["CHANGEDSINCE {}".format(modseq)]
-        )
+        )  # type: Dict[int, Dict[bytes, Any]]
         return {
-            uid: Flags(ret["FLAGS"], ret["MODSEQ"][0] if "MODSEQ" in ret else None)
+            uid: Flags(ret[b"FLAGS"], ret[b"MODSEQ"][0] if b"MODSEQ" in ret else None)
             for uid, ret in data.items()
         }
 
@@ -1071,26 +1072,31 @@ class GmailCrispinClient(CrispinClient):
         }
 
     def condstore_changed_flags(self, modseq):
+        # type: (int) -> Dict[int, GmailFlags]
         data = self.conn.fetch(
             "1:*",
             ["FLAGS", "X-GM-LABELS"],
             modifiers=["CHANGEDSINCE {}".format(modseq)],
-        )
-        results = {}
+        )  # type: Dict[int, Dict[bytes, Any]]
+        results = {}  # type: Dict[int, GmailFlags]
         for uid, ret in data.items():
-            if "FLAGS" not in ret or "X-GM-LABELS" not in ret:
+            if b"FLAGS" not in ret or b"X-GM-LABELS" not in ret:
                 # We might have gotten an unsolicited fetch response that
                 # doesn't have all the data we asked for -- if so, explicitly
                 # fetch flags and labels for that UID.
                 log.info(
                     "Got incomplete response in flags fetch", uid=uid, ret=str(ret)
                 )
-                data_for_uid = self.conn.fetch(uid, ["FLAGS", "X-GM-LABELS"])
+                data_for_uid = self.conn.fetch(
+                    uid, ["FLAGS", "X-GM-LABELS"]
+                )  # type: Dict[int, Dict[bytes, Any]]
                 if not data_for_uid:
                     continue
                 ret = data_for_uid[uid]
             results[uid] = GmailFlags(
-                ret["FLAGS"], self._decode_labels(ret["X-GM-LABELS"]), ret["MODSEQ"][0]
+                ret[b"FLAGS"],
+                self._decode_labels(ret[b"X-GM-LABELS"]),
+                ret[b"MODSEQ"][0],
             )
         return results
 

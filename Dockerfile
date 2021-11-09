@@ -37,7 +37,7 @@ RUN if [ "${PYTHON_VERSION}" != "2.7" ] ; \
     add-apt-repository ppa:deadsnakes/ppa; \
     DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y python"${PYTHON_VERSION}" python"${PYTHON_VERSION}"-dev; \
   fi; \
-  if [ "${PYTHON_VERSION}" == "3.8" ] ; then DEBIAN_FRONTEND=noninteractive apt-get install python"${PYTHON_VERSION}"-distutils; fi; \
+  if [ "${PYTHON_VERSION}" = "3.8" ] ; then DEBIAN_FRONTEND=noninteractive apt-get install -y python"${PYTHON_VERSION}"-distutils; fi; \
   rm -rf /var/lib/apt/lists/*
 
 RUN curl -O https://bootstrap.pypa.io/pip/2.7/get-pip.py && \

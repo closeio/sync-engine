@@ -1,7 +1,11 @@
+from future import standard_library
+
+standard_library.install_aliases()
+
 import time
 import weakref
 from socket import gethostname
-from urllib import quote_plus as urlquote
+from urllib.parse import quote_plus as urlquote
 from warnings import filterwarnings
 
 import gevent

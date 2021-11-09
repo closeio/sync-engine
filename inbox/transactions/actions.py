@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 
 import gevent
 import gevent.event
-from gevent.coros import BoundedSemaphore
+from gevent.lock import BoundedSemaphore
 from gevent.queue import Queue
 from sqlalchemy import desc
 

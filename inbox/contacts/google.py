@@ -3,9 +3,15 @@ import posixpath
 import random
 from datetime import datetime
 
-import gdata.auth
-import gdata.client
-import gdata.contacts.client
+import future.utils
+
+if future.utils.PY2:
+    # This library does not work on Python 3 and was not released since 2013.
+    # I need to figure out what to do with it. This is temporary for the sake of running tests
+    # on Python 3.
+    import gdata.auth
+    import gdata.client
+    import gdata.contacts.client
 import gevent
 
 from inbox.auth.google import GoogleAuthHandler

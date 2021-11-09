@@ -15,6 +15,15 @@ services:
       PYTHONUNBUFFERED: 1
       PYTHONDONTWRITEBYTECODE: 1
 
+  minio:
+    image: closeio/minio:branch-main
+    hostname: sync-engine.minio
+    environment:
+       - MINIO_ROOT_USER=sync-engine
+       - MINIO_ROOT_PASSWORD=sync-engine
+       - MINIO_BUCKET_NAME=sync-engine
+       - MINIO_DOMAIN=minio
+
   app:
     build:
       context: .
@@ -25,6 +34,7 @@ services:
     depends_on:
       - redis
       - mysql
+      - minio
 
   # for running code formatting, isort
   devtools:

@@ -167,14 +167,14 @@ class SMTPConnection(object):
         if port in (SMTP_OVER_SSL_PORT, SMTP_OVER_SSL_TEST_PORT):
             self.connection = (
                 SMTP_SSL(timeout=SMTP_TIMEOUT)
-                if sys.version < (3,)
+                if sys.version_info < (3,)
                 else SMTP_SSL(host, timeout=SMTP_TIMEOUT)
             )
             self._connect(host, port)
         else:
             self.connection = (
                 SMTP(timeout=SMTP_TIMEOUT)
-                if sys.version < (3,)
+                if sys.version_info < (3,)
                 else SMTP(host, timeout=SMTP_TIMEOUT)
             )
             self._connect(host, port)

@@ -164,10 +164,10 @@ class SMTPConnection(object):
     def setup(self):
         host, port = self.smtp_endpoint
         if port in (SMTP_OVER_SSL_PORT, SMTP_OVER_SSL_TEST_PORT):
-            self.connection = SMTP_SSL(timeout=SMTP_TIMEOUT)
+            self.connection = SMTP_SSL(host, timeout=SMTP_TIMEOUT)
             self._connect(host, port)
         else:
-            self.connection = SMTP(timeout=SMTP_TIMEOUT)
+            self.connection = SMTP(host, timeout=SMTP_TIMEOUT)
             self._connect(host, port)
             self._upgrade_connection()
 

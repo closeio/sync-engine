@@ -104,7 +104,7 @@ def example_draft(db, default_account):
 
 
 @pytest.mark.skipif(
-    sys.version_info >= (3, 8), reason="asyncore and smtpd are deprecated"
+    sys.version_info >= (3,), reason="asyncore and smtpd are deprecated"
 )
 def test_smtp_ssl_verification_bad_cert(
     db,

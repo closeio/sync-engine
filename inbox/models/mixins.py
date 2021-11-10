@@ -5,13 +5,15 @@ from sqlalchemy import Boolean, Column, DateTime, String, func, inspect, sql
 from sqlalchemy.ext.hybrid import Comparator, hybrid_property
 
 from inbox.models.constants import MAX_INDEXABLE_LENGTH
-from inbox.sqlalchemy_ext.util import ABCMixin, Base36UID, generate_public_id
+from inbox.sqlalchemy_ext.util import Base36UID, generate_public_id
 from inbox.util.addr import canonicalize_address
 from inbox.util.encoding import unicode_safe_truncate
 
 
-class HasRevisions(ABCMixin):
+class HasRevisions(object):
     """Mixin for tables that should be versioned in the transaction log."""
+
+    __abstract__ = True
 
     @property
     def versioned_relationships(self):
@@ -157,10 +159,12 @@ class DeletedAtMixin(object):
     deleted_at = Column(DateTime, nullable=True, index=True)
 
 
-class HasRunState(ABCMixin):
+class HasRunState(object):
     # Track whether this object (e.g. folder, account) should be running
     # or not. Used to compare against reported data points to see if all is
     # well.
+
+    __abstract__ = True
 
     # Is sync enabled for this object? The sync_enabled property should be
     # a Boolean that reflects whether the object should be reporting

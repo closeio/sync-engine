@@ -15,7 +15,6 @@ json_util.EPOCH_AWARE = EPOCH_NAIVE
 from sqlalchemy import String, Text, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext import baked
-from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.sql import operators

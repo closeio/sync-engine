@@ -4,7 +4,7 @@ from builtins import str
 import arrow
 from arrow.parser import ParserError
 from flanker.addresslib import address
-from flask.ext.restful import reqparse
+from flask_restful import reqparse
 from past.builtins import basestring
 from sqlalchemy.orm.exc import NoResultFound
 

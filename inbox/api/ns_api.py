@@ -19,7 +19,7 @@ from flask import (
     request,
     stream_with_context,
 )
-from flask.ext.restful import reqparse
+from flask_restful import reqparse
 from future.utils import iteritems
 from sqlalchemy import asc, func
 from sqlalchemy.exc import OperationalError

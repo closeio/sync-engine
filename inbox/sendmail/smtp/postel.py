@@ -172,11 +172,7 @@ class SMTPConnection(object):
             )
             self._connect(host, port)
         else:
-            self.connection = (
-                SMTP(timeout=SMTP_TIMEOUT)
-                if sys.version_info < (3,)
-                else SMTP(host, timeout=SMTP_TIMEOUT)
-            )
+            self.connection = SMTP(timeout=SMTP_TIMEOUT)
             self._connect(host, port)
             self._upgrade_connection()
 

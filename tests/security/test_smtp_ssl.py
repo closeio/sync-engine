@@ -103,6 +103,9 @@ def example_draft(db, default_account):
     }
 
 
+@pytest.mark.skipif(
+    sys.version_info >= (3,), reason="asyncore and smtpd are deprecated"
+)
 def test_smtp_ssl_verification_bad_cert(
     db,
     bad_cert_smtp_server,
@@ -122,5 +125,5 @@ def test_smtp_ssl_verification_bad_cert(
 
 
 if __name__ == "__main__":
-    server = BadCertSMTPServer((SMTP_SERVER_HOST, SMTP_SERVER_PORT), (None, None))
+    server = BadCertSMTPServer((SMTP_SERVER_HOST, 0), (None, None))
     asyncore.loop()

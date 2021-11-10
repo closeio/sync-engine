@@ -91,17 +91,20 @@ class IMAPSearchClient(object):
             encoder = APIEncoder()
 
             with session_scope(self.account_id) as db_session:
-                for imap_uids in self._search(db_session, search_query):
-                    query = (
-                        db_session.query(Message)
-                        .join(ImapUid)
-                        .filter(
-                            ImapUid.account_id == self.account_id,
-                            ImapUid.msg_uid.in_(imap_uids),
+                try:
+                    for imap_uids in self._search(db_session, search_query):
+                        query = (
+                            db_session.query(Message)
+                            .join(ImapUid)
+                            .filter(
+                                ImapUid.account_id == self.account_id,
+                                ImapUid.msg_uid.in_(imap_uids),
+                            )
+                            .order_by(desc(Message.received_date))
                         )
-                        .order_by(desc(Message.received_date))
-                    )
-                    yield encoder.cereal(query.all()) + "\n"
+                        yield encoder.cereal(query.all()) + "\n"
+                except Exception as e:
+                    self.log.error("Error while streaming messages", error=e)
 
         return g
 

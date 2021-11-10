@@ -39,7 +39,7 @@ def build_uid_data(internaldate, flags, body, g_labels, g_msgid, modseq):
         b"X-GM-LABELS": g_labels,
         b"X-GM-MSGID": g_msgid,
         b"X-GM-THRID": g_msgid,  # For simplicity
-        b"MODSEQ": modseq,
+        b"MODSEQ": (modseq,),
     }
 
 

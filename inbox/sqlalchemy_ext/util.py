@@ -70,14 +70,6 @@ def before_commit(conn):
         )
 
 
-# class SQLAlchemyCompatibleAbstractMetaClass(DeclarativeMeta, abc.ABCMeta):
-#     """Declarative model classes that *also* inherit from an abstract base
-#     class need a metaclass like this one, in order to prevent metaclass
-#     conflict errors."""
-
-#     pass
-
-
 class ABCMixin(object):
     """Use this if you want a mixin class which is actually an abstract base
     class, for example in order to enforce that concrete subclasses define

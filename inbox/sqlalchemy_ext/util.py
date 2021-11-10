@@ -6,7 +6,7 @@ import weakref
 from typing import Any, Optional
 
 from bson import EPOCH_NAIVE, json_util
-from future.utils import iteritems, with_metaclass
+from future.utils import iteritems
 
 # Monkeypatch to not include tz_info in decoded JSON.
 # Kind of a ridiculous solution, but works.

@@ -15,7 +15,6 @@ json_util.EPOCH_AWARE = EPOCH_NAIVE
 from sqlalchemy import String, Text, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext import baked
-from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.sql import operators
@@ -70,15 +69,7 @@ def before_commit(conn):
         )
 
 
-class SQLAlchemyCompatibleAbstractMetaClass(DeclarativeMeta, abc.ABCMeta):
-    """Declarative model classes that *also* inherit from an abstract base
-    class need a metaclass like this one, in order to prevent metaclass
-    conflict errors."""
-
-    pass
-
-
-class ABCMixin(with_metaclass(SQLAlchemyCompatibleAbstractMetaClass, object)):
+class ABCMixin(object):
     """Use this if you want a mixin class which is actually an abstract base
     class, for example in order to enforce that concrete subclasses define
     particular methods or properties."""

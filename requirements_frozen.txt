@@ -19,7 +19,7 @@ cffi==1.14.6
 chardet==3.0.4
 charset-normalizer==2.0.7; python_version >= '3.5'
 ciso8601==2.2.0
-click==2.4
+click==7.1.2
 colorama==0.3.9
 colorlog==5.0.1
 configparser==4.0.2
@@ -35,7 +35,7 @@ flake8==2.1.0
 flake8-pep3101==0.6
 git+https://github.com/closeio/flanker-new.git@fa272d95345d45e8bb1f9bc32bc2c074bf52a484#egg=flanker
 tld==0.12.6
-Flask==0.12.5
+Flask==1.1.4
 Flask-RESTful==0.3.9
 freezegun==0.3.15
 funcsigs==1.0.2
@@ -127,7 +127,7 @@ urllib3==1.26.7
 vobject==0.9.1
 wcwidth==0.2.5
 WebOb==1.7.4
-Werkzeug==0.16.1
+Werkzeug==1.0.1
 wrapt==1.10.11
 zipp==1.2.0
 zope.event==4.5.0

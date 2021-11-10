@@ -56,16 +56,16 @@ jobs:
           name: build sync-engine image
           command: docker-compose build app
 
-      - run:
-          name: run tests
-          command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker-compose run app bash -ec '
-              pip install -e . \
-              && bin/wait-for-it.sh mysql:3306 \
-              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
-              && coverage html -d pythoncov
-            '
+      # - run:
+      #     name: run tests
+      #     command: |
+      #       docker login -u $DOCKER_USER -p $DOCKER_PASS
+      #       docker-compose run app bash -ec '
+      #         pip install -e . \
+      #         && bin/wait-for-it.sh mysql:3306 \
+      #         && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
+      #         && coverage html -d pythoncov
+      #       '
 
       - run:
           name: Push the tested image to docker hub

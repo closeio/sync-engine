@@ -31,8 +31,6 @@ services:
     volumes:
       - .:/opt/app
     user: root
-    dns:
-      - 8.8.8.8
     depends_on:
       - redis
       - mysql

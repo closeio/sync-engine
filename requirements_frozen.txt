@@ -92,7 +92,7 @@ pygments==2.5.2
 pyinstrument==3.2.0
 pyinstrument-cext==0.2.2
 pylint==1.5.1
-pymongo==2.5.2  # For json_util in bson
+pymongo==2.9.5  # For json_util in bson
 Pympler==0.9
 PyNaCl==1.4.0
 pyOpenSSL==17.5.0

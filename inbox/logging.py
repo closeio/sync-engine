@@ -323,6 +323,10 @@ def configure_logging(log_level=None):
 
     imapclient_logger = logging.getLogger("imapclient")
     imapclient_logger.setLevel(logging.ERROR)
+    urllib_logger = logging.getLogger("urllib3.connectionpool")
+    urllib_logger.setLevel(logging.ERROR)
+    sqlalchemy_pool_logger = logging.getLogger("inbox.sqlalchemy_ext")
+    sqlalchemy_pool_logger.setLevel(logging.ERROR)
 
 
 def create_error_log_context(exc_info):

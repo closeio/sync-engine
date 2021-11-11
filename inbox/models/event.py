@@ -74,6 +74,8 @@ def time_parse(x):
 class FlexibleDateTime(TypeDecorator):
     """Coerce arrow times to naive datetimes before handing to the database."""
 
+    cache_ok = True
+
     impl = DateTime
 
     def process_bind_param(self, value, dialect):

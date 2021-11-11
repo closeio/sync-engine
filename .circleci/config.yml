@@ -45,6 +45,11 @@ jobs:
           command: flake8
 
   build:
+    parameters:
+      python_version:
+        type: enum
+        description: Python version
+        enum: ["2.7", "3.6", "3.8"]
     machine:
       image: ubuntu-2004:202101-01
     working_directory: ~/sync-engine
@@ -54,7 +59,7 @@ jobs:
 
       - run:
           name: build sync-engine image
-          command: docker-compose build app
+          command: docker-compose build --build-arg PYTHON_VERSION=<< parameters.python_version >> app
 
       - run:
           name: run tests
@@ -77,10 +82,10 @@ jobs:
             PROJECT_SHA="$CIRCLE_SHA1"
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             # tag and push both sync-engine:master and sync-engine:<sha1>
-            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}"
-            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}"
-            docker push "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}"
-            docker push "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}"
+            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-py<< parameters.python_version >>"
+            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-py<< parameters.python_version >>"
+            docker push "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-py<< parameters.python_version >>"
+            docker push "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-py<< parameters.python_version >>"
 
       - store_artifacts:
           path: pythoncov
@@ -89,54 +94,54 @@ jobs:
           path: .circleci/artifacts.html
           destination: artifacts.html
 
-  build-python36:
-    machine:
-      image: ubuntu-2004:202101-01
-    working_directory: ~/sync-engine
+  # build-python36:
+  #   machine:
+  #     image: ubuntu-2004:202101-01
+  #   working_directory: ~/sync-engine
 
-    steps:
-      - checkout
+  #   steps:
+  #     - checkout
 
-      - run:
-          name: build sync-engine image
-          command: docker-compose build --build-arg PYTHON_VERSION=3.6 app
+  #     - run:
+  #         name: build sync-engine image
+  #         command: docker-compose build --build-arg PYTHON_VERSION=3.6 app
 
-      - run:
-          name: run tests
-          command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker-compose run app bash -ec '
-              pip install -e . \
-              && bin/wait-for-it.sh mysql:3306 \
-              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
-              && coverage html -d pythoncov
-            '
-      # Not pushing Python 3.6 image for the time being
+  #     - run:
+  #         name: run tests
+  #         command: |
+  #           docker login -u $DOCKER_USER -p $DOCKER_PASS
+  #           docker-compose run app bash -ec '
+  #             pip install -e . \
+  #             && bin/wait-for-it.sh mysql:3306 \
+  #             && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
+  #             && coverage html -d pythoncov
+  #           '
+  #     # Not pushing Python 3.6 image for the time being
 
-  build-python38:
-    machine:
-      image: ubuntu-2004:202101-01
-    working_directory: ~/sync-engine
+  # build-python38:
+  #   machine:
+  #     image: ubuntu-2004:202101-01
+  #   working_directory: ~/sync-engine
 
-    steps:
-      - checkout
+  #   steps:
+  #     - checkout
 
-      - run:
-          name: build sync-engine image
-          command: docker-compose build --build-arg PYTHON_VERSION=3.8 app
+  #     - run:
+  #         name: build sync-engine image
+  #         command: docker-compose build --build-arg PYTHON_VERSION=3.8 app
 
-      - run:
-          name: run tests
-          command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker-compose run app bash -ec '
-              pip install -e . \
-              && bin/wait-for-it.sh mysql:3306 \
-              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
-              && coverage html -d pythoncov
-            '
+  #     - run:
+  #         name: run tests
+  #         command: |
+  #           docker login -u $DOCKER_USER -p $DOCKER_PASS
+  #           docker-compose run app bash -ec '
+  #             pip install -e . \
+  #             && bin/wait-for-it.sh mysql:3306 \
+  #             && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
+  #             && coverage html -d pythoncov
+  #           '
 
-      # Not pushing Python 3.8 image for the time being
+  #     # Not pushing Python 3.8 image for the time being
 
   build_arm:
     machine:
@@ -175,7 +180,10 @@ workflows:
     jobs:
       - static-code-analysis
       - static-code-analysis-flake8
-      - build
-      - build-python36
-      - build-python38
+      - build:
+          python_version: 2.7
+      - build:
+          python_version: 3.6
+      - build:
+          python_version: 3.8
       - build_arm

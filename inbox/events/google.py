@@ -112,7 +112,7 @@ class GoogleEventsProvider(object):
             try:
                 parsed = parse_event_response(item, read_only_calendar)
                 updates.append(parsed)
-            except arrow.parser.ParserError:
+            except (arrow.parser.ParserError, ValueError):
                 log.warning("Skipping unparseable event", exc_info=True, raw=item)
 
         return updates

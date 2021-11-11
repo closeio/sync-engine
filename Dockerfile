@@ -74,4 +74,3 @@ RUN ln -s /opt/app/bin/wait-for-it.sh /opt/venv/bin/
 ENV \
   LANG="en_US.UTF-8" \
   LC_ALL="en_US.UTF-8"
-

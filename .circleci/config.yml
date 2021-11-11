@@ -53,7 +53,7 @@ jobs:
       platform_suffix:
         type: enum
         default: ""
-        description: Platform tag, empty means x86_64
+        description: Platform tag, empty means amd64
         enum: ["", "-arm64"]
       resource_class:
         type: enum

@@ -26,33 +26,30 @@ from inbox.models import Account, ActionLog, Folder, Message, MessageCategory
 from inbox.models.backends.imap import ImapFolderInfo, ImapUid
 from inbox.models.session import session_scope
 from inbox.models.util import reconcile_message
-from inbox.sqlalchemy_ext.util import bakery
 
 log = get_logger()
 
 
 def local_uids(account_id, session, folder_id, limit=None):
-    q = bakery(lambda session: session.query(ImapUid.msg_uid))
-    q += lambda q: q.filter(
+    q = session.query(ImapUid.msg_uid)
+    q = q.filter(
         ImapUid.account_id == bindparam("account_id"),
         ImapUid.folder_id == bindparam("folder_id"),
     )
     if limit:
-        q += lambda q: q.order_by(desc(ImapUid.msg_uid))
-        q += lambda q: q.limit(bindparam("limit"))
-    results = (
-        q(session).params(account_id=account_id, folder_id=folder_id, limit=limit).all()
-    )
+        q = q.order_by(desc(ImapUid.msg_uid))
+        q = q.limit(bindparam("limit"))
+    results = q.params(account_id=account_id, folder_id=folder_id, limit=limit).all()
     return {u for u, in results}
 
 
 def lastseenuid(account_id, session, folder_id):
-    q = bakery(lambda session: session.query(func.max(ImapUid.msg_uid)))
-    q += lambda q: q.filter(
+    q = session.query(func.max(ImapUid.msg_uid))
+    q = q.filter(
         ImapUid.account_id == bindparam("account_id"),
         ImapUid.folder_id == bindparam("folder_id"),
     )
-    res = q(session).params(account_id=account_id, folder_id=folder_id).one()[0]
+    res = q.params(account_id=account_id, folder_id=folder_id).one()[0]
     return res or 0
 
 

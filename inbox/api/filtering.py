@@ -20,7 +20,6 @@ from inbox.models import (
 )
 from inbox.models.event import RecurringEvent
 from inbox.models.session import session_scope_by_shard_id
-from inbox.sqlalchemy_ext.util import bakery
 
 
 def contact_subquery(db_session, namespace_id, email_address, field):
@@ -250,11 +249,11 @@ def messages_or_drafts(
     }
 
     if view == "count":
-        query = bakery(lambda s: s.query(func.count(Message.id)))
+        query = db_session.query(func.count(Message.id))
     elif view == "ids":
-        query = bakery(lambda s: s.query(Message.public_id))
+        query = db_session.query(Message.public_id)
     else:
-        query = bakery(lambda s: s.query(Message))
+        query = db_session.query(Message)
 
         # Sometimes MySQL doesn't pick the right index. In the case of a
         # regular /messages query, ix_message_ns_id_is_draft_received_date
@@ -280,66 +279,63 @@ def messages_or_drafts(
                 last_message_after,
             ]
         ):
-            query += lambda q: q.with_hint(
+            query = query.with_hint(
                 Message,
                 "FORCE INDEX (ix_message_ns_id_is_draft_received_date)",
                 "mysql",
             )
 
-    query += lambda q: q.join(Thread, Message.thread_id == Thread.id)
-    query += lambda q: q.filter(
+    query = query.join(Thread, Message.thread_id == Thread.id)
+    query = query.filter(
         Message.namespace_id == bindparam("namespace_id"),
         Message.is_draft == bindparam("drafts"),
         Thread.deleted_at.is_(None),
     )
 
     if subject is not None:
-        query += lambda q: q.filter(Message.subject == bindparam("subject"))
+        query = query.filter(Message.subject == bindparam("subject"))
 
     if unread is not None:
-        query += lambda q: q.filter(Message.is_read != bindparam("unread"))
+        query = query.filter(Message.is_read != bindparam("unread"))
 
     if starred is not None:
-        query += lambda q: q.filter(Message.is_starred == bindparam("starred"))
+        query = query.filter(Message.is_starred == bindparam("starred"))
 
     if thread_public_id is not None:
-        query += lambda q: q.filter(Thread.public_id == bindparam("thread_public_id"))
+        query = query.filter(Thread.public_id == bindparam("thread_public_id"))
 
     # TODO: deprecate thread-oriented date filters on message endpoints.
     if started_before is not None:
-        query += lambda q: q.filter(
+        query = query.filter(
             Thread.subjectdate < bindparam("started_before"),
             Thread.namespace_id == bindparam("namespace_id"),
         )
 
     if started_after is not None:
-        query += lambda q: q.filter(
+        query = query.filter(
             Thread.subjectdate > bindparam("started_after"),
             Thread.namespace_id == bindparam("namespace_id"),
         )
 
     if last_message_before is not None:
-        query += lambda q: q.filter(
+        query = query.filter(
             Thread.recentdate < bindparam("last_message_before"),
             Thread.namespace_id == bindparam("namespace_id"),
         )
 
     if last_message_after is not None:
-        query += lambda q: q.filter(
+        query = query.filter(
             Thread.recentdate > bindparam("last_message_after"),
             Thread.namespace_id == bindparam("namespace_id"),
         )
 
     if received_before is not None:
-        query += lambda q: q.filter(
-            Message.received_date <= bindparam("received_before")
-        )
+        query = query.filter(Message.received_date <= bindparam("received_before"))
 
     if received_after is not None:
-        query += lambda q: q.filter(Message.received_date > bindparam("received_after"))
+        query = query.filter(Message.received_date > bindparam("received_after"))
 
     if to_addr is not None:
-        query.spoil()
         to_query = (
             db_session.query(MessageContactAssociation.message_id)
             .join(Contact, MessageContactAssociation.contact_id == Contact.id)
@@ -350,10 +346,9 @@ def messages_or_drafts(
             )
             .subquery()
         )
-        query += lambda q: q.filter(Message.id.in_(to_query))
+        query = query.filter(Message.id.in_(to_query))
 
     if from_addr is not None:
-        query.spoil()
         from_query = (
             db_session.query(MessageContactAssociation.message_id)
             .join(Contact, MessageContactAssociation.contact_id == Contact.id)
@@ -364,10 +359,9 @@ def messages_or_drafts(
             )
             .subquery()
         )
-        query += lambda q: q.filter(Message.id.in_(from_query))
+        query = query.filter(Message.id.in_(from_query))
 
     if cc_addr is not None:
-        query.spoil()
         cc_query = (
             db_session.query(MessageContactAssociation.message_id)
             .join(Contact, MessageContactAssociation.contact_id == Contact.id)
@@ -378,10 +372,9 @@ def messages_or_drafts(
             )
             .subquery()
         )
-        query += lambda q: q.filter(Message.id.in_(cc_query))
+        query = query.filter(Message.id.in_(cc_query))
 
     if bcc_addr is not None:
-        query.spoil()
         bcc_query = (
             db_session.query(MessageContactAssociation.message_id)
             .join(Contact, MessageContactAssociation.contact_id == Contact.id)
@@ -392,10 +385,9 @@ def messages_or_drafts(
             )
             .subquery()
         )
-        query += lambda q: q.filter(Message.id.in_(bcc_query))
+        query = query.filter(Message.id.in_(bcc_query))
 
     if any_email is not None:
-        query.spoil()
         any_email_query = (
             db_session.query(MessageContactAssociation.message_id)
             .join(Contact, MessageContactAssociation.contact_id == Contact.id)
@@ -405,11 +397,11 @@ def messages_or_drafts(
             )
             .subquery()
         )
-        query += lambda q: q.filter(Message.id.in_(any_email_query))
+        query = query.filter(Message.id.in_(any_email_query))
 
     if filename is not None:
-        query += (
-            lambda q: q.join(Part)
+        query = (
+            query.join(Part)
             .join(Block)
             .filter(
                 Block.filename == bindparam("filename"),
@@ -418,7 +410,6 @@ def messages_or_drafts(
         )
 
     if in_ is not None:
-        query.spoil()
         category_filters = [
             Category.name == bindparam("in_"),
             Category.display_name == bindparam("in_"),
@@ -436,38 +427,38 @@ def messages_or_drafts(
             param_dict["in_id"] = in_
         except InputError:
             pass
-        query += (
-            lambda q: q.prefix_with("STRAIGHT_JOIN")
+        query = (
+            query.prefix_with("STRAIGHT_JOIN")
             .join(Message.messagecategories)
             .join(MessageCategory.category)
             .filter(Category.namespace_id == namespace_id, or_(*category_filters))
         )
 
     if view == "count":
-        res = query(db_session).params(**param_dict).one()[0]
+        res = query.params(**param_dict).one()[0]
         return {"count": res}
 
-    query += lambda q: q.order_by(desc(Message.received_date))
-    query += lambda q: q.limit(bindparam("limit"))
+    query = query.order_by(desc(Message.received_date))
+    query = query.limit(bindparam("limit"))
     if offset:
-        query += lambda q: q.offset(bindparam("offset"))
+        query = query.offset(bindparam("offset"))
 
     if view == "ids":
-        res = query(db_session).params(**param_dict).all()
+        res = query.params(**param_dict).all()
         return [x[0] for x in res]
 
     # Eager-load related attributes to make constructing API representations
     # faster. Note that we don't use the options defined by
     # Message.api_loading_options() here because we already have a join to the
     # thread table. We should eventually try to simplify this.
-    query += lambda q: q.options(
+    query = query.options(
         contains_eager(Message.thread),
         subqueryload(Message.messagecategories).joinedload("category", "created_at"),
         subqueryload(Message.parts).joinedload(Part.block),
         subqueryload(Message.events),
     )
 
-    prepared = query(db_session).params(**param_dict)
+    prepared = query.params(**param_dict)
     return prepared.all()
 
 

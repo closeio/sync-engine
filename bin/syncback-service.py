@@ -5,13 +5,16 @@ API under something like gunicorn. (For convenience, the bin/inbox-api script
 also starts up the syncback service.)
 
 """
+import sys
+
 from gevent import monkey
 
 monkey.patch_all()
 
-import gevent_openssl
+if sys.version_info < (3,):
+    import gevent_openssl
 
-gevent_openssl.monkey_patch()
+    gevent_openssl.monkey_patch()
 
 import os
 

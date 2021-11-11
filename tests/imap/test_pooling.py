@@ -1,10 +1,15 @@
 import imaplib
 import socket
+import sys
 
 import gevent
 import mock
 import pytest
-from backports import ssl
+
+if sys.version_info < (3,):
+    from backports import ssl
+else:
+    import ssl
 
 from inbox.crispin import CrispinConnectionPool
 

@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 """ Start the contact search indexing service. """
-import gevent_openssl
+import sys
 
-gevent_openssl.monkey_patch()
+if sys.version_info < (3,):
+    import gevent_openssl
+
+    gevent_openssl.monkey_patch()
 
 from gevent import monkey
 

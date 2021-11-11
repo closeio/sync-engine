@@ -50,8 +50,23 @@ jobs:
         type: enum
         description: Python version
         enum: ["2.7", "3.6", "3.8"]
+      platform_suffix:
+        type: enum
+        default: ""
+        descrtiption: Platform tag, empty means x86_64
+        enum: ["", "-arm64"]
+      resource_class:
+        type: enum
+        default: ""
+        description: Resource class
+        enum: ["", "arm.medium"]
+      run_tests:
+        type: boolean
+        default: true
+        description: Set to false to disable tests
     machine:
       image: ubuntu-2004:202101-01
+    resource_class: <<parameters.resource_class>>
     working_directory: ~/sync-engine
 
     steps:
@@ -61,19 +76,22 @@ jobs:
           name: build sync-engine image
           command: docker-compose build --build-arg PYTHON_VERSION=<< parameters.python_version >> app
 
-      - run:
-          name: run tests
-          command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker-compose run app bash -ec '
-              pip install -e . \
-              && bin/wait-for-it.sh mysql:3306 \
-              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
-              && coverage html -d pythoncov
-            '
+      - when:
+          condition: << parameters.run_tests >>
+          steps:
+            - run:
+                name: run tests
+                command: |
+                  docker login -u $DOCKER_USER -p $DOCKER_PASS
+                  docker-compose run app bash -ec '
+                    pip install -e . \
+                    && bin/wait-for-it.sh mysql:3306 \
+                    && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
+                    && coverage html -d pythoncov
+                  '
 
       - run:
-          name: Push the tested image to docker hub
+          name: Push the image to docker hub
           environment:
             PROJECT: sync-engine
             PROJECT_NAMESPACE: closeio
@@ -82,48 +100,20 @@ jobs:
             PROJECT_SHA="$CIRCLE_SHA1"
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             # tag and push both sync-engine:master and sync-engine:<sha1>
-            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-py<< parameters.python_version >>"
-            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-py<< parameters.python_version >>"
-            docker push "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-py<< parameters.python_version >>"
-            docker push "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-py<< parameters.python_version >>"
+            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-py<< parameters.python_version >><< parameters.platform_suffix >>"
+            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-py<< parameters.python_version >><< parameters.platform_suffix >>"
+            docker push "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-py<< parameters.python_version >><< parameters.platform_suffix >>"
+            docker push "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-py<< parameters.python_version >><< parameters.platform_suffix >>"
 
-      - store_artifacts:
-          path: pythoncov
+      - when:
+          condition: << parameters.run_tests >>
+          steps:
+            - store_artifacts:
+                path: pythoncov
 
-      - store_artifacts:
-          path: .circleci/artifacts.html
-          destination: artifacts.html
-
-  build_arm:
-    machine:
-      image: ubuntu-2004:202101-01
-    resource_class: arm.medium
-    working_directory: ~/sync-engine
-
-    steps:
-      - checkout
-
-      - run:
-          name: build sync-engine image
-          command: docker-compose build app
-
-      # Not running tests for arm.
-      # mysql:5.7.31 has no arm image (arm images start at version 8)
-
-      - run:
-          name: Push the tested image to docker hub
-          environment:
-            PROJECT: sync-engine
-            PROJECT_NAMESPACE: closeio
-          command: |
-            PROJECT_VSN="$CIRCLE_BRANCH"
-            PROJECT_SHA="$CIRCLE_SHA1"
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            # tag and push both sync-engine:master and sync-engine:<sha1>
-            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-arm64"
-            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-arm64"
-            docker push "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-arm64"
-            docker push "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-arm64"
+            - store_artifacts:
+                path: .circleci/artifacts.html
+                destination: artifacts.html
 
 workflows:
   version: 2
@@ -132,12 +122,17 @@ workflows:
       - static-code-analysis
       - static-code-analysis-flake8
       - build:
-          python_version: "2.7"
           name: build_py2.7
+          python_version: "2.7"
       - build:
-          python_version: "3.6"
           name: build_py3.6
+          python_version: "3.6"
       - build:
-          python_version: "3.8"
           name: build_py3.8
-      - build_arm
+          python_version: "3.8"
+      - build:
+          name: build_arm
+          python_version: "2.7"
+          resource_class: "arm.medium"
+          platform_suffix: "-arm64"
+          run_tests: false

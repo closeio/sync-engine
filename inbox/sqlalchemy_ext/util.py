@@ -114,6 +114,7 @@ class StringWithTransform(TypeDecorator):
 
 # http://docs.sqlalchemy.org/en/rel_0_9/core/types.html#marshal-json-strings
 class JSON(TypeDecorator):
+    cache_ok = True
     impl = Text
 
     def process_bind_param(self, value, dialect):

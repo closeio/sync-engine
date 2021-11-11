@@ -1,6 +1,14 @@
-from backports import ssl
+import sys
+
+if sys.version_info < (3,):
+    from backports import ssl
+else:
+    import ssl
+
 from imapclient import IMAPClient
-from OpenSSL._util import lib as ossllib
+
+if sys.version_info < (3,):
+    from OpenSSL._util import lib as ossllib
 
 from inbox.basicauth import SSLNotSupportedError
 from inbox.logging import get_logger
@@ -107,28 +115,30 @@ def create_default_context():
     context.verify_mode = ssl.CERT_NONE
     context.check_hostname = False
 
-    # SSLv2 considered harmful.
-    context.options |= ossllib.SSL_OP_NO_SSLv2
+    # The folowing is not necessary on Python 3 because those are the defaults
+    if sys.version < (3,):
+        # SSLv2 considered harmful.
+        context.options |= ossllib.SSL_OP_NO_SSLv2
 
-    # SSLv3 has problematic security and is only required for really old
-    # clients such as IE6 on Windows XP
-    context.options |= ossllib.SSL_OP_NO_SSLv3
+        # SSLv3 has problematic security and is only required for really old
+        # clients such as IE6 on Windows XP
+        context.options |= ossllib.SSL_OP_NO_SSLv3
 
-    # disable compression to prevent CRIME attacks (OpenSSL 1.0+)
-    context.options |= ossllib.SSL_OP_NO_COMPRESSION
+        # disable compression to prevent CRIME attacks (OpenSSL 1.0+)
+        context.options |= ossllib.SSL_OP_NO_COMPRESSION
 
-    # Prefer the server's ciphers by default so that we get stronger
-    # encryption
-    context.options |= ossllib.SSL_OP_CIPHER_SERVER_PREFERENCE
+        # Prefer the server's ciphers by default so that we get stronger
+        # encryption
+        context.options |= ossllib.SSL_OP_CIPHER_SERVER_PREFERENCE
 
-    # Use single use keys in order to improve forward secrecy
-    context.options |= ossllib.SSL_OP_SINGLE_DH_USE
-    context.options |= ossllib.SSL_OP_SINGLE_ECDH_USE
+        # Use single use keys in order to improve forward secrecy
+        context.options |= ossllib.SSL_OP_SINGLE_DH_USE
+        context.options |= ossllib.SSL_OP_SINGLE_ECDH_USE
 
-    context._ctx.set_mode(
-        ossllib.SSL_MODE_ENABLE_PARTIAL_WRITE
-        | ossllib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
-        | ossllib.SSL_MODE_AUTO_RETRY
-    )
+        context._ctx.set_mode(
+            ossllib.SSL_MODE_ENABLE_PARTIAL_WRITE
+            | ossllib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
+            | ossllib.SSL_MODE_AUTO_RETRY
+        )
 
     return context

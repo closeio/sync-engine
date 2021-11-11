@@ -1,11 +1,11 @@
 """ Fixtures don't go here; see util/base.py and friends. """
 # Monkeypatch first, to prevent "AttributeError: 'module' object has no
 # attribute 'poll'" errors when tests import socket, then monkeypatch.
-import sys
-
 from gevent import monkey
 
 monkey.patch_all(aggressive=False)
+
+import sys
 
 if sys.version_info < (3,):
     import gevent_openssl

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-import sys
-
 from gevent import monkey
 
 monkey.patch_all()
+
+import sys
 
 if sys.version_info < (3,):
     import gevent_openssl

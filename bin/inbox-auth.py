@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-import sys
-
 from gevent import monkey
 
 monkey.patch_all()
+
+import sys
 
 if sys.version_info < (3,):
     import gevent_openssl

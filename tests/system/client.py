@@ -1,6 +1,6 @@
 import os
 
-from inbox import APIClient
+from inbox.client import APIClient
 
 
 class NylasTestClient(APIClient):

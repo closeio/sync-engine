@@ -57,9 +57,9 @@ jobs:
         enum: ["", "-arm64"]
       resource_class:
         type: enum
-        default: ""
+        default: "medium"
         description: Resource class
-        enum: ["", "arm.medium"]
+        enum: ["medium", "arm.medium"]
       run_tests:
         type: boolean
         default: true

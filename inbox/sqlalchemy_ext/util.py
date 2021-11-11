@@ -94,6 +94,8 @@ class StringWithTransform(TypeDecorator):
     setter or a @validates decorator
     """
 
+    cache_ok = True
+
     impl = String
 
     def __init__(self, string_transform, *args, **kwargs):
@@ -151,6 +153,8 @@ class BigJSON(JSON):
 
 
 class Base36UID(TypeDecorator):
+    cache_ok = True
+
     impl = BINARY(16)  # 128 bit unsigned integer
 
     def process_bind_param(self, value, dialect):

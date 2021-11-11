@@ -9,6 +9,7 @@ import re
 from datetime import datetime
 
 import pkg_resources
+from past.builtins import basestring
 
 from inbox.api.err import InputError
 from inbox.api.validation import (

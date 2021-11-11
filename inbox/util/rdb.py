@@ -91,7 +91,7 @@ class RemoteConsole(InteractiveConsole):
                     self.handle.flush()
                     # Can be None if sys.stdin was redefined
                     encoding = getattr(sys.stdin, "encoding", None)
-                    if encoding and not isinstance(line, unicode):
+                    if encoding and isinstance(line, bytes):
                         line = line.decode(encoding)
                 except EOFError:
                     self.terminate()

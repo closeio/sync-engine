@@ -1,5 +1,6 @@
 from __future__ import division
 
+import _thread
 import collections
 import math
 import signal
@@ -12,7 +13,6 @@ import gevent._threading  # This is a clone of the *real* threading module
 import gevent.hub
 import greenlet
 import psutil
-import thread
 from past.utils import old_div
 
 from inbox.config import config
@@ -100,7 +100,7 @@ class GreenletTracer(object):
         self._last_switch_time = None
         self._switch_flag = False
         self._active_greenlet = None
-        self._main_thread_id = gevent._threading.get_ident()
+        self._main_thread_id = gevent._threading.get_thread_ident()
         self._hub = gevent.hub.get_hub()
         self.last_logged_stats = time.time()
         self.last_checked_blocking = time.time()
@@ -280,7 +280,7 @@ class KillerGreenletTracer(GreenletTracer):
             context=getattr(active_greenlet, "context", None),
             blocking_greenlet_id=id(active_greenlet),
         )
-        thread.interrupt_main()
+        _thread.interrupt_main()
 
 
 MAX_BLOCKING_TIME = 5
@@ -307,7 +307,7 @@ class Tracer(object):
         self._last_switch_time = None
         self._switch_flag = False
         self._active_greenlet = None
-        self._main_thread_id = gevent._threading.get_ident()
+        self._main_thread_id = gevent._threading.get_thread_ident()
         self._hub = gevent.hub.get_hub()
         self.log = get_logger()
 

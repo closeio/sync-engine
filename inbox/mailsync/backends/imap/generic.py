@@ -753,7 +753,9 @@ class FolderSyncEngine(Greenlet):
     def condstore_refresh_flags(self, crispin_client):
         new_highestmodseq = crispin_client.conn.folder_status(
             self.folder_name, ["HIGHESTMODSEQ"]
-        )[b"HIGHESTMODSEQ"]
+        )[
+            b"HIGHESTMODSEQ"
+        ]  # type: int
         # Ensure that we have an initial highestmodseq value stored before we
         # begin polling for changes.
         if self.highestmodseq is None:

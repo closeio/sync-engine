@@ -6,6 +6,7 @@ import re
 import smtplib
 import socket
 import ssl
+import sys
 from builtins import range
 
 from inbox.logging import get_logger
@@ -108,11 +109,13 @@ def _transform_ssl_error(strerror):
 
 
 def _substitute_bcc(raw_message):
+    # type: (bytes) -> bytes
     """
     Substitute BCC in raw message.
     """
-    bcc_regexp = re.compile(r"^Bcc: [^\r\n]*\r\n", re.IGNORECASE | re.MULTILINE)
-    return bcc_regexp.sub("", raw_message)
+
+    bcc_regexp = re.compile(br"^Bcc: [^\r\n]*\r\n", re.IGNORECASE | re.MULTILINE)
+    return bcc_regexp.sub(b"", raw_message)
 
 
 class SMTPConnection(object):
@@ -162,11 +165,16 @@ class SMTPConnection(object):
     def setup(self):
         host, port = self.smtp_endpoint
         if port in (SMTP_OVER_SSL_PORT, SMTP_OVER_SSL_TEST_PORT):
-            self.connection = SMTP_SSL(timeout=SMTP_TIMEOUT)
+            self.connection = (
+                SMTP_SSL(timeout=SMTP_TIMEOUT)
+                if sys.version_info < (3,)
+                else SMTP_SSL(host, timeout=SMTP_TIMEOUT)
+            )
             self._connect(host, port)
         else:
             self.connection = SMTP(timeout=SMTP_TIMEOUT)
             self._connect(host, port)
+            self.connection._host = host
             self._upgrade_connection()
 
         # Auth the connection

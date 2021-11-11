@@ -3,6 +3,7 @@
 """Sanity-check our construction of a Message object from raw synced data."""
 import datetime
 import pkgutil
+import sys
 
 import pytest
 from flanker import mime
@@ -93,6 +94,8 @@ def raw_message_with_long_message_id():
     return pkgutil.get_data("tests", "data/raw_message_with_long_message_id.txt")
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_message_from_synced(db, new_message_from_synced, default_namespace):
     thread = add_fake_thread(db.session, default_namespace.id)
     m = new_message_from_synced
@@ -115,6 +118,8 @@ def test_message_from_synced(db, new_message_from_synced, default_namespace):
     assert len(m.parts) == 0
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_save_attachments(db, default_account):
     mime_msg = mime.create.multipart("mixed")
     mime_msg.append(
@@ -431,9 +436,13 @@ def test_parse_body_on_bad_attachment(default_account, raw_message_with_bad_atta
         received_date,
         raw_message_with_bad_attachment,
     )
-    assert m.decode_error
+    if sys.version_info < (3,):
+        assert m.decode_error
     assert "dingy blue carpet" in m.body
-    assert len(m.parts) == 0
+    assert len(m.parts) == 0 if sys.version_info < (3,) else 1
+    if sys.version_info >= (3,):
+        assert m.parts[0].is_attachment
+        assert m.parts[0].block.data.decode() == "EMPTY 😊\n"
 
 
 def test_calculate_snippet():

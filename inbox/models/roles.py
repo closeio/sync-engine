@@ -98,11 +98,11 @@ class Blob(object):
 
                             data = mimepart.body
 
-                            if isinstance(data, unicode):
-                                data = data.encode("utf-8", "strict")
-
                             if data is None:
                                 continue
+
+                            if not isinstance(data, bytes):
+                                data = data.encode("utf-8", "strict")
 
                             # Found it!
                             if sha256(data).hexdigest() == self.data_sha256:
@@ -135,7 +135,7 @@ class Blob(object):
     @data.setter
     def data(self, value):
         assert value is not None
-        assert type(value) is not unicode
+        assert isinstance(value, bytes)
 
         # Cache value in memory. Otherwise message-parsing incurs a disk or S3
         # roundtrip.

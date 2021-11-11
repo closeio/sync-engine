@@ -6,7 +6,7 @@ import weakref
 from typing import Any, Optional
 
 from bson import EPOCH_NAIVE, json_util
-from future.utils import iteritems, with_metaclass
+from future.utils import iteritems
 
 # Monkeypatch to not include tz_info in decoded JSON.
 # Kind of a ridiculous solution, but works.
@@ -15,7 +15,6 @@ json_util.EPOCH_AWARE = EPOCH_NAIVE
 from sqlalchemy import String, Text, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext import baked
-from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.sql import operators
@@ -68,14 +67,6 @@ def before_commit(conn):
         log.warning(
             "Dubiously many queries per session!", query_count=query_counts.get(conn)
         )
-
-
-# class SQLAlchemyCompatibleAbstractMetaClass(DeclarativeMeta, abc.ABCMeta):
-#     """Declarative model classes that *also* inherit from an abstract base
-#     class need a metaclass like this one, in order to prevent metaclass
-#     conflict errors."""
-
-#     pass
 
 
 class ABCMixin(object):

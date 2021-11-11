@@ -128,7 +128,7 @@ def get_start_times(event, start=None, end=None):
         else:
             start = arrow.get(start)
         if not end:
-            end = arrow.utcnow().replace(years=+EXPAND_RECURRING_YEARS)
+            end = arrow.utcnow().shift(years=+EXPAND_RECURRING_YEARS)
         else:
             end = arrow.get(end)
 

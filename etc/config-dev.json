@@ -70,7 +70,7 @@
 
 "CALENDAR_POLL_FREQUENCY": 300,
 "EMAIL_EXCEPTIONS": false,
-"ENCRYPT_SECRETS": false,
+"ENCRYPT_SECRETS": true,
 "DEBUG_CONSOLE_ON": true,
 
 "FEATURE_FLAGS": "ical_autoimport",

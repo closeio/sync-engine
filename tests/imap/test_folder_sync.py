@@ -127,6 +127,9 @@ def test_condstore_flags_refresh(
         v[b"X-GM-LABELS"] = (b"newlabel",)
         v[b"MODSEQ"] = (k,)
 
+    with folder_sync_engine.conn_pool.get() as crispin_client:
+        assert crispin_client.condstore_supported()
+
     folder_sync_engine.highestmodseq = 0
     # Don't sleep at the end of poll_impl before returning.
     folder_sync_engine.poll_frequency = 0
@@ -138,7 +141,7 @@ def test_condstore_flags_refresh(
     assert (
         folder_sync_engine.highestmodseq
         == mock_imapclient.folder_status(all_mail_folder.name, ["HIGHESTMODSEQ"])[
-            "HIGHESTMODSEQ"
+            b"HIGHESTMODSEQ"
         ]
     )
 
@@ -264,6 +267,8 @@ def raise_imap_error(self):
     raise IMAP4.error("Unexpected IDLE response")
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_gmail_initial_sync(db, default_account, all_mail_folder, mock_imapclient):
     uid_dict = uids.example()
     mock_imapclient.add_folder_data(all_mail_folder.name, uid_dict)

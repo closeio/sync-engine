@@ -67,7 +67,7 @@ def google_to_event_time(start_raw, end_raw):
     if "date" in start_raw:
         # Google all-day events normally end a 'day' later than they should,
         # but not always if they were created by a third-party client.
-        end = max(start, end.replace(days=-1))
+        end = max(start, end.shift(days=-1))
         d = {"start_date": start, "end_date": end}
     else:
         d = {"start_time": start, "end_time": end}

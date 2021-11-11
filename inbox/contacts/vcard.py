@@ -33,6 +33,7 @@ from builtins import range
 from collections import defaultdict
 
 import vobject
+from past.builtins import unicode
 
 
 def list_clean(string):

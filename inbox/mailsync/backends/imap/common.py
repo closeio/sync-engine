@@ -196,7 +196,8 @@ def remove_deleted_uids(account_id, folder_id, uids):
                     thread = message.thread
                     if thread is not None:
                         thread.messages.remove(message)
-                        # Thread.messages relationship is versinioned.
+                        # Thread.messages relationship is versioned i.e. extra
+                        # logic gets executed on remove call.
                         # This early flush is needed so the configure_versioning logic
                         # in inbox.model.sessions can work reliably on newer versions of
                         # SQLAlchemy.

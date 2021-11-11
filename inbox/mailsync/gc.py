@@ -118,7 +118,8 @@ class DeleteHandler(gevent.Greenlet):
                 # Remove message from thread, so that the change to the thread
                 # gets properly versioned.
                 thread.messages.remove(message)
-                # Thread.messages relationship is versinioned.
+                # Thread.messages relationship is versioned i.e. extra
+                # logic gets executed on remove call.
                 # This early flush is needed so the configure_versioning logic
                 # in inbox.model.sessions can work reliably on newer versions of
                 # SQLAlchemy.

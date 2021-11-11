@@ -14,7 +14,6 @@ json_util.EPOCH_AWARE = EPOCH_NAIVE
 
 from sqlalchemy import String, Text, event
 from sqlalchemy.engine import Engine
-from sqlalchemy.ext import baked
 from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.sql import operators
@@ -31,8 +30,6 @@ MAX_TEXT_BYTES = 65535
 MAX_BYTES_PER_CHAR = 4  # For collation of utf8mb4
 MAX_TEXT_CHARS = int(MAX_TEXT_BYTES / float(MAX_BYTES_PER_CHAR))
 MAX_MYSQL_INTEGER = 2147483647
-
-bakery = baked.bakery()
 
 
 query_counts = weakref.WeakKeyDictionary()

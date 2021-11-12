@@ -1,5 +1,3 @@
-import sys
-
 import gevent
 import gevent._threading  # This is a clone of the *real* threading module
 from flask import Flask, jsonify, request
@@ -25,8 +23,7 @@ class HTTPFrontend(object):
 
     def _create_app(self):
         app = Flask(__name__)
-        if (3, 6) <= sys.version_info < (3, 7):
-            app.config["JSON_SORT_KEYS"] = False
+        app.config["JSON_SORT_KEYS"] = False
         self._create_app_impl(app)
         return app
 

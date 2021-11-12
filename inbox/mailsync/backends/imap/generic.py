@@ -482,9 +482,11 @@ class FolderSyncEngine(Greenlet):
                 except Exception as exc:
                     # With some servers we get e.g.
                     # 'Unexpected IDLE response: * FLAGS  (...)'
-                    if isinstance(exc, imaplib.IMAP4.error) and exc.message.startswith(
-                        "Unexpected IDLE response"
-                    ):
+                    if isinstance(exc, imaplib.IMAP4.error):
+                        message = exc.args[0] if exc.args else ""
+                        if not message.startswith("Unexpected IDLE response"):
+                            raise
+
                         log.info("Error initiating IDLE, not idling", error=exc)
                         try:
                             # Still have to take the connection out of IDLE
@@ -720,10 +722,11 @@ class FolderSyncEngine(Greenlet):
             remote_uidnext = None
         except imaplib.IMAP4.error as e:
             # TODO: match with CrispinClient.select_folder
+            message = e.args[0] if e.args else ""
             if (
-                "[NONEXISTENT]" in e.message
-                or "does not exist" in e.message
-                or "doesn't exist" in e.message
+                "[NONEXISTENT]" in message
+                or "does not exist" in message
+                or "doesn't exist" in message
             ):
                 raise FolderMissingError()
             else:

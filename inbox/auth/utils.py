@@ -1,4 +1,5 @@
 import sys
+from typing import Union
 
 if sys.version_info < (3,):
     from backports import ssl
@@ -16,6 +17,14 @@ from inbox.logging import get_logger
 log = get_logger()
 
 
+def safe_decode(message):
+    # type: (Union[str, bytes]) -> str
+    if isinstance(message, bytes):
+        return message.decode("utf-8", errors="replace")
+
+    return message
+
+
 def auth_requires_app_password(exc):
     # Some servers require an application specific password, token, or
     # authorization code to login
@@ -24,7 +33,7 @@ def auth_requires_app_password(exc):
         "Authorized code is incorrect",  # http://service.mail.qq.com/cgi-bin/help?subtype=1&&id=28&&no=1001256
         "Login fail. Please using weixin token",  # http://service.exmail.qq.com/cgi-bin/help?subtype=1&no=1001023&id=23.
     )
-    message = exc.args[0] if exc.args else ""
+    message = safe_decode(exc.args[0]) if exc.args else ""
     return any(message.lower().startswith(msg.lower()) for msg in PREFIXES)
 
 
@@ -54,7 +63,7 @@ def auth_is_invalid(exc):
         "[AUTHORIZATIONFAILED]",
         "incorrect password",
     )
-    message = exc.args[0] if exc.args else ""
+    message = safe_decode(exc.args[0]) if exc.args else ""
     return any(message.lower().startswith(msg.lower()) for msg in AUTH_INVALID_PREFIXES)
 
 

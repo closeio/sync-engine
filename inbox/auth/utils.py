@@ -24,7 +24,8 @@ def auth_requires_app_password(exc):
         "Authorized code is incorrect",  # http://service.mail.qq.com/cgi-bin/help?subtype=1&&id=28&&no=1001256
         "Login fail. Please using weixin token",  # http://service.exmail.qq.com/cgi-bin/help?subtype=1&no=1001023&id=23.
     )
-    return any(exc.message.lower().startswith(msg.lower()) for msg in PREFIXES)
+    message = exc.args[0] if exc.args else ""
+    return any(message.lower().startswith(msg.lower()) for msg in PREFIXES)
 
 
 def auth_is_invalid(exc):

@@ -116,7 +116,7 @@ def create_default_context():
     context.check_hostname = False
 
     # The folowing is not necessary on Python 3 because those are the defaults
-    if sys.version < (3,):
+    if sys.version_info < (3,):
         # SSLv2 considered harmful.
         context.options |= ossllib.SSL_OP_NO_SSLv2
 

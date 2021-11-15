@@ -5,9 +5,12 @@ import re
 import sys
 import time
 from builtins import range
-from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple
+from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple, Union
 
 import imapclient
+import imapclient.exceptions
+import imapclient.imap_utf7
+import imapclient.response_parser
 from future.utils import iteritems
 from past.builtins import long
 
@@ -716,6 +719,7 @@ class CrispinClient(object):
         return b"IDLE" in self.conn.capabilities()
 
     def search_uids(self, criteria):
+        # type: (List[str]) -> List[int]
         """
         Find UIDs in this folder matching the criteria. See
         http://tools.ietf.org/html/rfc3501.html#section-6.4.4 for valid
@@ -1382,3 +1386,68 @@ class GmailCrispinClient(CrispinClient):
         self.conn.select_folder(trash_folder_name)
         self._delete_message(message_id_header, delete_multiple)
         return True
+
+    def search_uids(self, criteria):
+        # type: (List[str]) -> List[int]
+        """
+        Find UIDs in this folder matching the criteria. See
+        http://tools.ietf.org/html/rfc3501.html#section-6.4.4 for valid
+        criteria.
+        """
+        if len(criteria) == 2 and criteria[0] == "X-GM-LABELS":
+            response = gmail_label_search(self.conn, criteria[1])
+            return sorted([long(uid) for uid in response])
+
+        return super(GmailCrispinClient, self).search_uids(criteria)
+
+
+def gmail_label_search(connection, label_name):
+    # type: (Any, str) -> List[int]
+    """
+    Handle Gmail label search oddities.
+    https://developers.google.com/gmail/imap/imap-extensions#access_to_gmail_labels_x-gm-labels.
+
+    It UTF-7 encodes label names and also always quotes it to prevent errors when the label contains
+    asterisks (*). imapclient's search method sends label names containing asterisks unquoted which
+    upsets Gmail IMAP server.
+    """
+    criteria = ["X-GM-LABELS", label_name]
+
+    # First UTF-7 encode the label name
+    encoded_label_name = imapclient.imap_utf7.encode(label_name)  # type: bytes
+
+    # Always quote Gmail label names since they can contain asterisks.
+    # Sending unquotted label name containg asterisks upsets Gmail IMAP server
+    # and triggers imapclient.exceptions.InvalidCriteriaError: b'Could not parse command'
+    # based off: https://github.com/mjs/imapclient/blob/0279592557495d4ddf7619b17ed9e73b21161bdf/imapclient/imapclient.py#L1826
+    encoded_label_name = encoded_label_name.replace(b"\\", b"\\\\")
+    encoded_label_name = encoded_label_name.replace(b'"', b'\\"')
+    encoded_label_name = b'"' + encoded_label_name + b'"'
+
+    # Now actually perform the search the Goole way skipping imapclient's public API which does it differently
+    # based off: https://github.com/mjs/imapclient/blob/master/imapclient/imapclient.py#L1123-L1145
+    try:
+        data = connection._raw_command_untagged(
+            b"SEARCH", [b"X-GM-LABELS", encoded_label_name]
+        )
+    except imaplib.IMAP4.error as e:
+        # Make BAD IMAP responses easier to understand to the user, with a link to the docs
+        m = re.match(r"SEARCH command error: BAD \[(.+)\]", str(e))
+        if m:
+            raise imapclient.exceptions.InvalidCriteriaError(
+                "{original_msg}\n\n"
+                "This error may have been caused by a syntax error in the criteria: "
+                "{criteria}\nPlease refer to the documentation for more information "
+                "about search criteria syntax..\n"
+                "https://imapclient.readthedocs.io/en/master/#imapclient.IMAPClient.search".format(
+                    original_msg=m.group(1),
+                    criteria='"%s"' % criteria
+                    if not isinstance(criteria, list)
+                    else criteria,
+                )
+            )
+
+        # If the exception is not from a BAD IMAP response, re-raise as-is
+        raise
+
+    return imapclient.response_parser.parse_message_list(data)

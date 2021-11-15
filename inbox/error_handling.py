@@ -76,6 +76,10 @@ GROUP_EXCEPTION_CLASSES = [
 def payload_handler(message_filters, payload, **kw):
     title = payload["data"].get("title")
     exception = payload["data"].get("body", {}).get("trace", {}).get("exception", {})
+    # On Python 3 exceptions are organized in chains
+    if not exception:
+        trace_chain = payload["data"].get("body", {}).get("trace_chain")
+        exception = trace_chain[0].get("exception", {}) if trace_chain else {}
 
     exception_message = exception.get("message")
     exception_class = exception.get("class")

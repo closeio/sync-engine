@@ -4,7 +4,6 @@ standard_library.install_aliases()
 import datetime
 
 import gevent
-from imapclient.imap_utf7 import encode as utf7_encode
 from sqlalchemy import func
 from sqlalchemy.orm import load_only
 
@@ -233,7 +232,7 @@ class LabelRenameHandler(gevent.Greenlet):
                     crispin_client.select_folder(folder_name, uidvalidity_cb)
 
                     found_uids = crispin_client.search_uids(
-                        ["X-GM-LABELS", utf7_encode(self.label_name)]
+                        ["X-GM-LABELS", self.label_name]
                     )
 
                     for chnk in chunk(found_uids, 200):

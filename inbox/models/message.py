@@ -341,7 +341,16 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                     TypeError,
                     binascii.Error,
                     UnicodeDecodeError,
+                    ValueError,
                 ) as e:
+                    if isinstance(e, ValueError):
+                        message = e.args[0] if e.args else ""
+                        if (
+                            message
+                            != "string argument should contain only ASCII characters"
+                        ):
+                            raise
+
                     log.error(
                         "Error parsing message MIME parts",
                         folder_name=folder_name,

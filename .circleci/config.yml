@@ -132,7 +132,7 @@ workflows:
           python_version: "3.8"
       - build:
           name: build_arm
-          python_version: "2.7"
+          python_version: "3.6"
           resource_class: "arm.medium"
           platform_suffix: "-arm64"
           run_tests: false

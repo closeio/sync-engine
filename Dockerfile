@@ -39,7 +39,8 @@ RUN if [ "${PYTHON_VERSION}" != "3.6" ] ; \
     add-apt-repository ppa:deadsnakes/ppa; \
   fi; \
   DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y python"${PYTHON_VERSION}"-dev; \
-  if [ "${PYTHON_VERSION}" = "3.8" ] ||  [ "${PYTHON_VERSION}" = "3.10" ]; then DEBIAN_FRONTEND=noninteractive apt-get install -y python"${PYTHON_VERSION}"-distutils; fi; \
+  if [ "${PYTHON_VERSION}" = "3.8" ] || [ "${PYTHON_VERSION}" = "3.10" ]; then DEBIAN_FRONTEND=noninteractive apt-get install -y python"${PYTHON_VERSION}"-distutils; fi; \
+  if [ "${PYTHON_VERSION}" = "3.10" ]; then cp /usr/lib/python3.8/distutils/command/bdist_wininst.py /usr/lib/python3.10/distutils/command/bdist_wininst.py; fi; \
   rm -rf /var/lib/apt/lists/*
 
 RUN curl -O https://bootstrap.pypa.io/pip/2.7/get-pip.py && \

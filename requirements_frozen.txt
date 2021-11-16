@@ -132,4 +132,5 @@ Werkzeug==1.0.1
 wrapt==1.10.11
 zipp==1.2.0
 zope.event==4.5.0
-zope.interface==5.4.0 
+zope.interface==5.4.0
+--no-binary=gevent,greenlet # https://github.com/gevent/gevent/issues/1825

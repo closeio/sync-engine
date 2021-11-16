@@ -33,8 +33,7 @@ from .metrics_api import app as metrics_api
 from .ns_api import DEFAULT_LIMIT, app as ns_api
 
 app = Flask(__name__)
-if (3, 6) <= sys.version_info < (3, 7):
-    app.config["JSON_SORT_KEYS"] = False
+app.config["JSON_SORT_KEYS"] = False
 # Handle both /endpoint and /endpoint/ without redirecting.
 # Note that we need to set this *before* registering the blueprint.
 app.url_map.strict_slashes = False

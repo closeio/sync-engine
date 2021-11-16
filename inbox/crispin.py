@@ -1446,4 +1446,5 @@ class GmailCrispinClient(CrispinClient):
             # If the exception is not from a BAD IMAP response, re-raise as-is
             raise
 
-        return imapclient.response_parser.parse_message_list(data)
+        response = imapclient.response_parser.parse_message_list(data)
+        return sorted([long(uid) for uid in response])

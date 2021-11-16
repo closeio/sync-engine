@@ -25,8 +25,7 @@ class HTTPFrontend(object):
 
     def _create_app(self):
         app = Flask(__name__)
-        if (3, 6) <= sys.version_info < (3, 7):
-            app.config["JSON_SORT_KEYS"] = False
+        app.config["JSON_SORT_KEYS"] = False
         self._create_app_impl(app)
         return app
 

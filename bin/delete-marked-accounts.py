@@ -8,13 +8,14 @@ Includes:
 * Account liveness/status data (in Redis).
 
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 from gevent import monkey
 
 monkey.patch_all()
 
 import logging
+import sys
 
 import click
 import gevent
@@ -33,6 +34,8 @@ log = get_logger()
 @click.option("--dry-run", is_flag=True)
 def run(throttle, dry_run):
     maybe_enable_rollbar()
+
+    print("Python", sys.version, file=sys.stderr)
 
     pool = []
 

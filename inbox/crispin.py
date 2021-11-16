@@ -2,6 +2,7 @@
 import contextlib
 import imaplib
 import re
+import sys
 import time
 from builtins import range
 from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple
@@ -34,7 +35,12 @@ from collections import defaultdict, namedtuple
 from email.parser import HeaderParser
 
 import gevent
-from backports import ssl
+
+if sys.version_info < (3,):
+    from backports import ssl
+else:
+    import ssl
+
 from gevent import socket
 from gevent.lock import BoundedSemaphore
 from gevent.queue import Queue
@@ -419,14 +425,15 @@ class CrispinClient(object):
             # Specifically point out folders that come back as missing by
             # checking for Yahoo / Gmail / Outlook (Hotmail) specific errors:
             # TODO: match with FolderSyncEngine.get_new_uids
+            message = e.args[0] if e.args else ""
             if (
-                "[NONEXISTENT] Unknown Mailbox:" in e.args[0]
-                or "does not exist" in e.args[0]
-                or "doesn't exist" in e.args[0]
+                "[NONEXISTENT] Unknown Mailbox:" in message
+                or "does not exist" in message
+                or "doesn't exist" in message
             ):
                 raise FolderMissingError(folder_name)
 
-            if "Access denied" in e.message:
+            if "Access denied" in message:
                 # TODO: This is not the best exception name, but it does the
                 # expected thing here: We stop syncing the folder (but would
                 # attempt selecting the folder again later).
@@ -737,7 +744,8 @@ class CrispinClient(object):
             t = time.time()
             fetch_result = self.conn.search(["ALL"])  # type: List[int]
         except imaplib.IMAP4.error as e:
-            if e.message.find("UID SEARCH wrong arguments passed") >= 0:
+            message = e.args[0] if e.args else ""
+            if message.find("UID SEARCH wrong arguments passed") >= 0:
                 # Search query must not have parentheses for Mail2World servers
                 log.debug(
                     "Getting UIDs failed when using 'UID SEARCH "
@@ -747,7 +755,7 @@ class CrispinClient(object):
                 )
                 t = time.time()
                 fetch_result = self.conn._search(["ALL"], None)
-            elif e.message.find("UID SEARCH failed: Internal error") >= 0:
+            elif message.find("UID SEARCH failed: Internal error") >= 0:
                 # Oracle Beehive fails for some folders
                 log.debug(
                     "Getting UIDs failed when using 'UID SEARCH "

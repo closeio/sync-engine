@@ -2,9 +2,14 @@
 from gevent import monkey
 
 monkey.patch_all()
-import gevent_openssl
 
-gevent_openssl.monkey_patch()
+import sys
+
+if sys.version_info < (3,):
+    import gevent_openssl
+
+    gevent_openssl.monkey_patch()
+
 from setproctitle import setproctitle
 
 setproctitle("inbox-console")

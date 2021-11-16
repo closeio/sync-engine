@@ -222,8 +222,9 @@ class Account(
         if error is None:
             self._sync_status["sync_error"] = None
         else:
+            message = error.args[0] if error.args else ""
             error_obj = {
-                "message": str(error.message)[:3000],
+                "message": str(message)[:3000],
                 "exception": "".join(
                     traceback.format_exception_only(type(error), error)
                 )[:500],

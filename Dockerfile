@@ -5,7 +5,7 @@ RUN groupadd -g 5000 sync-engine \
   && useradd -d /home/sync-engine -m -u 5000 -g 5000 sync-engine
 
 ENV TZ="Etc/GMT"
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get dist-upgrade -y && \
+RUN DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get dist-upgrade -y && \
   apt-get install -y tzdata && \
   apt-get install -y \
   build-essential \

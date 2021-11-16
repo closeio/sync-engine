@@ -430,7 +430,53 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
         for k in list(kwargs):
             if not hasattr(type(self), k):
                 del kwargs[k]
+
+        if kwargs.get("title") and len(kwargs["title"].encode("utf-8")) > TITLE_MAX_LEN:
+            kwargs["title"] = cut_str_to_utf8_byte_length(
+                kwargs["title"], TITLE_MAX_LEN
+            )
+
+        if (
+            kwargs.get("location")
+            and len(kwargs["location"].encode("utf-8")) > LOCATION_MAX_LEN
+        ):
+            kwargs["location"] = cut_str_to_utf8_byte_length(
+                kwargs["location"], LOCATION_MAX_LEN
+            )
+
+        if kwargs.get("uid") and len(kwargs["uid"].encode("utf-8")) > UID_MAX_LEN:
+            kwargs["uid"] = cut_str_to_utf8_byte_length(kwargs["uid"], UID_MAX_LEN)
+
         super(Event, self).__init__(**kwargs)
+
+
+def cut_str_to_utf8_byte_length(value, max_bytes):
+    # type: (str, int) -> str
+    """
+    Stolen from: https://stackoverflow.com/questions/59451048/efficient-way-to-cut-a-utf-8-string-in-python-to-a-given-maximal-byte-length
+    """
+    # cut it twice to avoid encoding potentially GBs of `s` just to get e.g. 10 bytes?
+    encoded_value = value[:max_bytes].encode("utf-8")[:max_bytes]  # type: bytes
+
+    if encoded_value[-1] & 0b10000000:
+        last_11xxxxxx_index = [
+            i for i in range(-1, -5, -1) if encoded_value[i] & 0b11000000 == 0b11000000
+        ][0]
+        # note that last_11xxxxxx_index is negative
+
+        last_11xxxxxx = encoded_value[last_11xxxxxx_index]
+        if not last_11xxxxxx & 0b00100000:
+            last_char_length = 2
+        elif not last_11xxxxxx & 0b0010000:
+            last_char_length = 3
+        elif not last_11xxxxxx & 0b0001000:
+            last_char_length = 4
+
+        if last_char_length > -last_11xxxxxx_index:
+            # remove the incomplete character
+            encoded_value = encoded_value[:last_11xxxxxx_index]
+
+    return encoded_value.decode("utf-8")
 
 
 # For API querying performance - default sort order is event.start ASC

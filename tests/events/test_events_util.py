@@ -74,7 +74,7 @@ def test_unicode_event_truncation(db, default_account):
     # Both location and title should be properly truncated to their max lengths.
     # It's ok to have N unicode characters in a VARCHAR(N) field because
     # the column is uft8-encoded.
-    assert len(e.location) == 255
+    assert len(e.location) == 63
     assert len(e.title) == 1024
     assert len(e.uid) == 767
 
@@ -96,7 +96,7 @@ def test_unicode_event_truncation(db, default_account):
     e.namespace = default_account.namespace
     db.session.add(e)
     db.session.commit()
-    assert len(e.location) == 255
+    assert len(e.location) == 63
     assert len(e.title) == 1024
     assert len(e.uid) == 767
     assert len(e.master_event_uid) == 767

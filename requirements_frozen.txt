@@ -111,7 +111,8 @@ requests-file==1.5.1
 rollbar==0.16.1
 s3transfer==0.4.2
 scandir==1.10.0
-setproctitle==1.2.2
+setproctitle==1.1.10; python_version < '3.0'
+setproctitle==1.2.2; python_version >= '3.0'
 setuptools==44.0.0
 simplegeneric==0.8.1
 singledispatch==3.4.0.3

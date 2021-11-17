@@ -211,7 +211,7 @@ def id_chooser(query, ident):
     return [str(engine_manager.shard_key_for_id(ident))]
 
 
-def query_chooser(query):
+def execute_chooser(query):
     return [str(k) for k in engine_manager.engines]
 
 
@@ -221,7 +221,7 @@ def global_session_scope():
     session = ShardedSession(
         shard_chooser=shard_chooser,
         id_chooser=id_chooser,
-        query_chooser=query_chooser,
+        execute_chooser=execute_chooser,
         shards=shards,
     )
     # STOPSHIP(emfree): need instrumentation and proper exception handling

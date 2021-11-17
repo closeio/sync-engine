@@ -228,7 +228,10 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
         self.deleted_at = datetime.datetime.utcnow()
 
     discriminator = Column("type", String(16))
-    __mapper_args__ = {"polymorphic_on": discriminator}
+    __mapper_args__ = {
+        "polymorphic_on": discriminator,
+        "polymorphic_identity": "thread",
+    }
 
 
 # Need to explicitly specify the index length for MySQL 5.6, because the

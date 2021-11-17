@@ -23,6 +23,7 @@ class HTTPFrontend(object):
 
     def _create_app(self):
         app = Flask(__name__)
+        app.config["JSON_SORT_KEYS"] = False
         self._create_app_impl(app)
         return app
 

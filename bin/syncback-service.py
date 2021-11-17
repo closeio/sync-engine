@@ -5,13 +5,18 @@ API under something like gunicorn. (For convenience, the bin/inbox-api script
 also starts up the syncback service.)
 
 """
+from __future__ import print_function
+
 from gevent import monkey
 
 monkey.patch_all()
 
-import gevent_openssl
+import sys
 
-gevent_openssl.monkey_patch()
+if sys.version_info < (3,):
+    import gevent_openssl
+
+    gevent_openssl.monkey_patch()
 
 import os
 
@@ -62,6 +67,8 @@ def main(prod, config, process_num, syncback_id, enable_tracer, enable_profiler)
     setproctitle("syncback-{}".format(process_num))
 
     maybe_enable_rollbar()
+
+    print("Python", sys.version, file=sys.stderr)
 
     if config is not None:
         config_path = os.path.abspath(config)

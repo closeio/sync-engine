@@ -2,11 +2,15 @@
 import contextlib
 import imaplib
 import re
+import sys
 import time
 from builtins import range
-from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple
+from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple, Union
 
 import imapclient
+import imapclient.exceptions
+import imapclient.imap_utf7
+import imapclient.response_parser
 from future.utils import iteritems
 from past.builtins import long
 
@@ -34,7 +38,12 @@ from collections import defaultdict, namedtuple
 from email.parser import HeaderParser
 
 import gevent
-from backports import ssl
+
+if sys.version_info < (3,):
+    from backports import ssl
+else:
+    import ssl
+
 from gevent import socket
 from gevent.lock import BoundedSemaphore
 from gevent.queue import Queue
@@ -419,14 +428,15 @@ class CrispinClient(object):
             # Specifically point out folders that come back as missing by
             # checking for Yahoo / Gmail / Outlook (Hotmail) specific errors:
             # TODO: match with FolderSyncEngine.get_new_uids
+            message = e.args[0] if e.args else ""
             if (
-                "[NONEXISTENT] Unknown Mailbox:" in e.args[0]
-                or "does not exist" in e.args[0]
-                or "doesn't exist" in e.args[0]
+                "[NONEXISTENT] Unknown Mailbox:" in message
+                or "does not exist" in message
+                or "doesn't exist" in message
             ):
                 raise FolderMissingError(folder_name)
 
-            if "Access denied" in e.message:
+            if "Access denied" in message:
                 # TODO: This is not the best exception name, but it does the
                 # expected thing here: We stop syncing the folder (but would
                 # attempt selecting the folder again later).
@@ -709,6 +719,7 @@ class CrispinClient(object):
         return b"IDLE" in self.conn.capabilities()
 
     def search_uids(self, criteria):
+        # type: (List[str]) -> List[int]
         """
         Find UIDs in this folder matching the criteria. See
         http://tools.ietf.org/html/rfc3501.html#section-6.4.4 for valid
@@ -737,7 +748,8 @@ class CrispinClient(object):
             t = time.time()
             fetch_result = self.conn.search(["ALL"])  # type: List[int]
         except imaplib.IMAP4.error as e:
-            if e.message.find("UID SEARCH wrong arguments passed") >= 0:
+            message = e.args[0] if e.args else ""
+            if message.find("UID SEARCH wrong arguments passed") >= 0:
                 # Search query must not have parentheses for Mail2World servers
                 log.debug(
                     "Getting UIDs failed when using 'UID SEARCH "
@@ -747,7 +759,7 @@ class CrispinClient(object):
                 )
                 t = time.time()
                 fetch_result = self.conn._search(["ALL"], None)
-            elif e.message.find("UID SEARCH failed: Internal error") >= 0:
+            elif message.find("UID SEARCH failed: Internal error") >= 0:
                 # Oracle Beehive fails for some folders
                 log.debug(
                     "Getting UIDs failed when using 'UID SEARCH "
@@ -1374,3 +1386,65 @@ class GmailCrispinClient(CrispinClient):
         self.conn.select_folder(trash_folder_name)
         self._delete_message(message_id_header, delete_multiple)
         return True
+
+    def search_uids(self, criteria):
+        # type: (List[str]) -> List[int]
+        """
+        Handle Gmail label search oddities.
+        https://developers.google.com/gmail/imap/imap-extensions#access_to_gmail_labels_x-gm-labels.
+
+        UTF-7 encodes label names and also quotes it to prevent errors when the label contains
+        asterisks (*). imapclient's search method sends label names containing asterisks unquoted which
+        upsets Gmail IMAP server.
+        """
+        if len(criteria) != 2:
+            return super(GmailCrispinClient, self).search_uids(criteria)
+
+        if criteria[0] != "X-GM-LABELS":
+            return super(GmailCrispinClient, self).search_uids(criteria)
+
+        # First UTF-7 encode the label name
+        label_name = criteria[1]
+        encoded_label_name = imapclient.imap_utf7.encode(label_name)  # type: bytes
+
+        # If label contained only ASCII characters and does not contain asterisks
+        # we don't need to do anything special
+        if encoded_label_name.decode("ascii") == label_name and "*" not in label_name:
+            return super(GmailCrispinClient, self).search_uids(criteria)
+
+        # At this point quote Gmail label name since it could contain asterisks.
+        # Sending unquotted label name containg asterisks upsets Gmail IMAP server
+        # and triggers imapclient.exceptions.InvalidCriteriaError: b'Could not parse command'
+        # based off: https://github.com/mjs/imapclient/blob/0279592557495d4ddf7619b17ed9e73b21161bdf/imapclient/imapclient.py#L1826
+        encoded_label_name = encoded_label_name.replace(b"\\", b"\\\\")
+        encoded_label_name = encoded_label_name.replace(b'"', b'\\"')
+        encoded_label_name = b'"' + encoded_label_name + b'"'
+
+        # Now actually perform the search skipping imapclient's public API which does quoting differently
+        # based off: https://github.com/mjs/imapclient/blob/master/imapclient/imapclient.py#L1123-L1145
+        try:
+            data = self.conn._raw_command_untagged(
+                b"SEARCH", [b"X-GM-LABELS", encoded_label_name]
+            )
+        except imaplib.IMAP4.error as e:
+            # Make BAD IMAP responses easier to understand to the user, with a link to the docs
+            m = re.match(r"SEARCH command error: BAD \[(.+)\]", str(e))
+            if m:
+                raise imapclient.exceptions.InvalidCriteriaError(
+                    "{original_msg}\n\n"
+                    "This error may have been caused by a syntax error in the criteria: "
+                    "{criteria}\nPlease refer to the documentation for more information "
+                    "about search criteria syntax..\n"
+                    "https://imapclient.readthedocs.io/en/master/#imapclient.IMAPClient.search".format(
+                        original_msg=m.group(1),
+                        criteria='"%s"' % criteria
+                        if not isinstance(criteria, list)
+                        else criteria,
+                    )
+                )
+
+            # If the exception is not from a BAD IMAP response, re-raise as-is
+            raise
+
+        response = imapclient.response_parser.parse_message_list(data)
+        return sorted([long(uid) for uid in response])

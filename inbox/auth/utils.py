@@ -1,11 +1,28 @@
-from backports import ssl
+import sys
+from typing import Union
+
+if sys.version_info < (3,):
+    from backports import ssl
+else:
+    import ssl
+
 from imapclient import IMAPClient
-from OpenSSL._util import lib as ossllib
+
+if sys.version_info < (3,):
+    from OpenSSL._util import lib as ossllib
 
 from inbox.basicauth import SSLNotSupportedError
 from inbox.logging import get_logger
 
 log = get_logger()
+
+
+def safe_decode(message):
+    # type: (Union[str, bytes]) -> str
+    if isinstance(message, bytes):
+        return message.decode("utf-8", errors="replace")
+
+    return message
 
 
 def auth_requires_app_password(exc):
@@ -16,7 +33,8 @@ def auth_requires_app_password(exc):
         "Authorized code is incorrect",  # http://service.mail.qq.com/cgi-bin/help?subtype=1&&id=28&&no=1001256
         "Login fail. Please using weixin token",  # http://service.exmail.qq.com/cgi-bin/help?subtype=1&no=1001023&id=23.
     )
-    return any(exc.message.lower().startswith(msg.lower()) for msg in PREFIXES)
+    message = safe_decode(exc.args[0]) if exc.args else ""
+    return any(message.lower().startswith(msg.lower()) for msg in PREFIXES)
 
 
 def auth_is_invalid(exc):
@@ -45,9 +63,8 @@ def auth_is_invalid(exc):
         "[AUTHORIZATIONFAILED]",
         "incorrect password",
     )
-    return any(
-        exc.message.lower().startswith(msg.lower()) for msg in AUTH_INVALID_PREFIXES
-    )
+    message = safe_decode(exc.args[0]) if exc.args else ""
+    return any(message.lower().startswith(msg.lower()) for msg in AUTH_INVALID_PREFIXES)
 
 
 def create_imap_connection(host, port, use_timeout=True):
@@ -107,28 +124,30 @@ def create_default_context():
     context.verify_mode = ssl.CERT_NONE
     context.check_hostname = False
 
-    # SSLv2 considered harmful.
-    context.options |= ossllib.SSL_OP_NO_SSLv2
+    # The folowing is not necessary on Python 3 because those are the defaults
+    if sys.version_info < (3,):
+        # SSLv2 considered harmful.
+        context.options |= ossllib.SSL_OP_NO_SSLv2
 
-    # SSLv3 has problematic security and is only required for really old
-    # clients such as IE6 on Windows XP
-    context.options |= ossllib.SSL_OP_NO_SSLv3
+        # SSLv3 has problematic security and is only required for really old
+        # clients such as IE6 on Windows XP
+        context.options |= ossllib.SSL_OP_NO_SSLv3
 
-    # disable compression to prevent CRIME attacks (OpenSSL 1.0+)
-    context.options |= ossllib.SSL_OP_NO_COMPRESSION
+        # disable compression to prevent CRIME attacks (OpenSSL 1.0+)
+        context.options |= ossllib.SSL_OP_NO_COMPRESSION
 
-    # Prefer the server's ciphers by default so that we get stronger
-    # encryption
-    context.options |= ossllib.SSL_OP_CIPHER_SERVER_PREFERENCE
+        # Prefer the server's ciphers by default so that we get stronger
+        # encryption
+        context.options |= ossllib.SSL_OP_CIPHER_SERVER_PREFERENCE
 
-    # Use single use keys in order to improve forward secrecy
-    context.options |= ossllib.SSL_OP_SINGLE_DH_USE
-    context.options |= ossllib.SSL_OP_SINGLE_ECDH_USE
+        # Use single use keys in order to improve forward secrecy
+        context.options |= ossllib.SSL_OP_SINGLE_DH_USE
+        context.options |= ossllib.SSL_OP_SINGLE_ECDH_USE
 
-    context._ctx.set_mode(
-        ossllib.SSL_MODE_ENABLE_PARTIAL_WRITE
-        | ossllib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
-        | ossllib.SSL_MODE_AUTO_RETRY
-    )
+        context._ctx.set_mode(
+            ossllib.SSL_MODE_ENABLE_PARTIAL_WRITE
+            | ossllib.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
+            | ossllib.SSL_MODE_AUTO_RETRY
+        )
 
     return context

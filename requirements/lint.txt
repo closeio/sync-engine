@@ -1,6 +1,6 @@
 appdirs==1.4.4
 attrs==20.2.0
-black==19.10b0
+black==19.10b0; python_version >= '3.0'
 click==7.1.2
 isort==5.4.2
 pathspec==0.8.0

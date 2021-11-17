@@ -30,6 +30,7 @@ from sqlalchemy.orm import (
     subqueryload,
     synonym,
     validates,
+    with_polymorphic,
 )
 from sqlalchemy.sql.expression import false
 
@@ -743,11 +744,18 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         ]
         if expand:
             columns += ["message_id_header", "in_reply_to", "references"]
+
+        from inbox.models.event import Event, RecurringEvent, RecurringEventOverride
+
+        all_event_subclasses = with_polymorphic(
+            Event, [RecurringEvent, RecurringEventOverride], flat=True
+        )
+
         return (
             load_only(*columns),
             subqueryload("parts").joinedload("block"),
             subqueryload("thread").load_only("public_id", "discriminator"),
-            subqueryload("events"),
+            subqueryload(Message.events.of_type(all_event_subclasses)),
             subqueryload("messagecategories").joinedload("category"),
         )
 

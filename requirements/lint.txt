@@ -8,3 +8,11 @@ regex==2020.9.27
 toml==0.10.1
 typed-ast==1.4.1; python_version >= '3.0'
 flake8==3.9.2
+pyflakes==2.3.1
+pycodestyle==2.7.0
+mccabe==0.6.1
+enum34; python_version < "3.4"
+typing; python_version < "3.5"
+configparser; python_version < "3.2"
+functools32; python_version < "3.2"
+importlib-metadata; python_version < "3.8"

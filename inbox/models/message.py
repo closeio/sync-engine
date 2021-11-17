@@ -747,7 +747,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             load_only(*columns),
             subqueryload("parts").joinedload("block"),
             subqueryload("thread").load_only("public_id", "discriminator"),
-            subqueryload("events").load_only("public_id", "discriminator"),
+            subqueryload("events"),
             subqueryload("messagecategories").joinedload("category"),
         )
 

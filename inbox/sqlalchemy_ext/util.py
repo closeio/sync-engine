@@ -14,7 +14,6 @@ json_util.EPOCH_AWARE = EPOCH_NAIVE
 
 from sqlalchemy import String, Text, event
 from sqlalchemy.engine import Engine
-from sqlalchemy.ext import baked
 from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.sql import operators
@@ -31,8 +30,6 @@ MAX_TEXT_BYTES = 65535
 MAX_BYTES_PER_CHAR = 4  # For collation of utf8mb4
 MAX_TEXT_CHARS = int(MAX_TEXT_BYTES / float(MAX_BYTES_PER_CHAR))
 MAX_MYSQL_INTEGER = 2147483647
-
-bakery = baked.bakery()
 
 
 query_counts = weakref.WeakKeyDictionary()
@@ -94,6 +91,8 @@ class StringWithTransform(TypeDecorator):
     setter or a @validates decorator
     """
 
+    cache_ok = True
+
     impl = String
 
     def __init__(self, string_transform, *args, **kwargs):
@@ -115,6 +114,8 @@ class StringWithTransform(TypeDecorator):
 
 # http://docs.sqlalchemy.org/en/rel_0_9/core/types.html#marshal-json-strings
 class JSON(TypeDecorator):
+    cache_ok = True
+
     impl = Text
 
     def process_bind_param(self, value, dialect):
@@ -151,6 +152,8 @@ class BigJSON(JSON):
 
 
 class Base36UID(TypeDecorator):
+    cache_ok = True
+
     impl = BINARY(16)  # 128 bit unsigned integer
 
     def process_bind_param(self, value, dialect):

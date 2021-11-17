@@ -109,13 +109,14 @@ requests-file==1.5.1
 rollbar==0.16.1
 s3transfer==0.4.2
 scandir==1.10.0
-setproctitle==1.1.10
+setproctitle==1.1.10; python_version < '3.0'
+setproctitle==1.2.2; python_version >= '3.0'
 setuptools==44.0.0
 simplegeneric==0.8.1
 singledispatch==3.4.0.3
 six==1.11.0
 sortedcontainers==2.4.0
-git+https://github.com/mhahnenberg/sqlalchemy.git@e5f7586346ce5fafe2c182f70bf6ef998aa59b68#egg=SQLAlchemy
+sqlalchemy==1.4.26
 statsd==3.3.0
 structlog==20.1.0
 tldextract==2.2.3

@@ -13,7 +13,7 @@ jobs:
       - run:
           name: Prepare Environment
           command: |
-            sudo -E pip install --no-deps -r requirements_lint.txt
+            sudo -E pip install --no-deps -r requirements/lint.txt
 
       - run:
           name: black
@@ -38,7 +38,7 @@ jobs:
       - run:
           name: Prepare Environment
           command: |
-            sudo -E pip install flake8==3.9.2
+            sudo -E pip install --no-deps -r requirements/lint.txt
 
       - run:
           name: flake8

@@ -129,6 +129,11 @@ def valid_category_type(category_type, rule):
 
 def timestamp(value, key):
     try:
+        try:
+            value = float(value)
+        except ValueError:
+            pass
+
         return arrow.get(value).datetime
     except ValueError:
         raise ValueError("Invalid timestamp value {} for {}".format(value, key))

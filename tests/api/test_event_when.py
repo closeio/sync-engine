@@ -4,6 +4,8 @@ import arrow
 import pytest
 from future.utils import iteritems
 
+from inbox.models.event import time_parse
+
 
 class CreateError(Exception):
     pass
@@ -20,7 +22,7 @@ def _verify_create(ns_id, api_client, e_data):
     assert e_resp_data["title"] == e_data["title"]
     assert e_resp_data["location"] == e_data["location"]
     for k, v in iteritems(e_data["when"]):
-        assert arrow.get(e_resp_data["when"][k]) == arrow.get(v)
+        assert time_parse(e_resp_data["when"][k]) == time_parse(v)
     assert "id" in e_resp_data
     e_id = e_resp_data["id"]
     e_get_resp = api_client.get_data("/events/" + e_id)
@@ -30,7 +32,7 @@ def _verify_create(ns_id, api_client, e_data):
     assert e_get_resp["id"] == e_id
     assert e_get_resp["title"] == e_data["title"]
     for k, v in iteritems(e_data["when"]):
-        assert arrow.get(e_get_resp["when"][k]) == arrow.get(v)
+        assert time_parse(e_get_resp["when"][k]) == time_parse(v)
 
     return e_resp_data
 

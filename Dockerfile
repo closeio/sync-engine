@@ -44,7 +44,7 @@ RUN if [ "${PYTHON_VERSION}" != "3.6" ] ; \
 
 RUN curl -O https://bootstrap.pypa.io/pip/2.7/get-pip.py && \
   python"${PYTHON_VERSION}" get-pip.py && \
-  python"${PYTHON_VERSION}" -m pip install --upgrade pip==20.3.4 && \
+  python"${PYTHON_VERSION}" -m pip install --upgrade pip==$( if [ "${PYTHON_VERSION}" = "2.7" ] ; then echo 20.3.4; else echo 21.3.1; fi) && \
   python"${PYTHON_VERSION}" -m pip install virtualenv==20.8.1
 
 RUN mkdir /etc/inboxapp && \
@@ -66,7 +66,7 @@ COPY --chown=sync-engine:sync-engine ./ ./
 RUN \
   python"${PYTHON_VERSION}" -m virtualenv /opt/venv && \
   /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install setuptools==44.0.0 pip==20.3.4 && \
-  /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install --no-deps -r requirements_frozen.txt && \
+  /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install --no-deps -r requirements/prod.txt -r requirements/test.txt && \
   /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install -e .
 
 RUN /opt/venv/bin/python"${PYTHON_VERSION}" -m pip check

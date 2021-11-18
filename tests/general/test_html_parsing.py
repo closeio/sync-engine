@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Regression tests for HTML parsing."""
-from inbox.util.html import strip_tags
+import pytest
+
+from inbox.util.html import HTMLParseError, strip_tags
 
 
 def test_strip_tags():
@@ -9,6 +11,17 @@ def test_strip_tags():
         'check out this <a href="http://example.com">link</a> yo!</div>'
     )
     assert strip_tags(text).strip() == "check out this link yo!"
+
+    # MS Word conditional marked section
+    text = "<![if word]>content<![endif]>"
+
+    assert strip_tags(text).strip() == "content"
+
+    # Unknown marked section
+    text = """<![FOR]>"""
+
+    with pytest.raises(HTMLParseError):
+        strip_tags(text)
 
 
 def test_preserve_refs():

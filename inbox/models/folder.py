@@ -8,7 +8,6 @@ from inbox.models.base import MailSyncBase
 from inbox.models.category import Category, CategoryNameString, sanitize_name
 from inbox.models.constants import MAX_INDEXABLE_LENGTH
 from inbox.models.mixins import DeletedAtMixin, UpdatedAtMixin
-from inbox.sqlalchemy_ext.util import bakery
 
 log = get_logger()
 
@@ -111,8 +110,8 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
     @classmethod
     def get(cls, id_, session):
-        q = bakery(lambda session: session.query(cls))
-        q += lambda q: q.filter(cls.id == bindparam("id_"))
-        return q(session).params(id_=id_).first()
+        q = session.query(cls)
+        q = q.filter(cls.id == bindparam("id_"))
+        return q.params(id_=id_).first()
 
     __table_args__ = (UniqueConstraint("account_id", "name", "canonical_name"),)

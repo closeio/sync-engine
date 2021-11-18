@@ -5,9 +5,12 @@ from gevent import monkey
 
 monkey.patch_all()
 
-import gevent_openssl
+import sys
 
-gevent_openssl.monkey_patch()
+if sys.version_info < (3,):
+    import gevent_openssl
+
+    gevent_openssl.monkey_patch()
 
 import os
 import platform
@@ -127,6 +130,8 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
     )
 
     print(banner, file=sys.stderr)
+    print(file=sys.stderr)
+    print("Python", sys.version, file=sys.stderr)
 
     if enable_profiler:
         inbox_config["DEBUG_PROFILING_ON"] = True

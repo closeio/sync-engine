@@ -147,7 +147,8 @@ def batch_delete_namespaces(ids_to_delete, throttle=False, dry_run=False):
         try:
             delete_namespace(namespace_id, throttle=throttle, dry_run=dry_run)
         except AccountDeletionErrror as e:
-            log.critical("AccountDeletionErrror", error_message=e.message)
+            message = e.args[0] if e.args else ""
+            log.critical("AccountDeletionErrror", error_message=message)
         except Exception:
             log_uncaught_errors(log, account_id=account_id)
 

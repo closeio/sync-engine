@@ -4,7 +4,7 @@ from builtins import str
 import arrow
 from arrow.parser import ParserError
 from flanker.addresslib import address
-from flask.ext.restful import reqparse
+from flask_restful import reqparse
 from past.builtins import basestring
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -26,7 +26,7 @@ MAX_LIMIT = 1000
 
 
 class ValidatableArgument(reqparse.Argument):
-    def handle_validation_error(self, error):
+    def handle_validation_error(self, error, bundle_errors):
         raise InputError(str(error))
 
 
@@ -99,6 +99,9 @@ def offset(value):
 
 
 def valid_public_id(value):
+    if "_" in value:
+        raise InputError(u"Invalid id: {}".format(value))
+
     try:
         # raise ValueError on malformed public ids
         # raise TypeError if an integer is passed in

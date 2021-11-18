@@ -106,8 +106,9 @@ class AuthHandler(object):
             account.folder_separator = crispin.folder_separator
             account.folder_prefix = crispin.folder_prefix
         except Exception as e:
+            message = e.args[0] if e.args else ""
             log.error(
-                "account_folder_list_failed", account_id=account.id, error=e.message
+                "account_folder_list_failed", account_id=account.id, error=message
             )
             error_message = (
                 "Full IMAP support is not enabled for this account. "

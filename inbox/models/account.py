@@ -34,7 +34,7 @@ from inbox.models.mixins import (
 )
 from inbox.providers import provider_info
 from inbox.scheduling.event_queue import EventQueue
-from inbox.sqlalchemy_ext.util import JSON, MutableDict, bakery
+from inbox.sqlalchemy_ext.util import JSON, MutableDict
 
 log = get_logger()
 
@@ -222,8 +222,9 @@ class Account(
         if error is None:
             self._sync_status["sync_error"] = None
         else:
+            message = error.args[0] if error.args else ""
             error_obj = {
-                "message": str(error.message)[:3000],
+                "message": str(message)[:3000],
                 "exception": "".join(
                     traceback.format_exception_only(type(error), error)
                 )[:500],
@@ -313,9 +314,9 @@ class Account(
 
     @classmethod
     def get(cls, id_, session):
-        q = bakery(lambda session: session.query(cls))
-        q += lambda q: q.filter(cls.id == bindparam("id_"))
-        return q(session).params(id_=id_).first()
+        q = session.query(cls)
+        q = q.filter(cls.id == bindparam("id_"))
+        return q.params(id_=id_).first()
 
     @property
     def is_killed(self):

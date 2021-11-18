@@ -30,6 +30,7 @@ from sqlalchemy.orm import (
     subqueryload,
     synonym,
     validates,
+    with_polymorphic,
 )
 from sqlalchemy.sql.expression import false
 
@@ -45,12 +46,7 @@ from inbox.models.mixins import (
     UpdatedAtMixin,
 )
 from inbox.security.blobstorage import decode_blob, encode_blob
-from inbox.sqlalchemy_ext.util import (
-    JSON,
-    MAX_MYSQL_INTEGER,
-    bakery,
-    json_field_too_long,
-)
+from inbox.sqlalchemy_ext.util import JSON, MAX_MYSQL_INTEGER, json_field_too_long
 from inbox.util.addr import parse_mimepart_address_header
 from inbox.util.blockstore import save_to_blockstore
 from inbox.util.encoding import unicode_safe_truncate
@@ -341,7 +337,16 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                     TypeError,
                     binascii.Error,
                     UnicodeDecodeError,
+                    ValueError,
                 ) as e:
+                    if isinstance(e, ValueError):
+                        message = e.args[0] if e.args else ""
+                        if (
+                            message
+                            != "string argument should contain only ASCII characters"
+                        ):
+                            raise
+
                     log.error(
                         "Error parsing message MIME parts",
                         folder_name=folder_name,
@@ -699,20 +704,18 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     @classmethod
     def from_public_id(cls, public_id, namespace_id, db_session):
         # type: (str, int, Any) -> Message
-        q = bakery(lambda s: s.query(cls))
-        q += lambda q: q.filter(
+        q = db_session.query(cls)
+        q = q.filter(
             Message.public_id == bindparam("public_id"),
             Message.namespace_id == bindparam("namespace_id"),
         )
-        q += lambda q: q.options(
+        q = q.options(
             joinedload(Message.thread).load_only("discriminator", "public_id"),
             joinedload(Message.messagecategories).joinedload(MessageCategory.category),
             joinedload(Message.parts).joinedload("block"),
             joinedload(Message.events),
         )
-        return (
-            q(db_session).params(public_id=public_id, namespace_id=namespace_id).one()
-        )
+        return q.params(public_id=public_id, namespace_id=namespace_id).one()
 
     @classmethod
     def api_loading_options(cls, expand=False):
@@ -741,11 +744,18 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         ]
         if expand:
             columns += ["message_id_header", "in_reply_to", "references"]
+
+        from inbox.models.event import Event, RecurringEvent, RecurringEventOverride
+
+        all_event_subclasses = with_polymorphic(
+            Event, [RecurringEvent, RecurringEventOverride], flat=True
+        )
+
         return (
             load_only(*columns),
             subqueryload("parts").joinedload("block"),
             subqueryload("thread").load_only("public_id", "discriminator"),
-            subqueryload("events").load_only("public_id", "discriminator"),
+            subqueryload(Message.events.of_type(all_event_subclasses)),
             subqueryload("messagecategories").joinedload("category"),
         )
 

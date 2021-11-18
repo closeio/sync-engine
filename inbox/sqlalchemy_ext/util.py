@@ -6,7 +6,7 @@ import weakref
 from typing import Any, Optional
 
 from bson import EPOCH_NAIVE, json_util
-from future.utils import iteritems, with_metaclass
+from future.utils import iteritems
 
 # Monkeypatch to not include tz_info in decoded JSON.
 # Kind of a ridiculous solution, but works.
@@ -14,10 +14,8 @@ json_util.EPOCH_AWARE = EPOCH_NAIVE
 
 from sqlalchemy import String, Text, event
 from sqlalchemy.engine import Engine
-from sqlalchemy.ext import baked
-from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.ext.mutable import Mutable
-from sqlalchemy.interfaces import PoolListener
+from sqlalchemy.pool import QueuePool
 from sqlalchemy.sql import operators
 from sqlalchemy.types import BINARY, TypeDecorator
 
@@ -32,8 +30,6 @@ MAX_TEXT_BYTES = 65535
 MAX_BYTES_PER_CHAR = 4  # For collation of utf8mb4
 MAX_TEXT_CHARS = int(MAX_TEXT_BYTES / float(MAX_BYTES_PER_CHAR))
 MAX_MYSQL_INTEGER = 2147483647
-
-bakery = baked.bakery()
 
 
 query_counts = weakref.WeakKeyDictionary()
@@ -70,15 +66,7 @@ def before_commit(conn):
         )
 
 
-class SQLAlchemyCompatibleAbstractMetaClass(DeclarativeMeta, abc.ABCMeta):
-    """Declarative model classes that *also* inherit from an abstract base
-    class need a metaclass like this one, in order to prevent metaclass
-    conflict errors."""
-
-    pass
-
-
-class ABCMixin(with_metaclass(SQLAlchemyCompatibleAbstractMetaClass, object)):
+class ABCMixin(object):
     """Use this if you want a mixin class which is actually an abstract base
     class, for example in order to enforce that concrete subclasses define
     particular methods or properties."""
@@ -103,6 +91,8 @@ class StringWithTransform(TypeDecorator):
     setter or a @validates decorator
     """
 
+    cache_ok = True
+
     impl = String
 
     def __init__(self, string_transform, *args, **kwargs):
@@ -124,6 +114,8 @@ class StringWithTransform(TypeDecorator):
 
 # http://docs.sqlalchemy.org/en/rel_0_9/core/types.html#marshal-json-strings
 class JSON(TypeDecorator):
+    cache_ok = True
+
     impl = Text
 
     def process_bind_param(self, value, dialect):
@@ -160,6 +152,8 @@ class BigJSON(JSON):
 
 
 class Base36UID(TypeDecorator):
+    cache_ok = True
+
     impl = BINARY(16)  # 128 bit unsigned integer
 
     def process_bind_param(self, value, dialect):
@@ -295,6 +289,11 @@ def generate_public_id():
 
 # Other utilities
 
+
+class ForceStrictModePool(QueuePool):
+    pass
+
+
 # My good old friend Enrico to the rescue:
 # http://www.enricozini.org/2012/tips/sa-sqlmode-traditional/
 #
@@ -302,16 +301,15 @@ def generate_public_id():
 # application level to be extra safe.
 #
 # Without this, MySQL will silently insert invalid values in the database if
-# not running with sql-mode=traditional.
-class ForceStrictMode(PoolListener):
-    def connect(self, dbapi_con, connection_record):
-        cur = dbapi_con.cursor()
-        cur.execute(
-            "SET SESSION sql_mode='STRICT_TRANS_TABLES,STRICT_ALL_TABLES,"
-            "NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,"
-            "NO_ENGINE_SUBSTITUTION'"
-        )
-        cur = None
+@event.listens_for(ForceStrictModePool, "connect")
+def receive_connect(dbapi_connection, connection_record):
+    cur = dbapi_connection.cursor()
+    cur.execute(
+        "SET SESSION sql_mode='STRICT_TRANS_TABLES,STRICT_ALL_TABLES,"
+        "NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,"
+        "NO_ENGINE_SUBSTITUTION'"
+    )
+    cur = None
 
 
 def maybe_refine_query(query, subquery):

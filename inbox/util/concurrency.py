@@ -4,7 +4,12 @@ import sys
 
 import _mysql_exceptions
 import gevent
-from backports import ssl
+
+if sys.version_info < (3,):
+    from backports import ssl
+else:
+    import ssl
+
 from gevent import socket
 from past.builtins import basestring
 from redis import TimeoutError

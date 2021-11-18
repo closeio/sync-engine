@@ -251,6 +251,29 @@ def json_excepthook(etype, value, tb):
     log.error(**create_error_log_context((etype, value, tb)))
 
 
+class ConditionalFormatter(logging.Formatter):
+    def format(self, record):
+        if (
+            record.name == "__main__"
+            or record.name == "inbox"
+            or record.name.startswith("inbox.")
+            or record.name == "gunicorn"
+            or record.name.startswith("gunicorn.")
+            or record.name == "gevent.pywsgi"
+            or record.name == "werkzeug"
+        ):
+            style = "%(message)s"
+        else:
+            style = "%(name)s - %(levelname)s: %(message)s"
+
+        if sys.version_info < (3,):
+            self._fmt = style
+        else:
+            self._style._fmt = style
+
+        return super(ConditionalFormatter, self).format(record)
+
+
 def configure_logging(log_level=None):
     """ Idempotently configure logging.
 
@@ -287,7 +310,7 @@ def configure_logging(log_level=None):
             },
         )
     else:
-        formatter = logging.Formatter("%(message)s")
+        formatter = ConditionalFormatter()
     tty_handler.setFormatter(formatter)
     tty_handler._nylas = True
 
@@ -300,6 +323,13 @@ def configure_logging(log_level=None):
             root_logger.removeHandler(handler)
     root_logger.addHandler(tty_handler)
     root_logger.setLevel(log_level)
+
+    imapclient_logger = logging.getLogger("imapclient")
+    imapclient_logger.setLevel(logging.ERROR)
+    urllib_logger = logging.getLogger("urllib3.connectionpool")
+    urllib_logger.setLevel(logging.ERROR)
+    sqlalchemy_pool_logger = logging.getLogger("inbox.sqlalchemy_ext")
+    sqlalchemy_pool_logger.setLevel(logging.ERROR)
 
 
 def create_error_log_context(exc_info):

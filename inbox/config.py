@@ -1,14 +1,19 @@
 import errno
 import os
+import sys
+
+import requests
+import urllib3
+import yaml
 
 # TODO[mike]: This should be removed once we've updated python to 2.7.9
 # This tells urllib3 to use pyopenssl, which has the latest tls protocols and is
 # more secure than the default python ssl module in python 2.7.4
-import requests
-import urllib3.contrib.pyopenssl
-import yaml
+if sys.version_info < (3,):
+    import urllib3.contrib.pyopenssl
 
-urllib3.contrib.pyopenssl.inject_into_urllib3()
+    urllib3.contrib.pyopenssl.inject_into_urllib3()
+
 urllib3.disable_warnings()
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 

@@ -475,27 +475,28 @@ class FolderSyncEngine(Greenlet):
         with self.conn_pool.get() as crispin_client:
             self.check_uid_changes(crispin_client)
             if self.should_idle(crispin_client):
-                # crispin_client.select_folder(self.folder_name, self.uidvalidity_cb)
-                # idling = True
-                # try:
-                #     crispin_client.idle(IDLE_WAIT)
-                # except Exception as exc:
-                #     # With some servers we get e.g.
-                #     # 'Unexpected IDLE response: * FLAGS  (...)'
-                #     if isinstance(exc, imaplib.IMAP4.error) and exc.message.startswith(
-                #         "Unexpected IDLE response"
-                #     ):
-                #         log.info("Error initiating IDLE, not idling", error=exc)
-                #         try:
-                #             # Still have to take the connection out of IDLE
-                #             # mode to reuse it though.
-                #             crispin_client.conn.idle_done()
-                #         except AttributeError:
-                #             pass
-                #         idling = False
-                #     else:
-                #         raise
-                idling = False
+                crispin_client.select_folder(self.folder_name, self.uidvalidity_cb)
+                idling = True
+                try:
+                    crispin_client.idle(IDLE_WAIT)
+                except Exception as exc:
+                    # With some servers we get e.g.
+                    # 'Unexpected IDLE response: * FLAGS  (...)'
+                    if isinstance(exc, imaplib.IMAP4.error):
+                        message = exc.args[0] if exc.args else ""
+                        if not message.startswith("Unexpected IDLE response"):
+                            raise
+
+                        log.info("Error initiating IDLE, not idling", error=exc)
+                        try:
+                            # Still have to take the connection out of IDLE
+                            # mode to reuse it though.
+                            crispin_client.conn.idle_done()
+                        except AttributeError:
+                            pass
+                        idling = False
+                    else:
+                        raise
             else:
                 idling = False
         # Close IMAP connection before sleeping

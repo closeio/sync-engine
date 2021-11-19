@@ -713,7 +713,7 @@ class FolderSyncEngine(Greenlet):
         try:
             remote_uidnext = crispin_client.conn.folder_status(
                 self.folder_name, ["UIDNEXT"]
-            ).get("UIDNEXT")
+            ).get(b"UIDNEXT")
         except ValueError:
             # Work around issue where ValueError is raised on parsing STATUS
             # response.

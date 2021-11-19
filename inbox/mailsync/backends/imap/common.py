@@ -49,6 +49,10 @@ def lastseenuid(account_id, session, folder_id):
         ImapUid.account_id == bindparam("account_id"),
         ImapUid.folder_id == bindparam("folder_id"),
     )
+    import inspect
+
+    functions = " | ".join(info.function for info in inspect.stack())
+    q = q.prefix_with("/* {} */".format(functions))
     res = q.params(account_id=account_id, folder_id=folder_id).one()[0]
     return res or 0
 

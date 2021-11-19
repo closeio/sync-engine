@@ -12,7 +12,7 @@ class TestGlobalDeltas:
     def clear_redis(self):
         redis_txn.flushdb()
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def unauthed_api_client(self, db, default_namespace):
         from inbox.api.srv import app
 

@@ -103,7 +103,7 @@ class MockDNSResolver(object):
         return [MockAnswer(e) for e in self._registry[record_type][domain]]
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mock_dns_resolver(monkeypatch):
     dns_resolver = MockDNSResolver()
     monkeypatch.setattr("inbox.util.url.dns_resolver", dns_resolver)
@@ -111,7 +111,7 @@ def mock_dns_resolver(monkeypatch):
     monkeypatch.undo()
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.fixture(scope="function")
 def dump_dns_queries(monkeypatch):
     original_query = dns.resolver.Resolver.query
     query_results = {"ns": {}, "mx": {}}
@@ -277,7 +277,7 @@ class MockIMAPClient(object):
         pass
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mock_imapclient(monkeypatch):
     conn = MockIMAPClient()
     monkeypatch.setattr(
@@ -296,7 +296,7 @@ class MockSMTPClient(object):
         pass
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mock_smtp_get_connection(monkeypatch):
     client = MockSMTPClient()
 

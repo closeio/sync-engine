@@ -35,7 +35,6 @@ from inbox.util.testutils import mock_imapclient  # noqa
 from tests.util.base import add_fake_category, add_fake_imapuid
 
 
-@pytest.mark.only
 def test_draft_updates(db, default_account, mock_imapclient):
     # Set up folder list
     mock_imapclient._data["Drafts"] = {}
@@ -198,7 +197,7 @@ def test_folder_crud(db, default_account, mock_imapclient, obj_type):
     assert db.session.query(Category).get(category_id) is None
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def patched_syncback_task(monkeypatch):
     # Ensures 'create_event' actions fail and all others succeed
     def function_for_action(name):

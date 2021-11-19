@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import mock
 from flanker import mime
 from mockredis import mock_strict_redis_client
-from pytest import fixture, yield_fixture
+from pytest import fixture
 
 from inbox.util.testutils import MockIMAPClient, setup_test_db  # noqa
 
@@ -47,7 +47,7 @@ def dbloader(config):
     setup_test_db()
 
 
-@yield_fixture(scope="function")
+@fixture(scope="function")
 def db(dbloader):
     from inbox.ignition import engine_manager
     from inbox.models.session import new_session
@@ -60,7 +60,7 @@ def db(dbloader):
     engine.session.close()
 
 
-@yield_fixture(scope="function")
+@fixture(scope="function")
 def empty_db(config):
     from inbox.ignition import engine_manager
     from inbox.models.session import new_session
@@ -72,7 +72,7 @@ def empty_db(config):
     engine.session.close()
 
 
-@yield_fixture
+@fixture
 def test_client(db):
     from inbox.api.srv import app
 
@@ -81,7 +81,7 @@ def test_client(db):
         yield c
 
 
-@yield_fixture
+@fixture
 def webhooks_client(db):
     from inbox.api.srv import app
 
@@ -147,34 +147,34 @@ def delete_default_accounts(db):
     db.session.commit()
 
 
-@yield_fixture(scope="function")
+@fixture(scope="function")
 def default_account(db, config, redis_mock):
     yield make_default_account(db, config)
     delete_default_accounts(db)
 
 
-@yield_fixture(scope="function")
+@fixture(scope="function")
 def default_namespace(db, default_account):
     yield default_account.namespace
 
 
-@yield_fixture(scope="function")
+@fixture(scope="function")
 def default_accounts(db, config, redis_mock):
     yield [make_default_account(db, config) for _ in range(3)]
     delete_default_accounts(db)
 
 
-@yield_fixture(scope="function")
+@fixture(scope="function")
 def default_namespaces(db, default_accounts):
     yield [account.namespace for account in default_accounts]
 
 
-@yield_fixture(scope="function")
+@fixture(scope="function")
 def generic_account(db):
     yield add_generic_imap_account(db.session)
 
 
-@yield_fixture(scope="function")
+@fixture(scope="function")
 def gmail_account(db):
     yield add_fake_gmail_account(
         db.session,
@@ -553,13 +553,13 @@ def add_fake_category(db_session, namespace_id, display_name, name=None):
     return category
 
 
-@yield_fixture
+@fixture
 def thread(db, default_namespace):
     yield add_fake_thread(db.session, default_namespace.id)
     delete_threads(db.session)
 
 
-@yield_fixture
+@fixture
 def message(db, default_namespace, thread):
     yield add_fake_message(db.session, default_namespace.id, thread)
     delete_messages(db.session)
@@ -586,25 +586,25 @@ def custom_label(db, default_account):
     return Label.find_or_create(db.session, default_account, "Kraftwerk", "")
 
 
-@yield_fixture
+@fixture
 def contact(db, default_account):
     yield add_fake_contact(db.session, default_account.namespace.id)
     delete_contacts(db.session)
 
 
-@yield_fixture
+@fixture
 def imapuid(db, default_account, message, folder):
     yield add_fake_imapuid(db.session, default_account.id, message, folder, 2222)
     delete_imapuids(db.session)
 
 
-@yield_fixture(scope="function")
+@fixture(scope="function")
 def calendar(db, default_account):
     yield add_fake_calendar(db.session, default_account.namespace.id)
     delete_calendars(db.session)
 
 
-@yield_fixture(scope="function")
+@fixture(scope="function")
 def other_calendar(db, default_account):
     yield add_fake_calendar(
         db.session, default_account.namespace.id, uid="uid2", name="Calendar 2"
@@ -612,14 +612,14 @@ def other_calendar(db, default_account):
     delete_calendars(db.session)
 
 
-@yield_fixture(scope="function")
+@fixture(scope="function")
 def event(db, default_account):
     yield add_fake_event(db.session, default_account.namespace.id)
     delete_events(db.session)
     delete_calendars(db.session)
 
 
-@yield_fixture(scope="function")
+@fixture(scope="function")
 def imported_event(db, default_account, message):
     ev = add_fake_event(db.session, default_account.namespace.id)
     ev.message = message
@@ -688,7 +688,7 @@ def add_fake_msg_with_calendar_part(db_session, account, ics_str, thread=None):
     return msg
 
 
-@yield_fixture
+@fixture
 def mock_gevent_sleep(monkeypatch):
     monkeypatch.setattr("gevent.sleep", mock.Mock())
     yield
@@ -714,7 +714,7 @@ def mock_client():
     return mock_client
 
 
-@yield_fixture(scope="function")
+@fixture(scope="function")
 def redis_client(monkeypatch):
     client = mock_client()
     yield client
@@ -722,7 +722,7 @@ def redis_client(monkeypatch):
     client.flushdb()
 
 
-@yield_fixture(scope="function", autouse=True)
+@fixture(scope="function", autouse=True)
 def redis_mock(redis_client, monkeypatch):
     def set_self_client(self, *args, **kwargs):
         # Ensure the same 'redis' client is returned across HeartbeatStore

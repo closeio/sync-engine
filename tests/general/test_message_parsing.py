@@ -565,7 +565,6 @@ def test_attachments_emoji_filename_parsing(
     assert m.attachments[0].content_disposition == "inline"
 
 
-@pytest.mark.only
 def test_long_message_id(db, default_account, thread, raw_message_with_long_message_id):
     m = create_from_synced(db, default_account, raw_message_with_long_message_id)
     m.thread = thread

@@ -180,7 +180,6 @@ def test_api_update_title(db, api_client, calendar, default_account):
 import pytest
 
 
-@pytest.mark.only
 def test_api_pessimistic_update(db, api_client, calendar, default_account):
     e_data = {
         "title": "",

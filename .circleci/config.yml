@@ -122,11 +122,17 @@ workflows:
       - static-code-analysis
       - static-code-analysis-flake8
       - build:
+          name: build_py2.7
+          python_version: "2.7"
+      - build:
           name: build_py3.6
           python_version: "3.6"
       - build:
           name: build_py3.8
           python_version: "3.8"
+      - build:
+          name: build_py3.10
+          python_version: "3.10"
       - build:
           name: build_arm_py2.7
           python_version: "2.7"

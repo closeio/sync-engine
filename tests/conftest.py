@@ -12,7 +12,7 @@ if sys.version_info < (3,):
 
     gevent_openssl.monkey_patch()
 
-from pytest import fixture, yield_fixture
+from pytest import fixture
 
 from inbox.util.testutils import files  # noqa
 from inbox.util.testutils import mock_dns_resolver  # noqa
@@ -26,7 +26,7 @@ from tests.util.base import *  # noqa
 from inbox.util.testutils import dump_dns_queries  # noqa; noqa
 
 
-@yield_fixture
+@fixture
 def api_client(db, default_namespace):
     from inbox.api.srv import app
 

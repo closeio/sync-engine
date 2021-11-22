@@ -59,8 +59,9 @@ def parse_google_time(d):
 
 
 def google_to_event_time(start_raw, end_raw):
-    start = parse_google_time(start_raw)
-    end = parse_google_time(end_raw)
+    # type: (str, str) -> EventTime
+    start = parse_google_time(start_raw)  # type: arrow.Arrow
+    end = parse_google_time(end_raw)  # type: arrow.Arrow
     if start > end:
         start, end = (end, start)
 

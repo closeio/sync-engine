@@ -50,7 +50,6 @@ icalendar==4.0.9
 idna==2.9
 imapclient==2.2.0
 importlib-metadata==2.1.1
-iniconfig==1.1.1
 ipaddress==1.0.19
 ipython==5.8.0
 ipython_genutils==0.2.0

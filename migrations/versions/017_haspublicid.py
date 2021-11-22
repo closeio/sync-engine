@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 """HasPublicID
 
 Revision ID: 2c9f3a06de09
@@ -6,7 +8,6 @@ Create Date: 2014-04-26 04:05:57.715053
 
 """
 
-from __future__ import division
 
 # revision identifiers, used by Alembic.
 revision = "2c9f3a06de09"
@@ -53,13 +54,13 @@ def upgrade():
 
     for c in classes:
         assert issubclass(c, HasPublicID)
-        print "[{0}] adding public_id column... ".format(c.__tablename__),
+        print("[{0}] adding public_id column... ".format(c.__tablename__)),
         sys.stdout.flush()
         op.add_column(
             c.__tablename__, sa.Column("public_id", mysql.BINARY(16), nullable=False)
         )
 
-        print "adding index... ",
+        print("adding index... "),
         op.create_index(
             "ix_{0}_public_id".format(c.__tablename__),
             c.__tablename__,
@@ -67,18 +68,18 @@ def upgrade():
             unique=False,
         )
 
-        print "Done!"
+        print("Done!")
         sys.stdout.flush()
 
-    print "Finished adding columns. \nNow generating public_ids"
+    print("Finished adding columns. \nNow generating public_ids")
 
     with session_scope() as db_session:
         count = 0
         for c in classes:
             garbage_collect()
-            print "[{0}] Loading rows. ".format(c.__name__),
+            print("[{0}] Loading rows. ".format(c.__name__)),
             sys.stdout.flush()
-            print "Generating public_ids",
+            print("Generating public_ids"),
             sys.stdout.flush()
             for r in db_session.query(c).yield_per(chunk_size):
                 count += 1
@@ -94,7 +95,7 @@ def upgrade():
             db_session.commit()
             sys.stdout.write("Done!\n")
             sys.stdout.flush()
-        print "\nUpdgraded OK!\n"
+        print("\nUpdgraded OK!\n")
 
 
 def downgrade():
@@ -126,12 +127,12 @@ def downgrade():
 
     for c in classes:
         assert issubclass(c, HasPublicID)
-        print "[{0}] Dropping public_id column... ".format(c.__tablename__),
+        print("[{0}] Dropping public_id column... ".format(c.__tablename__)),
         op.drop_column(c.__tablename__, "public_id")
 
-        print "Dropping index... ",
+        print("Dropping index... "),
         op.drop_index(
             "ix_{0}_public_id".format(c.__tablename__), table_name=c.__tablename__
         )
 
-        print "Done."
+        print("Done.")

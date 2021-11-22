@@ -5,6 +5,7 @@ Revises: 924ffd092832
 Create Date: 2014-05-13 03:20:41.488982
 
 """
+from __future__ import print_function
 
 # revision identifiers, used by Alembic.
 revision = "40629415951c"
@@ -84,7 +85,7 @@ def upgrade():
     class Account(Base):
         __table__ = Base.metadata.tables["account"]
 
-    print "setting provider_prefix for current accounts"
+    print("setting provider_prefix for current accounts")
     with basic_session() as db_session:
         for account in db_session.query(Account):
             if account.provider == "gmail":
@@ -93,7 +94,7 @@ def upgrade():
                 account.provider_prefix = "exchange"
         db_session.commit()
 
-        print "Merging folders"
+        print("Merging folders")
         for name, alias in [
             ("Sent", "[Gmail]/Sent Mail"),
             ("Draft", "[Gmail]/Drafts"),
@@ -142,7 +143,7 @@ def upgrade():
         db_session.commit()
 
     # Assuming we have only English Gmail accounts synced, we can cheat here.
-    print "Adding public_id and exposed_name to folders."
+    print("Adding public_id and exposed_name to folders.")
     with basic_session() as db_session:
         for folder in db_session.query(Folder):
             if folder.account.provider != "gmail":

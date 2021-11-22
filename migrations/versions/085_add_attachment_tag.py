@@ -5,6 +5,7 @@ Revises:10db12da2005
 Create Date: 2014-08-22 20:15:59.937498
 
 """
+from __future__ import print_function
 
 # revision identifiers, used by Alembic.
 revision = "294200d809c8"
@@ -20,7 +21,7 @@ def upgrade():
 
     with session_scope() as db_session:
         # Create the attachment tag
-        print "creating canonical tags..."
+        print("creating canonical tags...")
         for ns in db_session.query(Namespace):
             ns.create_canonical_tags()
             db_session.commit()
@@ -35,7 +36,7 @@ def upgrade():
             )
         ]
     )
-    print "have attachment tag for", len(tag_id_for_namespace), "namespaces"
+    print("have attachment tag for", len(tag_id_for_namespace), "namespaces")
 
     existing_tagitems = set(
         [
@@ -55,9 +56,11 @@ def upgrade():
            WHERE part.content_disposition IS NOT NULL
         """
     if existing_tagitems:
-        print "skipping", len(
-            existing_tagitems
-        ), "threads which already have the tag attachment"
+        print(
+            "skipping",
+            len(existing_tagitems),
+            "threads which already have the tag attachment",
+        )
 
         q += " AND thread.id NOT IN :existing_tagitems"
     q += " ORDER BY thread.id ASC"
@@ -65,7 +68,7 @@ def upgrade():
     for thread_id, namespace_id in conn.execute(
         text(q), existing_tagitems=existing_tagitems
     ):
-        print thread_id
+        print(thread_id)
         # We could bulk insert, but don't bother.
         conn.execute(
             text(

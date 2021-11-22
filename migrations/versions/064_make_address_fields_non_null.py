@@ -5,6 +5,7 @@ Revises: 5143154fb1a2
 Create Date: 2014-07-17 22:13:41.792085
 
 """
+from __future__ import print_function
 
 # revision identifiers, used by Alembic.
 revision = "2d05e116bdb7"
@@ -42,16 +43,16 @@ def upgrade():
             )
             .scalar()
         )
-        print "messages to migrate:", null_field_count
+        print("messages to migrate:", null_field_count)
         if int(null_field_count):
             for message in db_session.query(Message):
                 for attr in ("to_addr", "from_addr", "cc_addr", "bcc_addr"):
                     if getattr(message, attr) is None:
                         setattr(message, attr, [])
-                print ".",
+                print(".", end=" ")
         db_session.commit()
 
-    print "making addrs non-nullable"
+    print("making addrs non-nullable")
 
     op.alter_column("message", "bcc_addr", existing_type=mysql.TEXT(), nullable=False)
     op.alter_column("message", "cc_addr", existing_type=mysql.TEXT(), nullable=False)

@@ -301,12 +301,12 @@ def utf8_encode(text, errors="strict"):
     return text.encode("utf-8", errors), len(text)
 
 
-def utf8_surrogate_fix_decode(memory):
+def utf8_surrogate_fix_decode(memory, errors="strict"):
     # type: (memoryview) -> Tuple[str, int]
     binary = memory.tobytes()
 
     try:
-        return binary.decode("utf-8"), len(binary)
+        return binary.decode("utf-8", errors), len(binary)
     except UnicodeDecodeError:
         pass
 

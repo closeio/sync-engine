@@ -296,9 +296,9 @@ RE_SURROGATE_CHARACTER = re.compile(r"[\ud800-\udfff]")
 RE_SURROGATE_PAIR = re.compile(r"[\ud800-\udbff][\udc00-\udfff]")
 
 
-def utf8_encode(text):
-    # type: (str) -> Tuple[bytes, int]
-    return text.encode("utf-8"), len(text)
+def utf8_encode(text, errors="strict"):
+    # type: (str, str) -> Tuple[bytes, int]
+    return text.encode("utf-8", errors), len(text)
 
 
 def utf8_surrogate_fix_decode(memory):

@@ -302,7 +302,7 @@ def utf8_encode(text, errors="strict"):
 
 
 def utf8_surrogate_fix_decode(memory, errors="strict"):
-    # type: (memoryview) -> Tuple[str, int]
+    # type: (memoryview, str) -> Tuple[str, int]
     binary = memory.tobytes()
 
     try:

@@ -1,9 +1,11 @@
 import abc
+import codecs
 import contextlib
+import re
 import struct
 import uuid
 import weakref
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
 from bson import EPOCH_NAIVE, json_util
 from future.utils import iteritems
@@ -289,6 +291,48 @@ def generate_public_id():
 
 # Other utilities
 
+RE_SURROGATE_CHARACTER = re.compile(r"[\ud800-\udfff]")
+RE_SURROGATE_PAIR = re.compile(r"[\ud800-\udbff][\udc00-\udfff]")
+
+
+def utf8_encode(text):
+    # type: (str) -> Tuple[bytes, int]
+    return text.encode("utf-8"), len(text)
+
+
+def utf8_surrogate_fix_decode(memory):
+    # type: (memoryview) -> Tuple[str, int]
+    binary = memory.tobytes()
+
+    try:
+        return binary.decode("utf-8"), len(binary)
+    except UnicodeDecodeError:
+        pass
+
+    text = binary.decode("utf-8", "surrogatepass")
+
+    # now fix surrogate pairs, we can recover those
+    for surrogate_pair in set(re.findall(RE_SURROGATE_PAIR, text)):
+        text = text.replace(
+            surrogate_pair,
+            surrogate_pair.encode("utf-16", "surrogatepass").decode("utf-16"),
+        )
+
+    # we have no other choice but removing unpaired surrogates
+    text = re.sub(RE_SURROGATE_CHARACTER, "", text)
+
+    return text, len(binary)
+
+
+def utf8_surrogate_fix_search_function(encoding_name):
+    # type: (str) -> codecs.Codecinfo
+    return codecs.CodecInfo(
+        utf8_encode, utf8_surrogate_fix_decode, name="utf8-surrogate-fix"
+    )
+
+
+codecs.register(utf8_surrogate_fix_search_function)
+
 
 class ForceStrictModePool(QueuePool):
     pass
@@ -310,6 +354,9 @@ def receive_connect(dbapi_connection, connection_record):
         "NO_ENGINE_SUBSTITUTION'"
     )
     cur = None
+
+    assert dbapi_connection.encoding == "utf8"
+    dbapi_connection.encoding = "utf8-surrogate-fix"
 
 
 def maybe_refine_query(query, subquery):

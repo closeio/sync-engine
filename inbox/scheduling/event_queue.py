@@ -1,4 +1,5 @@
 import json
+from typing import Any, Dict, List, Optional
 
 from redis import StrictRedis
 
@@ -27,6 +28,7 @@ class EventQueue(object):
     """
 
     def __init__(self, queue_name, redis=None):
+        # type: (str, Optional[StrictRedis]) -> None
         self.redis = redis
         if self.redis is None:
             redis_host = config["EVENT_QUEUE_REDIS_HOSTNAME"]
@@ -35,6 +37,7 @@ class EventQueue(object):
         self.queue_name = queue_name
 
     def receive_event(self, timeout=0):
+        # type: (int) -> Dict[str, Any]
         result = None
         if timeout is None:
             result = self.redis.lpop(self.queue_name)
@@ -57,6 +60,7 @@ class EventQueue(object):
             return None
 
     def send_event(self, event_data):
+        # type: (Dict[str, Any]) -> None
         event_data.pop("queue_name", None)
         self.redis.rpush(self.queue_name, json.dumps(event_data))
 
@@ -65,12 +69,14 @@ class EventQueueGroup(object):
     """Group of queues that can all be simultaneously watched for new events."""
 
     def __init__(self, queues):
+        # type: (List[EventQueue]) -> None
         self.queues = queues
         self.redis = None
         if len(self.queues) > 0:
             self.redis = self.queues[0].redis
 
     def receive_event(self, timeout=0):
+        # type: (int) -> Dict[str, Any]
         result = self.redis.blpop([q.queue_name for q in self.queues], timeout=timeout)
         if result is None:
             return None

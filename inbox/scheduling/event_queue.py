@@ -49,6 +49,7 @@ class EventQueue(object):
         queue_name, event_data = (
             (self.queue_name, result) if timeout is None else result
         )
+        queue_name = queue_name.decode("utf-8")
         try:
             event = json.loads(event_data)
             event["queue_name"] = queue_name
@@ -81,6 +82,7 @@ class EventQueueGroup(object):
         if result is None:
             return None
         queue_name, event_data = result
+        queue_name = queue_name.decode("utf-8")
         try:
             event = json.loads(event_data)
             event["queue_name"] = queue_name

@@ -5,6 +5,7 @@ Revises: 1925c535a52d
 Create Date: 2014-07-17 00:01:09.410292
 
 """
+from __future__ import print_function
 
 # revision identifiers, used by Alembic.
 revision = "4b4c5579c083"
@@ -63,8 +64,10 @@ def upgrade():
         )
 
         for message_id, thread_id, g_msgid in groups:
-            print "deleting duplicates of ({}, {}), saving {}".format(
-                thread_id, g_msgid, message_id
+            print(
+                "deleting duplicates of ({}, {}), saving {}".format(
+                    thread_id, g_msgid, message_id
+                )
             )
             db_session.query(Message).filter(
                 Message.thread_id == thread_id,

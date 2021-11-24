@@ -5,6 +5,7 @@ Revises: 4e6eedda36af
 Create Date: 2015-04-20 21:22:20.523261
 
 """
+from __future__ import print_function
 
 # revision identifiers, used by Alembic.
 revision = "182f2b40fa36"
@@ -35,7 +36,7 @@ def upgrade():
             .options(contains_eager(ActionLog.namespace, Namespace.account))
         )
 
-        print "Updating {} action_log entries".format(q.count())
+        print("Updating {} action_log entries".format(q.count()))
 
         for a in q.all():
             a.type = "actionlog"

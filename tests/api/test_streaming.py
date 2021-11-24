@@ -12,7 +12,7 @@ GEVENT_EPSILON = 0.5  # Greenlet switching time. VMs on Macs suck :()
 LONGPOLL_EPSILON = 2 + GEVENT_EPSILON  # API implementation polls every second
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def streaming_test_client(db):
     from inbox.api.srv import app
 

@@ -1,4 +1,3 @@
-import pkgutil
 import re
 import sys
 import time
@@ -11,6 +10,7 @@ from future.utils import iteritems
 
 from inbox.logging import get_logger
 from inbox.providers import providers
+from inbox.util.file import iter_module_names
 
 
 class DummyContextManager(object):
@@ -144,7 +144,7 @@ def load_modules(base_name, base_path):
     """
     modules = []
 
-    for _, module_name, _ in pkgutil.iter_modules(base_path):
+    for module_name in iter_module_names(base_path):
         full_module_name = "{}.{}".format(base_name, module_name)
 
         if full_module_name not in sys.modules:

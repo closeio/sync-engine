@@ -54,7 +54,7 @@ def run_bad_cert_smtp_server():
     asyncore.loop()
 
 
-@pytest.yield_fixture(scope="module")
+@pytest.fixture(scope="module")
 def bad_cert_smtp_server():
     s = gevent.spawn(run_bad_cert_smtp_server)
     yield s

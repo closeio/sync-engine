@@ -5,6 +5,7 @@ Revises: 161b88c17615
 Create Date: 2014-07-01 18:56:55.962529
 
 """
+from __future__ import print_function
 
 # revision identifiers, used by Alembic.
 revision = "29217fad3f46"
@@ -117,14 +118,14 @@ def upgrade():
             ]
         )
         for status in db_session.query(ImapFolderSyncStatus):
-            print "migrating", status.folder_name
+            print("migrating", status.folder_name)
             status.folder_id = folder_id_for[
                 (status.account_id, status.folder_name.lower())
             ]
         db_session.commit()
         if "easfoldersyncstatus" in Base.metadata.tables:
             for status in db_session.query(EASFolderSyncStatus):
-                print "migrating", status.folder_name
+                print("migrating", status.folder_name)
                 folder_id = folder_id_for.get(
                     (status.account_id, status.folder_name.lower())
                 )
@@ -188,7 +189,7 @@ def upgrade():
 
     with session_scope(versioned=False) as db_session:
         for info in db_session.query(ImapFolderInfo):
-            print "migrating", info.folder_name
+            print("migrating", info.folder_name)
             info.folder_id = folder_id_for[(info.account_id, info.folder_name.lower())]
         db_session.commit()
 

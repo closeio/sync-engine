@@ -122,7 +122,6 @@ def test_event_update(db, default_account, message):
 # This test checks that:
 # 1. we're processing invites we've sent to ourselves.
 # 2. update only update events in the "emailed events" calendar.
-@pytest.mark.only
 def test_self_sent_update(db, default_account, message):
 
     # Create the calendars

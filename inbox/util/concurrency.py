@@ -123,7 +123,7 @@ def retry_with_logging(
         ):
             mysql_error = e.orig
 
-        if mysql_error:
+        if mysql_error and mysql_error.args and isinstance(mysql_error.args[0], str):
             for msg in TRANSIENT_MYSQL_MESSAGES:
                 if msg in mysql_error.args[0]:
                     is_transient = True

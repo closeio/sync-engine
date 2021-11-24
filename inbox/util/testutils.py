@@ -13,6 +13,7 @@ import pytest
 from past.builtins import basestring, long
 
 from inbox.basicauth import ValidationError
+from inbox.util.file import get_data
 
 FILENAMES = [
     "muir.jpg",
@@ -87,8 +88,8 @@ class MockDNSResolver(object):
     def __init__(self):
         self._registry = {"mx": {}, "ns": {}}
 
-    def _load_records(self, pkg, filename):
-        self._registry = json.loads(pkgutil.get_data(pkg, filename))
+    def _load_records(self, filename):
+        self._registry = json.loads(get_data(filename))
 
     def query(self, domain, record_type):
         record_type = record_type.lower()
@@ -103,7 +104,7 @@ class MockDNSResolver(object):
         return [MockAnswer(e) for e in self._registry[record_type][domain]]
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mock_dns_resolver(monkeypatch):
     dns_resolver = MockDNSResolver()
     monkeypatch.setattr("inbox.util.url.dns_resolver", dns_resolver)
@@ -111,7 +112,7 @@ def mock_dns_resolver(monkeypatch):
     monkeypatch.undo()
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.fixture(scope="function")
 def dump_dns_queries(monkeypatch):
     original_query = dns.resolver.Resolver.query
     query_results = {"ns": {}, "mx": {}}
@@ -277,7 +278,7 @@ class MockIMAPClient(object):
         pass
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mock_imapclient(monkeypatch):
     conn = MockIMAPClient()
     monkeypatch.setattr(
@@ -296,7 +297,7 @@ class MockSMTPClient(object):
         pass
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mock_smtp_get_connection(monkeypatch):
     client = MockSMTPClient()
 

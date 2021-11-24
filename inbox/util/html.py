@@ -62,6 +62,11 @@ class HTMLTagStripper(HTMLParser):
             except (ValueError, OverflowError):
                 return
 
+    if (3,) <= sys.version_info < (3, 10):
+
+        def error(self, message):
+            raise HTMLParseError(message)
+
     def handle_entityref(self, d):
         try:
             val = unichr(name2codepoint[d])

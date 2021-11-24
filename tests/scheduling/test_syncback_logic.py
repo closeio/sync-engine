@@ -20,7 +20,7 @@ def purge_accounts_and_actions():
             db_session.commit()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def patched_enginemanager(monkeypatch):
     engines = {k: None for k in range(0, 6)}
     monkeypatch.setattr("inbox.ignition.engine_manager.engines", engines)
@@ -28,7 +28,7 @@ def patched_enginemanager(monkeypatch):
     monkeypatch.undo()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def patched_task(monkeypatch):
     def uses_crispin_client(self):
         return False

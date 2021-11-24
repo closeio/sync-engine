@@ -64,10 +64,10 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 COPY --chown=sync-engine:sync-engine ./ ./
 RUN \
+  --mount=type=cache,target=/home/sync-engine/.cache,uid=5000,gid=5000  \
   python"${PYTHON_VERSION}" -m virtualenv /opt/venv && \
   /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install setuptools==44.0.0 pip==20.3.4 && \
-  /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install --no-deps -r requirements/prod.txt -r requirements/test.txt && \
-  /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install -e .
+  /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install --no-deps -r requirements/prod.txt -r requirements/test.txt
 
 RUN /opt/venv/bin/python"${PYTHON_VERSION}" -m pip check
 

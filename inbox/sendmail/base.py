@@ -10,6 +10,7 @@ from datetime import datetime
 
 from past.builtins import basestring
 
+from inbox import VERSION
 from inbox.api.err import InputError
 from inbox.api.validation import (
     get_attachments,

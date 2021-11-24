@@ -23,6 +23,8 @@ from flanker.addresslib.quote import smart_quote
 from flanker.mime.message.headers import WithParams
 from html2text import html2text
 
+from inbox import VERSION
+
 REPLYSTR = "Re: "
 
 

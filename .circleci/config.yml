@@ -84,8 +84,7 @@ jobs:
                 command: |
                   docker login -u $DOCKER_USER -p $DOCKER_PASS
                   docker-compose run app bash -ec '
-                    pip install -e . \
-                    && bin/wait-for-it.sh mysql:3306 \
+                    bin/wait-for-it.sh mysql:3306 \
                     && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
                     && coverage html -d pythoncov
                   '

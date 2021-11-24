@@ -16,7 +16,6 @@ http://www.w3.org/Protocols/rfc1341/5_Content-Transfer-Encoding.html
 from datetime import datetime
 from email.header import Header
 
-import pkg_resources
 from flanker import mime
 from flanker.addresslib import address
 from flanker.addresslib.address import MAX_ADDRESS_LENGTH
@@ -24,7 +23,7 @@ from flanker.addresslib.quote import smart_quote
 from flanker.mime.message.headers import WithParams
 from html2text import html2text
 
-VERSION = pkg_resources.get_distribution("inbox-sync").version
+from inbox import VERSION
 
 REPLYSTR = "Re: "
 

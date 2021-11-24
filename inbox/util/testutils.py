@@ -13,6 +13,7 @@ import pytest
 from past.builtins import basestring, long
 
 from inbox.basicauth import ValidationError
+from inbox.util.file import get_data
 
 FILENAMES = [
     "muir.jpg",
@@ -87,8 +88,8 @@ class MockDNSResolver(object):
     def __init__(self):
         self._registry = {"mx": {}, "ns": {}}
 
-    def _load_records(self, pkg, filename):
-        self._registry = json.loads(pkgutil.get_data(pkg, filename))
+    def _load_records(self, filename):
+        self._registry = json.loads(get_data(filename))
 
     def query(self, domain, record_type):
         record_type = record_type.lower()

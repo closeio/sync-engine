@@ -1,11 +1,23 @@
 import glob
 import os
+import re
 
 from setuptools import find_packages, setup
 
+# approach stolen from sqlalchemy
+with open(
+    os.path.join(os.path.dirname(__file__), "inbox", "__init__.py")
+) as version_file:
+    VERSION = (
+        re.compile(r""".*VERSION = ["'](.*?)['"]""", re.S)
+        .match(version_file.read())
+        .group(1)
+    )
+
+
 setup(
     name="inbox-sync",
-    version="17.3.8",  # Release Mar 8, 2017
+    version=VERSION,
     packages=find_packages(),
     install_requires=[],
     include_package_data=True,

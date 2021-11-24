@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """Sanity-check our construction of a Message object from raw synced data."""
 import datetime
-import pkgutil
 import sys
 
 import pytest
@@ -11,6 +10,7 @@ from flanker import mime
 from inbox.models import Block, Message
 from inbox.util.addr import parse_mimepart_address_header
 from inbox.util.blockstore import get_from_blockstore
+from inbox.util.file import get_data
 
 from tests.util.base import (
     add_fake_thread,
@@ -40,7 +40,7 @@ def create_from_synced(db, account, raw_message):
 def raw_message_with_many_recipients():
     # Message carefully constructed s.t. the length of the serialized 'to'
     # field is 65536.
-    return pkgutil.get_data("tests", "data/raw_message_with_many_recipients.txt")
+    return get_data("tests/data/raw_message_with_many_recipients.txt")
 
 
 @pytest.fixture
@@ -51,47 +51,47 @@ def mime_message_with_bad_date(mime_message):
 
 @pytest.fixture
 def raw_message_with_long_content_id():
-    return pkgutil.get_data("tests", "data/raw_message_with_long_content_id.txt")
+    return get_data("tests/data/raw_message_with_long_content_id.txt")
 
 
 @pytest.fixture
 def raw_message_with_ical_invite():
-    return pkgutil.get_data("tests", "data/raw_message_with_ical_invite.txt")
+    return get_data("tests/data/raw_message_with_ical_invite.txt")
 
 
 @pytest.fixture
 def raw_message_with_bad_attachment():
-    return pkgutil.get_data("tests", "data/raw_message_with_bad_attachment.txt")
+    return get_data("tests/data/raw_message_with_bad_attachment.txt")
 
 
 @pytest.fixture
 def raw_message_with_filename_attachment():
-    return pkgutil.get_data("tests", "data/raw_message_with_filename_attachment.txt")
+    return get_data("tests/data/raw_message_with_filename_attachment.txt")
 
 
 @pytest.fixture
 def raw_message_with_name_attachment():
-    return pkgutil.get_data("tests", "data/raw_message_with_name_attachment.txt")
+    return get_data("tests/data/raw_message_with_name_attachment.txt")
 
 
 @pytest.fixture
 def raw_message_with_inline_name_attachment():
-    return pkgutil.get_data("tests", "data/raw_message_with_inline_attachment.txt")
+    return get_data("tests/data/raw_message_with_inline_attachment.txt")
 
 
 @pytest.fixture
 def raw_message_with_outlook_emoji():
-    return pkgutil.get_data("tests", "data/raw_message_with_outlook_emoji.txt")
+    return get_data("tests/data/raw_message_with_outlook_emoji.txt")
 
 
 @pytest.fixture
 def raw_message_with_outlook_emoji_inline():
-    return pkgutil.get_data("tests", "data/raw_message_with_outlook_emoji_inline.txt")
+    return get_data("tests/data/raw_message_with_outlook_emoji_inline.txt")
 
 
 @pytest.fixture
 def raw_message_with_long_message_id():
-    return pkgutil.get_data("tests", "data/raw_message_with_long_message_id.txt")
+    return get_data("tests/data/raw_message_with_long_message_id.txt")
 
 
 @pytest.mark.usefixtures("blockstore_backend")

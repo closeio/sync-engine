@@ -136,3 +136,13 @@ class Lock(object):
 
     def __del__(self):
         self.handle.close()
+
+
+ROOT_PATH = os.path.normpath(os.path.join(__file__, os.pardir, os.pardir, os.pardir))
+
+
+def get_data(filename):
+    # type: (str) -> bytes
+    """Read contents of a file relative to the project root folder"""
+    with open(os.path.join(ROOT_PATH, filename), "rb") as file:
+        return file.read()

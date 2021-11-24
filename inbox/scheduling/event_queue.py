@@ -71,13 +71,16 @@ class EventQueueGroup(object):
             self.redis = self.queues[0].redis
 
     def receive_event(self, timeout=0):
+        log.info("ISD: blpop args", args=repr([q.queue_name for q in self.queues]))
         result = self.redis.blpop([q.queue_name for q in self.queues], timeout=timeout)
+        log.info("ISD: blpop result", result=repr(result))
         if result is None:
             return None
         queue_name, event_data = result
         try:
             event = json.loads(event_data)
             event["queue_name"] = queue_name
+            log.info("ISD: event", event=repr(event))
             return event
         except Exception as e:
             log.error(

@@ -139,6 +139,11 @@ class SyncService(object):
         if not event:
             return
 
+        self.log.info(
+            "ISD: comparison",
+            queue_name_1=repr(shared_sync_event_queue_for_zone(self.zone).queue_name),
+            queue_name_2=repr(event["queue_name"]),
+        )
         if (
             shared_sync_event_queue_for_zone(self.zone).queue_name
             == event["queue_name"]

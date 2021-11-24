@@ -8,7 +8,6 @@ standard_library.install_aliases()
 import re
 from datetime import datetime
 
-import pkg_resources
 from past.builtins import basestring
 
 from inbox.api.err import InputError
@@ -22,8 +21,6 @@ from inbox.contacts.processing import update_contacts_from_message
 from inbox.models import Message, Part
 from inbox.models.action_log import schedule_action
 from inbox.sqlalchemy_ext.util import generate_public_id
-
-VERSION = pkg_resources.get_distribution("inbox-sync").version
 
 
 class SendMailException(Exception):

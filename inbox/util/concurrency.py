@@ -77,7 +77,7 @@ def retry(
         while True:
             try:
                 return func(*args, **kwargs)
-            except gevent.GreenletExit as e:
+            except gevent.GreenletExit:
                 # GreenletExit isn't actually a subclass of Exception.
                 # This is also considered to be a successful execution
                 # (somebody intentionally killed the greenlet).

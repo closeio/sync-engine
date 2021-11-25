@@ -132,10 +132,6 @@ def load_modules(base_name, base_path):
     """
     Imports all modules underneath `base_module` in the module tree.
 
-    Note that if submodules are located in different directory trees, you
-    need to use `pkgutil.extend_path` to make all the folders appear in
-    the module's `__path__`.
-
     Returns
     -------
     list

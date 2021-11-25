@@ -28,7 +28,7 @@ jobs:
       - run:
           name: flake8
           command: flake8
-        
+
   build:
     parameters:
       python_version:

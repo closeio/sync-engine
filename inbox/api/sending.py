@@ -28,7 +28,7 @@ def send_draft(account, draft, db_session):
             kwargs["failures"] = exc.failures
         if exc.server_error:
             kwargs["server_error"] = exc.server_error
-        return err(exc.http_code, exc.message, **kwargs)
+        return err(exc.http_code, exc.args[0], **kwargs)
 
     return response_on_success
 
@@ -61,7 +61,7 @@ def send_draft_copy(account, draft, custom_body, recipient):
             kwargs["failures"] = exc.failures
         if exc.server_error:
             kwargs["server_error"] = exc.server_error
-        return err(exc.http_code, exc.message, **kwargs)
+        return err(exc.http_code, exc.args[0], **kwargs)
 
     return response_on_success
 
@@ -91,6 +91,6 @@ def send_raw_mime(account, db_session, msg):
             kwargs["failures"] = exc.failures
         if exc.server_error:
             kwargs["server_error"] = exc.server_error
-        return err(exc.http_code, exc.message, **kwargs)
+        return err(exc.http_code, exc.args[0], **kwargs)
 
     return response_on_success

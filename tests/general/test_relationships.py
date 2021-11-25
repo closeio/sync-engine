@@ -23,7 +23,7 @@ def test_category_delete(db, gmail_account):
     )
     category_id = category.id
 
-    for i in range(10):
+    for _ in range(10):
         generic_thread = add_fake_thread(db.session, gmail_account.namespace.id)
         gen_message = add_fake_message(
             db.session, gmail_account.namespace.id, generic_thread

@@ -445,7 +445,6 @@ def import_attached_events(db_session, account, message):
             RuntimeError,
             AttributeError,
             ValueError,
-            UnboundLocalError,
             LookupError,
             ImportError,
             NameError,

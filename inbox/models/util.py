@@ -309,7 +309,7 @@ def _batch_delete(
 
     log.info("deleting", account_id=account_id, table=table)
 
-    for i in range(0, batches):
+    for _ in range(0, batches):
         if throttle:
             bulk_throttle()
 

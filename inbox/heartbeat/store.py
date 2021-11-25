@@ -168,7 +168,7 @@ class HeartbeatStore(object):
                 key.account_id, 0, 0, withscores=True
             ).pop()
             client.zadd("account_index", oldest_heartbeat, key.account_id)
-        except:
+        except Exception:
             # If all heartbeats were deleted at the same time as this, the pop
             # will fail -- ignore it.
             pass

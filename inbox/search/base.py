@@ -17,6 +17,9 @@ class SearchBackendException(Exception):
         self.server_error = server_error
         super(SearchBackendException, self).__init__(message, http_code, server_error)
 
+    def __str__(self):
+        return self.message
+
 
 class SearchStoreException(Exception):
     """Raised if there's an error proxying the search request to the provider.

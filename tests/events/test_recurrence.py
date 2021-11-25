@@ -27,15 +27,10 @@ TEST_EXDATE_RULE.extend(TEST_EXDATE)
 
 
 def recurring_event(
-    db,
-    account,
-    calendar,
-    rrule,
-    start=arrow.get(2014, 8, 7, 20, 30, 0),
-    end=arrow.get(2014, 8, 7, 21, 30, 0),
-    all_day=False,
-    commit=True,
+    db, account, calendar, rrule, start=None, end=None, all_day=False, commit=True,
 ):
+    start = start or arrow.get(2014, 8, 7, 20, 30, 0)
+    end = end or arrow.get(2014, 8, 7, 21, 30, 0)
 
     # commit: are we returning a commited instance object?
     if commit:

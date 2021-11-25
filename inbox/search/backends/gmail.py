@@ -112,8 +112,7 @@ class GmailSearchClient(object):
 
         params = dict(q=search_query, maxResults=limit)
 
-        # Could have used while True: but I don't like infinite loops.
-        for i in range(1, 10):
+        for _ in range(1, 10):
             ret = requests.get(
                 u"https://www.googleapis.com/gmail/v1/users/me/messages",
                 params=params,

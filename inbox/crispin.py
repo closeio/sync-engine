@@ -138,7 +138,10 @@ def _get_connection_pool(account_id, pool_size, pool_map, readonly):
         return pool_map[account_id]
 
 
-def connection_pool(account_id, pool_size=None, pool_map=dict()):
+_pool_map = {}
+
+
+def connection_pool(account_id, pool_size=None):
     """ Per-account crispin connection pool.
 
     Use like this:
@@ -159,10 +162,13 @@ def connection_pool(account_id, pool_size=None, pool_map=dict()):
                 pool_size = 1
             else:
                 pool_size = 3
-    return _get_connection_pool(account_id, pool_size, pool_map, True)
+    return _get_connection_pool(account_id, pool_size, _pool_map, True)
 
 
-def writable_connection_pool(account_id, pool_size=1, pool_map=dict()):
+_writable_pool_map = {}
+
+
+def writable_connection_pool(account_id, pool_size=1):
     """ Per-account crispin connection pool, with *read-write* connections.
 
     Use like this:
@@ -172,7 +178,7 @@ def writable_connection_pool(account_id, pool_size=1, pool_map=dict()):
             # your code here
             pass
     """
-    return _get_connection_pool(account_id, pool_size, pool_map, False)
+    return _get_connection_pool(account_id, pool_size, _writable_pool_map, False)
 
 
 class CrispinConnectionPool(object):
@@ -247,8 +253,6 @@ class CrispinConnectionPool(object):
                 self._logout(client)
             client = None
             raise exc
-        except:
-            raise
         finally:
             self._queue.put(client)
             self._sem.release()
@@ -574,7 +578,7 @@ class CrispinClient(object):
         folders = (
             self._fetch_folder_list()
         )  # type: List[Tuple[Tuple[bytes, ...], bytes, str]]
-        for flags, delimiter, name in folders:
+        for flags, _, name in folders:
             if (
                 b"\\Noselect" in flags
                 or b"\\NoSelect" in flags
@@ -1006,7 +1010,7 @@ class CrispinClient(object):
         self.conn.idle()
         try:
             r = self.conn.idle_check(timeout)
-        except:
+        except Exception:
             self.conn.idle_done()
             raise
         self.conn.idle_done()

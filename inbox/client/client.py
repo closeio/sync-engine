@@ -111,12 +111,15 @@ class APIClient(json.JSONEncoder):
 
     def __init__(
         self,
-        app_id=environ.get("NYLAS_APP_ID"),
-        app_secret=environ.get("NYLAS_APP_SECRET"),
-        access_token=environ.get("NYLAS_ACCESS_TOKEN"),
+        app_id=None,
+        app_secret=None,
+        access_token=None,
         api_server=API_SERVER,
         auth_server=None,
     ):
+        app_id = app_id or environ.get("NYLAS_APP_ID")
+        app_secret = app_secret or environ.get("NYLAS_APP_SECRET")
+        access_token = access_token or environ.get("NYLAS_ACCESS_TOKEN")
         if "://" not in api_server:
             raise Exception(
                 "When overriding the Nylas API server address, you"

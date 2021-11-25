@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from redis import StrictRedis
 
@@ -38,7 +38,7 @@ class EventQueue(object):
 
     def receive_event(self, timeout=0):
         # type: (int) -> Dict[str, Any]
-        result = None
+        result = None  # type: Optional[Union[bytes, Tuple[bytes, bytes]]]
         if timeout is None:
             result = self.redis.lpop(self.queue_name)
         else:
@@ -78,7 +78,9 @@ class EventQueueGroup(object):
 
     def receive_event(self, timeout=0):
         # type: (int) -> Dict[str, Any]
-        result = self.redis.blpop([q.queue_name for q in self.queues], timeout=timeout)
+        result = self.redis.blpop(
+            [q.queue_name for q in self.queues], timeout=timeout
+        )  # type: Optional[Tuple[bytes, bytes]]
         if result is None:
             return None
         queue_name, event_data = result

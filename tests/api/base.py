@@ -11,7 +11,6 @@ def new_api_client(db, namespace):
 
 
 class TestAPIClient(object):
-
     """Provide more convenient access to the API for testing purposes."""
 
     def __init__(self, test_client, default_namespace_public_id):

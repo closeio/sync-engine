@@ -127,8 +127,7 @@ class SyncService(object):
 
     def _run_impl(self):
         """
-        Waits for notifications about Account migrations and checks for start/stop commands.
-
+        Wait for notifications about Account migrations and checks for start/stop commands.
         """
         # When the service first starts we should check the state of the world.
         self.poll({"queue_name": "none"})
@@ -194,7 +193,7 @@ class SyncService(object):
         shared_sync_event_queue_for_zone(self.zone).send_event(event)
 
     def poll(self, event):
-        # Determine which accounts to sync
+        """Determine which accounts to sync"""
         start_accounts = self.account_ids_to_sync()
         statsd_client.gauge(
             "mailsync.account_counts.{}.mailsync-{}.count".format(
@@ -262,9 +261,8 @@ class SyncService(object):
 
     def start_sync(self, account_id):
         """
-        Starts a sync for the account with the given account_id.
+        Start a sync for the account with the given account_id.
         If that account doesn't exist, does nothing.
-
         """
         with self.semaphore, session_scope(account_id) as db_session:
             acc = db_session.query(Account).with_for_update().get(account_id)
@@ -351,11 +349,9 @@ class SyncService(object):
 
     def stop_sync(self, account_id):
         """
-        Stops the sync for the account with given account_id.
+        Stop the sync for the account with given account_id.
         If that account doesn't exist, does nothing.
-
         """
-
         with self.semaphore:
             self.log.info("Stopping monitors", account_id=account_id)
             if account_id in self.email_sync_monitors:

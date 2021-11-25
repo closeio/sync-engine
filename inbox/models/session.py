@@ -20,14 +20,13 @@ MAX_SANE_TRX_TIME_MS = 30000
 
 def two_phase_session(engine_map, versioned=True):
     """
-    Returns a session that implements two-phase-commit.
+    Return a session that implements two-phase-commit.
     Parameters
     ----------
     engine_map: dict
     Mapping of Table cls instance: database engine
 
     versioned: bool
-
     """
     session = Session(binds=engine_map, twophase=True, autoflush=True, autocommit=False)
     if versioned:
@@ -37,7 +36,7 @@ def two_phase_session(engine_map, versioned=True):
 
 
 def new_session(engine, versioned=True):
-    """Returns a session bound to the given engine."""
+    """Return a session bound to the given engine."""
     session = Session(bind=engine, autoflush=True, autocommit=False)
 
     if versioned:
@@ -106,9 +105,8 @@ def configure_versioning(session):
     @event.listens_for(session, "after_flush")
     def after_flush(session, flush_context):
         """
-        Hook to log revision snapshots. Must be post-flush in order to
+        Log revision snapshots. Must be post-flush in order to
         grab object IDs on new objects.
-
         """
         # Note: `bump_redis_txn_id` __must__ come first. `create_revisions`
         # creates new objects which haven't been flushed to the db yet.

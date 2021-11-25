@@ -160,7 +160,7 @@ class SyncbackService(gevent.Greenlet):
 
     def _has_recent_move_action(self, db_session, log_entries):
         """
-        Determines if we recently completed a move action. Since Nylas doesn't
+        Determine if we recently completed a move action. Since Nylas doesn't
         update local UID state after completing an action, we space
         non-optimistic actions apart so the sync process can catch up.
         """
@@ -299,10 +299,7 @@ class SyncbackService(gevent.Greenlet):
         return [task]
 
     def _get_batch_task(self, db_session, log_entries, has_more):
-        """
-        Helper for _batch_log_entries that returns the batch task for the given
-        valid log entries.
-        """
+        """Return the batch task for the given valid log entries."""
         if not log_entries:
             return
         namespace = log_entries[0].namespace

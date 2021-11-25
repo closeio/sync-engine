@@ -99,7 +99,7 @@ banner = r"""{esc}[1;95m
     "can be used to avoid memory leaks.",
 )
 def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
-    """ Launch the Nylas sync service. """
+    """Launch the Nylas sync service."""
     level = os.environ.get("LOGLEVEL", inbox_config.get("LOGLEVEL"))
     configure_logging(log_level=level)
     reconfigure_logging()

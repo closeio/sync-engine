@@ -272,7 +272,7 @@ def test_body(generic_client, constants):
 
 
 def test_internaldate(generic_client, constants):
-    """ Test that our monkeypatched imaplib works through imapclient """
+    """Test that our monkeypatched imaplib works through imapclient"""
     dates_to_test = [
         ("6-Mar-2015 10:02:32 +0900", datetime(2015, 3, 6, 1, 2, 32)),
         (" 6-Mar-2015 10:02:32 +0900", datetime(2015, 3, 6, 1, 2, 32)),
@@ -307,8 +307,9 @@ def test_internaldate(generic_client, constants):
 
 
 def test_deleted_folder_on_select(monkeypatch, generic_client, constants):
-    """ Test that a 'select failed EXAMINE' error specifying that a folder
-        doesn't exist is converted into a FolderMissingError. (Yahoo style)
+    """
+    Test that a 'select failed EXAMINE' error specifying that a folder
+    doesn't exist is converted into a FolderMissingError. (Yahoo style)
     """
 
     def raise_invalid_folder_exc(*args, **kwargs):
@@ -325,8 +326,9 @@ def test_deleted_folder_on_select(monkeypatch, generic_client, constants):
 
 
 def test_deleted_folder_on_fetch(monkeypatch, generic_client, constants):
-    """ Test that a 'select failed EXAMINE' error specifying that a folder
-        doesn't exist is converted into a FolderMissingError. (Yahoo style)
+    """
+    Test that a 'select failed EXAMINE' error specifying that a folder
+    doesn't exist is converted into a FolderMissingError. (Yahoo style)
     """
 
     def raise_invalid_uid_exc(*args, **kwargs):
@@ -576,7 +578,7 @@ def check_missing_generic(
     role, folder_base, generic_role_names, provider, constants, monkeypatch
 ):
     """
-    check clients label every folder in generic_role_names as input role
+    Check clients label every folder in generic_role_names as input role
 
     role: the role that the generic_role_names should be assigned
     folder_base: generic list of folders, excluding one that is assigned role
@@ -613,9 +615,8 @@ def check_missing_generic(
 
 def test_gmail_folders_no_flags(monkeypatch):
     """
-    Tests that system folders (trash, inbox, sent) without flags can be labeled
+    Test that system folders (trash, inbox, sent) without flags can be labeled
     """
-
     folders = [
         ((b"\\HasNoChildren",), b"/", u"INBOX"),
         ((b"\\Noselect", b"\\HasChildren"), b"/", u"[Gmail]"),
@@ -648,13 +649,12 @@ def test_gmail_folders_no_flags(monkeypatch):
 
 def test_gmail_many_folders_one_role(monkeypatch, constants):
     """
-    Tests that accounts with many folders with
+    Test that accounts with many folders with
     similar system folders have only one role.
 
     i.e accounts with [Imap]/Trash, Trash, and [Gmail]/Trash
     should only have one folder with the role trash
     """
-
     # some duplitace folders where one has been flagged,
     # and neither have been flagged
     # in both cases, only one should come out flagged.
@@ -702,7 +702,7 @@ def test_imap_folders(monkeypatch, constants):
 
 def test_imap_folders_no_flags(monkeypatch, constants):
     """
-    Tests that system folders (trash, inbox, sent) without flags can be labeled
+    Test that system folders (trash, inbox, sent) without flags can be labeled
     """
     folders = [
         ((b"\\HasNoChildren",), b"/", u"INBOX"),
@@ -734,7 +734,7 @@ def test_imap_folders_no_flags(monkeypatch, constants):
 
 def test_imap_many_folders_one_role(monkeypatch, constants):
     """
-    Tests that accounts with many folders with
+    Test that accounts with many folders with
     similar system folders have only one role.
 
     i.e accounts with [Imap]/Trash, Trash, and [Gmail]/Trash

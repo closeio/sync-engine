@@ -53,7 +53,7 @@ def check_tz():
 
 def load_overrides(file_path, loaded_config=config):
     """
-    Convenience function for overriding default configuration.
+    Override default configuration.
 
     file_path : <string> the full path to a file containing valid
                 JSON for configuration overrides

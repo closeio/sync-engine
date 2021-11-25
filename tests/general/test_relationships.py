@@ -8,9 +8,10 @@ from tests.util.base import add_fake_message, add_fake_thread
 
 
 def test_category_delete(db, gmail_account):
-    """ Ensure that all associated MessageCategories are deleted
-        when a Category is deleted """
-
+    """
+    Ensure that all associated MessageCategories are deleted
+    when a Category is deleted
+    """
     api_client = new_api_client(db, gmail_account.namespace)
     po_data = api_client.post_data("/labels/", {"display_name": "Test_Label"})
     assert po_data.status_code == 200
@@ -51,9 +52,10 @@ def test_category_delete(db, gmail_account):
 
 
 def test_message_delete(db, gmail_account):
-    """ Ensure that all associated MessageCategories are deleted
-        when a Message is deleted """
-
+    """
+    Ensure that all associated MessageCategories are deleted
+    when a Message is deleted
+    """
     api_client = new_api_client(db, gmail_account.namespace)
 
     generic_thread = add_fake_thread(db.session, gmail_account.namespace.id)
@@ -91,9 +93,10 @@ def test_message_delete(db, gmail_account):
 
 
 def test_thread_delete(db, gmail_account):
-    """ Ensure that all associated Messages are deleted
-        when a Thread is deleted."""
-
+    """
+    Ensure that all associated Messages are deleted
+    when a Thread is deleted.
+    """
     generic_thread = add_fake_thread(db.session, gmail_account.namespace.id)
     generic_message = add_fake_message(
         db.session, gmail_account.namespace.id, generic_thread

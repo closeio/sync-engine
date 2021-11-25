@@ -424,7 +424,8 @@ class GmailFolderSyncEngine(FolderSyncEngine):
     def add_message_to_thread(self, db_session, message_obj, raw_message):
         """Associate message_obj to the right Thread object, creating a new
         thread if necessary. We rely on Gmail's threading as defined by
-        X-GM-THRID instead of our threading algorithm."""
+        X-GM-THRID instead of our threading algorithm.
+        """
         # NOTE: g_thrid == g_msgid on the first message in the thread
         message_obj.g_msgid = raw_message.g_msgid
         message_obj.g_thrid = raw_message.g_thrid

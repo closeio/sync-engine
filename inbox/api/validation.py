@@ -143,9 +143,8 @@ def timestamp(value, key):
 
 def strict_parse_args(parser, raw_args):
     """
-    Wrapper around parser.parse_args that raises a ValueError if unexpected
+    Wrap around parser.parse_args that raises a ValueError if unexpected
     arguments are present.
-
     """
     args = parser.parse_args()
     unexpected_params = set(raw_args) - {

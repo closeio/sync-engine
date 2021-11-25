@@ -1,4 +1,5 @@
-""" Code for propagating Nylas datastore changes to account backends.
+"""
+Code for propagating Nylas datastore changes to account backends.
 
 Syncback actions don't update anything in the local datastore; the Nylas
 datastore is updated asynchronously (see namespace.py) and bookkeeping about
@@ -21,7 +22,6 @@ not really a problem because of the limited ways mail messages can change.
 
 ACTIONS MUST BE IDEMPOTENT! We are going to have task workers guarantee
 at-least-once semantics.
-
 """
 from inbox.actions.backends.generic import (
     remote_create_folder,
@@ -105,7 +105,7 @@ def delete_label(crispin_client, account_id, category_id):
 
 
 def save_draft(crispin_client, account_id, message_id, args):
-    """ Sync a new draft back to the remote backend. """
+    """Sync a new draft back to the remote backend."""
     with session_scope(account_id) as db_session:
         message = db_session.query(Message).get(message_id)
         version = args.get("version")
@@ -131,7 +131,7 @@ def save_draft(crispin_client, account_id, message_id, args):
 
 
 def update_draft(crispin_client, account_id, message_id, args):
-    """ Sync an updated draft back to the remote backend. """
+    """Sync an updated draft back to the remote backend."""
     with session_scope(account_id) as db_session:
         message = db_session.query(Message).get(message_id)
         version = args.get("version")

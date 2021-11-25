@@ -238,7 +238,8 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
         return left
 
     def _partial_participants_merge(self, event):
-        """Merge the participants from event into self.participants.
+        """
+        Merge the participants from event into self.participants.
         event always takes precedence over self, except if
         a participant in self isn't in event.
 
@@ -248,7 +249,6 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
         It would be very wrong to call this method to merge, say, Google
         Events participants because they handle the merging themselves.
         """
-
         # We have to jump through some hoops because a participant may
         # not have an email or may not have a name, so we build a hash
         # where we can find both. Also note that we store names in the
@@ -447,8 +447,9 @@ Index("idx_namespace_id_started", Event.namespace_id, Event.start)
 
 
 class RecurringEvent(Event):
-    """ Represents an individual one-off instance of a recurring event,
-        including cancelled events.
+    """
+    Represents an individual one-off instance of a recurring event,
+    including cancelled events.
     """
 
     __mapper_args__ = {"polymorphic_identity": "recurringevent"}
@@ -547,8 +548,9 @@ class RecurringEvent(Event):
 
 
 class RecurringEventOverride(Event):
-    """ Represents an individual one-off instance of a recurring event,
-        including cancelled events.
+    """
+    Represents an individual one-off instance of a recurring event,
+    including cancelled events.
     """
 
     id = Column(ForeignKey("event.id", ondelete="CASCADE"), primary_key=True)
@@ -584,10 +586,11 @@ class RecurringEventOverride(Event):
 
 
 class InflatedEvent(Event):
-    """ This represents an individual instance of a recurring event, generated
-        on the fly when a recurring event is expanded.
-        These are transient objects that should never be committed to the
-        database.
+    """
+    This represents an individual instance of a recurring event, generated
+    on the fly when a recurring event is expanded.
+    These are transient objects that should never be committed to the
+    database.
     """
 
     __mapper_args__ = {"polymorphic_identity": "inflatedevent"}

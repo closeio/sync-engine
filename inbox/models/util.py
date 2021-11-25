@@ -173,7 +173,6 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False):
 
     Raises AccountDeletionErrror with message if there are problems
     """
-
     with session_scope(namespace_id) as db_session:
         try:
             account = (
@@ -388,7 +387,7 @@ def _batch_delete(
 
 def check_throttle():
     """
-    Returns True if deletions should be throttled and False otherwise.
+    Return True if deletions should be throttled and False otherwise.
 
     check_throttle is ignored entirely if the separate `throttle` flag is False
     (meaning that throttling is not done at all), but if throttling is enabled,

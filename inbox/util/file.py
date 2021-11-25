@@ -18,7 +18,7 @@ else:
 
 
 def safe_filename(filename):
-    """ Strip filesystem-unfriendly characters from a filename. """
+    """Strip filesystem-unfriendly characters from a filename."""
     valid_chars = "-_.() {}{}".format(string.ascii_letters, string.digits)
     return "".join(c for c in filename if c in valid_chars)
 
@@ -41,7 +41,8 @@ def splitall(path):
 
 
 def mkdirp(path):
-    """ An equivalent to mkdir -p.
+    """
+    Create directory and its parents. An equivalent to mkdir -p.
 
     This can go away in Python 3.2; just use exists_ok=True.
 
@@ -60,7 +61,8 @@ def mkdirp(path):
 
 
 def remove_file(filename):
-    """ Delete a file and don't raise an error if it doesn't exist.
+    """
+    Delete a file and don't raise an error if it doesn't exist.
 
     From:
     http://stackoverflow.com/questions/10840533/most-pythonic-way-to-delete-a-file-which-may-not-exist
@@ -73,7 +75,8 @@ def remove_file(filename):
 
 
 class Lock(object):
-    """ UNIX-specific exclusive file locks (released when the process ends).
+    """
+    UNIX-specific exclusive file locks (released when the process ends).
 
     Based on
     http://blog.vmfarms.com/2011/03/cross-process-locking-and.html,

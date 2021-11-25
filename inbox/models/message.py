@@ -206,11 +206,13 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     def regenerate_nylas_uid(self):
         # type: () -> None
         """
+        Regenerate Nylas uid.
+
         The value of nylas_uid is simply the draft public_id and version,
         concatenated. Because the nylas_uid identifies the draft on the remote
         provider, we regenerate it on each draft revision so that we can delete
-        the old draft and add the new one on the remote."""
-
+        the old draft and add the new one on the remote.
+        """
         from inbox.sendmail.message import generate_message_id_header
 
         self.nylas_uid = "{}-{}".format(self.public_id, self.version)
@@ -263,7 +265,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     def create_from_synced(cls, account, mid, folder_name, received_date, body_string):
         # type: (Account, int, str, Optional[datetime.datetime], bytes) -> Message
         """
-        Parses message data and writes out db metadata and MIME blocks.
+        Parse message data and writes out db metadata and MIME blocks.
 
         Returns the new Message, which links to the new Part and Block objects
         through relationships. All new objects are uncommitted.
@@ -794,7 +796,7 @@ Index(
 
 
 class MessageCategory(MailSyncBase):
-    """ Mapping between messages and categories. """
+    """Mapping between messages and categories."""
 
     message_id = Column(BigInteger, nullable=False)
     message = relationship(

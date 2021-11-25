@@ -43,12 +43,12 @@ SMTP_TEMP_AUTH_FAIL_CODES = (421, 454)
 
 
 class SMTP_SSL(smtplib.SMTP_SSL):
-    """
-        Derived class which correctly surfaces SMTP errors.
-    """
+    """Derived class which correctly surfaces SMTP errors."""
 
     def rset(self):
-        """Wrap rset() in order to correctly surface SMTP exceptions.
+        """
+        Wrap rset in order to correctly surface SMTP exceptions.
+
         SMTP.sendmail() does e.g.:
             # ...
             (code, resp) = self.data(msg)
@@ -69,12 +69,12 @@ class SMTP_SSL(smtplib.SMTP_SSL):
 
 
 class SMTP(smtplib.SMTP):
-    """
-        Derived class which correctly surfaces SMTP errors.
-    """
+    """Derived class which correctly surfaces SMTP errors."""
 
     def rset(self):
-        """Wrap rset() in order to correctly surface SMTP exceptions.
+        """
+        Wrap rset in order to correctly surface SMTP exceptions.
+
         SMTP.sendmail() does e.g.:
             # ...
             (code, resp) = self.data(msg)
@@ -98,7 +98,6 @@ def _transform_ssl_error(strerror):
     """
     Clean up errors like:
     _ssl.c:510: error:14090086:SSL routines:SSL3_GET_SERVER_CERTIFICATE:certificate verify failed
-
     """
     if strerror is None:
         return "Unknown connection error"
@@ -110,10 +109,7 @@ def _transform_ssl_error(strerror):
 
 def _substitute_bcc(raw_message):
     # type: (bytes) -> bytes
-    """
-    Substitute BCC in raw message.
-    """
-
+    """Substitute BCC in raw message."""
     bcc_regexp = re.compile(br"^Bcc: [^\r\n]*\r\n", re.IGNORECASE | re.MULTILINE)
     return bcc_regexp.sub(b"", raw_message)
 
@@ -153,7 +149,7 @@ class SMTPConnection(object):
             return
 
     def _connect(self, host, port):
-        """ Connect, with error-handling """
+        """Connect, with error-handling"""
         try:
             self.connection.connect(host, port)
         except socket.error as e:
@@ -281,7 +277,7 @@ class SMTPConnection(object):
 
 
 class SMTPClient(object):
-    """ SMTPClient for Gmail and other IMAP providers. """
+    """SMTPClient for Gmail and other IMAP providers."""
 
     def __init__(self, account):
         self.account_id = account.id

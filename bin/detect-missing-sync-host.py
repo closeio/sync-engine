@@ -13,11 +13,10 @@ from inbox.models.session import global_session_scope
 @click.command()
 def main():
     """
-    Detects accounts with sync_state and sync_host inconsistent with
+    Detect accounts with sync_state and sync_host inconsistent with
     sync_should_run bit. (At one point, this could happen if, say, an account
     was _started_ on a new host without being first stopped on its previous
     host.)
-
     """
     maybe_enable_rollbar()
 

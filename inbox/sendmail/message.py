@@ -65,7 +65,7 @@ def create_email(
     attachments,
 ):
     """
-    Creates a MIME email message (both body and sets the needed headers).
+    Create a MIME email message (both body and sets the needed headers).
 
     Parameters
     ----------
@@ -188,6 +188,8 @@ def encode_string(value, maxlinelen):
 
 def _get_full_spec_without_validation(name, email):
     """
+    Return full spec i.e. "Name <email>".
+
     This function is the same as calling full_spec() on
     a Flanker address.EmailAddress object. This function exists
     because you can't construct a Flanker EmailAddress object with
@@ -214,7 +216,6 @@ def add_nylas_headers(msg, nylas_uid):
     public_id of the message object.
 
     """
-
     # Set our own custom header for tracking in `Sent Mail` folder
     msg.headers["X-INBOX-ID"] = nylas_uid
     msg.headers["Message-Id"] = generate_message_id_header(nylas_uid)
@@ -227,7 +228,8 @@ def generate_message_id_header(uid):
 
 
 def _rfc_transform(msg):
-    """ Create an RFC-2821 compliant SMTP message.
+    """
+    Create an RFC-2821 compliant SMTP message.
     (Specifically, this means splitting the References header to conform to
     line length limits.)
 

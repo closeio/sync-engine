@@ -44,7 +44,7 @@ def retry(
     backoff_delay=BACKOFF_DELAY,
 ):
     """
-    Executes the callable func, retrying on uncaught exceptions matching the
+    Execute the callable func, retrying on uncaught exceptions matching the
     class filters.
 
     Arguments

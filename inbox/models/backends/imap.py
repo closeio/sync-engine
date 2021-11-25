@@ -130,10 +130,9 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     def update_flags(self, new_flags):
         # type: (List[bytes]) -> None
         """
-        Sets flag and g_labels values based on the new_flags and x_gm_labels
+        Set flag and g_labels values based on the new_flags and x_gm_labels
         parameters. Returns True if any values have changed compared to what we
         previously stored.
-
         """
         changed = False
         new_flags = set(flag.decode() for flag in new_flags)
@@ -296,8 +295,6 @@ def _choose_existing_thread_for_gmail(message, db_session):
 
 
 class ImapThread(Thread):
-    """ TODO: split into provider-specific classes. """
-
     id = Column(ForeignKey(Thread.id, ondelete="CASCADE"), primary_key=True)
 
     # Only on messages from Gmail
@@ -355,7 +352,7 @@ class ImapThread(Thread):
 
 
 class ImapFolderSyncStatus(MailSyncBase, HasRunState, UpdatedAtMixin, DeletedAtMixin):
-    """ Per-folder status state saving for IMAP folders. """
+    """Per-folder status state saving for IMAP folders."""
 
     account_id = Column(ForeignKey(ImapAccount.id, ondelete="CASCADE"), nullable=False)
     account = relationship(
@@ -431,7 +428,7 @@ class ImapFolderSyncStatus(MailSyncBase, HasRunState, UpdatedAtMixin, DeletedAtM
 
 
 class LabelItem(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
-    """ Mapping between imapuids and labels. """
+    """Mapping between imapuids and labels."""
 
     imapuid_id = Column(ForeignKey(ImapUid.id, ondelete="CASCADE"), nullable=False)
     imapuid = relationship(

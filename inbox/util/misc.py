@@ -59,7 +59,6 @@ def parse_references(references, in_reply_to):
 
     Parameters
     ----------
-
     references: string
         the contents of the referfences header
 
@@ -91,7 +90,7 @@ def dt_to_timestamp(dt):
 
 def get_internaldate(date, received):
     # type: (Optional[str], Optional[str]) -> datetime
-    """ Get the date from the headers. """
+    """Get the date from the headers."""
     if date is None:
         other, date = received.split(";")
 
@@ -104,7 +103,7 @@ def get_internaldate(date, received):
 
 
 def timed(fn):
-    """ A decorator for timing methods. """
+    """Time a method."""
 
     def timed_fn(self, *args, **kwargs):
         start_time = time.time()
@@ -130,7 +129,7 @@ def timed(fn):
 # Based on: http://stackoverflow.com/a/8556471
 def load_modules(base_name, base_path):
     """
-    Imports all modules underneath `base_module` in the module tree.
+    Import all modules underneath `base_module` in the module tree.
 
     Note that if submodules are located in different directory trees, you
     need to use `pkgutil.extend_path` to make all the folders appear in
@@ -180,8 +179,10 @@ def register_backends(base_name, base_path):
 
 
 def cleanup_subject(subject_str):
-    """Clean-up a message subject-line, including whitespace.
-    For instance, 'Re: Re: Re: Birthday   party' becomes 'Birthday party'"""
+    """
+    Clean-up a message subject-line, including whitespace.
+    For instance, 'Re: Re: Re: Birthday   party' becomes 'Birthday party'
+    """
     if subject_str is None:
         return ""
     # TODO consider expanding to all

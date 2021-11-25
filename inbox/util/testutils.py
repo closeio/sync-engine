@@ -25,7 +25,9 @@ FILENAMES = [
 
 
 def create_test_db():
-    """ Creates new, empty test databases. """
+    """
+    Create new, empty test databases.
+    """
     from inbox.config import config
 
     database_hosts = config.get_required("DATABASE_HOSTS")
@@ -59,9 +61,8 @@ def create_test_db():
 
 def setup_test_db():
     """
-    Creates new, empty test databases with table structures generated
+    Create new, empty test databases with table structures generated
     from declarative model classes.
-
     """
     from inbox.config import config
     from inbox.ignition import engine_manager, init_db
@@ -138,8 +139,10 @@ def dump_dns_queries(monkeypatch):
 
 
 class MockIMAPClient(object):
-    """A bare-bones stand-in for an IMAPClient instance, used to test sync
-    logic without requiring a real IMAP account and server."""
+    """
+    A bare-bones stand-in for an IMAPClient instance, used to test sync
+    logic without requiring a real IMAP account and server.
+    """
 
     def __init__(self):
         self._data = {}
@@ -174,7 +177,7 @@ class MockIMAPClient(object):
         return ("Idle terminated", [])
 
     def add_folder_data(self, folder_name, uids):
-        """Adds fake UID data for the given folder."""
+        """Add fake UID data for the given folder."""
         self._data[folder_name] = uids
 
     def search(self, criteria):

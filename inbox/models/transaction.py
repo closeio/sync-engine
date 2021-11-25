@@ -12,7 +12,7 @@ TXN_REDIS_KEY = "latest-txn-by-namespace"
 
 
 class Transaction(MailSyncBase, HasPublicID):
-    """ Transactional log to enable client syncing. """
+    """Transactional log to enable client syncing."""
 
     # Do delete transactions if their associated namespace is deleted.
     namespace_id = Column(BigInteger, nullable=False)
@@ -173,7 +173,9 @@ def increment_versions(session):
 
 def bump_redis_txn_id(session):
     """
-    Called from post-flush hook to bump the latest id stored in redis
+    Bump the latest id stored in redis.
+
+    Called from post-flush hook.
     """
 
     def get_namespace_public_id(namespace_id):

@@ -35,7 +35,7 @@ def send_draft(account, draft, db_session):
 
 def send_draft_copy(account, draft, custom_body, recipient):
     """
-    Sends a copy of this draft to the recipient, using the specified body
+    Send a copy of this draft to the recipient, using the specified body
     rather that the one on the draft object, and not marking the draft as
     sent. Used within multi-send to send messages to individual recipients
     with customized bodies.

@@ -1,4 +1,4 @@
-""" Operations for syncing back local Calendar changes to Gmail. """
+"""Operations for syncing back local Calendar changes to Gmail."""
 
 from inbox.events.google import GoogleEventsProvider
 

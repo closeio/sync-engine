@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-""" Operations for syncing back local datastore changes to
-    generic IMAP providers.
+"""
+Operations for syncing back local datastore changes to
+generic IMAP providers.
 """
 from collections import defaultdict
 from imaplib import IMAP4

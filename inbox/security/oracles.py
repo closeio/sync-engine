@@ -154,7 +154,6 @@ class _DecryptionOracle(_EncryptionOracle):
 
         Returns the plaintext as bytes.
         """
-
         if self._closed:
             raise ValueError("Connection to crypto oracle already closed")
 

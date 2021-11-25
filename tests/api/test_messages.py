@@ -95,7 +95,7 @@ bicycle rights. Thundercats kale chips church-key American Apparel.
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_rfc822_format(stub_message_from_raw, api_client, mime_message):
-    """ Test the API response to retreive raw message contents """
+    """Test the API response to retreive raw message contents"""
     full_path = "/messages/{}".format(stub_message_from_raw.public_id)
 
     resp = api_client.get_raw(full_path, headers={"Accept": "message/rfc822"})
@@ -306,8 +306,8 @@ def test_message_label_updates(
     db, api_client, default_account, api_version, custom_label
 ):
     """Check that you can update a message (optimistically or not),
-    and that the update is queued in the ActionLog."""
-
+    and that the update is queued in the ActionLog.
+    """
     headers = dict()
     headers["Api-Version"] = api_version
 

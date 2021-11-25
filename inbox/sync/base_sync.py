@@ -86,5 +86,9 @@ class BaseSyncMonitor(Greenlet):
         sleep(self.poll_frequency)
 
     def sync(self):
-        """ Subclasses should override this to do work """
+        """
+        Perform sync.
+
+        Subclasses should override this
+        """
         raise NotImplementedError

@@ -12,6 +12,7 @@ flake8-docstrings==1.6.0
 mccabe==0.6.1
 regex==2020.9.27
 pathspec==0.8.0
+pep257==0.7.0
 pyflakes==2.3.1
 pycodestyle==2.7.0
 toml==0.10.1

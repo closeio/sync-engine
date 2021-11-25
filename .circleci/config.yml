@@ -116,7 +116,6 @@ workflows:
   workflow:
     jobs:
       - static-code-analysis
-      - static-code-analysis-flake8
       - build:
           name: build_py2.7
           python_version: "2.7"

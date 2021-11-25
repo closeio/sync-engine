@@ -8,6 +8,7 @@ functools32; python_version < '3.2'
 importlib-metadata; python_version < '3.8'
 isort==5.4.2; python_version >= '3.0'
 flake8==3.9.2
+flake8-docstrings==1.6.0
 mccabe==0.6.1
 regex==2020.9.27
 pathspec==0.8.0

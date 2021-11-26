@@ -11,8 +11,10 @@ backports.ssl==0.0.9; python_version < '3.0'
 backcall==0.2.0; python_version > '3.0'
 jedi==0.18.1; python_version > '3.0'
 boto==2.49.0
-boto3==1.17.112
-botocore==1.20.112
+boto3==1.17.112; python_version < '3.0'
+boto3==1.19.4; python_version >= '3.0'
+botocore==1.20.112; python_version < '3.0'
+botocore==1.22.9; python_version >= '3.0'
 cchardet==2.1.1; python_version < '3.0'
 cchardet==2.1.7; python_version >= '3.0'
 certifi==2020.4.5.1; python_version < '3.0'
@@ -22,7 +24,6 @@ chardet==3.0.4
 charset-normalizer==2.0.7; python_version >= '3.5'
 ciso8601==2.2.0
 click==7.1.2
-colorama==0.3.9
 colorlog==5.0.1; python_version < '3.0'
 colorlog==6.5.0; python_version >= '3.0'
 configparser==4.0.2
@@ -96,7 +97,8 @@ regex==2018.1.10
 requests==2.26.0
 requests-file==1.5.1
 rollbar==0.16.2
-s3transfer==0.4.2
+s3transfer==0.4.2; python_version < '3.0'
+s3transfer==0.5.0; python_version >= '3.0'
 scandir==1.10.0
 setproctitle==1.1.10; python_version < '3.0'
 setproctitle==1.2.2; python_version >= '3.0'

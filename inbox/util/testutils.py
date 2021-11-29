@@ -4,7 +4,6 @@ from __future__ import print_function
 import contextlib
 import json
 import os
-import pkgutil
 import re
 import subprocess
 

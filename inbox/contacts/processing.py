@@ -27,6 +27,8 @@ def _get_contact_map(db_session, namespace_id, all_addresses):
     contact_map = {c._canonicalized_address: c for c in existing_contacts}
     for name, email_address in all_addresses:
         canonicalized_address = canonicalize(email_address)
+        if isinstance(name, list):
+            name = name[0].strip()
         if canonicalized_address not in contact_map:
             new_contact = Contact(
                 name=name,

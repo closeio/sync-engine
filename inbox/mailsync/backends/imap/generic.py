@@ -604,8 +604,10 @@ class FolderSyncEngine(Greenlet):
         return count
 
     def add_message_to_thread(self, db_session, message_obj, raw_message):
-        """Associate message_obj to the right Thread object, creating a new
-        thread if necessary."""
+        """
+        Associate message_obj to the right Thread object, creating a new
+        thread if necessary.
+        """
         with db_session.no_autoflush:
             # Disable autoflush so we don't try to flush a message with null
             # thread_id.

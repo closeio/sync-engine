@@ -1,4 +1,6 @@
 """Provide Google Calendar events."""
+from typing import Any, Dict
+
 from future import standard_library
 
 standard_library.install_aliases()
@@ -68,12 +70,8 @@ class GoogleEventsProvider(object):
         self.calendars_table = {}
 
     def sync_calendars(self):
-        """ Fetches data for the user's calendars.
-        Returns
-        -------
-        CalendarSyncResponse
-        """
-
+        # type: () -> CalendarSyncResponse
+        """Fetch data for the user's calendars."""
         deletes = []
         updates = []
         items = self._get_raw_calendars()
@@ -88,7 +86,7 @@ class GoogleEventsProvider(object):
         return CalendarSyncResponse(deletes, updates)
 
     def sync_events(self, calendar_uid, sync_from_time=None):
-        """ Fetches event data for an individual calendar.
+        """Fetch event data for an individual calendar.
 
         Parameters
         ----------
@@ -118,11 +116,11 @@ class GoogleEventsProvider(object):
         return updates
 
     def _get_raw_calendars(self):
-        """Gets raw data for the user's calendars."""
+        """Get raw data for the user's calendars."""
         return self._get_resource_list(CALENDARS_URL)
 
     def _get_raw_events(self, calendar_uid, sync_from_time=None):
-        """ Gets raw event data for the given calendar.
+        """Get raw event data for the given calendar.
 
         Parameters
         ----------
@@ -162,7 +160,7 @@ class GoogleEventsProvider(object):
             return token_manager.get_token(acc, force_refresh=force_refresh)
 
     def _get_resource_list(self, url, **params):
-        """Handles response pagination."""
+        """Handle response pagination."""
         token = self._get_access_token()
         items = []
         next_page_token = None
@@ -228,7 +226,7 @@ class GoogleEventsProvider(object):
                 raise
 
     def _make_event_request(self, method, calendar_uid, event_uid=None, **kwargs):
-        """ Makes a POST/PUT/DELETE request for a particular event. """
+        """Make a POST/PUT/DELETE request for a particular event."""
         event_uid = event_uid or ""
         url = "https://www.googleapis.com/calendar/v3/" "calendars/{}/events/{}".format(
             urllib.parse.quote(calendar_uid), urllib.parse.quote(event_uid)
@@ -320,7 +318,6 @@ class GoogleEventsProvider(object):
         set up push notifications for this account.
 
         Raises an AccessNotEnabled error if calendar sync is not enabled
-
         """
         token = self._get_access_token_for_push_notifications(account)
         receiving_url = CALENDAR_LIST_WEBHOOK_URL.format(
@@ -368,7 +365,6 @@ class GoogleEventsProvider(object):
 
         Raises an HTTPError if google gives us a 404 (which implies the
         calendar was deleted)
-
         """
         token = self._get_access_token_for_push_notifications(account)
         watch_url = WATCH_EVENTS_URL.format(urllib.parse.quote(calendar.uid))
@@ -464,8 +460,9 @@ class GoogleEventsProvider(object):
 
 
 def parse_calendar_response(calendar):
+    # type: (Dict[str, Any]) -> Calendar
     """
-    Constructs a Calendar object from a Google calendarList resource (a
+    Construct a Calendar object from a Google calendarList resource (a
     dictionary).  See
     http://developers.google.com/google-apps/calendar/v3/reference/calendarList
 
@@ -490,8 +487,9 @@ def parse_calendar_response(calendar):
 
 
 def parse_event_response(event, read_only_calendar):
+    # type: (Dict[str, Any], bool) -> Event
     """
-    Constructs an Event object from a Google event resource (a dictionary).
+    Construct an Event object from a Google event resource (a dictionary).
     See https://developers.google.com/google-apps/calendar/v3/reference/events
 
     Parameters

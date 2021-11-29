@@ -18,9 +18,11 @@ random.seed(None)
 
 @pytest.fixture(scope="module")
 def real_db():
-    """A fixture to get access to the real mysql db. We need this
+    """
+    Get access to the real mysql db. We need this
     to log in to providers like gmail to check that events changes
-    are synced back."""
+    are synced back.
+    """
     engine = main_engine()
     session = new_session(engine)
     yield session

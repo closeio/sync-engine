@@ -45,7 +45,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
     @retry_crispin
     def prepare_sync(self):
         """
-        Gets and save Folder objects for folders on the IMAP backend. Returns a
+        Get and save Folder objects for folders on the IMAP backend. Returns a
         list of folder names for the folders we want to sync (in order).
         """
         with connection_pool(self.account_id).get() as crispin_client:

@@ -1,4 +1,4 @@
-""" IMAPClient wrapper for the Nylas Sync Engine."""
+"""IMAPClient wrapper for the Nylas Sync Engine."""
 import contextlib
 import imaplib
 import re
@@ -139,7 +139,8 @@ def _get_connection_pool(account_id, pool_size, pool_map, readonly):
 
 
 def connection_pool(account_id, pool_size=None, pool_map=dict()):
-    """ Per-account crispin connection pool.
+    """
+    Return per-account crispin connection pool.
 
     Use like this:
 
@@ -163,7 +164,8 @@ def connection_pool(account_id, pool_size=None, pool_map=dict()):
 
 
 def writable_connection_pool(account_id, pool_size=1, pool_map=dict()):
-    """ Per-account crispin connection pool, with *read-write* connections.
+    """
+    Return per-account crispin connection pool, with *read-write* connections.
 
     Use like this:
 
@@ -217,7 +219,8 @@ class CrispinConnectionPool(object):
 
     @contextlib.contextmanager
     def get(self):
-        """ Get a connection from the pool, or instantiate a new one if needed.
+        """
+        Get a connection from the pool, or instantiate a new one if needed.
         If `num_connections` connections are already in use, block until one is
         available.
         """
@@ -267,7 +270,7 @@ class CrispinConnectionPool(object):
                 self.client_cls = CrispinClient
 
     def _new_raw_connection(self):
-        """Returns a new, authenticated IMAPClient instance for the account."""
+        """Return a new, authenticated IMAPClient instance for the account."""
         from inbox.auth.google import GoogleAuthHandler
         from inbox.auth.microsoft import MicrosoftAuthHandler
 
@@ -363,7 +366,8 @@ class CrispinClient(object):
 
     def _fetch_folder_list(self):
         # type: () -> List[Tuple[Tuple[bytes, ...], bytes, str]]
-        r""" NOTE: XLIST is deprecated, so we just use LIST.
+        r"""
+        Return list of (flags, separator, fodler_name) triplets.
 
         An example response with some other flags:
 
@@ -379,12 +383,15 @@ class CrispinClient(object):
 
         IMAPClient parses this response into a list of
         (flags, delimiter, name) tuples.
+
+        NOTE: XLIST is deprecated, so we just use LIST.
         """
         return self.conn.list_folders()
 
     def select_folder_if_necessary(self, folder_name, uidvalidity_callback):
         # type: (str, Callable[[int, str, Dict[bytes, Any]], Dict[bytes, Any]]) -> Dict[bytes, Any]
-        """ Selects a given folder if it isn't already the currently selected
+        """
+        Select a given folder if it isn't already the currently selected
         folder.
 
         Makes sure to set the 'selected_folder' attribute to a
@@ -407,7 +414,8 @@ class CrispinClient(object):
 
     def select_folder(self, folder_name, uidvalidity_callback):
         # type: (str, Callable[[int, str, Dict[bytes, Any]], Dict[bytes, Any]]) -> Dict[bytes, Any]
-        """ Selects a given folder.
+        """
+        Select a given folder.
 
         Makes sure to set the 'selected_folder' attribute to a
         (folder_name, select_info) pair.
@@ -498,7 +506,7 @@ class CrispinClient(object):
     def sync_folders(self):
         # () -> List[str]
         """
-        List of folders to sync, in order of sync priority. Currently, that
+        Return list of folders to sync, in order of sync priority. Currently, that
         simply means inbox folder first.
 
         In generic IMAP, the 'INBOX' folder is required.
@@ -507,7 +515,6 @@ class CrispinClient(object):
         -------
         list
             Folders to sync (as strings).
-
         """
         have_folders = self.folder_names()  # type: DefaultDict[str, List[str]]
 
@@ -545,7 +552,6 @@ class CrispinClient(object):
         force_resync: boolean
             Return the cached mapping or return a refreshed mapping
             (after refetching from the remote).
-
         """
         if force_resync or self._folder_names is None:
             self._folder_names = defaultdict(list)
@@ -564,7 +570,6 @@ class CrispinClient(object):
 
         NOTE:
         Always fetches the list of folders from the remote.
-
         """
         raw_folders = []  # type: List[RawFolder]
 
@@ -606,8 +611,8 @@ class CrispinClient(object):
     def _get_missing_roles(self, folders, roles):
         # type: (List[RawFolder], List[str]) -> List[str]
         """
-        Given a list of folders, and a list of roles, returns a list
-        a list of roles that did not appear in the list of folders
+        Return a list of roles that did not appear in the list of folders
+        given a list of folders, and a list of roles.
 
         Parameters:
             folders: List of RawFolder objects
@@ -616,7 +621,6 @@ class CrispinClient(object):
         Returns:
             a list of roles that did not appear as a role in folders
         """
-
         assert len(folders) > 0
         assert len(roles) > 0
 
@@ -730,7 +734,8 @@ class CrispinClient(object):
 
     def all_uids(self):
         # type: () -> List[int]
-        """ Fetch all UIDs associated with the currently selected folder.
+        """
+        Fetch all UIDs associated with the currently selected folder.
 
         Returns
         -------
@@ -1000,9 +1005,11 @@ class CrispinClient(object):
         self.conn.logout()
 
     def idle(self, timeout):
-        """Idle for up to `timeout` seconds. Make sure we take the connection
+        """
+        Idle for up to `timeout` seconds. Make sure we take the connection
         back out of idle mode so that we can reuse this connection in another
-        context."""
+        context.
+        """
         self.conn.idle()
         try:
             r = self.conn.idle_check(timeout)
@@ -1302,7 +1309,6 @@ class GmailCrispinClient(CrispinClient):
 
         Leaves the Trash folder selected at the end of the method.
         """
-
         log.info("Trying to delete gmail draft", message_id_header=message_id_header)
         drafts_folder_name = self.folder_names()["drafts"][0]
         trash_folder_name = self.folder_names()["trash"][0]

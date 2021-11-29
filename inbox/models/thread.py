@@ -109,10 +109,11 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
 
     @property
     def most_recent_sent_date(self):
-        """ This is the timestamp of the most recently *sent* message on this
-            thread, as decided by whether the message is in the sent folder or
-            not. Clients can use this to properly sort the Sent view.
-            """
+        """
+        Return the timestamp of the most recently *sent* message on this
+        thread, as decided by whether the message is in the sent folder or
+        not. Clients can use this to properly sort the Sent view.
+        """
         sent_recent_date = None
         sorted_messages = sorted(
             self.messages, key=lambda m: m.received_date, reverse=True

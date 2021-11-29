@@ -70,9 +70,11 @@ def before_commit(conn):
 
 
 class ABCMixin(object):
-    """Use this if you want a mixin class which is actually an abstract base
+    """
+    Use this if you want a mixin class which is actually an abstract base
     class, for example in order to enforce that concrete subclasses define
-    particular methods or properties."""
+    particular methods or properties.
+    """
 
     __abstract__ = True
 
@@ -177,7 +179,7 @@ class Base36UID(TypeDecorator):
 class MutableDict(Mutable, dict):
     @classmethod
     def coerce(cls, key, value):
-        """ Convert plain dictionaries to MutableDict. """
+        """Convert plain dictionaries to MutableDict."""
         if not isinstance(value, MutableDict):
             if isinstance(value, dict):
                 return MutableDict(value)
@@ -188,12 +190,12 @@ class MutableDict(Mutable, dict):
             return value
 
     def __setitem__(self, key, value):
-        """ Detect dictionary set events and emit change events. """
+        """Detect dictionary set events and emit change events."""
         dict.__setitem__(self, key, value)
         self.changed()
 
     def __delitem__(self, key):
-        """ Detect dictionary del events and emit change events. """
+        """Detect dictionary del events and emit change events."""
         dict.__delitem__(self, key)
         self.changed()
 
@@ -262,8 +264,12 @@ class MutableList(Mutable, list):
 
 def int128_to_b36(int128):
     # type: (Optional[bytes]) -> Optional[str]
-    """ int128: a 128 bit unsigned integer
-        returns a base-36 string representation
+    """
+    Return a base-36 string representation
+
+    Parameters
+    ----------
+    int128: a 128 bit unsigned integer
     """
     if not int128:
         return None
@@ -275,8 +281,12 @@ def int128_to_b36(int128):
 
 def b36_to_bin(b36_string):
     # type: (str) -> bytes
-    """ b36_string: a base-36 encoded string
-        returns binary 128 bit unsigned integer
+    """
+    Return binary 128 bit unsigned integer
+
+    Parameters
+    ----------
+    b36_string: a base-36 encoded string
     """
     int128 = base36decode(b36_string)
     MAX_INT64 = 0xFFFFFFFFFFFFFFFF
@@ -285,7 +295,7 @@ def b36_to_bin(b36_string):
 
 def generate_public_id():
     # type: () -> str
-    """ Returns a base-36 string UUID """
+    """Return a base-36 string UUID"""
     u = uuid.uuid4().bytes
     return int128_to_b36(u)
 

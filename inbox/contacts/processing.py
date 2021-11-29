@@ -7,7 +7,7 @@ from inbox.util.addr import canonicalize_address as canonicalize, valid_email
 
 def _get_contact_map(db_session, namespace_id, all_addresses):
     """
-    Retrieves or creates contacts for the given address pairs, returning a dict
+    Retrieve or creates contacts for the given address pairs, returning a dict
     with the canonicalized emails mapped to Contact objects.
     """
     canonicalized_addresses = [canonicalize(addr) for _, addr in all_addresses]

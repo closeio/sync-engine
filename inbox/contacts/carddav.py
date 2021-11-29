@@ -31,8 +31,7 @@ USER_AGENT = (
 
 
 def supports_carddav(url):
-    """ Basic verification that the endpoint supports CardDav
-    """
+    """Perform basic verification that the endpoint supports CardDav"""
     response = requests.request(
         "OPTIONS", url, headers={"User-Agent": USER_AGENT, "Depth": "1"}
     )
@@ -42,7 +41,7 @@ def supports_carddav(url):
 
 
 class CardDav(object):
-    """ NOTE: Only supports iCloud for now """
+    """NOTE: Only supports iCloud for now"""
 
     def __init__(self, email_address, password, base_url):
         self.session = requests.Session()
@@ -52,8 +51,7 @@ class CardDav(object):
         self.base_url = base_url
 
     def get_principal_url(self):
-        """ Use PROPFIND method to find the `principal` carddav url """
-
+        """Use PROPFIND method to find the `principal` carddav url"""
         payload = """
             <A:propfind xmlns:A='DAV:'>
                 <A:prop>

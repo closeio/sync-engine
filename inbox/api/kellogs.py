@@ -96,7 +96,7 @@ def _convert_timezone_to_iana_tz(original_tz):
 
 def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
     """
-    Returns a dictionary representation of a Nylas model object obj, or
+    Return a dictionary representation of a Nylas model object obj, or
     None if there is no such representation defined. If the optional
     namespace_public_id parameter is passed, it will used instead of fetching
     the namespace public id for each object. This improves performance when
@@ -111,16 +111,18 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
     Returns
     -------
     dictionary or None
-
     """
 
     def _get_namespace_public_id(obj):
         return namespace_public_id or obj.namespace.public_id
 
     def _format_participant_data(participant):
-        """Event.participants is a JSON blob which may contain internal data.
-        This function returns a dict with only the data we want to make
-        public."""
+        """
+        Return a dict with only the data we want to make public.
+
+        Event.participants is a JSON blob which may contain internal data.
+        This function
+        """
         dct = {}
         for attribute in ["name", "status", "email", "comment"]:
             dct[attribute] = participant.get(attribute)
@@ -417,7 +419,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
 
 class APIEncoder(object):
     """
-    Provides methods for serializing Nylas objects. If the optional
+    Provide methods for serializing Nylas objects. If the optional
     namespace_public_id parameter is passed, it will be bound and used instead
     of fetching the namespace public id for each object. This improves
     performance when serializing large numbers of objects, but also means that
@@ -428,7 +430,6 @@ class APIEncoder(object):
     ----------
     namespace_public_id: string, optional
         public id of the namespace to which the object to serialize belongs.
-
     """
 
     def __init__(self, namespace_public_id=None, expand=False, is_n1=False):
@@ -451,7 +452,7 @@ class APIEncoder(object):
 
     def cereal(self, obj, pretty=False):
         """
-        Returns the JSON string representation of obj.
+        Return the JSON string representation of obj.
 
         Parameters
         ----------
@@ -477,7 +478,7 @@ class APIEncoder(object):
 
     def jsonify(self, obj):
         """
-        Returns a Flask Response object encapsulating the JSON
+        Return a Flask Response object encapsulating the JSON
         representation of obj.
 
         Parameters

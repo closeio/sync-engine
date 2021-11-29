@@ -8,8 +8,10 @@ def get_search_client(account):
 
 
 class SearchBackendException(Exception):
-    """Raised if there's an error proxying the search request to the
-    provider."""
+    """
+    Raised if there's an error proxying the search request to the
+    provider.
+    """
 
     def __init__(self, message, http_code, server_error=None):
         self.message = message
@@ -21,7 +23,8 @@ class SearchBackendException(Exception):
 class SearchStoreException(Exception):
     """Raised if there's an error proxying the search request to the provider.
     This is a special EAS case where the Status code for the Store element has
-    an error"""
+    an error
+    """
 
     def __init__(self, err_code):
         self.err_code = err_code

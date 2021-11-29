@@ -498,7 +498,7 @@ def thread_api_update(public_id):
 #
 @app.route("/threads/<public_id>", methods=["DELETE"])
 def thread_api_delete(public_id):
-    """ Moves the thread to the trash """
+    """Move the thread to the trash"""
     raise NotImplementedError
 
 
@@ -1838,7 +1838,7 @@ def draft_send_api():
 
 @app.route("/send-multiple", methods=["POST"])
 def multi_send_create():
-    """Initiates a multi-send session by creating a new multi-send draft."""
+    """Initiate a multi-send session by creating a new multi-send draft."""
     account = g.namespace.account
 
     if account.discriminator == "easaccount":
@@ -1860,11 +1860,13 @@ def multi_send_create():
 
 @app.route("/send-multiple/<draft_id>", methods=["POST"])
 def multi_send(draft_id):
-    """Performs a single send operation in an individualized multi-send
+    """
+    Perform a single send operation in an individualized multi-send
     session. Sends a copy of the draft at draft_id to the specified address
     with the specified body, and ensures that a corresponding sent message is
     either not created in the user's Sent folder or is immediately
-    deleted from it."""
+    deleted from it.
+    """
     request_started = time.time()
     account = g.namespace.account
 
@@ -1906,9 +1908,10 @@ def multi_send(draft_id):
 
 @app.route("/send-multiple/<draft_id>", methods=["DELETE"])
 def multi_send_finish(draft_id):
-    """Closes out a multi-send session by marking the sending draft as sent
-    and moving it to the user's Sent folder."""
-
+    """
+    Close out a multi-send session by marking the sending draft as sent
+    and moving it to the user's Sent folder.
+    """
     account = g.namespace.account
 
     if account.discriminator == "easaccount":

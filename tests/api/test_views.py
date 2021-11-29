@@ -33,9 +33,11 @@ def test_resource_views(
     contact,
     folder,
 ):
-    """Exercises various tests for views, mostly related to
+    """
+    Exercise various tests for views, mostly related to
     filtering. Note: this only tests views, it assumes the
-    resources are working as expected."""
+    resources are working as expected.
+    """
     # Folders don't work with GMail accounts, need generic IMAP
     if resource_name == "folders":
         api_client = new_api_client(db, generic_account.namespace)

@@ -54,11 +54,11 @@ class TestTransactionDeletion:
 
     @pytest.fixture
     def transactions(self, clear_redis, now, db, default_namespace):
-        """Creates transactions, some new and some old.
-
-        Yields the newest transaction
         """
+        Create transactions, some new and some old.
 
+        Yield the newest transaction
+        """
         # Transactions created less than 30 days ago should not be deleted
         t0 = create_transaction(db, now, default_namespace.id)
         create_transaction(db, now - timedelta(days=29), default_namespace.id)

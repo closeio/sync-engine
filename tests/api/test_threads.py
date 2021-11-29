@@ -180,9 +180,10 @@ def test_thread_count(db, api_client, default_account):
 def test_thread_label_updates(
     db, api_client, default_account, api_version, custom_label
 ):
-    """Check that you can update a message (optimistically or not),
-    and that the update is queued in the ActionLog."""
-
+    """
+    Check that you can update a message (optimistically or not),
+    and that the update is queued in the ActionLog.
+    """
     headers = dict()
     headers["Api-Version"] = api_version
 

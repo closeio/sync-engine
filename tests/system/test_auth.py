@@ -48,12 +48,13 @@ errors = __import__("inbox.basicauth", fromlist=["basicauth"])
 
 
 def test_account_create_should_fail():
-    """Test that creation fails with appropriate errors, as defined in
-       the broken_credentials list.
-       Credentials have the format:
-       ({email, password}, error_type)
-       e.g.
-       ({'user': 'foo@foo.com', 'password': 'pass'}, 'ConfigurationError')
+    """
+    Test that creation fails with appropriate errors, as defined in
+    the broken_credentials list.
+    Credentials have the format:
+    ({email, password}, error_type)
+    e.g.
+    ({'user': 'foo@foo.com', 'password': 'pass'}, 'ConfigurationError')
     """
     credentials = [((c["user"], c["password"]), e) for (c, e) in broken_credentials]
 

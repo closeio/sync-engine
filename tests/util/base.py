@@ -17,9 +17,8 @@ from inbox.util.testutils import MockIMAPClient, setup_test_db  # noqa
 
 def absolute_path(path):
     """
-    Returns the absolute path for a path specified as relative to the
+    Return the absolute path for a path specified as relative to the
     tests/ directory, needed for the dump file name in config.cfg
-
     """
     return os.path.abspath(
         os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", path)

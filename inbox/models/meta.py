@@ -1,5 +1,6 @@
 """Utility for loading SQLAlchemy model classes and friends. Please see
-inbox/models/__init__.py for the explanation of why this is necessary."""
+inbox/models/__init__.py for the explanation of why this is necessary.
+"""
 
 
 def load_models():

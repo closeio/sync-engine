@@ -51,15 +51,19 @@ def find_first_app_frame_and_name(ignores=None):
 
 
 def _record_level(logger, name, event_dict):
-    """Processor that records the log level ('info', 'warning', etc.) in the
-    structlog event dictionary."""
+    """
+    Record the log level ('info', 'warning', etc.) in the
+    structlog event dictionary.
+    """
     event_dict["level"] = name
     return event_dict
 
 
 def _record_module(logger, name, event_dict):
-    """Processor that records the module and line where the logging call was
-    invoked."""
+    """
+    Record the module and line where the logging call was
+    invoked.
+    """
     f, name = find_first_app_frame_and_name(
         ignores=[
             "structlog",
@@ -75,9 +79,13 @@ def _record_module(logger, name, event_dict):
 
 
 def safe_format_exception(etype, value, tb, limit=None):
-    """Similar to structlog._format_exception, but truncate the exception part.
+    """
+    Format exception.
+
+    Similar to structlog._format_exception, but truncate the exception part.
     This is because SQLAlchemy exceptions can sometimes have ludicrously large
-    exception strings."""
+    exception strings.
+    """
     if tb:
         list = ["Traceback (most recent call last):\n"]
         list = list + traceback.format_tb(tb, limit)
@@ -134,7 +142,7 @@ def _get_exc_info_if_in_scope():
 
 
 def _safe_exc_info_renderer(_, __, event_dict):
-    """Processor that formats exception info safely."""
+    """Format exception info safely."""
     error = event_dict.pop("error", None)
     exc_info = event_dict.pop("exc_info", None)
     include_exception = event_dict.pop("include_exception", None)
@@ -191,8 +199,9 @@ def _safe_exc_info_renderer(_, __, event_dict):
 
 
 def _safe_encoding_renderer(_, __, event_dict):
-    """Processor that converts all strings to unicode.
-       Note that we ignore conversion errors.
+    """
+    Convert all strings to unicode.
+    Note that we ignore conversion errors.
     """
     for key in event_dict:
         entry = event_dict[key]
@@ -203,7 +212,7 @@ def _safe_encoding_renderer(_, __, event_dict):
 
 
 class BoundLogger(structlog.stdlib.BoundLogger):
-    """ BoundLogger which always adds greenlet_id and env to positional args """
+    """BoundLogger which always adds greenlet_id and env to positional args"""
 
     def _proxy_to_logger(self, method_name, event, *event_args, **event_kw):
         event_kw["greenlet_id"] = id(gevent.getcurrent())
@@ -275,7 +284,8 @@ class ConditionalFormatter(logging.Formatter):
 
 
 def configure_logging(log_level=None):
-    """ Idempotently configure logging.
+    """
+    Idempotently configure logging.
 
     Infers options based on whether or not the output is a TTY.
 
@@ -283,7 +293,6 @@ def configure_logging(log_level=None):
 
     Overrides top-level exceptions to also print as JSON, rather than
     printing to stderr as plaintext.
-
     """
     sys.excepthook = json_excepthook
 

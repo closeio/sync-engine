@@ -42,7 +42,8 @@ def _jaccard_similarity(set1, set2):
 
 
 def _get_participants(msg, excluded_emails=[]):
-    """Returns an alphabetically sorted list of
+    """
+    Return an alphabetically sorted list of
     emails addresses that msg was sent to (including cc and bcc)
     """
     participants = msg.to_addr + msg.cc_addr + msg.bcc_addr
@@ -61,8 +62,11 @@ def _get_participants(msg, excluded_emails=[]):
 
 # Not really an algorithm, but it seemed reasonable to put this here?
 def is_stale(last_updated, lifespan=14):
-    """ last_updated is a datetime.datetime object
-        lifespan is measured in days
+    """
+    Check if last_updated is older than lifespan days.
+
+    last_updated is a datetime.datetime object
+    lifespan is measured in days
     """
     if last_updated is None:
         return True
@@ -90,7 +94,8 @@ def calculate_contact_scores(messages, time_dependent=True):
 
 
 def calculate_group_counts(messages, user_email):
-    """Strips out most of the logic from calculate_group_scores
+    """
+    Strip out most of the logic from calculate_group_scores
     algorithm and just returns raw counts for each group.
     """
     res = defaultdict(int)
@@ -102,7 +107,10 @@ def calculate_group_counts(messages, user_email):
 
 
 def calculate_group_scores(messages, user_email):
-    """This is a (modified) implementation of the algorithm described
+    """
+    Clculate group scores.
+
+    This is a (modified) implementation of the algorithm described
     in this paper: http://mobisocial.stanford.edu/papers/iui11g.pdf
 
     messages must have the following properties:
@@ -191,7 +199,11 @@ def _subsume_molecules(molecules_list, get_message_list_weight):
 
 
 def _combine_similar_molecules(molecules_list):
-    """Using a greedy approach here for speed"""
+    """
+    Combine similar molecules.
+
+    Using a greedy approach here for speed
+    """
     new_guys_start_idx = 0
     while new_guys_start_idx < len(molecules_list):
         combined = [False] * len(molecules_list)

@@ -384,8 +384,10 @@ class APIClient(json.JSONEncoder):
 
     @nylas_excepted
     def _call_resource_method(self, cls, id, method_name, data):
-        """POST a dictionnary to an API method,
-        for example /a/.../accounts/id/upgrade"""
+        """
+        POST a dictionnary to an API method,
+        for example /a/.../accounts/id/upgrade
+        """
         name = cls.collection_name
         if cls.api_root != "a":
             url = "{}/{}/{}/{}".format(self.api_server, name, id, method_name)

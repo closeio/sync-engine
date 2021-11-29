@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Start the contact search indexing service. """
+"""Start the contact search indexing service."""
 from gevent import monkey
 
 monkey.patch_all()
@@ -32,7 +32,7 @@ setproctitle("nylas-contact-search-index-service")
 )
 @click.option("-c", "--config", default=None, help="Path to JSON configuration file.")
 def main(prod, config):
-    """ Launch the contact search index service. """
+    """Launch the contact search index service."""
     level = os.environ.get("LOGLEVEL", inbox_config.get("LOGLEVEL"))
     configure_logging(log_level=level)
 

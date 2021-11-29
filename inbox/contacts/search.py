@@ -86,16 +86,17 @@ def cloudsearch_contact_repr(contact):
 
 
 class ContactSearchClient(object):
-    """ Search client that talks to AWS CloudSearch (or a compatible API). """
+    """Search client that talks to AWS CloudSearch (or a compatible API)."""
 
     def __init__(self, namespace_id):
         self.namespace_id = namespace_id
         self.search_service = get_search_service()
 
     def _fetch_search_page(self, **kwargs):
-        """ Make sure we always filter results by namespace and apply the
-        correct query options. """
-
+        """
+        Make sure we always filter results by namespace and apply the
+        correct query options.
+        """
         namespace_filter = "(and namespace_id:{})".format(self.namespace_id)
         if "query" not in kwargs:
             kwargs["query"] = namespace_filter
@@ -111,20 +112,20 @@ class ContactSearchClient(object):
         return [long(hit["id"]) for hit in results["hits"]["hit"]]
 
     def fetch_matching_ids_page(self, **kwargs):
-        """ Fetch a single page of search result IDs.
+        """
+        Fetch a single page of search result IDs.
 
         Specify the query with 'query'.
 
         You can control the size of the page with the 'size' parameter, up
         to a limit of 10000. The 'start' parameter determines the offset from
         0 where the results page starts.
-
         """
         results = self._fetch_search_page(**kwargs)
         return self._ids_from_results(results)
 
     def fetch_all_matching_ids(self):
-        """ Fetches *all* match IDs, even if there are tens of thousands. """
+        """Fetch *all* match IDs, even if there are tens of thousands."""
         # see http://docs.aws.amazon.com/cloudsearch/latest/developerguide/paginating-results.html#deep-paging
         #
         # boto limited page size to 500; not sure what boto3's limit is.
@@ -173,9 +174,9 @@ class ContactSearchClient(object):
 
 
 def index_namespace(namespace_id):
-    """ Backfill function to index a namespace from current db data Not used
+    """
+    Backfill function to index a namespace from current db data Not used
     for incremental indexing.
-
     """
     if not search_service_url or not doc_service_url:
         raise Exception("CloudSearch not configured; cannot index")

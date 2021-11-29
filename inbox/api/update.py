@@ -303,7 +303,9 @@ def validate_labels(db_session, added_categories, removed_categories):
 
 
 def apply_gmail_label_rules(db_session, message, added_categories, removed_categories):
-    """
+    r"""
+    Apply Gmail label rules.
+
     The API optimistically updates `message.categories` so ensure it does so
     in a manner consistent with Gmail, namely:
 
@@ -314,7 +316,6 @@ def apply_gmail_label_rules(db_session, message, added_categories, removed_categ
     2. '\\Inbox' is a special label as well --
     adding it removes a message out of the '[Gmail]Trash'/ '[Gmail]Spam' folders
     and into the '[Gmail]All Mail' folder.
-
     """
     add = {}
     discard = {}

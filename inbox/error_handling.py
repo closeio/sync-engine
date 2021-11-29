@@ -47,7 +47,7 @@ class SyncEngineRollbarHandler(RollbarHandler):
 
 def log_uncaught_errors(logger=None, **kwargs):
     """
-    Helper to log uncaught exceptions.
+    Log uncaught exceptions.
 
     Parameters
     ----------

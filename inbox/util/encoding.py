@@ -30,7 +30,7 @@ def base36decode(number):
 def unicode_safe_truncate(s, max_length):
     # type: (Union[bytes, str, int], int) -> str
     """
-    Implements unicode-safe truncation and trims whitespace for a given input
+    Implement unicode-safe truncation and trims whitespace for a given input
     string, number or unicode string.
     """
     if isinstance(s, bytes):

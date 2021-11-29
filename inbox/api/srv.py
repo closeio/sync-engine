@@ -47,7 +47,7 @@ def handle_input_error(error):
 
 
 def default_json_error(ex):
-    """ Exception -> flask JSON responder """
+    """Exception -> flask JSON responder"""
     logger = get_logger()
     logger.error("Uncaught error thrown by Flask/Werkzeug", exc_info=ex)
     response = jsonify(message=str(ex), type="api_error")
@@ -62,7 +62,7 @@ for code in default_exceptions:
 
 @app.before_request
 def auth():
-    """ Check for account ID on all non-root URLS """
+    """Check for account ID on all non-root URLS"""
     if (
         request.path == "/"
         or request.path.startswith("/accounts")
@@ -128,7 +128,7 @@ def finish(response):
 
 @app.route("/accounts/", methods=["GET"])
 def ns_all():
-    """ Return all namespaces """
+    """Return all namespaces"""
     # We do this outside the blueprint to support the case of an empty
     # public_id.  However, this means the before_request isn't run, so we need
     # to make our own session
@@ -239,7 +239,7 @@ def _get_account_data_for_microsoft_account(data):
 
 @app.route("/accounts/", methods=["POST"])
 def create_account():
-    """ Create a new account """
+    """Create a new account"""
     data = request.get_json(force=True)
 
     if data["type"] == "generic":
@@ -270,7 +270,6 @@ def modify_account(namespace_public_id):
 
     This stops syncing an account until it is explicitly resumed.
     """
-
     data = request.get_json(force=True)
 
     with global_session_scope() as db_session:
@@ -303,7 +302,7 @@ def modify_account(namespace_public_id):
 
 @app.route("/accounts/<namespace_public_id>/", methods=["DELETE"])
 def delete_account(namespace_public_id):
-    """ Mark an existing account for deletion. """
+    """Mark an existing account for deletion."""
     try:
         with global_session_scope() as db_session:
             namespace = (
@@ -328,8 +327,7 @@ def home():
 
 @app.route("/logout")
 def logout():
-    """Utility function used to force browsers to reset cached HTTP Basic Auth
-    credentials"""
+    """Force browsers to reset cached HTTP Basic Auth credentials"""
     return make_response(
         (
             "<meta http-equiv='refresh' content='0; url=/''>.",

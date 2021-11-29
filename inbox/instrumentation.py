@@ -27,9 +27,11 @@ LOGGING_INTERVAL = 60
 
 
 class ProfileCollector(object):
-    """A simple stack sampler for low-overhead CPU profiling: samples the call
+    """
+    A simple stack sampler for low-overhead CPU profiling: samples the call
     stack every `interval` seconds and keeps track of counts by frame. Because
-    this uses signals, it only works on the main thread."""
+    this uses signals, it only works on the main thread.
+    """
 
     def __init__(self, interval=0.005):
         self.interval = interval

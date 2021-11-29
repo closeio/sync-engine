@@ -6,13 +6,13 @@ from six.moves.urllib.parse import urlencode
 
 # From tornado.httputil
 def url_concat(url, args, fragments=None):
-    """Concatenate url and argument dictionary regardless of whether
+    """
+    Concatenate url and argument dictionary regardless of whether
     url has existing query parameters.
 
     >>> url_concat("http://example.com/foo?a=b", dict(c="d"))
     'http://example.com/foo?a=b&c=d'
     """
-
     if not args and not fragments:
         return url
 

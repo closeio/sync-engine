@@ -44,7 +44,7 @@ def retry(
     backoff_delay=BACKOFF_DELAY,
 ):
     """
-    Executes the callable func, retrying on uncaught exceptions matching the
+    Execute the callable func, retrying on uncaught exceptions matching the
     class filters.
 
     Arguments
@@ -77,7 +77,7 @@ def retry(
         while True:
             try:
                 return func(*args, **kwargs)
-            except gevent.GreenletExit as e:
+            except gevent.GreenletExit:
                 # GreenletExit isn't actually a subclass of Exception.
                 # This is also considered to be a successful execution
                 # (somebody intentionally killed the greenlet).

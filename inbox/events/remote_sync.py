@@ -125,7 +125,7 @@ def handle_calendar_deletes(namespace_id, deleted_calendar_uids, log, db_session
 
 
 def handle_calendar_updates(namespace_id, calendars, log, db_session):
-    """Persists new or updated Calendar objects to the database."""
+    """Persist new or updated Calendar objects to the database."""
     ids_ = []
     added_count = 0
     updated_count = 0
@@ -157,7 +157,7 @@ def handle_calendar_updates(namespace_id, calendars, log, db_session):
 
 
 def handle_event_updates(namespace_id, calendar_id, events, log, db_session):
-    """Persists new or updated Event objects to the database."""
+    """Persist new or updated Event objects to the database."""
     added_count = 0
     updated_count = 0
     existing_event_query = (

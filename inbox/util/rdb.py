@@ -53,7 +53,8 @@ class RemoteConsole(InteractiveConsole):
         sys.stderr = oldstderr
 
     def interact(self, banner=None):
-        """Closely emulate the interactive Python console.
+        """
+        Emulate the interactive Python console closely.
 
         The optional banner argument specify the banner to print
         before the first interaction; by default it prints a banner
@@ -61,7 +62,6 @@ class RemoteConsole(InteractiveConsole):
         followed by the current class name in parentheses (so as not
         to confuse this with the real interpreter -- since it's so
         close!).
-
         """
         try:
             sys.ps1

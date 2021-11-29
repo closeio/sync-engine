@@ -74,7 +74,7 @@ class QueueClient(object):
 
     def all(self):
         """
-        Returns all keys being tracked (either pending in the queue, or
+        Return all keys being tracked (either pending in the queue, or
         already assigned).
         """
         p = self.redis.pipeline(transaction=True)
@@ -85,20 +85,20 @@ class QueueClient(object):
 
     def assigned(self):
         """
-        Returns a dictionary of all currently assigned key/value pairs (keys
+        Return a dictionary of all currently assigned key/value pairs (keys
         are coerced to integers).
         """
         return {int(k): v for k, v in self.redis.hgetall(self._hash).items()}
 
     def enqueue(self, key):
         """
-        Adds a new key onto the pending queue.
+        Add a new key onto the pending queue.
         """
         self.redis.lpush(self._queue, key)
 
     def claim_next(self, value):
         """
-        Pulls the next key off of the pending queue (if any exists), and sets
+        Pull the next key off of the pending queue (if any exists), and sets
         it to `value` in the hash. Returns None if the queue is empty or if the
         key is already present in the hash; otherwise returns the key.
         """
@@ -107,7 +107,7 @@ class QueueClient(object):
 
     def unassign(self, key, value):
         """
-        Removes `key` from the hash, if and only if it is present and set to
+        Remove `key` from the hash, if and only if it is present and set to
         `value` (to prevent removing a key actually assigned to someone else).
         """
         s = self.redis.register_script(self.UNASSIGN)
@@ -115,7 +115,7 @@ class QueueClient(object):
 
     def qsize(self):
         """
-        Returns current length of the queue.
+        Return current length of the queue.
         """
         return self.redis.llen(self._queue)
 
@@ -130,7 +130,7 @@ class QueueClient(object):
 
 class QueuePopulator(object):
     """
-    Polls the database for account ids to sync and queues them. Run one of
+    Poll the database for account ids to sync and queues them. Run one of
     these per zone.
     """
 
@@ -164,7 +164,7 @@ class QueuePopulator(object):
 
     def enqueue_new_accounts(self):
         """
-        Finds any account ids that should sync, but are not currently being
+        Find any account ids that should sync, but are not currently being
         tracked by the QueueClient. Enqueue them. (Note: it's okay to enqueue
         the same id twice. QueueClient.claim_next will identify and discard
         duplicates.)

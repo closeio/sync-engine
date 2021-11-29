@@ -17,5 +17,25 @@ ignore=
     E231,
     E203,
     W503,
-    W504
+    W504,
+    # Missing docstrings
+    D1,
+    # One-line docstring should fit on one line with quotes.
+    # We ignore this because it's OK to buy yourself a few extra characters
+    # for the summary line even if the summary line is *the only* line.
+    D200,
+    # 1 blank line required between summary line and description. We ignore
+    # this because we have quite a few docstrings where the summary is
+    # multi-line.
+    D205,
+    # Multi-line docstring summary should start at the first line.
+    # We ignore this because we agreed in #20553 that we we want to put the
+    # summary line below """ for multi-line docstrings.
+    D212,
+    # First line should end with a period. We ignore this because we have
+    # multi-line summaries.
+    D400,
+    # First line should end with a period, question mark, or exclamation point.
+    # We ignore this because we have multi-line summaries.
+    D415
 exclude=migrations/versions

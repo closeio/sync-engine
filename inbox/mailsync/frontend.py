@@ -8,10 +8,12 @@ from inbox.instrumentation import GreenletTracer, KillerGreenletTracer, ProfileC
 
 
 class HTTPFrontend(object):
-    """This is a lightweight embedded HTTP server that runs inside a mailsync
+    """
+    This is a lightweight embedded HTTP server that runs inside a mailsync
     or syncback process. It allows you to programmatically interact with the
     process: to get profile/memory/load metrics, or to schedule new account
-    syncs."""
+    syncs.
+    """
 
     def start(self):
         app = self._create_app()

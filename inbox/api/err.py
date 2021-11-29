@@ -18,11 +18,11 @@ def get_request_uid(headers):
 
 
 def log_exception(exc_info, **kwargs):
-    """ Add exception info to the log context for the request.
+    """
+    Add exception info to the log context for the request.
 
     We do not log in a separate log statement in order to make debugging
     easier. As a bonus, this reduces log volume somewhat.
-
     """
     rollbar.report_exc_info(exc_info)
 
@@ -52,8 +52,10 @@ class APIException(Exception):
 
 
 class InputError(APIException):
-    """Raised on invalid user input (missing required parameter, value too
-    long, etc.)"""
+    """
+    Raised on invalid user input (missing required parameter, value too
+    long, etc.)
+    """
 
     status_code = 400
 
@@ -81,7 +83,7 @@ class ConflictError(APIException):
 
 
 class AccountInvalidError(APIException):
-    """ Raised when an account's credentials are not valid. """
+    """Raised when an account's credentials are not valid."""
 
     status_code = 403
     message = (
@@ -92,7 +94,7 @@ class AccountInvalidError(APIException):
 
 
 class AccountStoppedError(APIException):
-    """ Raised when an account has been stopped. """
+    """Raised when an account has been stopped."""
 
     status_code = 403
     message = (
@@ -103,14 +105,14 @@ class AccountStoppedError(APIException):
 
 
 class AccountDoesNotExistError(APIException):
-    """ Raised when an account does not exist (for example, if it was deleted). """
+    """Raised when an account does not exist (for example, if it was deleted)."""
 
     status_code = 404
     message = "The account does not exist."
 
 
 def err(http_code, message, **kwargs):
-    """ Handle unexpected errors, including sending the traceback to Rollbar. """
+    """Handle unexpected errors, including sending the traceback to Rollbar."""
     log_exception(sys.exc_info(), user_error_message=message, **kwargs)
     resp = {"type": "api_error", "message": message}
     resp.update(kwargs)

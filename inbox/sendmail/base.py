@@ -123,10 +123,11 @@ def block_to_part(block, message, namespace):
 
 
 def create_message_from_json(data, namespace, db_session, is_draft):
-    """ Construct a Message instance from `data`, a dictionary representing the
+    """
+    Construct a Message instance from `data`, a dictionary representing the
     POST body of an API request. All new objects are added to the session, but
-    not committed."""
-
+    not committed.
+    """
     # Validate the input and get referenced objects (thread, attachments)
     # as necessary.
     to_addr = get_recipients(data.get("to"), "to")
@@ -341,7 +342,7 @@ def update_draft(
 
 
 def delete_draft(db_session, account, draft):
-    """ Delete the given draft. """
+    """Delete the given draft."""
     thread = draft.thread
     assert draft.is_draft
 
@@ -386,8 +387,12 @@ def generate_attachments(message, blocks):
 
 
 def _set_reply_headers(new_message, previous_message):
-    """When creating a draft in reply to a thread, set the In-Reply-To and
-    References headers appropriately, if possible."""
+    """
+    Set reply headers.
+
+    When creating a draft in reply to a thread, set the In-Reply-To and
+    References headers appropriately, if possible.
+    """
     if previous_message.message_id_header:
         new_message.in_reply_to = previous_message.message_id_header
         if previous_message.references:

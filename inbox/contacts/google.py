@@ -72,7 +72,8 @@ class GoogleContactsProvider(object):
         return google_client
 
     def _parse_contact_result(self, google_contact):
-        """Constructs a Contact object from a Google contact entry.
+        """
+        Construct a Contact object from a Google contact entry.
 
         Parameters
         ----------
@@ -130,7 +131,7 @@ class GoogleContactsProvider(object):
 
     def get_items(self, sync_from_dt=None, max_results=100000):
         """
-        Fetches and parses fresh contact data.
+        Fetch and parses fresh contact data.
 
         Parameters
         ----------

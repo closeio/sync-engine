@@ -83,7 +83,7 @@ class AuthHandler(object):
 
     def verify_account(self, account):
         """
-        Verifies a generic IMAP account by logging in and logging out to both
+        Verify a generic IMAP account by logging in and logging out to both
         the IMAP/ SMTP servers.
 
         Note:

@@ -81,7 +81,7 @@ class ContactSearchIndexService(Greenlet):
                         self.transaction_pointers[key] = 0
 
     def _index_transactions(self, namespace_ids=[]):
-        """ index with filter """
+        """Index with filter"""
         # index 'em
         for key in engine_manager.engines:
             shard_should_sleep = []

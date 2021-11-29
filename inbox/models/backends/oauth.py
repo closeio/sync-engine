@@ -103,7 +103,7 @@ class OAuthAccount(object):
 
     def new_token(self, force_refresh=False):
         """
-        Retrieves a new access token.
+        Retrieve a new access token.
 
         Args:
             force_refresh (bool): Whether a token refresh should be forced when

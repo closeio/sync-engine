@@ -7,13 +7,12 @@ from future.utils import with_metaclass
 
 def parse_as_when(raw):
     """
-    Tries to parse a dictionary into a corresponding Date, DateSpan,
+    Try to parse a dictionary into a corresponding Date, DateSpan,
     Time, or TimeSpan instance.
 
     Raises
     -------
     ValueError
-
     """
     when_classes = [TimeSpan, Time, DateSpan, Date]
     keys_for_type = {tuple(sorted(cls_.json_keys)): cls_ for cls_ in when_classes}

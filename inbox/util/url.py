@@ -49,7 +49,7 @@ def _fallback_get_mx_domains(domain):
 
 
 def get_mx_domains(domain, dns_resolver=_dns_resolver):
-    """ Retrieve and return the MX records for a domain. """
+    """Retrieve and return the MX records for a domain."""
     mx_records = []
     try:
         mx_records = dns_resolver().query(domain, "MX")
@@ -197,13 +197,14 @@ def naked_domain(url):
 
 def matching_subdomains(new_value, old_value):
     """
+    Check if subdomains match.
+
     We allow our customers to update their server addresses,
     provided that the new server has:
     1. the same IP as the old server
     2. shares the same top-level domain name.
 
     """
-
     if new_value is None and old_value is not None:
         return False
 

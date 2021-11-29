@@ -58,7 +58,7 @@ class Account(
     @property
     def provider(self):
         """
-        A constant, unique lowercase identifier for the account provider
+        Return a constant, unique lowercase identifier for the account provider
         (e.g., 'gmail', 'eas'). Subclasses should override this.
 
         """
@@ -67,10 +67,9 @@ class Account(
     @property
     def verbose_provider(self):
         """
-        A detailed identifier for the account provider
+        Return a detailed identifier for the account provider
         (e.g., 'gmail', 'office365', 'outlook').
         Subclasses may override this.
-
         """
         return self.provider
 
@@ -257,13 +256,13 @@ class Account(
         self.sync_state = "running"
 
     def enable_sync(self, sync_host=None):
-        """ Tell the monitor that this account should be syncing. """
+        """Tell the monitor that this account should be syncing."""
         self.sync_should_run = True
         if sync_host is not None:
             self.desired_sync_host = sync_host
 
     def disable_sync(self, reason):
-        """ Tell the monitor that this account should stop syncing. """
+        """Tell the monitor that this account should stop syncing."""
         self.sync_should_run = False
         self._sync_status["sync_disabled_reason"] = reason
         self._sync_status["sync_disabled_on"] = datetime.utcnow()

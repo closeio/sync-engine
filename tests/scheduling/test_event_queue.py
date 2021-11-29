@@ -11,9 +11,20 @@ def test_event_queue():
     assert received_event == sent_event
 
 
+def test_event_queue_timeout_none():
+    queue = EventQueue("name")
+    sent_event = {"event": "test"}
+    queue.send_event(sent_event)
+    received_event = queue.receive_event(None)
+
+    assert received_event.pop("queue_name") == queue.queue_name
+    assert received_event == sent_event
+
+
 def test_event_queue_empty():
     queue = EventQueue("name")
     assert queue.receive_event(1) is None
+    assert queue.receive_event(None) is None
 
 
 def test_event_queue_group():

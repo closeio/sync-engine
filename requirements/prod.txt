@@ -110,7 +110,8 @@ singledispatch==3.4.0.3; python_version < '3.0'
 six==1.11.0
 sqlalchemy==1.4.26
 statsd==3.3.0
-structlog==20.1.0
+structlog==20.1.0; python_version < '3.0'
+structlog==21.4.0; python_version >= '3.0'
 tldextract==2.2.3
 traitlets==4.3.3
 typing==3.10.0.0; python_version < '3.5'

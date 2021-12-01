@@ -241,8 +241,8 @@ def before_remote_request():
         # requests that modify data or are proxied to remote servers.
         request.environ["log_context"]["provider"] = g.namespace.account.provider
 
-    # Disable validation so we can perform requests on paused accounts.
-    # valid_account(g.namespace)
+        # Disable validation so we can perform requests on paused accounts.
+        # valid_account(g.namespace)
 
 
 @app.after_request
@@ -1354,9 +1354,8 @@ def event_rsvp_api():
     p = participants[email]
 
     # Make this API idempotent.
-    if (
-        p["status"] == status
-        and ("comment" not in p and "comment" not in data)
+    if p["status"] == status and (
+        ("comment" not in p and "comment" not in data)
         or ("comment" in p and "comment" in data and p["comment"] == data["comment"])
     ):
         return g.encoder.jsonify(event)

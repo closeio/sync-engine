@@ -92,8 +92,7 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
                 )
                 and not m.is_draft
                 and not m.is_sent
-                and not received_recent_date
-                or m.received_date > received_recent_date
+                and (not received_recent_date or m.received_date > received_recent_date)
             ):
                 received_recent_date = m.received_date
 

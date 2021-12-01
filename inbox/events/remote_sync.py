@@ -400,7 +400,7 @@ def _delete_calendar(db_session, calendar):
     processing (Transaction record creation) blocking the event loop.
 
     """
-    for count, event in enumerate(calendar.events):
+    for count, event in enumerate(calendar.events, start=1):
         db_session.delete(event)
         if count % 100 == 0:
             # Issue a DELETE for every 100 events.

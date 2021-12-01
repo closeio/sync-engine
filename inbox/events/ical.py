@@ -152,12 +152,11 @@ def events_from_ics(namespace, calendar, ics_str):
                 # Some providers (e.g: iCloud) don't use the status field.
                 # Instead they use the METHOD field to signal cancellations.
                 method = component.get("method")
-                if (
-                    method
-                    and method.lower() == "cancel"
-                    or calendar_method
-                    and calendar_method.lower() == "cancel"
-                ):
+                if method and method.lower() == "cancel":  # noqa: SIM114
+                    event_status = "cancelled"
+                elif calendar_method and calendar_method.lower() == "cancel":
+                    # So, this particular event was not cancelled. Maybe the
+                    # whole calendar was.
                     event_status = "cancelled"
                 else:
                     # Otherwise assume the event has been confirmed.

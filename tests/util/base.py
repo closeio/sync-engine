@@ -94,7 +94,8 @@ class TestWebhooksClient(object):
     def __init__(self, test_client):
         self.client = test_client
 
-    def post_data(self, path, data, headers={}):
+    def post_data(self, path, data, headers=None):
+        headers = headers or {}
         path = "/w" + path
         return self.client.post(path, data=json.dumps(data), headers=headers)
 

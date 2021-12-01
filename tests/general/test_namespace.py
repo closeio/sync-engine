@@ -60,10 +60,10 @@ def add_completely_fake_account(db, email="test@nylas.com"):
 
     # Add fake Threads, Messages and ImapUids.
     folder = add_fake_folder(db.session, fake_account)
-    for i in random_range(1, 4):
+    for _ in random_range(1, 4):
         th = add_fake_thread(db.session, fake_account.namespace.id)
 
-        for j in random_range(1, 3):
+        for _ in random_range(1, 3):
             msg = add_fake_msg_with_calendar_part(
                 db.session, fake_account, "fake part", thread=th
             )

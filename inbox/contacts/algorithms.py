@@ -41,10 +41,11 @@ def _jaccard_similarity(set1, set2):
     return len(set1.intersection(set2)) / float(len(set1.union(set2)))
 
 
-def _get_participants(msg, excluded_emails=[]):
+def _get_participants(msg, excluded_emails=None):
     """Returns an alphabetically sorted list of
     emails addresses that msg was sent to (including cc and bcc)
     """
+    excluded_emails = excluded_emails or []
     participants = msg.to_addr + msg.cc_addr + msg.bcc_addr
     return sorted(
         list(
@@ -84,7 +85,7 @@ def calculate_contact_scores(messages, time_dependent=True):
         else:
             weight = 1
         recipients = message.to_addr + message.cc_addr + message.bcc_addr
-        for (name, email) in recipients:
+        for _, email in recipients:
             res[email] += weight
     return res
 

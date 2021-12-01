@@ -78,7 +78,7 @@ class SyncService(object):
             if hasattr(mod, "SYNC_MONITOR_CLS")
         }
 
-        for p_name, p in iteritems(providers):
+        for p_name, _ in iteritems(providers):
             if p_name not in self.monitor_cls_for:
                 self.monitor_cls_for[p_name] = self.monitor_cls_for["generic"]
 
@@ -341,11 +341,11 @@ class SyncService(object):
 
     def stop(self, *args):
         self.log.info("stopping mail sync process")
-        for k, v in iteritems(self.email_sync_monitors):
+        for _, v in iteritems(self.email_sync_monitors):
             gevent.kill(v)
-        for k, v in iteritems(self.contact_sync_monitors):
+        for _, v in iteritems(self.contact_sync_monitors):
             gevent.kill(v)
-        for k, v in iteritems(self.event_sync_monitors):
+        for _, v in iteritems(self.event_sync_monitors):
             gevent.kill(v)
         self.keep_running = False
 

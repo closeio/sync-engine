@@ -143,7 +143,7 @@ def retry_with_logging(
                     if not sync_error or isinstance(sync_error, basestring):
                         account.update_sync_error(e)
                         db_session.commit()
-            except:
+            except Exception:
                 log.error(
                     "Error saving sync_error to account object",
                     account_id=account_id,

@@ -409,7 +409,7 @@ def thread_search_api():
         kwargs = {}
         if exc.server_error:
             kwargs["server_error"] = exc.server_error
-        return err(exc.http_code, exc.message, **kwargs)
+        return err(exc.http_code, str(exc), **kwargs)
     except SearchStoreException as exc:
         store_status = STORE_STATUS_CODES.get(str(exc.err_code))
         kwargs = {}
@@ -435,7 +435,7 @@ def thread_streaming_search_api():
         kwargs = {}
         if exc.server_error:
             kwargs["server_error"] = exc.server_error
-        return err(exc.http_code, exc.message, **kwargs)
+        return err(exc.http_code, str(exc), **kwargs)
     except SearchStoreException as exc:
         store_status = STORE_STATUS_CODES.get(str(exc.err_code))
         kwargs = {}
@@ -577,7 +577,7 @@ def message_search_api():
         kwargs = {}
         if exc.server_error:
             kwargs["server_error"] = exc.server_error
-        return err(exc.http_code, exc.message, **kwargs)
+        return err(exc.http_code, str(exc), **kwargs)
     except SearchStoreException as exc:
         store_status = STORE_STATUS_CODES.get(str(exc.err_code))
         kwargs = {}
@@ -603,7 +603,7 @@ def message_streaming_search_api():
         kwargs = {}
         if exc.server_error:
             kwargs["server_error"] = exc.server_error
-        return err(exc.http_code, exc.message, **kwargs)
+        return err(exc.http_code, str(exc), **kwargs)
     except SearchStoreException as exc:
         store_status = STORE_STATUS_CODES.get(str(exc.err_code))
         kwargs = {}
@@ -1374,7 +1374,7 @@ def event_rsvp_api():
             kwargs["failures"] = exc.failures
         if exc.server_error:
             kwargs["server_error"] = exc.server_error
-        return err(exc.http_code, exc.message, **kwargs)
+        return err(exc.http_code, exc.args[0], **kwargs)
 
     # Update the participants status too.
     new_participants = []

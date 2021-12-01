@@ -67,7 +67,7 @@ Index(
 def is_dirty(session, obj):
     if obj in session.dirty and obj.has_versioned_changes():
         return True
-    if hasattr(obj, "dirty") and getattr(obj, "dirty"):
+    if hasattr(obj, "dirty") and obj.dirty:
         return True
     return False
 

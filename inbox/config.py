@@ -111,7 +111,7 @@ def _update_config_from_env(config, env):
     for filename in reversed(path):
         try:
             f = open(filename)
-        except (IOError, OSError) as e:
+        except (IOError, OSError) as e:  # noqa: B014
             if e.errno != errno.ENOENT:
                 raise
         else:

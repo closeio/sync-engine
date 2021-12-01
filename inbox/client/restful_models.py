@@ -133,25 +133,25 @@ class Message(NylasAPIObject):
                 setattr(self, attr, getattr(new_obj, attr))
         return self.folder
 
-    def update_labels(self, label_ids=[]):
-        update = {"labels": label_ids}
+    def update_labels(self, label_ids=None):
+        update = {"labels": label_ids or []}
         new_obj = self.api._update_resource(self.cls, self.id, update)
         for attr in self.cls.attrs:
             if hasattr(new_obj, attr):
                 setattr(self, attr, getattr(new_obj, attr))
         return self.labels
 
-    def add_labels(self, label_ids=[]):
+    def add_labels(self, label_ids=None):
         labels = [label.id for label in self.labels]
-        labels = list(set(labels).union(set(label_ids)))
+        labels = list(set(labels).union(set(label_ids or [])))
         return self.update_labels(labels)
 
     def add_label(self, label_id):
         return self.add_labels([label_id])
 
-    def remove_labels(self, label_ids=[]):
+    def remove_labels(self, label_ids=None):
         labels = [label.id for label in self.labels]
-        labels = list(set(labels) - set(label_ids))
+        labels = list(set(labels) - set(label_ids or []))
         return self.update_labels(labels)
 
     def remove_label(self, label_id):
@@ -274,25 +274,25 @@ class Thread(NylasAPIObject):
                 setattr(self, attr, getattr(new_obj, attr))
         return self.folder
 
-    def update_labels(self, label_ids=[]):
-        update = {"labels": label_ids}
+    def update_labels(self, label_ids=None):
+        update = {"labels": label_ids or []}
         new_obj = self.api._update_resource(self.cls, self.id, update)
         for attr in self.cls.attrs:
             if hasattr(new_obj, attr):
                 setattr(self, attr, getattr(new_obj, attr))
         return self.labels
 
-    def add_labels(self, label_ids=[]):
+    def add_labels(self, label_ids=None):
         labels = [label.id for label in self.labels]
-        labels = list(set(labels).union(set(label_ids)))
+        labels = list(set(labels).union(set(label_ids or [])))
         return self.update_labels(labels)
 
     def add_label(self, label_id):
         return self.add_labels([label_id])
 
-    def remove_labels(self, label_ids=[]):
+    def remove_labels(self, label_ids=None):
         labels = [label.id for label in self.labels]
-        labels = list(set(labels) - set(label_ids))
+        labels = list(set(labels) - set(label_ids or []))
         return self.update_labels(labels)
 
     def remove_label(self, label_id):

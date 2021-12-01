@@ -448,7 +448,7 @@ def after_flush(session, flush_context):
                 )
                 shared_queue.send_event({"event": "migrate", "id": id})
                 obj_state["sent_event"] = True
-            except:
+            except Exception:
                 log_uncaught_errors(
                     log,
                     account_id=id,

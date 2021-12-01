@@ -102,7 +102,7 @@ class StringWithTransform(TypeDecorator):
         super(StringWithTransform, self).__init__(*args, **kwargs)
         if string_transform is None:
             raise ValueError("Must provide a string_transform")
-        if not hasattr(string_transform, "__call__"):
+        if not callable(string_transform):
             raise TypeError("`string_transform` must be callable")
         self._string_transform = string_transform
 

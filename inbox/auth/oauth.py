@@ -109,7 +109,7 @@ class OAuthAuthHandler(AuthHandler):
                 "AccountError during AuthAlligator account query",
                 account_id=account.id,
                 error_code=exc.code and exc.code.value,
-                error_message=exc.message,
+                error_message=exc.message,  # noqa: B306
                 retry_in=exc.retry_in,
             )
             if exc.code in (

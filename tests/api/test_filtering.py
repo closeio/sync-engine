@@ -396,7 +396,7 @@ def test_namespace_limiting(db, api_client, default_namespaces):
         db.session.add(Block(namespace=ns, filename=subject))
     db.session.commit()
 
-    for ns in namespaces:
+    for _ in namespaces:
         r = api_client.get_data("/threads?subject={}".format(subject))
         assert len(r) == 1
 

@@ -703,7 +703,7 @@ class SyncbackTask(object):
                     func_latency=max_func_latency,
                 )
                 return True
-        except:
+        except Exception:
             log_uncaught_errors(
                 self.log, account_id=self.account_id, provider=self.provider
             )
@@ -826,7 +826,7 @@ class SyncbackWorker(gevent.Greenlet):
             try:
                 self.parent_service().notify_worker_active()
                 gevent.with_timeout(task.timeout(self.task_timeout), task.execute)
-            except:
+            except Exception:
                 self.log.error(
                     "SyncbackWorker caught exception",
                     exc_info=True,

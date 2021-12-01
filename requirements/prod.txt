@@ -51,7 +51,8 @@ gunicorn==20.1.0; python_version >= '3.0'
 guppy==0.1.10; python_version < '3.0'
 guppy3==3.1.2; python_version >= '3.0'
 hiredis==1.1.0
-html2text==2019.8.11
+html2text==2019.8.11; python_version < '3.0'
+html2text==2020.1.16; python_version >= '3.0'
 icalendar==4.0.9
 idna==2.9
 imapclient==2.2.0

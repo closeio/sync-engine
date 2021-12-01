@@ -263,14 +263,13 @@ def reset_invalid_autoincrements(engine, schema, key, dry_run=True):
     reset = set()
     for table in MailSyncBase.metadata.sorted_tables:
         increment = engine.execute(query.format(schema, table)).scalar()
-        if increment is not None:
-            if (increment >> 48) != key:
-                if not dry_run:
-                    reset_query = "ALTER TABLE {} AUTO_INCREMENT={}".format(
-                        table, (key << 48) + 1
-                    )
-                    engine.execute(reset_query)
-                reset.add(str(table))
+        if increment is not None and (increment >> 48) != key:
+            if not dry_run:
+                reset_query = "ALTER TABLE {} AUTO_INCREMENT={}".format(
+                    table, (key << 48) + 1
+                )
+                engine.execute(reset_query)
+            reset.add(str(table))
     return reset
 
 

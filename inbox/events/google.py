@@ -304,10 +304,7 @@ class GoogleEventsProvider(object):
         return token_manager.get_token(account, force_refresh)
 
     def push_notifications_enabled(self, account):
-        if account.get_client_info()[0] in PUSH_ENABLED_CLIENT_IDS:
-            return True
-        else:
-            return False
+        return account.get_client_info()[0] in PUSH_ENABLED_CLIENT_IDS
 
     def watch_calendar_list(self, account):
         """
@@ -482,7 +479,7 @@ def parse_calendar_response(calendar):
 
     role = calendar["accessRole"]
     read_only = True
-    if role == "owner" or role == "writer":
+    if role in ["owner", "writer"]:
         read_only = False
 
     description = calendar.get("description", None)

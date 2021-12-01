@@ -227,20 +227,22 @@ def before_remote_request():
     """
     # Search uses 'GET', all the other requests we care about use a write
     # HTTP method.
-    if request.endpoint in (
-        "namespace_api.message_search_api",
-        "namespace_api.thread_search_api",
-        "namespace_api.message_streaming_search_api",
-        "namespace_api.thread_streaming_search_api",
-    ) or request.method in ("POST", "PUT", "PATCH", "DELETE"):
+    if (
+        request.endpoint
+        in (
+            "namespace_api.message_search_api",
+            "namespace_api.thread_search_api",
+            "namespace_api.message_streaming_search_api",
+            "namespace_api.thread_streaming_search_api",
+        )
+        or request.method in ("POST", "PUT", "PATCH", "DELETE")
+    ) and g.namespace:
+        # Logging provider here to ensure that the provider is only logged for
+        # requests that modify data or are proxied to remote servers.
+        request.environ["log_context"]["provider"] = g.namespace.account.provider
 
-        if g.namespace:
-            # Logging provider here to ensure that the provider is only logged for
-            # requests that modify data or are proxied to remote servers.
-            request.environ["log_context"]["provider"] = g.namespace.account.provider
-
-        # Disable validation so we can perform requests on paused accounts.
-        # valid_account(g.namespace)
+    # Disable validation so we can perform requests on paused accounts.
+    # valid_account(g.namespace)
 
 
 @app.after_request
@@ -1186,7 +1188,7 @@ def event_update_api(public_id):
     if event.read_only:
         raise InputError("Cannot update read_only event.")
 
-    if isinstance(event, RecurringEvent) or isinstance(event, RecurringEventOverride):
+    if isinstance(event, (RecurringEvent, RecurringEventOverride)):
         raise InputError("Cannot update a recurring event yet.")
 
     data = request.get_json(force=True)
@@ -1352,11 +1354,12 @@ def event_rsvp_api():
     p = participants[email]
 
     # Make this API idempotent.
-    if p["status"] == status:
-        if "comment" not in p and "comment" not in data:
-            return g.encoder.jsonify(event)
-        elif "comment" in p and "comment" in data and p["comment"] == data["comment"]:
-            return g.encoder.jsonify(event)
+    if (
+        p["status"] == status
+        and ("comment" not in p and "comment" not in data)
+        or ("comment" in p and "comment" in data and p["comment"] == data["comment"])
+    ):
+        return g.encoder.jsonify(event)
 
     participant = {"email": email, "status": status, "comment": comment}
 

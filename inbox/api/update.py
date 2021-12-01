@@ -223,7 +223,7 @@ def update_message_labels(
     # XXX: Non-optimistic updates are buggy because if we don't update the
     # state and can't supply added/removed labels we'll end up with
     # inconsistencies.
-    if optimistic or True:
+    if optimistic:
         # Use a consistent time across creating categories, message updated_at
         # and the subsequent transaction that may be created.
         update_time = datetime.utcnow()

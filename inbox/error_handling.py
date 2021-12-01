@@ -30,10 +30,10 @@ class SyncEngineRollbarHandler(RollbarHandler):
         # Otherwise they would be reported twice.
         # Once from structlog to logging integration
         # and another time from handle_uncaught_exception
-        if (
-            event == "Uncaught error"
-            or event == "Uncaught error thrown by Flask/Werkzeug"
-            or event == "SyncbackWorker caught exception"
+        if event in (
+            "Uncaught error",
+            "Uncaught error thrown by Flask/Werkzeug",
+            "SyncbackWorker caught exception",
         ):
             return
 

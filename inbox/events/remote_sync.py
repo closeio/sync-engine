@@ -213,9 +213,7 @@ def handle_event_updates(namespace_id, calendar_id, events, log, db_session):
 
         # If we just updated/added a recurring event or override, make sure
         # we link it to the right master event.
-        if isinstance(event, RecurringEvent) or isinstance(
-            event, RecurringEventOverride
-        ):
+        if isinstance(event, (RecurringEvent, RecurringEventOverride)):
             link_events(db_session, event)
 
         # Batch commits to avoid long transactions that may lock calendar rows.
@@ -402,10 +400,8 @@ def _delete_calendar(db_session, calendar):
     processing (Transaction record creation) blocking the event loop.
 
     """
-    count = 0
-    for e in calendar.events:
-        db_session.delete(e)
-        count += 1
+    for count, event in enumerate(calendar.events):
+        db_session.delete(event)
         if count % 100 == 0:
             # Issue a DELETE for every 100 events.
             # This will ensure that when the DELETE for the calendar is issued,

@@ -486,9 +486,8 @@ class Event(NylasAPIObject):
     def as_json(self):
         dct = NylasAPIObject.as_json(self)
         # Filter some parameters we got from the API
-        if "when" in dct:
-            if "object" in dct["when"]:
-                del dct["when"]["object"]
+        if "when" in dct and "object" in dct["when"]:
+            del dct["when"]["object"]
 
         return dct
 

@@ -144,9 +144,7 @@ def update_metadata(account_id, folder_id, folder_role, new_flags, session):
 
         if changed:
             change_count += 1
-            is_draft = item.is_draft and (
-                folder_role == "drafts" or folder_role == "all"
-            )
+            is_draft = item.is_draft and folder_role in ["drafts", "all"]
             update_message_metadata(session, account, item.message, is_draft)
             session.commit()
     log.info("Updated UID metadata", changed=change_count, out_of=len(new_flags))

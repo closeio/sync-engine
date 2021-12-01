@@ -445,12 +445,11 @@ class FolderSyncEngine(Greenlet):
             bind_context(change_poller, "changepoller", self.account_id, self.folder_id)
             uids = sorted(new_uids, reverse=True)
             count = 0
-            for uid in uids:
+            for count, uid in enumerate(uids, start=1):
                 # The speedup from batching appears to be less clear for
                 # non-Gmail accounts, so for now just download one-at-a-time.
                 self.download_and_commit_uids(crispin_client, [uid])
                 self.heartbeat_status.publish()
-                count += 1
                 if throttled and count >= THROTTLE_COUNT:
                     # Throttled accounts' folders sync at a rate of
                     # 1 message/ minute, after the first approx. THROTTLE_COUNT
@@ -637,17 +636,16 @@ class FolderSyncEngine(Greenlet):
             return 0
 
         new_uids = set()
-        with self.syncmanager_lock:
-            with session_scope(self.namespace_id) as db_session:
-                account = Account.get(self.account_id, db_session)
-                folder = Folder.get(self.folder_id, db_session)
-                for msg in raw_messages:
-                    uid = self.create_message(db_session, account, folder, msg)
-                    if uid is not None:
-                        db_session.add(uid)
-                        db_session.flush()
-                        new_uids.add(uid)
-                db_session.commit()
+        with self.syncmanager_lock, session_scope(self.namespace_id) as db_session:
+            account = Account.get(self.account_id, db_session)
+            folder = Folder.get(self.folder_id, db_session)
+            for msg in raw_messages:
+                uid = self.create_message(db_session, account, folder, msg)
+                if uid is not None:
+                    db_session.add(uid)
+                    db_session.flush()
+                    new_uids.add(uid)
+            db_session.commit()
 
         log.debug("Committed new UIDs", new_committed_message_count=len(new_uids))
         # If we downloaded uids, record message velocity (#uid / latency)
@@ -892,11 +890,10 @@ class FolderSyncEngine(Greenlet):
         expunged_uids = set(local_uids).difference(flags.keys())
         with self.syncmanager_lock:
             common.remove_deleted_uids(self.account_id, self.folder_id, expunged_uids)
-        with self.syncmanager_lock:
-            with session_scope(self.namespace_id) as db_session:
-                common.update_metadata(
-                    self.account_id, self.folder_id, self.folder_role, flags, db_session
-                )
+        with self.syncmanager_lock, session_scope(self.namespace_id) as db_session:
+            common.update_metadata(
+                self.account_id, self.folder_id, self.folder_role, flags, db_session
+            )
         self.flags_fetch_results[max_uids] = (local_uids, flags)
 
     def check_uid_changes(self, crispin_client):

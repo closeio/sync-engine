@@ -99,9 +99,9 @@ class FlexibleDateTime(TypeDecorator):
             return arrow.get(value).to("utc")
 
     def compare_values(self, x, y):
-        if isinstance(x, datetime) or isinstance(x, int):
+        if isinstance(x, (datetime, int)):
             x = arrow.get(x)
-        if isinstance(y, datetime) or isinstance(x, int):
+        if isinstance(y, (datetime, int)):
             y = arrow.get(y)
 
         return x == y
@@ -226,14 +226,14 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
         """Merge right into left. Right takes precedence unless it's null."""
         for attribute in right.keys():
             # Special cases:
-            if right[attribute] is None:
+            if (
+                right[attribute] is None
+                or right[attribute] == ""
+                or right["status"] == "noreply"
+            ):
                 continue
-            elif right[attribute] == "":
-                continue
-            elif right["status"] == "noreply":
-                continue
-            else:
-                left[attribute] = right[attribute]
+
+            left[attribute] = right[attribute]
 
         return left
 

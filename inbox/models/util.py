@@ -141,7 +141,6 @@ def batch_delete_namespaces(ids_to_delete, throttle=False, dry_run=False):
 
     start = time.time()
 
-    deleted_count = 0
     for account_id, namespace_id in ids_to_delete:
         # try:
         try:
@@ -152,14 +151,12 @@ def batch_delete_namespaces(ids_to_delete, throttle=False, dry_run=False):
         except Exception:
             log_uncaught_errors(log, account_id=account_id)
 
-        deleted_count += 1
-
     end = time.time()
     log.info(
         "All data deleted successfully for ids",
         ids_to_delete=ids_to_delete,
         time=end - start,
-        count=deleted_count,
+        count=len(ids_to_delete),
     )
 
 

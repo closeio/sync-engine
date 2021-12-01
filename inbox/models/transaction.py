@@ -153,9 +153,8 @@ def propagate_changes(session):
         if isinstance(obj, Message):
             obj_state = inspect(obj)
             for attr in obj.propagated_attributes:
-                if getattr(obj_state.attrs, attr).history.has_changes():
-                    if obj.thread:
-                        obj.thread.dirty = True
+                if getattr(obj_state.attrs, attr).history.has_changes() and obj.thread:
+                    obj.thread.dirty = True
 
 
 def increment_versions(session):

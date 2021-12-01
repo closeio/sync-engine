@@ -1,4 +1,5 @@
 appdirs==1.4.4
+astor==0.8.1
 attrs==20.2.0
 black==19.10b0; python_version >= '3.0'
 click==7.1.2

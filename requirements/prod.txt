@@ -79,7 +79,7 @@ ptyprocess==0.7.0
 prompt-toolkit==1.0.18; python_version < '3.0'
 prompt-toolkit==3.0.22; python_version >= '3.0'
 pyasn1==0.2.3
-pycparser==2.18
+pycparser==2.21
 pygments==2.5.2; python_version < '3.0'
 pygments==2.10.0; python_version >= '3.0'
 pyinstrument==3.2.0

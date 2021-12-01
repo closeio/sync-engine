@@ -343,9 +343,8 @@ def uploaded_file_ids(api_client, files):
         elif filename == "long-non-ascii-filename.txt":
             filename = 100 * u"μ"
         with open(path, "rb") as fp:
-            content = fp.read()
-        data = {"file": (content, filename)}
-        r = api_client.post_raw(upload_path, data=data)
+            data = {"file": (fp, filename)}
+            r = api_client.post_raw(upload_path, data=data)
         assert r.status_code == 200
         file_id = json.loads(r.data)[0]["id"]
         file_ids.append(file_id)

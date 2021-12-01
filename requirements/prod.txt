@@ -56,7 +56,7 @@ imapclient==2.2.0
 importlib-metadata==2.1.1
 importlib-resources==5.4.0; python_version >= '3.0'
 importlib-resources==3.3.1; python_version < '3.0'
-ipaddress==1.0.19
+ipaddress==1.0.23; python_version < '3.3'
 ipython==5.8.0; python_version < '3.0'
 ipython==7.16.0; python_version >= '3.0'
 ipython_genutils==0.2.0

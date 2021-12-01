@@ -79,7 +79,7 @@ jobs:
                   if [[ -z $SKIP_TESTS ]]; then
                     docker-compose run app bash -ec '
                       bin/wait-for-it.sh mysql:3306 \
-                      && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
+                      && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/api/test_folders.py -s \
                       && coverage html -d pythoncov
                     '
                   else

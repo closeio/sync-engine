@@ -73,7 +73,7 @@ parso==0.8.2; python_version >= '3.0'
 pathlib2==2.3.6; python_version < '3.0'
 pexpect==4.8.0
 pickleshare==0.7.5
-ply==3.10
+ply==3.11
 psutil==5.8.0
 ptyprocess==0.7.0
 prompt-toolkit==1.0.18; python_version < '3.0'

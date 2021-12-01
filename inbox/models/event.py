@@ -101,7 +101,7 @@ class FlexibleDateTime(TypeDecorator):
     def compare_values(self, x, y):
         if isinstance(x, (datetime, int)):
             x = arrow.get(x)
-        if isinstance(y, (datetime, int)):
+        if isinstance(y, datetime) or isinstance(x, int):
             y = arrow.get(y)
 
         return x == y

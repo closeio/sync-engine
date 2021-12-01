@@ -54,7 +54,8 @@ hiredis==1.1.0
 html2text==2019.8.11; python_version < '3.0'
 html2text==2020.1.16; python_version >= '3.0'
 icalendar==4.0.9
-idna==2.9
+idna==2.10; python_version < '3.0'
+idna==3.3; python_version >= '3.0'
 imapclient==2.2.0
 importlib-metadata==2.1.1
 importlib-resources==5.4.0; python_version >= '3.0'

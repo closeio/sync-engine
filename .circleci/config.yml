@@ -34,7 +34,7 @@ jobs:
       python_version:
         type: enum
         description: Python version
-        enum: ["2.7", "3.6", "3.7", "3.8"]
+        enum: ["2.7", "3.6", "3.7", "3.8", "3.9"]
       platform_suffix:
         type: enum
         default: ""
@@ -136,6 +136,10 @@ workflows:
       - build:
           name: build_py3.8
           python_version: "3.8"
+      - build:
+          name: build_py3.9
+          python_version: "3.9"
+          push_image: false
       - build:
           name: build_arm_py2.7
           python_version: "2.7"

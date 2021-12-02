@@ -113,7 +113,7 @@ def plaintext2html(text, tabstop=4):
     def do_sub(m):
         c = m.groupdict()
         if c["htmlchars"]:
-            return html_escape(c["htmlchars"], False)
+            return html_escape(c["htmlchars"], quote=False)
         if c["lineend"]:
             return "<br>"
         elif c["space"]:

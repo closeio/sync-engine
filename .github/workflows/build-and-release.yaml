@@ -70,6 +70,6 @@ jobs:
           build-args:
             PYTHON_VERSION=${{ matrix.python_version }}
           tags: |
-            ${{ DOCKERHUB_USERNAME }}/${{ env.PROJECT }}:${{ SHA_SHORT }}-${{ matrix.build_name}}${{ env.TAG_SUFFIX }}
+            ${{ env.DOCKERHUB_USERNAME }}/${{ env.PROJECT }}:${{ steps.vars.outputs.sha_short }}-${{ matrix.build_name}}${{ env.TAG_SUFFIX }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

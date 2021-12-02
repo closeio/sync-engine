@@ -3,7 +3,8 @@ alembic==1.7.5; python_version >= '3.0'
 aniso8601==2.0.0
 arrow==0.17.0
 asn1crypto==0.24.0
-attrs==20.2.0
+attrs==20.2.0; python_version < '3.0'
+attrs==21.2.0; python_version >= '3.0'
 git+https://github.com/closeio/authalligator-client.git@fe93c9d2333d2949e44c48a2dd0a9a266734e026#egg=authalligator_client
 backports.functools-lru-cache==1.4; python_version < '3.3'
 backports.shutil_get_terminal_size==1.0; python_version < '3.3'

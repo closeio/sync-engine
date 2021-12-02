@@ -34,7 +34,7 @@ jobs:
       python_version:
         type: enum
         description: Python version
-        enum: ["2.7", "3.6", "3.8"]
+        enum: ["2.7", "3.6", "3.7", "3.8", "3.9"]
       platform_suffix:
         type: enum
         default: ""
@@ -49,6 +49,10 @@ jobs:
         type: boolean
         default: true
         description: Set to false to disable tests
+      push_image:
+        type: boolean
+        default: true
+        description: Set to false to disable pushing image
     machine:
       image: ubuntu-2004:202101-01
     resource_class: <<parameters.resource_class>>
@@ -85,21 +89,24 @@ jobs:
                   else
                     echo Skipping tests
                   fi
-
-      - run:
-          name: Push the image to docker hub
-          environment:
-            PROJECT: sync-engine
-            PROJECT_NAMESPACE: closeio
-          command: |
-            PROJECT_VSN="$CIRCLE_BRANCH"
-            PROJECT_SHA="$CIRCLE_SHA1"
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            # tag and push both sync-engine:master and sync-engine:<sha1>
-            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-py<< parameters.python_version >><< parameters.platform_suffix >>"
-            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-py<< parameters.python_version >><< parameters.platform_suffix >>"
-            docker push "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-py<< parameters.python_version >><< parameters.platform_suffix >>"
-            docker push "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-py<< parameters.python_version >><< parameters.platform_suffix >>"
+      
+      - when:
+          condition: << parameters.push_image >>
+          steps:
+            - run:
+                name: Push the image to docker hub
+                environment:
+                  PROJECT: sync-engine
+                  PROJECT_NAMESPACE: closeio
+                command: |
+                  PROJECT_VSN="$CIRCLE_BRANCH"
+                  PROJECT_SHA="$CIRCLE_SHA1"
+                  docker login -u $DOCKER_USER -p $DOCKER_PASS
+                  # tag and push both sync-engine:master and sync-engine:<sha1>
+                  docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-py<< parameters.python_version >><< parameters.platform_suffix >>"
+                  docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-py<< parameters.python_version >><< parameters.platform_suffix >>"
+                  docker push "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-py<< parameters.python_version >><< parameters.platform_suffix >>"
+                  docker push "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-py<< parameters.python_version >><< parameters.platform_suffix >>"
 
       - when:
           condition: << parameters.run_tests >>
@@ -123,8 +130,16 @@ workflows:
           name: build_py3.6
           python_version: "3.6"
       - build:
+          name: build_py3.7
+          python_version: "3.7"
+          push_image: false
+      - build:
           name: build_py3.8
           python_version: "3.8"
+      - build:
+          name: build_py3.9
+          python_version: "3.9"
+          push_image: false
       - build:
           name: build_arm_py2.7
           python_version: "2.7"

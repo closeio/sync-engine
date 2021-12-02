@@ -39,7 +39,7 @@ jobs:
           endpoint: container-builder
 
       - name: Login to DockerHub
-        if: ${{ github.ref == 'master' && github.event.pull_request.merged == true }}
+        # if: ${{ github.ref == 'master' && github.event.pull_request.merged == true }}
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}

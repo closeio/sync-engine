@@ -59,7 +59,8 @@ icalendar==4.0.9
 idna==2.10; python_version < '3.0'
 idna==3.3; python_version >= '3.0'
 imapclient==2.2.0
-importlib-metadata==2.1.1
+importlib-metadata==2.1.1; python_version < '3.0'
+importlib-metadata==4.8.1; python_version >= '3.0'
 importlib-resources==5.4.0; python_version >= '3.0'
 importlib-resources==3.3.1; python_version < '3.0'
 ipaddress==1.0.23; python_version < '3.3'

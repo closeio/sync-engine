@@ -112,7 +112,7 @@ setproctitle==1.2.2; python_version >= '3.0'
 setuptools==44.0.0
 simplegeneric==0.8.1; python_version < '3.0'
 singledispatch==3.4.0.3; python_version < '3.0'
-six==1.11.0
+six==1.16.0
 sqlalchemy==1.4.26
 statsd==3.3.0
 tldextract==2.2.3; python_version < '3.0'

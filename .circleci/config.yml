@@ -137,3 +137,9 @@ workflows:
           resource_class: "arm.medium"
           platform_suffix: "-arm64"
           run_tests: false
+      - build:
+          name: build_arm_py3.8
+          python_version: "3.8"
+          resource_class: "arm.medium"
+          platform_suffix: "-arm64"
+          run_tests: false

@@ -2,8 +2,8 @@ name: Build and Release
 
 on: [push]
 
-concurrency: build-and-release
-  # group: build-${{ github.ref_name }}
+concurrency:
+  group: "build-and-release-${{ github.ref_name }}"
   # cancel-in-progress: true
 
 env:

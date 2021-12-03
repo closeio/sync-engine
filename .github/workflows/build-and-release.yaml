@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKERHUB_NAMESPACE: closeio
   PROJECT: sync-engine
   # TODO: Remove this after migration
   TAG_SUFFIX: "-gha"
@@ -49,23 +49,28 @@ jobs:
     strategy:
       matrix:
         include:
-          - build_name: py2.7
+          - arch: amd64
+            build_name: py2.7
             dockerhub_push: true
             python_version: "2.7"
             run_tests: true
-          - build_name: py3.6
+          - arch: amd64
+            build_name: py3.6
             dockerhub_push: true
             python_version: "3.6"
             run_tests: true
-          - build_name: py3.7
+          - arch: amd64
+            build_name: py3.7
             dockerhub_push: false
             python_version: "3.7"
             run_tests: true
-          - build_name: py3.8
+          - arch: amd64
+            build_name: py3.8
             dockerhub_push: true
             python_version: "3.8"
             run_tests: true
-          - build_name: py3.9
+          - arch: amd64
+            build_name: py3.9
             dockerhub_push: false
             python_version: "3.9"
             run_tests: true
@@ -107,12 +112,12 @@ jobs:
       - name: Build and push sync-engine images
         uses: docker/build-push-action@v2
         with:
-          platforms: linux/amd64
+          platforms: linux/${{ matrix.arch }}
           push: ${{ matrix.dockerhub_push }}
           build-args:
             PYTHON_VERSION=${{ matrix.python_version }}
           tags: |
-            ${{ env.DOCKERHUB_USERNAME }}/${{ env.PROJECT }}:${{ steps.vars.outputs.sha_short }}-${{ matrix.build_name}}${{ env.TAG_SUFFIX }}
+            ${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ steps.vars.outputs.sha_short }}-${{ matrix.build_name}}${{ env.TAG_SUFFIX }}-${{ matric.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -121,7 +126,7 @@ jobs:
         run: |
           if [[ -z $SKIP_TESTS ]]; then
             docker-compose run \
-              ${{ env.DOCKERHUB_USERNAME }}/${{ env.PROJECT }}:${{ steps.vars.outputs.sha_short }}-${{ matrix.build_name}}${{ env.TAG_SUFFIX }} \
+              ${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ steps.vars.outputs.sha_short }}-${{ matrix.build_name}}${{ env.TAG_SUFFIX }}-${{ matric.arch }} \
               bash -ec '
               bin/wait-for-it.sh mysql:3306 \
               && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \

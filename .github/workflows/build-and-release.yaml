@@ -3,7 +3,7 @@ name: Build and Release
 on: [push]
 
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{ github.ref_name }}
   cancel-in-progress: true
 
 env:

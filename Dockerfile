@@ -52,7 +52,7 @@ WORKDIR /opt/app
 
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY --chown=sync-engine:sync-engine ./requirements/ ./requirements/
+COPY --chown=sync-engine:sync-engine ./requirements ./requirements
 RUN python3 -m pip install pip==23.3.1 virtualenv==20.17.1 && \
   python3 -m virtualenv /opt/venv && \
   /opt/venv/bin/python3 -m pip install setuptools==67.4.0 && \

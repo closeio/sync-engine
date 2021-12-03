@@ -1,6 +1,9 @@
+import sys
 import time
 
-import _mysql_exceptions
+if sys.version_info < (3, 10):
+    import _mysql_exceptions
+
 import pytest
 from gevent import GreenletExit, socket
 from sqlalchemy.exc import StatementError
@@ -60,6 +63,9 @@ def test_selective_retry():
     assert failing_function.call_count == 1
 
 
+@pytest.mark.skipif(
+    sys.version_info >= (3, 10), reason="mysqldb does not work with 3.10"
+)
 @pytest.mark.usefixtures("mock_gevent_sleep")
 def test_no_logging_until_many_transient_error():
     transient = [
@@ -111,6 +117,10 @@ def test_no_logging_until_many_transient_error():
         failing_function = FailingFunction(socket.error, max_executions=2)
 
 
+# TODO find the right exception in pymysql
+@pytest.mark.skipif(
+    sys.version_info >= (3, 10), reason="mysqldb does not work with 3.10"
+)
 @pytest.mark.usefixtures("mock_gevent_sleep")
 def test_logging_on_critical_error():
     critical = [

@@ -1,3 +1,5 @@
+import sys
+
 from future import standard_library
 
 standard_library.install_aliases()
@@ -43,18 +45,32 @@ def gevent_waiter(fd):
     hub.wait(hub.loop.io(fd, 1))
 
 
+driver = "mysqldb" if sys.version_info < (3, 10) else "pymysql"
+
+
 def build_uri(username, password, hostname, port, database_name):
     uri_template = (
-        "mysql+mysqldb://{username}:{password}@{hostname}"
+        "mysql+{driver}://{username}:{password}@{hostname}"
         ":{port}/{database_name}?charset=utf8mb4"
     )
     return uri_template.format(
+        driver=driver,
         username=urlquote(username),
         password=urlquote(password),
         hostname=urlquote(hostname),
         port=port,
         database_name=urlquote(database_name),
     )
+
+
+connect_args = {
+    "binary_prefix": True,
+    "charset": "utf8mb4",
+    "connect_timeout": 60,
+}
+
+if driver == "mysqldb":
+    connect_args["waiter"] = gevent_waiter
 
 
 def engine(
@@ -74,12 +90,7 @@ def engine(
         pool_timeout=pool_timeout,
         pool_recycle=3600,
         max_overflow=max_overflow,
-        connect_args={
-            "binary_prefix": True,
-            "charset": "utf8mb4",
-            "waiter": gevent_waiter,
-            "connect_timeout": 60,
-        },
+        connect_args=connect_args,
     )
 
     @event.listens_for(engine, "checkout")

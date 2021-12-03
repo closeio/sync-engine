@@ -2,7 +2,14 @@ import functools
 import random
 import sys
 
-import _mysql_exceptions
+if sys.version_info < (3, 10):
+    from _mysql_exceptions import OperationalError
+else:
+    # TODO fix this with proper one
+    class OperationalError(Exception):
+        pass
+
+
 import gevent
 
 if sys.version_info < (3,):
@@ -116,11 +123,9 @@ def retry_with_logging(
 
         log = logger or get_logger()
 
-        if isinstance(e, _mysql_exceptions.OperationalError):
+        if isinstance(e, OperationalError):
             mysql_error = e
-        elif isinstance(e, StatementError) and isinstance(
-            e.orig, _mysql_exceptions.OperationalError
-        ):
+        elif isinstance(e, StatementError) and isinstance(e.orig, OperationalError):
             mysql_error = e.orig
 
         if mysql_error and mysql_error.args and isinstance(mysql_error.args[0], str):

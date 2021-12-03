@@ -5,6 +5,10 @@ on:
     branches:
       - '*'
 
+  concurrency:
+    group: build-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: true
+    
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   PROJECT: sync-engine
@@ -40,10 +44,6 @@ jobs:
          
 
   build-amd64:
-    concurrency:
-      group: build-${{ github.event.pull_request.number || github.ref }}
-      cancel-in-progress: true
-    
     runs-on: ubuntu-20.04
 
     strategy:

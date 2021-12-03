@@ -118,13 +118,13 @@ jobs:
           build-args:
             PYTHON_VERSION=${{ matrix.python_version }}
           tags: |
-            ${{ DOCKER_IMAGE_TAG }}
+            ${{ env.DOCKER_IMAGE_TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Retag container for tests
         run: |
-          docker tag ${{ DOCKER_IMAGE_TAG }} ${{ env.PROJECT }}_app
+          docker tag ${{ env.DOCKER_IMAGE_TAG }} ${{ env.PROJECT }}_app
 
       - name: Run tests
         if: ${{ matrix.run_tests }}

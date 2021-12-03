@@ -118,7 +118,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           platforms: linux/${{ matrix.arch }}
-          push: ${{ matrix.dockerhub_push }} 
+          push: false
           load: true
           build-args:
             PYTHON_VERSION=${{ matrix.python_version }}
@@ -144,6 +144,7 @@ jobs:
             echo Skipping tests
           fi
 
-      # - name: Push image
-      #   run: |
-      #     docker push ${{ env.DOCKER_IMAGE_TAG }}
+      - name: Push image
+        if: ${{ matrix.dockerhub_push }}
+        run: |
+          docker push ${{ env.DOCKER_IMAGE_TAG }}

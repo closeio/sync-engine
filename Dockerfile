@@ -62,7 +62,7 @@ WORKDIR /opt/app
 
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY --chown=sync-engine:sync-engine ./requirements ./requirements
+COPY --chown=sync-engine:sync-engine ./ ./
 RUN \
   python"${PYTHON_VERSION}" -m virtualenv /opt/venv && \
   /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install setuptools==44.0.0 pip==20.3.4 && \
@@ -70,8 +70,6 @@ RUN \
   /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install -e .
 
 RUN /opt/venv/bin/python"${PYTHON_VERSION}" -m pip check
-
-COPY --chown=sync-engine:sync-engine ./ ./
 
 RUN ln -s /opt/app/bin/wait-for-it.sh /opt/venv/bin/
 

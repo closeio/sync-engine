@@ -62,7 +62,7 @@ WORKDIR /opt/app
 
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY --chown=sync-engine:sync-engine ./requirements/ ./requirments/
+COPY --chown=sync-engine:sync-engine ./requirements/ ./requirements/
 RUN \
   python"${PYTHON_VERSION}" -m virtualenv /opt/venv && \
   /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install setuptools==44.0.0 pip==20.3.4 && \

@@ -13,27 +13,56 @@ env:
   TAG_SUFFIX: "-gha"
 
 jobs:
-  build:
+  static-code-analysis:
     runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+          architecture: 'x64'
+      
+      - name: Run Black
+        run: black --check .
+      
+      - name: Run isort
+        run: isort -c .
+
+      - name: Run flake8
+        run: flake8
+         
+
+  build-amd64:
+    runs-on: 
+      - ubuntu-20.04
+      - x64
 
     strategy:
       matrix:
         include:
           - build_name: py2.7
+            dockerhub_push: true
             python_version: "2.7"
-            push: true
+            run_tests: true
           - build_name: py3.6
+            dockerhub_push: true
             python_version: "3.6"
-            push: true
+            run_tests: true
           - build_name: py3.7
+            dockerhub_push: false
             python_version: "3.7"
-            push: false
+            run_tests: true
           - build_name: py3.8
+            dockerhub_push: true
             python_version: "3.8"
-            push: false
+            run_tests: true
           - build_name: py3.9
+            dockerhub_push: false
             python_version: "3.9"
-            push: false
+            run_tests: true
   
     steps:
       - name: Checkout
@@ -69,10 +98,8 @@ jobs:
       - name: Build and Push containers
         uses: docker/build-push-action@v2
         with:
-          # platforms: linux/amd64,linux/arm64
           platforms: linux/amd64
-          push: ${{ matrix.push }}
-          push: false
+          push: ${{ matrix.dockerhub_push }}
           build-args:
             PYTHON_VERSION=${{ matrix.python_version }}
           tags: |

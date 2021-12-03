@@ -2,9 +2,9 @@ name: Build and Release
 
 on: [push]
 
-concurrency:
-  group: build
-  cancel-in-progress: true
+concurrency: build-and-release
+  # group: build-${{ github.ref_name }}
+  # cancel-in-progress: true
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}

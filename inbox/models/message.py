@@ -336,10 +336,11 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                     RuntimeError,
                     TypeError,
                     binascii.Error,
-                    UnicodeDecodeError,
                     ValueError,
                 ) as e:
-                    if isinstance(e, ValueError):
+                    if isinstance(e, ValueError) and not isinstance(
+                        e, UnicodeEncodeError
+                    ):
                         message = e.args[0] if e.args else ""
                         if (
                             message

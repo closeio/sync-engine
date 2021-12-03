@@ -5,6 +5,7 @@ Revises: 1d7374c286c5
 Create Date: 2014-05-20 23:31:48.924200
 
 """
+from __future__ import print_function
 
 # revision identifiers, used by Alembic.
 revision = "1edbd63582c2"
@@ -46,7 +47,7 @@ def upgrade():
     with session_scope(versioned=False) as db_session:
         count = 0
         (num_transactions,) = db_session.query(sa.func.max(Transaction.id)).one()
-        print "Adding public ids to {} transactions".format(num_transactions)
+        print("Adding public ids to {} transactions".format(num_transactions))
         for pointer in range(0, num_transactions + 1, 500):
             for entry in db_session.query(Transaction).filter(
                 Transaction.id >= pointer, Transaction.id < pointer + 500

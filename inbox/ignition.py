@@ -34,9 +34,12 @@ DB_POOL_TIMEOUT = config.get("DB_POOL_TIMEOUT") or 60
 pool_tracker = weakref.WeakKeyDictionary()
 
 
+hub = gevent.hub.get_hub()
+
+
 # See
 # https://github.com/PyMySQL/mysqlclient-python/blob/master/samples/waiter_gevent.py
-def gevent_waiter(fd, hub=gevent.hub.get_hub()):
+def gevent_waiter(fd):
     hub.wait(hub.loop.io(fd, 1))
 
 

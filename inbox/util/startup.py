@@ -47,7 +47,7 @@ $ sudo dpkg-reconfigure --frontend noninteractive tzdata
 
 
 def check_tz():
-    if time.tzname[time.daylight] != "UTC":
+    if time.tzname[time.daylight] not in ["UTC", "GMT"]:
         sys.exit(_TZ_ERROR_TEXT)
 
 

@@ -1,9 +1,12 @@
 import abc
+import codecs
 import contextlib
+import re
 import struct
+import sys
 import uuid
 import weakref
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
 from bson import EPOCH_NAIVE, json_util
 from future.utils import iteritems
@@ -99,7 +102,7 @@ class StringWithTransform(TypeDecorator):
         super(StringWithTransform, self).__init__(*args, **kwargs)
         if string_transform is None:
             raise ValueError("Must provide a string_transform")
-        if not hasattr(string_transform, "__call__"):
+        if not callable(string_transform):
             raise TypeError("`string_transform` must be callable")
         self._string_transform = string_transform
 
@@ -289,6 +292,49 @@ def generate_public_id():
 
 # Other utilities
 
+RE_SURROGATE_CHARACTER = re.compile(r"[\ud800-\udfff]")
+RE_SURROGATE_PAIR = re.compile(r"[\ud800-\udbff][\udc00-\udfff]")
+
+
+def utf8_encode(text, errors="strict"):
+    # type: (str, str) -> Tuple[bytes, int]
+    return text.encode("utf-8", errors), len(text)
+
+
+def utf8_surrogate_fix_decode(memory, errors="strict"):
+    # type: (memoryview, str) -> Tuple[str, int]
+    binary = memory.tobytes()
+
+    try:
+        return binary.decode("utf-8", errors), len(binary)
+    except UnicodeDecodeError:
+        pass
+
+    text = binary.decode("utf-8", "surrogatepass")
+
+    # now fix surrogate pairs, we can recover those
+    for surrogate_pair in set(re.findall(RE_SURROGATE_PAIR, text)):
+        text = text.replace(
+            surrogate_pair,
+            surrogate_pair.encode("utf-16", "surrogatepass").decode("utf-16"),
+        )
+
+    # we have no other choice but removing unpaired surrogates
+    text = re.sub(RE_SURROGATE_CHARACTER, "", text)
+
+    return text, len(binary)
+
+
+def utf8_surrogate_fix_search_function(encoding_name):
+    # type: (str) -> codecs.Codecinfo
+    return codecs.CodecInfo(
+        utf8_encode, utf8_surrogate_fix_decode, name="utf8-surrogate-fix"
+    )
+
+
+if sys.version_info >= (3,):
+    codecs.register(utf8_surrogate_fix_search_function)
+
 
 class ForceStrictModePool(QueuePool):
     pass
@@ -310,6 +356,10 @@ def receive_connect(dbapi_connection, connection_record):
         "NO_ENGINE_SUBSTITUTION'"
     )
     cur = None
+
+    if sys.version_info >= (3,):
+        assert dbapi_connection.encoding == "utf8"
+        dbapi_connection.encoding = "utf8-surrogate-fix"
 
 
 def maybe_refine_query(query, subquery):

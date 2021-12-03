@@ -71,6 +71,8 @@ def test_folder_name_translation(
 
     syncback._process_log()
     syncback._restart_workers()
+    gevent.sleep(1)
     while not syncback.task_queue.empty():
-        gevent.sleep(0.1)
+        gevent.sleep(1)
+    gevent.sleep(1)
     mock_imapclient.create_folder.assert_called_with("INBOX.Taxes.Accounting")

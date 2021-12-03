@@ -31,7 +31,8 @@ def get_words():
     return words
 
 
-def random_words(count=int(random.uniform(1, 500)), sig="me"):
+def random_words(count=None, sig="me"):
+    count = count or int(random.uniform(1, 500))
     words = get_words()
     random_word_list = []
 

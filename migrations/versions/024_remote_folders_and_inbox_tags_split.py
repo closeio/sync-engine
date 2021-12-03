@@ -5,6 +5,7 @@ Revises: 4c529b9bc68d
 Create Date: 2014-05-01 02:20:00.936927
 
 """
+from __future__ import print_function
 
 # revision identifiers, used by Alembic.
 revision = "4c1eb89f6bed"
@@ -36,7 +37,7 @@ folder_name_subst_map = {
 def upgrade():
     easupdate = False
 
-    print "Creating new tables and columns..."
+    print("Creating new tables and columns...")
     op.create_table(
         "folder",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -116,7 +117,7 @@ def upgrade():
 
     if "easuid" in Base.metadata.tables:
         easupdate = True
-        print "Adding new EASUid columns..."
+        print("Adding new EASUid columns...")
 
         op.add_column("easuid", sa.Column("fld_uid", sa.Integer(), nullable=True))
 
@@ -194,7 +195,7 @@ def upgrade():
                 lazy="joined",
             )
 
-    print "Creating Folder rows and migrating FolderItems..."
+    print("Creating Folder rows and migrating FolderItems...")
     # not many folders per account, so shouldn't grow that big
     with session_scope(versioned=False) as db_session:
         folders = dict(
@@ -228,7 +229,7 @@ def upgrade():
                 count = 0
         db_session.commit()
 
-        print "Migrating ImapUids to reference Folder rows..."
+        print("Migrating ImapUids to reference Folder rows...")
         for imapuid in db_session.query(ImapUid).yield_per(CHUNK_SIZE):
             account_id = imapuid.imapaccount_id
             if imapuid.folder_name in folder_name_subst_map:
@@ -248,7 +249,7 @@ def upgrade():
         db_session.commit()
 
         if easupdate:
-            print "Migrating EASUids to reference Folder rows..."
+            print("Migrating EASUids to reference Folder rows...")
 
             for easuid in db_session.query(EASUid).yield_per(CHUNK_SIZE):
                 account_id = easuid.easaccount_id
@@ -266,7 +267,7 @@ def upgrade():
                     count = 0
             db_session.commit()
 
-        print "Migrating *_folder_name fields to reference Folder rows..."
+        print("Migrating *_folder_name fields to reference Folder rows...")
         for account in db_session.query(Account).filter_by(provider="gmail"):
             if account.inbox_folder_name:
                 # hard replace INBOX with canonicalized caps
@@ -306,7 +307,10 @@ def upgrade():
         db_session.commit()
 
         if easupdate:
-            print "Migrating EAS accounts' *_folder_name fields to reference " "Folder rows..."
+            print(
+                "Migrating EAS accounts' *_folder_name fields to reference "
+                "Folder rows..."
+            )
 
             for account in db_session.query(Account).filter_by(provider="eas"):
                 if account.inbox_folder_name:
@@ -343,7 +347,7 @@ def upgrade():
                         )
             db_session.commit()
 
-    print "Final schema tweaks and new constraint enforcement"
+    print("Final schema tweaks and new constraint enforcement")
     op.alter_column(
         "folderitem", "folder_id", existing_type=sa.Integer(), nullable=False
     )
@@ -362,7 +366,7 @@ def upgrade():
     op.drop_column("account", "archive_folder_name")
 
     if easupdate:
-        print "Dropping old EASUid columns..."
+        print("Dropping old EASUid columns...")
 
         op.drop_constraint("folder_name", "easuid", type_="unique")
         op.drop_index("easuid_easaccount_id_folder_name", "easuid")

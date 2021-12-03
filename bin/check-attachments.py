@@ -44,7 +44,7 @@ def process_account(account_id):
 
         one_month_ago = datetime.datetime.utcnow() - datetime.timedelta(days=30)
 
-        for i in range(NUM_MESSAGES):
+        for _ in range(NUM_MESSAGES):
             with session_scope(account_id) as db_session:
                 block = (
                     db_session.query(Block)

@@ -1,6 +1,9 @@
 name: Build and Release
 
-on: [push]
+on:
+  push:
+    branches:
+      - '*'
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}

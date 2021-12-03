@@ -147,8 +147,11 @@ jobs:
           docker push ${{ env.DOCKER_IMAGE_TAG }}
 
   multi-arch-manifest:
+    needs:
+      - build-amd64
+      
     runs-on: ubuntu-20.04
-
+    
     strategy:
       matrix:
         include:

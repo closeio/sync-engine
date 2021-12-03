@@ -79,16 +79,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Prepare environment
+      - name: Get short sha
         id: vars
         run: |
           echo ::set-output name=sha_short::${GITHUB_SHA::16}
+        shell: bash
+
+      - name: Prepare environment
+        run: |
           if [ "$(git log -1 --pretty=%B | head -n 1 | grep '#notests')" ]; then
             echo 'SKIP_TESTS="1"' >> $GITHUB_ENV
           fi
-          echo DOCKER_IMAGE_TAG=${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ steps.vars.outputs.sha_short }}-${{ matrix.build_name}}${{ env.TAG_SUFFIX }}-${{ matrix.arch }} >> $GITHUB_ENV
+          echo "DOCKER_IMAGE_TAG=${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ steps.vars.outputs.sha_short }}-${{ matrix.build_name}}${{ env.TAG_SUFFIX }}-${{ matrix.arch }}" >> $GITHUB_ENV
         shell: bash
-
+        
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 

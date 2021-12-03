@@ -2,6 +2,10 @@ name: Build and Release
 
 on: [push]
 
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   PROJECT: sync-engine
@@ -67,7 +71,7 @@ jobs:
         with:
           # platforms: linux/amd64,linux/arm64
           platforms: linux/amd64
-          # push: ${{ matrix.push }}
+          push: ${{ matrix.push }}
           push: false
           build-args:
             PYTHON_VERSION=${{ matrix.python_version }}

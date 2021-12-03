@@ -52,13 +52,15 @@ WORKDIR /opt/app
 
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY --chown=sync-engine:sync-engine ./ ./
+COPY --chown=sync-engine:sync-engine ./requirements/ ./requirments/
 RUN python3 -m pip install pip==23.3.1 virtualenv==20.17.1 && \
   python3 -m virtualenv /opt/venv && \
   /opt/venv/bin/python3 -m pip install setuptools==67.4.0 && \
   /opt/venv/bin/python3 -m pip install --no-deps -r requirements/prod.txt -r requirements/test.txt && \
   /opt/venv/bin/python3 -m pip install -e . && \
   /opt/venv/bin/python3 -m pip check
+
+COPY --chown=sync-engine:sync-engine ./ ./
 
 RUN ln -s /opt/app/bin/wait-for-it.sh /opt/venv/bin/
 

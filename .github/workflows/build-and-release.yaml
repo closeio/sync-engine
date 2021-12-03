@@ -2,6 +2,10 @@ name: Build and Release
 
 on: [push]
 
+concurrency:
+  group: build-${{ github.ref_name }}
+  cancel-in-progress: true
+
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   PROJECT: sync-engine
@@ -38,9 +42,7 @@ jobs:
 
   build-amd64:
     runs-on: ubuntu-20.04
-    concurrency:
-      group: ${{ github.ref_name }}
-      cancel-in-progress: true
+
     strategy:
       matrix:
         include:

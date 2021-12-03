@@ -38,7 +38,8 @@ jobs:
 
   build-amd64:
     concurrency:
-      group: "build-and-release-${{ github.ref_name }}"
+      group: "build-and-release"
+      # group: "build-and-release-${{ github.ref_name }}"
       cancel-in-progress: true
     
     runs-on: ubuntu-20.04

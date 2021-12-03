@@ -127,13 +127,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Retag container for tests
-        run: |
-          docker tag ${{ env.DOCKER_IMAGE_TAG }} ${{ env.PROJECT }}_app
-
       - name: Run tests
         if: ${{ matrix.run_tests }}
         run: |
+          docker tag ${{ env.DOCKER_IMAGE_TAG }} ${{ env.PROJECT }}_app
           if [[ -z $SKIP_TESTS ]]; then
             docker-compose run app bash -ec '
               bin/wait-for-it.sh mysql:3306 \
@@ -148,3 +145,34 @@ jobs:
         if: ${{ matrix.dockerhub_push }}
         run: |
           docker push ${{ env.DOCKER_IMAGE_TAG }}
+
+  multi-arch-manifest:
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        include:
+          - build_name: py2.7
+          - build_name: py3.8
+
+    steps:
+      - name: Get short sha
+        id: vars
+        run: |
+          echo ::set-output name=sha_short::${GITHUB_SHA::16}
+        shell: bash
+
+      - name: Prepare environment
+        run: |
+          if [ "$(git log -1 --pretty=%B | head -n 1 | grep '#notests')" ]; then
+            echo 'SKIP_TESTS="1"' >> $GITHUB_ENV
+          fi
+          echo "DOCKER_IMAGE_TAG=${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ steps.vars.outputs.sha_short }}-${{ matrix.build_name}}${{ env.TAG_SUFFIX }}" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Create manifest
+        run: |
+          docker buildx imagetools create \
+            -t ${{ env.DOCKER_IMAGE_TAG }} \
+            ${{ env.DOCKER_IMAGE_TAG }}-amd64 \
+            ${{ env.DOCKER_IMAGE_TAG }}-arm64

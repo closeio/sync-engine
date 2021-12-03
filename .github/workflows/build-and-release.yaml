@@ -86,6 +86,7 @@ jobs:
           if [ "$(git log -1 --pretty=%B | head -n 1 | grep '#notests')" ]; then
             echo 'SKIP_TESTS="1"' >> $GITHUB_ENV
           fi
+          echo DOCKER_IMAGE_TAG=${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ steps.vars.outputs.sha_short }}-${{ matrix.build_name}}${{ env.TAG_SUFFIX }}-${{ matrix.arch }} >> $GITHUB_ENV
         shell: bash
 
       - name: Set up QEMU
@@ -117,17 +118,19 @@ jobs:
           build-args:
             PYTHON_VERSION=${{ matrix.python_version }}
           tags: |
-            ${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ steps.vars.outputs.sha_short }}-${{ matrix.build_name}}${{ env.TAG_SUFFIX }}-${{ matric.arch }}
+            ${{ DOCKER_IMAGE_TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Retag container for tests
+        run: |
+          docker tag ${{ DOCKER_IMAGE_TAG }} ${{ env.PROJECT }}_app
 
       - name: Run tests
         if: ${{ matrix.run_tests }}
         run: |
           if [[ -z $SKIP_TESTS ]]; then
-            docker-compose run \
-              ${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ steps.vars.outputs.sha_short }}-${{ matrix.build_name}}${{ env.TAG_SUFFIX }}-${{ matric.arch }} \
-              bash -ec '
+            docker-compose run app bash -ec '
               bin/wait-for-it.sh mysql:3306 \
               && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
               && coverage html -d pythoncov

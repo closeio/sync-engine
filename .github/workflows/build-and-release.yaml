@@ -190,10 +190,10 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Sleep 30s
-        run: |
-          echo "sleep 30s for Docker Hub to update"
-          sleep 30
+      # - name: Sleep 30s
+      #   run: |
+      #     echo "sleep 30s for Docker Hub to update"
+      #     sleep 30
 
       - name: Create manifest
         run: |

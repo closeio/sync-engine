@@ -80,11 +80,11 @@ jobs:
             dockerhub_push: true
             python_version: "2.7"
             run_tests: false
-          - arch: arm64
-            build_name: py3.8
-            dockerhub_push: true
-            python_version: "3.8"
-            run_tests: false
+          # - arch: arm64
+          #   build_name: py3.8
+          #   dockerhub_push: true
+          #   python_version: "3.8"
+          #   run_tests: false
   
     steps:
       - name: Checkout
@@ -167,7 +167,7 @@ jobs:
       matrix:
         include:
           - build_name: py2.7
-          - build_name: py3.8
+          # - build_name: py3.8
 
     steps:
       - name: Get short sha

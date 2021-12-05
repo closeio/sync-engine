@@ -75,12 +75,12 @@ jobs:
             python_version: "3.9"
             run_tests: true
           
-          - arch: amd64
+          - arch: arm64
             build_name: py2.7
             dockerhub_push: true
             python_version: "2.7"
             run_tests: false
-          - arch: amd64
+          - arch: arm64
             build_name: py3.8
             dockerhub_push: true
             python_version: "3.8"

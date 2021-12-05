@@ -194,10 +194,10 @@ jobs:
         run: |
           echo "sleep 30s for Docker Hub to update"
           sleep 30
-          
+
       - name: Create manifest
         run: |
           docker buildx imagetools create \
             -t ${{ env.DOCKER_IMAGE_TAG }} \
-            ${{ env.DOCKER_IMAGE_TAG }}-amd64 
+            ${{ env.DOCKER_IMAGE_TAG }}-amd64 \
             ${{ env.DOCKER_IMAGE_TAG }}-arm64

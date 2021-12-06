@@ -220,52 +220,46 @@ def update_message_labels(
         else:
             removed_labels.append(category.display_name)
 
-    # XXX: Non-optimistic updates are buggy because if we don't update the
-    # state and can't supply added/removed labels we'll end up with
-    # inconsistencies.
-    if optimistic:
-        # Use a consistent time across creating categories, message updated_at
-        # and the subsequent transaction that may be created.
-        update_time = datetime.utcnow()
+    # Use a consistent time across creating categories, message updated_at
+    # and the subsequent transaction that may be created.
+    update_time = datetime.utcnow()
 
-        # Optimistically update message state,
-        # in a manner consistent with Gmail.
-        for cat in added_categories:
-            # message.categories.add(cat)
-            # Explicitly create association record so we can control the
-            # created_at value. Taken from
-            # https://docs.sqlalchemy.org/en/13/orm/extensions/
-            # associationproxy.html#simplifying-association-objects
-            MessageCategory(category=cat, message=message, created_at=update_time)
+    # Optimistically update message state,
+    # in a manner consistent with Gmail.
+    for category in added_categories:
+        # message.categories.add(cat)
+        # Explicitly create association record so we can control the
+        # created_at value. Taken from
+        # https://docs.sqlalchemy.org/en/13/orm/extensions/
+        # associationproxy.html#simplifying-association-objects
+        MessageCategory(category=category, message=message, created_at=update_time)
 
-        for cat in removed_categories:
-            # Removing '\\All'/ \\Trash'/ '\\Spam' does not do anything on Gmail
-            # i.e. does not move the message to a different folder, so don't
-            # discard the corresponding category yet.
-            # If one of these has been *added* too, apply_gmail_label_rules()
-            # will do the right thing to ensure mutual exclusion.
-            if cat.name not in ("all", "trash", "spam"):
-                message.categories.discard(cat)
+    for category in removed_categories:
+        # Removing '\\All'/ \\Trash'/ '\\Spam' does not do anything on Gmail
+        # i.e. does not move the message to a different folder, so don't
+        # discard the corresponding category yet.
+        # If one of these has been *added* too, apply_gmail_label_rules()
+        # will do the right thing to ensure mutual exclusion.
+        if category.name not in ("all", "trash", "spam"):
+            message.categories.discard(category)
 
-        # Update the message updated_at field so that it can be used in
-        # the transaction that will be created for category changes.
-        # Although no data actually changes for the message
-        # record in MySQL, Nylas expresses category changes as message changes
-        # in transactions. Since we are explicitly setting updated_at we should
-        # be able to assume even if message gets changed later in this
-        # transaction it will still use the time set here which will match the
-        # category change times. This will cause the message row to be updated
-        # even though only the categories may have changed and are stored in
-        # a different table.
-        if removed_categories or added_categories:
-            message.updated_at = update_time
+    # Update the message updated_at field so that it can be used in
+    # the transaction that will be created for category changes.
+    # Although no data actually changes for the message
+    # record in MySQL, Nylas expresses category changes as message changes
+    # in transactions. Since we are explicitly setting updated_at we should
+    # be able to assume even if message gets changed later in this
+    # transaction it will still use the time set here which will match the
+    # category change times. This will cause the message row to be updated
+    # even though only the categories may have changed and are stored in
+    # a different table.
+    if removed_categories or added_categories:
+        message.updated_at = update_time
 
-        apply_gmail_label_rules(
-            db_session, message, added_categories, removed_categories
-        )
+    apply_gmail_label_rules(db_session, message, added_categories, removed_categories)
 
-        if removed_labels or added_labels:
-            message.categories_changes = True
+    if removed_labels or added_labels:
+        message.categories_changes = True
 
     if removed_labels or added_labels:
         schedule_action(

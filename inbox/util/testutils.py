@@ -128,7 +128,7 @@ def dump_dns_queries(monkeypatch):
         elif record_type == "ns":
             query_results["ns"][domain] = [str(rdata) for rdata in result]
         else:
-            raise RuntimeError("Unknown record type: %s" % record_type)
+            raise RuntimeError("Unknown record type: {}".format(record_type))
         return result
 
     monkeypatch.setattr("dns.resolver.Resolver.query", mock_query)

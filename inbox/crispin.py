@@ -1441,7 +1441,7 @@ class GmailCrispinClient(CrispinClient):
                     "about search criteria syntax..\n"
                     "https://imapclient.readthedocs.io/en/master/#imapclient.IMAPClient.search".format(
                         original_msg=m.group(1),
-                        criteria='"%s"' % criteria
+                        criteria='"{}"'.format(criteria)
                         if not isinstance(criteria, list)
                         else criteria,
                     )

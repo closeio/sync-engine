@@ -55,7 +55,7 @@ def add_completely_fake_account(db, email="test@nylas.com"):
     calendar = add_fake_calendar(db.session, fake_account.namespace.id)
     for i in random_range(1, 10):
         add_fake_event(
-            db.session, fake_account.namespace.id, calendar=calendar, title="%s" % i
+            db.session, fake_account.namespace.id, calendar=calendar, title=str(i)
         )
 
     # Add fake Threads, Messages and ImapUids.
@@ -72,7 +72,7 @@ def add_completely_fake_account(db, email="test@nylas.com"):
 
             for k in random_range(1, 2):
                 add_fake_imapuid(
-                    db.session, fake_account.id, msg, folder, int("%s%s" % (msg.id, k))
+                    db.session, fake_account.id, msg, folder, int(str(msg.id) + str(k))
                 )
     # Add fake contacts
     for i in random_range(1, 5):

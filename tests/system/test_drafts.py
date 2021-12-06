@@ -42,7 +42,7 @@ def test_draft(client):
 
     # Create the file
     myfile = client.files.create()
-    myfile.filename = "file_%d.txt" % time.time()
+    myfile.filename = "file_{}.txt".format(time.time())
     myfile.data = "This is a file"
     myfile.save()
     wait_for_file(client, myfile.id)
@@ -50,7 +50,7 @@ def test_draft(client):
     # And the draft
     mydraft = client.drafts.create()
     mydraft.to = [{"email": client.email_address}]
-    mydraft.subject = "Test draft from Inbox - %s" % time.strftime("%H:%M:%S")
+    mydraft.subject = "Test draft from Inbox - {}".format(time.strftime("%H:%M:%S"))
     mydraft.body = "This is a test email, disregard this."
     mydraft.attach(myfile)
     mydraft.save()

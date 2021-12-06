@@ -687,7 +687,7 @@ def test_gmail_many_folders_one_role(monkeypatch, constants):
 
         names = folder_names[role]
         assert isinstance(names, list)
-        assert len(names) == 1, "assign same role to %s folders" % len(names)
+        assert len(names) == 1, "assign same role to {} folders".format(len(names))
 
 
 def test_imap_folders(monkeypatch, constants):

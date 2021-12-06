@@ -1336,7 +1336,7 @@ def event_rsvp_api():
         raise InputError("You must define a status to RSVP.")
 
     if status not in ["yes", "no", "maybe"]:
-        raise InputError("Invalid status %s" % status)
+        raise InputError("Invalid status {}".format(status))
 
     comment = data.get("comment", "")
 
@@ -1349,7 +1349,7 @@ def event_rsvp_api():
     email = account.email_address
 
     if email not in participants:
-        raise InputError("Cannot find %s among the participants" % email)
+        raise InputError("Cannot find {} among the participants".format(email))
 
     p = participants[email]
 

@@ -444,7 +444,6 @@ class FolderSyncEngine(Greenlet):
             change_poller = gevent.spawn(self.poll_for_changes)
             bind_context(change_poller, "changepoller", self.account_id, self.folder_id)
             uids = sorted(new_uids, reverse=True)
-            count = 0
             for count, uid in enumerate(uids, start=1):
                 # The speedup from batching appears to be less clear for
                 # non-Gmail accounts, so for now just download one-at-a-time.

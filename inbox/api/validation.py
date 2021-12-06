@@ -312,10 +312,13 @@ def valid_event(event):
 
     valid_when(event["when"])
 
-    if "busy" in event and event.get("busy") is not None:
+    if (
+        "busy" in event
+        and event.get("busy") is not None
+        and not isinstance(event.get("busy"), bool)
+    ):
         # client libraries can send busy: None
-        if not isinstance(event.get("busy"), bool):
-            raise InputError("'busy' must be true or false")
+        raise InputError("'busy' must be true or false")
 
     participants = event.get("participants")
     if participants is None:
@@ -327,11 +330,10 @@ def valid_event(event):
         if not valid_email(p["email"]):
             raise InputError("'{}' is not a valid email".format(p["email"]))
 
-        if "status" in p:
-            if p["status"] not in ("yes", "no", "maybe", "noreply"):
-                raise InputError(
-                    "'participants' status must be one of: " "yes, no, maybe, noreply"
-                )
+        if "status" in p and p["status"] not in ("yes", "no", "maybe", "noreply"):
+            raise InputError(
+                "'participants' status must be one of: " "yes, no, maybe, noreply"
+            )
 
 
 def valid_event_update(event, namespace, db_session):
@@ -345,11 +347,10 @@ def valid_event_update(event, namespace, db_session):
     for p in participants:
         if "email" not in p:
             raise InputError("'participants' must have email")
-        if "status" in p:
-            if p["status"] not in ("yes", "no", "maybe", "noreply"):
-                raise InputError(
-                    "'participants' status must be one of: " "yes, no, maybe, noreply"
-                )
+        if "status" in p and p["status"] not in ("yes", "no", "maybe", "noreply"):
+            raise InputError(
+                "'participants' status must be one of: " "yes, no, maybe, noreply"
+            )
 
 
 def noop_event_update(event, data):

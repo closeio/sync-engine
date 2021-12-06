@@ -147,7 +147,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                 )
                 self.folder_monitors.start(thread)
 
-            while not thread.state == "poll" and not thread.ready():
+            while thread.state != "poll" and not thread.ready():
                 sleep(self.heartbeat)
 
             if thread.ready():

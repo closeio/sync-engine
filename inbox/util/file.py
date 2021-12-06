@@ -99,11 +99,11 @@ class Lock(object):
     def __init__(self, f, block=True):
         if isinstance(f, file_like):
             self.filename = f.name
-            self.handle = f if not f.closed else open(f, "w")
+            self.handle = f if not f.closed else open(f, "w")  # noqa: SIM115
         else:
             self.filename = f
             mkdirp(os.path.dirname(f))
-            self.handle = open(f, "w")
+            self.handle = open(f, "w")  # noqa: SIM115
         if block:
             self.lock_op = fcntl.LOCK_EX
         else:

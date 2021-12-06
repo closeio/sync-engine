@@ -157,7 +157,8 @@ def test_download(api_client, uploaded_file_ids, filename):
         if sys.version_info < (3,)
         else original_filename,
     )
-    local_data = open(path, "rb").read()
+    with open(path, "rb") as fp:
+        local_data = fp.read()
     local_md5 = md5(local_data).digest()
     dl_md5 = md5(data).digest()
     assert local_md5 == dl_md5

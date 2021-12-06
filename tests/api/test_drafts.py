@@ -190,8 +190,9 @@ def test_create_draft_with_attachments(
     attachment_ids = []
     upload_path = "/files"
     for filename, path in attachments:
-        data = {"file": (open(path, "rb"), filename)}
-        r = api_client.post_raw(upload_path, data=data)
+        with open(path, "rb") as fp:
+            data = {"file": (fp, filename)}
+            r = api_client.post_raw(upload_path, data=data)
         assert r.status_code == 200
         attachment_id = json.loads(r.data)[0]["id"]
         attachment_ids.append(attachment_id)

@@ -19,7 +19,7 @@ except ImportError:
 
 @timeout_loop("sync_start")
 def wait_for_sync_start(client):
-    return True if client.messages.first() else False
+    return bool(client.messages.first())
 
 
 @timeout_loop("auth")
@@ -59,9 +59,8 @@ def test_account_create_should_fail():
 
     for ((email, password), error) in credentials:
         error_obj = getattr(errors, error)
-        with session_scope() as db_session:
-            with pytest.raises(error_obj):
-                create_account(db_session, email, password)
+        with session_scope() as db_session, pytest.raises(error_obj):
+            create_account(db_session, email, password)
 
 
 if __name__ == "__main__":

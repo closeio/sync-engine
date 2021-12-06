@@ -123,7 +123,7 @@ class HeartbeatStore(object):
             client.hdel(key, device_id)
             # If that was the only entry, also remove from folder index.
             devices = client.hkeys(key)
-            if devices == [str(device_id)] or devices == []:
+            if devices in [[str(device_id)], []]:
                 self.remove_from_folder_index(key, client)
         else:
             client.delete(key)
@@ -147,7 +147,7 @@ class HeartbeatStore(object):
             n = 0
             for key in client.scan_iter(match, 100):
                 self.remove(key, device_id, pipeline)
-                n += 1
+                n += 1  # noqa: SIM113
             if not device_id:
                 self.remove_from_account_index(account_id, pipeline)
             pipeline.execute()

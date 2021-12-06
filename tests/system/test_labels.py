@@ -21,14 +21,14 @@ from .conftest import gmail_accounts, timeout_loop
 def wait_for_tag(client, thread_id, tagname):
     thread = client.threads.find(thread_id)
     tags = [tag["name"] for tag in thread.tags]
-    return True if tagname in tags else False
+    return tagname in tags
 
 
 @timeout_loop("tag_remove")
 def wait_for_tag_removal(client, thread_id, tagname):
     thread = client.threads.find(thread_id)
     tags = [tag["name"] for tag in thread.tags]
-    return True if tagname not in tags else False
+    return tagname not in tags
 
 
 @pytest.mark.parametrize("client", gmail_accounts)

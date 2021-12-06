@@ -17,5 +17,14 @@ ignore=
     E231,
     E203,
     W503,
-    W504
+    W504,
+    # Use 'class Klass:' instead of 'class Klass(object), can't do this on Python 2
+    SIM120,
+    # use yield from, can't do this on Python 2
+    SIM104,
+    # use contextlib.suppress, can't do this on Python 2
+    SIM105,
+    SIM106,
+    SIM110,
+    SIM111
 exclude=migrations/versions

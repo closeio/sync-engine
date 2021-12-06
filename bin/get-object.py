@@ -68,29 +68,28 @@ def main(type, id, public_id, account_id, namespace_id, readwrite):
         print("Error: you should specify an id or public id to query.")
         sys.exit(-1)
 
-    with global_session_scope() as db_session:
-        with db_session.no_autoflush:
-            qu = db_session.query(cls)
+    with global_session_scope() as db_session, db_session.no_autoflush:
+        qu = db_session.query(cls)
 
-            if public_id:
-                qu = qu.filter(cls.public_id == public_id)
-            elif id:
-                qu = qu.filter(cls.id == id)
+        if public_id:
+            qu = qu.filter(cls.public_id == public_id)
+        elif id:
+            qu = qu.filter(cls.id == id)
 
-            if account_id:
-                qu = qu.filter(cls.account_id == account_id)
-            elif namespace_id:
-                qu = qu.filter(cls.namespace_id == namespace_id)
+        if account_id:
+            qu = qu.filter(cls.account_id == account_id)
+        elif namespace_id:
+            qu = qu.filter(cls.namespace_id == namespace_id)
 
-            qu.one()  # noqa: F841
+        qu.one()  # noqa: F841
 
-            banner = """The object you queried is accessible as `obj`.
+        banner = """The object you queried is accessible as `obj`.
 Note that the db session is read-only, unless if you start this script with --readwrite"""
-            IPython.embed(banner1=banner)
+        IPython.embed(banner1=banner)
 
-            if readwrite is False:
-                print("Rolling-back db session.")
-                db_session.rollback()
+        if readwrite is False:
+            print("Rolling-back db session.")
+            db_session.rollback()
 
 
 if __name__ == "__main__":

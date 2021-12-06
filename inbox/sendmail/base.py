@@ -151,13 +151,16 @@ def create_message_from_json(data, namespace, db_session, is_draft):
     reply_to_message = get_message(
         data.get("reply_to_message_id"), namespace.id, db_session
     )
-    if reply_to_message is not None and reply_to_thread is not None:
-        if reply_to_message not in reply_to_thread.messages:
-            raise InputError(
-                "Message {} is not in thread {}".format(
-                    reply_to_message.public_id, reply_to_thread.public_id
-                )
+    if (
+        reply_to_message is not None
+        and reply_to_thread is not None
+        and reply_to_message not in reply_to_thread.messages
+    ):
+        raise InputError(
+            "Message {} is not in thread {}".format(
+                reply_to_message.public_id, reply_to_thread.public_id
             )
+        )
 
     with db_session.no_autoflush:
         account = namespace.account

@@ -523,7 +523,7 @@ class CrispinClient(object):
         to_sync = have_folders["inbox"]  # type: List[str]
         to_sync.extend(have_folders.get("sent", []))
         for role, folder_names in have_folders.items():
-            if role == "inbox" or role == "sent":
+            if role in ["inbox", "sent"]:
                 continue
             to_sync.extend(folder_names)
 

@@ -1,4 +1,4 @@
-name: Build and Release
+name: Build arm64
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - '*'
 
 concurrency:
-  group: build-${{ github.event.pull_request.number || github.ref }}
+  group: build-arm64-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:

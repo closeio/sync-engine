@@ -4,7 +4,7 @@ from __future__ import absolute_import, print_function
 import os
 import platform
 
-API_BASE = "http://%s:%s" % (
+API_BASE = "http://{}:{}".format(
     os.getenv("API_PORT_5555_TCP_ADDR", "localhost"),
     os.getenv("API_PORT_5555_TCP_PORT", "5555"),
 )
@@ -76,7 +76,7 @@ def timeout_loop(name):
 
 
 def format_test_result(function_name, provider, email, start_time):
-    print("%s\t%s\t%s\t%f" % (function_name, provider, email, time() - start_time))
+    print("{}\t{}\t{}\t{}".format(function_name, provider, email, time() - start_time))
 
 
 def create_account(db_session, email, password):

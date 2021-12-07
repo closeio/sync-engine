@@ -114,7 +114,9 @@ class _EncryptionOracle(object):
             )
 
         else:
-            raise ValueError("encryption_scheme not supported: %d" % encryption_scheme)
+            raise ValueError(
+                "encryption_scheme not supported: {}".format(encryption_scheme)
+            )
 
         return (ciphertext, encryption_scheme.value)
 
@@ -179,5 +181,5 @@ class _DecryptionOracle(_EncryptionOracle):
 
         else:
             raise ValueError(
-                "encryption_scheme not supported: %d" % encryption_scheme_value
+                "encryption_scheme not supported: {}".format(encryption_scheme_value)
             )

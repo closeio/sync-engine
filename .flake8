@@ -26,5 +26,9 @@ ignore=
     SIM105,
     SIM106,
     SIM110,
-    SIM111
+    SIM111,
+    # Allow f-strings
+    SFS301,
+    # Allow .format
+    SFS201
 exclude=migrations/versions

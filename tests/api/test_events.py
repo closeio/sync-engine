@@ -340,49 +340,49 @@ def test_api_filter(db, api_client, calendar, default_namespace):
     assert event_3.status_code == 200
     e3_id = json.loads(event_3.data)["id"]
 
-    events = api_client.get_data("/events?offset=%s" % "1")
+    events = api_client.get_data("/events?offset=1")
     assert len(events) == 2
 
-    events = api_client.get_data("/events?limit=%s" % "1")
+    events = api_client.get_data("/events?limit=1")
     assert len(events) == 1
 
     # Test description queries: all, some, unicode, none
-    events = api_client.get_data("/events?description=%s" % "Everyone Eats")
+    events = api_client.get_data("/events?description=Everyone Eats")
     assert len(events) == 3
 
-    events = api_client.get_data("/events?description=%s" % "Cake")
+    events = api_client.get_data("/events?description=Cake")
     assert len(events) == 1
 
-    events = api_client.get_data("/events?description=%s" % u"\u2713")
+    events = api_client.get_data(u"/events?description=\u2713")
     assert len(events) == 1
 
-    events = api_client.get_data("/events?description=%s" % "bad")
+    events = api_client.get_data("/events?description=bad")
     assert len(events) == 0
 
     # Test title queries: all, some, unicode, none
-    events = api_client.get_data("/events?title=%s" % "Party")
+    events = api_client.get_data("/events?title=Party")
     assert len(events) == 3
 
-    events = api_client.get_data("/events?title=%s" % "Hipster")
+    events = api_client.get_data("/events?title=Hipster")
     assert len(events) == 1
 
-    events = api_client.get_data("/events?title=%s" % u"\U0001F389")
+    events = api_client.get_data(u"/events?title=\U0001F389")
     assert len(events) == 1
 
-    events = api_client.get_data("/events?title=%s" % "bad")
+    events = api_client.get_data("/events?title=bad")
     assert len(events) == 0
 
     # Test location queries: all, some, unicode, none
-    events = api_client.get_data("/events?location=%s" % "o")
+    events = api_client.get_data("/events?location=o")
     assert len(events) == 3
 
-    events = api_client.get_data("/events?location=%s" % "Town")
+    events = api_client.get_data("/events?location=Town")
     assert len(events) == 2
 
-    events = api_client.get_data("/events?location=%s" % u"\U0001F3F0")
+    events = api_client.get_data(u"/events?location=\U0001F3F0")
     assert len(events) == 1
 
-    events = api_client.get_data("/events?location=%s" % "bad")
+    events = api_client.get_data("/events?location=bad")
     assert len(events) == 0
 
     # Test ID queries

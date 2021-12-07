@@ -16,78 +16,22 @@ env:
   TAG_SUFFIX: "-gha"
 
 jobs:
-  static-code-analysis:
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements/lint.txt
-
-      - name: Run Black
-        run: black --check .
-      
-      - name: Run isort
-        run: isort -c .
-
-      - name: Run flake8
-        run: flake8
-         
-
-  build:
+  build-arm64:
     runs-on: ubuntu-20.04
 
     strategy:
       matrix:
         include:
-          - arch: amd64
+          - arch: arm64
             build_name: py2.7
             dockerhub_push: true
             python_version: "2.7"
-            run_tests: true
-          - arch: amd64
-            build_name: py3.6
-            dockerhub_push: true
-            python_version: "3.6"
-            run_tests: true
-          - arch: amd64
-            build_name: py3.7
-            dockerhub_push: false
-            python_version: "3.7"
-            run_tests: true
-          - arch: amd64
+            run_tests: false
+          - arch: arm64
             build_name: py3.8
             dockerhub_push: true
             python_version: "3.8"
-            run_tests: true
-          - arch: amd64
-            build_name: py3.9
-            dockerhub_push: false
-            python_version: "3.9"
-            run_tests: true
-          
-          # The qemu arm64 builds are *very* slow so they are split out into 
-          # their own workflow
-
-          # - arch: arm64
-          #   build_name: py2.7
-          #   dockerhub_push: true
-          #   python_version: "2.7"
-          #   run_tests: false
-          # - arch: arm64
-          #   build_name: py3.8
-          #   dockerhub_push: true
-          #   python_version: "3.8"
-          #   run_tests: false
+            run_tests: false
   
     steps:
       - name: Checkout
@@ -162,7 +106,7 @@ jobs:
 
   multi-arch-manifest:
     needs:
-      - build
+      - build-arm64
 
     runs-on: ubuntu-20.04
     
@@ -193,9 +137,10 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # Because the arm64 builds are so much slower, we assume they will just 
+      # be appended to the existing manifest created by `build-and-release.yaml`.
       - name: Create manifest
         run: |
-          docker buildx imagetools create \
+          docker buildx imagetools create --append \
             -t ${{ env.DOCKER_IMAGE_TAG }} \
-            ${{ env.DOCKER_IMAGE_TAG }}-amd64
-            # ${{ env.DOCKER_IMAGE_TAG }}-arm64
+            ${{ env.DOCKER_IMAGE_TAG }}-arm64

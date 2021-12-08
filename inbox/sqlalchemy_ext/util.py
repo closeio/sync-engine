@@ -1,4 +1,3 @@
-import abc
 import codecs
 import contextlib
 import re

@@ -1,6 +1,5 @@
 import json
 
-import arrow
 import pytest
 from future.utils import iteritems
 

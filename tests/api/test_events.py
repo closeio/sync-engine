@@ -177,9 +177,6 @@ def test_api_update_title(db, api_client, calendar, default_account):
     assert e_put_data["when"]["time"] == e_data["when"]["time"]
 
 
-import pytest
-
-
 def test_api_pessimistic_update(db, api_client, calendar, default_account):
     e_data = {
         "title": "",

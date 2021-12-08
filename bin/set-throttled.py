@@ -4,7 +4,6 @@ from __future__ import print_function
 
 import optparse
 import sys
-import time
 
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.models.account import Account

@@ -1,6 +1,5 @@
 import json
 import sys
-from base64 import b64encode
 from os import environ
 
 import requests

@@ -3,7 +3,6 @@ import time
 from builtins import range
 from collections import OrderedDict
 
-import gevent
 import limitlion
 from future.utils import iteritems
 from sqlalchemy import desc, func

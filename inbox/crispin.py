@@ -5,7 +5,7 @@ import re
 import sys
 import time
 from builtins import range
-from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple
 
 import imapclient
 import imapclient.exceptions

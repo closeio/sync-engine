@@ -53,7 +53,7 @@ class HeartbeatStatusKey(object):
 
     @classmethod
     def from_string(cls, string_key):
-        account_id, folder_id = map(int, string_key.split(":"))
+        account_id, folder_id = [int(part) for part in string_key.split(":")]
         return cls(account_id, folder_id)
 
 
@@ -123,7 +123,7 @@ class HeartbeatStore(object):
             client.hdel(key, device_id)
             # If that was the only entry, also remove from folder index.
             devices = client.hkeys(key)
-            if devices == [str(device_id)] or devices == []:
+            if devices in [[str(device_id)], []]:
                 self.remove_from_folder_index(key, client)
         else:
             client.delete(key)
@@ -147,7 +147,7 @@ class HeartbeatStore(object):
             n = 0
             for key in client.scan_iter(match, 100):
                 self.remove(key, device_id, pipeline)
-                n += 1
+                n += 1  # noqa: SIM113
             if not device_id:
                 self.remove_from_account_index(account_id, pipeline)
             pipeline.execute()
@@ -168,7 +168,7 @@ class HeartbeatStore(object):
                 key.account_id, 0, 0, withscores=True
             ).pop()
             client.zadd("account_index", oldest_heartbeat, key.account_id)
-        except:
+        except Exception:
             # If all heartbeats were deleted at the same time as this, the pop
             # will fail -- ignore it.
             pass

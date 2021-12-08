@@ -1,6 +1,9 @@
 from __future__ import absolute_import, print_function
 
 # gmail-specific label handling tests.
+from future import standard_library
+
+standard_library.install_aliases()
 import random
 from datetime import datetime
 
@@ -18,14 +21,14 @@ from .conftest import gmail_accounts, timeout_loop
 def wait_for_tag(client, thread_id, tagname):
     thread = client.threads.find(thread_id)
     tags = [tag["name"] for tag in thread.tags]
-    return True if tagname in tags else False
+    return tagname in tags
 
 
 @timeout_loop("tag_remove")
 def wait_for_tag_removal(client, thread_id, tagname):
     thread = client.threads.find(thread_id)
     tags = [tag["name"] for tag in thread.tags]
-    return True if tagname not in tags else False
+    return tagname not in tags
 
 
 @pytest.mark.parametrize("client", gmail_accounts)
@@ -45,18 +48,18 @@ def test_gmail_labels(client):
 
         connection_pool = writable_connection_pool(account.id, pool_size=1)
         with connection_pool.get() as crispin_client:
-            labelname = "custom-label" + datetime.now().strftime("%s.%f")
-            print("Label: %s" % labelname)
+            label_name = "custom-label" + datetime.now().strftime("%s.%f")
+            print("Label:", label_name)
 
             folder_name = crispin_client.folder_names()["all"]
             crispin_client.select_folder(folder_name, uidvalidity_cb)
 
-            print("Subject : %s" % thread.subject)
+            print("Subject :", thread.subject)
             uids = crispin_client.search_uids(["SUBJECT", thread.subject])
-            g_thrid = crispin_client.g_metadata(uids).items()[0][1].thrid
+            g_thrid = list(crispin_client.g_metadata(uids).items())[0][1].thrid
 
-            crispin_client.add_label(g_thrid, labelname)
-            wait_for_tag(client, thread.id, labelname)
+            crispin_client.add_label(g_thrid, label_name)
+            wait_for_tag(client, thread.id, label_name)
 
             draft = client.drafts.create(
                 to=[{"name": "Nylas SelfSend", "email": client.email_address}],
@@ -65,8 +68,8 @@ def test_gmail_labels(client):
             )
             draft.send()
 
-            crispin_client.remove_label(g_thrid, labelname)
-            wait_for_tag_removal(client, thread.id, labelname)
+            crispin_client.remove_label(g_thrid, label_name)
+            wait_for_tag_removal(client, thread.id, label_name)
 
 
 if __name__ == "__main__":

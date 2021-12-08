@@ -11,6 +11,9 @@ Eventually we're going to want a better way of ACLing functions that operate on
 accounts.
 
 """
+from future import standard_library
+
+standard_library.install_aliases()
 from datetime import datetime
 
 from sqlalchemy import bindparam, desc
@@ -23,33 +26,30 @@ from inbox.models import Account, ActionLog, Folder, Message, MessageCategory
 from inbox.models.backends.imap import ImapFolderInfo, ImapUid
 from inbox.models.session import session_scope
 from inbox.models.util import reconcile_message
-from inbox.sqlalchemy_ext.util import bakery
 
 log = get_logger()
 
 
 def local_uids(account_id, session, folder_id, limit=None):
-    q = bakery(lambda session: session.query(ImapUid.msg_uid))
-    q += lambda q: q.filter(
+    q = session.query(ImapUid.msg_uid)
+    q = q.filter(
         ImapUid.account_id == bindparam("account_id"),
         ImapUid.folder_id == bindparam("folder_id"),
     )
     if limit:
-        q += lambda q: q.order_by(desc(ImapUid.msg_uid))
-        q += lambda q: q.limit(bindparam("limit"))
-    results = (
-        q(session).params(account_id=account_id, folder_id=folder_id, limit=limit).all()
-    )
+        q = q.order_by(desc(ImapUid.msg_uid))
+        q = q.limit(bindparam("limit"))
+    results = q.params(account_id=account_id, folder_id=folder_id, limit=limit).all()
     return {u for u, in results}
 
 
 def lastseenuid(account_id, session, folder_id):
-    q = bakery(lambda session: session.query(func.max(ImapUid.msg_uid)))
-    q += lambda q: q.filter(
+    q = session.query(func.max(ImapUid.msg_uid))
+    q = q.filter(
         ImapUid.account_id == bindparam("account_id"),
         ImapUid.folder_id == bindparam("folder_id"),
     )
-    res = q(session).params(account_id=account_id, folder_id=folder_id).one()[0]
+    res = q.params(account_id=account_id, folder_id=folder_id).one()[0]
     return res or 0
 
 
@@ -130,7 +130,7 @@ def update_metadata(account_id, folder_id, folder_role, new_flags, session):
     change_count = 0
     for item in session.query(ImapUid).filter(
         ImapUid.account_id == account_id,
-        ImapUid.msg_uid.in_(new_flags.keys()),
+        ImapUid.msg_uid.in_(new_flags),
         ImapUid.folder_id == folder_id,
     ):
         flags = new_flags[item.msg_uid].flags
@@ -144,9 +144,7 @@ def update_metadata(account_id, folder_id, folder_role, new_flags, session):
 
         if changed:
             change_count += 1
-            is_draft = item.is_draft and (
-                folder_role == "drafts" or folder_role == "all"
-            )
+            is_draft = item.is_draft and folder_role in ["drafts", "all"]
             update_message_metadata(session, account, item.message, is_draft)
             session.commit()
     log.info("Updated UID metadata", changed=change_count, out_of=len(new_flags))
@@ -193,6 +191,12 @@ def remove_deleted_uids(account_id, folder_id, uids):
                     thread = message.thread
                     if thread is not None:
                         thread.messages.remove(message)
+                        # Thread.messages relationship is versioned i.e. extra
+                        # logic gets executed on remove call.
+                        # This early flush is needed so the configure_versioning logic
+                        # in inbox.model.sessions can work reliably on newer versions of
+                        # SQLAlchemy.
+                        db_session.flush()
                     db_session.delete(message)
                     if thread is not None and not thread.messages:
                         db_session.delete(thread)

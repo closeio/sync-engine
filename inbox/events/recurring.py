@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import arrow
 from dateutil.rrule import FR, MO, SA, SU, TH, TU, WE, rrule, rruleset, rrulestr
+from future.utils import iteritems
 
 from inbox.events.util import parse_rrule_datetime
 from inbox.logging import get_logger
@@ -47,20 +48,19 @@ def link_master(db_session, event):
     # Find the master RecurringEvent that spawned this
     # RecurringEventOverride (may not exist if it hasn't
     # been synced yet)
-    if not event.master:
-        if event.master_event_uid:
-            master = (
-                db_session.query(RecurringEvent)
-                .filter_by(
-                    namespace_id=event.namespace_id,
-                    calendar_id=event.calendar_id,
-                    uid=event.master_event_uid,
-                    source=event.source,
-                )
-                .first()
+    if not event.master and event.master_event_uid:
+        master = (
+            db_session.query(RecurringEvent)
+            .filter_by(
+                namespace_id=event.namespace_id,
+                calendar_id=event.calendar_id,
+                uid=event.master_event_uid,
+                source=event.source,
             )
-            if master:
-                event.master = master
+            .first()
+        )
+        if master:
+            event.master = master
     return event.master  # This may be None.
 
 
@@ -127,7 +127,7 @@ def get_start_times(event, start=None, end=None):
         else:
             start = arrow.get(start)
         if not end:
-            end = arrow.utcnow().replace(years=+EXPAND_RECURRING_YEARS)
+            end = arrow.utcnow().shift(years=+EXPAND_RECURRING_YEARS)
         else:
             end = arrow.get(end)
 
@@ -144,8 +144,9 @@ def get_start_times(event, start=None, end=None):
 
             # We want naive-everything for all-day events.
             if event.all_day:
-                excl_dates = map(lambda x: x.naive, excl_dates)
-            map(rrules.exdate, excl_dates)
+                excl_dates = [x.naive for x in excl_dates]
+            for excl_date in excl_dates:
+                rrules.exdate(excl_date)
 
         # Return all start times between start and end, including start and
         # end themselves if they obey the rule.
@@ -176,7 +177,7 @@ def rrule_to_json(r):
         r = parse_rrule(r)
     info = vars(r)
     j = {}
-    for field, value in info.iteritems():
+    for field, value in iteritems(info):
         if isinstance(value, tuple) and len(value) == 1:
             value = value[0]
         if field[0] == "_":

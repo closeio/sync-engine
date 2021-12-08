@@ -23,6 +23,8 @@ def draft(db, default_account):
     }
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_file_filtering(api_client, uploaded_file_ids, draft):
     # Attach the files to a draft and search there
     draft["file_ids"] = uploaded_file_ids
@@ -63,6 +65,8 @@ def test_file_filtering(api_client, uploaded_file_ids, draft):
     assert len(results) == 2
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_attachment_has_same_id(api_client, uploaded_file_ids, draft):
     attachment_id = uploaded_file_ids.pop()
     draft["file_ids"] = [attachment_id]
@@ -72,6 +76,8 @@ def test_attachment_has_same_id(api_client, uploaded_file_ids, draft):
     assert attachment_id in [x["id"] for x in draft_resp["files"]]
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_delete(api_client, uploaded_file_ids, draft):
     non_attachment_id = uploaded_file_ids.pop()
     attachment_id = uploaded_file_ids.pop()
@@ -94,6 +100,8 @@ def test_delete(api_client, uploaded_file_ids, draft):
     assert data["id"] == attachment_id
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 @pytest.mark.parametrize("filename", FILENAMES)
 def test_get_with_id(api_client, uploaded_file_ids, filename):
     # See comment in uploaded_file_ids()
@@ -125,6 +133,8 @@ def test_get_invalid(api_client, uploaded_file_ids):
     assert r.status_code == 400
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 @pytest.mark.parametrize("filename", FILENAMES)
 def test_download(api_client, uploaded_file_ids, filename):
     # See comment in uploaded_file_ids()
@@ -147,7 +157,8 @@ def test_download(api_client, uploaded_file_ids, filename):
         if sys.version_info < (3,)
         else original_filename,
     )
-    local_data = open(path, "rb").read()
+    with open(path, "rb") as fp:
+        local_data = fp.read()
     local_md5 = md5(local_data).digest()
     dl_md5 = md5(data).digest()
     assert local_md5 == dl_md5

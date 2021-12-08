@@ -12,7 +12,7 @@ GEVENT_EPSILON = 0.5  # Greenlet switching time. VMs on Macs suck :()
 LONGPOLL_EPSILON = 2 + GEVENT_EPSILON  # API implementation polls every second
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def streaming_test_client(db):
     from inbox.api.srv import app
 
@@ -41,7 +41,7 @@ def test_response_when_old_cursor_given(db, api_client, default_namespace):
     url = url_concat("/delta/streaming", {"timeout": 0.1, "cursor": "0"})
     r = api_client.get_raw(url)
     assert r.status_code == 200
-    responses = r.data.split("\n")
+    responses = r.get_data(as_text=True).split("\n")
     for response_string in responses:
         if response_string:
             validate_response_format(response_string)
@@ -52,7 +52,7 @@ def test_empty_response_when_latest_cursor_given(db, api_client, default_namespa
     url = url_concat("/delta/streaming", {"timeout": 0.1, "cursor": cursor})
     r = api_client.get_raw(url)
     assert r.status_code == 200
-    assert r.data.strip() == ""
+    assert r.get_data(as_text=True).strip() == ""
 
 
 def test_exclude_and_include_object_types(db, api_client, thread, default_namespace):
@@ -64,7 +64,7 @@ def test_exclude_and_include_object_types(db, api_client, thread, default_namesp
     url = url_concat("/delta/streaming", {"timeout": 0.1, "cursor": "0"})
     r = api_client.get_raw(url)
     assert r.status_code == 200
-    responses = r.data.split("\n")
+    responses = r.get_data(as_text=True).split("\n")
     parsed_responses = [json.loads(resp) for resp in responses if resp != ""]
     assert any(resp["object"] == "message" for resp in parsed_responses)
     assert any(resp["object"] == "contact" for resp in parsed_responses)
@@ -76,7 +76,7 @@ def test_exclude_and_include_object_types(db, api_client, thread, default_namesp
     )
     r = api_client.get_raw(url)
     assert r.status_code == 200
-    responses = r.data.split("\n")
+    responses = r.get_data(as_text=True).split("\n")
     parsed_responses = [json.loads(resp) for resp in responses if resp != ""]
     assert not any(resp["object"] == "message" for resp in parsed_responses)
     assert not any(resp["object"] == "contact" for resp in parsed_responses)
@@ -87,7 +87,7 @@ def test_exclude_and_include_object_types(db, api_client, thread, default_namesp
     )
     r = api_client.get_raw(url)
     assert r.status_code == 200
-    responses = r.data.split("\n")
+    responses = r.get_data(as_text=True).split("\n")
     parsed_responses = [json.loads(resp) for resp in responses if resp != ""]
     assert all(resp["object"] == "message" for resp in parsed_responses)
 
@@ -104,7 +104,7 @@ def test_expanded_view(db, api_client, thread, message, default_namespace):
     )
     r = api_client.get_raw(url)
     assert r.status_code == 200
-    responses = r.data.split("\n")
+    responses = r.get_data(as_text=True).split("\n")
     parsed_responses = [json.loads(resp) for resp in responses if resp != ""]
     for delta in parsed_responses:
         if delta["object"] == "message":

@@ -1,9 +1,11 @@
 import math
 import time
+from builtins import range
 from collections import OrderedDict
 
 import gevent
 import limitlion
+from future.utils import iteritems
 from sqlalchemy import desc, func
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -139,24 +141,22 @@ def batch_delete_namespaces(ids_to_delete, throttle=False, dry_run=False):
 
     start = time.time()
 
-    deleted_count = 0
     for account_id, namespace_id in ids_to_delete:
         # try:
         try:
             delete_namespace(namespace_id, throttle=throttle, dry_run=dry_run)
         except AccountDeletionErrror as e:
-            log.critical("AccountDeletionErrror", error_message=e.message)
+            message = e.args[0] if e.args else ""
+            log.critical("AccountDeletionErrror", error_message=message)
         except Exception:
             log_uncaught_errors(log, account_id=account_id)
-
-        deleted_count += 1
 
     end = time.time()
     log.info(
         "All data deleted successfully for ids",
         ids_to_delete=ids_to_delete,
         time=end - start,
-        count=deleted_count,
+        count=len(ids_to_delete),
     )
 
 
@@ -248,7 +248,7 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False):
         filters[table] = ("account_id", account_id)
     filters["namespace"] = ("id", namespace_id)
 
-    for table, (column, id_) in filters.iteritems():
+    for table, (column, id_) in iteritems(filters):
         log.info("Performing bulk deletion", table=table)
         start = time.time()
 
@@ -306,7 +306,7 @@ def _batch_delete(
 
     log.info("deleting", account_id=account_id, table=table)
 
-    for i in range(0, batches):
+    for _ in range(0, batches):
         if throttle:
             bulk_throttle()
 

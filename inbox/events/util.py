@@ -3,6 +3,7 @@ from collections import namedtuple
 
 import arrow
 from dateutil.parser import parse
+from future.utils import iteritems
 
 from inbox.models.when import parse_as_when
 
@@ -52,21 +53,22 @@ def when_to_event_time(raw):
 def parse_google_time(d):
     # google dictionaries contain either 'date' or 'dateTime' & 'timeZone'
     # 'dateTime' is in ISO format so is UTC-aware, 'date' is just a date
-    for key, dt in d.iteritems():
+    for key, dt in iteritems(d):
         if key != "timeZone":
             return arrow.get(dt)
 
 
 def google_to_event_time(start_raw, end_raw):
-    start = parse_google_time(start_raw)
-    end = parse_google_time(end_raw)
+    # type: (str, str) -> EventTime
+    start = parse_google_time(start_raw)  # type: arrow.Arrow
+    end = parse_google_time(end_raw)  # type: arrow.Arrow
     if start > end:
         start, end = (end, start)
 
     if "date" in start_raw:
         # Google all-day events normally end a 'day' later than they should,
         # but not always if they were created by a third-party client.
-        end = max(start, end.replace(days=-1))
+        end = max(start, end.shift(days=-1))
         d = {"start_date": start, "end_date": end}
     else:
         d = {"start_time": start, "end_time": end}

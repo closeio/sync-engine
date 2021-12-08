@@ -3,6 +3,7 @@ import random
 import time
 
 import gevent
+from future.utils import iteritems
 from gevent.lock import BoundedSemaphore
 from sqlalchemy import and_, or_
 from sqlalchemy.exc import OperationalError
@@ -77,14 +78,14 @@ class SyncService(object):
             if hasattr(mod, "SYNC_MONITOR_CLS")
         }
 
-        for p_name, p in providers.iteritems():
+        for p_name, _ in iteritems(providers):
             if p_name not in self.monitor_cls_for:
                 self.monitor_cls_for[p_name] = self.monitor_cls_for["generic"]
 
         self.log = get_logger()
         self.log.bind(process_number=process_number)
         self.log.info(
-            "starting mail sync process", supported_providers=module_registry.keys()
+            "starting mail sync process", supported_providers=list(module_registry)
         )
 
         self.syncing_accounts = set()
@@ -340,11 +341,11 @@ class SyncService(object):
 
     def stop(self, *args):
         self.log.info("stopping mail sync process")
-        for k, v in self.email_sync_monitors.iteritems():
+        for _, v in iteritems(self.email_sync_monitors):
             gevent.kill(v)
-        for k, v in self.contact_sync_monitors.iteritems():
+        for _, v in iteritems(self.contact_sync_monitors):
             gevent.kill(v)
-        for k, v in self.event_sync_monitors.iteritems():
+        for _, v in iteritems(self.event_sync_monitors):
             gevent.kill(v)
         self.keep_running = False
 

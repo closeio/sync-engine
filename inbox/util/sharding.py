@@ -5,7 +5,7 @@ from inbox.ignition import engine_manager
 
 
 def get_shards():
-    return engine_manager.engines.keys()
+    return list(engine_manager.engines)
 
 
 def get_open_shards():

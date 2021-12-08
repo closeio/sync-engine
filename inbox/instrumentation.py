@@ -1,3 +1,6 @@
+from __future__ import division
+
+import _thread
 import collections
 import math
 import signal
@@ -10,7 +13,7 @@ import gevent._threading  # This is a clone of the *real* threading module
 import gevent.hub
 import greenlet
 import psutil
-import thread
+from past.utils import old_div
 
 from inbox.config import config
 from inbox.logging import get_logger
@@ -97,7 +100,7 @@ class GreenletTracer(object):
         self._last_switch_time = None
         self._switch_flag = False
         self._active_greenlet = None
-        self._main_thread_id = gevent._threading.get_ident()
+        self._main_thread_id = gevent._threading.get_thread_ident()
         self._hub = gevent.hub.get_hub()
         self.last_logged_stats = time.time()
         self.last_checked_blocking = time.time()
@@ -130,7 +133,7 @@ class GreenletTracer(object):
 
     def stats(self):
         total_time = time.time() - self.start_time
-        idle_fraction = self.time_spent_by_context.get("hub", 0) / total_time
+        idle_fraction = old_div(self.time_spent_by_context.get("hub", 0), total_time)
         return {
             "times": self.time_spent_by_context,
             "idle_fraction": idle_fraction,
@@ -196,7 +199,7 @@ class GreenletTracer(object):
         # are waiting to run.
         pendingcnt = self._hub.loop.pendingcnt
         for k, v in self.pending_avgs.items():
-            exp = math.exp(-self.sampling_interval / (60.0 * k))
+            exp = math.exp(old_div(-self.sampling_interval, (60.0 * k)))
             self.pending_avgs[k] = exp * v + (1.0 - exp) * pendingcnt
 
     def _calculate_cpu_avgs(self):
@@ -204,7 +207,7 @@ class GreenletTracer(object):
         new_total_time = times.user + times.system
         delta = new_total_time - self.total_cpu_time
         for k, v in self.cpu_avgs.items():
-            exp = math.exp(-self.sampling_interval / (60.0 * k))
+            exp = math.exp(old_div(-self.sampling_interval, (60.0 * k)))
             self.cpu_avgs[k] = exp * v + (1.0 - exp) * delta
         self.total_cpu_time = new_total_time
 
@@ -277,7 +280,7 @@ class KillerGreenletTracer(GreenletTracer):
             context=getattr(active_greenlet, "context", None),
             blocking_greenlet_id=id(active_greenlet),
         )
-        thread.interrupt_main()
+        _thread.interrupt_main()
 
 
 MAX_BLOCKING_TIME = 5
@@ -304,7 +307,7 @@ class Tracer(object):
         self._last_switch_time = None
         self._switch_flag = False
         self._active_greenlet = None
-        self._main_thread_id = gevent._threading.get_ident()
+        self._main_thread_id = gevent._threading.get_thread_ident()
         self._hub = gevent.hub.get_hub()
         self.log = get_logger()
 

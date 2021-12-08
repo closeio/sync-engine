@@ -19,7 +19,8 @@ from flask import (
     request,
     stream_with_context,
 )
-from flask.ext.restful import reqparse
+from flask_restful import reqparse
+from future.utils import iteritems
 from sqlalchemy import asc, func
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import joinedload, load_only
@@ -225,17 +226,19 @@ def before_remote_request():
     """
     # Search uses 'GET', all the other requests we care about use a write
     # HTTP method.
-    if request.endpoint in (
-        "namespace_api.message_search_api",
-        "namespace_api.thread_search_api",
-        "namespace_api.message_streaming_search_api",
-        "namespace_api.thread_streaming_search_api",
-    ) or request.method in ("POST", "PUT", "PATCH", "DELETE"):
-
-        if g.namespace:
-            # Logging provider here to ensure that the provider is only logged for
-            # requests that modify data or are proxied to remote servers.
-            request.environ["log_context"]["provider"] = g.namespace.account.provider
+    if (
+        request.endpoint
+        in (
+            "namespace_api.message_search_api",
+            "namespace_api.thread_search_api",
+            "namespace_api.message_streaming_search_api",
+            "namespace_api.thread_streaming_search_api",
+        )
+        or request.method in ("POST", "PUT", "PATCH", "DELETE")
+    ) and g.namespace:
+        # Logging provider here to ensure that the provider is only logged for
+        # requests that modify data or are proxied to remote servers.
+        request.environ["log_context"]["provider"] = g.namespace.account.provider
 
         # Disable validation so we can perform requests on paused accounts.
         # valid_account(g.namespace)
@@ -407,7 +410,7 @@ def thread_search_api():
         kwargs = {}
         if exc.server_error:
             kwargs["server_error"] = exc.server_error
-        return err(exc.http_code, exc.message, **kwargs)
+        return err(exc.http_code, str(exc), **kwargs)
     except SearchStoreException as exc:
         store_status = STORE_STATUS_CODES.get(str(exc.err_code))
         kwargs = {}
@@ -433,7 +436,7 @@ def thread_streaming_search_api():
         kwargs = {}
         if exc.server_error:
             kwargs["server_error"] = exc.server_error
-        return err(exc.http_code, exc.message, **kwargs)
+        return err(exc.http_code, str(exc), **kwargs)
     except SearchStoreException as exc:
         store_status = STORE_STATUS_CODES.get(str(exc.err_code))
         kwargs = {}
@@ -575,7 +578,7 @@ def message_search_api():
         kwargs = {}
         if exc.server_error:
             kwargs["server_error"] = exc.server_error
-        return err(exc.http_code, exc.message, **kwargs)
+        return err(exc.http_code, str(exc), **kwargs)
     except SearchStoreException as exc:
         store_status = STORE_STATUS_CODES.get(str(exc.err_code))
         kwargs = {}
@@ -601,7 +604,7 @@ def message_streaming_search_api():
         kwargs = {}
         if exc.server_error:
             kwargs["server_error"] = exc.server_error
-        return err(exc.http_code, exc.message, **kwargs)
+        return err(exc.http_code, str(exc), **kwargs)
     except SearchStoreException as exc:
         store_status = STORE_STATUS_CODES.get(str(exc.err_code))
         kwargs = {}
@@ -1184,7 +1187,7 @@ def event_update_api(public_id):
     if event.read_only:
         raise InputError("Cannot update read_only event.")
 
-    if isinstance(event, RecurringEvent) or isinstance(event, RecurringEventOverride):
+    if isinstance(event, (RecurringEvent, RecurringEventOverride)):
         raise InputError("Cannot update a recurring event yet.")
 
     data = request.get_json(force=True)
@@ -1332,7 +1335,7 @@ def event_rsvp_api():
         raise InputError("You must define a status to RSVP.")
 
     if status not in ["yes", "no", "maybe"]:
-        raise InputError("Invalid status %s" % status)
+        raise InputError("Invalid status {}".format(status))
 
     comment = data.get("comment", "")
 
@@ -1345,16 +1348,16 @@ def event_rsvp_api():
     email = account.email_address
 
     if email not in participants:
-        raise InputError("Cannot find %s among the participants" % email)
+        raise InputError("Cannot find {} among the participants".format(email))
 
     p = participants[email]
 
     # Make this API idempotent.
-    if p["status"] == status:
-        if "comment" not in p and "comment" not in data:
-            return g.encoder.jsonify(event)
-        elif "comment" in p and "comment" in data and p["comment"] == data["comment"]:
-            return g.encoder.jsonify(event)
+    if p["status"] == status and (
+        ("comment" not in p and "comment" not in data)
+        or ("comment" in p and "comment" in data and p["comment"] == data["comment"])
+    ):
+        return g.encoder.jsonify(event)
 
     participant = {"email": email, "status": status, "comment": comment}
 
@@ -1372,7 +1375,7 @@ def event_rsvp_api():
             kwargs["failures"] = exc.failures
         if exc.server_error:
             kwargs["server_error"] = exc.server_error
-        return err(exc.http_code, exc.message, **kwargs)
+        return err(exc.http_code, exc.args[0], **kwargs)
 
     # Update the participants status too.
     new_participants = []
@@ -1470,7 +1473,7 @@ def file_delete_api(public_id):
 @app.route("/files/", methods=["POST"])
 def file_upload_api():
     all_files = []
-    for name, uploaded in request.files.iteritems():
+    for name, uploaded in iteritems(request.files):
         request.environ["log_context"].setdefault("filenames", []).append(name)
         f = Block()
         f.namespace = g.namespace
@@ -2058,7 +2061,7 @@ def sync_deltas():
 def generate_cursor():
     data = request.get_json(force=True)
 
-    if data.keys() != ["start"] or not isinstance(data["start"], int):
+    if list(data) != ["start"] or not isinstance(data["start"], int):
         raise InputError(
             "generate_cursor request body must have the format "
             '{"start": <Unix timestamp> (seconds)}'

@@ -77,6 +77,8 @@ def test_iphone_through_exchange(db, default_account):
     assert ev.end == arrow.get(2014, 12, 27, 16, 0)
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_event_update(db, default_account, message):
     add_fake_calendar(
         db.session, default_account.namespace.id, name="Emailed events", read_only=True
@@ -120,7 +122,6 @@ def test_event_update(db, default_account, message):
 # This test checks that:
 # 1. we're processing invites we've sent to ourselves.
 # 2. update only update events in the "emailed events" calendar.
-@pytest.mark.only
 def test_self_sent_update(db, default_account, message):
 
     # Create the calendars
@@ -180,6 +181,8 @@ def test_self_sent_update(db, default_account, message):
             )
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_recurring_ical(db, default_account):
     with open(absolute_path(FIXTURES + "gcal_recur.ics")) as fd:
         ics_data = fd.read()
@@ -249,6 +252,8 @@ def test_multiple_events(db, default_account):
     assert ev1.start == arrow.get(2015, 3, 17, 0, 0)
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_icalendar_import(db, generic_account, message):
     add_fake_calendar(
         db.session, generic_account.namespace.id, name="Emailed events", read_only=True

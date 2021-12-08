@@ -38,91 +38,82 @@ class Blob(object):
 
             from inbox.models.block import Block
 
-            if isinstance(self, Block):
-                if self.parts:
-                    # This block is an attachment of a message that was
-                    # deleted. We will attempt to fetch the raw
-                    # message and parse out the needed attachment.
+            if isinstance(self, Block) and self.parts:
+                # This block is an attachment of a message that was
+                # deleted. We will attempt to fetch the raw
+                # message and parse out the needed attachment.
 
-                    message = self.parts[0].message  # only grab one
-                    account = message.namespace.account
+                message = self.parts[0].message  # only grab one
+                account = message.namespace.account
 
-                    statsd_string = "api.direct_fetching.{}.{}".format(
-                        account.provider, account.id
-                    )
+                statsd_string = "api.direct_fetching.{}.{}".format(
+                    account.provider, account.id
+                )
 
-                    # Try to fetch the message from S3 first.
+                # Try to fetch the message from S3 first.
+                with statsd_client.timer("{}.blockstore_latency".format(statsd_string)):
+                    raw_mime = blockstore.get_from_blockstore(message.data_sha256)
+
+                # If it's not there, get it from the provider.
+                if raw_mime is None:
+                    statsd_client.incr("{}.cache_misses".format(statsd_string))
+
                     with statsd_client.timer(
-                        "{}.blockstore_latency".format(statsd_string)
+                        "{}.provider_latency".format(statsd_string)
                     ):
-                        raw_mime = blockstore.get_from_blockstore(message.data_sha256)
+                        raw_mime = get_raw_from_provider(message)
 
-                    # If it's not there, get it from the provider.
-                    if raw_mime is None:
-                        statsd_client.incr("{}.cache_misses".format(statsd_string))
+                    msg_sha256 = sha256(raw_mime).hexdigest()
 
-                        with statsd_client.timer(
-                            "{}.provider_latency".format(statsd_string)
-                        ):
-                            raw_mime = get_raw_from_provider(message)
+                    # Cache the raw message in the blockstore so that
+                    # we don't have to fetch it over and over.
 
-                        msg_sha256 = sha256(raw_mime).hexdigest()
+                    with statsd_client.timer(
+                        "{}.blockstore_save_latency".format(statsd_string)
+                    ):
+                        blockstore.save_to_blockstore(msg_sha256, raw_mime)
+                else:
+                    # We found it in the blockstore --- report this.
+                    statsd_client.incr("{}.cache_hits".format(statsd_string))
 
-                        # Cache the raw message in the blockstore so that
-                        # we don't have to fetch it over and over.
-
-                        with statsd_client.timer(
-                            "{}.blockstore_save_latency".format(statsd_string)
-                        ):
-                            blockstore.save_to_blockstore(msg_sha256, raw_mime)
-                    else:
-                        # We found it in the blockstore --- report this.
-                        statsd_client.incr("{}.cache_hits".format(statsd_string))
-
-                    # If we couldn't find it there, give up.
-                    if raw_mime is None:
-                        log.error(
-                            "Don't have raw message for hash {}".format(
-                                message.data_sha256
-                            )
-                        )
-                        return None
-
-                    parsed = mime.from_string(raw_mime)
-                    if parsed is not None:
-                        for mimepart in parsed.walk(
-                            with_self=parsed.content_type.is_singlepart()
-                        ):
-                            if mimepart.content_type.is_multipart():
-                                continue  # TODO should we store relations?
-
-                            data = mimepart.body
-
-                            if isinstance(data, unicode):
-                                data = data.encode("utf-8", "strict")
-
-                            if data is None:
-                                continue
-
-                            # Found it!
-                            if sha256(data).hexdigest() == self.data_sha256:
-                                log.info(
-                                    "Found subpart with hash {}".format(
-                                        self.data_sha256
-                                    )
-                                )
-
-                                with statsd_client.timer(
-                                    "{}.blockstore_save_latency".format(statsd_string)
-                                ):
-                                    blockstore.save_to_blockstore(
-                                        self.data_sha256, data
-                                    )
-                                    return data
+                # If we couldn't find it there, give up.
+                if raw_mime is None:
                     log.error(
-                        "Couldn't find the attachment in the raw message",
-                        message_id=message.id,
+                        "Don't have raw message for hash {}".format(message.data_sha256)
                     )
+                    return None
+
+                parsed = mime.from_string(raw_mime)
+                if parsed is not None:
+                    for mimepart in parsed.walk(
+                        with_self=parsed.content_type.is_singlepart()
+                    ):
+                        if mimepart.content_type.is_multipart():
+                            continue  # TODO should we store relations?
+
+                        data = mimepart.body
+
+                        if data is None:
+                            continue
+
+                        if not isinstance(data, bytes):
+                            data = data.encode("utf-8", "strict")
+
+                        # Found it!
+                        if sha256(data).hexdigest() == self.data_sha256:
+                            log.info(
+                                "Found subpart with hash {}".format(self.data_sha256)
+                            )
+
+                            with statsd_client.timer(
+                                "{}.blockstore_save_latency".format(statsd_string)
+                            ):
+                                blockstore.save_to_blockstore(self.data_sha256, data)
+                                return data
+                log.error(
+                    "Couldn't find the attachment in the raw message",
+                    message_id=message.id,
+                )
 
             log.error("No data returned!")
             return value
@@ -135,7 +126,7 @@ class Blob(object):
     @data.setter
     def data(self, value):
         assert value is not None
-        assert type(value) is not unicode
+        assert isinstance(value, bytes)
 
         # Cache value in memory. Otherwise message-parsing incurs a disk or S3
         # roundtrip.

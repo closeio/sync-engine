@@ -1,11 +1,23 @@
 import glob
 import os
+import re
 
 from setuptools import find_packages, setup
 
+# approach stolen from sqlalchemy
+with open(
+    os.path.join(os.path.dirname(__file__), "inbox", "__init__.py")
+) as version_file:
+    VERSION = (
+        re.compile(r""".*VERSION = ["'](.*?)['"]""", re.S)
+        .match(version_file.read())
+        .group(1)
+    )
+
+
 setup(
     name="inbox-sync",
-    version="17.3.8",  # Release Mar 8, 2017
+    version=VERSION,
     packages=find_packages(),
     install_requires=[],
     include_package_data=True,
@@ -30,35 +42,10 @@ setup(
     ],
     scripts=[
         "bin/inbox-start",
-        "bin/inbox-console",
-        "bin/inbox-auth",
-        "bin/delete-account-data",
-        "bin/delete-marked-accounts",
-        "bin/create-db",
-        "bin/create-test-db",
-        "bin/verify-db",
-        "bin/migrate-db",
-        "bin/stamp-db",
         "bin/inbox-api",
-        "bin/get-id",
-        "bin/get-object",
-        "bin/set-throttled",
         "bin/syncback-service",
-        "bin/contact-search-service",
-        "bin/contact-search-backfill",
-        "bin/contact-search-delete-index",
-        "bin/backfix-generic-imap-separators.py",
-        "bin/backfix-duplicate-categories.py",
-        "bin/correct-autoincrements",
-        "bin/update-categories",
-        "bin/detect-missing-sync-host",
         "bin/purge-transaction-log",
-        "bin/mysql-prompt",
-        "bin/unschedule-account-syncs",
-        "bin/syncback-stats",
-        "bin/set-desired-host",
-        "bin/get-accounts-for-host",
-        "bin/restart-forgotten-accounts",
+        "bin/delete-marked-accounts",
     ],
     # See:
     # https://pythonhosted.org/setuptools/setuptools.html#dynamic-discovery-of-services-and-plugins

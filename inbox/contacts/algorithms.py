@@ -1,5 +1,11 @@
+from __future__ import division
+
 import datetime
+from builtins import range
 from collections import defaultdict
+
+from future.utils import iteritems
+from past.utils import old_div
 
 """
 This file currently contains algorithms for the contacts/rankings endpoint
@@ -27,7 +33,7 @@ SOCIAL_MOLECULE_LIMIT = 5000  # Give up if there are too many messages
 
 def _get_message_weight(now, message_date):
     timediff = now - message_date
-    weight = 1 - (timediff.total_seconds() / LOOKBACK_TIME)
+    weight = 1 - (old_div(timediff.total_seconds(), LOOKBACK_TIME))
     return max(weight, MIN_MESSAGE_WEIGHT)
 
 
@@ -35,10 +41,11 @@ def _jaccard_similarity(set1, set2):
     return len(set1.intersection(set2)) / float(len(set1.union(set2)))
 
 
-def _get_participants(msg, excluded_emails=[]):
+def _get_participants(msg, excluded_emails=None):
     """Returns an alphabetically sorted list of
     emails addresses that msg was sent to (including cc and bcc)
     """
+    excluded_emails = excluded_emails or []
     participants = msg.to_addr + msg.cc_addr + msg.bcc_addr
     return sorted(
         list(
@@ -78,7 +85,7 @@ def calculate_contact_scores(messages, time_dependent=True):
         else:
             weight = 1
         recipients = message.to_addr + message.cc_addr + message.bcc_addr
-        for (name, email) in recipients:
+        for _, email in recipients:
             res[email] += weight
     return res
 
@@ -130,7 +137,7 @@ def calculate_group_scores(messages, user_email):
     # Filter out infrequent molecules
     molecules_list = [
         (set(emails), set(msgs))
-        for (emails, msgs) in molecules_dict.iteritems()
+        for emails, msgs in iteritems(molecules_dict)
         if get_message_list_weight(msgs) >= MIN_MESSAGE_COUNT
     ]
 
@@ -148,9 +155,9 @@ def calculate_group_scores(messages, user_email):
 # Helper functions for calculating group scores
 def _expand_molecule_pool(molecules_dict):
     mditems = [(set(g), msgs) for (g, msgs) in molecules_dict.items()]
-    for i in xrange(len(mditems)):
+    for i in range(len(mditems)):
         g1, m1 = mditems[i]
-        for j in xrange(i, len(mditems)):
+        for j in range(i, len(mditems)):
             g2, m2 = mditems[j]
             new_molecule = tuple(sorted(list(g1.intersection(g2))))
             if len(new_molecule) >= MIN_GROUP_SIZE:
@@ -164,19 +171,18 @@ def _subsume_molecules(molecules_list, get_message_list_weight):
     is_subsumed = [False] * len(molecules_list)
     mol_weights = [get_message_list_weight(m) for (_, m) in molecules_list]
 
-    for i in xrange(1, len(molecules_list)):
+    for i in range(1, len(molecules_list)):
         g1, m1 = molecules_list[i]  # Smaller group
         m1_size = mol_weights[i]
-        for j in xrange(i):
+        for j in range(i):
             if is_subsumed[j]:
                 continue
             g2, m2 = molecules_list[j]  # Bigger group
             m2_size = mol_weights[j]
             if g1.issubset(g2):
-                sharing_error = (
-                    (len(g2) - len(g1))
-                    * (m1_size - m2_size)
-                    / (1.0 * (len(g2) * m1_size))
+                sharing_error = old_div(
+                    (len(g2) - len(g1)) * (m1_size - m2_size),
+                    (1.0 * (len(g2) * m1_size)),
                 )
                 if sharing_error < SELF_IDENTITY_THRESHOLD:
                     is_subsumed[i] = True
@@ -191,8 +197,8 @@ def _combine_similar_molecules(molecules_list):
     while new_guys_start_idx < len(molecules_list):
         combined = [False] * len(molecules_list)
         new_guys = []
-        for j in xrange(new_guys_start_idx, len(molecules_list)):
-            for i in xrange(0, j):
+        for j in range(new_guys_start_idx, len(molecules_list)):
+            for i in range(0, j):
                 if combined[i]:
                     continue
                 (g1, m1), (g2, m2) = molecules_list[i], molecules_list[j]

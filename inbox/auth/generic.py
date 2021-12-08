@@ -1,5 +1,6 @@
 import datetime
 import getpass
+from builtins import input
 
 import attr
 from imapclient import IMAPClient
@@ -88,17 +89,17 @@ class GenericAuthHandler(AuthHandler):
     def interactive_auth(self, email_address):
         response = dict(email=email_address)
 
-        imap_server_host = raw_input("IMAP server host: ").strip()
-        imap_server_port = raw_input("IMAP server port: ").strip() or 993
+        imap_server_host = input("IMAP server host: ").strip()
+        imap_server_port = input("IMAP server port: ").strip() or 993
         imap_um = "IMAP username (empty for same as email address): "
-        imap_user = raw_input(imap_um).strip() or email_address
+        imap_user = input(imap_um).strip() or email_address
         imap_pwm = "IMAP password for {0}: "
         imap_p = getpass.getpass(imap_pwm.format(email_address))
 
-        smtp_server_host = raw_input("SMTP server host: ").strip()
-        smtp_server_port = raw_input("SMTP server port: ").strip() or 587
+        smtp_server_host = input("SMTP server host: ").strip()
+        smtp_server_port = input("SMTP server port: ").strip() or 587
         smtp_um = "SMTP username (empty for same as email address): "
-        smtp_user = raw_input(smtp_um).strip() or email_address
+        smtp_user = input(smtp_um).strip() or email_address
         smtp_pwm = "SMTP password for {0} (empty for same as IMAP): "
         smtp_p = getpass.getpass(smtp_pwm.format(email_address)) or imap_p
 

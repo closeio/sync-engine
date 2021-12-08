@@ -1,5 +1,6 @@
 import random
 import uuid
+from builtins import range
 from datetime import datetime, timedelta
 
 import pytest
@@ -64,7 +65,7 @@ class TestTransactionDeletion:
         create_transaction(db, now - timedelta(days=30), default_namespace.id)
 
         # Transactions older than 30 days should be deleted
-        for i in xrange(10):
+        for i in range(10):
             create_transaction(db, now - timedelta(days=31 + i), default_namespace.id)
 
         return t0

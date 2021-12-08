@@ -25,7 +25,9 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 
 import gevent
+from future.utils import iteritems
 from gevent.lock import Semaphore
+from past.builtins import long
 from sqlalchemy.orm import joinedload, load_only
 
 from inbox.logging import get_logger
@@ -317,9 +319,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 msg_uids = crispin_client.all_uids()
                 mapping = {
                     g_msgid: msg_uid
-                    for msg_uid, g_msgid in crispin_client.g_msgids(
-                        msg_uids
-                    ).iteritems()
+                    for msg_uid, g_msgid in iteritems(crispin_client.g_msgids(msg_uids))
                 }
             imap_uid_entries = (
                 db_session.query(ImapUid)
@@ -441,22 +441,21 @@ class GmailFolderSyncEngine(FolderSyncEngine):
         if not raw_messages:
             return
         new_uids = set()
-        with self.syncmanager_lock:
-            with session_scope(self.namespace_id) as db_session:
-                account = Account.get(self.account_id, db_session)
-                folder = Folder.get(self.folder_id, db_session)
-                raw_messages = self.__deduplicate_message_object_creation(
-                    db_session, raw_messages, account
-                )
-                if not raw_messages:
-                    return 0
+        with self.syncmanager_lock, session_scope(self.namespace_id) as db_session:
+            account = Account.get(self.account_id, db_session)
+            folder = Folder.get(self.folder_id, db_session)
+            raw_messages = self.__deduplicate_message_object_creation(
+                db_session, raw_messages, account
+            )
+            if not raw_messages:
+                return 0
 
-                for msg in raw_messages:
-                    uid = self.create_message(db_session, account, folder, msg)
-                    if uid is not None:
-                        db_session.add(uid)
-                        db_session.commit()
-                        new_uids.add(uid)
+            for msg in raw_messages:
+                uid = self.create_message(db_session, account, folder, msg)
+                if uid is not None:
+                    db_session.add(uid)
+                    db_session.commit()
+                    new_uids.add(uid)
 
         log.debug("Committed new UIDs", new_committed_message_count=len(new_uids))
         # If we downloaded uids, record message velocity (#uid / latency)

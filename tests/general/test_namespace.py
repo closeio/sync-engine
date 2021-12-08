@@ -1,8 +1,13 @@
 from __future__ import print_function
 
+from future import standard_library
+
+standard_library.install_aliases()
 import random
+from builtins import range
 
 import gevent
+import pytest
 from freezegun import freeze_time
 from pytest import fixture
 from requests import Response
@@ -42,7 +47,7 @@ def patch_requests_no_throttle(monkeypatch):
 
 
 def random_range(start, end):
-    return range(random.randrange(start, end))
+    return list(range(random.randrange(start, end)))
 
 
 def add_completely_fake_account(db, email="test@nylas.com"):
@@ -50,15 +55,15 @@ def add_completely_fake_account(db, email="test@nylas.com"):
     calendar = add_fake_calendar(db.session, fake_account.namespace.id)
     for i in random_range(1, 10):
         add_fake_event(
-            db.session, fake_account.namespace.id, calendar=calendar, title="%s" % i
+            db.session, fake_account.namespace.id, calendar=calendar, title=str(i)
         )
 
     # Add fake Threads, Messages and ImapUids.
     folder = add_fake_folder(db.session, fake_account)
-    for i in random_range(1, 4):
+    for _ in random_range(1, 4):
         th = add_fake_thread(db.session, fake_account.namespace.id)
 
-        for j in random_range(1, 3):
+        for _ in random_range(1, 3):
             msg = add_fake_msg_with_calendar_part(
                 db.session, fake_account, "fake part", thread=th
             )
@@ -67,7 +72,7 @@ def add_completely_fake_account(db, email="test@nylas.com"):
 
             for k in random_range(1, 2):
                 add_fake_imapuid(
-                    db.session, fake_account.id, msg, folder, int("%s%s" % (msg.id, k))
+                    db.session, fake_account.id, msg, folder, int(str(msg.id) + str(k))
                 )
     # Add fake contacts
     for i in random_range(1, 5):
@@ -113,6 +118,8 @@ def test_get_accounts_to_delete(db):
     assert len(accounts_to_delete) == 4
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_bulk_namespace_deletion(db):
     from inbox.models import Account
     from inbox.models.util import batch_delete_namespaces, get_accounts_to_delete

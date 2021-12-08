@@ -47,7 +47,7 @@ $ sudo dpkg-reconfigure --frontend noninteractive tzdata
 
 
 def check_tz():
-    if time.tzname[time.daylight] != "UTC":
+    if time.tzname[time.daylight] not in ["UTC", "GMT"]:
         sys.exit(_TZ_ERROR_TEXT)
 
 
@@ -68,7 +68,7 @@ def load_overrides(file_path, loaded_config=config):
             return
         assert isinstance(overrides, dict), "overrides must be dictionary"
         loaded_config.update(overrides)
-        log.debug("Imported config overrides {}".format(overrides.keys()))
+        log.debug("Imported config overrides {}".format(list(overrides)))
 
 
 def preflight():

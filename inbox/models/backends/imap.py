@@ -1,6 +1,8 @@
 import json
 from datetime import datetime
+from typing import List
 
+from future.utils import iteritems
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -126,6 +128,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     g_labels = Column(JSON, default=lambda: [], nullable=True)
 
     def update_flags(self, new_flags):
+        # type: (List[bytes]) -> None
         """
         Sets flag and g_labels values based on the new_flags and x_gm_labels
         parameters. Returns True if any values have changed compared to what we
@@ -133,7 +136,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
         """
         changed = False
-        new_flags = set(new_flags)
+        new_flags = set(flag.decode() for flag in new_flags)
         col_for_flag = {
             u"\\Draft": "is_draft",
             u"\\Seen": "is_seen",
@@ -141,7 +144,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             u"\\Answered": "is_answered",
             u"\\Flagged": "is_flagged",
         }
-        for flag, col in col_for_flag.iteritems():
+        for flag, col in iteritems(col_for_flag):
             prior_flag_value = getattr(self, col)
             new_flag_value = flag in new_flags
             if prior_flag_value != new_flag_value:
@@ -408,7 +411,7 @@ class ImapFolderSyncStatus(MailSyncBase, HasRunState, UpdatedAtMixin, DeletedAtM
         ]
 
         assert isinstance(metrics, dict)
-        for k in metrics.iterkeys():
+        for k in metrics:
             assert k in sync_status_metrics, k
 
         if self._metrics is not None:

@@ -212,7 +212,7 @@ class MockImapConnection(object):
         self.search_args = None
 
     def select_folder(self, name, **_):
-        return {"UIDVALIDITY": 123}
+        return {b"UIDVALIDITY": 123}
 
     def logout(self):
         pass
@@ -262,7 +262,9 @@ def patch_gmail_search_response():
     resp = requests.Response()
     resp.status_code = 200
     resp.elapsed = datetime.timedelta(seconds=22)
-    resp._content = json.dumps({"messages": [{"id": "1"}, {"id": "2"}, {"id": "3"}]})
+    resp._content = json.dumps(
+        {"messages": [{"id": "1"}, {"id": "2"}, {"id": "3"}]}
+    ).encode()
     requests.get = mock.Mock(return_value=resp)
 
 
@@ -389,7 +391,7 @@ def test_imap_message_search(
     else:
         messages = imap_api_client.get_data("/messages/search?" "q=blah%20blah%20blah")
 
-    imap_connection.assert_search(["TEXT", "blah blah blah"])
+    imap_connection.assert_search([b"TEXT", b"blah blah blah"])
     assert_search_result(sorted_imap_messages, messages)
 
 
@@ -413,7 +415,7 @@ def test_imap_thread_search(
     else:
         threads = imap_api_client.get_data("/threads/search?q=blah%20blah%20blah")
 
-    imap_connection.assert_search(["TEXT", "blah blah blah"])
+    imap_connection.assert_search([b"TEXT", b"blah blah blah"])
     assert_search_result(sorted_imap_threads, threads)
 
 
@@ -506,7 +508,7 @@ def test_streaming_search_results(
     assert isinstance(search_client, IMAPSearchClient)
 
     url = "/{}/search/streaming?q=fantastic".format(endpoint)
-    raw_data = imap_api_client.get_raw(url).data
+    raw_data = imap_api_client.get_raw(url).get_data(as_text=True)
     assert len(conn._responses) == 0, "Search should go through both folders"
 
     # The API returns JSON lists separated by '\n'

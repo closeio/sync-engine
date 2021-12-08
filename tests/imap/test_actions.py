@@ -35,16 +35,15 @@ from inbox.util.testutils import mock_imapclient  # noqa
 from tests.util.base import add_fake_category, add_fake_imapuid
 
 
-@pytest.mark.only
 def test_draft_updates(db, default_account, mock_imapclient):
     # Set up folder list
     mock_imapclient._data["Drafts"] = {}
     mock_imapclient._data["Trash"] = {}
     mock_imapclient._data["Sent Mail"] = {}
     mock_imapclient.list_folders = lambda: [
-        (("\\HasNoChildren", "\\Drafts"), "/", "Drafts"),
-        (("\\HasNoChildren", "\\Trash"), "/", "Trash"),
-        (("\\HasNoChildren", "\\Sent"), "/", "Sent Mail"),
+        ((b"\\HasNoChildren", b"\\Drafts"), b"/", "Drafts"),
+        ((b"\\HasNoChildren", b"\\Trash"), b"/", "Trash"),
+        ((b"\\HasNoChildren", b"\\Sent"), b"/", "Sent Mail"),
     ]
 
     pool = writable_connection_pool(default_account.id)
@@ -150,10 +149,10 @@ def test_change_labels(db, default_account, message, folder, mock_imapclient):
             },
         )
         mock_imapclient.add_gmail_labels.assert_called_with(
-            [22], ["mot&APY-rhead", "&A7wDtQPEA6wDvQO,A7kDsQ-"], silent=True
+            [22], [b"mot&APY-rhead", b"&A7wDtQPEA6wDvQO,A7kDsQ-"], silent=True
         )
         mock_imapclient.remove_gmail_labels.assert_called_with(
-            [22], ["\\Inbox"], silent=True
+            [22], [b"\\Inbox"], silent=True
         )
 
 
@@ -198,7 +197,7 @@ def test_folder_crud(db, default_account, mock_imapclient, obj_type):
     assert db.session.query(Category).get(category_id) is None
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def patched_syncback_task(monkeypatch):
     # Ensures 'create_event' actions fail and all others succeed
     def function_for_action(name):

@@ -1,8 +1,11 @@
 """Utilities for validating user input to the API."""
+from builtins import str
+
 import arrow
 from arrow.parser import ParserError
 from flanker.addresslib import address
-from flask.ext.restful import reqparse
+from flask_restful import reqparse
+from past.builtins import basestring
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.api.err import (
@@ -23,8 +26,8 @@ MAX_LIMIT = 1000
 
 
 class ValidatableArgument(reqparse.Argument):
-    def handle_validation_error(self, error):
-        raise InputError(unicode(error))
+    def handle_validation_error(self, error, bundle_errors):
+        raise InputError(str(error))
 
 
 # Custom parameter types
@@ -96,6 +99,9 @@ def offset(value):
 
 
 def valid_public_id(value):
+    if "_" in value:
+        raise InputError(u"Invalid id: {}".format(value))
+
     try:
         # raise ValueError on malformed public ids
         # raise TypeError if an integer is passed in
@@ -123,6 +129,11 @@ def valid_category_type(category_type, rule):
 
 def timestamp(value, key):
     try:
+        try:
+            value = float(value)
+        except ValueError:
+            pass
+
         return arrow.get(value).datetime
     except ValueError:
         raise ValueError("Invalid timestamp value {} for {}".format(value, key))
@@ -301,10 +312,13 @@ def valid_event(event):
 
     valid_when(event["when"])
 
-    if "busy" in event and event.get("busy") is not None:
+    if (
+        "busy" in event
+        and event.get("busy") is not None
+        and not isinstance(event.get("busy"), bool)
+    ):
         # client libraries can send busy: None
-        if not isinstance(event.get("busy"), bool):
-            raise InputError("'busy' must be true or false")
+        raise InputError("'busy' must be true or false")
 
     participants = event.get("participants")
     if participants is None:
@@ -316,11 +330,10 @@ def valid_event(event):
         if not valid_email(p["email"]):
             raise InputError("'{}' is not a valid email".format(p["email"]))
 
-        if "status" in p:
-            if p["status"] not in ("yes", "no", "maybe", "noreply"):
-                raise InputError(
-                    "'participants' status must be one of: " "yes, no, maybe, noreply"
-                )
+        if "status" in p and p["status"] not in ("yes", "no", "maybe", "noreply"):
+            raise InputError(
+                "'participants' status must be one of: " "yes, no, maybe, noreply"
+            )
 
 
 def valid_event_update(event, namespace, db_session):
@@ -334,11 +347,10 @@ def valid_event_update(event, namespace, db_session):
     for p in participants:
         if "email" not in p:
             raise InputError("'participants' must have email")
-        if "status" in p:
-            if p["status"] not in ("yes", "no", "maybe", "noreply"):
-                raise InputError(
-                    "'participants' status must be one of: " "yes, no, maybe, noreply"
-                )
+        if "status" in p and p["status"] not in ("yes", "no", "maybe", "noreply"):
+            raise InputError(
+                "'participants' status must be one of: " "yes, no, maybe, noreply"
+            )
 
 
 def noop_event_update(event, data):

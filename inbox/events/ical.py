@@ -10,8 +10,10 @@ import icalendar
 import pytz
 import requests
 from flanker import mime
+from future.utils import iteritems
 from html2text import html2text
 from icalendar import Calendar as iCalendar
+from past.builtins import unicode
 
 from inbox.config import config
 from inbox.contacts.processing import update_contacts_from_event
@@ -33,7 +35,7 @@ STATUS_MAP = {
     "DECLINED": "no",
     "TENTATIVE": "maybe",
 }
-INVERTED_STATUS_MAP = {value: key for key, value in STATUS_MAP.iteritems()}
+INVERTED_STATUS_MAP = {value: key for key, value in iteritems(STATUS_MAP)}
 
 
 def events_from_ics(namespace, calendar, ics_str):
@@ -150,7 +152,7 @@ def events_from_ics(namespace, calendar, ics_str):
                 # Some providers (e.g: iCloud) don't use the status field.
                 # Instead they use the METHOD field to signal cancellations.
                 method = component.get("method")
-                if method and method.lower() == "cancel":
+                if method and method.lower() == "cancel":  # noqa: SIM114
                     event_status = "cancelled"
                 elif calendar_method and calendar_method.lower() == "cancel":
                     # So, this particular event was not cancelled. Maybe the
@@ -275,7 +277,7 @@ def events_from_ics(namespace, calendar, ics_str):
 
             # We need to distinguish between invites/updates/cancellations
             # and RSVPs.
-            if calendar_method == "REQUEST" or calendar_method == "CANCEL":
+            if calendar_method in ["REQUEST", "CANCEL"]:
                 events["invites"].append(event)
             elif calendar_method == "REPLY":
                 events["rsvps"].append(event)
@@ -443,7 +445,6 @@ def import_attached_events(db_session, account, message):
             RuntimeError,
             AttributeError,
             ValueError,
-            UnboundLocalError,
             LookupError,
             ImportError,
             NameError,
@@ -692,11 +693,14 @@ def rsvp_recipient(event):
     if event.organizer_email not in [None, "None"]:
         return event.organizer_email
 
-    if event.message is not None:
-        if event.message.from_addr is not None and len(event.message.from_addr) == 1:
-            from_addr = event.message.from_addr[0][1]
-            if from_addr is not None and from_addr != "":
-                return from_addr
+    if (
+        event.message is not None
+        and event.message.from_addr is not None
+        and len(event.message.from_addr) == 1
+    ):
+        from_addr = event.message.from_addr[0][1]
+        if from_addr is not None and from_addr != "":
+            return from_addr
 
     return None
 

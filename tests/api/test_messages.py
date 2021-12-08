@@ -92,6 +92,8 @@ bicycle rights. Thundercats kale chips church-key American Apparel.
 
 
 # TODO(emfree) clean up fixture dependencies
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_rfc822_format(stub_message_from_raw, api_client, mime_message):
     """ Test the API response to retreive raw message contents """
     full_path = "/messages/{}".format(stub_message_from_raw.public_id)
@@ -100,6 +102,8 @@ def test_rfc822_format(stub_message_from_raw, api_client, mime_message):
     assert resp.data == get_from_blockstore(stub_message_from_raw.data_sha256)
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_direct_fetching(stub_message_from_raw, api_client, mime_message, monkeypatch):
     # Mark a message as missing and check that we try to
     # fetch it from the remote provider.
@@ -109,7 +113,7 @@ def test_direct_fetching(stub_message_from_raw, api_client, mime_message, monkey
     save_mock = mock.Mock()
     monkeypatch.setattr("inbox.util.blockstore.save_to_blockstore", save_mock)
 
-    raw_mock = mock.Mock(return_value="Return contents")
+    raw_mock = mock.Mock(return_value=b"Return contents")
     monkeypatch.setattr("inbox.s3.backends.gmail.get_gmail_raw_contents", raw_mock)
 
     full_path = "/messages/{}".format(stub_message_from_raw.public_id)
@@ -119,9 +123,11 @@ def test_direct_fetching(stub_message_from_raw, api_client, mime_message, monkey
     for m in [get_mock, save_mock, raw_mock]:
         assert m.called
 
-    assert resp.data == "Return contents"
+    assert resp.data == b"Return contents"
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 @pytest.mark.parametrize("api_version", API_VERSIONS)
 def test_sender_and_participants(stub_message, api_client, api_version):
     headers = dict()
@@ -140,6 +146,8 @@ def test_sender_and_participants(stub_message, api_client, api_version):
     assert "drafts" not in resp_dict
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 @pytest.mark.parametrize("api_version", API_VERSIONS)
 def test_expanded_threads(stub_message, api_client, api_version):
     def _check_json_thread(resp_dict):

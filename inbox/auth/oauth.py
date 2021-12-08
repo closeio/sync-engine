@@ -109,7 +109,7 @@ class OAuthAuthHandler(AuthHandler):
                 "AccountError during AuthAlligator account query",
                 account_id=account.id,
                 error_code=exc.code and exc.code.value,
-                error_message=exc.message,
+                error_message=exc.message,  # noqa: B306
                 retry_in=exc.retry_in,
             )
             if exc.code in (
@@ -249,16 +249,19 @@ class OAuthRequestsWrapper(requests.auth.AuthBase):
 
 
 def _process_imap_exception(exc):
-    if "Lookup failed" in exc.message:
+    message = exc.args[0] if exc.args else ""
+    if "Lookup failed" in message:
         # Gmail is disabled for this apps account
         return ImapSupportDisabledError("gmail_disabled_for_domain")
-    elif "IMAP access is disabled for your domain." in exc.message:
+    elif "IMAP access is disabled for your domain." in message:
         # IMAP is disabled for this domain
         return ImapSupportDisabledError("imap_disabled_for_domain")
-    elif exc.message.startswith("[AUTHENTICATIONFAILED] Invalid credentials (Failure)"):
+    elif message.startswith(  # noqa: SIM114
+        "[AUTHENTICATIONFAILED] Invalid credentials (Failure)"
+    ):
         # Google
         return ImapSupportDisabledError("authentication_failed")
-    elif exc.message.startswith("AUTHENTICATE failed."):
+    elif message.startswith("AUTHENTICATE failed."):
         # Microsoft
         return ImapSupportDisabledError("authentication_failed")
     else:

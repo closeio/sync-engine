@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Sanity-check our construction of a Message object from raw synced data."""
 import datetime
-import pkgutil
+import sys
 
 import pytest
 from flanker import mime
@@ -10,6 +10,7 @@ from flanker import mime
 from inbox.models import Block, Message
 from inbox.util.addr import parse_mimepart_address_header
 from inbox.util.blockstore import get_from_blockstore
+from inbox.util.file import get_data
 
 from tests.util.base import (
     add_fake_thread,
@@ -39,7 +40,7 @@ def create_from_synced(db, account, raw_message):
 def raw_message_with_many_recipients():
     # Message carefully constructed s.t. the length of the serialized 'to'
     # field is 65536.
-    return pkgutil.get_data("tests", "data/raw_message_with_many_recipients.txt")
+    return get_data("tests/data/raw_message_with_many_recipients.txt")
 
 
 @pytest.fixture
@@ -50,49 +51,51 @@ def mime_message_with_bad_date(mime_message):
 
 @pytest.fixture
 def raw_message_with_long_content_id():
-    return pkgutil.get_data("tests", "data/raw_message_with_long_content_id.txt")
+    return get_data("tests/data/raw_message_with_long_content_id.txt")
 
 
 @pytest.fixture
 def raw_message_with_ical_invite():
-    return pkgutil.get_data("tests", "data/raw_message_with_ical_invite.txt")
+    return get_data("tests/data/raw_message_with_ical_invite.txt")
 
 
 @pytest.fixture
 def raw_message_with_bad_attachment():
-    return pkgutil.get_data("tests", "data/raw_message_with_bad_attachment.txt")
+    return get_data("tests/data/raw_message_with_bad_attachment.txt")
 
 
 @pytest.fixture
 def raw_message_with_filename_attachment():
-    return pkgutil.get_data("tests", "data/raw_message_with_filename_attachment.txt")
+    return get_data("tests/data/raw_message_with_filename_attachment.txt")
 
 
 @pytest.fixture
 def raw_message_with_name_attachment():
-    return pkgutil.get_data("tests", "data/raw_message_with_name_attachment.txt")
+    return get_data("tests/data/raw_message_with_name_attachment.txt")
 
 
 @pytest.fixture
 def raw_message_with_inline_name_attachment():
-    return pkgutil.get_data("tests", "data/raw_message_with_inline_attachment.txt")
+    return get_data("tests/data/raw_message_with_inline_attachment.txt")
 
 
 @pytest.fixture
 def raw_message_with_outlook_emoji():
-    return pkgutil.get_data("tests", "data/raw_message_with_outlook_emoji.txt")
+    return get_data("tests/data/raw_message_with_outlook_emoji.txt")
 
 
 @pytest.fixture
 def raw_message_with_outlook_emoji_inline():
-    return pkgutil.get_data("tests", "data/raw_message_with_outlook_emoji_inline.txt")
+    return get_data("tests/data/raw_message_with_outlook_emoji_inline.txt")
 
 
 @pytest.fixture
 def raw_message_with_long_message_id():
-    return pkgutil.get_data("tests", "data/raw_message_with_long_message_id.txt")
+    return get_data("tests/data/raw_message_with_long_message_id.txt")
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_message_from_synced(db, new_message_from_synced, default_namespace):
     thread = add_fake_thread(db.session, default_namespace.id)
     m = new_message_from_synced
@@ -115,6 +118,8 @@ def test_message_from_synced(db, new_message_from_synced, default_namespace):
     assert len(m.parts) == 0
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_save_attachments(db, default_account):
     mime_msg = mime.create.multipart("mixed")
     mime_msg.append(
@@ -126,7 +131,7 @@ def test_save_attachments(db, default_account):
             "application/pdf", "filler", "attached_file.pdf", "attachment"
         ),
     )
-    msg = create_from_synced(db, default_account, mime_msg.to_string())
+    msg = create_from_synced(db, default_account, mime_msg.to_string().encode())
     assert len(msg.parts) == 2
     assert all(part.content_disposition == "attachment" for part in msg.parts)
     assert {part.block.filename for part in msg.parts} == {
@@ -191,7 +196,7 @@ def test_concatenate_parts_for_body(db, default_account):
         mime.create.attachment("image/png", "more filler", disposition="inline"),
         mime.create.text("html", "<html>3rd part</html>"),
     )
-    m = create_from_synced(db, default_account, mime_msg.to_string())
+    m = create_from_synced(db, default_account, mime_msg.to_string().encode())
     assert (
         m.body == "<html>First part</html><html>Second part</html><html>3rd part</html>"
     )
@@ -216,7 +221,7 @@ def test_inline_parts_may_form_body_text(db, default_account):
         ),
         mime.create.attachment("text/plain", "Hello World!", disposition="inline"),
     )
-    m = create_from_synced(db, default_account, mime_msg.to_string())
+    m = create_from_synced(db, default_account, mime_msg.to_string().encode())
     assert m.body == "<html>Hello World!</html>"
     assert len(m.parts) == 0
     assert (
@@ -229,18 +234,18 @@ def test_inline_parts_may_form_body_text(db, default_account):
 
 def test_convert_plaintext_body_to_html(db, default_account):
     mime_msg = mime.create.text("plain", "Hello World!")
-    m = create_from_synced(db, default_account, mime_msg.to_string())
+    m = create_from_synced(db, default_account, mime_msg.to_string().encode())
     assert m.body == "<p>Hello World!</p>"
 
 
 def test_save_parts_without_disposition_as_attachments(db, default_account):
     mime_msg = mime.create.multipart("mixed")
     mime_msg.append(mime.create.attachment("image/png", "filler", disposition=None))
-    m = create_from_synced(db, default_account, mime_msg.to_string())
+    m = create_from_synced(db, default_account, mime_msg.to_string().encode())
     assert len(m.parts) == 1
     assert m.parts[0].content_disposition == "attachment"
     assert m.parts[0].block.content_type == "image/png"
-    assert m.parts[0].block.data == "filler"
+    assert m.parts[0].block.data == b"filler"
     assert (
         db.session.query(Block)
         .filter(Block.namespace_id == default_account.namespace.id)
@@ -256,7 +261,7 @@ def test_handle_long_filenames(db, default_account):
             "image/png", "filler", filename=990 * "A" + ".png", disposition="attachment"
         )
     )
-    m = create_from_synced(db, default_account, mime_msg.to_string())
+    m = create_from_synced(db, default_account, mime_msg.to_string().encode())
     assert len(m.parts) == 1
     saved_filename = m.parts[0].block.filename
     assert len(saved_filename) < 256
@@ -266,7 +271,7 @@ def test_handle_long_filenames(db, default_account):
 
 def test_handle_long_subjects(db, default_account, mime_message):
     mime_message.headers["Subject"] = 4096 * "A"
-    m = create_from_synced(db, default_account, mime_message.to_string())
+    m = create_from_synced(db, default_account, mime_message.to_string().encode())
     assert len(m.subject) < 256
 
 
@@ -281,7 +286,7 @@ def test_dont_use_attached_html_to_form_body(db, default_account):
             filename="attachment.html",
         ),
     )
-    m = create_from_synced(db, default_account, mime_msg.to_string())
+    m = create_from_synced(db, default_account, mime_msg.to_string().encode())
     assert len(m.parts) == 1
     assert m.parts[0].content_disposition == "attachment"
     assert m.parts[0].block.content_type == "text/html"
@@ -388,7 +393,7 @@ def test_handle_bad_content_disposition(
             "image/png", "filler", "attached_image.png", disposition="alternative"
         )
     )
-    m = create_from_synced(db, default_account, mime_message.to_string())
+    m = create_from_synced(db, default_account, mime_message.to_string().encode())
     assert m.namespace_id == default_namespace.id
     assert m.to_addr == [["Alice", "alice@example.com"]]
     assert m.cc_addr == [["Bob", "bob@example.com"]]
@@ -409,7 +414,7 @@ def test_store_full_body_on_parse_error(default_account, mime_message_with_bad_d
         139219,
         "[Gmail]/All Mail",
         received_date,
-        mime_message_with_bad_date.to_string(),
+        mime_message_with_bad_date.to_string().encode(),
     )
     assert get_from_blockstore(m.data_sha256)
 
@@ -431,9 +436,13 @@ def test_parse_body_on_bad_attachment(default_account, raw_message_with_bad_atta
         received_date,
         raw_message_with_bad_attachment,
     )
-    assert m.decode_error
+    if sys.version_info < (3,):
+        assert m.decode_error
     assert "dingy blue carpet" in m.body
-    assert len(m.parts) == 0
+    assert len(m.parts) == 0 if sys.version_info < (3,) else 1
+    if sys.version_info >= (3,):
+        assert m.parts[0].is_attachment
+        assert m.parts[0].block.data.decode() == "EMPTY 😊\n"
 
 
 def test_calculate_snippet():
@@ -499,7 +508,7 @@ def test_sanitize_subject(default_account, mime_message):
         22,
         "[Gmail]/All Mail",
         datetime.datetime.utcnow(),
-        mime_message.to_string(),
+        mime_message.to_string().encode(),
     )
     assert m.subject == u"Your UPS Package was delivered"
 
@@ -556,7 +565,6 @@ def test_attachments_emoji_filename_parsing(
     assert m.attachments[0].content_disposition == "inline"
 
 
-@pytest.mark.only
 def test_long_message_id(db, default_account, thread, raw_message_with_long_message_id):
     m = create_from_synced(db, default_account, raw_message_with_long_message_id)
     m.thread = thread

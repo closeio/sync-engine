@@ -73,7 +73,7 @@ def test_initial_sync(db, generic_account, inbox_folder, mock_imapclient):
 
     saved_message_hashes = {u.message.data_sha256 for u in saved_uids}
     assert saved_message_hashes == {
-        sha256(v["BODY[]"]).hexdigest() for v in uid_dict.values()
+        sha256(v[b"BODY[]"]).hexdigest() for v in uid_dict.values()
     }
 
 
@@ -110,7 +110,7 @@ def test_condstore_flags_refresh(
     )
     uid_dict = uids.example()
     mock_imapclient.add_folder_data(all_mail_folder.name, uid_dict)
-    mock_imapclient.capabilities = lambda: ["CONDSTORE"]
+    mock_imapclient.capabilities = lambda: [b"CONDSTORE"]
 
     folder_sync_engine = FolderSyncEngine(
         default_account.id,
@@ -124,8 +124,11 @@ def test_condstore_flags_refresh(
 
     # Change the labels provided by the mock IMAP server
     for k, v in mock_imapclient._data[all_mail_folder.name].items():
-        v["X-GM-LABELS"] = ("newlabel",)
-        v["MODSEQ"] = (k,)
+        v[b"X-GM-LABELS"] = (b"newlabel",)
+        v[b"MODSEQ"] = (k,)
+
+    with folder_sync_engine.conn_pool.get() as crispin_client:
+        assert crispin_client.condstore_supported()
 
     folder_sync_engine.highestmodseq = 0
     # Don't sleep at the end of poll_impl before returning.
@@ -138,7 +141,7 @@ def test_condstore_flags_refresh(
     assert (
         folder_sync_engine.highestmodseq
         == mock_imapclient.folder_status(all_mail_folder.name, ["HIGHESTMODSEQ"])[
-            "HIGHESTMODSEQ"
+            b"HIGHESTMODSEQ"
         ]
     )
 
@@ -264,11 +267,13 @@ def raise_imap_error(self):
     raise IMAP4.error("Unexpected IDLE response")
 
 
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_gmail_initial_sync(db, default_account, all_mail_folder, mock_imapclient):
     uid_dict = uids.example()
     mock_imapclient.add_folder_data(all_mail_folder.name, uid_dict)
     mock_imapclient.list_folders = lambda: [
-        (("\\All", "\\HasNoChildren",), "/", u"[Gmail]/All Mail")
+        ((b"\\All", b"\\HasNoChildren",), b"/", u"[Gmail]/All Mail")
     ]
     mock_imapclient.idle = lambda: None
     mock_imapclient.idle_check = raise_imap_error
@@ -297,8 +302,8 @@ def test_gmail_message_deduplication(
     uid_values = uid_data.example()
 
     mock_imapclient.list_folders = lambda: [
-        (("\\All", "\\HasNoChildren",), "/", u"[Gmail]/All Mail"),
-        (("\\Trash", "\\HasNoChildren",), "/", u"[Gmail]/Trash"),
+        ((b"\\All", b"\\HasNoChildren",), b"/", u"[Gmail]/All Mail"),
+        ((b"\\Trash", b"\\HasNoChildren",), b"/", u"[Gmail]/Trash"),
     ]
     mock_imapclient.idle = lambda: None
     mock_imapclient.add_folder_data(all_mail_folder.name, {uid: uid_values})
@@ -338,7 +343,7 @@ def test_gmail_message_deduplication(
         db.session.query(Message)
         .filter(
             Message.namespace_id == default_account.namespace.id,
-            Message.g_msgid == uid_values["X-GM-MSGID"],
+            Message.g_msgid == uid_values[b"X-GM-MSGID"],
         )
         .count()
         == 1
@@ -352,8 +357,8 @@ def test_imap_message_deduplication(
     uid_values = uid_data.example()
 
     mock_imapclient.list_folders = lambda: [
-        (("\\All", "\\HasNoChildren",), "/", u"/Inbox"),
-        (("\\Trash", "\\HasNoChildren",), "/", u"/Trash"),
+        ((b"\\All", b"\\HasNoChildren",), b"/", u"/Inbox"),
+        ((b"\\Trash", b"\\HasNoChildren",), b"/", u"/Trash"),
     ]
     mock_imapclient.idle = lambda: None
     mock_imapclient.add_folder_data(inbox_folder.name, {uid: uid_values})
@@ -389,7 +394,7 @@ def test_imap_message_deduplication(
     ).all()
 
     # used to uniquely ID messages
-    body_sha = sha256(uid_values["BODY[]"]).hexdigest()
+    body_sha = sha256(uid_values[b"BODY[]"]).hexdigest()
 
     assert (
         db.session.query(Message)

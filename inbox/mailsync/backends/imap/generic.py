@@ -65,6 +65,7 @@ from __future__ import division
 import imaplib
 import time
 from datetime import datetime, timedelta
+from typing import Any, Dict
 
 import gevent
 from gevent import Greenlet
@@ -443,13 +444,11 @@ class FolderSyncEngine(Greenlet):
             change_poller = gevent.spawn(self.poll_for_changes)
             bind_context(change_poller, "changepoller", self.account_id, self.folder_id)
             uids = sorted(new_uids, reverse=True)
-            count = 0
-            for uid in uids:
+            for count, uid in enumerate(uids, start=1):
                 # The speedup from batching appears to be less clear for
                 # non-Gmail accounts, so for now just download one-at-a-time.
                 self.download_and_commit_uids(crispin_client, [uid])
                 self.heartbeat_status.publish()
-                count += 1
                 if throttled and count >= THROTTLE_COUNT:
                     # Throttled accounts' folders sync at a rate of
                     # 1 message/ minute, after the first approx. THROTTLE_COUNT
@@ -481,9 +480,11 @@ class FolderSyncEngine(Greenlet):
                 except Exception as exc:
                     # With some servers we get e.g.
                     # 'Unexpected IDLE response: * FLAGS  (...)'
-                    if isinstance(exc, imaplib.IMAP4.error) and exc.message.startswith(
-                        "Unexpected IDLE response"
-                    ):
+                    if isinstance(exc, imaplib.IMAP4.error):
+                        message = exc.args[0] if exc.args else ""
+                        if not message.startswith("Unexpected IDLE response"):
+                            raise
+
                         log.info("Error initiating IDLE, not idling", error=exc)
                         try:
                             # Still have to take the connection out of IDLE
@@ -634,17 +635,16 @@ class FolderSyncEngine(Greenlet):
             return 0
 
         new_uids = set()
-        with self.syncmanager_lock:
-            with session_scope(self.namespace_id) as db_session:
-                account = Account.get(self.account_id, db_session)
-                folder = Folder.get(self.folder_id, db_session)
-                for msg in raw_messages:
-                    uid = self.create_message(db_session, account, folder, msg)
-                    if uid is not None:
-                        db_session.add(uid)
-                        db_session.flush()
-                        new_uids.add(uid)
-                db_session.commit()
+        with self.syncmanager_lock, session_scope(self.namespace_id) as db_session:
+            account = Account.get(self.account_id, db_session)
+            folder = Folder.get(self.folder_id, db_session)
+            for msg in raw_messages:
+                uid = self.create_message(db_session, account, folder, msg)
+                if uid is not None:
+                    db_session.add(uid)
+                    db_session.flush()
+                    new_uids.add(uid)
+            db_session.commit()
 
         log.debug("Committed new UIDs", new_committed_message_count=len(new_uids))
         # If we downloaded uids, record message velocity (#uid / latency)
@@ -711,7 +711,7 @@ class FolderSyncEngine(Greenlet):
         try:
             remote_uidnext = crispin_client.conn.folder_status(
                 self.folder_name, ["UIDNEXT"]
-            ).get("UIDNEXT")
+            ).get(b"UIDNEXT")
         except ValueError:
             # Work around issue where ValueError is raised on parsing STATUS
             # response.
@@ -719,10 +719,11 @@ class FolderSyncEngine(Greenlet):
             remote_uidnext = None
         except imaplib.IMAP4.error as e:
             # TODO: match with CrispinClient.select_folder
+            message = e.args[0] if e.args else ""
             if (
-                "[NONEXISTENT]" in e.message
-                or "does not exist" in e.message
-                or "doesn't exist" in e.message
+                "[NONEXISTENT]" in message
+                or "does not exist" in message
+                or "doesn't exist" in message
             ):
                 raise FolderMissingError()
             else:
@@ -752,7 +753,9 @@ class FolderSyncEngine(Greenlet):
     def condstore_refresh_flags(self, crispin_client):
         new_highestmodseq = crispin_client.conn.folder_status(
             self.folder_name, ["HIGHESTMODSEQ"]
-        )["HIGHESTMODSEQ"]
+        )[
+            b"HIGHESTMODSEQ"
+        ]  # type: int
         # Ensure that we have an initial highestmodseq value stored before we
         # begin polling for changes.
         if self.highestmodseq is None:
@@ -886,11 +889,10 @@ class FolderSyncEngine(Greenlet):
         expunged_uids = set(local_uids).difference(flags.keys())
         with self.syncmanager_lock:
             common.remove_deleted_uids(self.account_id, self.folder_id, expunged_uids)
-        with self.syncmanager_lock:
-            with session_scope(self.namespace_id) as db_session:
-                common.update_metadata(
-                    self.account_id, self.folder_id, self.folder_role, flags, db_session
-                )
+        with self.syncmanager_lock, session_scope(self.namespace_id) as db_session:
+            common.update_metadata(
+                self.account_id, self.folder_id, self.folder_role, flags, db_session
+            )
         self.flags_fetch_results[max_uids] = (local_uids, flags)
 
     def check_uid_changes(self, crispin_client):
@@ -976,7 +978,7 @@ class FolderSyncEngine(Greenlet):
     def uidvalidity_cb(self, account_id, folder_name, select_info):
         assert folder_name == self.folder_name
         assert account_id == self.account_id
-        selected_uidvalidity = select_info["UIDVALIDITY"]
+        selected_uidvalidity = select_info[b"UIDVALIDITY"]
         is_valid = self.uidvalidity is None or selected_uidvalidity <= self.uidvalidity
         if not is_valid:
             raise UidInvalid(
@@ -997,13 +999,14 @@ class UidInvalid(Exception):
 # This version is elsewhere in the codebase, so keep it for now
 # TODO(emfree): clean this up.
 def uidvalidity_cb(account_id, folder_name, select_info):
+    # type: (int, str, Dict[bytes, Any]) -> Dict[bytes, Any]
     assert (
         folder_name is not None and select_info is not None
     ), "must start IMAP session before verifying UIDVALIDITY"
     with session_scope(account_id) as db_session:
         saved_folder_info = common.get_folder_info(account_id, db_session, folder_name)
         saved_uidvalidity = or_none(saved_folder_info, lambda i: i.uidvalidity)
-    selected_uidvalidity = select_info["UIDVALIDITY"]
+    selected_uidvalidity = select_info[b"UIDVALIDITY"]
     if saved_folder_info:
         is_valid = (
             saved_uidvalidity is None or selected_uidvalidity <= saved_uidvalidity

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa: F401,F811
+from builtins import str
+
 from tests.util.base import event
 
 
@@ -25,7 +27,7 @@ def test_invite_generation(event, default_account):
                 attendees = [attendees]
 
             for attendee in attendees:
-                email = unicode(attendee)
+                email = str(attendee)
                 # strip mailto: if it exists
                 if email.lower().startswith("mailto:"):
                     email = email[7:]

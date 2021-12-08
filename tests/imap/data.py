@@ -27,30 +27,31 @@ def build_mime_message(from_, to, cc, bcc, subject, body):
     msg.headers["To"] = _build_address_header(to)
     msg.headers["Cc"] = _build_address_header(cc)
     msg.headers["Bcc"] = _build_address_header(bcc)
-    return msg.to_string()
+    return msg.to_string().encode()
 
 
 def build_uid_data(internaldate, flags, body, g_labels, g_msgid, modseq):
     return {
-        "INTERNALDATE": internaldate,
-        "FLAGS": flags,
-        "BODY[]": body,
-        "RFC822.SIZE": len(body),
-        "X-GM-LABELS": g_labels,
-        "X-GM-MSGID": g_msgid,
-        "X-GM-THRID": g_msgid,  # For simplicity
-        "MODSEQ": modseq,
+        b"INTERNALDATE": internaldate,
+        b"FLAGS": flags,
+        b"BODY[]": body,
+        b"RFC822.SIZE": len(body),
+        b"X-GM-LABELS": g_labels,
+        b"X-GM-MSGID": g_msgid,
+        b"X-GM-THRID": g_msgid,  # For simplicity
+        b"MODSEQ": (modseq,),
     }
 
 
 # We don't want to worry about whacky encodings or pathologically long data
 # here, so just generate some basic, sane ASCII text.
 basic_text = s.text(string.ascii_letters, min_size=1, max_size=64)
+short_text = s.text(string.ascii_letters, min_size=1, max_size=32)
 
 
 # An email address of the form 'foo@bar'.
 address = s.builds(
-    lambda localpart, domain: "{}@{}".format(localpart, domain), basic_text, basic_text
+    lambda localpart, domain: "{}@{}".format(localpart, domain), short_text, short_text
 )
 
 
@@ -74,9 +75,9 @@ randint = s.integers(min_value=0, max_value=1 << 63)
 uid_data = s.builds(
     build_uid_data,
     s.datetimes(),
-    s.sampled_from([(), ("\\Seen",)]),
+    s.sampled_from([(), (b"\\Seen",)]),
     mime_message,
-    s.sampled_from([(), ("\\Inbox",)]),
+    s.sampled_from([(), (b"\\Inbox",)]),
     randint,
     randint,
 )

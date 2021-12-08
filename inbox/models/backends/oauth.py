@@ -3,6 +3,7 @@ Generic OAuth class that provides abstraction for access and
 refresh tokens.
 """
 from datetime import datetime, timedelta
+from typing import Union
 
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.ext.declarative import declared_attr
@@ -45,25 +46,33 @@ class OAuthAccount(object):
 
     @declared_attr
     def secret(cls):
-        return relationship("Secret", cascade="all", uselist=False, lazy="joined")
+        return relationship(
+            "Secret",
+            cascade="all",
+            uselist=False,
+            lazy="joined",
+            foreign_keys=[cls.refresh_token_id],
+        )
 
     @property
     def refresh_token(self):
+        # type: () -> str
         if not self.secret:
             return None
         if self.secret.type == SecretType.Token.value:
-            return self.secret.secret
+            return self.secret.secret.decode("utf-8")
         else:
             raise ValueError("Invalid secret type.")
 
     @refresh_token.setter
     def refresh_token(self, value):
+        # type: (Union[str, bytes]) -> None
         # Must be a valid UTF-8 byte sequence without NULL bytes.
-        if isinstance(value, unicode):
+        if not isinstance(value, bytes):
             value = value.encode("utf-8")
 
         try:
-            unicode(value, "utf-8")
+            value.decode("utf-8")
         except UnicodeDecodeError:
             raise ValueError("Invalid refresh_token")
 
@@ -73,6 +82,7 @@ class OAuthAccount(object):
         self.set_secret(SecretType.Token, value)
 
     def set_secret(self, secret_type, secret_value):
+        # type: (SecretType, bytes) -> None
         if not self.secret:
             self.secret = Secret()
 

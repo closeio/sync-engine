@@ -114,13 +114,13 @@ def _is_log_in_same_fn_scope(exc_tb):
     """
     cur_stack = traceback.extract_stack()
     calling_fn = None
-    for fname, line_num, fn_name, code in reversed(cur_stack):
+    for _, _, fn_name, code in reversed(cur_stack):
         if code and re.search(r"log\.(error|exception)", code):
             calling_fn = fn_name
             break
 
     exc_tb_stack = traceback.extract_tb(exc_tb)
-    for fname, line_num, fn_name, code in exc_tb_stack:
+    for _, _, fn_name, _ in exc_tb_stack:
         if fn_name == calling_fn:
             return True
     return False
@@ -196,8 +196,8 @@ def _safe_encoding_renderer(_, __, event_dict):
     """
     for key in event_dict:
         entry = event_dict[key]
-        if isinstance(entry, str):
-            event_dict[key] = unicode(entry, encoding="utf-8", errors="replace")
+        if isinstance(entry, bytes):
+            event_dict[key] = entry.decode(encoding="utf-8", errors="replace")
 
     return event_dict
 
@@ -251,6 +251,29 @@ def json_excepthook(etype, value, tb):
     log.error(**create_error_log_context((etype, value, tb)))
 
 
+class ConditionalFormatter(logging.Formatter):
+    def format(self, record):
+        if (
+            record.name == "__main__"
+            or record.name == "inbox"
+            or record.name.startswith("inbox.")
+            or record.name == "gunicorn"
+            or record.name.startswith("gunicorn.")
+            or record.name == "gevent.pywsgi"
+            or record.name == "werkzeug"
+        ):
+            style = "%(message)s"
+        else:
+            style = "%(name)s - %(levelname)s: %(message)s"
+
+        if sys.version_info < (3,):
+            self._fmt = style
+        else:
+            self._style._fmt = style
+
+        return super(ConditionalFormatter, self).format(record)
+
+
 def configure_logging(log_level=None):
     """ Idempotently configure logging.
 
@@ -287,7 +310,7 @@ def configure_logging(log_level=None):
             },
         )
     else:
-        formatter = logging.Formatter("%(message)s")
+        formatter = ConditionalFormatter()
     tty_handler.setFormatter(formatter)
     tty_handler._nylas = True
 
@@ -300,6 +323,13 @@ def configure_logging(log_level=None):
             root_logger.removeHandler(handler)
     root_logger.addHandler(tty_handler)
     root_logger.setLevel(log_level)
+
+    imapclient_logger = logging.getLogger("imapclient")
+    imapclient_logger.setLevel(logging.ERROR)
+    urllib_logger = logging.getLogger("urllib3.connectionpool")
+    urllib_logger.setLevel(logging.ERROR)
+    sqlalchemy_pool_logger = logging.getLogger("inbox.sqlalchemy_ext")
+    sqlalchemy_pool_logger.setLevel(logging.ERROR)
 
 
 def create_error_log_context(exc_info):
@@ -317,15 +347,18 @@ def create_error_log_context(exc_info):
     if hasattr(exc_value, "code"):
         out["error_code"] = exc_value.code
 
-    if hasattr(exc_value, "message"):
-        out["error_message"] = exc_value.message
+    if hasattr(exc_value, "args") and hasattr(exc_value.args, "__getitem__"):
+        try:
+            out["error_message"] = exc_value.args[0]
+        except IndexError:
+            pass
 
     try:
         if exc_tb:
             tb = safe_format_exception(exc_type, exc_value, exc_tb)
             if tb:
                 out["error_traceback"] = tb
-    except:
+    except Exception:
         pass
 
     return out

@@ -1,9 +1,14 @@
 """Provide Google Calendar events."""
+from future import standard_library
+
+standard_library.install_aliases()
 import datetime
 import json
 import random
 import time
-import urllib
+import urllib.error
+import urllib.parse
+import urllib.request
 import uuid
 
 import arrow
@@ -107,7 +112,7 @@ class GoogleEventsProvider(object):
             try:
                 parsed = parse_event_response(item, read_only_calendar)
                 updates.append(parsed)
-            except arrow.parser.ParserError:
+            except (arrow.parser.ParserError, ValueError):
                 log.warning("Skipping unparseable event", exc_info=True, raw=item)
 
         return updates
@@ -136,7 +141,7 @@ class GoogleEventsProvider(object):
             sync_from_time = datetime.datetime.isoformat(sync_from_time) + "Z"
 
         url = "https://www.googleapis.com/calendar/v3/" "calendars/{}/events".format(
-            urllib.quote(calendar_uid)
+            urllib.parse.quote(calendar_uid)
         )
         try:
             return self._get_resource_list(url, updatedMin=sync_from_time)
@@ -226,7 +231,7 @@ class GoogleEventsProvider(object):
         """ Makes a POST/PUT/DELETE request for a particular event. """
         event_uid = event_uid or ""
         url = "https://www.googleapis.com/calendar/v3/" "calendars/{}/events/{}".format(
-            urllib.quote(calendar_uid), urllib.quote(event_uid)
+            urllib.parse.quote(calendar_uid), urllib.parse.quote(event_uid)
         )
         token = self._get_access_token()
         response = requests.request(
@@ -299,10 +304,7 @@ class GoogleEventsProvider(object):
         return token_manager.get_token(account, force_refresh)
 
     def push_notifications_enabled(self, account):
-        if account.get_client_info()[0] in PUSH_ENABLED_CLIENT_IDS:
-            return True
-        else:
-            return False
+        return account.get_client_info()[0] in PUSH_ENABLED_CLIENT_IDS
 
     def watch_calendar_list(self, account):
         """
@@ -319,7 +321,7 @@ class GoogleEventsProvider(object):
         """
         token = self._get_access_token_for_push_notifications(account)
         receiving_url = CALENDAR_LIST_WEBHOOK_URL.format(
-            urllib.quote(account.public_id)
+            urllib.parse.quote(account.public_id)
         )
 
         one_week = datetime.timedelta(weeks=1)
@@ -366,8 +368,10 @@ class GoogleEventsProvider(object):
 
         """
         token = self._get_access_token_for_push_notifications(account)
-        watch_url = WATCH_EVENTS_URL.format(urllib.quote(calendar.uid))
-        receiving_url = EVENTS_LIST_WEHOOK_URL.format(urllib.quote(calendar.public_id))
+        watch_url = WATCH_EVENTS_URL.format(urllib.parse.quote(calendar.uid))
+        receiving_url = EVENTS_LIST_WEHOOK_URL.format(
+            urllib.parse.quote(calendar.public_id)
+        )
 
         one_week = datetime.timedelta(weeks=1)
         in_a_week = datetime.datetime.utcnow() + one_week
@@ -475,7 +479,7 @@ def parse_calendar_response(calendar):
 
     role = calendar["accessRole"]
     read_only = True
-    if role == "owner" or role == "writer":
+    if role in ["owner", "writer"]:
         read_only = False
 
     description = calendar.get("description", None)

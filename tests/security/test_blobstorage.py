@@ -3,6 +3,7 @@ import zlib
 import hypothesis
 from hypothesis import strategies as s
 
+from inbox.models.message import Message
 from inbox.security.blobstorage import decode_blob, encode_blob
 
 
@@ -27,7 +28,8 @@ def test_encoded_format(config, sample_input, encrypt):
 
 
 @hypothesis.given(s.text(), s.booleans())
-def test_message_body_storage(config, message, sample_input, encrypt):
+def test_message_body_storage(config, sample_input, encrypt):
+    message = Message()
     config["ENCRYPT_SECRETS"] = encrypt
     message.body = None
     assert message._compacted_body is None

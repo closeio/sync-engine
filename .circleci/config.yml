@@ -13,7 +13,7 @@ jobs:
       - run:
           name: Prepare Environment
           command: |
-            sudo -E pip install --no-deps -r requirements_lint.txt
+            sudo -E pip install --no-deps -r requirements/lint.txt
 
       - run:
           name: black
@@ -24,166 +24,137 @@ jobs:
           name: isort
           when: always
           command: isort -c .
-        
-  static-code-analysis-flake8:
-    docker:
-      - image: circleci/python:2.7
-        auth:
-          username: $DOCKER_USER
-          password: $DOCKER_PASS
-    working_directory: ~/code
-    steps:
-      - checkout
-
-      - run:
-          name: Prepare Environment
-          command: |
-            sudo -E pip install flake8==3.9.2
 
       - run:
           name: flake8
           command: flake8
 
   build:
-    machine:
-      image: ubuntu-1604:201903-01
-    working_directory: ~/sync-engine
-
-    steps:
-      - checkout
-
-      - run:
-          name: build sync-engine image
-          command: docker-compose build app
-
-      - run:
-          name: run tests
-          command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker-compose run app bash -ec '
-              pip install -e . \
-              && bin/wait-for-it.sh mysql:3306 \
-              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
-              && coverage html -d pythoncov
-            '
-
-      - run:
-          name: Push the tested image to docker hub
-          environment:
-            PROJECT: sync-engine
-            PROJECT_NAMESPACE: closeio
-          command: |
-            PROJECT_VSN="$CIRCLE_BRANCH"
-            PROJECT_SHA="$CIRCLE_SHA1"
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            # tag and push both sync-engine:master and sync-engine:<sha1>
-            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}"
-            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}"
-            docker push "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}"
-            docker push "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}"
-
-      - store_artifacts:
-          path: pythoncov
-
-      - store_artifacts:
-          path: .circleci/artifacts.html
-          destination: artifacts.html
-
-  build-python36:
-    machine:
-      image: ubuntu-1604:201903-01
-    working_directory: ~/sync-engine
-
-    steps:
-      - checkout
-
-      - run:
-          name: build sync-engine image
-          command: docker-compose build --build-arg PYTHON_VERSION=3.6 app || true
-
-      - run:
-          name: don't run the tests since images do not build yet
-          command: circleci-agent step halt
-
-      - run:
-          name: run tests
-          command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker-compose run app bash -ec '
-              pip install -e . \
-              && bin/wait-for-it.sh mysql:3306 \
-              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
-              && coverage html -d pythoncov
-            '
-      # Not pushing Python 3.6 image for the time being
-
-  build-python38:
-    machine:
-      image: ubuntu-1604:201903-01 
-    working_directory: ~/sync-engine
-
-    steps:
-      - checkout
-
-      - run:
-          name: build sync-engine image
-          command: docker-compose build --build-arg PYTHON_VERSION=3.8 app || true
-
-      - run:
-          name: don't run the tests since images do not build yet
-          command: circleci-agent step halt
-
-      - run:
-          name: run tests
-          command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker-compose run app bash -ec '
-              pip install -e . \
-              && bin/wait-for-it.sh mysql:3306 \
-              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
-              && coverage html -d pythoncov
-            '
-
-      # Not pushing Python 3.8 image for the time being
-
-  build_arm:
+    parameters:
+      python_version:
+        type: enum
+        description: Python version
+        enum: ["2.7", "3.6", "3.7", "3.8", "3.9"]
+      platform_suffix:
+        type: enum
+        default: ""
+        description: Platform tag, empty means amd64
+        enum: ["", "-arm64"]
+      resource_class:
+        type: enum
+        default: "medium"
+        description: Resource class
+        enum: ["medium", "arm.medium"]
+      run_tests:
+        type: boolean
+        default: true
+        description: Set to false to disable tests
+      push_image:
+        type: boolean
+        default: true
+        description: Set to false to disable pushing image
     machine:
       image: ubuntu-2004:202101-01
-    resource_class: arm.medium
+    resource_class: <<parameters.resource_class>>
     working_directory: ~/sync-engine
 
     steps:
       - checkout
 
       - run:
-          name: build sync-engine image
-          command: docker-compose build app
+          name: Prepare Backend environment
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
 
-      # Not running tests for arm.
-      # mysql:5.7.31 has no arm image (arm images start at version 8)
+            if [ "$(git log -1 --pretty=%B | head -n 1 | grep '#notests')" ]; then
+              echo 'export SKIP_TESTS="1"' >> $BASH_ENV
+            fi
 
       - run:
-          name: Push the tested image to docker hub
-          environment:
-            PROJECT: sync-engine
-            PROJECT_NAMESPACE: closeio
-          command: |
-            PROJECT_VSN="$CIRCLE_BRANCH"
-            PROJECT_SHA="$CIRCLE_SHA1"
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            # tag and push both sync-engine:master and sync-engine:<sha1>
-            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-arm64"
-            docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-arm64"
-            docker push "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-arm64"
-            docker push "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-arm64"
+          name: build sync-engine image
+          command: docker-compose build --build-arg PYTHON_VERSION=<< parameters.python_version >> app
+
+      - when:
+          condition: << parameters.run_tests >>
+          steps:
+            - run:
+                name: run tests
+                command: |
+                  if [[ -z $SKIP_TESTS ]]; then
+                    docker-compose run app bash -ec '
+                      bin/wait-for-it.sh mysql:3306 \
+                      && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
+                      && coverage html -d pythoncov
+                    '
+                  else
+                    echo Skipping tests
+                  fi
+      
+      - when:
+          condition: << parameters.push_image >>
+          steps:
+            - run:
+                name: Push the image to docker hub
+                environment:
+                  PROJECT: sync-engine
+                  PROJECT_NAMESPACE: closeio
+                command: |
+                  PROJECT_VSN="$CIRCLE_BRANCH"
+                  PROJECT_SHA="$CIRCLE_SHA1"
+                  docker login -u $DOCKER_USER -p $DOCKER_PASS
+                  # tag and push both sync-engine:master and sync-engine:<sha1>
+                  docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-py<< parameters.python_version >><< parameters.platform_suffix >>"
+                  docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-py<< parameters.python_version >><< parameters.platform_suffix >>"
+                  docker push "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}-py<< parameters.python_version >><< parameters.platform_suffix >>"
+                  docker push "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}-py<< parameters.python_version >><< parameters.platform_suffix >>"
+
+      - when:
+          condition: << parameters.run_tests >>
+          steps:
+            - store_artifacts:
+                path: pythoncov
+
+            - store_artifacts:
+                path: .circleci/artifacts.html
+                destination: artifacts.html
 
 workflows:
   version: 2
   workflow:
     jobs:
       - static-code-analysis
-      - static-code-analysis-flake8
-      - build
-      - build-python36
-      - build-python38
-      - build_arm
+      - build:
+          name: build_py2.7
+          python_version: "2.7"
+      - build:
+          name: build_py3.6
+          python_version: "3.6"
+      - build:
+          name: build_py3.7
+          python_version: "3.7"
+          push_image: false
+      - build:
+          name: build_py3.8
+          python_version: "3.8"
+      - build:
+          name: build_py3.9
+          python_version: "3.9"
+          push_image: false
+      - build:
+          name: build_arm_py2.7
+          python_version: "2.7"
+          resource_class: "arm.medium"
+          platform_suffix: "-arm64"
+          run_tests: false
+      - build:
+          name: build_arm_py3.6
+          python_version: "3.6"
+          resource_class: "arm.medium"
+          platform_suffix: "-arm64"
+          run_tests: false
+      - build:
+          name: build_arm_py3.8
+          python_version: "3.8"
+          resource_class: "arm.medium"
+          platform_suffix: "-arm64"
+          run_tests: false

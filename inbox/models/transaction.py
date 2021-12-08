@@ -67,7 +67,7 @@ Index(
 def is_dirty(session, obj):
     if obj in session.dirty and obj.has_versioned_changes():
         return True
-    if hasattr(obj, "dirty") and getattr(obj, "dirty"):
+    if hasattr(obj, "dirty") and obj.dirty:
         return True
     return False
 
@@ -153,9 +153,8 @@ def propagate_changes(session):
         if isinstance(obj, Message):
             obj_state = inspect(obj)
             for attr in obj.propagated_attributes:
-                if getattr(obj_state.attrs, attr).history.has_changes():
-                    if obj.thread:
-                        obj.thread.dirty = True
+                if getattr(obj_state.attrs, attr).history.has_changes() and obj.thread:
+                    obj.thread.dirty = True
 
 
 def increment_versions(session):

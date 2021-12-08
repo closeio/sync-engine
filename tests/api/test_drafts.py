@@ -7,6 +7,7 @@ from datetime import datetime
 
 import pytest
 from freezegun import freeze_time
+from future.utils import iteritems
 
 from tests.util.base import add_fake_message, add_fake_thread
 
@@ -101,7 +102,7 @@ def test_create_and_get_draft(api_client, example_draft):
     assert len(matching_saved_drafts) == 1
     saved_draft = matching_saved_drafts[0]
 
-    assert all(saved_draft[k] == v for k, v in example_draft.iteritems())
+    assert all(saved_draft[k] == v for k, v in iteritems(example_draft))
 
 
 def test_create_draft_replying_to_thread(api_client, thread, message):
@@ -181,12 +182,17 @@ def test_drafts_filter(api_client, example_draft):
     assert len(results) == 1
 
 
-def test_create_draft_with_attachments(api_client, attachments, example_draft):
+@pytest.mark.usefixtures("blockstore_backend")
+@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
+def test_create_draft_with_attachments(
+    api_client, attachments, example_draft,
+):
     attachment_ids = []
     upload_path = "/files"
     for filename, path in attachments:
-        data = {"file": (open(path, "rb"), filename)}
-        r = api_client.post_raw(upload_path, data=data)
+        with open(path, "rb") as fp:
+            data = {"file": (fp, filename)}
+            r = api_client.post_raw(upload_path, data=data)
         assert r.status_code == 200
         attachment_id = json.loads(r.data)[0]["id"]
         attachment_ids.append(attachment_id)

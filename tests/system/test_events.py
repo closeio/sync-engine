@@ -16,7 +16,7 @@ from .conftest import calendar_accounts, timeout_loop
 random.seed(None)
 
 
-@pytest.yield_fixture(scope="module")
+@pytest.fixture(scope="module")
 def real_db():
     """A fixture to get access to the real mysql db. We need this
     to log in to providers like gmail to check that events changes

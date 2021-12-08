@@ -14,16 +14,16 @@ http://www.w3.org/Protocols/rfc1341/5_Content-Transfer-Encoding.html
 
 """
 from datetime import datetime
+from email.header import Header
 
-import pkg_resources
 from flanker import mime
 from flanker.addresslib import address
 from flanker.addresslib.address import MAX_ADDRESS_LENGTH
 from flanker.addresslib.quote import smart_quote
-from flanker.mime.message.headers.encoding import encode_string
+from flanker.mime.message.headers import WithParams
 from html2text import html2text
 
-VERSION = pkg_resources.get_distribution("inbox-sync").version
+from inbox import VERSION
 
 REPLYSTR = "Re: "
 
@@ -96,7 +96,9 @@ def create_email(
 
     # Create a multipart/alternative message
     msg = mime.create.multipart("alternative")
-    msg.append(mime.create.text("plain", plaintext), mime.create.text("html", html))
+    html_part = mime.create.text("html", html)
+    html_part.content_encoding = WithParams("base64")
+    msg.append(mime.create.text("plain", plaintext), html_part)
 
     # Create an outer multipart/mixed message
     if attachments:
@@ -175,6 +177,15 @@ def create_email(
     return rfcmsg
 
 
+def encode_string(value, maxlinelen):
+    try:
+        header = Header(value.encode("ascii"), "ascii", maxlinelen)
+    except UnicodeEncodeError:
+        header = Header(value.encode("utf-8"), "utf-8")
+
+    return header.encode(splitchars=" ;,")
+
+
 def _get_full_spec_without_validation(name, email):
     """
     This function is the same as calling full_spec() on
@@ -183,9 +194,7 @@ def _get_full_spec_without_validation(name, email):
     an invalid email address.
     """
     if name:
-        encoded_name = smart_quote(
-            encode_string(None, name, maxlinelen=MAX_ADDRESS_LENGTH)
-        )
+        encoded_name = smart_quote(encode_string(name, maxlinelen=MAX_ADDRESS_LENGTH))
         return "{0} <{1}>".format(encoded_name, email)
     return u"{0}".format(email)
 

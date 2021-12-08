@@ -1,7 +1,11 @@
+from future import standard_library
+
+standard_library.install_aliases()
+
 import time
 import weakref
 from socket import gethostname
-from urllib import quote_plus as urlquote
+from urllib.parse import quote_plus as urlquote
 from warnings import filterwarnings
 
 import gevent
@@ -12,7 +16,7 @@ from sqlalchemy import create_engine, event
 from inbox.config import config
 from inbox.logging import find_first_app_frame_and_name, get_logger
 from inbox.sqlalchemy_ext.util import (
-    ForceStrictMode,
+    ForceStrictModePool,
     disabled_dubiously_many_queries_warning,
 )
 from inbox.util.stats import statsd_client
@@ -30,9 +34,12 @@ DB_POOL_TIMEOUT = config.get("DB_POOL_TIMEOUT") or 60
 pool_tracker = weakref.WeakKeyDictionary()
 
 
+hub = gevent.hub.get_hub()
+
+
 # See
 # https://github.com/PyMySQL/mysqlclient-python/blob/master/samples/waiter_gevent.py
-def gevent_waiter(fd, hub=gevent.hub.get_hub()):
+def gevent_waiter(fd):
     hub.wait(hub.loop.io(fd, 1))
 
 
@@ -60,7 +67,7 @@ def engine(
 ):
     engine = create_engine(
         database_uri,
-        listeners=[ForceStrictMode()],
+        poolclass=ForceStrictModePool,
         isolation_level="READ COMMITTED",
         echo=echo,
         pool_size=pool_size,
@@ -256,14 +263,13 @@ def reset_invalid_autoincrements(engine, schema, key, dry_run=True):
     reset = set()
     for table in MailSyncBase.metadata.sorted_tables:
         increment = engine.execute(query.format(schema, table)).scalar()
-        if increment is not None:
-            if (increment >> 48) != key:
-                if not dry_run:
-                    reset_query = "ALTER TABLE {} AUTO_INCREMENT={}".format(
-                        table, (key << 48) + 1
-                    )
-                    engine.execute(reset_query)
-                reset.add(str(table))
+        if increment is not None and (increment >> 48) != key:
+            if not dry_run:
+                reset_query = "ALTER TABLE {} AUTO_INCREMENT={}".format(
+                    table, (key << 48) + 1
+                )
+                engine.execute(reset_query)
+            reset.add(str(table))
     return reset
 
 

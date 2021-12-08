@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 
 import gevent
 import gevent.event
-from gevent.coros import BoundedSemaphore
+from gevent.lock import BoundedSemaphore
 from gevent.queue import Queue
 from sqlalchemy import desc
 
@@ -537,23 +537,22 @@ class SyncbackBatchTask(object):
 
     def execute(self):
         log = logger.new()
-        with self.semaphore:
-            with self._crispin_client_or_none() as crispin_client:
-                log.debug(
-                    "Syncback running batch of actions",
-                    num_actions=len(self.tasks),
-                    account_id=self.account_id,
-                )
-                for task in self.tasks:
-                    task.crispin_client = crispin_client
-                    if not task.execute_with_lock():
-                        log.info(
-                            "Pausing syncback tasks due to error",
-                            account_id=self.account_id,
-                        )
-                        # Stop executing further actions for an account if any
-                        # failed.
-                        break
+        with self.semaphore, self._crispin_client_or_none() as crispin_client:
+            log.debug(
+                "Syncback running batch of actions",
+                num_actions=len(self.tasks),
+                account_id=self.account_id,
+            )
+            for task in self.tasks:
+                task.crispin_client = crispin_client
+                if not task.execute_with_lock():
+                    log.info(
+                        "Pausing syncback tasks due to error",
+                        account_id=self.account_id,
+                    )
+                    # Stop executing further actions for an account if any
+                    # failed.
+                    break
 
     def uses_crispin_client(self):
         return any([task.uses_crispin_client() for task in self.tasks])
@@ -703,7 +702,7 @@ class SyncbackTask(object):
                     func_latency=max_func_latency,
                 )
                 return True
-        except:
+        except Exception:
             log_uncaught_errors(
                 self.log, account_id=self.account_id, provider=self.provider
             )
@@ -826,7 +825,7 @@ class SyncbackWorker(gevent.Greenlet):
             try:
                 self.parent_service().notify_worker_active()
                 gevent.with_timeout(task.timeout(self.task_timeout), task.execute)
-            except:
+            except Exception:
                 self.log.error(
                     "SyncbackWorker caught exception",
                     exc_info=True,

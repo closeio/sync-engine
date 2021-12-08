@@ -1,5 +1,12 @@
+from __future__ import print_function
+
+import gevent.monkey
+
+gevent.monkey.patch_all()
+
 import errno
 import socket
+import sys
 
 import gunicorn.glogging
 from gevent.pywsgi import WSGIHandler, WSGIServer
@@ -95,6 +102,8 @@ class NylasWSGIWorker(GeventWorker):
     wsgi_handler = NylasWSGIHandler
 
     def init_process(self):
+        print("Python", sys.version, file=sys.stderr)
+
         if MAX_BLOCKING_TIME:
             self.tracer = Tracer(max_blocking_time=MAX_BLOCKING_TIME)
             self.tracer.start()

@@ -28,27 +28,27 @@ def wait_for_send(client, subject):
         ), "Warning: Number of threads for unique subject is > 1!"
 
     tags = [t["name"] for thread in threads for t in thread.tags]
-    return True if ("sent" in tags and "inbox" in tags) else False
+    return "sent" in tags and "inbox" in tags
 
 
 @timeout_loop("archive")
 def wait_for_archive(client, thread_id):
     thread = client.threads.find(thread_id)
     tags = [tag["name"] for tag in thread.tags]
-    return True if ("archive" in tags and "inbox" not in tags) else False
+    return "archive" in tags and "inbox" not in tags
 
 
 @timeout_loop("trash")
 def wait_for_trash(client, thread_id):
     thread = client.threads.find(thread_id)
     tags = [tag["name"] for tag in thread.tags]
-    return True if ("trash" in tags and "archive" not in tags) else False
+    return "trash" in tags and "archive" not in tags
 
 
 @pytest.mark.parametrize("client", all_accounts)
 def test_sending(client):
     # Create a message and send it to ourselves
-    subject = "%s (Self Send Test)" % strftime("%Y-%m-%d %H:%M:%S")
+    subject = "{} (Self Send Test)".format(strftime("%Y-%m-%d %H:%M:%S"))
     draft = client.drafts.create(
         to=[{"email": client.email_address}],
         subject=subject,
@@ -79,7 +79,7 @@ def test_sending(client):
 @pytest.mark.parametrize("client", all_accounts)
 def test_multi_sending(client):
     # Create a message and send it to ourselves, with a different body
-    subject = "%s (Self Multi Send Test)" % strftime("%Y-%m-%d %H:%M:%S")
+    subject = "{} (Self Multi Send Test)".format(strftime("%Y-%m-%d %H:%M:%S"))
     sent_body = subject + "Test email."
     draft = client.drafts.create(
         to=[{"email": client.email_address}], subject=subject, body=sent_body

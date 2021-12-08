@@ -1,5 +1,8 @@
+from future import standard_library
+
+standard_library.install_aliases()
 from gevent import sleep
-from gevent.coros import BoundedSemaphore
+from gevent.lock import BoundedSemaphore
 from gevent.pool import Group
 
 from inbox.basicauth import ValidationError
@@ -144,7 +147,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                 )
                 self.folder_monitors.start(thread)
 
-            while not thread.state == "poll" and not thread.ready():
+            while thread.state != "poll" and not thread.ready():
                 sleep(self.heartbeat)
 
             if thread.ready():

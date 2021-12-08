@@ -1,7 +1,7 @@
 import re
+from html.parser import HTMLParser
 
 import requests
-from HTMLParser import HTMLParser
 
 from inbox.auth.outlook import OutlookAuthHandler
 from inbox.util.url import url_concat
@@ -27,7 +27,7 @@ class OutlookAuthParser(HTMLParser):
     def parse_params(self, data):
         vals = {}
         # Convert the server data into a dict
-        for i in filter(lambda x: ":" in x, data.split(",")):
+        for i in [x for x in data.split(",") if ":" in x]:
             m = re.match("(.*?):(.*)", i)
             k = m.group(1)
             v = m.group(2)
@@ -61,11 +61,10 @@ class OutlookAuthParser(HTMLParser):
         self.params["PPFT"] = m.group(1)
 
     def handle_data(self, data):
-        if self._in_script:
-            if data.startswith("var ServerData"):
-                # Extract the server data
-                m = re.match("var ServerData = {(.*)};", data).group(1)
-                self.parse_params(m)
+        if self._in_script and data.startswith("var ServerData"):
+            # Extract the server data
+            m = re.match("var ServerData = {(.*)};", data).group(1)
+            self.parse_params(m)
 
 
 class OutlookUpdateParser(HTMLParser):
@@ -85,9 +84,8 @@ class OutlookUpdateParser(HTMLParser):
             for k, v in attrs:
                 attr_dict[k] = v
 
-            if tag == "input":
-                if "value" in attr_dict:
-                    self.params[attr_dict["name"]] = attr_dict["value"]
+            if tag == "input" and "value" in attr_dict:
+                self.params[attr_dict["name"]] = attr_dict["value"]
 
     def handle_endtag(self, tag):
         if tag == "form":
@@ -107,9 +105,8 @@ class OutlookConsentParser(HTMLParser):
             for k, v in attrs:
                 attr_dict[k] = v
 
-            if tag == "input":
-                if "value" in attr_dict:
-                    self.params[attr_dict["name"]] = attr_dict["value"]
+            if tag == "input" and "value" in attr_dict:
+                self.params[attr_dict["name"]] = attr_dict["value"]
 
     def handle_endtag(self, tag):
         if tag == "form":

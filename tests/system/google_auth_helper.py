@@ -1,5 +1,6 @@
+from html.parser import HTMLParser
+
 import requests
-from HTMLParser import HTMLParser
 
 from inbox.auth.gmail import GmailAuthHandler
 from inbox.util.url import url_concat
@@ -21,9 +22,8 @@ class GoogleAuthParser(HTMLParser):
             attr_dict = {}
             for k, v in attrs:
                 attr_dict[k] = v
-            if tag == "input":
-                if "value" in attr_dict:
-                    self.params[attr_dict["name"]] = attr_dict["value"]
+            if tag == "input" and "value" in attr_dict:
+                self.params[attr_dict["name"]] = attr_dict["value"]
 
     def handle_endtag(self, tag):
         if tag == "form":
@@ -47,9 +47,8 @@ class GoogleConnectParser(HTMLParser):
             for k, v in attrs:
                 attr_dict[k] = v
 
-            if tag == "input":
-                if "value" in attr_dict:
-                    self.params[attr_dict["name"]] = attr_dict["value"]
+            if tag == "input" and "value" in attr_dict:
+                self.params[attr_dict["name"]] = attr_dict["value"]
 
     def handle_endtag(self, tag):
         if tag == "form":

@@ -1,12 +1,16 @@
-import pkgutil
 import re
 import sys
 import time
 from datetime import datetime
 from email.utils import mktime_tz, parsedate_tz
+from importlib import import_module
+from typing import List, Optional
+
+from future.utils import iteritems
 
 from inbox.logging import get_logger
 from inbox.providers import providers
+from inbox.util.file import iter_module_names
 
 
 class DummyContextManager(object):
@@ -47,6 +51,7 @@ def parse_ml_headers(headers):
 
 
 def parse_references(references, in_reply_to):
+    # type: (str, str) -> List[str]
     """
     Parse a References: header and returns an array of MessageIDs.
     The returned array contains the MessageID in In-Reply-To if
@@ -85,6 +90,7 @@ def dt_to_timestamp(dt):
 
 
 def get_internaldate(date, received):
+    # type: (Optional[str], Optional[str]) -> datetime
     """ Get the date from the headers. """
     if date is None:
         other, date = received.split(";")
@@ -126,10 +132,6 @@ def load_modules(base_name, base_path):
     """
     Imports all modules underneath `base_module` in the module tree.
 
-    Note that if submodules are located in different directory trees, you
-    need to use `pkgutil.extend_path` to make all the folders appear in
-    the module's `__path__`.
-
     Returns
     -------
     list
@@ -138,11 +140,11 @@ def load_modules(base_name, base_path):
     """
     modules = []
 
-    for importer, module_name, _ in pkgutil.iter_modules(base_path):
+    for module_name in iter_module_names(base_path):
         full_module_name = "{}.{}".format(base_name, module_name)
 
         if full_module_name not in sys.modules:
-            module = importer.find_module(module_name).load_module(full_module_name)
+            module = import_module(full_module_name)
         else:
             module = sys.modules[full_module_name]
         modules.append(module)
@@ -163,7 +165,7 @@ def register_backends(base_name, base_path):
         if hasattr(module, "PROVIDER"):
             provider_name = module.PROVIDER
             if provider_name == "generic":
-                for p_name, p in providers.iteritems():
+                for p_name, p in iteritems(providers):
                     p_type = p.get("type", None)
                     if p_type == "generic" and p_name not in mod_for:
                         mod_for[p_name] = module

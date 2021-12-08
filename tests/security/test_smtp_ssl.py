@@ -6,6 +6,7 @@ import smtpd
 import socket
 import ssl
 import sys
+import time
 
 import gevent
 import pytest
@@ -53,7 +54,7 @@ def run_bad_cert_smtp_server():
     asyncore.loop()
 
 
-@pytest.yield_fixture(scope="module")
+@pytest.fixture(scope="module")
 def bad_cert_smtp_server():
     s = gevent.spawn(run_bad_cert_smtp_server)
     yield s
@@ -102,6 +103,9 @@ def example_draft(db, default_account):
     }
 
 
+@pytest.mark.skipif(
+    sys.version_info >= (3,), reason="asyncore and smtpd are deprecated"
+)
 def test_smtp_ssl_verification_bad_cert(
     db,
     bad_cert_smtp_server,
@@ -112,12 +116,14 @@ def test_smtp_ssl_verification_bad_cert(
 ):
 
     api_client = new_api_client(db, local_smtp_account.namespace)
-    while len(asyncore.socket_map) < 1:
+
+    start = time.time()
+    while len(asyncore.socket_map) < 1 and time.time() - start < 15:
         gevent.sleep(0)  # let SMTP daemon start up
     r = api_client.post_data("/send", example_draft)
     assert r.status_code == 200
 
 
 if __name__ == "__main__":
-    server = BadCertSMTPServer((SMTP_SERVER_HOST, SMTP_SERVER_PORT), (None, None))
+    server = BadCertSMTPServer((SMTP_SERVER_HOST, 0), (None, None))
     asyncore.loop()

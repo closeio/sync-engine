@@ -4,6 +4,7 @@ from __future__ import print_function
 import json
 import random
 import string
+from builtins import range
 
 DICT_FILE = "/etc/dictionaries-common/words"
 
@@ -30,7 +31,8 @@ def get_words():
     return words
 
 
-def random_words(count=int(random.uniform(1, 500)), sig="me"):
+def random_words(count=None, sig="me"):
+    count = count or int(random.uniform(1, 500))
     words = get_words()
     random_word_list = []
 

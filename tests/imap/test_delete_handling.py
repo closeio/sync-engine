@@ -1,4 +1,7 @@
 # flake8: noqa: F401, F811
+from future import standard_library
+
+standard_library.install_aliases()
 from datetime import datetime, timedelta
 
 import gevent
@@ -298,9 +301,9 @@ def test_renamed_label_refresh(
 
     new_flags = {
         msg_uid: {
-            "FLAGS": ("\\Seen",),
-            "X-GM-LABELS": ("new label",),
-            "MODSEQ": ("23",),
+            b"FLAGS": (b"\\Seen",),
+            b"X-GM-LABELS": (b"new label",),
+            b"MODSEQ": (23,),
         }
     }
     mock_imapclient._data["[Gmail]/All mail"] = new_flags

@@ -1,10 +1,15 @@
 import abc
+import codecs
 import contextlib
+import re
 import struct
+import sys
 import uuid
 import weakref
+from typing import Any, Optional, Tuple
 
 from bson import EPOCH_NAIVE, json_util
+from future.utils import iteritems
 
 # Monkeypatch to not include tz_info in decoded JSON.
 # Kind of a ridiculous solution, but works.
@@ -12,10 +17,8 @@ json_util.EPOCH_AWARE = EPOCH_NAIVE
 
 from sqlalchemy import String, Text, event
 from sqlalchemy.engine import Engine
-from sqlalchemy.ext import baked
-from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.ext.mutable import Mutable
-from sqlalchemy.interfaces import PoolListener
+from sqlalchemy.pool import QueuePool
 from sqlalchemy.sql import operators
 from sqlalchemy.types import BINARY, TypeDecorator
 
@@ -30,8 +33,6 @@ MAX_TEXT_BYTES = 65535
 MAX_BYTES_PER_CHAR = 4  # For collation of utf8mb4
 MAX_TEXT_CHARS = int(MAX_TEXT_BYTES / float(MAX_BYTES_PER_CHAR))
 MAX_MYSQL_INTEGER = 2147483647
-
-bakery = baked.bakery()
 
 
 query_counts = weakref.WeakKeyDictionary()
@@ -68,20 +69,11 @@ def before_commit(conn):
         )
 
 
-class SQLAlchemyCompatibleAbstractMetaClass(DeclarativeMeta, abc.ABCMeta):
-    """Declarative model classes that *also* inherit from an abstract base
-    class need a metaclass like this one, in order to prevent metaclass
-    conflict errors."""
-
-    pass
-
-
 class ABCMixin(object):
     """Use this if you want a mixin class which is actually an abstract base
     class, for example in order to enforce that concrete subclasses define
     particular methods or properties."""
 
-    __metaclass__ = SQLAlchemyCompatibleAbstractMetaClass
     __abstract__ = True
 
 
@@ -102,13 +94,15 @@ class StringWithTransform(TypeDecorator):
     setter or a @validates decorator
     """
 
+    cache_ok = True
+
     impl = String
 
     def __init__(self, string_transform, *args, **kwargs):
         super(StringWithTransform, self).__init__(*args, **kwargs)
         if string_transform is None:
             raise ValueError("Must provide a string_transform")
-        if not hasattr(string_transform, "__call__"):
+        if not callable(string_transform):
             raise TypeError("`string_transform` must be callable")
         self._string_transform = string_transform
 
@@ -123,6 +117,8 @@ class StringWithTransform(TypeDecorator):
 
 # http://docs.sqlalchemy.org/en/rel_0_9/core/types.html#marshal-json-strings
 class JSON(TypeDecorator):
+    cache_ok = True
+
     impl = Text
 
     def process_bind_param(self, value, dialect):
@@ -159,14 +155,18 @@ class BigJSON(JSON):
 
 
 class Base36UID(TypeDecorator):
+    cache_ok = True
+
     impl = BINARY(16)  # 128 bit unsigned integer
 
     def process_bind_param(self, value, dialect):
+        # type: (Optional[str], Any) -> Optional[bytes]
         if not value:
             return None
         return b36_to_bin(value)
 
     def process_result_value(self, value, dialect):
+        # type: (Optional[bytes], Any) -> Optional[str]
         return int128_to_b36(value)
 
 
@@ -198,7 +198,7 @@ class MutableDict(Mutable, dict):
         self.changed()
 
     def update(self, *args, **kwargs):
-        for k, v in dict(*args, **kwargs).iteritems():
+        for k, v in iteritems(dict(*args, **kwargs)):
             self[k] = v
 
     # To support pickling:
@@ -261,6 +261,7 @@ class MutableList(Mutable, list):
 
 
 def int128_to_b36(int128):
+    # type: (Optional[bytes]) -> Optional[str]
     """ int128: a 128 bit unsigned integer
         returns a base-36 string representation
     """
@@ -273,6 +274,7 @@ def int128_to_b36(int128):
 
 
 def b36_to_bin(b36_string):
+    # type: (str) -> bytes
     """ b36_string: a base-36 encoded string
         returns binary 128 bit unsigned integer
     """
@@ -282,12 +284,61 @@ def b36_to_bin(b36_string):
 
 
 def generate_public_id():
+    # type: () -> str
     """ Returns a base-36 string UUID """
     u = uuid.uuid4().bytes
     return int128_to_b36(u)
 
 
 # Other utilities
+
+RE_SURROGATE_CHARACTER = re.compile(r"[\ud800-\udfff]")
+RE_SURROGATE_PAIR = re.compile(r"[\ud800-\udbff][\udc00-\udfff]")
+
+
+def utf8_encode(text, errors="strict"):
+    # type: (str, str) -> Tuple[bytes, int]
+    return text.encode("utf-8", errors), len(text)
+
+
+def utf8_surrogate_fix_decode(memory, errors="strict"):
+    # type: (memoryview, str) -> Tuple[str, int]
+    binary = memory.tobytes()
+
+    try:
+        return binary.decode("utf-8", errors), len(binary)
+    except UnicodeDecodeError:
+        pass
+
+    text = binary.decode("utf-8", "surrogatepass")
+
+    # now fix surrogate pairs, we can recover those
+    for surrogate_pair in set(re.findall(RE_SURROGATE_PAIR, text)):
+        text = text.replace(
+            surrogate_pair,
+            surrogate_pair.encode("utf-16", "surrogatepass").decode("utf-16"),
+        )
+
+    # we have no other choice but removing unpaired surrogates
+    text = re.sub(RE_SURROGATE_CHARACTER, "", text)
+
+    return text, len(binary)
+
+
+def utf8_surrogate_fix_search_function(encoding_name):
+    # type: (str) -> codecs.Codecinfo
+    return codecs.CodecInfo(
+        utf8_encode, utf8_surrogate_fix_decode, name="utf8-surrogate-fix"
+    )
+
+
+if sys.version_info >= (3,):
+    codecs.register(utf8_surrogate_fix_search_function)
+
+
+class ForceStrictModePool(QueuePool):
+    pass
+
 
 # My good old friend Enrico to the rescue:
 # http://www.enricozini.org/2012/tips/sa-sqlmode-traditional/
@@ -296,16 +347,19 @@ def generate_public_id():
 # application level to be extra safe.
 #
 # Without this, MySQL will silently insert invalid values in the database if
-# not running with sql-mode=traditional.
-class ForceStrictMode(PoolListener):
-    def connect(self, dbapi_con, connection_record):
-        cur = dbapi_con.cursor()
-        cur.execute(
-            "SET SESSION sql_mode='STRICT_TRANS_TABLES,STRICT_ALL_TABLES,"
-            "NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,"
-            "NO_ENGINE_SUBSTITUTION'"
-        )
-        cur = None
+@event.listens_for(ForceStrictModePool, "connect")
+def receive_connect(dbapi_connection, connection_record):
+    cur = dbapi_connection.cursor()
+    cur.execute(
+        "SET SESSION sql_mode='STRICT_TRANS_TABLES,STRICT_ALL_TABLES,"
+        "NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,"
+        "NO_ENGINE_SUBSTITUTION'"
+    )
+    cur = None
+
+    if sys.version_info >= (3,):
+        assert dbapi_connection.encoding == "utf8"
+        dbapi_connection.encoding = "utf8-surrogate-fix"
 
 
 def maybe_refine_query(query, subquery):

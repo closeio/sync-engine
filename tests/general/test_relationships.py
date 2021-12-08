@@ -1,4 +1,5 @@
 import json
+from builtins import range
 
 from inbox.models import Category, Message, MessageCategory, Thread
 
@@ -22,7 +23,7 @@ def test_category_delete(db, gmail_account):
     )
     category_id = category.id
 
-    for i in xrange(10):
+    for _ in range(10):
         generic_thread = add_fake_thread(db.session, gmail_account.namespace.id)
         gen_message = add_fake_message(
             db.session, gmail_account.namespace.id, generic_thread
@@ -61,7 +62,7 @@ def test_message_delete(db, gmail_account):
     )
 
     category_ids = []
-    for i in xrange(10):
+    for i in range(10):
         po_data = api_client.post_data("/labels/", {"display_name": str(i)})
         assert po_data.status_code == 200
 

@@ -1,8 +1,16 @@
+from typing import Any
+
+from future import standard_library
+
+from inbox.models.account import Account
+
+standard_library.install_aliases()
 import re
 from datetime import datetime
 
-import pkg_resources
+from past.builtins import basestring
 
+from inbox import VERSION
 from inbox.api.err import InputError
 from inbox.api.validation import (
     get_attachments,
@@ -14,8 +22,6 @@ from inbox.contacts.processing import update_contacts_from_message
 from inbox.models import Message, Part
 from inbox.models.action_log import schedule_action
 from inbox.sqlalchemy_ext.util import generate_public_id
-
-VERSION = pkg_resources.get_distribution("inbox-sync").version
 
 
 class SendMailException(Exception):
@@ -54,12 +60,17 @@ def get_sendmail_client(account):
 
 
 def create_draft_from_mime(account, raw_mime, db_session):
+    # type: (Account, bytes, Any) -> Message
     our_uid = generate_public_id()  # base-36 encoded string
     new_headers = (
-        "X-INBOX-ID: {0}-0\r\n"
-        "Message-Id: <{0}-0@mailer.nylas.com>\r\n"
-        "User-Agent: NylasMailer/{1}\r\n"
-    ).format(our_uid, VERSION)
+        (
+            "X-INBOX-ID: {0}-0\r\n"
+            "Message-Id: <{0}-0@mailer.nylas.com>\r\n"
+            "User-Agent: NylasMailer/{1}\r\n"
+        )
+        .format(our_uid, VERSION)
+        .encode()
+    )
     new_body = new_headers + raw_mime
 
     with db_session.no_autoflush:
@@ -140,13 +151,16 @@ def create_message_from_json(data, namespace, db_session, is_draft):
     reply_to_message = get_message(
         data.get("reply_to_message_id"), namespace.id, db_session
     )
-    if reply_to_message is not None and reply_to_thread is not None:
-        if reply_to_message not in reply_to_thread.messages:
-            raise InputError(
-                "Message {} is not in thread {}".format(
-                    reply_to_message.public_id, reply_to_thread.public_id
-                )
+    if (
+        reply_to_message is not None
+        and reply_to_thread is not None
+        and reply_to_message not in reply_to_thread.messages
+    ):
+        raise InputError(
+            "Message {} is not in thread {}".format(
+                reply_to_message.public_id, reply_to_thread.public_id
             )
+        )
 
     with db_session.no_autoflush:
         account = namespace.account
@@ -279,7 +293,7 @@ def update_draft(
 
     # Remove any attachments that aren't specified
     new_block_ids = [b.id for b in blocks]
-    for part in filter(lambda x: x.block_id not in new_block_ids, draft.parts):
+    for part in [x for x in draft.parts if x.block_id not in new_block_ids]:
         draft.parts.remove(part)
         db_session.delete(part)
 

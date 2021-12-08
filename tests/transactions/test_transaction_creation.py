@@ -1,3 +1,6 @@
+from future import standard_library
+
+standard_library.install_aliases()
 from datetime import datetime
 
 from flanker import mime
@@ -213,7 +216,11 @@ def test_file_transactions(db, default_namespace):
         ),
     )
     msg = Message.create_from_synced(
-        account, 22, "[Gmail]/All Mail", datetime.utcnow(), mime_msg.to_string()
+        account,
+        22,
+        "[Gmail]/All Mail",
+        datetime.utcnow(),
+        mime_msg.to_string().encode(),
     )
     msg.thread = thread
     db.session.add(msg)

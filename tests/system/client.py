@@ -1,14 +1,15 @@
 import os
 
-from inbox import APIClient
+from inbox.client import APIClient
 
 
 class NylasTestClient(APIClient):
     def __init__(
-        self,
-        email_address=None,
-        api_base=os.getenv("INBOX_API_PORT_5555_TCP_ADDR", "http://localhost:5555"),
+        self, email_address=None, api_base=None,
     ):
+        api_base = api_base or os.getenv(
+            "INBOX_API_PORT_5555_TCP_ADDR", "http://localhost:5555"
+        )
         self.email_address = email_address
         APIClient.__init__(self, None, None, None, api_base)
 

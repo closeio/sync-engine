@@ -97,7 +97,7 @@ def test_auth_error_handling(contact_sync, default_account, db):
     db.session.commit()
 
     contact_sync.start()
-    contact_sync.join(timeout=10)
+    contact_sync.join(timeout=15)
     success = contact_sync.successful()
     if not success:
         contact_sync.kill()

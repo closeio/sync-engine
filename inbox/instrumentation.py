@@ -13,7 +13,6 @@ import gevent._threading  # This is a clone of the *real* threading module
 import gevent.hub
 import greenlet
 import psutil
-from past.utils import old_div
 
 from inbox.config import config
 from inbox.logging import get_logger
@@ -133,7 +132,7 @@ class GreenletTracer(object):
 
     def stats(self):
         total_time = time.time() - self.start_time
-        idle_fraction = old_div(self.time_spent_by_context.get("hub", 0), total_time)
+        idle_fraction = self.time_spent_by_context.get("hub", 0) / total_time
         return {
             "times": self.time_spent_by_context,
             "idle_fraction": idle_fraction,
@@ -199,7 +198,7 @@ class GreenletTracer(object):
         # are waiting to run.
         pendingcnt = self._hub.loop.pendingcnt
         for k, v in self.pending_avgs.items():
-            exp = math.exp(old_div(-self.sampling_interval, (60.0 * k)))
+            exp = math.exp(-self.sampling_interval / (60.0 * k))
             self.pending_avgs[k] = exp * v + (1.0 - exp) * pendingcnt
 
     def _calculate_cpu_avgs(self):
@@ -207,7 +206,7 @@ class GreenletTracer(object):
         new_total_time = times.user + times.system
         delta = new_total_time - self.total_cpu_time
         for k, v in self.cpu_avgs.items():
-            exp = math.exp(old_div(-self.sampling_interval, (60.0 * k)))
+            exp = math.exp(-self.sampling_interval / (60.0 * k))
             self.cpu_avgs[k] = exp * v + (1.0 - exp) * delta
         self.total_cpu_time = new_total_time
 

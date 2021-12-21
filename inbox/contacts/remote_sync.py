@@ -1,7 +1,6 @@
 from collections import Counter
 from datetime import datetime
 
-from past.builtins import basestring
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.contacts.google import GoogleContactsProvider
@@ -84,7 +83,7 @@ class ContactSync(BaseSyncMonitor):
             for new_contact in all_contacts:
                 new_contact.namespace = account.namespace
                 assert new_contact.uid is not None, "Got remote item with null uid"
-                assert isinstance(new_contact.uid, basestring)
+                assert isinstance(new_contact.uid, str)
 
                 if (
                     not new_contact.deleted

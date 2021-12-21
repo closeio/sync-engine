@@ -8,8 +8,6 @@ standard_library.install_aliases()
 import re
 from datetime import datetime
 
-from past.builtins import basestring
-
 from inbox import VERSION
 from inbox.api.err import InputError
 from inbox.api.validation import (
@@ -81,10 +79,10 @@ def create_draft_from_mime(account, raw_mime, db_session):
         if msg.reply_to and len(msg.reply_to) > 1:
             raise InputError("reply_to field can have at most one item")
 
-        if msg.subject is not None and not isinstance(msg.subject, basestring):
+        if msg.subject is not None and not isinstance(msg.subject, str):
             raise InputError('"subject" should be a string')
 
-        if not isinstance(msg.body, basestring):
+        if not isinstance(msg.body, str):
             raise InputError('"body" should be a string')
 
         if msg.references or msg.in_reply_to:
@@ -141,10 +139,10 @@ def create_message_from_json(data, namespace, db_session, is_draft):
         raise InputError("reply_to field can have at most one item")
 
     subject = data.get("subject")
-    if subject is not None and not isinstance(subject, basestring):
+    if subject is not None and not isinstance(subject, str):
         raise InputError('"subject" should be a string')
     body = data.get("body", "")
-    if not isinstance(body, basestring):
+    if not isinstance(body, str):
         raise InputError('"body" should be a string')
     blocks = get_attachments(data.get("file_ids"), namespace.id, db_session)
     reply_to_thread = get_thread(data.get("thread_id"), namespace.id, db_session)

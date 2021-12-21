@@ -27,7 +27,6 @@ from datetime import datetime, timedelta
 import gevent
 from future.utils import iteritems
 from gevent.lock import Semaphore
-from past.builtins import long
 from sqlalchemy.orm import joinedload, load_only
 
 from inbox.logging import get_logger
@@ -545,7 +544,7 @@ def g_msgids(namespace_id, session, in_):
     # Easiest way to account-filter Messages is to namespace-filter from
     # the associated thread. (Messages may not necessarily have associated
     # ImapUids.)
-    in_ = {long(i) for i in in_}  # in case they are strings
+    in_ = {int(i) for i in in_}  # in case they are strings
     if len(in_) > 1000:
         # If in_ is really large, passing all the values to MySQL can get
         # deadly slow. (Approximate threshold empirically determined)

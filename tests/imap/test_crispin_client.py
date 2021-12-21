@@ -10,7 +10,6 @@ from datetime import datetime
 import imapclient
 import mock
 import pytest
-from past.builtins import long
 
 from inbox.crispin import (
     CrispinClient,
@@ -221,7 +220,7 @@ def test_gmail_body(gmail_client, constants):
     body = constants["body"]
     assert gmail_client.uids([uid]) == [
         RawMessage(
-            uid=long(uid),
+            uid=int(uid),
             internaldate=datetime(2015, 3, 2, 23, 36, 20),
             flags=flags,
             body=body,
@@ -260,7 +259,7 @@ def test_body(generic_client, constants):
 
     assert generic_client.uids([uid]) == [
         RawMessage(
-            uid=long(uid),
+            uid=int(uid),
             internaldate=datetime(2015, 3, 2, 23, 36, 20),
             flags=flags,
             body=body,
@@ -295,7 +294,7 @@ def test_internaldate(generic_client, constants):
         uid = constants["uid"]
         assert generic_client.uids([uid]) == [
             RawMessage(
-                uid=long(uid),
+                uid=int(uid),
                 internaldate=native_date,
                 flags=constants["flags"],
                 body=constants["body"],

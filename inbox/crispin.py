@@ -4,7 +4,6 @@ import imaplib
 import re
 import ssl
 import time
-from builtins import range
 from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple
 
 import imapclient
@@ -12,7 +11,6 @@ import imapclient.exceptions
 import imapclient.imap_utf7
 import imapclient.response_parser
 from future.utils import iteritems
-from past.builtins import long
 
 # Prevent "got more than 1000000 bytes" errors for servers that send more data.
 imaplib._MAXLINE = 10000000
@@ -323,7 +321,7 @@ class CrispinClient(object):
     which is defined as from the time you SELECT a folder until the connection
     is closed or another folder is selected.
 
-    Crispin clients *always* return long ints rather than strings for number
+    Crispin clients *always* return ints rather than strings for number
     data types, such as message UIDs, Google message IDs, and Google thread
     IDs.
 
@@ -724,7 +722,7 @@ class CrispinClient(object):
         criteria.
 
         """
-        return sorted([long(uid) for uid in self.conn.search(criteria)])
+        return sorted([int(uid) for uid in self.conn.search(criteria)])
 
     def all_uids(self):
         # type: () -> List[int]
@@ -774,7 +772,7 @@ class CrispinClient(object):
         log.debug(
             "Requested all UIDs", search_time=elapsed, total_uids=len(fetch_result)
         )
-        return sorted([long(uid) for uid in fetch_result])
+        return sorted([int(uid) for uid in fetch_result])
 
     def uids(self, uids):
         # type: (List[int]) -> List[RawMessage]
@@ -814,7 +812,7 @@ class CrispinClient(object):
                     )
                     raise
 
-        for uid in sorted(imap_messages, key=long):
+        for uid in sorted(imap_messages, key=int):
             # Skip handling unsolicited FETCH responses
             if uid not in uid_set:
                 continue
@@ -825,7 +823,7 @@ class CrispinClient(object):
 
             raw_messages.append(
                 RawMessage(
-                    uid=long(uid),
+                    uid=int(uid),
                     internaldate=imap_message[b"INTERNALDATE"],
                     flags=imap_message[b"FLAGS"],
                     body=imap_message[b"BODY[]"],
@@ -1118,7 +1116,7 @@ class GmailCrispinClient(CrispinClient):
         Returns
         -------
         dict
-            Mapping of `uid` (long) : `g_msgid` (long)
+            Mapping of `uid` (int) : `g_msgid` (int)
 
         """
         data = self.conn.fetch(
@@ -1137,7 +1135,7 @@ class GmailCrispinClient(CrispinClient):
         -------
         list
         """
-        uids = [long(uid) for uid in self.conn.search(["X-GM-MSGID", g_msgid])]
+        uids = [int(uid) for uid in self.conn.search(["X-GM-MSGID", g_msgid])]
         # UIDs ascend over time; return in order most-recent first
         return sorted(uids, reverse=True)
 
@@ -1226,14 +1224,14 @@ class GmailCrispinClient(CrispinClient):
 
         raw_messages = []
         uid_set = set(uids)
-        for uid in sorted(imap_messages, key=long):
+        for uid in sorted(imap_messages, key=int):
             # Skip handling unsolicited FETCH responses
             if uid not in uid_set:
                 continue
             imap_message = imap_messages[uid]
             raw_messages.append(
                 RawMessage(
-                    uid=long(uid),
+                    uid=int(uid),
                     internaldate=imap_message[b"INTERNALDATE"],
                     flags=imap_message[b"FLAGS"],
                     body=imap_message[b"BODY[]"],
@@ -1278,7 +1276,7 @@ class GmailCrispinClient(CrispinClient):
         -------
         list
         """
-        uids = [long(uid) for uid in self.conn.search(["X-GM-THRID", g_thrid])]
+        uids = [int(uid) for uid in self.conn.search(["X-GM-THRID", g_thrid])]
         # UIDs ascend over time; return in order most-recent first
         return sorted(uids, reverse=True)
 
@@ -1445,4 +1443,4 @@ class GmailCrispinClient(CrispinClient):
             raise
 
         response = imapclient.response_parser.parse_message_list(data)
-        return sorted([long(uid) for uid in response])
+        return sorted([int(uid) for uid in response])

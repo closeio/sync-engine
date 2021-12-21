@@ -9,7 +9,6 @@ import subprocess
 
 import dns
 import pytest
-from past.builtins import basestring, long
 
 from inbox.basicauth import ValidationError
 from inbox.util.file import get_data
@@ -209,9 +208,9 @@ class MockIMAPClient(object):
         if "BODY.PEEK[]" in data:
             data.remove("BODY.PEEK[]")
             data.append("BODY[]")
-        if isinstance(items, (int, long)):
+        if isinstance(items, int):
             items = [items]
-        elif isinstance(items, basestring) and re.match(r"[0-9]+:\*", items):
+        elif isinstance(items, str) and re.match(r"[0-9]+:\*", items):
             min_uid = int(items.split(":")[0])
             items = {u for u in uid_dict if u >= min_uid} | {max(uid_dict)}
             if modifiers is not None:

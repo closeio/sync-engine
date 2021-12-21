@@ -1,12 +1,6 @@
-from typing import Any
-
-from future import standard_library
-
-from inbox.models.account import Account
-
-standard_library.install_aliases()
 import re
 from datetime import datetime
+from typing import Any
 
 from inbox import VERSION
 from inbox.api.err import InputError
@@ -18,6 +12,7 @@ from inbox.api.validation import (
 )
 from inbox.contacts.processing import update_contacts_from_message
 from inbox.models import Message, Part
+from inbox.models.account import Account
 from inbox.models.action_log import schedule_action
 from inbox.sqlalchemy_ext.util import generate_public_id
 

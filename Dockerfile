@@ -1,5 +1,5 @@
 FROM ubuntu:bionic-20210930
-ARG PYTHON_VERSION=2.7
+ARG PYTHON_VERSION=3.8
 
 RUN groupadd -g 5000 sync-engine \
   && useradd -d /home/sync-engine -m -u 5000 -g 5000 sync-engine
@@ -44,7 +44,7 @@ RUN if [ "${PYTHON_VERSION}" != "3.6" ] ; \
 
 RUN curl -O https://bootstrap.pypa.io/pip/2.7/get-pip.py && \
   python"${PYTHON_VERSION}" get-pip.py && \
-  python"${PYTHON_VERSION}" -m pip install --upgrade pip==$( if [ "${PYTHON_VERSION}" = "2.7" ] ; then echo 20.3.4; else echo 21.3.1; fi) && \
+  python"${PYTHON_VERSION}" -m pip install --upgrade pip==21.3.1 && \
   python"${PYTHON_VERSION}" -m pip install virtualenv==20.8.1
 
 RUN mkdir /etc/inboxapp && \

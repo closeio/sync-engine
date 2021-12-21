@@ -6,8 +6,6 @@ from email.utils import mktime_tz, parsedate_tz
 from importlib import import_module
 from typing import List, Optional
 
-from future.utils import iteritems
-
 from inbox.logging import get_logger
 from inbox.providers import providers
 from inbox.util.file import iter_module_names
@@ -165,7 +163,7 @@ def register_backends(base_name, base_path):
         if hasattr(module, "PROVIDER"):
             provider_name = module.PROVIDER
             if provider_name == "generic":
-                for p_name, p in iteritems(providers):
+                for p_name, p in providers.items():
                     p_type = p.get("type", None)
                     if p_type == "generic" and p_name not in mod_for:
                         mod_for[p_name] = module

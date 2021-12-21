@@ -10,7 +10,6 @@ import imapclient
 import imapclient.exceptions
 import imapclient.imap_utf7
 import imapclient.response_parser
-from future.utils import iteritems
 
 # Prevent "got more than 1000000 bytes" errors for servers that send more data.
 imaplib._MAXLINE = 10000000
@@ -916,7 +915,7 @@ class CrispinClient(object):
         # priori (by subject or date, etc.)
         matching_draft_headers = self.fetch_headers(all_uids)
         results = []
-        for uid, response in iteritems(matching_draft_headers):
+        for uid, response in matching_draft_headers.items():
             headers = response["BODY[HEADER]"]
             parser = HeaderParser()
             header = parser.parsestr(headers).get(header_name)

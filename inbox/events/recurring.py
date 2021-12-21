@@ -2,7 +2,6 @@ from __future__ import absolute_import
 
 import arrow
 from dateutil.rrule import FR, MO, SA, SU, TH, TU, WE, rrule, rruleset, rrulestr
-from future.utils import iteritems
 
 from inbox.events.util import parse_rrule_datetime
 from inbox.logging import get_logger
@@ -177,7 +176,7 @@ def rrule_to_json(r):
         r = parse_rrule(r)
     info = vars(r)
     j = {}
-    for field, value in iteritems(info):
+    for field, value in info.items():
         if isinstance(value, tuple) and len(value) == 1:
             value = value[0]
         if field[0] == "_":

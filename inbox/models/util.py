@@ -3,7 +3,6 @@ import time
 from collections import OrderedDict
 
 import limitlion
-from future.utils import iteritems
 from sqlalchemy import desc, func
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -246,7 +245,7 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False):
         filters[table] = ("account_id", account_id)
     filters["namespace"] = ("id", namespace_id)
 
-    for table, (column, id_) in iteritems(filters):
+    for table, (column, id_) in filters.items():
         log.info("Performing bulk deletion", table=table)
         start = time.time()
 

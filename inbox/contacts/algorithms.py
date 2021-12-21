@@ -3,8 +3,6 @@ from __future__ import division
 import datetime
 from collections import defaultdict
 
-from future.utils import iteritems
-
 """
 This file currently contains algorithms for the contacts/rankings endpoint
 and the groups/intrinsic endpoint.
@@ -135,7 +133,7 @@ def calculate_group_scores(messages, user_email):
     # Filter out infrequent molecules
     molecules_list = [
         (set(emails), set(msgs))
-        for emails, msgs in iteritems(molecules_dict)
+        for emails, msgs in molecules_dict.items()
         if get_message_list_weight(msgs) >= MIN_MESSAGE_COUNT
     ]
 

@@ -19,7 +19,7 @@ folder. We expand threads when downloading folders other than All Mail so the
 user always gets the full thread when they look at mail.
 
 """
-from __future__ import division
+
 
 from collections import OrderedDict
 from datetime import datetime, timedelta

@@ -1,7 +1,4 @@
-from __future__ import print_function
-
 import sys
-from builtins import input
 
 import IPython
 

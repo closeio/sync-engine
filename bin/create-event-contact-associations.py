@@ -3,7 +3,6 @@
 Create event contact associations for events that don't have any.
 """
 
-from __future__ import division
 
 import click
 from sqlalchemy import asc

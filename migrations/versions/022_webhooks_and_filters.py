@@ -8,7 +8,7 @@ Revises: 519e462df171
 Create Date: 2014-05-04 03:14:39.923489
 
 """
-from __future__ import print_function
+
 
 # revision identifiers, used by Alembic.
 revision = "2c313b6ddd9b"

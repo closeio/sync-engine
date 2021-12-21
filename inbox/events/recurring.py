@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 import arrow
 from dateutil.rrule import FR, MO, SA, SU, TH, TU, WE, rrule, rruleset, rrulestr
 

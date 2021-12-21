@@ -1,5 +1,5 @@
 """Provide iCloud contacts"""
-from __future__ import absolute_import
+
 
 import lxml.etree as ET
 

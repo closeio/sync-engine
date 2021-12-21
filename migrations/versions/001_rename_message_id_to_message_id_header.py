@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 """rename message_id to message_id_header
 
 Revision ID: 217431caacc7

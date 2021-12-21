@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 """Import old accounts
 
 Revision ID: adc646e1f11

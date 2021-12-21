@@ -60,7 +60,7 @@ query for needed information or update the local state. Long-held database
 sessions reduce scalability.
 
 """
-from __future__ import division
+
 
 import imaplib
 import time

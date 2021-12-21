@@ -10,7 +10,7 @@ foobar+no_all_mail@gmail.com.
 * OAuth error during scope acceptance
 
 """
-from __future__ import print_function
+
 
 from inbox.auth.gmail import GmailAuthHandler
 from inbox.basicauth import (

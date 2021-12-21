@@ -55,13 +55,13 @@ def main(min_id, max_id, shard_id):
             generic_accounts = [acc.id for acc in generic_accounts]
             db_session.expunge_all()
 
-    print("Total accounts: %d" % len(generic_accounts))
+    print("Total accounts", len(generic_accounts))
 
     for account_id in generic_accounts:
         try:
             with session_scope(account_id) as db_session:
                 account = db_session.query(GenericAccount).get(account_id)
-                print("Updating %s" % account.email_address)
+                print("Updating", account.email_address)
 
                 with connection_pool(account.id).get() as crispin_client:
                     account.folder_prefix = crispin_client.folder_prefix

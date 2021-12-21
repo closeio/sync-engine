@@ -2,6 +2,7 @@ import ast
 import json
 from datetime import datetime
 from email.utils import parseaddr
+from typing import Union
 
 import arrow
 from dateutil.parser import parse as date_parse
@@ -68,11 +69,19 @@ _EVENT_CREATED_SANELY_SENTINEL = object()
 
 
 def time_parse(x):
+    # type: (Union[float, int, str, arrow.Arrow]) -> arrow.Arrow
+    try:
+        x = float(x)
+    except (ValueError, TypeError):
+        pass
+
     return arrow.get(x).to("utc").naive
 
 
 class FlexibleDateTime(TypeDecorator):
     """Coerce arrow times to naive datetimes before handing to the database."""
+
+    cache_ok = True
 
     impl = DateTime
 
@@ -90,7 +99,7 @@ class FlexibleDateTime(TypeDecorator):
             return arrow.get(value).to("utc")
 
     def compare_values(self, x, y):
-        if isinstance(x, datetime) or isinstance(x, int):
+        if isinstance(x, (datetime, int)):
             x = arrow.get(x)
         if isinstance(y, datetime) or isinstance(x, int):
             y = arrow.get(y)
@@ -217,14 +226,14 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
         """Merge right into left. Right takes precedence unless it's null."""
         for attribute in right.keys():
             # Special cases:
-            if right[attribute] is None:
+            if (
+                right[attribute] is None
+                or right[attribute] == ""
+                or right["status"] == "noreply"
+            ):
                 continue
-            elif right[attribute] == "":
-                continue
-            elif right["status"] == "noreply":
-                continue
-            else:
-                left[attribute] = right[attribute]
+
+            left[attribute] = right[attribute]
 
         return left
 

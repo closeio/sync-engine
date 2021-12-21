@@ -35,7 +35,7 @@ else:
 
 
 def is_live_env():
-    return env == "prod" or env == "staging"
+    return env in ["prod", "staging"]
 
 
 class ConfigError(Exception):
@@ -110,14 +110,12 @@ def _update_config_from_env(config, env):
 
     for filename in reversed(path):
         try:
-            f = open(filename)
-        except (IOError, OSError) as e:
-            if e.errno != errno.ENOENT:
-                raise
-        else:
-            with f:
+            with open(filename) as f:
                 # this also parses json, which is a subset of yaml
                 config.update(yaml.safe_load(f))
+        except (IOError, OSError) as e:  # noqa: B014
+            if e.errno != errno.ENOENT:
+                raise
 
 
 def _get_local_feature_flags(config):

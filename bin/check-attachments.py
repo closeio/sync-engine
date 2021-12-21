@@ -10,7 +10,6 @@ import datetime
 from collections import defaultdict
 
 import click
-import gevent
 from gevent.pool import Pool
 from sqlalchemy import true
 from sqlalchemy.sql.expression import func
@@ -44,7 +43,7 @@ def process_account(account_id):
 
         one_month_ago = datetime.datetime.utcnow() - datetime.timedelta(days=30)
 
-        for i in range(NUM_MESSAGES):
+        for _ in range(NUM_MESSAGES):
             with session_scope(account_id) as db_session:
                 block = (
                     db_session.query(Block)

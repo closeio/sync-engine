@@ -114,13 +114,13 @@ def _is_log_in_same_fn_scope(exc_tb):
     """
     cur_stack = traceback.extract_stack()
     calling_fn = None
-    for fname, line_num, fn_name, code in reversed(cur_stack):
+    for _, _, fn_name, code in reversed(cur_stack):
         if code and re.search(r"log\.(error|exception)", code):
             calling_fn = fn_name
             break
 
     exc_tb_stack = traceback.extract_tb(exc_tb)
-    for fname, line_num, fn_name, code in exc_tb_stack:
+    for _, _, fn_name, _ in exc_tb_stack:
         if fn_name == calling_fn:
             return True
     return False
@@ -358,7 +358,7 @@ def create_error_log_context(exc_info):
             tb = safe_format_exception(exc_type, exc_value, exc_tb)
             if tb:
                 out["error_traceback"] = tb
-    except:
+    except Exception:
         pass
 
     return out

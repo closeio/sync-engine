@@ -8,6 +8,7 @@ Revises: 2c313b6ddd9b
 Create Date: 2014-05-08 19:26:07.253333
 
 """
+from __future__ import print_function
 
 # revision identifiers, used by Alembic.
 revision = "4e04f752b7ad"
@@ -30,13 +31,13 @@ def upgrade():
     class ImapUid(Base):
         __table__ = Base.metadata.tables["imapuid"]
 
-    print "Deleting imapuid objects with NULL message_id..."
+    print("Deleting imapuid objects with NULL message_id...")
 
     with session_scope(versioned=False) as session:
         session.query(ImapUid).filter_by(message_id=None).delete()
         session.commit()
 
-    print "Tightening NULL constraints..."
+    print("Tightening NULL constraints...")
 
     op.alter_column("imapuid", "message_id", existing_type=sa.Integer(), nullable=False)
     # unrelated to current bugs, but no reason this should be NULLable either

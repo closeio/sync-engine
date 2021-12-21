@@ -5,6 +5,7 @@ Revises: 38d78543f8be
 Create Date: 2014-06-27 01:46:28.773074
 
 """
+from __future__ import print_function
 
 # revision identifiers, used by Alembic.
 revision = "161b88c17615"
@@ -32,7 +33,7 @@ def upgrade():
             # There aren't actually any threads to update.
             return
         for pointer in range(0, num_threads + 1, 1000):
-            print pointer
+            print(pointer)
             for thread in db_session.query(Thread).filter(
                 Thread.id >= pointer, Thread.id < pointer + 1000
             ):

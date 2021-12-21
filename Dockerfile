@@ -1,10 +1,13 @@
-FROM ubuntu:xenial-20210804
+FROM ubuntu:bionic-20210930
 ARG PYTHON_VERSION=2.7
 
 RUN groupadd -g 5000 sync-engine \
   && useradd -d /home/sync-engine -m -u 5000 -g 5000 sync-engine
 
-RUN DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get dist-upgrade -y && apt-get install -y \
+ENV TZ="Etc/GMT"
+RUN DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get dist-upgrade -y && \
+  apt-get install -y tzdata && \
+  apt-get install -y \
   build-essential \
   curl \
   dnsutils \
@@ -26,23 +29,22 @@ RUN DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get dist-upgrade -y 
   net-tools \
   shared-mime-info \
   telnet \
-  tzdata \
   vim \
   libffi-dev \
   software-properties-common \
   && rm -rf /var/lib/apt/lists/*
 
-RUN if [ "${PYTHON_VERSION}" != "2.7" ] ; \
+RUN if [ "${PYTHON_VERSION}" != "3.6" ] ; \
   then \
     add-apt-repository ppa:deadsnakes/ppa; \
-    DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y python"${PYTHON_VERSION}" python"${PYTHON_VERSION}"-dev; \
   fi; \
-  if [ "${PYTHON_VERSION}" = "3.8" ] ; then DEBIAN_FRONTEND=noninteractive apt-get install -y python"${PYTHON_VERSION}"-distutils; fi; \
+  DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y python"${PYTHON_VERSION}"-dev; \
+  if [ "${PYTHON_VERSION}" = "3.8" ] || [ "${PYTHON_VERSION}" = "3.9" ] ; then DEBIAN_FRONTEND=noninteractive apt-get install -y python"${PYTHON_VERSION}"-distutils; fi; \
   rm -rf /var/lib/apt/lists/*
 
 RUN curl -O https://bootstrap.pypa.io/pip/2.7/get-pip.py && \
   python"${PYTHON_VERSION}" get-pip.py && \
-  python"${PYTHON_VERSION}" -m pip install --upgrade pip==20.3.4 && \
+  python"${PYTHON_VERSION}" -m pip install --upgrade pip==$( if [ "${PYTHON_VERSION}" = "2.7" ] ; then echo 20.3.4; else echo 21.3.1; fi) && \
   python"${PYTHON_VERSION}" -m pip install virtualenv==20.8.1
 
 RUN mkdir /etc/inboxapp && \
@@ -64,7 +66,7 @@ COPY --chown=sync-engine:sync-engine ./ ./
 RUN \
   python"${PYTHON_VERSION}" -m virtualenv /opt/venv && \
   /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install setuptools==44.0.0 pip==20.3.4 && \
-  /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install --no-deps -r requirements_frozen.txt && \
+  /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install --no-deps -r requirements/prod.txt -r requirements/test.txt && \
   /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install -e .
 
 RUN /opt/venv/bin/python"${PYTHON_VERSION}" -m pip check

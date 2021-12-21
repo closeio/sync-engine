@@ -3,7 +3,6 @@ import time
 from builtins import range
 from collections import OrderedDict
 
-import gevent
 import limitlion
 from future.utils import iteritems
 from sqlalchemy import desc, func
@@ -141,7 +140,6 @@ def batch_delete_namespaces(ids_to_delete, throttle=False, dry_run=False):
 
     start = time.time()
 
-    deleted_count = 0
     for account_id, namespace_id in ids_to_delete:
         # try:
         try:
@@ -152,14 +150,12 @@ def batch_delete_namespaces(ids_to_delete, throttle=False, dry_run=False):
         except Exception:
             log_uncaught_errors(log, account_id=account_id)
 
-        deleted_count += 1
-
     end = time.time()
     log.info(
         "All data deleted successfully for ids",
         ids_to_delete=ids_to_delete,
         time=end - start,
-        count=deleted_count,
+        count=len(ids_to_delete),
     )
 
 
@@ -309,7 +305,7 @@ def _batch_delete(
 
     log.info("deleting", account_id=account_id, table=table)
 
-    for i in range(0, batches):
+    for _ in range(0, batches):
         if throttle:
             bulk_throttle()
 

@@ -5,6 +5,7 @@ Revises: 182f2b40fa36
 Create Date: 2015-05-04 19:06:03.595736
 
 """
+from __future__ import print_function
 
 # revision identifiers, used by Alembic.
 revision = "365071c47fa7"
@@ -29,10 +30,10 @@ def upgrade():
 
     # Check this migration hasn't run before
     if "folder_id" not in [c.name for c in easuid.columns]:
-        print "This migration has been run, skipping."
+        print("This migration has been run, skipping.")
         return
 
-    print "Running migration"
+    print("Running migration")
     conn = op.get_bind()
 
     conn.execute(

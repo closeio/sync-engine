@@ -10,7 +10,6 @@ from inbox.api.kellogs import APIEncoder, encode
 from inbox.models import Account, Message, Namespace, Thread, Transaction
 from inbox.models.session import session_scope
 from inbox.models.util import transaction_objects
-from inbox.sqlalchemy_ext.util import bakery
 
 EVENT_NAME_FOR_COMMAND = {"insert": "create", "update": "modify", "delete": "delete"}
 
@@ -79,14 +78,10 @@ def get_transaction_cursor_near_timestamp(namespace_id, timestamp, db_session):
 
 
 def _get_last_trx_id_for_namespace(namespace_id, db_session):
-    q = bakery(lambda session: session.query(Transaction.id))
-    q += lambda q: q.filter(Transaction.namespace_id == bindparam("namespace_id"))
-    q += (
-        lambda q: q.order_by(desc(Transaction.created_at))
-        .order_by(desc(Transaction.id))
-        .limit(1)
-    )
-    return q(db_session).params(namespace_id=namespace_id).one()[0]
+    q = db_session.query(Transaction.id)
+    q = q.filter(Transaction.namespace_id == bindparam("namespace_id"))
+    q = q.order_by(desc(Transaction.created_at)).order_by(desc(Transaction.id)).limit(1)
+    return q.params(namespace_id=namespace_id).one()[0]
 
 
 def format_transactions_after_pointer(

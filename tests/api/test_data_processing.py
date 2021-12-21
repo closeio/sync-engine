@@ -81,15 +81,12 @@ def test_contact_rankings(db, api_client, default_namespace):
     for e1, e2 in zip(emails, emails[1:]):
         assert emails_scores[e1] > emails_scores[e2]
 
-    try:
-        cached_data = (
-            db.session.query(DataProcessingCache)
-            .filter(DataProcessingCache.namespace_id == namespace_id)
-            .one()
-        )
-        assert cached_data.contact_rankings_last_updated is not None
-    except (NoResultFound, AssertionError):
-        assert False, "Contact rankings not cached"
+    cached_data = (
+        db.session.query(DataProcessingCache)
+        .filter(DataProcessingCache.namespace_id == namespace_id)
+        .one()
+    )
+    assert cached_data.contact_rankings_last_updated is not None
 
 
 def test_contact_groups(db, api_client, default_namespace):
@@ -161,12 +158,9 @@ def test_contact_groups(db, api_client, default_namespace):
     for g in groups:
         assert g in groups_scores
 
-    try:
-        cached_data = (
-            db.session.query(DataProcessingCache)
-            .filter(DataProcessingCache.namespace_id == namespace_id)
-            .one()
-        )
-        assert cached_data.contact_groups_last_updated is not None
-    except (NoResultFound, AssertionError):
-        assert False, "Contact groups not cached"
+    cached_data = (
+        db.session.query(DataProcessingCache)
+        .filter(DataProcessingCache.namespace_id == namespace_id)
+        .one()
+    )
+    assert cached_data.contact_groups_last_updated is not None

@@ -25,9 +25,8 @@ def grab_lock(lock):
 def test_non_blocking_lock():
     with tmp_lock(block=False) as lock:
         filename = lock.filename
-        with pytest.raises(IOError):
-            with tmp_lock(block=False, filename=filename):
-                pass
+        with pytest.raises(IOError), tmp_lock(block=False, filename=filename):
+            pass
     # Should be able to acquire the lock again after the scope ends (also
     # testing that the non-context-manager acquire works).
     lock.acquire()

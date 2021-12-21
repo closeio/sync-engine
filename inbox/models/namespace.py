@@ -3,7 +3,6 @@ from sqlalchemy.orm import backref, relationship
 
 from inbox.models.base import MailSyncBase
 from inbox.models.mixins import DeletedAtMixin, HasPublicID, UpdatedAtMixin
-from inbox.sqlalchemy_ext.util import bakery
 
 
 class Namespace(MailSyncBase, HasPublicID, UpdatedAtMixin, DeletedAtMixin):
@@ -36,12 +35,12 @@ class Namespace(MailSyncBase, HasPublicID, UpdatedAtMixin, DeletedAtMixin):
 
     @classmethod
     def get(cls, id_, session):
-        q = bakery(lambda session: session.query(cls))
-        q += lambda q: q.filter(cls.id == bindparam("id_"))
-        return q(session).params(id_=id_).first()
+        q = session.query(cls)
+        q = q.filter(cls.id == bindparam("id_"))
+        return q.params(id_=id_).first()
 
     @classmethod
     def from_public_id(cls, public_id, db_session):
-        q = bakery(lambda session: session.query(Namespace))
-        q += lambda q: q.filter(Namespace.public_id == bindparam("public_id"))
-        return q(db_session).params(public_id=public_id).one()
+        q = db_session.query(Namespace)
+        q = q.filter(Namespace.public_id == bindparam("public_id"))
+        return q.params(public_id=public_id).one()

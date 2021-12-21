@@ -5,6 +5,7 @@ Revises:159607944f52
 Create Date: 2014-09-14 22:15:51.225342
 
 """
+from __future__ import print_function
 
 # revision identifiers, used by Alembic.
 revision = "427812c1e849"
@@ -44,7 +45,7 @@ def upgrade():
 
     with session_scope(versioned=False) as db_session:
         accounts = db_session.query(EASAccount).all()
-        print "# EAS accounts: ", len(accounts)
+        print("# EAS accounts: ", len(accounts))
 
         for account in accounts:
             secret = Secret()

@@ -48,20 +48,19 @@ def link_master(db_session, event):
     # Find the master RecurringEvent that spawned this
     # RecurringEventOverride (may not exist if it hasn't
     # been synced yet)
-    if not event.master:
-        if event.master_event_uid:
-            master = (
-                db_session.query(RecurringEvent)
-                .filter_by(
-                    namespace_id=event.namespace_id,
-                    calendar_id=event.calendar_id,
-                    uid=event.master_event_uid,
-                    source=event.source,
-                )
-                .first()
+    if not event.master and event.master_event_uid:
+        master = (
+            db_session.query(RecurringEvent)
+            .filter_by(
+                namespace_id=event.namespace_id,
+                calendar_id=event.calendar_id,
+                uid=event.master_event_uid,
+                source=event.source,
             )
-            if master:
-                event.master = master
+            .first()
+        )
+        if master:
+            event.master = master
     return event.master  # This may be None.
 
 

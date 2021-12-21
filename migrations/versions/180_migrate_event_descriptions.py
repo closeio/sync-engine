@@ -5,6 +5,7 @@ Revises: 56500282e024
 Create Date: 2015-06-23 18:09:33.804125
 
 """
+from __future__ import print_function
 
 # revision identifiers, used by Alembic.
 revision = "ea9dc8742ee"
@@ -20,7 +21,7 @@ def upgrade():
             "UPDATE event SET _description=description "
             "WHERE _description IS NULL AND description IS NOT NULL LIMIT 100000"
         )
-        print "Updated {} rows".format(res.rowcount)
+        print("Updated {} rows".format(res.rowcount))
         if res.rowcount == 0:
             return
 

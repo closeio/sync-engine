@@ -80,7 +80,7 @@ class ContactSearchIndexService(Greenlet):
                     else:
                         self.transaction_pointers[key] = 0
 
-    def _index_transactions(self, namespace_ids=[]):
+    def _index_transactions(self, namespace_ids=None):
         """ index with filter """
         # index 'em
         for key in engine_manager.engines:

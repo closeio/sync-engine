@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
-import cgi
 import re
 import sys
+
+if sys.version_info < (3, 8):
+    from cgi import escape as html_escape
+else:
+    from html import escape as html_escape
+
 
 if sys.version_info >= (3,):
     unichr = chr
@@ -62,6 +67,11 @@ class HTMLTagStripper(HTMLParser):
             except (ValueError, OverflowError):
                 return
 
+    if (3,) <= sys.version_info < (3, 10):
+
+        def error(self, message):
+            raise HTMLParseError(message)
+
     def handle_entityref(self, d):
         try:
             val = unichr(name2codepoint[d])
@@ -91,7 +101,7 @@ def strip_tags(html):
 
 # https://djangosnippets.org/snippets/19/
 re_string = re.compile(
-    r"(?P<htmlchars>[<&>])|(?P<space>^[ \t]+)|(?P<lineend>\n)|(?P<protocol>(^|\s)((http|ftp)://.*?))(\s|$)",
+    r"(?P<htmlchars>[<&>])|(?P<space>^[ \t]+)|(?P<lineend>\n)|(?P<protocol>(^|\s)((https?|ftp)://.*?))(\s|$)",
     re.S | re.M | re.I | re.U,
 )
 
@@ -103,7 +113,7 @@ def plaintext2html(text, tabstop=4):
     def do_sub(m):
         c = m.groupdict()
         if c["htmlchars"]:
-            return cgi.escape(c["htmlchars"])
+            return html_escape(c["htmlchars"], quote=False)
         if c["lineend"]:
             return "<br>"
         elif c["space"]:

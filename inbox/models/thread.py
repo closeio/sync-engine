@@ -92,9 +92,9 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
                 )
                 and not m.is_draft
                 and not m.is_sent
+                and (not received_recent_date or m.received_date > received_recent_date)
             ):
-                if not received_recent_date or m.received_date > received_recent_date:
-                    received_recent_date = m.received_date
+                received_recent_date = m.received_date
 
         if not received_recent_date:
             sorted_messages = sorted(self.messages, key=lambda m: m.received_date)
@@ -228,7 +228,10 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
         self.deleted_at = datetime.datetime.utcnow()
 
     discriminator = Column("type", String(16))
-    __mapper_args__ = {"polymorphic_on": discriminator}
+    __mapper_args__ = {
+        "polymorphic_on": discriminator,
+        "polymorphic_identity": "thread",
+    }
 
 
 # Need to explicitly specify the index length for MySQL 5.6, because the

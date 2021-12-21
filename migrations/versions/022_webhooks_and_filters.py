@@ -8,6 +8,7 @@ Revises: 519e462df171
 Create Date: 2014-05-04 03:14:39.923489
 
 """
+from __future__ import print_function
 
 # revision identifiers, used by Alembic.
 revision = "2c313b6ddd9b"
@@ -20,7 +21,7 @@ from alembic import op
 def upgrade():
     from inbox.sqlalchemy_ext.util import Base36UID
 
-    print "Rename WebhookParameters -> Webhook"
+    print("Rename WebhookParameters -> Webhook")
     op.rename_table("webhookparameters", "webhook")
 
     op.drop_index("ix_webhookparameters_public_id", table_name="webhook")
@@ -37,7 +38,7 @@ def upgrade():
         ondelete="CASCADE",
     )
 
-    print "Creating Lens"
+    print("Creating Lens")
     op.create_table(
         "lens",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -63,7 +64,7 @@ def upgrade():
     op.create_index("ix_lens_namespace_id", "lens", ["namespace_id"], unique=False)
     op.create_index("ix_lens_public_id", "lens", ["public_id"], unique=False)
 
-    print "Removing old webhooks"
+    print("Removing old webhooks")
     op.add_column(u"webhook", sa.Column("lens_id", sa.Integer(), nullable=False))
 
     op.drop_column(u"webhook", u"last_message_after")

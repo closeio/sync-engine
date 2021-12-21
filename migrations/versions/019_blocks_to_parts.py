@@ -6,6 +6,7 @@ Revises: 223041bb858b
 Create Date: 2014-04-28 22:09:00.652851
 
 """
+from __future__ import print_function
 
 # revision identifiers, used by Alembic.
 revision = "5a787816e2bc"
@@ -27,7 +28,7 @@ def upgrade():
     from inbox.models import Message, Namespace, Part, Thread
     from inbox.sqlalchemy_ext.util import JSON
 
-    print "Creating table for parts..."
+    print("Creating table for parts...")
     op.create_table(
         "part",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -50,17 +51,17 @@ def upgrade():
         sa.UniqueConstraint("message_id", "walk_index"),
     )
 
-    print "Reflecting old block table schema"
+    print("Reflecting old block table schema")
     Base = declarative_base()
     Base.metadata.reflect(engine)
 
     class Block_(Base):  # old schema, reflected from database table
         __table__ = Base.metadata.tables["block"]
 
-    print "Adding namespace_id column to blocks ",
+    print("Adding namespace_id column to blocks ", end=" ")
     op.add_column(u"block", sa.Column("namespace_id", sa.Integer(), nullable=False))
 
-    print "Migrating from blocks to parts"
+    print("Migrating from blocks to parts")
     new_parts = []
     with session_scope() as db_session:
         for block in db_session.query(Block_).yield_per(chunk_size):
@@ -87,15 +88,15 @@ def upgrade():
             # Commit after column modifications
             new_parts.append(p)
 
-        print "Deleting old blocks (now parts)... ",
+        print("Deleting old blocks (now parts)... ", end=" ")
         db_session.query(Block_).delete()
         db_session.commit()
-        print "Done!"
+        print("Done!")
 
-    print "Removing `message_id` constraint from block"
+    print("Removing `message_id` constraint from block")
     op.drop_constraint("block_ibfk_1", "block", type_="foreignkey")
 
-    print "Creating foreign key for block -> namespace on block"
+    print("Creating foreign key for block -> namespace on block")
     op.create_foreign_key(
         "block_ibfk_1",
         "block",
@@ -105,7 +106,7 @@ def upgrade():
         ondelete="CASCADE",
     )
 
-    print "Dropping old block columns which are now in part"
+    print("Dropping old block columns which are now in part")
     op.drop_column(u"block", u"walk_index")
     op.drop_column(u"block", u"content_disposition")
     op.drop_column(u"block", u"misc_keyval")
@@ -122,7 +123,7 @@ def upgrade():
     no_tx_session.add_all(new_parts)
     no_tx_session.commit()
 
-    print "Done migration blocks to parts!"
+    print("Done migration blocks to parts!")
 
 
 def downgrade():

@@ -4,7 +4,8 @@ CHUNK_SIZE = 50
 
 
 class RestfulModelCollection(object):
-    def __init__(self, cls, api, filter={}, offset=0, **filters):
+    def __init__(self, cls, api, filter=None, offset=0, **filters):
+        filter = filter or {}
         filters.update(filter)
         from inbox.client import APIClient
 
@@ -44,11 +45,12 @@ class RestfulModelCollection(object):
     def all(self, limit=float("infinity")):
         return self._range(self.filters["offset"], limit)
 
-    def where(self, filter={}, **filters):
+    def where(self, filter=None, **filters):
         # Some API parameters like "from" and "in" also are
         # Python reserved keywords. To work around this, we rename
         # them to "from_" and "in_". The API still needs them in
         # their correct form though.
+        filter = filter or {}
         reserved_keywords = ["from", "in"]
         for keyword in reserved_keywords:
             escaped_keyword = "{}_".format(keyword)

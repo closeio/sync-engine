@@ -21,26 +21,32 @@ class TestAPIClient(object):
             "Authorization": "Basic {}".format(b64encode(credential).decode())
         }
 
-    def get_raw(self, path, headers={}):
+    def get_raw(self, path, headers=None):
+        headers = headers or {}
         headers.update(self.auth_header)
         return self.client.get(path, headers=headers)
 
-    def get_data(self, path, headers={}):
+    def get_data(self, path, headers=None):
+        headers = headers or {}
         headers.update(self.auth_header)
         return json.loads(self.client.get(path, headers=headers).data)
 
-    def post_data(self, path, data, headers={}):
+    def post_data(self, path, data, headers=None):
+        headers = headers or {}
         headers.update(self.auth_header)
         return self.client.post(path, data=json.dumps(data), headers=headers)
 
-    def post_raw(self, path, data, headers={}):
+    def post_raw(self, path, data, headers=None):
+        headers = headers or {}
         headers.update(self.auth_header)
         return self.client.post(path, data=data, headers=headers)
 
-    def put_data(self, path, data, headers={}):
+    def put_data(self, path, data, headers=None):
+        headers = headers or {}
         headers.update(self.auth_header)
         return self.client.put(path, headers=headers, data=json.dumps(data))
 
-    def delete(self, path, data=None, headers={}):
+    def delete(self, path, data=None, headers=None):
+        headers = headers or {}
         headers.update(self.auth_header)
         return self.client.delete(path, headers=headers, data=json.dumps(data))

@@ -34,9 +34,12 @@ DB_POOL_TIMEOUT = config.get("DB_POOL_TIMEOUT") or 60
 pool_tracker = weakref.WeakKeyDictionary()
 
 
+hub = gevent.hub.get_hub()
+
+
 # See
 # https://github.com/PyMySQL/mysqlclient-python/blob/master/samples/waiter_gevent.py
-def gevent_waiter(fd, hub=gevent.hub.get_hub()):
+def gevent_waiter(fd):
     hub.wait(hub.loop.io(fd, 1))
 
 
@@ -260,14 +263,13 @@ def reset_invalid_autoincrements(engine, schema, key, dry_run=True):
     reset = set()
     for table in MailSyncBase.metadata.sorted_tables:
         increment = engine.execute(query.format(schema, table)).scalar()
-        if increment is not None:
-            if (increment >> 48) != key:
-                if not dry_run:
-                    reset_query = "ALTER TABLE {} AUTO_INCREMENT={}".format(
-                        table, (key << 48) + 1
-                    )
-                    engine.execute(reset_query)
-                reset.add(str(table))
+        if increment is not None and (increment >> 48) != key:
+            if not dry_run:
+                reset_query = "ALTER TABLE {} AUTO_INCREMENT={}".format(
+                    table, (key << 48) + 1
+                )
+                engine.execute(reset_query)
+            reset.add(str(table))
     return reset
 
 

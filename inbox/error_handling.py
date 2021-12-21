@@ -30,10 +30,10 @@ class SyncEngineRollbarHandler(RollbarHandler):
         # Otherwise they would be reported twice.
         # Once from structlog to logging integration
         # and another time from handle_uncaught_exception
-        if (
-            event == "Uncaught error"
-            or event == "Uncaught error thrown by Flask/Werkzeug"
-            or event == "SyncbackWorker caught exception"
+        if event in (
+            "Uncaught error",
+            "Uncaught error thrown by Flask/Werkzeug",
+            "SyncbackWorker caught exception",
         ):
             return
 
@@ -76,6 +76,10 @@ GROUP_EXCEPTION_CLASSES = [
 def payload_handler(message_filters, payload, **kw):
     title = payload["data"].get("title")
     exception = payload["data"].get("body", {}).get("trace", {}).get("exception", {})
+    # On Python 3 exceptions are organized in chains
+    if not exception:
+        trace_chain = payload["data"].get("body", {}).get("trace_chain")
+        exception = trace_chain[0].get("exception", {}) if trace_chain else {}
 
     exception_message = exception.get("message")
     exception_class = exception.get("class")

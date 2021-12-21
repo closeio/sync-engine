@@ -4,7 +4,6 @@ from __future__ import print_function
 import contextlib
 import json
 import os
-import pkgutil
 import re
 import subprocess
 
@@ -13,6 +12,7 @@ import pytest
 from past.builtins import basestring, long
 
 from inbox.basicauth import ValidationError
+from inbox.util.file import get_data
 
 FILENAMES = [
     "muir.jpg",
@@ -87,8 +87,8 @@ class MockDNSResolver(object):
     def __init__(self):
         self._registry = {"mx": {}, "ns": {}}
 
-    def _load_records(self, pkg, filename):
-        self._registry = json.loads(pkgutil.get_data(pkg, filename))
+    def _load_records(self, filename):
+        self._registry = json.loads(get_data(filename))
 
     def query(self, domain, record_type):
         record_type = record_type.lower()
@@ -103,7 +103,7 @@ class MockDNSResolver(object):
         return [MockAnswer(e) for e in self._registry[record_type][domain]]
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mock_dns_resolver(monkeypatch):
     dns_resolver = MockDNSResolver()
     monkeypatch.setattr("inbox.util.url.dns_resolver", dns_resolver)
@@ -111,7 +111,7 @@ def mock_dns_resolver(monkeypatch):
     monkeypatch.undo()
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.fixture(scope="function")
 def dump_dns_queries(monkeypatch):
     original_query = dns.resolver.Resolver.query
     query_results = {"ns": {}, "mx": {}}
@@ -128,7 +128,7 @@ def dump_dns_queries(monkeypatch):
         elif record_type == "ns":
             query_results["ns"][domain] = [str(rdata) for rdata in result]
         else:
-            raise RuntimeError("Unknown record type: %s" % record_type)
+            raise RuntimeError("Unknown record type: {}".format(record_type))
         return result
 
     monkeypatch.setattr("dns.resolver.Resolver.query", mock_query)
@@ -277,7 +277,7 @@ class MockIMAPClient(object):
         pass
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mock_imapclient(monkeypatch):
     conn = MockIMAPClient()
     monkeypatch.setattr(
@@ -296,7 +296,7 @@ class MockSMTPClient(object):
         pass
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mock_smtp_get_connection(monkeypatch):
     client = MockSMTPClient()
 
@@ -342,8 +342,9 @@ def uploaded_file_ids(api_client, files):
             filename = u"ἄνδρα μοι ἔννεπε"
         elif filename == "long-non-ascii-filename.txt":
             filename = 100 * u"μ"
-        data = {"file": (open(path, "rb"), filename)}
-        r = api_client.post_raw(upload_path, data=data)
+        with open(path, "rb") as fp:
+            data = {"file": (fp, filename)}
+            r = api_client.post_raw(upload_path, data=data)
         assert r.status_code == 200
         file_id = json.loads(r.data)[0]["id"]
         file_ids.append(file_id)

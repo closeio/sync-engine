@@ -8,9 +8,9 @@ standard_library.install_aliases()
 import re
 from datetime import datetime
 
-import pkg_resources
 from past.builtins import basestring
 
+from inbox import VERSION
 from inbox.api.err import InputError
 from inbox.api.validation import (
     get_attachments,
@@ -22,8 +22,6 @@ from inbox.contacts.processing import update_contacts_from_message
 from inbox.models import Message, Part
 from inbox.models.action_log import schedule_action
 from inbox.sqlalchemy_ext.util import generate_public_id
-
-VERSION = pkg_resources.get_distribution("inbox-sync").version
 
 
 class SendMailException(Exception):
@@ -153,13 +151,16 @@ def create_message_from_json(data, namespace, db_session, is_draft):
     reply_to_message = get_message(
         data.get("reply_to_message_id"), namespace.id, db_session
     )
-    if reply_to_message is not None and reply_to_thread is not None:
-        if reply_to_message not in reply_to_thread.messages:
-            raise InputError(
-                "Message {} is not in thread {}".format(
-                    reply_to_message.public_id, reply_to_thread.public_id
-                )
+    if (
+        reply_to_message is not None
+        and reply_to_thread is not None
+        and reply_to_message not in reply_to_thread.messages
+    ):
+        raise InputError(
+            "Message {} is not in thread {}".format(
+                reply_to_message.public_id, reply_to_thread.public_id
             )
+        )
 
     with db_session.no_autoflush:
         account = namespace.account

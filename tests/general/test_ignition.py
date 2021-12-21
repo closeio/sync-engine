@@ -7,7 +7,7 @@ from inbox.util.sharding import get_shard_schemas
 from inbox.util.testutils import create_test_db, setup_test_db
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.fixture(scope="function")
 def base_db(config):
     from inbox.ignition import engine_manager
 

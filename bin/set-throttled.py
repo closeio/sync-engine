@@ -4,7 +4,6 @@ from __future__ import print_function
 
 import optparse
 import sys
-import time
 
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.models.account import Account
@@ -31,10 +30,10 @@ def throttle(options):
             sys.exit(-1)
 
         if options.throttled:
-            print("Throttling account %s" % account.email_address)
+            print("Throttling account", account.email_address)
             account.throttled = True
         elif options.unthrottled:
-            print("Unthrottling account %s" % account.email_address)
+            print("Unthrottling account", account.email_address)
             account.throttled = False
 
         db_session.commit()

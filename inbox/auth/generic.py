@@ -1,6 +1,5 @@
 import datetime
 import getpass
-from builtins import input
 
 import attr
 from imapclient import IMAPClient

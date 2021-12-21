@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa: F401,F811
-from builtins import str
 
 from tests.util.base import event
 

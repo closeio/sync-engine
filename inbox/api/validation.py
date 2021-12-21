@@ -1,6 +1,4 @@
 """Utilities for validating user input to the API."""
-from builtins import str
-
 import arrow
 from arrow.parser import ParserError
 from flanker.addresslib import address

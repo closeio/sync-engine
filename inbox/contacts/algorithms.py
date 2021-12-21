@@ -1,7 +1,6 @@
 from __future__ import division
 
 import datetime
-from builtins import range
 from collections import defaultdict
 
 from future.utils import iteritems

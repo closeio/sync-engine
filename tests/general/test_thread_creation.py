@@ -4,7 +4,6 @@ from future import standard_library
 
 standard_library.install_aliases()
 import datetime
-from builtins import range
 from collections import namedtuple
 
 import pytest

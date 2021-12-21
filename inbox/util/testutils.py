@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import contextlib
 import json
 import os

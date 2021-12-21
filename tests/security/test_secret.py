@@ -1,4 +1,3 @@
-# -*- coding: UTF-8 -*-
 import pytest
 
 from inbox.auth.google import GoogleAccountData, GoogleAuthHandler

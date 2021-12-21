@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Test local behavior for the drafts API. Doesn't test syncback or actual
 sending."""
 import json

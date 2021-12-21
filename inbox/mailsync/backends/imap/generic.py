@@ -1,5 +1,4 @@
 # deal with unicode literals: http://www.python.org/dev/peps/pep-0263/
-# vim: set fileencoding=utf-8 :
 """
 ----------------
 IMAP SYNC ENGINE

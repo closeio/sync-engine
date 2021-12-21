@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Basic tests for GmailCrispinClient/CrispinClient methods. We replace
 imapclient.IMAPClient._imap by a mock in order to test these. In particular, we

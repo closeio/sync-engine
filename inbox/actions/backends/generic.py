@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """ Operations for syncing back local datastore changes to
     generic IMAP providers.
 """

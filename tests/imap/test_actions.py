@@ -1,5 +1,4 @@
 # flake8: noqa: F401, F811
-# -*- coding: utf-8 -*-
 import gevent
 import mock
 import pytest

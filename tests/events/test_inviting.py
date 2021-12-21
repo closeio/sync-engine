@@ -63,8 +63,8 @@ def test_message_generation(event, default_account):
 def test_unicode_message_generation(event, default_account):
     from inbox.events.ical import generate_invite_message
 
-    event.title = u"Dîner chez François et Hélène"
-    event.description = u"""Cher Paul,
+    event.title = "Dîner chez François et Hélène"
+    event.description = """Cher Paul,
 Je suis heureux de vous inviter à un diner le samedi 19 novembre 2011 à 19h30
 au chalet de l'île Daumesnil dans le bois de Vincennes.
 

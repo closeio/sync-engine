@@ -141,7 +141,7 @@ class FolderSyncEngine(Greenlet):
                 )
             except NoResultFound:
                 raise MailsyncError(
-                    u"Missing Folder '{}' on account {}".format(folder_name, account_id)
+                    "Missing Folder '{}' on account {}".format(folder_name, account_id)
                 )
 
             self.folder_id = folder.id

@@ -48,14 +48,11 @@ def downgrade():
         sa.Column("filename", mysql.VARCHAR(length=255), nullable=True),
         sa.Column("tag", mysql.VARCHAR(length=255), nullable=True),
         sa.ForeignKeyConstraint(
-            ["namespace_id"],
-            [u"namespace.id"],
-            name=u"lens_ibfk_1",
-            ondelete=u"CASCADE",
+            ["namespace_id"], ["namespace.id"], name="lens_ibfk_1", ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id"),
-        mysql_default_charset=u"utf8mb4",
-        mysql_engine=u"InnoDB",
+        mysql_default_charset="utf8mb4",
+        mysql_engine="InnoDB",
     )
     op.create_table(
         "webhook",
@@ -113,15 +110,15 @@ def downgrade():
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["lens_id"], [u"lens.id"], name=u"webhook_ibfk_2", ondelete=u"CASCADE"
+            ["lens_id"], ["lens.id"], name="webhook_ibfk_2", ondelete="CASCADE"
         ),
         sa.ForeignKeyConstraint(
             ["namespace_id"],
-            [u"namespace.id"],
-            name=u"webhook_ibfk_1",
-            ondelete=u"CASCADE",
+            ["namespace.id"],
+            name="webhook_ibfk_1",
+            ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id"),
-        mysql_default_charset=u"utf8mb4",
-        mysql_engine=u"InnoDB",
+        mysql_default_charset="utf8mb4",
+        mysql_engine="InnoDB",
     )

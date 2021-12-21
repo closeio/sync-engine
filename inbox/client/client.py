@@ -196,7 +196,7 @@ class APIClient(json.JSONEncoder):
             self.access_token_url, data=urlencode(args), headers=headers
         ).json()
 
-        self.auth_token = resp[u"access_token"]
+        self.auth_token = resp["access_token"]
         return self.auth_token
 
     def is_opensource_api(self):

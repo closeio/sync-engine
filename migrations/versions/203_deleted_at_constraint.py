@@ -17,9 +17,9 @@ from sqlalchemy.sql import text
 def upgrade():
     conn = op.get_bind()
     conn.execute(text("set @@foreign_key_checks = 0;"))
-    op.drop_constraint(u"namespace_id", "category", type_="unique")
+    op.drop_constraint("namespace_id", "category", type_="unique")
     op.create_unique_constraint(
-        u"namespace_id",
+        "namespace_id",
         "category",
         ["namespace_id", "name", "display_name", "deleted_at"],
     )
@@ -29,9 +29,9 @@ def upgrade():
     engine = main_engine(pool_size=1, max_overflow=0)
     if not engine.has_table("easfoldersyncstatus"):
         return
-    op.drop_constraint(u"account_id_2", "easfoldersyncstatus", type_="unique")
+    op.drop_constraint("account_id_2", "easfoldersyncstatus", type_="unique")
     op.create_unique_constraint(
-        u"account_id_2",
+        "account_id_2",
         "easfoldersyncstatus",
         ["account_id", "device_id", "eas_folder_id", "deleted_at"],
     )
@@ -41,9 +41,9 @@ def upgrade():
 def downgrade():
     conn = op.get_bind()
     conn.execute(text("set @@foreign_key_checks = 0;"))
-    op.drop_constraint(u"namespace_id", "category", type_="unique")
+    op.drop_constraint("namespace_id", "category", type_="unique")
     op.create_unique_constraint(
-        u"namespace_id", "category", ["namespace_id", "name", "display_name"]
+        "namespace_id", "category", ["namespace_id", "name", "display_name"]
     )
 
     from inbox.ignition import main_engine
@@ -51,9 +51,9 @@ def downgrade():
     engine = main_engine(pool_size=1, max_overflow=0)
     if not engine.has_table("easfoldersyncstatus"):
         return
-    op.drop_constraint(u"account_id_2", "easfoldersyncstatus", type_="unique")
+    op.drop_constraint("account_id_2", "easfoldersyncstatus", type_="unique")
     op.create_unique_constraint(
-        u"account_id_2",
+        "account_id_2",
         "easfoldersyncstatus",
         ["account_id", "device_id", "eas_folder_id"],
     )

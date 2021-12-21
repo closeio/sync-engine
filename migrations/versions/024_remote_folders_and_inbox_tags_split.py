@@ -21,16 +21,16 @@ CHUNK_SIZE = 250
 
 # This is a bit of a hack (english locale only), but good enough for now.
 folder_name_subst_map = {
-    "archive": u"[Gmail]/All Mail",
-    "drafts": u"[Gmail]/Drafts",
-    "draft": u"[Gmail]/Drafts",
-    "important": u"[Gmail]/Important",
-    "inbox": u"Inbox",
-    "INBOX": u"Inbox",
-    "sent": u"[Gmail]/Sent Mail",
-    "spam": u"[Gmail]/Spam",
-    "starred": u"[Gmail]/Starred",
-    "trash": u"[Gmail]/Trash",
+    "archive": "[Gmail]/All Mail",
+    "drafts": "[Gmail]/Drafts",
+    "draft": "[Gmail]/Drafts",
+    "important": "[Gmail]/Important",
+    "inbox": "Inbox",
+    "INBOX": "Inbox",
+    "sent": "[Gmail]/Sent Mail",
+    "spam": "[Gmail]/Spam",
+    "starred": "[Gmail]/Starred",
+    "trash": "[Gmail]/Trash",
 }
 
 

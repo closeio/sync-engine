@@ -59,8 +59,8 @@ def upgrade():
     op.create_index("ix_tagitem_created_at", "tagitem", ["created_at"], unique=False)
     op.create_index("ix_tagitem_deleted_at", "tagitem", ["deleted_at"], unique=False)
     op.create_index("ix_tagitem_updated_at", "tagitem", ["updated_at"], unique=False)
-    op.drop_table(u"usertagitem")
-    op.drop_table(u"usertag")
+    op.drop_table("usertagitem")
+    op.drop_table("usertag")
 
     op.alter_column(
         "folder",
@@ -70,7 +70,7 @@ def upgrade():
         existing_type=sa.String(length=191),
     )
 
-    op.drop_column("folder", u"exposed_name")
+    op.drop_column("folder", "exposed_name")
 
     # Doing this ties this migration to the state of the code at the time
     # of this commit. However, the alternative is to have a crazy long,

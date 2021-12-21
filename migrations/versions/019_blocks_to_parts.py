@@ -59,7 +59,7 @@ def upgrade():
         __table__ = Base.metadata.tables["block"]
 
     print("Adding namespace_id column to blocks ", end=" ")
-    op.add_column(u"block", sa.Column("namespace_id", sa.Integer(), nullable=False))
+    op.add_column("block", sa.Column("namespace_id", sa.Integer(), nullable=False))
 
     print("Migrating from blocks to parts")
     new_parts = []
@@ -107,13 +107,13 @@ def upgrade():
     )
 
     print("Dropping old block columns which are now in part")
-    op.drop_column(u"block", u"walk_index")
-    op.drop_column(u"block", u"content_disposition")
-    op.drop_column(u"block", u"misc_keyval")
-    op.drop_column(u"block", u"content_id")
-    op.drop_column(u"block", u"is_inboxapp_attachment")
-    op.drop_constraint(u"message_id", "block", type_="unique")
-    op.drop_column(u"block", u"message_id")
+    op.drop_column("block", "walk_index")
+    op.drop_column("block", "content_disposition")
+    op.drop_column("block", "misc_keyval")
+    op.drop_column("block", "content_id")
+    op.drop_column("block", "is_inboxapp_attachment")
+    op.drop_constraint("message_id", "block", type_="unique")
+    op.drop_column("block", "message_id")
 
     # Note: here we use the regular database session, since the transaction
     # log requires the `namespace` property on objects. We've set the

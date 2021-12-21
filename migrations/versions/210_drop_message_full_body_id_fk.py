@@ -14,7 +14,7 @@ from alembic import op
 
 
 def upgrade():
-    op.drop_constraint(u"full_body_id_fk", "message", type_="foreignkey")
+    op.drop_constraint("full_body_id_fk", "message", type_="foreignkey")
 
 
 def downgrade():

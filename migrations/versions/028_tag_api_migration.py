@@ -56,17 +56,17 @@ def upgrade():
         sa.PrimaryKeyConstraint("id"),
     )
     op.add_column(
-        u"folder", sa.Column("exposed_name", sa.String(length=255), nullable=True)
+        "folder", sa.Column("exposed_name", sa.String(length=255), nullable=True)
     )
     op.add_column(
-        u"folder", sa.Column("public_id", sa.String(length=191), nullable=True)
+        "folder", sa.Column("public_id", sa.String(length=191), nullable=True)
     )
 
     op.add_column(
-        u"account", sa.Column("provider_prefix", sa.String(length=64), nullable=False)
+        "account", sa.Column("provider_prefix", sa.String(length=64), nullable=False)
     )
     op.add_column(
-        u"account", sa.Column("important_folder_id", sa.Integer, nullable=True)
+        "account", sa.Column("important_folder_id", sa.Integer, nullable=True)
     )
 
     Base = declarative_base()

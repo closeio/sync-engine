@@ -42,15 +42,13 @@ def comma_separated_email_list(value, key):
     # email address, but in practice nobody does this (and they shouldn't!)
 
     if len(addresses) > 25:  # arbitrary limit
-        raise InputError(u"Too many emails. The current limit is 25")
+        raise InputError("Too many emails. The current limit is 25")
 
     good_emails = []
     for unvalidated_address in addresses:
         parsed = address.parse(unvalidated_address, addr_spec_only=True)
         if not isinstance(parsed, address.EmailAddress):
-            raise InputError(
-                u"Invalid recipient address {}".format(unvalidated_address)
-            )
+            raise InputError("Invalid recipient address {}".format(unvalidated_address))
         good_emails.append(parsed.address)
 
     return good_emails
@@ -97,14 +95,14 @@ def offset(value):
 
 def valid_public_id(value):
     if "_" in value:
-        raise InputError(u"Invalid id: {}".format(value))
+        raise InputError("Invalid id: {}".format(value))
 
     try:
         # raise ValueError on malformed public ids
         # raise TypeError if an integer is passed in
         int(value, 36)
     except (TypeError, ValueError):
-        raise InputError(u"Invalid id: {}".format(value))
+        raise InputError("Invalid id: {}".format(value))
     return value
 
 
@@ -433,7 +431,7 @@ def validate_draft_recipients(draft):
                 parsed = address.parse(email_address, addr_spec_only=True)
                 if not isinstance(parsed, address.EmailAddress):
                     raise InputError(
-                        u"Invalid recipient address {}".format(email_address)
+                        "Invalid recipient address {}".format(email_address)
                     )
 
 

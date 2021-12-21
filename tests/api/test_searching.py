@@ -27,7 +27,7 @@ def test_gmail_thread(db, default_account):
 @fixture
 def imap_folder(db, generic_account):
     f = Folder.find_or_create(
-        db.session, generic_account, u"Boîte de réception", "inbox"
+        db.session, generic_account, "Boîte de réception", "inbox"
     )
     db.session.add(f)
     db.session.commit()
@@ -437,7 +437,7 @@ def test_imap_thread_search_unicode(
     else:
         threads = imap_api_client.get_data("/threads/search?q=存档")
 
-    imap_connection.assert_search([u"TEXT", u"\u5b58\u6863"], "UTF-8")
+    imap_connection.assert_search(["TEXT", "\u5b58\u6863"], "UTF-8")
     assert_search_result(sorted_imap_threads, threads)
 
 

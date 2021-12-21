@@ -115,7 +115,7 @@ def test_event_update(db, default_account, message):
         .one()
     )
 
-    assert ev.location == (u"Le Zenith, 211 Avenue Jean Jaures, " "75019 Paris, France")
+    assert ev.location == ("Le Zenith, 211 Avenue Jean Jaures, " "75019 Paris, France")
 
 
 # This test checks that:
@@ -176,7 +176,7 @@ def test_self_sent_update(db, default_account, message):
             )
         else:
             assert ev.location == (
-                u"Le Zenith, 211 Avenue Jean Jaures, " "75019 Paris, France"
+                "Le Zenith, 211 Avenue Jean Jaures, " "75019 Paris, France"
             )
 
 

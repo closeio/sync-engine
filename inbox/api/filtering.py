@@ -542,13 +542,13 @@ def filter_event_query(
         )
 
     if title is not None:
-        query = query.filter(event_cls.title.like(u"%{}%".format(title)))
+        query = query.filter(event_cls.title.like("%{}%".format(title)))
 
     if description is not None:
-        query = query.filter(event_cls.description.like(u"%{}%".format(description)))
+        query = query.filter(event_cls.description.like("%{}%".format(description)))
 
     if location is not None:
-        query = query.filter(event_cls.location.like(u"%{}%".format(location)))
+        query = query.filter(event_cls.location.like("%{}%".format(location)))
 
     if busy is not None:
         query = query.filter(event_cls.busy == busy)

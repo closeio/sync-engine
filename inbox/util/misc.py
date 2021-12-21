@@ -202,9 +202,9 @@ def imap_folder_path(path, separator=".", prefix=""):
             # Check that the value we got for the prefix doesn't include
             # the separator too (i.e: `INBOX.` instead of `INBOX`).
             if prefix[-1] != separator:
-                res = u"{}{}{}".format(prefix, separator, res)
+                res = "{}{}{}".format(prefix, separator, res)
             else:
-                res = u"{}{}".format(prefix, res)
+                res = "{}{}".format(prefix, res)
 
     return res
 

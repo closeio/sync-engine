@@ -58,7 +58,7 @@ class HTMLTagStripper(HTMLParser):
 
     def get_data(self):
         # type: () -> str
-        return u"".join(self.fed)
+        return "".join(self.fed)
 
 
 def strip_tags(html):
@@ -94,7 +94,7 @@ def plaintext2html(text, tabstop=4):
         if c["lineend"]:
             return "<br>"
         elif c["space"]:
-            t = m.group().replace("\t", u"&nbsp;" * tabstop)
+            t = m.group().replace("\t", "&nbsp;" * tabstop)
             t = t.replace(" ", "&nbsp;")
             return t
         elif c["space"] == "\t":
@@ -109,8 +109,8 @@ def plaintext2html(text, tabstop=4):
             last = m.groups()[-1]
             if last in ["\n", "\r", "\r\n"]:
                 last = "<br>"
-            return u'{0}<a href="{1}">{2}</a>{3}'.format(prefix, url, url, last)
+            return '{0}<a href="{1}">{2}</a>{3}'.format(prefix, url, url, last)
 
     return "\n".join(
-        [u"<p>{0}</p>".format(re.sub(re_string, do_sub, p)) for p in text.split("\n\n")]
+        ["<p>{0}</p>".format(re.sub(re_string, do_sub, p)) for p in text.split("\n\n")]
     )

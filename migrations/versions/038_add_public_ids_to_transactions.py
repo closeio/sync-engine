@@ -72,7 +72,7 @@ def upgrade():
         "transaction",
         sa.Column("private_snapshot", sa.Text(length=4194304), nullable=True),
     )
-    op.drop_column("transaction", u"additional_data")
+    op.drop_column("transaction", "additional_data")
 
 
 def downgrade():
@@ -80,7 +80,7 @@ def downgrade():
     op.drop_column("transaction", "public_id")
     op.drop_column("transaction", "object_public_id")
     op.add_column(
-        "transaction", sa.Column(u"additional_data", mysql.LONGTEXT(), nullable=True)
+        "transaction", sa.Column("additional_data", mysql.LONGTEXT(), nullable=True)
     )
     op.drop_column("transaction", "public_snapshot")
     op.drop_column("transaction", "private_snapshot")

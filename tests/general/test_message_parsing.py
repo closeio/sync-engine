@@ -380,7 +380,7 @@ def test_address_parsing():
     # Non ASCII
     mimepart = mime.from_string("To: =?UTF-8?Q?Pawe=C5=82?= <pawel@example.com>")
     parsed = parse_mimepart_address_header(mimepart, "To")
-    assert parsed == [[u"Paweł", "pawel@example.com"]]
+    assert parsed == [["Paweł", "pawel@example.com"]]
 
 
 def test_handle_bad_content_disposition(
@@ -468,15 +468,15 @@ def test_calculate_snippet():
 
     # check decimal HTML character references
     body = "Stra&#223;e"
-    assert m.calculate_html_snippet(body) == u"Straße"
+    assert m.calculate_html_snippet(body) == "Straße"
 
     # check hex HTML character references
     body = "Pawe&#x00142;"
-    assert m.calculate_html_snippet(body) == u"Paweł"
+    assert m.calculate_html_snippet(body) == "Paweł"
 
     # check entity references
     body = "&euro;"
-    assert m.calculate_html_snippet(body) == u"€"
+    assert m.calculate_html_snippet(body) == "€"
 
     # Check that snippets are properly truncated to 191 characters.
     body = """Etenim quid est, <strong>Catilina</strong>, quod iam amplius
@@ -506,7 +506,7 @@ def test_sanitize_subject(default_account, mime_message):
         datetime.datetime.utcnow(),
         mime_message.to_string().encode(),
     )
-    assert m.subject == u"Your UPS Package was delivered"
+    assert m.subject == "Your UPS Package was delivered"
 
 
 def test_attachments_filename_parsing(
@@ -535,7 +535,7 @@ def test_inline_attachments_filename_parsing(
     assert len(m.attachments) == 1
     assert (
         m.attachments[0].block.filename
-        == u"Capture d'e\u0301cran 2015-08-13 20.58.24.png"
+        == "Capture d'e\u0301cran 2015-08-13 20.58.24.png"
     )
 
 
@@ -544,7 +544,7 @@ def test_attachments_emoji_filename_parsing(
 ):
     m = create_from_synced(db, default_account, raw_message_with_outlook_emoji)
     assert len(m.attachments) == 1
-    assert m.attachments[0].block.filename == u"OutlookEmoji-\U0001f60a.png"
+    assert m.attachments[0].block.filename == "OutlookEmoji-\U0001f60a.png"
     assert m.attachments[0].block.content_type == "image/png"
     assert m.attachments[0].content_id == "<3f0ea351-779e-48b3-bfa9-7c2a9e373aeb>"
     assert m.attachments[0].content_disposition == "attachment"
@@ -555,7 +555,7 @@ def test_attachments_emoji_filename_parsing(
 ):
     m = create_from_synced(db, default_account, raw_message_with_outlook_emoji_inline)
     assert len(m.attachments) == 1
-    assert m.attachments[0].block.filename == u"OutlookEmoji-\U0001f60a.png"
+    assert m.attachments[0].block.filename == "OutlookEmoji-\U0001f60a.png"
     assert m.attachments[0].block.content_type == "image/png"
     assert m.attachments[0].content_id == "<3f0ea351-779e-48b3-bfa9-7c2a9e373aeb>"
     assert m.attachments[0].content_disposition == "inline"

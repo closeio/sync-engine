@@ -577,7 +577,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                 self.body = None
         else:
             self.body = None
-            self.snippet = u""
+            self.snippet = ""
 
     def calculate_html_snippet(self, text):
         # type: (str) -> str

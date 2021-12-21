@@ -34,7 +34,7 @@ def upgrade():
         text("UPDATE actionlog SET status='successful' WHERE executed is TRUE")
     )
 
-    op.drop_column("actionlog", u"executed")
+    op.drop_column("actionlog", "executed")
 
 
 def downgrade():

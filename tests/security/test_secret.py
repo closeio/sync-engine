@@ -17,7 +17,7 @@ def test_secret(db, config, encrypt):
     """
     config["ENCRYPT_SECRETS"] = encrypt
     bytes_secret = b"\xff\x00\xf1"
-    unicode_secret = u"foo\u00a0"
+    unicode_secret = "foo\u00a0"
 
     secret = Secret()
     secret.type = "password"
@@ -49,7 +49,7 @@ def test_token(db, config, encrypt):
 
     """
     config["ENCRYPT_SECRETS"] = encrypt
-    token = u"tH*$&123abcº™™∞"
+    token = "tH*$&123abcº™™∞"
 
     email = "vault.test@localhost.com"
     account_data = GoogleAccountData(
@@ -101,7 +101,7 @@ def test_token_inputs(db, config, encrypt, default_account):
     """
     config["ENCRYPT_SECRETS"] = encrypt
     # Unicode
-    unicode_token = u"myunicodesecret"
+    unicode_token = "myunicodesecret"
 
     # Invalid UTF-8 byte sequence
     invalid_token = b"\xff\x10"

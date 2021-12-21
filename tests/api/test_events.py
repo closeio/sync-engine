@@ -328,10 +328,10 @@ def test_api_filter(db, api_client, calendar, default_namespace):
     # This event exists to test for unicode handling.
     e3_data = {
         "calendar_id": cal_id,
-        "title": u"Unicode Party \U0001F389",
-        "description": u"Everyone Eats Unicode Tests \u2713",
+        "title": "Unicode Party \U0001F389",
+        "description": "Everyone Eats Unicode Tests \u2713",
         "when": {"start_time": 2678401, "end_time": 5097601},
-        "location": u"Unicode Castle \U0001F3F0",
+        "location": "Unicode Castle \U0001F3F0",
     }
     event_3 = api_client.post_data("/events", e3_data)
     assert event_3.status_code == 200
@@ -350,7 +350,7 @@ def test_api_filter(db, api_client, calendar, default_namespace):
     events = api_client.get_data("/events?description=Cake")
     assert len(events) == 1
 
-    events = api_client.get_data(u"/events?description=\u2713")
+    events = api_client.get_data("/events?description=\u2713")
     assert len(events) == 1
 
     events = api_client.get_data("/events?description=bad")
@@ -363,7 +363,7 @@ def test_api_filter(db, api_client, calendar, default_namespace):
     events = api_client.get_data("/events?title=Hipster")
     assert len(events) == 1
 
-    events = api_client.get_data(u"/events?title=\U0001F389")
+    events = api_client.get_data("/events?title=\U0001F389")
     assert len(events) == 1
 
     events = api_client.get_data("/events?title=bad")
@@ -376,7 +376,7 @@ def test_api_filter(db, api_client, calendar, default_namespace):
     events = api_client.get_data("/events?location=Town")
     assert len(events) == 2
 
-    events = api_client.get_data(u"/events?location=\U0001F3F0")
+    events = api_client.get_data("/events?location=\U0001F3F0")
     assert len(events) == 1
 
     events = api_client.get_data("/events?location=bad")

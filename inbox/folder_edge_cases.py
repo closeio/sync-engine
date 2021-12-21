@@ -44,7 +44,7 @@ localized_folder_names = {
         "Junk Mail",
         "Junk E-Mail",
     },
-    "inbox": {u"INBOX"},
+    "inbox": {"INBOX"},
     "sent": {
         "Postausgang",
         "INBOX.Gesendet",

@@ -20,7 +20,7 @@ def message(db, config):
     account = db.session.query(ImapAccount).get(ACCOUNT_ID)
     to = [
         {
-            "name": u'"\u2605The red-haired mermaid\u2605"',
+            "name": '"\u2605The red-haired mermaid\u2605"',
             "email": account.email_address,
         }
     ]

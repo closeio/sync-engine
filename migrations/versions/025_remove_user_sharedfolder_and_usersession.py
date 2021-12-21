@@ -19,10 +19,10 @@ def upgrade():
     op.drop_constraint("sharedfolder_ibfk_1", "sharedfolder", type_="foreignkey")
     op.drop_constraint("sharedfolder_ibfk_2", "sharedfolder", type_="foreignkey")
 
-    op.drop_table(u"user")
-    op.drop_table(u"sharedfolder")
-    op.drop_table(u"usersession")
-    op.drop_column("account", u"user_id")
+    op.drop_table("user")
+    op.drop_table("sharedfolder")
+    op.drop_table("usersession")
+    op.drop_column("account", "user_id")
 
 
 def downgrade():

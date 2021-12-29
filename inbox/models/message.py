@@ -301,6 +301,8 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         msg.namespace_id = account.namespace.id
 
         try:
+            if len(body_string) > 100 * 1024 * 1024:
+                raise Exception("message exceeded length")
             parsed = mime.from_string(body_string)  # type: MimePart
             # Non-persisted instance attribute used by EAS.
             msg.parsed_body = parsed

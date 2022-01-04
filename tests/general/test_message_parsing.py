@@ -97,7 +97,7 @@ def raw_message_with_long_message_id():
 
 @pytest.fixture
 def raw_message_too_long():
-    return b"X" * 100 * 1024 * 1024
+    return b"X" * 200 * 1024 * 1024
 
 
 @pytest.mark.usefixtures("blockstore_backend")

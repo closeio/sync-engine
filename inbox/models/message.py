@@ -39,6 +39,7 @@ from inbox.logging import get_logger
 from inbox.models.account import Account
 from inbox.models.base import MailSyncBase
 from inbox.models.category import Category
+from inbox.models.constants import MAX_MESSAGE_BODY_PARSE_LENGTH
 from inbox.models.mixins import (
     DeletedAtMixin,
     HasPublicID,
@@ -301,8 +302,11 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         msg.namespace_id = account.namespace.id
 
         try:
-            if len(body_string) > 100 * 1024 * 1024:
-                raise Exception("message exceeded length")
+            body_length = len(body_string)
+            if body_length > MAX_MESSAGE_BODY_PARSE_LENGTH:
+                raise Exception(
+                    "message length ({}) is over the parsing limit".format(body_length)
+                )
             parsed = mime.from_string(body_string)  # type: MimePart
             # Non-persisted instance attribute used by EAS.
             msg.parsed_body = parsed
@@ -797,7 +801,7 @@ Index(
 
 
 class MessageCategory(MailSyncBase):
-    """ Mapping between messages and categories. """
+    """Mapping between messages and categories."""
 
     message_id = Column(BigInteger, nullable=False)
     message = relationship(

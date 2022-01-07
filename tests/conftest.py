@@ -5,6 +5,10 @@ from gevent import monkey
 
 monkey.patch_all(aggressive=False)
 
+import os
+
+os.environ["NYLAS_ENV"] = "test"
+
 from pytest import fixture
 
 from inbox.util.testutils import files  # noqa

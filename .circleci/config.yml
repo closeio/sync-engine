@@ -124,12 +124,6 @@ workflows:
     jobs:
       - static-code-analysis
       - build:
-          name: build_py2.7
-          python_version: "2.7"
-      - build:
-          name: build_py3.6
-          python_version: "3.6"
-      - build:
           name: build_py3.7
           python_version: "3.7"
           push_image: false
@@ -140,18 +134,6 @@ workflows:
           name: build_py3.9
           python_version: "3.9"
           push_image: false
-      - build:
-          name: build_arm_py2.7
-          python_version: "2.7"
-          resource_class: "arm.medium"
-          platform_suffix: "-arm64"
-          run_tests: false
-      - build:
-          name: build_arm_py3.6
-          python_version: "3.6"
-          resource_class: "arm.medium"
-          platform_suffix: "-arm64"
-          run_tests: false
       - build:
           name: build_arm_py3.8
           python_version: "3.8"

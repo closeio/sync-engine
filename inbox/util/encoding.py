@@ -36,6 +36,6 @@ def unicode_safe_truncate(s, max_length):
     if isinstance(s, bytes):
         s = s.decode("utf-8", "ignore")
     else:
-        s = (builtins.unicode if sys.version_info < (3,) else str)(s)
+        s = str(s)
 
     return s.rstrip()[:max_length]

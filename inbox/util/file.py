@@ -1,20 +1,11 @@
 import errno
 import fcntl
+import io
 import os
 import string
-import sys
 from typing import Generator, List
 
 from gevent.lock import BoundedSemaphore
-
-if sys.version_info < (3,):
-    import builtins
-
-    file_like = builtins.file
-else:
-    import io
-
-    file_like = io.IOBase
 
 
 def safe_filename(filename):
@@ -97,7 +88,7 @@ class Lock(object):
     TIMEOUT = 60
 
     def __init__(self, f, block=True):
-        if isinstance(f, file_like):
+        if isinstance(f, io.IOBase):
             self.filename = f.name
             self.handle = f if not f.closed else open(f, "w")  # noqa: SIM115
         else:

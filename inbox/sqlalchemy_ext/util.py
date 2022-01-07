@@ -2,7 +2,6 @@ import codecs
 import contextlib
 import re
 import struct
-import sys
 import uuid
 import weakref
 from typing import Any, Optional, Tuple
@@ -331,8 +330,7 @@ def utf8_surrogate_fix_search_function(encoding_name):
     )
 
 
-if sys.version_info >= (3,):
-    codecs.register(utf8_surrogate_fix_search_function)
+codecs.register(utf8_surrogate_fix_search_function)
 
 
 class ForceStrictModePool(QueuePool):
@@ -356,9 +354,8 @@ def receive_connect(dbapi_connection, connection_record):
     )
     cur = None
 
-    if sys.version_info >= (3,):
-        assert dbapi_connection.encoding == "utf8"
-        dbapi_connection.encoding = "utf8-surrogate-fix"
+    assert dbapi_connection.encoding == "utf8"
+    dbapi_connection.encoding = "utf8-surrogate-fix"
 
 
 def maybe_refine_query(query, subquery):

@@ -2,7 +2,7 @@
 import contextlib
 import imaplib
 import re
-import sys
+import ssl
 import time
 from builtins import range
 from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple
@@ -38,12 +38,6 @@ from collections import defaultdict, namedtuple
 from email.parser import HeaderParser
 
 import gevent
-
-if sys.version_info < (3,):
-    from backports import ssl
-else:
-    import ssl
-
 from gevent import socket
 from gevent.lock import BoundedSemaphore
 from gevent.queue import Queue

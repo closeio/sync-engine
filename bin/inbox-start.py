@@ -5,13 +5,6 @@ from gevent import monkey
 
 monkey.patch_all()
 
-import sys
-
-if sys.version_info < (3,):
-    import gevent_openssl
-
-    gevent_openssl.monkey_patch()
-
 import os
 import platform
 import signal

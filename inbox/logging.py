@@ -266,10 +266,7 @@ class ConditionalFormatter(logging.Formatter):
         else:
             style = "%(name)s - %(levelname)s: %(message)s"
 
-        if sys.version_info < (3,):
-            self._fmt = style
-        else:
-            self._style._fmt = style
+        self._style._fmt = style
 
         return super(ConditionalFormatter, self).format(record)
 

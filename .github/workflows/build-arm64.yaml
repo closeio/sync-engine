@@ -23,11 +23,6 @@ jobs:
       matrix:
         include:
           - arch: arm64
-            build_name: py2.7
-            dockerhub_push: true
-            python_version: "2.7"
-            run_tests: false
-          - arch: arm64
             build_name: py3.8
             dockerhub_push: true
             python_version: "3.8"
@@ -113,7 +108,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - build_name: py2.7
           - build_name: py3.8
 
     steps:

@@ -50,16 +50,6 @@ jobs:
       matrix:
         include:
           - arch: amd64
-            build_name: py2.7
-            dockerhub_push: true
-            python_version: "2.7"
-            run_tests: true
-          - arch: amd64
-            build_name: py3.6
-            dockerhub_push: true
-            python_version: "3.6"
-            run_tests: true
-          - arch: amd64
             build_name: py3.7
             dockerhub_push: false
             python_version: "3.7"
@@ -78,11 +68,6 @@ jobs:
           # The qemu arm64 builds are *very* slow so they are split out into 
           # their own workflow
 
-          # - arch: arm64
-          #   build_name: py2.7
-          #   dockerhub_push: true
-          #   python_version: "2.7"
-          #   run_tests: false
           # - arch: arm64
           #   build_name: py3.8
           #   dockerhub_push: true
@@ -169,7 +154,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - build_name: py2.7
           - build_name: py3.8
 
     steps:

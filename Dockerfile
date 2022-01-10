@@ -42,7 +42,7 @@ RUN if [ "${PYTHON_VERSION}" != "3.8" ] ; \
   if [ "${PYTHON_VERSION}" = "3.8" ] || [ "${PYTHON_VERSION}" = "3.9" ] ; then DEBIAN_FRONTEND=noninteractive apt-get install -y python"${PYTHON_VERSION}"-distutils; fi; \
   rm -rf /var/lib/apt/lists/*
 
-RUN curl -O https://bootstrap.pypa.io/pip/2.7/get-pip.py && \
+RUN curl -O https://bootstrap.pypa.io/pip/get-pip.py && \
   python"${PYTHON_VERSION}" get-pip.py && \
   python"${PYTHON_VERSION}" -m pip install --upgrade pip==21.3.1 && \
   python"${PYTHON_VERSION}" -m pip install virtualenv==20.8.1

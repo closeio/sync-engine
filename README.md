@@ -46,6 +46,14 @@ data, we encourage developers to add their own protection, such as only
 running sync-engine on a local machine or behind a controlled firewall.
 Note that passwords and OAuth tokens are stored unencrypted in the local MySQL data store on disk. This is intentional, for the same reason as above.
 
+
+## Running tests
+
+To run the test suite execute the following command: `docker-compose run app pytest`
+
+If you wish to run it on different Python version pass `PYTHON_VERSION` to build,
+i.e. `docker-compose build --build-arg PYTHON_VERSION=3.9 app`. The list of supported Python
+versions can be found here: https://github.com/closeio/sync-engine/blob/master/.circleci/config.yml#L37
 ## License
 
 This code is free software, licensed under the The GNU Affero General Public License (AGPL). See the `LICENSE` file for more details.

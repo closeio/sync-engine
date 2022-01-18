@@ -81,7 +81,7 @@ def main(type, id, public_id, account_id, namespace_id, readwrite):
         elif namespace_id:
             qu = qu.filter(cls.namespace_id == namespace_id)
 
-        qu.one()  # noqa: F841
+        obj = qu.one()  # noqa: F841
 
         banner = """The object you queried is accessible as `obj`.
 Note that the db session is read-only, unless if you start this script with --readwrite"""

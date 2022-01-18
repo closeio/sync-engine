@@ -5,6 +5,7 @@ import sys
 
 import pytest
 from flanker import mime
+from mock import patch
 
 from inbox.models import Block, Message
 from inbox.util.addr import parse_mimepart_address_header
@@ -91,6 +92,11 @@ def raw_message_with_outlook_emoji_inline():
 @pytest.fixture
 def raw_message_with_long_message_id():
     return get_data("tests/data/raw_message_with_long_message_id.txt")
+
+
+@pytest.fixture
+def raw_message_too_long():
+    return b"X" * 200 * 1024 * 1024
 
 
 @pytest.mark.usefixtures("blockstore_backend")
@@ -568,3 +574,10 @@ def test_long_message_id(db, default_account, thread, raw_message_with_long_mess
     # Check that no database error is raised.
     db.session.commit()
     assert len(m.message_id_header) <= 998
+
+
+def test_long_message_body(db, default_account, raw_message_too_long):
+    with patch("inbox.models.message.log") as mock:
+        m = create_from_synced(db, default_account, raw_message_too_long)
+        assert m.decode_error
+        assert "over the parsing limit" in mock.error.call_args[1]["error"].args[0]

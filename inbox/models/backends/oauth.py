@@ -24,14 +24,19 @@ class TokenManager(object):
         if account.id in self._tokens:
             token, expiration = self._tokens[account.id]
             if not force_refresh and expiration > datetime.utcnow():
-                log.info(
-                    "access token used", nylas_account_id=account.namespace.public_id
-                )
+                if account.namespace:
+                    log.info(
+                        "access token used",
+                        nylas_account_id=account.namespace.public_id,
+                    )
                 return token
 
         new_token, expires_in = account.new_token(force_refresh=force_refresh)
-        log.info("access token obtained", nylas_account_id=account.namespace.public_id)
-        log.info("access token used", nylas_account_id=account.namespace.public_id)
+        if account.namespace:
+            log.info(
+                "access token obtained", nylas_account_id=account.namespace.public_id
+            )
+            log.info("access token used", nylas_account_id=account.namespace.public_id)
         self.cache_token(account, new_token, expires_in)
         return new_token
 
@@ -65,7 +70,10 @@ class OAuthAccount(object):
         if not self.secret:
             return None
         if self.secret.type == SecretType.Token.value:
-            log.info("refresh token used", nylas_account_id=self.namespace.public_id)
+            if self.namespace:
+                log.info(
+                    "refresh token used", nylas_account_id=self.namespace.public_id
+                )
             return self.secret.secret.decode("utf-8")
         else:
             raise ValueError("Invalid secret type.")
@@ -85,7 +93,8 @@ class OAuthAccount(object):
         if b"\x00" in value:
             raise ValueError("Invalid refresh_token")
 
-        log.info("refresh token stored", nylas_account_id=self.namespace.public_id)
+        if self.namespace:
+            log.info("refresh token stored", nylas_account_id=self.namespace.public_id)
         self.set_secret(SecretType.Token, value)
 
     def set_secret(self, secret_type, secret_value):

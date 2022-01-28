@@ -17,8 +17,11 @@ from inbox.models.secret import Secret, SecretType
 log = get_logger()
 
 
-def hash_token(token):
-    return sha256(token).hexdigest() if token else None
+def hash_token(token, prefix=None):
+    if not token:
+        return None
+    string = f"{prefix}:{token}" if prefix else token
+    return sha256(string.encode()).hexdigest()
 
 
 def log_token_usage(reason, refresh_token=None, access_token=None, account=None):
@@ -27,8 +30,8 @@ def log_token_usage(reason, refresh_token=None, access_token=None, account=None)
     )
     log.info(
         reason,
-        refresh_hash=hash_token(refresh_token),
-        access_hash=hash_token(access_token),
+        refresh_hash=hash_token(refresh_token, prefix="refresh_token"),
+        access_hash=hash_token(access_token, prefix="access_token"),
         nylas_account_id=nylas_account_id,
         email=account.email_address if account else None,
     )

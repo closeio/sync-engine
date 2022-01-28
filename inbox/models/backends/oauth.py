@@ -3,6 +3,7 @@ Generic OAuth class that provides abstraction for access and
 refresh tokens.
 """
 from datetime import datetime, timedelta
+from hashlib import sha256
 from typing import Union
 
 from sqlalchemy import Column, ForeignKey
@@ -16,6 +17,23 @@ from inbox.models.secret import Secret, SecretType
 log = get_logger()
 
 
+def hash_token(token):
+    return sha256(token).hexdigest() if token else None
+
+
+def log_token_usage(reason, refresh_token=None, access_token=None, account=None):
+    nylas_account_id = (
+        account.namespace.public_id if account and account.namespace else None
+    )
+    log.info(
+        reason,
+        refresh_hash=hash_token(refresh_token),
+        access_hash=hash_token(access_token),
+        nylas_account_id=nylas_account_id,
+        email=account.email_address if account else None,
+    )
+
+
 class TokenManager(object):
     def __init__(self):
         self._tokens = {}
@@ -24,19 +42,14 @@ class TokenManager(object):
         if account.id in self._tokens:
             token, expiration = self._tokens[account.id]
             if not force_refresh and expiration > datetime.utcnow():
-                if account.namespace:
-                    log.info(
-                        "access token used",
-                        nylas_account_id=account.namespace.public_id,
-                    )
+                log_token_usage("access token used", account=account)
                 return token
 
         new_token, expires_in = account.new_token(force_refresh=force_refresh)
-        if account.namespace:
-            log.info(
-                "access token obtained", nylas_account_id=account.namespace.public_id
-            )
-            log.info("access token used", nylas_account_id=account.namespace.public_id)
+        log_token_usage(
+            "access token obtained", access_token=new_token, account=account
+        )
+        log_token_usage("access token used", access_token=new_token, account=account)
         self.cache_token(account, new_token, expires_in)
         return new_token
 
@@ -70,11 +83,11 @@ class OAuthAccount(object):
         if not self.secret:
             return None
         if self.secret.type == SecretType.Token.value:
-            if self.namespace:
-                log.info(
-                    "refresh token used", nylas_account_id=self.namespace.public_id
-                )
-            return self.secret.secret.decode("utf-8")
+            secret_value = self.secret.secret.decode("utf-8")
+            log_token_usage(
+                "refresh token used", refresh_token=secret_value, account=self
+            )
+            return secret_value
         else:
             raise ValueError("Invalid secret type.")
 
@@ -93,8 +106,7 @@ class OAuthAccount(object):
         if b"\x00" in value:
             raise ValueError("Invalid refresh_token")
 
-        if self.namespace:
-            log.info("refresh token stored", nylas_account_id=self.namespace.public_id)
+        log_token_usage("refresh token stored", refresh_token=value, account=self)
         self.set_secret(SecretType.Token, value)
 
     def set_secret(self, secret_type, secret_value):

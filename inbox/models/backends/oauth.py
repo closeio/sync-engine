@@ -45,7 +45,9 @@ class TokenManager(object):
         if account.id in self._tokens:
             token, expiration = self._tokens[account.id]
             if not force_refresh and expiration > datetime.utcnow():
-                log_token_usage("access token used", account=account)
+                log_token_usage(
+                    "access token used", access_token=token, account=account
+                )
                 return token
 
         new_token, expires_in = account.new_token(force_refresh=force_refresh)

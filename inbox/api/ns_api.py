@@ -126,7 +126,8 @@ from inbox.util.misc import imap_folder_path
 from inbox.util.stats import statsd_client
 
 with contextlib.suppress(ImportError):
-    # Only important for EAS search failures, so shouldn't trigge test fail
+    # ImportError: Only important for EAS search failures, so shouldn't trigger
+    # test failure.
     from inbox.util.eas.codes import STORE_STATUS_CODES
 
 

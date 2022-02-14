@@ -33,7 +33,7 @@ def parse_utc(datetime):
     return arrow.get(datetime).to("utc")
 
 
-class When(object, metaclass=abc.ABCMeta):
+class When(metaclass=abc.ABCMeta):
     """
     Abstract class which can represent a moment in time or a span between
         two moments. Initialize one of its subclasses `Time`, `TimeSpan`,

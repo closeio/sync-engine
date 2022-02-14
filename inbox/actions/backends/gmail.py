@@ -64,8 +64,8 @@ def remote_delete_label(crispin_client, account_id, category_id):
         display_name = category.display_name
 
     with contextlib.suppress(IMAP4.error):
-        # Label has already been deleted on remote. Treat delete as
-        # no-op.
+        # IMAP4.error: Label has already been deleted on remote. Treat delete
+        # as no-op.
         crispin_client.conn.delete_folder(display_name)
 
     # TODO @karim --- the main sync loop has a hard time detecting

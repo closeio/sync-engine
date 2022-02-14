@@ -85,7 +85,7 @@ def cloudsearch_contact_repr(contact):
     }
 
 
-class ContactSearchClient(object):
+class ContactSearchClient:
     """ Search client that talks to AWS CloudSearch (or a compatible API). """
 
     def __init__(self, namespace_id):

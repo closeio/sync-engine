@@ -37,7 +37,7 @@ def log_token_usage(reason, refresh_token=None, access_token=None, account=None)
     )
 
 
-class TokenManager(object):
+class TokenManager:
     def __init__(self):
         self._tokens = {}
 
@@ -67,7 +67,7 @@ class TokenManager(object):
 token_manager = TokenManager()
 
 
-class OAuthAccount(object):
+class OAuthAccount:
     @declared_attr
     def refresh_token_id(cls):
         return Column(ForeignKey(Secret.id), nullable=False)

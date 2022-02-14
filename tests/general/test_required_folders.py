@@ -6,7 +6,7 @@ from inbox.basicauth import GmailSettingError
 from inbox.crispin import GmailCrispinClient
 
 
-class AccountStub(object):
+class AccountStub:
     id = 0
     email_address = "bob@bob.com"
     access_token = None
@@ -20,7 +20,7 @@ class AccountStub(object):
         return True
 
 
-class ConnectionStub(object):
+class ConnectionStub:
     def logout(self):
         pass
 

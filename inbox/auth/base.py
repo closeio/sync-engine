@@ -41,7 +41,7 @@ def handler_from_provider(provider_name):
     )
 
 
-class AuthHandler(object):
+class AuthHandler:
     def create_account(self, account_data):
         """
         Create a new account with the given subclass-specific account data.

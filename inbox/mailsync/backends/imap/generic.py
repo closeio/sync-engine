@@ -62,6 +62,7 @@ sessions reduce scalability.
 """
 from __future__ import division
 
+import contextlib
 import imaplib
 import time
 from datetime import datetime, timedelta
@@ -486,12 +487,10 @@ class FolderSyncEngine(Greenlet):
                             raise
 
                         log.info("Error initiating IDLE, not idling", error=exc)
-                        try:
+                        with contextlib.supress(AttributeError):
                             # Still have to take the connection out of IDLE
                             # mode to reuse it though.
                             crispin_client.conn.idle_done()
-                        except AttributeError:
-                            pass
                         idling = False
                     else:
                         raise

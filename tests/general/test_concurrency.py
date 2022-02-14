@@ -8,7 +8,7 @@ from sqlalchemy.exc import StatementError
 from inbox.util.concurrency import retry_with_logging
 
 
-class MockLogger(object):
+class MockLogger:
     def __init__(self):
         self.call_count = 0
 
@@ -16,7 +16,7 @@ class MockLogger(object):
         self.call_count += 1
 
 
-class FailingFunction(object):
+class FailingFunction:
     __name__ = "FailingFunction"
 
     def __init__(self, exc_type, max_executions=3, delay=0):

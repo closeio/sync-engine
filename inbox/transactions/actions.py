@@ -523,7 +523,7 @@ class SyncbackService(gevent.Greenlet):
             self.stop()
 
 
-class SyncbackBatchTask(object):
+class SyncbackBatchTask:
     def __init__(self, semaphore, tasks, account_id):
         self.semaphore = semaphore
         self.tasks = tasks
@@ -565,7 +565,7 @@ class SyncbackBatchTask(object):
         return [entry for task in self.tasks for entry in task.action_log_ids]
 
 
-class SyncbackTask(object):
+class SyncbackTask:
     """
     Task responsible for executing a single syncback action. We can retry the
     action up to ACTION_MAX_NR_OF_RETRIES times before we mark it as failed.

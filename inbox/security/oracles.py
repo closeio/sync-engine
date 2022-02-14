@@ -35,7 +35,7 @@ def get_decryption_oracle(secret_name):
     return _DecryptionOracle(secret_name)
 
 
-class _EncryptionOracle(object):
+class _EncryptionOracle:
     """
     This object is responsible for encryption only.
 

@@ -18,7 +18,7 @@ log = get_logger()
 
 
 @attr.s
-class GoogleAccountData(object):
+class GoogleAccountData:
     email = attr.ib()
 
     secret_type = attr.ib()

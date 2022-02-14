@@ -27,6 +27,7 @@ The pycarddav abstract model and tools for VCard handling.
 from __future__ import absolute_import, print_function
 
 import base64
+import contextlib
 import logging
 import sys
 from collections import defaultdict
@@ -170,12 +171,9 @@ def vcard_from_vobject(vcard):
         property_name = line.name
         property_value = line.value
 
-        try:
+        with contextlib.suppress(AttributeError):
             if line.ENCODING_paramlist == [u"b"] or line.ENCODING_paramlist == [u"B"]:
                 property_value = base64.b64encode(line.value)
-
-        except AttributeError:
-            pass
         if isinstance(property_value, list):
             property_value = (",").join(property_value)
 

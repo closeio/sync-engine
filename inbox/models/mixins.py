@@ -77,7 +77,7 @@ class HasRevisions(ABCMixin):
         return False
 
 
-class HasPublicID(object):
+class HasPublicID:
     public_id = Column(
         Base36UID, nullable=False, index=True, default=generate_public_id
     )
@@ -101,7 +101,7 @@ class CaseInsensitiveComparator(Comparator):
         return func.lower(self.__clause_element__()) == func.lower(other)
 
 
-class HasEmailAddress(object):
+class HasEmailAddress:
     """
     Provides an email_address attribute, which returns as value whatever you
     set it to, but uses a canonicalized form for comparisons. So e.g.
@@ -139,11 +139,11 @@ class HasEmailAddress(object):
         self._canonicalized_address = canonicalize_address(value)
 
 
-class CreatedAtMixin(object):
+class CreatedAtMixin:
     created_at = Column(DateTime, server_default=func.now(), nullable=False, index=True)
 
 
-class UpdatedAtMixin(object):
+class UpdatedAtMixin:
     updated_at = Column(
         DateTime,
         default=datetime.utcnow,
@@ -153,7 +153,7 @@ class UpdatedAtMixin(object):
     )
 
 
-class DeletedAtMixin(object):
+class DeletedAtMixin:
     deleted_at = Column(DateTime, nullable=True, index=True)
 
 

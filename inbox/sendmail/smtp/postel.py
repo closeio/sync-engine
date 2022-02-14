@@ -117,7 +117,7 @@ def _substitute_bcc(raw_message):
     return bcc_regexp.sub(b"", raw_message)
 
 
-class SMTPConnection(object):
+class SMTPConnection:
     def __init__(
         self,
         account_id,
@@ -275,7 +275,7 @@ class SMTPConnection(object):
             raise SendMailException("Invalid character in recipient address", 402)
 
 
-class SMTPClient(object):
+class SMTPClient:
     """ SMTPClient for Gmail and other IMAP providers. """
 
     def __init__(self, account):

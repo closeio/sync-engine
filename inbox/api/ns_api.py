@@ -1,4 +1,5 @@
 import base64
+import contextlib
 import itertools
 import json
 import os
@@ -123,11 +124,10 @@ from inbox.util import blockstore
 from inbox.util.misc import imap_folder_path
 from inbox.util.stats import statsd_client
 
-try:
+with contextlib.suppress(ImportError):
+    # ImportError: Only important for EAS search failures, so shouldn't trigger
+    # test failure.
     from inbox.util.eas.codes import STORE_STATUS_CODES
-except ImportError:
-    # Only important for EAS search failures, so shouldn't trigge test fail
-    pass
 
 
 from inbox.logging import get_logger

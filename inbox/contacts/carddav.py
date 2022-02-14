@@ -41,7 +41,7 @@ def supports_carddav(url):
         raise Exception("URL is not a CardDAV resource")
 
 
-class CardDav(object):
+class CardDav:
     """ NOTE: Only supports iCloud for now """
 
     def __init__(self, email_address, password, base_url):

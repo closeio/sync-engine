@@ -1,3 +1,4 @@
+import contextlib
 import json
 import sys
 from os import environ
@@ -67,10 +68,8 @@ def _validate(response):
             )
         )
 
-    try:
+    with contextlib.suppress(ValueError, TypeError):
         data = json.loads(data) if data else None
-    except (ValueError, TypeError):
-        pass
 
     if status_code == 200:
         return response

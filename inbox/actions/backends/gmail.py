@@ -1,5 +1,6 @@
 """ Operations for syncing back local datastore changes to Gmail. """
 
+import contextlib
 from imaplib import IMAP4
 
 import imapclient
@@ -62,12 +63,10 @@ def remote_delete_label(crispin_client, account_id, category_id):
             return
         display_name = category.display_name
 
-    try:
-        crispin_client.conn.delete_folder(display_name)
-    except IMAP4.error:
+    with contextlib.suppress(IMAP4.error):
         # Label has already been deleted on remote. Treat delete as
         # no-op.
-        pass
+        crispin_client.conn.delete_folder(display_name)
 
     # TODO @karim --- the main sync loop has a hard time detecting
     # Gmail renames because of a Gmail issue (see https://github.com/nylas/sync-engine/blob/c99656df3c048faf7951e54d74cb5ef9d7dc3c97/inbox/mailsync/gc.py#L146 for more details).

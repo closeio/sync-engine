@@ -1,4 +1,5 @@
 import ast
+import contextlib
 import json
 from datetime import datetime
 from email.utils import parseaddr
@@ -70,10 +71,8 @@ _EVENT_CREATED_SANELY_SENTINEL = object()
 
 def time_parse(x):
     # type: (Union[float, int, str, arrow.Arrow]) -> arrow.Arrow
-    try:
+    with contextlib.suppress(ValueError, TypeError):
         x = float(x)
-    except (ValueError, TypeError):
-        pass
 
     return arrow.get(x).to("utc").naive
 

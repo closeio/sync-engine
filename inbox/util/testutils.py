@@ -75,7 +75,7 @@ def setup_test_db():
             init_db(engine, key)
 
 
-class MockAnswer(object):
+class MockAnswer:
     def __init__(self, exchange):
         self.exchange = exchange
 
@@ -83,7 +83,7 @@ class MockAnswer(object):
         return self.exchange
 
 
-class MockDNSResolver(object):
+class MockDNSResolver:
     def __init__(self):
         self._registry = {"mx": {}, "ns": {}}
 
@@ -136,7 +136,7 @@ def dump_dns_queries(monkeypatch):
     print(json.dumps(query_results, indent=4, sort_keys=True))
 
 
-class MockIMAPClient(object):
+class MockIMAPClient:
     """A bare-bones stand-in for an IMAPClient instance, used to test sync
     logic without requiring a real IMAP account and server."""
 
@@ -291,7 +291,7 @@ def mock_imapclient(monkeypatch):
     monkeypatch.undo()
 
 
-class MockSMTPClient(object):
+class MockSMTPClient:
     def __init__(self):
         pass
 

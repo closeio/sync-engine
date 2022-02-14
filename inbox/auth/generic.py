@@ -17,7 +17,7 @@ log = get_logger()
 
 
 @attr.s
-class GenericAccountData(object):
+class GenericAccountData:
     email = attr.ib()
 
     imap_server_host = attr.ib()

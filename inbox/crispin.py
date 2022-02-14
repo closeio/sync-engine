@@ -175,7 +175,7 @@ def writable_connection_pool(account_id, pool_size=1):
     return _get_connection_pool(account_id, pool_size, _writable_pool_map, False)
 
 
-class CrispinConnectionPool(object):
+class CrispinConnectionPool:
     """
     Connection pool for Crispin clients.
 
@@ -309,7 +309,7 @@ retry_crispin = functools.partial(
 )
 
 
-class CrispinClient(object):
+class CrispinClient:
     """
     Generic IMAP client wrapper.
 

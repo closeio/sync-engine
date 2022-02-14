@@ -7,6 +7,7 @@ import os
 import re
 import subprocess
 
+import attr
 import dns
 import pytest
 from past.builtins import basestring, long
@@ -75,12 +76,9 @@ def setup_test_db():
             init_db(engine, key)
 
 
+@attr.s
 class MockAnswer:
-    def __init__(self, exchange):
-        self.exchange = exchange
-
-    def __str__(self):
-        return self.exchange
+    exchange = attr.ib()
 
 
 class MockDNSResolver:
@@ -292,8 +290,7 @@ def mock_imapclient(monkeypatch):
 
 
 class MockSMTPClient:
-    def __init__(self):
-        pass
+    pass
 
 
 @pytest.fixture

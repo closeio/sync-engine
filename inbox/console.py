@@ -21,21 +21,16 @@ def user_console(user_email_address):
         if len(result) == 1:
             account = result[0]
         elif len(result) > 1:
-            print("\n{} accounts found for that email.\n".format(len(result)))
+            print(f"\n{len(result)} accounts found for that email.\n")
             for idx, acc in enumerate(result):
                 print(
-                    "[{}] - {} {} {}".format(
-                        idx,
-                        acc.provider,
-                        acc.namespace.email_address,
-                        acc.namespace.public_id,
-                    )
+                    f"[{idx}] - {acc.provider} {acc.namespace.email_address} {acc.namespace.public_id}"
                 )
             choice = int(input("\nWhich # do you want to select? "))
             account = result[choice]
 
         if account is None:
-            print("No account found with email '{}'".format(user_email_address))
+            print(f"No account found with email '{user_email_address}'")
             return
 
         if account.provider == "eas":

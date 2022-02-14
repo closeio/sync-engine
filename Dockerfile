@@ -1,4 +1,4 @@
-FROM ubuntu:bionic-20210930
+FROM ubuntu:focal-20220105
 ARG PYTHON_VERSION=3.8
 
 RUN groupadd -g 5000 sync-engine \
@@ -34,7 +34,7 @@ RUN DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get dist-upgrade -y 
   software-properties-common \
   && rm -rf /var/lib/apt/lists/*
 
-RUN if [ "${PYTHON_VERSION}" != "3.6" ] ; \
+RUN if [ "${PYTHON_VERSION}" != "3.8" ] ; \
   then \
     add-apt-repository ppa:deadsnakes/ppa; \
   fi; \
@@ -42,7 +42,7 @@ RUN if [ "${PYTHON_VERSION}" != "3.6" ] ; \
   if [ "${PYTHON_VERSION}" = "3.8" ] || [ "${PYTHON_VERSION}" = "3.9" ] ; then DEBIAN_FRONTEND=noninteractive apt-get install -y python"${PYTHON_VERSION}"-distutils; fi; \
   rm -rf /var/lib/apt/lists/*
 
-RUN curl -O https://bootstrap.pypa.io/pip/2.7/get-pip.py && \
+RUN curl -O https://bootstrap.pypa.io/pip/get-pip.py && \
   python"${PYTHON_VERSION}" get-pip.py && \
   python"${PYTHON_VERSION}" -m pip install --upgrade pip==21.3.1 && \
   python"${PYTHON_VERSION}" -m pip install virtualenv==20.8.1

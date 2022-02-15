@@ -487,7 +487,7 @@ class FolderSyncEngine(Greenlet):
                             raise
 
                         log.info("Error initiating IDLE, not idling", error=exc)
-                        with contextlib.supress(AttributeError):
+                        with contextlib.suppress(AttributeError):
                             # Still have to take the connection out of IDLE
                             # mode to reuse it though.
                             crispin_client.conn.idle_done()

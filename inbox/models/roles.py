@@ -16,7 +16,7 @@ STORE_MSG_ON_S3 = config.get("STORE_MESSAGES_ON_S3", None)
 STORE_MESSAGE_ATTACHMENTS = config.get("STORE_MESSAGE_ATTACHMENTS", True)
 
 
-class Blob(object):
+class Blob:
     """ A blob of data that can be saved to local or remote (S3) disk. """
 
     size = Column(Integer, default=0)

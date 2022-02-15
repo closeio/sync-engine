@@ -1,9 +1,7 @@
-import abc
 import codecs
 import contextlib
 import re
 import struct
-import sys
 import uuid
 import weakref
 from typing import Any, Optional, Tuple
@@ -69,7 +67,7 @@ def before_commit(conn):
         )
 
 
-class ABCMixin(object):
+class ABCMixin:
     """Use this if you want a mixin class which is actually an abstract base
     class, for example in order to enforce that concrete subclasses define
     particular methods or properties."""
@@ -305,10 +303,8 @@ def utf8_surrogate_fix_decode(memory, errors="strict"):
     # type: (memoryview, str) -> Tuple[str, int]
     binary = memory.tobytes()
 
-    try:
+    with contextlib.suppress(UnicodeDecodeError):
         return binary.decode("utf-8", errors), len(binary)
-    except UnicodeDecodeError:
-        pass
 
     text = binary.decode("utf-8", "surrogatepass")
 
@@ -332,8 +328,7 @@ def utf8_surrogate_fix_search_function(encoding_name):
     )
 
 
-if sys.version_info >= (3,):
-    codecs.register(utf8_surrogate_fix_search_function)
+codecs.register(utf8_surrogate_fix_search_function)
 
 
 class ForceStrictModePool(QueuePool):
@@ -357,9 +352,8 @@ def receive_connect(dbapi_connection, connection_record):
     )
     cur = None
 
-    if sys.version_info >= (3,):
-        assert dbapi_connection.encoding == "utf8"
-        dbapi_connection.encoding = "utf8-surrogate-fix"
+    assert dbapi_connection.encoding == "utf8"
+    dbapi_connection.encoding = "utf8-surrogate-fix"
 
 
 def maybe_refine_query(query, subquery):
@@ -386,8 +380,5 @@ def safer_yield_per(query, id_field, start_id, count):
     cur_id = start_id
     while True:
         results = query.filter(id_field >= cur_id).order_by(id_field).limit(count).all()
-        if not results:
-            return
-        for result in results:
-            yield result
+        yield from results
         cur_id = results[-1].id + 1

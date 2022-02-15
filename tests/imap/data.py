@@ -3,9 +3,7 @@ well as a mock IMAPClient isntance that can be used to deterministically test
 aspects of IMAP sync.
 See https://hypothesis.readthedocs.org/en/latest/data.html for more information
 about how this works."""
-import os
 import string
-import tempfile
 
 import flanker
 from flanker import mime

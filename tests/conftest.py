@@ -5,12 +5,9 @@ from gevent import monkey
 
 monkey.patch_all(aggressive=False)
 
-import sys
+import os
 
-if sys.version_info < (3,):
-    import gevent_openssl
-
-    gevent_openssl.monkey_patch()
+os.environ["NYLAS_ENV"] = "test"
 
 from pytest import fixture
 

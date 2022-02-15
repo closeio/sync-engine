@@ -1,6 +1,6 @@
+import contextlib
 import json
 import sys
-from base64 import b64encode
 from os import environ
 
 import requests
@@ -68,10 +68,8 @@ def _validate(response):
             )
         )
 
-    try:
+    with contextlib.suppress(ValueError, TypeError):
         data = json.loads(data) if data else None
-    except (ValueError, TypeError):
-        pass
 
     if status_code == 200:
         return response

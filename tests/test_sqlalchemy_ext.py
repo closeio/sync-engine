@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import sys
-
 import pytest
 
 import inbox.sqlalchemy_ext.util
 
 
-@pytest.mark.skipif(
-    sys.version_info < (3,), reason="Python 2 behaves like surrogatepass"
-)
 def test_utf8_surrogate_fix_codec():
     assert "abc".encode("utf8-surrogate-fix") == b"abc"
     assert b"abc".decode("utf8-surrogate-fix") == "abc"

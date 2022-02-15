@@ -22,7 +22,7 @@ def safe_failure(f):
     return wrapper
 
 
-class HeartbeatStatusKey(object):
+class HeartbeatStatusKey:
     def __init__(self, account_id, folder_id):
         self.account_id = account_id
         self.folder_id = folder_id
@@ -57,7 +57,7 @@ class HeartbeatStatusKey(object):
         return cls(account_id, folder_id)
 
 
-class HeartbeatStatusProxy(object):
+class HeartbeatStatusProxy:
     def __init__(
         self,
         account_id,
@@ -93,7 +93,7 @@ class HeartbeatStatusProxy(object):
         self.store.remove_folders(self.account_id, self.folder_id, self.device_id)
 
 
-class HeartbeatStore(object):
+class HeartbeatStore:
     """ Store that proxies requests to Redis with handlers that also
         update indexes and handle scanning through results. """
 

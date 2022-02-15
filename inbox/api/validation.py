@@ -1,4 +1,5 @@
 """Utilities for validating user input to the API."""
+import contextlib
 from builtins import str
 
 import arrow
@@ -129,10 +130,8 @@ def valid_category_type(category_type, rule):
 
 def timestamp(value, key):
     try:
-        try:
+        with contextlib.suppress(ValueError):
             value = float(value)
-        except ValueError:
-            pass
 
         return arrow.get(value).datetime
     except ValueError:

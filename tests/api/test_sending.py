@@ -22,7 +22,7 @@ from tests.util.base import imported_event, message, thread
 __all__ = ["thread", "message", "imported_event"]
 
 
-class MockTokenManager(object):
+class MockTokenManager:
     def __init__(self, allow_auth=True):
         self.allow_auth = allow_auth
 
@@ -49,7 +49,7 @@ def disallow_auth(monkeypatch):
 def patch_smtp(patch_token_manager, monkeypatch):
     submitted_messages = []
 
-    class MockSMTPConnection(object):
+    class MockSMTPConnection:
         def __init__(self, *args, **kwargs):
             pass
 
@@ -67,7 +67,7 @@ def patch_smtp(patch_token_manager, monkeypatch):
 
 
 def erring_smtp_connection(exc_type, *args):
-    class ErringSMTPConnection(object):
+    class ErringSMTPConnection:
         def __init__(self, *args, **kwargs):
             pass
 
@@ -826,7 +826,7 @@ def patch_crispin_del_sent(monkeypatch):
     ):
         return True
 
-    class FakeConnWrapper(object):
+    class FakeConnWrapper:
         def __init__(self):
             pass
 
@@ -834,7 +834,7 @@ def patch_crispin_del_sent(monkeypatch):
         def get(self):
             yield MockCrispinClient()
 
-    class MockCrispinClient(object):
+    class MockCrispinClient:
         def folder_names(self):
             return ["sent"]
 

@@ -491,8 +491,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
             if g_thrid != g_msgid:
                 uids = set(uids).union(crispin_client.expand_thread(g_thrid))
                 metadata.update(crispin_client.g_metadata(uids))
-            for uid in sorted(uids, reverse=True):
-                yield uid
+            yield from sorted(uids, reverse=True)
 
     def batch_download_uids(
         self,

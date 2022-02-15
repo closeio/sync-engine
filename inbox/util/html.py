@@ -1,28 +1,19 @@
 # -*- coding: utf-8 -*-
 import re
 import sys
+from html.entities import name2codepoint
+from html.parser import HTMLParser
 
 if sys.version_info < (3, 8):
     from cgi import escape as html_escape
 else:
     from html import escape as html_escape
 
-
-if sys.version_info >= (3,):
-    unichr = chr
-    from html.entities import name2codepoint
-    from html.parser import HTMLParser
-
-    class HTMLParseError(Exception):
-        pass
-
-
-else:  # TODO remove this when Python 3 only
-    from htmlentitydefs import name2codepoint
-    from HTMLParser import HTMLParser, HTMLParseError
-
-
 from inbox.logging import get_logger
+
+
+class HTMLParseError(Exception):
+    pass
 
 
 # http://stackoverflow.com/questions/753052/strip-html-from-strings-in-python
@@ -54,19 +45,6 @@ class HTMLTagStripper(HTMLParser):
         if not self.strip_tag_contents_mode:
             self.fed.append(d)
 
-    # TODO: Remove this in Python 3 only
-    if sys.version_info < (3,):
-
-        def handle_charref(self, d):
-            try:
-                if d.startswith("x"):
-                    val = int(d[1:], 16)
-                else:
-                    val = int(d)
-                self.fed.append(unichr(val))
-            except (ValueError, OverflowError):
-                return
-
     if (3,) <= sys.version_info < (3, 10):
 
         def error(self, message):
@@ -74,7 +52,7 @@ class HTMLTagStripper(HTMLParser):
 
     def handle_entityref(self, d):
         try:
-            val = unichr(name2codepoint[d])
+            val = chr(name2codepoint[d])
         except KeyError:
             return
         self.fed.append(val)

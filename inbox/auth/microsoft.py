@@ -15,7 +15,7 @@ from .oauth import OAuthAuthHandler
 
 
 @attr.s
-class MicrosoftAccountData(object):
+class MicrosoftAccountData:
     email = attr.ib()
 
     secret_type = attr.ib()

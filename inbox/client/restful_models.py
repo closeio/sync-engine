@@ -1,6 +1,3 @@
-import base64
-import json
-
 from six import StringIO
 
 from .errors import FileUploadError

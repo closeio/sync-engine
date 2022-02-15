@@ -2,10 +2,10 @@
 import contextlib
 import imaplib
 import re
-import sys
+import ssl
 import time
 from builtins import range
-from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple
 
 import imapclient
 import imapclient.exceptions
@@ -38,12 +38,6 @@ from collections import defaultdict, namedtuple
 from email.parser import HeaderParser
 
 import gevent
-
-if sys.version_info < (3,):
-    from backports import ssl
-else:
-    import ssl
-
 from gevent import socket
 from gevent.lock import BoundedSemaphore
 from gevent.queue import Queue
@@ -181,7 +175,7 @@ def writable_connection_pool(account_id, pool_size=1):
     return _get_connection_pool(account_id, pool_size, _writable_pool_map, False)
 
 
-class CrispinConnectionPool(object):
+class CrispinConnectionPool:
     """
     Connection pool for Crispin clients.
 
@@ -315,7 +309,7 @@ retry_crispin = functools.partial(
 )
 
 
-class CrispinClient(object):
+class CrispinClient:
     """
     Generic IMAP client wrapper.
 

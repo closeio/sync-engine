@@ -3,7 +3,7 @@ from copy import copy
 CHUNK_SIZE = 50
 
 
-class RestfulModelCollection(object):
+class RestfulModelCollection:
     def __init__(self, cls, api, filter=None, offset=0, **filters):
         filter = filter or {}
         filters.update(filter)
@@ -25,11 +25,8 @@ class RestfulModelCollection(object):
         offset = self.filters["offset"]
         while True:
             items = self._get_model_collection(offset, CHUNK_SIZE)
-            if not items:
-                break
 
-            for item in items:
-                yield item
+            yield from items
 
             if len(items) < CHUNK_SIZE:
                 break

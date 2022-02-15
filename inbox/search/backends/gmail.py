@@ -18,7 +18,7 @@ PROVIDER = "gmail"
 SEARCH_CLS = "GmailSearchClient"
 
 
-class GmailSearchClient(object):
+class GmailSearchClient:
     def __init__(self, account):
         self.account_id = int(account.id)
         try:

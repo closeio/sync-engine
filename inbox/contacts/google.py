@@ -23,7 +23,7 @@ logger = get_logger()
 SOURCE_APP_NAME = "Nylas Sync Engine"
 
 
-class GoogleContactsProvider(object):
+class GoogleContactsProvider:
     """
     A utility class to fetch and parse Google contact data for the specified
     account using the Google Contacts API.

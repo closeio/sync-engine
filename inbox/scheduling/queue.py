@@ -38,7 +38,7 @@ SOCKET_CONNECT_TIMEOUT = 5
 SOCKET_TIMEOUT = 5
 
 
-class QueueClient(object):
+class QueueClient:
     """Interface to a Redis queue/hashmap combo for managing account sync
     allocation.
     """
@@ -128,7 +128,7 @@ class QueueClient(object):
         return "assigned_{}".format(self.zone)
 
 
-class QueuePopulator(object):
+class QueuePopulator:
     """
     Polls the database for account ids to sync and queues them. Run one of
     these per zone.

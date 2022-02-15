@@ -7,6 +7,7 @@ import os
 import re
 import subprocess
 
+import attr
 import dns
 import pytest
 from past.builtins import basestring, long
@@ -75,15 +76,12 @@ def setup_test_db():
             init_db(engine, key)
 
 
-class MockAnswer(object):
-    def __init__(self, exchange):
-        self.exchange = exchange
-
-    def __str__(self):
-        return self.exchange
+@attr.s
+class MockAnswer:
+    exchange = attr.ib()
 
 
-class MockDNSResolver(object):
+class MockDNSResolver:
     def __init__(self):
         self._registry = {"mx": {}, "ns": {}}
 
@@ -136,7 +134,7 @@ def dump_dns_queries(monkeypatch):
     print(json.dumps(query_results, indent=4, sort_keys=True))
 
 
-class MockIMAPClient(object):
+class MockIMAPClient:
     """A bare-bones stand-in for an IMAPClient instance, used to test sync
     logic without requiring a real IMAP account and server."""
 
@@ -291,9 +289,8 @@ def mock_imapclient(monkeypatch):
     monkeypatch.undo()
 
 
-class MockSMTPClient(object):
-    def __init__(self):
-        pass
+class MockSMTPClient:
+    pass
 
 
 @pytest.fixture

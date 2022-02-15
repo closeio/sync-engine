@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 from redis import StrictRedis
 
@@ -22,7 +22,7 @@ def _get_redis_client(host=None, port=6379, db=1):
     )
 
 
-class EventQueue(object):
+class EventQueue:
     """Simple queue that clients can listen to and wait to be notified of some
     event that they're interested in.
     """
@@ -87,7 +87,7 @@ class EventQueue(object):
         self.redis.rpush(self.queue_name, json.dumps(event_data))
 
 
-class EventQueueGroup(object):
+class EventQueueGroup:
     """Group of queues that can all be simultaneously watched for new events."""
 
     def __init__(self, queues):

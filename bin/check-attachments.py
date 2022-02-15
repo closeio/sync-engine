@@ -10,7 +10,6 @@ import datetime
 from collections import defaultdict
 
 import click
-import gevent
 from gevent.pool import Pool
 from sqlalchemy import true
 from sqlalchemy.sql.expression import func

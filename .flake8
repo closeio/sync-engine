@@ -2,8 +2,6 @@
 ignore=
     # TODO: undefined name 'name'
     F821
-    # TODO: 'module' imported but unused
-    F401
     # TODO: expected 2 blank lines after class or function definition
     E305
     # TODO: too many leading '#' for block comment

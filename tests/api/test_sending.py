@@ -4,15 +4,12 @@ from future import standard_library
 standard_library.install_aliases()
 import contextlib
 import json
-import re
 import smtplib
 import time
 
 import pytest
 from flanker import mime
 
-import inbox.api.ns_api
-import inbox.logging
 from inbox.basicauth import OAuthError
 from inbox.models import Event, Message
 from inbox.sendmail.smtp.postel import _substitute_bcc

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
 import os
-import sys
 from datetime import datetime
 from hashlib import md5
 

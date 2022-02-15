@@ -6,7 +6,6 @@ import re
 import smtplib
 import socket
 import ssl
-import sys
 from builtins import range
 
 from inbox.logging import get_logger

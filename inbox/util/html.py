@@ -9,8 +9,6 @@ if sys.version_info < (3, 8):
 else:
     from html import escape as html_escape
 
-from inbox.logging import get_logger
-
 
 class HTMLParseError(Exception):
     pass

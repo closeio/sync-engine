@@ -2,7 +2,8 @@
 
 import pytest
 
-import inbox.sqlalchemy_ext.util
+# codec gets registered as side effect of this import
+import inbox.sqlalchemy_ext.util  # noqa: F401
 
 
 def test_utf8_surrogate_fix_codec():

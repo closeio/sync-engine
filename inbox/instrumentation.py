@@ -23,7 +23,7 @@ GREENLET_SAMPLING_INTERVAL = 1
 LOGGING_INTERVAL = 60
 
 
-class ProfileCollector(object):
+class ProfileCollector:
     """A simple stack sampler for low-overhead CPU profiling: samples the call
     stack every `interval` seconds and keeps track of counts by frame. Because
     this uses signals, it only works on the main thread."""
@@ -71,7 +71,7 @@ class ProfileCollector(object):
         self._stack_counts = collections.defaultdict(int)
 
 
-class GreenletTracer(object):
+class GreenletTracer:
     """Log if a greenlet blocks the event loop for too long, and optionally log
     statistics on time spent in individual greenlets.
 
@@ -283,7 +283,7 @@ class KillerGreenletTracer(GreenletTracer):
 MAX_BLOCKING_TIME = 5
 
 
-class Tracer(object):
+class Tracer:
     """Log if a greenlet blocks the event loop for too long, and optionally log
     statistics on time spent in individual greenlets.
 

@@ -45,7 +45,7 @@ def shared_sync_event_queue_for_zone(zone):
     return SHARED_SYNC_EVENT_QUEUE_ZONE_MAP[queue_name]
 
 
-class SyncService(object):
+class SyncService:
     """
     Parameters
     ----------

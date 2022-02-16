@@ -11,7 +11,6 @@ foobar+no_all_mail@gmail.com.
 
 """
 
-
 from inbox.auth.gmail import GmailAuthHandler
 from inbox.basicauth import (
     GmailSettingError,

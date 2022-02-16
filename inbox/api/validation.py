@@ -1,4 +1,6 @@
 """Utilities for validating user input to the API."""
+import contextlib
+
 import arrow
 from arrow.parser import ParserError
 from flanker.addresslib import address
@@ -124,10 +126,8 @@ def valid_category_type(category_type, rule):
 
 def timestamp(value, key):
     try:
-        try:
+        with contextlib.suppress(ValueError):
             value = float(value)
-        except ValueError:
-            pass
 
         return arrow.get(value).datetime
     except ValueError:

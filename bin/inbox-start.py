@@ -62,7 +62,7 @@ banner = r"""{esc}[1;95m
 @click.option(
     "--prod/--no-prod",
     default=False,
-    help="Disables the autoreloader and potentially other " "non-production features.",
+    help="Disables the autoreloader and potentially other non-production features.",
 )
 @click.option(
     "--enable-tracer/--disable-tracer",

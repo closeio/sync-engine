@@ -18,7 +18,7 @@ from inbox.search.base import SearchBackendException
 PROVIDER = "imap"
 
 
-class IMAPSearchClient(object):
+class IMAPSearchClient:
     def __init__(self, account):
         self.account = account
         self.account_id = account.id

@@ -1,6 +1,8 @@
 """Provide iCloud contacts"""
 
 
+import contextlib
+
 import lxml.etree as ET
 
 from inbox.contacts.carddav import supports_carddav
@@ -17,7 +19,7 @@ logger = get_logger()
 ICLOUD_CONTACTS_URL = "https://contacts.icloud.com"
 
 
-class ICloudContactsProvider(object):
+class ICloudContactsProvider:
     """
     Base class to fetch and parse iCloud contacts
     """
@@ -39,10 +41,8 @@ class ICloudContactsProvider(object):
 
         def _x(key):  # Ugly parsing helper for ugly formats
             if key in card:
-                try:
+                with contextlib.suppress(IndexError):
                     return card[key][0][0]
-                except IndexError:
-                    pass
 
         # Skip contact groups for now
         if _x("X-ADDRESSBOOKSERVER-KIND") == "group":

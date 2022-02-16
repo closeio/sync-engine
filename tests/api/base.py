@@ -10,7 +10,7 @@ def new_api_client(db, namespace):
         return TestAPIClient(c, namespace.public_id)
 
 
-class TestAPIClient(object):
+class TestAPIClient:
 
     """Provide more convenient access to the API for testing purposes."""
 

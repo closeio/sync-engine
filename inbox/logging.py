@@ -6,6 +6,7 @@ Mostly based off http://www.structlog.org/en/16.1.0/standard-library.html.
 """
 
 
+import contextlib
 import logging
 import logging.handlers
 import os
@@ -344,17 +345,13 @@ def create_error_log_context(exc_info):
         out["error_code"] = exc_value.code
 
     if hasattr(exc_value, "args") and hasattr(exc_value.args, "__getitem__"):
-        try:
+        with contextlib.suppress(IndexError):
             out["error_message"] = exc_value.args[0]
-        except IndexError:
-            pass
 
-    try:
+    with contextlib.suppress(Exception):
         if exc_tb:
             tb = safe_format_exception(exc_type, exc_value, exc_tb)
             if tb:
                 out["error_traceback"] = tb
-    except Exception:
-        pass
 
     return out

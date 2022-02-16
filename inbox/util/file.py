@@ -63,7 +63,7 @@ def remove_file(filename):
             raise
 
 
-class Lock(object):
+class Lock:
     """ UNIX-specific exclusive file locks (released when the process ends).
 
     Based on

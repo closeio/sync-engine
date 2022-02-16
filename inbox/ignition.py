@@ -119,7 +119,7 @@ def engine(
     return engine
 
 
-class EngineManager(object):
+class EngineManager:
     def __init__(self, databases, users, include_disabled=False):
         self.engines = {}
         self._engine_zones = {}

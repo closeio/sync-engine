@@ -11,7 +11,7 @@ from inbox.providers import providers
 from inbox.util.file import iter_module_names
 
 
-class DummyContextManager(object):
+class DummyContextManager:
     def __enter__(self):
         return None
 

@@ -48,7 +48,7 @@ WATCH_CALENDARS_URL = CALENDARS_URL + "/watch"
 WATCH_EVENTS_URL = "https://www.googleapis.com/calendar/v3/calendars/{}/events/watch"
 
 
-class GoogleEventsProvider(object):
+class GoogleEventsProvider:
     """
     A utility class to fetch and parse Google calendar data for the
     specified account using the Google Calendar API.

@@ -1,6 +1,7 @@
 """ Operations for syncing back local datastore changes to
     generic IMAP providers.
 """
+import contextlib
 from collections import defaultdict
 from imaplib import IMAP4
 
@@ -148,12 +149,10 @@ def remote_delete_folder(crispin_client, account_id, category_id):
             return
         display_name = category.display_name
 
-    try:
+    with contextlib.suppress(IMAP4.error):
+        # IMAP4.error: Folder has already been deleted on remote. Treat delete
+        # as no-op.
         crispin_client.conn.delete_folder(display_name)
-    except IMAP4.error:
-        # Folder has already been deleted on remote. Treat delete as
-        # no-op.
-        pass
 
     # TODO @karim: Make the main sync loop detect folder renames
     # more accurately, and get rid of this.

@@ -66,7 +66,7 @@ def before_commit(conn):
         )
 
 
-class ABCMixin(object):
+class ABCMixin:
     """Use this if you want a mixin class which is actually an abstract base
     class, for example in order to enforce that concrete subclasses define
     particular methods or properties."""
@@ -302,10 +302,8 @@ def utf8_surrogate_fix_decode(memory, errors="strict"):
     # type: (memoryview, str) -> Tuple[str, int]
     binary = memory.tobytes()
 
-    try:
+    with contextlib.suppress(UnicodeDecodeError):
         return binary.decode("utf-8", errors), len(binary)
-    except UnicodeDecodeError:
-        pass
 
     text = binary.decode("utf-8", "surrogatepass")
 
@@ -381,8 +379,5 @@ def safer_yield_per(query, id_field, start_id, count):
     cur_id = start_id
     while True:
         results = query.filter(id_field >= cur_id).order_by(id_field).limit(count).all()
-        if not results:
-            return
-        for result in results:
-            yield result
+        yield from results
         cur_id = results[-1].id + 1

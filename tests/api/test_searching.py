@@ -206,7 +206,7 @@ def different_imap_messages(
     return [message1, message2, message3]
 
 
-class MockImapConnection(object):
+class MockImapConnection:
     def __init__(self):
         self.search_args = None
 

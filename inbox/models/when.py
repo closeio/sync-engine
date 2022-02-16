@@ -1,4 +1,5 @@
 import abc
+import contextlib
 from typing import Union
 
 import arrow
@@ -26,15 +27,13 @@ def parse_as_when(raw):
 def parse_utc(datetime):
     # type: (Union[float, int, str, arrow.Arrow]) -> arrow.Arrow
     # Arrow can handle epoch timestamps as well as most ISO-8601 strings
-    try:
+    with contextlib.suppress(ValueError, TypeError):
         datetime = float(datetime)
-    except (ValueError, TypeError):
-        pass
 
     return arrow.get(datetime).to("utc")
 
 
-class When(object, metaclass=abc.ABCMeta):
+class When(metaclass=abc.ABCMeta):
     """
     Abstract class which can represent a moment in time or a span between
         two moments. Initialize one of its subclasses `Time`, `TimeSpan`,

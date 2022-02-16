@@ -86,7 +86,7 @@ def webhooks_client(db):
         yield TestWebhooksClient(c)
 
 
-class TestWebhooksClient(object):
+class TestWebhooksClient:
     def __init__(self, test_client):
         self.client = test_client
 
@@ -199,7 +199,7 @@ def contacts_provider(config, db):
     return ContactsProviderStub()
 
 
-class ContactsProviderStub(object):
+class ContactsProviderStub:
     """
     Contacts provider stub to stand in for an actual provider.
     When an instance's get_items() method is called, return an iterable of

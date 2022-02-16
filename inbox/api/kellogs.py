@@ -414,7 +414,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
         return resp
 
 
-class APIEncoder(object):
+class APIEncoder:
     """
     Provides methods for serializing Nylas objects. If the optional
     namespace_public_id parameter is passed, it will be bound and used instead

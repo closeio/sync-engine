@@ -1,12 +1,10 @@
 """Utilities for validating user input to the API."""
 import contextlib
-from builtins import str
 
 import arrow
 from arrow.parser import ParserError
 from flanker.addresslib import address
 from flask_restful import reqparse
-from past.builtins import basestring
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.api.err import (
@@ -273,11 +271,9 @@ def get_recipients(recipients, field):
         raise InputError("Invalid {} field".format(field))
 
     for r in recipients:
-        if not (
-            isinstance(r, dict) and "email" in r and isinstance(r["email"], basestring)
-        ):
+        if not (isinstance(r, dict) and "email" in r and isinstance(r["email"], str)):
             raise InputError("Invalid {} field".format(field))
-        if "name" in r and not isinstance(r["name"], basestring):
+        if "name" in r and not isinstance(r["name"], str):
             raise InputError("Invalid {} field".format(field))
 
     return [(r.get("name", ""), r.get("email", "")) for r in recipients]
@@ -442,7 +438,7 @@ def validate_draft_recipients(draft):
 
 
 def valid_display_name(namespace_id, category_type, display_name, db_session):
-    if display_name is None or not isinstance(display_name, basestring):
+    if display_name is None or not isinstance(display_name, str):
         raise InputError('"display_name" must be a valid string')
 
     display_name = display_name.rstrip()

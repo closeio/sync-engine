@@ -1,7 +1,6 @@
 # flake8: noqa: F401, F811
 import json
 import time
-from builtins import range
 from datetime import datetime, timedelta
 
 import pytest

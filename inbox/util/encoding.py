@@ -1,13 +1,10 @@
-import builtins
 import sys
 from typing import Union
-
-from past.builtins import long
 
 
 def base36encode(number):
     # type: (int) -> str
-    if not isinstance(number, (int, long)):
+    if not isinstance(number, int):
         raise TypeError("number must be an integer")
     if number < 0:
         raise ValueError("number must be positive")

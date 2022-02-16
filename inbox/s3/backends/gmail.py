@@ -1,7 +1,6 @@
 import base64
 
 import requests
-from past.builtins import basestring
 
 from inbox.auth.oauth import OAuthRequestsWrapper
 from inbox.logging import get_logger
@@ -26,7 +25,7 @@ def get_gmail_raw_contents(message):
             "Couldn't find message on backend server. This is a permanent error."
         )
 
-    if isinstance(g_msgid, basestring):
+    if isinstance(g_msgid, str):
         g_msgid = int(g_msgid)
 
     hex_id = format(g_msgid, "x")

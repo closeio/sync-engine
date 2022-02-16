@@ -93,7 +93,7 @@ def upgrade():
 
     print("acct_device_map: ", acct_device_map)
 
-    for acct_id, device_id in acct_device_map.iteritems():
+    for acct_id, device_id in acct_device_map.items():
         conn.execute(
             text(
                 """

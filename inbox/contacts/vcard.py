@@ -30,11 +30,9 @@ import base64
 import contextlib
 import logging
 import sys
-from builtins import range
 from collections import defaultdict
 
 import vobject
-from past.builtins import unicode
 
 
 def list_clean(string):
@@ -185,7 +183,7 @@ def vcard_from_vobject(vcard):
 
 def vcard_from_string(vcard_string):
     """
-    vcard_string: str() or unicode()
+    vcard_string: str
     returns VCard()
     """
     try:
@@ -250,7 +248,7 @@ class VCard(defaultdict):
 
     @property
     def name(self):
-        return unicode(self["N"][0][0]) if self["N"] else ""
+        return str(self["N"][0][0]) if self["N"] else ""
 
     @name.setter
     def name(self, value):
@@ -260,7 +258,7 @@ class VCard(defaultdict):
 
     @property
     def fname(self):
-        return unicode(self["FN"][0][0]) if self["FN"] else ""
+        return str(self["FN"][0][0]) if self["FN"] else ""
 
     @fname.setter
     def fname(self, value):

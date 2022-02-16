@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from builtins import range
 from datetime import datetime
 
 from inbox.models.event import Event, RecurringEventOverride

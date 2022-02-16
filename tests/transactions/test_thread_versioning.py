@@ -1,6 +1,3 @@
-from future import standard_library
-
-standard_library.install_aliases()
 from tests.util.base import add_fake_category, add_fake_message
 
 

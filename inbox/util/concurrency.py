@@ -6,7 +6,6 @@ import sys
 import _mysql_exceptions
 import gevent
 from gevent import socket
-from past.builtins import basestring
 from redis import TimeoutError
 from sqlalchemy.exc import StatementError
 
@@ -135,7 +134,7 @@ def retry_with_logging(
                 with session_scope(account_id) as db_session:
                     account = db_session.query(Account).get(account_id)
                     sync_error = account.sync_error
-                    if not sync_error or isinstance(sync_error, basestring):
+                    if not sync_error or isinstance(sync_error, str):
                         account.update_sync_error(e)
                         db_session.commit()
             except Exception:

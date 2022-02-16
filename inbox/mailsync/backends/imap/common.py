@@ -11,9 +11,6 @@ Eventually we're going to want a better way of ACLing functions that operate on
 accounts.
 
 """
-from future import standard_library
-
-standard_library.install_aliases()
 from datetime import datetime
 
 from sqlalchemy import bindparam, desc

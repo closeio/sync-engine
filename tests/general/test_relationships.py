@@ -1,5 +1,4 @@
 import json
-from builtins import range
 
 from inbox.models import Category, Message, MessageCategory, Thread
 

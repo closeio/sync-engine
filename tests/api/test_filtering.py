@@ -1,12 +1,7 @@
-from future import standard_library
-
-standard_library.install_aliases()
 import calendar
 import datetime
 import json
-from builtins import range
 
-from past.builtins import basestring
 from sqlalchemy import desc
 
 from inbox.models import Block, Category, Message, Namespace, Thread
@@ -230,7 +225,7 @@ def test_filtering(db, api_client, default_namespace):
     )
 
     assert len(results) == 3
-    assert all(isinstance(r, basestring) for r in results), "Returns a list of string"
+    assert all(isinstance(r, str) for r in results), "Returns a list of string"
 
 
 def test_query_target(db, api_client, thread, default_namespace):

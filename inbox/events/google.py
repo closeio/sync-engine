@@ -1,7 +1,4 @@
 """Provide Google Calendar events."""
-from future import standard_library
-
-standard_library.install_aliases()
 import datetime
 import json
 import random

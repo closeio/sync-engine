@@ -1,6 +1,5 @@
 import time
-
-import mock
+from unittest import mock
 
 from inbox.instrumentation import GreenletTracer
 

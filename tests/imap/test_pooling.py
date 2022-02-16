@@ -1,9 +1,9 @@
 import imaplib
 import socket
 import ssl
+from unittest import mock
 
 import gevent
-import mock
 import pytest
 
 from inbox.crispin import CrispinConnectionPool

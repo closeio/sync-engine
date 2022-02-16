@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import datetime
 import json
+from unittest import mock
 
-import mock
 import pytest
 import requests
 from pytest import fixture

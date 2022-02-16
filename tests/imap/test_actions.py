@@ -1,7 +1,8 @@
 # flake8: noqa: F401, F811
 # -*- coding: utf-8 -*-
+from unittest import mock
+
 import gevent
-import mock
 import pytest
 from flanker import mime
 

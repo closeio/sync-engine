@@ -3,10 +3,10 @@
 """Sanity-check our construction of a Message object from raw synced data."""
 import datetime
 import sys
+from unittest.mock import patch
 
 import pytest
 from flanker import mime
-from mock import patch
 
 from inbox.models import Block, Message
 from inbox.util.addr import parse_mimepart_address_header

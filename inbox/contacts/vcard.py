@@ -24,7 +24,6 @@
 The pycarddav abstract model and tools for VCard handling.
 """
 
-from __future__ import absolute_import, print_function
 
 import base64
 import contextlib
@@ -50,8 +49,8 @@ def list_clean(string):
     return rstring
 
 
-NO_STRINGS = [u"n", "n", u"no", "no"]
-YES_STRINGS = [u"y", "y", u"yes", "yes"]
+NO_STRINGS = ["n", "no"]
+YES_STRINGS = ["y", "yes"]
 
 PROPERTIES = ["EMAIL", "TEL"]
 PROPS_ALL = [
@@ -172,7 +171,7 @@ def vcard_from_vobject(vcard):
         property_value = line.value
 
         with contextlib.suppress(AttributeError):
-            if line.ENCODING_paramlist == [u"b"] or line.ENCODING_paramlist == [u"B"]:
+            if line.ENCODING_paramlist == ["b"] or line.ENCODING_paramlist == ["B"]:
                 property_value = base64.b64encode(line.value)
         if isinstance(property_value, list):
             property_value = (",").join(property_value)
@@ -277,7 +276,7 @@ class VCard(defaultdict):
         try:
             for one in self["EMAIL"]:
                 try:
-                    typelist = ",".join(one[1][u"TYPE"])
+                    typelist = ",".join(one[1]["TYPE"])
                 except KeyError:
                     typelist = ""
                 collector.append(one[0] + "\t" + self.fname + "\t" + typelist)
@@ -291,7 +290,7 @@ class VCard(defaultdict):
         try:
             for one in self["TEL"]:
                 try:
-                    typelist = ",".join(one[1][u"TYPE"])
+                    typelist = ",".join(one[1]["TYPE"])
                 except KeyError:
                     typelist = ""
                 collector.append(self.fname + "\t" + one[0] + "\t" + typelist)

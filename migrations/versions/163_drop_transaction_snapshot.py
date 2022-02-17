@@ -14,7 +14,7 @@ from alembic import op
 
 
 def upgrade():
-    op.drop_column(u"transaction", "snapshot")
+    op.drop_column("transaction", "snapshot")
 
 
 def downgrade():

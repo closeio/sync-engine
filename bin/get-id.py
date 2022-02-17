@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # Query the id corresponding to a public id and vice-versa.
 
-from __future__ import print_function
 
 import sys
 

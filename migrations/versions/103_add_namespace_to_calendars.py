@@ -31,7 +31,7 @@ def upgrade():
     )
 
     op.drop_constraint("calendar_ibfk_1", "calendar", type_="foreignkey")
-    op.drop_constraint(u"uuid", "calendar", type_="unique")
+    op.drop_constraint("uuid", "calendar", type_="unique")
     op.create_unique_constraint(
         "uuid", "calendar", ["namespace_id", "provider_name", "name"]
     )

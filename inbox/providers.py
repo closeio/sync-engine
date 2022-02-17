@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 from inbox.basicauth import NotSupportedError
 
 __all__ = ["provider_info", "providers"]

@@ -8,7 +8,7 @@ Includes:
 * Account liveness/status data (in Redis).
 
 """
-from __future__ import absolute_import, print_function
+
 
 from gevent import monkey
 

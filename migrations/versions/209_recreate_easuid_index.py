@@ -21,7 +21,7 @@ def upgrade():
     conn.execute(text("set @@lock_wait_timeout = 20;"))
     conn.execute(text("set @@foreign_key_checks = 0;"))
     op.create_index(
-        u"ix_easaccount_id_2",
+        "ix_easaccount_id_2",
         "easuid",
         ["easaccount_id", "device_id", "easfoldersyncstatus_id", "server_id"],
     )

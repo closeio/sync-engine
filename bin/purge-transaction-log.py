@@ -4,7 +4,7 @@ Deletes entries in the transaction older than `days_ago` days( as measured by
 the created_at column)
 
 """
-from __future__ import absolute_import, print_function
+
 
 from gevent import monkey
 

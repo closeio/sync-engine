@@ -36,9 +36,7 @@ def upgrade():
         sa.Column("object_id", sa.BigInteger(), nullable=False),
         sa.Column("value", JSON(), nullable=True),
         sa.Column("version", sa.Integer(), server_default="0", nullable=True),
-        sa.ForeignKeyConstraint(
-            ["namespace_id"], [u"namespace.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["namespace_id"], ["namespace.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(

@@ -25,4 +25,6 @@ ignore=
     SFS301,
     # Allow .format
     SFS201
+    # https://pypi.org/project/flake8-future-import/
+    FI1
 exclude=migrations/versions

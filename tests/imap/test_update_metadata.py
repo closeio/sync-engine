@@ -20,9 +20,7 @@ def test_gmail_label_sync(
     # Note that IMAPClient parses numeric labels into integer types. We have to
     # correctly handle those too.
     new_flags = {
-        imapuid.msg_uid: GmailFlags(
-            (), (u"\\Important", u"\\Starred", u"foo", 42), None
-        )
+        imapuid.msg_uid: GmailFlags((), ("\\Important", "\\Starred", "foo", 42), None)
     }
     update_metadata(
         default_namespace.account.id,
@@ -40,7 +38,7 @@ def test_gmail_label_sync(
 def test_gmail_drafts_flag_constrained_by_folder(
     db, default_account, message, imapuid, folder
 ):
-    new_flags = {imapuid.msg_uid: GmailFlags((), (u"\\Draft",), None)}
+    new_flags = {imapuid.msg_uid: GmailFlags((), ("\\Draft",), None)}
     update_metadata(default_account.id, folder.id, "all", new_flags, db.session)
     assert message.is_draft
     update_metadata(default_account.id, folder.id, "trash", new_flags, db.session)

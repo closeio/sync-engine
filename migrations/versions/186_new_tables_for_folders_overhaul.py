@@ -54,7 +54,7 @@ def upgrade():
         sa.ForeignKeyConstraint(
             ["account_id"], ["account.id"], name="label_fk1", ondelete="CASCADE"
         ),
-        sa.ForeignKeyConstraint(["category_id"], [u"category.id"],),
+        sa.ForeignKeyConstraint(["category_id"], ["category.id"],),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("account_id", "name"),
     )
@@ -69,8 +69,8 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("message_id", sa.Integer(), nullable=False),
         sa.Column("category_id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(["category_id"], [u"category.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["message_id"], [u"message.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["category_id"], ["category.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["message_id"], ["message.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -96,8 +96,8 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("imapuid_id", sa.Integer(), nullable=False),
         sa.Column("label_id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(["imapuid_id"], [u"imapuid.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["label_id"], [u"label.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["imapuid_id"], ["imapuid.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["label_id"], ["label.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(

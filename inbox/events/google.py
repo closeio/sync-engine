@@ -527,7 +527,7 @@ def parse_event_response(event, read_only_calendar):
     creator = event.get("creator")
 
     if creator:
-        owner = u"{} <{}>".format(
+        owner = "{} <{}>".format(
             creator.get("displayName", ""), creator.get("email", "")
         )
     else:

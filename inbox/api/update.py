@@ -42,7 +42,7 @@ def update_thread(thread, request_data, db_session, optimistic):
     else:
         folder = parse_folder(request_data, db_session, thread.namespace_id)
     if request_data:
-        raise InputError(u"Unexpected attribute: {}".format(list(request_data)[0]))
+        raise InputError("Unexpected attribute: {}".format(list(request_data)[0]))
 
     if accept_labels:
         if labels is not None:
@@ -128,7 +128,7 @@ def parse_folder(request_data, db_session, namespace_id):
             .one()
         )
     except NoResultFound:
-        raise InputError(u"The folder {} does not exist".format(folder_public_id))
+        raise InputError("The folder {} does not exist".format(folder_public_id))
 
 
 def update_message_folder(message, db_session, category, optimistic):
@@ -182,7 +182,7 @@ def parse_labels(request_data, db_session, namespace_id):
             )
             labels.add(category)
         except NoResultFound:
-            raise InputError(u"The label {} does not exist".format(id_))
+            raise InputError("The label {} does not exist".format(id_))
     return labels
 
 

@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 from flask import Flask, g, jsonify, make_response, request
 from flask_restful import reqparse
 from sqlalchemy.orm.exc import NoResultFound

@@ -1,5 +1,5 @@
 """Utilities for debugging failures in development/staging."""
-from __future__ import print_function
+
 
 import signal
 from functools import wraps

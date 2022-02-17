@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function
-
 # gmail-specific label handling tests.
 import random
 from datetime import datetime

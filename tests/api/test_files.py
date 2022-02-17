@@ -3,8 +3,8 @@ import os
 import sys
 from datetime import datetime
 from hashlib import md5
+from unittest import mock
 
-import mock
 import pytest
 
 from inbox.models import Block, Part

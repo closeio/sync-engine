@@ -1,5 +1,6 @@
+from unittest.mock import Mock
+
 from imapclient import IMAPClient
-from mock import Mock
 
 from inbox.auth.generic import GenericAuthHandler
 from inbox.basicauth import UserRecoverableConfigError

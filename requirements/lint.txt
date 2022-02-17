@@ -11,6 +11,7 @@ flake8-future-import==0.4.6
 flake8-no-u-prefixed-strings==0.2
 flake8-simplify==0.14.2
 flake8-sfs==0.0.3
+flake8-tidy-imports==4.6.0
 mccabe==0.6.1
 regex==2020.9.27
 pathspec==0.8.0

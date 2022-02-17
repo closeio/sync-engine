@@ -1,6 +1,7 @@
 # flake8: noqa: F401, F811
+from unittest import mock
+
 import gevent
-import mock
 import pytest
 from flanker import mime
 

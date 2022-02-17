@@ -1,8 +1,8 @@
 import json
+from unittest import mock
 
 import arrow
 import gevent
-import mock
 import pytest
 import requests
 

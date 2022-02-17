@@ -2,8 +2,8 @@ import json
 import os
 import uuid
 from datetime import datetime, timedelta
+from unittest import mock
 
-import mock
 from flanker import mime
 from mockredis import mock_strict_redis_client
 from pytest import fixture

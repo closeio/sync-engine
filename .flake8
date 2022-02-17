@@ -27,4 +27,9 @@ ignore=
     SFS201
     # https://pypi.org/project/flake8-future-import/
     FI1
+banned-modules=
+    flask.ext = use flask_
+    builtins = don't use
+    typing.Text = use str
+    mock = use unittest.mock
 exclude=migrations/versions

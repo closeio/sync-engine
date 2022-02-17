@@ -1,6 +1,7 @@
 # flake8: noqa: F401, F811
+from unittest import mock
+
 import gevent
-import mock
 
 from inbox.util.testutils import mock_imapclient  # noqa
 

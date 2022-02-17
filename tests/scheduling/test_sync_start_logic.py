@@ -1,7 +1,7 @@
 import json
 import platform
+from unittest import mock
 
-import mock
 import pytest
 
 from inbox.ignition import engine_manager

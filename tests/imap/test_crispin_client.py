@@ -5,9 +5,9 @@ want to test that we handle unsolicited FETCH responses, which may be returned
 by some providers (Gmail, Fastmail).
 """
 from datetime import datetime
+from unittest import mock
 
 import imapclient
-import mock
 import pytest
 
 from inbox.crispin import (

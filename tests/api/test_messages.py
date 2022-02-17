@@ -1,6 +1,6 @@
 import json
+from unittest import mock
 
-import mock
 import pytest
 
 from inbox.api.ns_api import API_VERSIONS

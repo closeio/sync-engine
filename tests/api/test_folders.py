@@ -54,11 +54,11 @@ def test_folder_name_translation(
         syncback_id=0, process_number=0, total_processes=1, num_workers=2
     )
 
-    imap_namespaces = (((u"INBOX.", u"."),),)
+    imap_namespaces = ((("INBOX.", "."),),)
     mock_imapclient.create_folder = mock.Mock()
     mock_imapclient.namespace = mock.Mock(return_value=imap_namespaces)
 
-    folder_list = [(("\\HasChildren",), ".", u"INBOX")]
+    folder_list = [(("\\HasChildren",), ".", "INBOX")]
     mock_imapclient.list_folders = mock.Mock(return_value=folder_list)
     mock_imapclient.has_capability = mock.Mock(return_value=True)
 

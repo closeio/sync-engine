@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 """HasPublicID
 
 Revision ID: 2c9f3a06de09

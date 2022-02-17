@@ -8,7 +8,7 @@ Revises: 519e462df171
 Create Date: 2014-05-04 03:14:39.923489
 
 """
-from __future__ import print_function
+
 
 # revision identifiers, used by Alembic.
 revision = "2c313b6ddd9b"
@@ -65,20 +65,20 @@ def upgrade():
     op.create_index("ix_lens_public_id", "lens", ["public_id"], unique=False)
 
     print("Removing old webhooks")
-    op.add_column(u"webhook", sa.Column("lens_id", sa.Integer(), nullable=False))
+    op.add_column("webhook", sa.Column("lens_id", sa.Integer(), nullable=False))
 
-    op.drop_column(u"webhook", u"last_message_after")
-    op.drop_column(u"webhook", u"last_message_before")
-    op.drop_column(u"webhook", u"thread")
-    op.drop_column(u"webhook", u"from_addr")
-    op.drop_column(u"webhook", u"started_after")
-    op.drop_column(u"webhook", u"to_addr")
-    op.drop_column(u"webhook", u"filename")
-    op.drop_column(u"webhook", u"bcc_addr")
-    op.drop_column(u"webhook", u"cc_addr")
-    op.drop_column(u"webhook", u"started_before")
-    op.drop_column(u"webhook", u"email")
-    op.drop_column(u"webhook", u"subject")
+    op.drop_column("webhook", "last_message_after")
+    op.drop_column("webhook", "last_message_before")
+    op.drop_column("webhook", "thread")
+    op.drop_column("webhook", "from_addr")
+    op.drop_column("webhook", "started_after")
+    op.drop_column("webhook", "to_addr")
+    op.drop_column("webhook", "filename")
+    op.drop_column("webhook", "bcc_addr")
+    op.drop_column("webhook", "cc_addr")
+    op.drop_column("webhook", "started_before")
+    op.drop_column("webhook", "email")
+    op.drop_column("webhook", "subject")
 
     op.create_index("ix_webhook_lens_id", "webhook", ["lens_id"], unique=False)
 

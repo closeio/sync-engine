@@ -162,7 +162,7 @@ class IMAPSearchClient:
             criteria = [b"TEXT", search_query.encode("ascii")]
             charset = None
         except UnicodeEncodeError:
-            criteria = [u"TEXT", search_query]
+            criteria = ["TEXT", search_query]
             charset = "UTF-8"
 
         folders = []

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Test local behavior for the drafts API. Doesn't test syncback or actual
 sending."""
 import json
@@ -51,7 +50,7 @@ def attachments(db):
         # filename on the fs. Work around by changing the filename we upload
         # instead.
         if filename == "piece-jointe.jpg":
-            filename = u"pièce-jointe.jpg"
+            filename = "pièce-jointe.jpg"
         data.append((filename, path))
     return data
 

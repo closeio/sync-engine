@@ -1,5 +1,5 @@
 """Helper to reconfigure logging to Close.io needs."""
-from __future__ import absolute_import
+
 
 import logging
 

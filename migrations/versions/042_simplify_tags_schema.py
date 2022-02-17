@@ -16,14 +16,14 @@ from sqlalchemy.dialects import mysql
 
 
 def upgrade():
-    op.drop_column("tag", u"user_mutable")
+    op.drop_column("tag", "user_mutable")
 
 
 def downgrade():
     op.add_column(
         "tag",
         sa.Column(
-            u"user_mutable",
+            "user_mutable",
             mysql.TINYINT(display_width=1),
             server_default="1",
             nullable=False,

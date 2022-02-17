@@ -5,7 +5,7 @@ Revises: 41f957b595fc
 Create Date: 2015-05-25 16:23:40.563050
 
 """
-from __future__ import print_function
+
 
 # revision identifiers, used by Alembic.
 revision = "6e5b154d917"

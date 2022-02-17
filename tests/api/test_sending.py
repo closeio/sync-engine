@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import contextlib
 import json
 import re
@@ -668,7 +667,7 @@ def test_rsvp_updates_status(patch_smtp, api_client, example_rsvp, imported_even
         ("maybe", None),
         ("yes", "I will come"),
         ("no", "I won't come"),
-        ("yes", u"Нэ дуо рэгяонэ фабулаз аккоммодары."),
+        ("yes", "Нэ дуо рэгяонэ фабулаз аккоммодары."),
     ],
 )
 def test_rsvp_idempotent(

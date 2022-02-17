@@ -5,7 +5,7 @@ Revises: 2493281d621
 Create Date: 2015-03-11 22:51:22.180028
 
 """
-from __future__ import print_function
+
 
 # revision identifiers, used by Alembic.
 revision = "1de526a15c5d"
@@ -46,18 +46,18 @@ def upgrade():
         sa.ForeignKeyConstraint(["id"], ["event.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.add_column(u"event", sa.Column("type", sa.String(length=30), nullable=True))
+    op.add_column("event", sa.Column("type", sa.String(length=30), nullable=True))
     op.create_index(
         "ix_recurringeventoverride_master_event_uid",
         "recurringeventoverride",
         ["master_event_uid"],
         unique=False,
     )
-    op.alter_column(u"event", "recurrence", type_=sa.Text())
+    op.alter_column("event", "recurrence", type_=sa.Text())
 
 
 def downgrade():
-    op.drop_column(u"event", "type")
+    op.drop_column("event", "type")
     op.drop_table("recurringevent")
     op.drop_table("recurringeventoverride")
 

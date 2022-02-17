@@ -1,5 +1,4 @@
 # deal with unicode literals: http://www.python.org/dev/peps/pep-0263/
-# vim: set fileencoding=utf-8 :
 """
 ----------------
 IMAP SYNC ENGINE
@@ -60,7 +59,7 @@ query for needed information or update the local state. Long-held database
 sessions reduce scalability.
 
 """
-from __future__ import division
+
 
 import contextlib
 import imaplib
@@ -143,7 +142,7 @@ class FolderSyncEngine(Greenlet):
                 )
             except NoResultFound:
                 raise MailsyncError(
-                    u"Missing Folder '{}' on account {}".format(folder_name, account_id)
+                    "Missing Folder '{}' on account {}".format(folder_name, account_id)
                 )
 
             self.folder_id = folder.id

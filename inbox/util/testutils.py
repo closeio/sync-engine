@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function
-
 import contextlib
 import json
 import os
@@ -157,7 +154,7 @@ class MockIMAPClient:
     def logout(self):
         pass
 
-    def list_folders(self, directory=u"", pattern=u"*"):
+    def list_folders(self, directory="", pattern="*"):
         return [(b"\\All", b"/", "[Gmail]/All Mail")]
 
     def has_capability(self, capability):
@@ -333,11 +330,11 @@ def uploaded_file_ids(api_client, files):
         # filename on the fs. Work around by changing the filename we upload
         # instead.
         if filename == "piece-jointe.jpg":
-            filename = u"pièce-jointe.jpg"
+            filename = "pièce-jointe.jpg"
         elif filename == "andra-moi-ennepe.txt":
-            filename = u"ἄνδρα μοι ἔννεπε"
+            filename = "ἄνδρα μοι ἔννεπε"
         elif filename == "long-non-ascii-filename.txt":
-            filename = 100 * u"μ"
+            filename = 100 * "μ"
         with open(path, "rb") as fp:
             data = {"file": (fp, filename)}
             r = api_client.post_raw(upload_path, data=data)

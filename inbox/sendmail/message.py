@@ -137,17 +137,17 @@ def create_email(
         full_to_specs = [
             _get_full_spec_without_validation(name, spec) for name, spec in to_addr
         ]
-        msg.headers["To"] = u", ".join(full_to_specs)
+        msg.headers["To"] = ", ".join(full_to_specs)
     if cc_addr:
         full_cc_specs = [
             _get_full_spec_without_validation(name, spec) for name, spec in cc_addr
         ]
-        msg.headers["Cc"] = u", ".join(full_cc_specs)
+        msg.headers["Cc"] = ", ".join(full_cc_specs)
     if bcc_addr:
         full_bcc_specs = [
             _get_full_spec_without_validation(name, spec) for name, spec in bcc_addr
         ]
-        msg.headers["Bcc"] = u", ".join(full_bcc_specs)
+        msg.headers["Bcc"] = ", ".join(full_bcc_specs)
     if reply_to:
         # reply_to is only ever a list with one element
         msg.headers["Reply-To"] = _get_full_spec_without_validation(
@@ -196,7 +196,7 @@ def _get_full_spec_without_validation(name, email):
     if name:
         encoded_name = smart_quote(encode_string(name, maxlinelen=MAX_ADDRESS_LENGTH))
         return "{0} <{1}>".format(encoded_name, email)
-    return u"{0}".format(email)
+    return str(email)
 
 
 def add_nylas_headers(msg, nylas_uid):

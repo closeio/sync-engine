@@ -69,8 +69,8 @@ def test_extract_emails_from_text():
     assert extract_emails_from_text("The email is test@example.com.") == [
         "test@example.com"
     ]
-    assert extract_emails_from_text(u"Email b\xe4r@foo.ex\xe4mple.com") == [
-        u"b\xe4r@foo.ex\xe4mple.com"
+    assert extract_emails_from_text("Email b\xe4r@foo.ex\xe4mple.com") == [
+        "b\xe4r@foo.ex\xe4mple.com"
     ]
     assert extract_emails_from_text(
         "Multiple\nfoo@example.com\nbar@example.com\nemails"

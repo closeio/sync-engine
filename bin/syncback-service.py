@@ -5,7 +5,7 @@ API under something like gunicorn. (For convenience, the bin/inbox-api script
 also starts up the syncback service.)
 
 """
-from __future__ import print_function
+
 
 from gevent import monkey
 

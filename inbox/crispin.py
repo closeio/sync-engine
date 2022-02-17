@@ -662,7 +662,7 @@ class CrispinClient:
             "inbox": "inbox",
             "drafts": "drafts",
             "draft": "drafts",
-            u"entw\xfcrfe": "drafts",
+            "entw\xfcrfe": "drafts",
             "junk": "spam",
             "spam": "spam",
             "archive": "archive",

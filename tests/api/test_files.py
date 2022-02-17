@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import json
 import os
 import sys
@@ -106,12 +105,12 @@ def test_delete(api_client, uploaded_file_ids, draft):
 def test_get_with_id(api_client, uploaded_file_ids, filename):
     # See comment in uploaded_file_ids()
     if filename == "piece-jointe.jpg":
-        filename = u"pièce-jointe.jpg"
+        filename = "pièce-jointe.jpg"
     elif filename == "andra-moi-ennepe.txt":
-        filename = u"ἄνδρα μοι ἔννεπε"
+        filename = "ἄνδρα μοι ἔννεπε"
     elif filename == "long-non-ascii-filename.txt":
-        filename = 100 * u"μ"
-    in_file = api_client.get_data(u"/files?filename={}".format(filename))[0]
+        filename = 100 * "μ"
+    in_file = api_client.get_data("/files?filename={}".format(filename))[0]
     data = api_client.get_data("/files/{}".format(in_file["id"]))
     assert data["filename"] == filename
 
@@ -140,13 +139,13 @@ def test_download(api_client, uploaded_file_ids, filename):
     # See comment in uploaded_file_ids()
     original_filename = filename
     if filename == "piece-jointe.jpg":
-        filename = u"pièce-jointe.jpg"
+        filename = "pièce-jointe.jpg"
     elif filename == "andra-moi-ennepe.txt":
-        filename = u"ἄνδρα μοι ἔννεπε"
+        filename = "ἄνδρα μοι ἔννεπε"
     elif filename == "long-non-ascii-filename.txt":
-        filename = 100 * u"μ"
+        filename = 100 * "μ"
 
-    in_file = api_client.get_data(u"/files?filename={}".format(filename))[0]
+    in_file = api_client.get_data("/files?filename={}".format(filename))[0]
     data = api_client.get_raw("/files/{}/download".format(in_file["id"])).data
 
     path = os.path.join(
@@ -209,4 +208,4 @@ def test_direct_fetching(api_client, db, message, fake_attachment, monkeypatch):
 
     # Check that we got back the right data, with the right headers.
     assert resp.headers["Content-Disposition"] == "attachment; filename=zambla.txt"
-    assert resp.data.decode("utf8") == u"Chuis pas rassur\xe9"
+    assert resp.data.decode("utf8") == "Chuis pas rassur\xe9"

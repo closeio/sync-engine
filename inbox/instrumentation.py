@@ -1,5 +1,3 @@
-from __future__ import division
-
 import _thread
 import collections
 import math

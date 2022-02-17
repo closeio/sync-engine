@@ -35,10 +35,10 @@ def upgrade():
             server_default=sa.sql.expression.true(),
         ),
         sa.ForeignKeyConstraint(
-            ["gmailaccount_id"], [u"gmailaccount.id"], ondelete="CASCADE"
+            ["gmailaccount_id"], ["gmailaccount.id"], ondelete="CASCADE"
         ),
         sa.ForeignKeyConstraint(
-            ["refresh_token_id"], [u"secret.id"], ondelete="CASCADE"
+            ["refresh_token_id"], ["secret.id"], ondelete="CASCADE"
         ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("refresh_token_id"),

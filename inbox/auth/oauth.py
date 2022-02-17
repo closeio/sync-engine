@@ -226,7 +226,7 @@ class OAuthAuthHandler(AuthHandler):
 
         session_dict = resp.json()
 
-        if u"error" in session_dict:
+        if "error" in session_dict:
             raise OAuthError(session_dict["error"])
 
         userinfo_dict = self._get_user_info(session_dict)

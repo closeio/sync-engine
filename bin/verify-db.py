@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import print_function
+
 
 from inbox.config import config
 from inbox.error_handling import maybe_enable_rollbar

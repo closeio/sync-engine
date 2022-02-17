@@ -17,9 +17,9 @@ from sqlalchemy.dialects import mysql
 
 def upgrade():
     op.add_column(
-        u"message", sa.Column("_compacted_body", mysql.LONGBLOB(), nullable=True)
+        "message", sa.Column("_compacted_body", mysql.LONGBLOB(), nullable=True)
     )
 
 
 def downgrade():
-    op.drop_column(u"message", "_compacted_body")
+    op.drop_column("message", "_compacted_body")

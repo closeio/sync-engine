@@ -28,48 +28,48 @@ def upgrade():
     # Drop draft_copied_from and replyto_thread_id foreign key constraints.
     op.drop_constraint("spoolmessage_ibfk_4", "spoolmessage", type_="foreignkey")
     op.drop_constraint("spoolmessage_ibfk_5", "spoolmessage", type_="foreignkey")
-    op.drop_column("spoolmessage", u"draft_copied_from")
-    op.drop_column("spoolmessage", u"replyto_thread_id")
-    op.drop_table(u"draftthread")
+    op.drop_column("spoolmessage", "draft_copied_from")
+    op.drop_column("spoolmessage", "replyto_thread_id")
+    op.drop_table("draftthread")
 
 
 def downgrade():
     op.add_column(
         "spoolmessage",
-        sa.Column(u"replyto_thread_id", mysql.INTEGER(display_width=11), nullable=True),
+        sa.Column("replyto_thread_id", mysql.INTEGER(display_width=11), nullable=True),
     )
     op.add_column(
         "spoolmessage",
-        sa.Column(u"draft_copied_from", mysql.INTEGER(display_width=11), nullable=True),
+        sa.Column("draft_copied_from", mysql.INTEGER(display_width=11), nullable=True),
     )
     op.drop_column("spoolmessage", "is_reply")
     op.create_table(
-        u"draftthread",
-        sa.Column(u"created_at", mysql.DATETIME(), nullable=False),
-        sa.Column(u"updated_at", mysql.DATETIME(), nullable=False),
-        sa.Column(u"deleted_at", mysql.DATETIME(), nullable=True),
-        sa.Column(u"public_id", sa.BINARY(length=16), nullable=False),
-        sa.Column(u"id", mysql.INTEGER(display_width=11), nullable=False),
-        sa.Column(u"master_public_id", sa.BINARY(length=16), nullable=False),
+        "draftthread",
+        sa.Column("created_at", mysql.DATETIME(), nullable=False),
+        sa.Column("updated_at", mysql.DATETIME(), nullable=False),
+        sa.Column("deleted_at", mysql.DATETIME(), nullable=True),
+        sa.Column("public_id", sa.BINARY(length=16), nullable=False),
+        sa.Column("id", mysql.INTEGER(display_width=11), nullable=False),
+        sa.Column("master_public_id", sa.BINARY(length=16), nullable=False),
         sa.Column(
-            u"thread_id",
+            "thread_id",
             mysql.INTEGER(display_width=11),
             autoincrement=False,
             nullable=False,
         ),
         sa.Column(
-            u"message_id",
+            "message_id",
             mysql.INTEGER(display_width=11),
             autoincrement=False,
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["message_id"], [u"message.id"], name=u"draftthread_ibfk_2"
+            ["message_id"], ["message.id"], name="draftthread_ibfk_2"
         ),
         sa.ForeignKeyConstraint(
-            ["thread_id"], [u"thread.id"], name=u"draftthread_ibfk_1"
+            ["thread_id"], ["thread.id"], name="draftthread_ibfk_1"
         ),
-        sa.PrimaryKeyConstraint(u"id"),
-        mysql_default_charset=u"utf8mb4",
-        mysql_engine=u"InnoDB",
+        sa.PrimaryKeyConstraint("id"),
+        mysql_default_charset="utf8mb4",
+        mysql_engine="InnoDB",
     )

@@ -1,5 +1,3 @@
-from builtins import range
-
 import requests
 from sqlalchemy import desc
 
@@ -114,7 +112,7 @@ class GmailSearchClient:
 
         for _ in range(1, 10):
             ret = requests.get(
-                u"https://www.googleapis.com/gmail/v1/users/me/messages",
+                "https://www.googleapis.com/gmail/v1/users/me/messages",
                 params=params,
                 auth=OAuthRequestsWrapper(self.auth_token),
             )

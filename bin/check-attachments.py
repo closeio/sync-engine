@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # Check that we can fetch attachments for 99.9% of our syncing accounts.
-from __future__ import print_function
+
 
 from gevent import monkey
 

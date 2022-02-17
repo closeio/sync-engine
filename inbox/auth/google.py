@@ -1,7 +1,3 @@
-from __future__ import print_function
-
-from builtins import input
-
 import attr
 
 from inbox.basicauth import ImapSupportDisabledError, OAuthError

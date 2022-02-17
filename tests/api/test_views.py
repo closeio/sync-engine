@@ -1,5 +1,4 @@
 import pytest
-from past.builtins import basestring
 
 from tests.api.base import new_api_client
 from tests.util.base import generic_account
@@ -47,5 +46,5 @@ def test_resource_views(
     ids = api_client.get_data("/{}?view=ids".format(resource_name))
 
     for i, elem in enumerate(elements):
-        assert isinstance(ids[i], basestring), "&views=ids should return string"
+        assert isinstance(ids[i], str), "&views=ids should return string"
         assert elem["id"] == ids[i], "view=ids should preserve order"

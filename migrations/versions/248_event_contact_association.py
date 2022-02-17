@@ -21,7 +21,7 @@ def upgrade():
             "created_at",
             sa.DateTime(),
             nullable=False,
-            server_default=sa.text(u"now()"),
+            server_default=sa.text("now()"),
         ),
         sa.Column("id", sa.BigInteger(), nullable=False, autoincrement=True),
         sa.Column("contact_id", sa.BigInteger(), nullable=False),

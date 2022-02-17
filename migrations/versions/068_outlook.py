@@ -18,7 +18,7 @@ def upgrade():
     op.create_table(
         "outlookaccount",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(["id"], [u"imapaccount.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["id"], ["imapaccount.id"], ondelete="CASCADE"),
         sa.Column("refresh_token_id", sa.Integer(), nullable=True),
         sa.Column("scope", sa.String(length=512), nullable=True),
         sa.Column("locale", sa.String(length=8), nullable=True),

@@ -23,7 +23,7 @@ def upgrade():
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("transaction_id", sa.Integer(), nullable=True),
-        sa.ForeignKeyConstraint(["transaction_id"], [u"transaction.id"],),
+        sa.ForeignKeyConstraint(["transaction_id"], ["transaction.id"],),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -67,10 +67,10 @@ def downgrade():
             nullable=True,
         ),
         sa.ForeignKeyConstraint(
-            ["transaction_id"], [u"transaction.id"], name=u"searchindexcursor_ibfk_1"
+            ["transaction_id"], ["transaction.id"], name="searchindexcursor_ibfk_1"
         ),
         sa.PrimaryKeyConstraint("id"),
-        mysql_default_charset=u"utf8mb4",
-        mysql_engine=u"InnoDB",
+        mysql_default_charset="utf8mb4",
+        mysql_engine="InnoDB",
     )
     op.drop_table("contactsearchindexcursor")

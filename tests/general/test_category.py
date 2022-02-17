@@ -15,9 +15,9 @@ __all__ = ["db", "generic_account", "gmail_account"]
 
 
 def test_category_sanitize_name():
-    assert sanitize_name(42) == u"42"
-    assert sanitize_name("42") == u"42"
-    assert sanitize_name(u"  Boîte de réception  ") == u"  Boîte de réception"
+    assert sanitize_name(42) == "42"
+    assert sanitize_name("42") == "42"
+    assert sanitize_name("  Boîte de réception  ") == "  Boîte de réception"
     long_name = "N" * (MAX_INDEXABLE_LENGTH + 10)
     assert sanitize_name(long_name) == "N" * MAX_INDEXABLE_LENGTH
 

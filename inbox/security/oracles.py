@@ -1,10 +1,7 @@
-from __future__ import absolute_import, division, print_function
-
 import enum  # Python 3 style enums from enum34
 
 import nacl.secret
 import nacl.utils
-from past.builtins import long
 
 from inbox.config import config
 
@@ -165,7 +162,7 @@ class _DecryptionOracle(_EncryptionOracle):
         # sanity check
         if not isinstance(ciphertext, bytes):
             raise TypeError("ciphertext should be bytes, not unicode")
-        if not isinstance(encryption_scheme_value, (int, long)):
+        if not isinstance(encryption_scheme_value, int):
             raise TypeError("encryption_scheme_value should be a number")
         if not 0 <= encryption_scheme_value <= 2 ** 31 - 1:
             raise ValueError("encryption_scheme_value out of range")

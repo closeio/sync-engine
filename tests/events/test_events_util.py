@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-from builtins import range
 from datetime import datetime
 
 from inbox.models.event import Event
@@ -22,10 +19,10 @@ def test_event_organizer_parsing():
     e.owner = "Jean Lecanuet <jean.lecanuet@orange.fr>"
     assert e.organizer_email == "jean.lecanuet@orange.fr"
 
-    e.owner = u"Pierre Mendès-France <pierre-mendes.france@orange.fr >"
+    e.owner = "Pierre Mendès-France <pierre-mendes.france@orange.fr >"
     assert e.organizer_email == "pierre-mendes.france@orange.fr"
 
-    e.owner = u"Pierre Messmer <   pierre.messmer@orange.fr >"
+    e.owner = "Pierre Messmer <   pierre.messmer@orange.fr >"
     assert e.organizer_email == "pierre.messmer@orange.fr"
 
 
@@ -50,7 +47,7 @@ def test_removed_participants():
 
 
 def test_unicode_event_truncation(db, default_account):
-    emoji_str = u"".join([u"😁" for i in range(300)])
+    emoji_str = "".join(["😁" for i in range(300)])
     title = "".join(["a" for i in range(2000)])
 
     e = Event.create(

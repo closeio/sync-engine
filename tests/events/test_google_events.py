@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import json
 
 import arrow
@@ -170,7 +168,7 @@ def test_event_parsing():
                 "email": "en.usa#holiday@group.v.calendar.google.com",
                 "self": True,
             },
-            "end": {u"date": "2014-06-16"},
+            "end": {"date": "2014-06-16"},
             "etag": '"2778476764000000"',
             "htmlLink": "https://www.google.com/calendar/event?eid=BAR",
             "iCalUID": "20140615_60o30dr564o30c1g60o30dr4ck@google.com",
@@ -196,7 +194,7 @@ def test_event_parsing():
                 "email": "ben.bitdiddle2222@gmail.com",
                 "self": True,
             },
-            "end": {u"date": "2015-03-11"},
+            "end": {"date": "2015-03-11"},
             "etag": '"2851906839480000"',
             "htmlLink": "https://www.google.com/calendar/event?eid=BAZ",
             "iCalUID": "3uisajkmdjqo43tfc3ig1l5hek@google.com",
@@ -207,9 +205,9 @@ def test_event_parsing():
                 "email": "ben.bitdiddle2222@gmail.com",
                 "self": True,
             },
-            "reminders": {u"useDefault": False},
+            "reminders": {"useDefault": False},
             "sequence": 1,
-            "start": {u"date": "2015-03-10"},
+            "start": {"date": "2015-03-10"},
             "status": "cancelled",
             "summary": "TUESDAY",
             "transparency": "transparent",
@@ -286,7 +284,7 @@ def test_event_parsing():
                 "email": "en.usa#holiday@group.v.calendar.google.com",
                 "self": True,
             },
-            "end": {u"date": "2014-06-16"},
+            "end": {"date": "2014-06-16"},
             "etag": '"2778476764000000"',
             "htmlLink": "https://www.google.com/calendar/event?eid=BAR",
             "iCalUID": "20140615_60o30dr564o30c1g60o30dr4ck@google.com",
@@ -338,7 +336,7 @@ def test_handle_offset_all_day_events():
         },
         "sequence": 0,
         "start": {"date": "2014-03-15"},
-        "end": {u"date": "2014-03-15"},
+        "end": {"date": "2014-03-15"},
         "status": "confirmed",
         "summary": "Ides of March",
         "transparency": "transparent",

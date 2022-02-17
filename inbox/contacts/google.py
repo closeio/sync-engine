@@ -1,17 +1,17 @@
 """Provide Google contacts."""
 import posixpath
 import random
+import sys
 from datetime import datetime
 
-import future.utils
-
-if future.utils.PY2:
+if sys.version_info < (3,):
     # This library does not work on Python 3 and was not released since 2013.
     # I need to figure out what to do with it. This is temporary for the sake of running tests
     # on Python 3.
     import gdata.auth
     import gdata.client
     import gdata.contacts.client
+
 import gevent
 
 from inbox.logging import get_logger

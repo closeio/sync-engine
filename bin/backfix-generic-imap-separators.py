@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # We previously didn't store IMAP path separators for generic imap accounts.
 # This script backfixes the accounts.
-from __future__ import print_function
+
 
 import click
 

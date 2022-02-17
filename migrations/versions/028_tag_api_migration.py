@@ -5,7 +5,7 @@ Revises: 924ffd092832
 Create Date: 2014-05-13 03:20:41.488982
 
 """
-from __future__ import print_function
+
 
 # revision identifiers, used by Alembic.
 revision = "40629415951c"
@@ -56,17 +56,17 @@ def upgrade():
         sa.PrimaryKeyConstraint("id"),
     )
     op.add_column(
-        u"folder", sa.Column("exposed_name", sa.String(length=255), nullable=True)
+        "folder", sa.Column("exposed_name", sa.String(length=255), nullable=True)
     )
     op.add_column(
-        u"folder", sa.Column("public_id", sa.String(length=191), nullable=True)
+        "folder", sa.Column("public_id", sa.String(length=191), nullable=True)
     )
 
     op.add_column(
-        u"account", sa.Column("provider_prefix", sa.String(length=64), nullable=False)
+        "account", sa.Column("provider_prefix", sa.String(length=64), nullable=False)
     )
     op.add_column(
-        u"account", sa.Column("important_folder_id", sa.Integer, nullable=True)
+        "account", sa.Column("important_folder_id", sa.Integer, nullable=True)
     )
 
     Base = declarative_base()

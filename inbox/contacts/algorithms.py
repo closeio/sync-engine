@@ -1,11 +1,5 @@
-from __future__ import division
-
 import datetime
-from builtins import range
 from collections import defaultdict
-
-from future.utils import iteritems
-from past.utils import old_div
 
 """
 This file currently contains algorithms for the contacts/rankings endpoint
@@ -33,7 +27,7 @@ SOCIAL_MOLECULE_LIMIT = 5000  # Give up if there are too many messages
 
 def _get_message_weight(now, message_date):
     timediff = now - message_date
-    weight = 1 - (old_div(timediff.total_seconds(), LOOKBACK_TIME))
+    weight = 1 - (timediff.total_seconds() / LOOKBACK_TIME)
     return max(weight, MIN_MESSAGE_WEIGHT)
 
 
@@ -137,7 +131,7 @@ def calculate_group_scores(messages, user_email):
     # Filter out infrequent molecules
     molecules_list = [
         (set(emails), set(msgs))
-        for emails, msgs in iteritems(molecules_dict)
+        for emails, msgs in molecules_dict.items()
         if get_message_list_weight(msgs) >= MIN_MESSAGE_COUNT
     ]
 
@@ -180,9 +174,8 @@ def _subsume_molecules(molecules_list, get_message_list_weight):
             g2, m2 = molecules_list[j]  # Bigger group
             m2_size = mol_weights[j]
             if g1.issubset(g2):
-                sharing_error = old_div(
-                    (len(g2) - len(g1)) * (m1_size - m2_size),
-                    (1.0 * (len(g2) * m1_size)),
+                sharing_error = ((len(g2) - len(g1)) * (m1_size - m2_size)) / (
+                    1.0 * (len(g2) * m1_size)
                 )
                 if sharing_error < SELF_IDENTITY_THRESHOLD:
                     is_subsumed[i] = True

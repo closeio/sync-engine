@@ -1,7 +1,4 @@
 # flake8: noqa: F401, F811
-from future import standard_library
-
-standard_library.install_aliases()
 from datetime import datetime, timedelta
 
 import gevent

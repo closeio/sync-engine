@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Test local behavior for the drafts API. Doesn't test syncback or actual
 sending."""
 import json
@@ -7,7 +6,6 @@ from datetime import datetime
 
 import pytest
 from freezegun import freeze_time
-from future.utils import iteritems
 
 from tests.util.base import add_fake_message, add_fake_thread
 
@@ -52,7 +50,7 @@ def attachments(db):
         # filename on the fs. Work around by changing the filename we upload
         # instead.
         if filename == "piece-jointe.jpg":
-            filename = u"pièce-jointe.jpg"
+            filename = "pièce-jointe.jpg"
         data.append((filename, path))
     return data
 
@@ -102,7 +100,7 @@ def test_create_and_get_draft(api_client, example_draft):
     assert len(matching_saved_drafts) == 1
     saved_draft = matching_saved_drafts[0]
 
-    assert all(saved_draft[k] == v for k, v in iteritems(example_draft))
+    assert all(saved_draft[k] == v for k, v in example_draft.items())
 
 
 def test_create_draft_replying_to_thread(api_client, thread, message):

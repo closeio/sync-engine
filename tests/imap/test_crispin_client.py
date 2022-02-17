@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Basic tests for GmailCrispinClient/CrispinClient methods. We replace
 imapclient.IMAPClient._imap by a mock in order to test these. In particular, we
@@ -10,7 +9,6 @@ from datetime import datetime
 import imapclient
 import mock
 import pytest
-from past.builtins import long
 
 from inbox.crispin import (
     CrispinClient,
@@ -62,7 +60,7 @@ def constants():
     size = 16384
     flags = ()
     raw_g_labels = "(mot&APY-rhead &A7wDtQPEA6wDvQO,A7kDsQ- \\Inbox)"
-    unicode_g_labels = [u"motörhead", u"μετάνοια", "\\Inbox"]
+    unicode_g_labels = ["motörhead", "μετάνοια", "\\Inbox"]
 
     internaldate = "02-Mar-2015 23:36:20 +0000"
     body = b"Delivered-To: ..."
@@ -82,26 +80,26 @@ def constants():
     }
 
     gmail_folders = [
-        ((b"\\HasNoChildren",), b"/", u"INBOX"),
-        ((b"\\Noselect", "\\HasChildren"), b"/", u"[Gmail]"),
-        ((b"\\HasNoChildren", b"\\All"), b"/", u"[Gmail]/All Mail"),
-        ((b"\\HasNoChildren", b"\\Drafts"), b"/", u"[Gmail]/Drafts"),
-        ((b"\\HasNoChildren", b"\\Important"), b"/", u"[Gmail]/Important"),
-        ((b"\\HasNoChildren", b"\\Sent"), b"/", u"[Gmail]/Sent Mail"),
-        ((b"\\HasNoChildren", b"\\Junk"), b"/", u"[Gmail]/Spam"),
-        ((b"\\Flagged", b"\\HasNoChildren"), b"/", u"[Gmail]/Starred"),
-        ((b"\\HasNoChildren", b"\\Trash"), b"/", u"[Gmail]/Trash"),
-        ((b"\\HasNoChildren",), b"/", u"reference"),
+        ((b"\\HasNoChildren",), b"/", "INBOX"),
+        ((b"\\Noselect", "\\HasChildren"), b"/", "[Gmail]"),
+        ((b"\\HasNoChildren", b"\\All"), b"/", "[Gmail]/All Mail"),
+        ((b"\\HasNoChildren", b"\\Drafts"), b"/", "[Gmail]/Drafts"),
+        ((b"\\HasNoChildren", b"\\Important"), b"/", "[Gmail]/Important"),
+        ((b"\\HasNoChildren", b"\\Sent"), b"/", "[Gmail]/Sent Mail"),
+        ((b"\\HasNoChildren", b"\\Junk"), b"/", "[Gmail]/Spam"),
+        ((b"\\Flagged", b"\\HasNoChildren"), b"/", "[Gmail]/Starred"),
+        ((b"\\HasNoChildren", b"\\Trash"), b"/", "[Gmail]/Trash"),
+        ((b"\\HasNoChildren",), b"/", "reference"),
     ]
     imap_folders = [
-        ((b"\\HasNoChildren",), b"/", u"INBOX"),
-        ((b"\\Noselect", b"\\HasChildren"), b"/", u"SKIP"),
-        ((b"\\HasNoChildren", b"\\Drafts"), b"/", u"Drafts"),
-        ((b"\\HasNoChildren", b"\\Sent"), b"/", u"Sent"),
-        ((b"\\HasNoChildren", b"\\Sent"), b"/", u"Sent Items"),
-        ((b"\\HasNoChildren", b"\\Junk"), b"/", u"Spam"),
-        ((b"\\HasNoChildren", b"\\Trash"), b"/", u"Trash"),
-        ((b"\\HasNoChildren",), b"/", u"reference"),
+        ((b"\\HasNoChildren",), b"/", "INBOX"),
+        ((b"\\Noselect", b"\\HasChildren"), b"/", "SKIP"),
+        ((b"\\HasNoChildren", b"\\Drafts"), b"/", "Drafts"),
+        ((b"\\HasNoChildren", b"\\Sent"), b"/", "Sent"),
+        ((b"\\HasNoChildren", b"\\Sent"), b"/", "Sent Items"),
+        ((b"\\HasNoChildren", b"\\Junk"), b"/", "Spam"),
+        ((b"\\HasNoChildren", b"\\Trash"), b"/", "Trash"),
+        ((b"\\HasNoChildren",), b"/", "reference"),
     ]
 
     imap_role_map = {
@@ -111,7 +109,7 @@ def constants():
         "Sent": "sent",
         "Sent Items": "sent",
         "Spam": "spam",
-        u"reference": None,
+        "reference": None,
     }
     return dict(
         g_msgid=g_msgid,
@@ -221,7 +219,7 @@ def test_gmail_body(gmail_client, constants):
     body = constants["body"]
     assert gmail_client.uids([uid]) == [
         RawMessage(
-            uid=long(uid),
+            uid=int(uid),
             internaldate=datetime(2015, 3, 2, 23, 36, 20),
             flags=flags,
             body=body,
@@ -260,7 +258,7 @@ def test_body(generic_client, constants):
 
     assert generic_client.uids([uid]) == [
         RawMessage(
-            uid=long(uid),
+            uid=int(uid),
             internaldate=datetime(2015, 3, 2, 23, 36, 20),
             flags=flags,
             body=body,
@@ -295,7 +293,7 @@ def test_internaldate(generic_client, constants):
         uid = constants["uid"]
         assert generic_client.uids([uid]) == [
             RawMessage(
-                uid=long(uid),
+                uid=int(uid),
                 internaldate=native_date,
                 flags=constants["flags"],
                 body=constants["body"],
@@ -404,15 +402,15 @@ def test_gmail_missing_trash(constants, monkeypatch):
     """
     # create list of folders that doesn't have a trash folder
     folder_base = [
-        ((b"\\HasNoChildren",), b"/", u"INBOX"),
-        ((b"\\Noselect", b"\\HasChildren"), b"/", u"[Gmail]"),
-        ((b"\\HasNoChildren", b"\\All"), b"/", u"[Gmail]/All Mail"),
-        ((b"\\HasNoChildren", b"\\Drafts"), b"/", u"[Gmail]/Drafts"),
-        ((b"\\HasNoChildren", b"\\Important"), b"/", u"[Gmail]/Important"),
-        ((b"\\HasNoChildren", b"\\Sent"), b"/", u"[Gmail]/Sent Mail"),
-        ((b"\\HasNoChildren", b"\\Junk"), b"/", u"[Gmail]/Spam"),
-        ((b"\\Flagged", b"\\HasNoChildren"), b"/", u"[Gmail]/Starred"),
-        ((b"\\HasNoChildren",), b"/", u"reference"),
+        ((b"\\HasNoChildren",), b"/", "INBOX"),
+        ((b"\\Noselect", b"\\HasChildren"), b"/", "[Gmail]"),
+        ((b"\\HasNoChildren", b"\\All"), b"/", "[Gmail]/All Mail"),
+        ((b"\\HasNoChildren", b"\\Drafts"), b"/", "[Gmail]/Drafts"),
+        ((b"\\HasNoChildren", b"\\Important"), b"/", "[Gmail]/Important"),
+        ((b"\\HasNoChildren", b"\\Sent"), b"/", "[Gmail]/Sent Mail"),
+        ((b"\\HasNoChildren", b"\\Junk"), b"/", "[Gmail]/Spam"),
+        ((b"\\Flagged", b"\\HasNoChildren"), b"/", "[Gmail]/Starred"),
+        ((b"\\HasNoChildren",), b"/", "reference"),
     ]
     check_missing_generic(
         "trash",
@@ -429,13 +427,13 @@ def test_imap_missing_trash(constants, monkeypatch):
     Same strategy as test_gmail_missing_trash, except with imap as a provider
     """
     folder_base = [
-        ((b"\\HasNoChildren",), b"/", u"INBOX"),
-        ((b"\\Noselect", b"\\HasChildren"), b"/", u"SKIP"),
-        ((b"\\HasNoChildren", b"\\Drafts"), b"/", u"Drafts"),
-        ((b"\\HasNoChildren", b"\\Sent"), b"/", u"Sent"),
-        ((b"\\HasNoChildren", b"\\Sent"), b"/", u"Sent Items"),
-        ((b"\\HasNoChildren", b"\\Junk"), b"/", u"Spam"),
-        ((b"\\HasNoChildren",), b"/", u"reference"),
+        ((b"\\HasNoChildren",), b"/", "INBOX"),
+        ((b"\\Noselect", b"\\HasChildren"), b"/", "SKIP"),
+        ((b"\\HasNoChildren", b"\\Drafts"), b"/", "Drafts"),
+        ((b"\\HasNoChildren", b"\\Sent"), b"/", "Sent"),
+        ((b"\\HasNoChildren", b"\\Sent"), b"/", "Sent Items"),
+        ((b"\\HasNoChildren", b"\\Junk"), b"/", "Spam"),
+        ((b"\\HasNoChildren",), b"/", "reference"),
     ]
     check_missing_generic(
         "trash",
@@ -453,15 +451,15 @@ def test_gmail_missing_spam(constants, monkeypatch):
     """
     # Create a list of folders thath doesn't have a spam folder
     folder_base = [
-        ((b"\\HasNoChildren",), b"/", u"INBOX"),
-        ((b"\\Noselect", b"\\HasChildren"), b"/", u"[Gmail]"),
-        ((b"\\HasNoChildren", b"\\All"), b"/", u"[Gmail]/All Mail"),
-        ((b"\\HasNoChildren", b"\\Drafts"), b"/", u"[Gmail]/Drafts"),
-        ((b"\\HasNoChildren", b"\\Important"), b"/", u"[Gmail]/Important"),
-        ((b"\\HasNoChildren", b"\\Sent"), b"/", u"[Gmail]/Sent Mail"),
-        ((b"\\Flagged", b"\\HasNoChildren"), b"/", u"[Gmail]/Starred"),
-        ((b"\\HasNoChildren", b"\\Trash"), b"/", u"[Gmail]/Trash"),
-        ((b"\\HasNoChildren",), b"/", u"reference"),
+        ((b"\\HasNoChildren",), b"/", "INBOX"),
+        ((b"\\Noselect", b"\\HasChildren"), b"/", "[Gmail]"),
+        ((b"\\HasNoChildren", b"\\All"), b"/", "[Gmail]/All Mail"),
+        ((b"\\HasNoChildren", b"\\Drafts"), b"/", "[Gmail]/Drafts"),
+        ((b"\\HasNoChildren", b"\\Important"), b"/", "[Gmail]/Important"),
+        ((b"\\HasNoChildren", b"\\Sent"), b"/", "[Gmail]/Sent Mail"),
+        ((b"\\Flagged", b"\\HasNoChildren"), b"/", "[Gmail]/Starred"),
+        ((b"\\HasNoChildren", b"\\Trash"), b"/", "[Gmail]/Trash"),
+        ((b"\\HasNoChildren",), b"/", "reference"),
     ]
     check_missing_generic(
         "spam",
@@ -478,13 +476,13 @@ def test_imap_missing_spam(constants, monkeypatch):
     Same strategy as test_gmail_missing_spam, except with imap as a provider
     """
     folder_base = [
-        ((b"\\HasNoChildren",), b"/", u"INBOX"),
-        ((b"\\Noselect", b"\\HasChildren"), b"/", u"SKIP"),
-        ((b"\\HasNoChildren", b"\\Drafts"), b"/", u"Drafts"),
-        ((b"\\HasNoChildren", b"\\Sent"), b"/", u"Sent"),
-        ((b"\\HasNoChildren", b"\\Sent"), b"/", u"Sent Items"),
-        ((b"\\HasNoChildren", b"\\Trash"), b"/", u"Trash"),
-        ((b"\\HasNoChildren",), b"/", u"reference"),
+        ((b"\\HasNoChildren",), b"/", "INBOX"),
+        ((b"\\Noselect", b"\\HasChildren"), b"/", "SKIP"),
+        ((b"\\HasNoChildren", b"\\Drafts"), b"/", "Drafts"),
+        ((b"\\HasNoChildren", b"\\Sent"), b"/", "Sent"),
+        ((b"\\HasNoChildren", b"\\Sent"), b"/", "Sent Items"),
+        ((b"\\HasNoChildren", b"\\Trash"), b"/", "Trash"),
+        ((b"\\HasNoChildren",), b"/", "reference"),
     ]
     check_missing_generic(
         "spam",
@@ -502,15 +500,15 @@ def test_gmail_missing_sent(constants, monkeypatch):
     """
     # Create a list of folders thath doesn't have a sent folder
     folder_base = [
-        ((b"\\HasNoChildren",), b"/", u"INBOX"),
-        ((b"\\Noselect", b"\\HasChildren"), b"/", u"[Gmail]"),
-        ((b"\\HasNoChildren", b"\\All"), b"/", u"[Gmail]/All Mail"),
-        ((b"\\HasNoChildren", b"\\Drafts"), b"/", u"[Gmail]/Drafts"),
-        ((b"\\HasNoChildren", b"\\Important"), b"/", u"[Gmail]/Important"),
-        ((b"\\HasNoChildren", b"\\Junk"), b"/", u"[Gmail]/Spam"),
-        ((b"\\Flagged", b"\\HasNoChildren"), b"/", u"[Gmail]/Starred"),
-        ((b"\\HasNoChildren", b"\\Trash"), b"/", u"[Gmail]/Trash"),
-        ((b"\\HasNoChildren",), b"/", u"reference"),
+        ((b"\\HasNoChildren",), b"/", "INBOX"),
+        ((b"\\Noselect", b"\\HasChildren"), b"/", "[Gmail]"),
+        ((b"\\HasNoChildren", b"\\All"), b"/", "[Gmail]/All Mail"),
+        ((b"\\HasNoChildren", b"\\Drafts"), b"/", "[Gmail]/Drafts"),
+        ((b"\\HasNoChildren", b"\\Important"), b"/", "[Gmail]/Important"),
+        ((b"\\HasNoChildren", b"\\Junk"), b"/", "[Gmail]/Spam"),
+        ((b"\\Flagged", b"\\HasNoChildren"), b"/", "[Gmail]/Starred"),
+        ((b"\\HasNoChildren", b"\\Trash"), b"/", "[Gmail]/Trash"),
+        ((b"\\HasNoChildren",), b"/", "reference"),
     ]
     check_missing_generic(
         "sent",
@@ -531,19 +529,19 @@ def test_imap_missing_sent(constants, monkeypatch):
     special because there are allowed to be more than 1 sent folder.
     """
     folder_base = [
-        ((b"\\HasNoChildren",), b"/", u"INBOX"),
-        ((b"\\Noselect", b"\\HasChildren"), b"/", u"SKIP"),
-        ((b"\\HasNoChildren", b"\\Drafts"), b"/", u"Drafts"),
-        ((b"\\HasNoChildren", b"\\Junk"), b"/", u"Spam"),
-        ((b"\\HasNoChildren", b"\\Trash"), b"/", u"Trash"),
-        ((b"\\HasNoChildren",), b"/", u"reference"),
+        ((b"\\HasNoChildren",), b"/", "INBOX"),
+        ((b"\\Noselect", b"\\HasChildren"), b"/", "SKIP"),
+        ((b"\\HasNoChildren", b"\\Drafts"), b"/", "Drafts"),
+        ((b"\\HasNoChildren", b"\\Junk"), b"/", "Spam"),
+        ((b"\\HasNoChildren", b"\\Trash"), b"/", "Trash"),
+        ((b"\\HasNoChildren",), b"/", "reference"),
     ]
     role_map = {
         "INBOX": "inbox",
         "Trash": "trash",
         "Drafts": "drafts",
         "Spam": "spam",
-        u"reference": None,
+        "reference": None,
     }
     for role_alias in localized_folder_names["sent"]:
         folders = folder_base + [((b"\\HasNoChildren"), b"/", role_alias)]
@@ -617,16 +615,16 @@ def test_gmail_folders_no_flags(monkeypatch):
     """
 
     folders = [
-        ((b"\\HasNoChildren",), b"/", u"INBOX"),
-        ((b"\\Noselect", b"\\HasChildren"), b"/", u"[Gmail]"),
-        ((b"\\HasNoChildren", b"\\All"), b"/", u"[Gmail]/All Mail"),
-        ((b"\\HasNoChildren", b"\\Drafts"), b"/", u"[Gmail]/Drafts"),
-        ((b"\\HasNoChildren", b"\\Important"), b"/", u"[Gmail]/Important"),
-        ((b"\\HasNoChildren"), b"/", u"[Gmail]/Sent Mail"),
-        ((b"\\HasNoChildren"), b"/", u"[Gmail]/Spam"),
-        ((b"\\Flagged", b"\\HasNoChildren"), b"/", u"[Gmail]/Starred"),
-        ((b"\\HasNoChildren"), b"/", u"[Gmail]/Trash"),
-        ((b"\\HasNoChildren",), b"/", u"reference"),
+        ((b"\\HasNoChildren",), b"/", "INBOX"),
+        ((b"\\Noselect", b"\\HasChildren"), b"/", "[Gmail]"),
+        ((b"\\HasNoChildren", b"\\All"), b"/", "[Gmail]/All Mail"),
+        ((b"\\HasNoChildren", b"\\Drafts"), b"/", "[Gmail]/Drafts"),
+        ((b"\\HasNoChildren", b"\\Important"), b"/", "[Gmail]/Important"),
+        ((b"\\HasNoChildren"), b"/", "[Gmail]/Sent Mail"),
+        ((b"\\HasNoChildren"), b"/", "[Gmail]/Spam"),
+        ((b"\\Flagged", b"\\HasNoChildren"), b"/", "[Gmail]/Starred"),
+        ((b"\\HasNoChildren"), b"/", "[Gmail]/Trash"),
+        ((b"\\HasNoChildren",), b"/", "reference"),
     ]
 
     gmail_role_map = {
@@ -660,8 +658,8 @@ def test_gmail_many_folders_one_role(monkeypatch, constants):
     # in both cases, only one should come out flagged.
     folders = constants["gmail_folders"]
     duplicates = [
-        ((b"\\HasNoChildren"), b"/", u"[Imap]/Trash"),
-        ((b"\\HasNoChildren"), b"/", u"[Imap]/Sent"),
+        ((b"\\HasNoChildren"), b"/", "[Imap]/Trash"),
+        ((b"\\HasNoChildren"), b"/", "[Imap]/Sent"),
     ]
     folders += duplicates
     # This test adds [Imap]/Trash and [Imap]/sent
@@ -705,14 +703,14 @@ def test_imap_folders_no_flags(monkeypatch, constants):
     Tests that system folders (trash, inbox, sent) without flags can be labeled
     """
     folders = [
-        ((b"\\HasNoChildren",), b"/", u"INBOX"),
-        ((b"\\Noselect", b"\\HasChildren"), b"/", u"SKIP"),
-        ((b"\\HasNoChildren", b"\\Drafts"), b"/", u"Drafts"),
-        ((b"\\HasNoChildren"), b"/", u"Sent"),
-        ((b"\\HasNoChildren"), b"/", u"Sent Items"),
-        ((b"\\HasNoChildren", b"\\Junk"), "/", u"Spam"),
-        ((b"\\HasNoChildren"), b"/", u"Trash"),
-        ((b"\\HasNoChildren",), b"/", u"reference"),
+        ((b"\\HasNoChildren",), b"/", "INBOX"),
+        ((b"\\Noselect", b"\\HasChildren"), b"/", "SKIP"),
+        ((b"\\HasNoChildren", b"\\Drafts"), b"/", "Drafts"),
+        ((b"\\HasNoChildren"), b"/", "Sent"),
+        ((b"\\HasNoChildren"), b"/", "Sent Items"),
+        ((b"\\HasNoChildren", b"\\Junk"), "/", "Spam"),
+        ((b"\\HasNoChildren"), b"/", "Trash"),
+        ((b"\\HasNoChildren",), b"/", "reference"),
     ]
 
     role_map = {
@@ -722,9 +720,9 @@ def test_imap_folders_no_flags(monkeypatch, constants):
         "Sent": "sent",
         "Sent Items": "sent",
         "Spam": "spam",
-        u"[Gmail]/Sent Mail": None,
-        u"[Gmail]/Trash": "trash",
-        u"reference": None,
+        "[Gmail]/Sent Mail": None,
+        "[Gmail]/Trash": "trash",
+        "reference": None,
     }
     client = patch_generic_client(monkeypatch, folders)
 
@@ -746,8 +744,8 @@ def test_imap_many_folders_one_role(monkeypatch, constants):
     """
     folders = constants["imap_folders"]
     duplicates = [
-        ((b"\\HasNoChildren", b"\\Trash"), b"/", u"[Gmail]/Trash"),
-        ((b"\\HasNoChildren"), b"/", u"[Gmail]/Sent"),
+        ((b"\\HasNoChildren", b"\\Trash"), b"/", "[Gmail]/Trash"),
+        ((b"\\HasNoChildren"), b"/", "[Gmail]/Sent"),
     ]
     folders += duplicates
 

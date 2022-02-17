@@ -1,7 +1,6 @@
 import datetime
 import json
 import time
-from builtins import range
 
 from freezegun import freeze_time
 

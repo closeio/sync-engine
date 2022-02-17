@@ -15,11 +15,11 @@ from alembic import op
 
 def upgrade():
     op.create_unique_constraint("account_id_2", "folder", ["account_id", "name"])
-    op.drop_constraint(u"account_id", "folder", type_="unique")
+    op.drop_constraint("account_id", "folder", type_="unique")
 
 
 def downgrade():
     op.create_unique_constraint(
-        u"account_id", "folder", ["account_id", "name", "canonical_name", "identifier"]
+        "account_id", "folder", ["account_id", "name", "canonical_name", "identifier"]
     )
     op.drop_constraint("account_id_2", "folder", type_="unique")

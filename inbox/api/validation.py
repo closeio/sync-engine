@@ -1,12 +1,10 @@
 """Utilities for validating user input to the API."""
 import contextlib
-from builtins import str
 
 import arrow
 from arrow.parser import ParserError
 from flanker.addresslib import address
 from flask_restful import reqparse
-from past.builtins import basestring
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.api.err import (
@@ -46,15 +44,13 @@ def comma_separated_email_list(value, key):
     # email address, but in practice nobody does this (and they shouldn't!)
 
     if len(addresses) > 25:  # arbitrary limit
-        raise InputError(u"Too many emails. The current limit is 25")
+        raise InputError("Too many emails. The current limit is 25")
 
     good_emails = []
     for unvalidated_address in addresses:
         parsed = address.parse(unvalidated_address, addr_spec_only=True)
         if not isinstance(parsed, address.EmailAddress):
-            raise InputError(
-                u"Invalid recipient address {}".format(unvalidated_address)
-            )
+            raise InputError("Invalid recipient address {}".format(unvalidated_address))
         good_emails.append(parsed.address)
 
     return good_emails
@@ -101,14 +97,14 @@ def offset(value):
 
 def valid_public_id(value):
     if "_" in value:
-        raise InputError(u"Invalid id: {}".format(value))
+        raise InputError("Invalid id: {}".format(value))
 
     try:
         # raise ValueError on malformed public ids
         # raise TypeError if an integer is passed in
         int(value, 36)
     except (TypeError, ValueError):
-        raise InputError(u"Invalid id: {}".format(value))
+        raise InputError("Invalid id: {}".format(value))
     return value
 
 
@@ -273,11 +269,9 @@ def get_recipients(recipients, field):
         raise InputError("Invalid {} field".format(field))
 
     for r in recipients:
-        if not (
-            isinstance(r, dict) and "email" in r and isinstance(r["email"], basestring)
-        ):
+        if not (isinstance(r, dict) and "email" in r and isinstance(r["email"], str)):
             raise InputError("Invalid {} field".format(field))
-        if "name" in r and not isinstance(r["name"], basestring):
+        if "name" in r and not isinstance(r["name"], str):
             raise InputError("Invalid {} field".format(field))
 
     return [(r.get("name", ""), r.get("email", "")) for r in recipients]
@@ -437,12 +431,12 @@ def validate_draft_recipients(draft):
                 parsed = address.parse(email_address, addr_spec_only=True)
                 if not isinstance(parsed, address.EmailAddress):
                     raise InputError(
-                        u"Invalid recipient address {}".format(email_address)
+                        "Invalid recipient address {}".format(email_address)
                     )
 
 
 def valid_display_name(namespace_id, category_type, display_name, db_session):
-    if display_name is None or not isinstance(display_name, basestring):
+    if display_name is None or not isinstance(display_name, str):
         raise InputError('"display_name" must be a valid string')
 
     display_name = display_name.rstrip()

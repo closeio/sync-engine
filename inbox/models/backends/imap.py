@@ -2,7 +2,6 @@ import json
 from datetime import datetime
 from typing import List
 
-from future.utils import iteritems
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -138,13 +137,13 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         changed = False
         new_flags = set(flag.decode() for flag in new_flags)
         col_for_flag = {
-            u"\\Draft": "is_draft",
-            u"\\Seen": "is_seen",
-            u"\\Recent": "is_recent",
-            u"\\Answered": "is_answered",
-            u"\\Flagged": "is_flagged",
+            "\\Draft": "is_draft",
+            "\\Seen": "is_seen",
+            "\\Recent": "is_recent",
+            "\\Answered": "is_answered",
+            "\\Flagged": "is_flagged",
         }
-        for flag, col in iteritems(col_for_flag):
+        for flag, col in col_for_flag.items():
             prior_flag_value = getattr(self, col)
             new_flag_value = flag in new_flags
             if prior_flag_value != new_flag_value:

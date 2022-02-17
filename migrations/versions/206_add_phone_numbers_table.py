@@ -25,7 +25,7 @@ def upgrade():
         sa.Column("contact_id", sa.Integer(), nullable=False),
         sa.Column("type", mysql.VARCHAR(length=64), nullable=True),
         sa.Column("number", mysql.VARCHAR(length=64), nullable=False),
-        sa.ForeignKeyConstraint(["contact_id"], [u"contact.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["contact_id"], ["contact.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(

@@ -20,7 +20,7 @@ def upgrade():
         return
     conn.execute(text("set @@lock_wait_timeout = 20;"))
     conn.execute(text("set @@foreign_key_checks = 0;"))
-    op.drop_constraint(u"easaccount_id_2", "easuid", type_="unique")
+    op.drop_constraint("easaccount_id_2", "easuid", type_="unique")
 
 
 def downgrade():

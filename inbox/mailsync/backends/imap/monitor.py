@@ -1,6 +1,3 @@
-from future import standard_library
-
-standard_library.install_aliases()
 from gevent import sleep
 from gevent.lock import BoundedSemaphore
 from gevent.pool import Group

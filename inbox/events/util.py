@@ -3,7 +3,6 @@ from collections import namedtuple
 
 import arrow
 from dateutil.parser import parse
-from future.utils import iteritems
 
 from inbox.models.when import parse_as_when
 
@@ -53,7 +52,7 @@ def when_to_event_time(raw):
 def parse_google_time(d):
     # google dictionaries contain either 'date' or 'dateTime' & 'timeZone'
     # 'dateTime' is in ISO format so is UTC-aware, 'date' is just a date
-    for key, dt in iteritems(d):
+    for key, dt in d.items():
         if key != "timeZone":
             return arrow.get(dt)
 

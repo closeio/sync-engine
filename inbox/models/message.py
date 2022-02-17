@@ -8,7 +8,6 @@ from typing import Any, DefaultDict, Dict, List, Optional, Set, Tuple, Union
 
 from flanker import mime
 from flanker.mime.message.part import MimePart
-from future.utils import iteritems
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -584,7 +583,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                 self.body = None
         else:
             self.body = None
-            self.snippet = u""
+            self.snippet = ""
 
     def calculate_html_snippet(self, text):
         # type: (str) -> str
@@ -645,7 +644,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             deduped_participants[address].add(phrase.strip())
 
         p = []
-        for address, phrases in iteritems(deduped_participants):
+        for address, phrases in deduped_participants.items():
             for phrase in phrases:
                 if phrase != "" or len(phrases) == 1:
                     p.append((phrase, address))

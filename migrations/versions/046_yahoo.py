@@ -18,7 +18,7 @@ def upgrade():
     op.create_table(
         "yahooaccount",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(["id"], [u"imapaccount.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["id"], ["imapaccount.id"], ondelete="CASCADE"),
         sa.Column("password", sa.String(256)),
         sa.PrimaryKeyConstraint("id"),
     )

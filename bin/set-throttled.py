@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # throttle or unthrottle an account
-from __future__ import print_function
+
 
 import optparse
 import sys

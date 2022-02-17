@@ -1,7 +1,4 @@
 """Provide Google Calendar events."""
-from future import standard_library
-
-standard_library.install_aliases()
 import datetime
 import json
 import random
@@ -530,7 +527,7 @@ def parse_event_response(event, read_only_calendar):
     creator = event.get("creator")
 
     if creator:
-        owner = u"{} <{}>".format(
+        owner = "{} <{}>".format(
             creator.get("displayName", ""), creator.get("email", "")
         )
     else:

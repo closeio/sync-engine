@@ -1,12 +1,9 @@
-from __future__ import absolute_import
-
 import base64
 import itertools
 import re
 import smtplib
 import socket
 import ssl
-from builtins import range
 
 from inbox.logging import get_logger
 

@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function
-
 import contextlib
 import json
 import os
@@ -10,7 +7,6 @@ import subprocess
 import attr
 import dns
 import pytest
-from past.builtins import basestring, long
 
 from inbox.basicauth import ValidationError
 from inbox.util.file import get_data
@@ -158,7 +154,7 @@ class MockIMAPClient:
     def logout(self):
         pass
 
-    def list_folders(self, directory=u"", pattern=u"*"):
+    def list_folders(self, directory="", pattern="*"):
         return [(b"\\All", b"/", "[Gmail]/All Mail")]
 
     def has_capability(self, capability):
@@ -207,9 +203,9 @@ class MockIMAPClient:
         if "BODY.PEEK[]" in data:
             data.remove("BODY.PEEK[]")
             data.append("BODY[]")
-        if isinstance(items, (int, long)):
+        if isinstance(items, int):
             items = [items]
-        elif isinstance(items, basestring) and re.match(r"[0-9]+:\*", items):
+        elif isinstance(items, str) and re.match(r"[0-9]+:\*", items):
             min_uid = int(items.split(":")[0])
             items = {u for u in uid_dict if u >= min_uid} | {max(uid_dict)}
             if modifiers is not None:
@@ -334,11 +330,11 @@ def uploaded_file_ids(api_client, files):
         # filename on the fs. Work around by changing the filename we upload
         # instead.
         if filename == "piece-jointe.jpg":
-            filename = u"pièce-jointe.jpg"
+            filename = "pièce-jointe.jpg"
         elif filename == "andra-moi-ennepe.txt":
-            filename = u"ἄνδρα μοι ἔννεπε"
+            filename = "ἄνδρα μοι ἔννεπε"
         elif filename == "long-non-ascii-filename.txt":
-            filename = 100 * u"μ"
+            filename = 100 * "μ"
         with open(path, "rb") as fp:
             data = {"file": (fp, filename)}
             r = api_client.post_raw(upload_path, data=data)

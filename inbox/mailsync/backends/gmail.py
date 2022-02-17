@@ -19,15 +19,13 @@ folder. We expand threads when downloading folders other than All Mail so the
 user always gets the full thread when they look at mail.
 
 """
-from __future__ import division
+
 
 from collections import OrderedDict
 from datetime import datetime, timedelta
 
 import gevent
-from future.utils import iteritems
 from gevent.lock import Semaphore
-from past.builtins import long
 from sqlalchemy.orm import joinedload, load_only
 
 from inbox.logging import get_logger
@@ -319,7 +317,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 msg_uids = crispin_client.all_uids()
                 mapping = {
                     g_msgid: msg_uid
-                    for msg_uid, g_msgid in iteritems(crispin_client.g_msgids(msg_uids))
+                    for msg_uid, g_msgid in crispin_client.g_msgids(msg_uids).items()
                 }
             imap_uid_entries = (
                 db_session.query(ImapUid)
@@ -544,7 +542,7 @@ def g_msgids(namespace_id, session, in_):
     # Easiest way to account-filter Messages is to namespace-filter from
     # the associated thread. (Messages may not necessarily have associated
     # ImapUids.)
-    in_ = {long(i) for i in in_}  # in case they are strings
+    in_ = {int(i) for i in in_}  # in case they are strings
     if len(in_) > 1000:
         # If in_ is really large, passing all the values to MySQL can get
         # deadly slow. (Approximate threshold empirically determined)

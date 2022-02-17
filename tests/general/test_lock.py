@@ -1,5 +1,5 @@
 """ Tests for file lock implementation. """
-from __future__ import print_function
+
 
 import tempfile
 

@@ -104,7 +104,7 @@ def downgrade():
     op.create_index(
         "imapuid_imapaccount_id_folder_name",
         "imapuid",
-        [u"imapaccount_id", u"folder_id"],
+        ["imapaccount_id", "folder_id"],
         unique=False,
     )
     op.drop_index("imapaccount_id_folder_id", table_name="imapuid")

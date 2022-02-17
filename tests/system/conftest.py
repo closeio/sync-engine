@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function
-
 # This file contains pytest fixtures as well as some config
 import os
 import platform

@@ -70,7 +70,7 @@ def _record_module(logger, name, event_dict):
             "gunicorn.glogging",
         ]
     )
-    event_dict["module"] = "{}:{}".format(name, f.f_lineno)
+    event_dict["module"] = f"{name}:{f.f_lineno}"
     return event_dict
 
 
@@ -213,9 +213,7 @@ class BoundLogger(structlog.stdlib.BoundLogger):
         if env is not None:
             event_kw["env"] = env
 
-        return super(BoundLogger, self)._proxy_to_logger(
-            method_name, event, *event_args, **event_kw
-        )
+        return super()._proxy_to_logger(method_name, event, *event_args, **event_kw)
 
 
 structlog.configure(
@@ -268,7 +266,7 @@ class ConditionalFormatter(logging.Formatter):
 
         self._style._fmt = style
 
-        return super(ConditionalFormatter, self).format(record)
+        return super().format(record)
 
 
 def configure_logging(log_level=None):

@@ -97,7 +97,7 @@ class RemoteConsole(InteractiveConsole):
                 except EOFError:
                     self.terminate()
                     return
-                except IOError:
+                except OSError:
                     self.terminate()
                     return
                 else:
@@ -111,7 +111,7 @@ class RemoteConsole(InteractiveConsole):
         try:
             self.handle.close()
             self.socket.close()
-        except IOError:
+        except OSError:
             return
 
     def raw_input(self, prompt=""):

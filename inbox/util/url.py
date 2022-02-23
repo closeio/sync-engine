@@ -172,7 +172,7 @@ def url_concat(url, args, fragments=None):
 def resolve_hostname(addr):
     try:
         return socket.gethostbyname(addr)
-    except socket.error:
+    except OSError:
         return None
 
 

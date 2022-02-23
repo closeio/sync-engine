@@ -50,7 +50,7 @@ class RestfulModelCollection:
         filter = filter or {}
         reserved_keywords = ["from", "in"]
         for keyword in reserved_keywords:
-            escaped_keyword = "{}_".format(keyword)
+            escaped_keyword = f"{keyword}_"
             if escaped_keyword in filters:
                 filters[keyword] = filters.get(escaped_keyword)
                 del filters[escaped_keyword]

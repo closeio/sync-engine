@@ -135,7 +135,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
         """
         changed = False
-        new_flags = set(flag.decode() for flag in new_flags)
+        new_flags = {flag.decode() for flag in new_flags}
         col_for_flag = {
             "\\Draft": "is_draft",
             "\\Seen": "is_seen",
@@ -211,7 +211,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
     @property
     def categories(self):
-        categories = set([lbl.category for lbl in self.labels])
+        categories = {lbl.category for lbl in self.labels}
         categories.add(self.folder.category)
         return categories
 

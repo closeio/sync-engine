@@ -85,7 +85,7 @@ class ICloudContactsProvider:
 
         # Get addressbook home URL on user's specific iCloud shard/subdomain
         home_url = c.get_address_book_home(ICLOUD_CONTACTS_URL + principal)
-        self.log.info("Home URL for user's contacts: {}".format(home_url))
+        self.log.info(f"Home URL for user's contacts: {home_url}")
         self.log.debug("Requesting cards for user")
 
         # This request is limited to returning 5000 items
@@ -113,5 +113,5 @@ class ICloudContactsProvider:
             if new_contact:
                 all_contacts.append(new_contact)
 
-        self.log.info("Saving {} contacts from iCloud sync".format(len(all_contacts)))
+        self.log.info(f"Saving {len(all_contacts)} contacts from iCloud sync")
         return all_contacts

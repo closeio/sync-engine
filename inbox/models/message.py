@@ -213,7 +213,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
         from inbox.sendmail.message import generate_message_id_header
 
-        self.nylas_uid = "{}-{}".format(self.public_id, self.version)
+        self.nylas_uid = f"{self.public_id}-{self.version}"
         self.message_id_header = generate_message_id_header(self.nylas_uid)
 
     categories = association_proxy(
@@ -304,7 +304,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             body_length = len(body_string)
             if body_length > MAX_MESSAGE_BODY_PARSE_LENGTH:
                 raise Exception(
-                    "message length ({}) is over the parsing limit".format(body_length)
+                    f"message length ({body_length}) is over the parsing limit"
                 )
             parsed = mime.from_string(body_string)  # type: MimePart
             # Non-persisted instance attribute used by EAS.

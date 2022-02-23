@@ -59,11 +59,11 @@ class ProfileCollector:
         if self._started is None:
             return ""
         elapsed = time.time() - self._started
-        lines = ["elapsed {}".format(elapsed), "granularity {}".format(self.interval)]
+        lines = [f"elapsed {elapsed}", f"granularity {self.interval}"]
         ordered_stacks = sorted(
             self._stack_counts.items(), key=lambda kv: kv[1], reverse=True
         )
-        lines.extend(["{} {}".format(frame, count) for frame, count in ordered_stacks])
+        lines.extend([f"{frame} {count}" for frame, count in ordered_stacks])
         return "\n".join(lines) + "\n"
 
     def reset(self):
@@ -253,14 +253,10 @@ class KillerGreenletTracer(GreenletTracer):
         max_blocking_time=MAX_BLOCKING_TIME_BEFORE_INTERRUPT,
     ):
         self._max_blocking_time = max_blocking_time
-        super(KillerGreenletTracer, self).__init__(
-            blocking_sample_period, sampling_interval, logging_interval
-        )
+        super().__init__(blocking_sample_period, sampling_interval, logging_interval)
 
     def _notify_greenlet_blocked(self, active_greenlet, current_time):
-        super(KillerGreenletTracer, self)._notify_greenlet_blocked(
-            active_greenlet, current_time
-        )
+        super()._notify_greenlet_blocked(active_greenlet, current_time)
         if self._last_switch_time is None:
             return
 

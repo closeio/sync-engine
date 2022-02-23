@@ -141,7 +141,7 @@ class GenericAccount(ImapAccount):
 
     @property
     def provider_info(self):
-        provider_info = super(GenericAccount, self).provider_info
+        provider_info = super().provider_info
         provider_info["auth"] = "password"
         return provider_info
 

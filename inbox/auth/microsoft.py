@@ -84,7 +84,7 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
         url = url_concat(self.OAUTH_AUTHENTICATE_URL, url_args)
 
         print("To authorize Nylas, visit this URL and follow the directions:")
-        print("\n{}".format(url))
+        print(f"\n{url}")
 
         while True:
             auth_code = input("Enter authorization code: ").strip()

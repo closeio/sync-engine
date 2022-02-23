@@ -26,7 +26,7 @@ class HeartbeatStatusKey:
     def __init__(self, account_id, folder_id):
         self.account_id = account_id
         self.folder_id = folder_id
-        self.key = "{}:{}".format(self.account_id, self.folder_id)
+        self.key = f"{self.account_id}:{self.folder_id}"
 
     def __repr__(self):
         return self.key
@@ -53,7 +53,7 @@ class HeartbeatStatusKey:
 
     @classmethod
     def from_string(cls, string_key):
-        account_id, folder_id = [int(part) for part in string_key.split(":")]
+        account_id, folder_id = (int(part) for part in string_key.split(":"))
         return cls(account_id, folder_id)
 
 

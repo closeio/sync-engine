@@ -153,7 +153,7 @@ class SMTPConnection:
         """ Connect, with error-handling """
         try:
             self.connection.connect(host, port)
-        except socket.error as e:
+        except OSError as e:
             # 'Connection refused', SSL errors for non-TLS connections, etc.
             log.error("SMTP connection error", exc_info=True, server_error=e.strerror)
             msg = _transform_ssl_error(e.strerror)
@@ -203,11 +203,11 @@ class SMTPConnection:
             self.auth_token = token_manager.get_token(account, force_refresh=True)
 
     def _try_xoauth2(self):
-        auth_string = "user={0}\1auth=Bearer {1}\1\1".format(
+        auth_string = "user={}\1auth=Bearer {}\1\1".format(
             self.email_address, self.auth_token
         )
         code, resp = self.connection.docmd(
-            "AUTH", "XOAUTH2 {0}".format(base64.b64encode(auth_string))
+            "AUTH", f"XOAUTH2 {base64.b64encode(auth_string)}"
         )
         if code == SMTP_AUTH_CHALLENGE:
             log.error(
@@ -372,7 +372,7 @@ class SMTPClient:
                         message = res[1]
                         break
 
-            server_error = "{} : {}".format(err.smtp_code, err.smtp_error)
+            server_error = f"{err.smtp_code} : {err.smtp_error}"
 
             self.log.error(
                 "Sending failed",

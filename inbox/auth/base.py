@@ -37,7 +37,7 @@ def handler_from_provider(provider_name):
         return MicrosoftAuthHandler()
 
     raise NotSupportedError(
-        'Nylas does not support the email provider "{}".'.format(provider_name)
+        f'Nylas does not support the email provider "{provider_name}".'
     )
 
 
@@ -64,7 +64,7 @@ class AuthHandler:
         host, port = account.imap_endpoint
         try:
             return create_imap_connection(host, port, use_timeout)
-        except (IMAPClient.Error, socket.error) as exc:
+        except (IMAPClient.Error, OSError) as exc:
             log.error(
                 "Error instantiating IMAP connection", account_id=account.id, error=exc,
             )

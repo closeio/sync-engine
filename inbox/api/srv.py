@@ -313,7 +313,7 @@ def delete_account(namespace_public_id):
             account.mark_for_deletion()
             db_session.commit()
     except NoResultFound:
-        raise NotFoundError("Couldn't find account `{0}` ".format(namespace_public_id))
+        raise NotFoundError(f"Couldn't find account `{namespace_public_id}` ")
 
     encoder = APIEncoder()
     return encoder.jsonify({})

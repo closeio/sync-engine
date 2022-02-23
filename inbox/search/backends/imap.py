@@ -28,7 +28,7 @@ class IMAPSearchClient:
         account = db_session.query(Account).get(self.account_id)
         try:
             conn = account.auth_handler.get_authenticated_imap_connection(account)
-        except (IMAPClient.Error, socket.error, IMAP4.error):
+        except (IMAPClient.Error, OSError, IMAP4.error):
             raise SearchBackendException(
                 (
                     "Unable to connect to the IMAP "

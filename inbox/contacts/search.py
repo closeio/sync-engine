@@ -38,7 +38,7 @@ def get_search_service():
         region_name="us-west-2",
         aws_access_key_id=config.get_required("AWS_ACCESS_KEY_ID"),
         aws_secret_access_key=config.get_required("AWS_SECRET_ACCESS_KEY"),
-        endpoint_url="https://{0}".format(search_service_url),
+        endpoint_url=f"https://{search_service_url}",
     )
 
 
@@ -48,7 +48,7 @@ def get_doc_service():
         region_name="us-west-2",
         aws_access_key_id=config.get_required("AWS_ACCESS_KEY_ID"),
         aws_secret_access_key=config.get_required("AWS_SECRET_ACCESS_KEY"),
-        endpoint_url="https://{0}".format(doc_service_url),
+        endpoint_url=f"https://{doc_service_url}",
     )
 
 
@@ -95,7 +95,7 @@ class ContactSearchClient:
         """ Make sure we always filter results by namespace and apply the
         correct query options. """
 
-        namespace_filter = "(and namespace_id:{})".format(self.namespace_id)
+        namespace_filter = f"(and namespace_id:{self.namespace_id})"
         if "query" not in kwargs:
             kwargs["query"] = namespace_filter
             kwargs["queryParser"] = "structured"

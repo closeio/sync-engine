@@ -109,8 +109,8 @@ def plaintext2html(text, tabstop=4):
             last = m.groups()[-1]
             if last in ["\n", "\r", "\r\n"]:
                 last = "<br>"
-            return '{0}<a href="{1}">{2}</a>{3}'.format(prefix, url, url, last)
+            return f'{prefix}<a href="{url}">{url}</a>{last}'
 
     return "\n".join(
-        ["<p>{0}</p>".format(re.sub(re_string, do_sub, p)) for p in text.split("\n\n")]
+        [f"<p>{re.sub(re_string, do_sub, p)}</p>" for p in text.split("\n\n")]
     )

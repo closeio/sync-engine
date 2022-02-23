@@ -230,7 +230,7 @@ def handle_event_updates(namespace_id, calendar_id, events, log, db_session):
 
 class GoogleEventSync(EventSync):
     def __init__(self, *args, **kwargs):
-        super(GoogleEventSync, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(Account).get(self.account_id)
             if (

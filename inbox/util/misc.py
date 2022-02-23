@@ -116,7 +116,7 @@ def timed(fn):
             fn_logger = get_logger()
             # out = None
         fn_logger.info(
-            "[timer] {0} took {1:.3f} seconds.".format(
+            "[timer] {} took {:.3f} seconds.".format(
                 str(fn), float(time.time() - start_time)
             )
         )
@@ -139,7 +139,7 @@ def load_modules(base_name, base_path):
     modules = []
 
     for module_name in iter_module_names(base_path):
-        full_module_name = "{}.{}".format(base_name, module_name)
+        full_module_name = f"{base_name}.{module_name}"
 
         if full_module_name not in sys.modules:
             module = import_module(full_module_name)
@@ -202,9 +202,9 @@ def imap_folder_path(path, separator=".", prefix=""):
             # Check that the value we got for the prefix doesn't include
             # the separator too (i.e: `INBOX.` instead of `INBOX`).
             if prefix[-1] != separator:
-                res = "{}{}{}".format(prefix, separator, res)
+                res = f"{prefix}{separator}{res}"
             else:
-                res = "{}{}".format(prefix, res)
+                res = f"{prefix}{res}"
 
     return res
 

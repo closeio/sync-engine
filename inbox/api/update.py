@@ -42,7 +42,7 @@ def update_thread(thread, request_data, db_session, optimistic):
     else:
         folder = parse_folder(request_data, db_session, thread.namespace_id)
     if request_data:
-        raise InputError("Unexpected attribute: {}".format(list(request_data)[0]))
+        raise InputError(f"Unexpected attribute: {list(request_data)[0]}")
 
     if accept_labels:
         if labels is not None:
@@ -128,7 +128,7 @@ def parse_folder(request_data, db_session, namespace_id):
             .one()
         )
     except NoResultFound:
-        raise InputError("The folder {} does not exist".format(folder_public_id))
+        raise InputError(f"The folder {folder_public_id} does not exist")
 
 
 def update_message_folder(message, db_session, category, optimistic):
@@ -182,7 +182,7 @@ def parse_labels(request_data, db_session, namespace_id):
             )
             labels.add(category)
         except NoResultFound:
-            raise InputError("The label {} does not exist".format(id_))
+            raise InputError(f"The label {id_} does not exist")
     return labels
 
 
@@ -205,7 +205,7 @@ def update_message_labels(
         if category.name in special_label_map:
             added_labels.append(special_label_map[category.name])
         elif category.name in ("drafts", "sent"):
-            raise InputError('The "{}" label cannot be changed'.format(category.name))
+            raise InputError(f'The "{category.name}" label cannot be changed')
         else:
             added_labels.append(category.display_name)
 
@@ -213,7 +213,7 @@ def update_message_labels(
         if category.name in special_label_map:
             removed_labels.append(special_label_map[category.name])
         elif category.name in ("drafts", "sent"):
-            raise InputError('The "{}" label cannot be changed'.format(category.name))
+            raise InputError(f'The "{category.name}" label cannot be changed')
         else:
             removed_labels.append(category.display_name)
 

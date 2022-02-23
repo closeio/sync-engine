@@ -10,7 +10,7 @@ from gevent.lock import BoundedSemaphore
 
 def safe_filename(filename):
     """ Strip filesystem-unfriendly characters from a filename. """
-    valid_chars = "-_.() {}{}".format(string.ascii_letters, string.digits)
+    valid_chars = f"-_.() {string.ascii_letters}{string.digits}"
     return "".join(c for c in filename if c in valid_chars)
 
 
@@ -105,7 +105,7 @@ class Lock:
     def acquire(self):
         got_gevent_lock = self.gevent_lock.acquire(blocking=self.block)
         if not got_gevent_lock:
-            raise IOError(
+            raise OSError(
                 "cannot acquire gevent lock; associated file is {}".format(
                     self.filename
                 )

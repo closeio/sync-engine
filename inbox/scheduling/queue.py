@@ -121,11 +121,11 @@ class QueueClient:
 
     @property
     def _queue(self):
-        return "unassigned_{}".format(self.zone)
+        return f"unassigned_{self.zone}"
 
     @property
     def _hash(self):
-        return "assigned_{}".format(self.zone)
+        return f"assigned_{self.zone}"
 
 
 class QueuePopulator:
@@ -157,9 +157,9 @@ class QueuePopulator:
         self.enqueue_new_accounts()
         self.unassign_disabled_accounts()
         statsd_client.gauge(
-            "syncqueue.queue.{}.length".format(self.zone), self.queue_client.qsize()
+            f"syncqueue.queue.{self.zone}.length", self.queue_client.qsize()
         )
-        statsd_client.incr("syncqueue.service.{}.heartbeat".format(self.zone))
+        statsd_client.incr(f"syncqueue.service.{self.zone}.heartbeat")
         gevent.sleep(self.poll_interval)
 
     def enqueue_new_accounts(self):

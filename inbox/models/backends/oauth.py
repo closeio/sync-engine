@@ -153,7 +153,7 @@ class OAuthAccount:
             )
         except Exception as e:
             log.error(
-                "Error while getting access token: {}".format(e),
+                f"Error while getting access token: {e}",
                 force_refresh=force_refresh,
                 account_id=self.id,
                 exc_info=True,

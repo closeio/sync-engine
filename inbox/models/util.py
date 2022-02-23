@@ -282,7 +282,7 @@ def _batch_delete(
 ):
     (column, id_) = column_id_filters
     count = engine.execute(
-        "SELECT COUNT(*) FROM {} WHERE {}={};".format(table, column, id_)
+        f"SELECT COUNT(*) FROM {table} WHERE {column}={id_};"
     ).scalar()
 
     if count == 0:
@@ -373,7 +373,7 @@ def _batch_delete(
     log.info("Completed batch deletion", time=end - start, table=table)
 
     count = engine.execute(
-        "SELECT COUNT(*) FROM {} WHERE {}={};".format(table, column, id_)
+        f"SELECT COUNT(*) FROM {table} WHERE {column}={id_};"
     ).scalar()
 
     if dry_run is False:
@@ -420,9 +420,7 @@ def purge_transactions(
 
             with session_scope_by_shard_id(shard_id, versioned=False) as db_session:
                 if dry_run:
-                    rowcount = db_session.execute(
-                        "{} OFFSET {}".format(query, offset)
-                    ).rowcount
+                    rowcount = db_session.execute(f"{query} OFFSET {offset}").rowcount
                     offset += rowcount
                 else:
                     rowcount = db_session.execute(query).rowcount
@@ -449,7 +447,7 @@ def purge_transactions(
         redis_txn.zremrangebyscore(
             TXN_REDIS_KEY,
             "-inf",
-            "({}".format(min_txn_id) if min_txn_id is not None else "+inf",
+            f"({min_txn_id}" if min_txn_id is not None else "+inf",
         )
         log.info(
             "Finished purging transaction entries from redis",

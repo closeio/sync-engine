@@ -81,7 +81,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
 
         assert "inbox" in {
             f.role for f in raw_folders
-        }, "Account {} has no detected inbox folder".format(account.email_address)
+        }, f"Account {account.email_address} has no detected inbox folder"
 
         local_folders = {
             f.name: f

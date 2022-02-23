@@ -122,7 +122,7 @@ def dump_dns_queries(monkeypatch):
         elif record_type == "ns":
             query_results["ns"][domain] = [str(rdata) for rdata in result]
         else:
-            raise RuntimeError("Unknown record type: {}".format(record_type))
+            raise RuntimeError(f"Unknown record type: {record_type}")
         return result
 
     monkeypatch.setattr("dns.resolver.Resolver.query", mock_query)
@@ -180,7 +180,7 @@ class MockIMAPClient:
             return [k for k, v in uid_dict.items() if b"\\Inbox," in v[b"X-GM-LABELS"]]
         if criteria[0] == "HEADER":
             name, value = criteria[1:]
-            headerstring = "{}: {}".format(name, value).lower()
+            headerstring = f"{name}: {value}".lower()
             # Slow implementation, but whatever
             return [
                 u for u, v in uid_dict.items() if headerstring in v[b"BODY[]"].lower()
@@ -190,7 +190,7 @@ class MockIMAPClient:
             assert len(criteria) == 2
             thrid = criteria[1]
             return [u for u, v in uid_dict.items() if v[criteria[0]] == thrid]
-        raise ValueError("unsupported test criteria: {!r}".format(criteria))
+        raise ValueError(f"unsupported test criteria: {criteria!r}")
 
     def select_folder(self, folder_name, readonly=False):
         self.selected_folder = folder_name

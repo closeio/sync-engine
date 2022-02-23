@@ -38,9 +38,7 @@ class SendMailException(Exception):
         self.http_code = http_code
         self.server_error = server_error
         self.failures = failures
-        super(SendMailException, self).__init__(
-            message, http_code, server_error, failures
-        )
+        super().__init__(message, http_code, server_error, failures)
 
 
 def get_sendmail_client(account):
@@ -101,7 +99,7 @@ def create_draft_from_mime(account, raw_mime, db_session):
 
 
 def block_to_part(block, message, namespace):
-    inline_image_uri = r"cid:{}".format(block.public_id)
+    inline_image_uri = fr"cid:{block.public_id}"
     is_inline = re.search(inline_image_uri, message.body) is not None
     # Create a new Part object to associate to the message object.
     # (You can't just set block.message, because if block is an

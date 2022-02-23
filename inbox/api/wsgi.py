@@ -73,7 +73,7 @@ class NylasWSGIHandler(WSGIHandler):
         )
 
     def get_environ(self):
-        env = super(NylasWSGIHandler, self).get_environ()
+        env = super().get_environ()
         env["gunicorn.sock"] = self.socket
         env["RAW_URI"] = self.path
         return env
@@ -89,7 +89,7 @@ class NylasWSGIHandler(WSGIHandler):
             self.server.log.info("Socket error", exc=value)
             self.close_connection = True
         else:
-            super(NylasWSGIHandler, self).handle_error(type, value, tb)
+            super().handle_error(type, value, tb)
 
 
 class NylasWSGIWorker(GeventWorker):
@@ -105,7 +105,7 @@ class NylasWSGIWorker(GeventWorker):
         if MAX_BLOCKING_TIME:
             self.tracer = Tracer(max_blocking_time=MAX_BLOCKING_TIME)
             self.tracer.start()
-        super(NylasWSGIWorker, self).init_process()
+        super().init_process()
 
 
 class NylasGunicornLogger(gunicorn.glogging.Logger):
@@ -130,7 +130,7 @@ class RollbarWSGIWorker(NylasWSGIWorker):
     def init_process(self):
         maybe_enable_rollbar()
 
-        super(RollbarWSGIWorker, self).init_process()
+        super().init_process()
 
 
 __all__ = [

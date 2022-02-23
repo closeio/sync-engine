@@ -43,13 +43,7 @@ def _get_participants(msg, excluded_emails=None):
     participants = msg.to_addr + msg.cc_addr + msg.bcc_addr
     return sorted(
         list(
-            set(
-                [
-                    email.lower()
-                    for _, email in participants
-                    if email not in excluded_emails
-                ]
-            )
+            {email.lower() for _, email in participants if email not in excluded_emails}
         )
     )
 
@@ -111,7 +105,7 @@ def calculate_group_scores(messages, user_email):
     molecules_dict = defaultdict(set)  # (emails, ...) -> {message ids, ...}
 
     def get_message_list_weight(message_ids):
-        return sum([message_ids_to_scores[m_id] for m_id in message_ids])
+        return sum(message_ids_to_scores[m_id] for m_id in message_ids)
 
     # Gather initial candidate social molecules
     for msg in messages:

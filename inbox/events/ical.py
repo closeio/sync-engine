@@ -162,7 +162,7 @@ def events_from_ics(namespace, calendar, ics_str):
 
             recur = component.get("rrule")
             if recur:
-                recur = "RRULE:{}".format(recur.to_ical())
+                recur = f"RRULE:{recur.to_ical()}"
 
             participants = []
 
@@ -220,7 +220,7 @@ def events_from_ics(namespace, calendar, ics_str):
                 notes = None
                 try:
                     guests = attendee.params["X-NUM-GUESTS"]
-                    notes = "Guests: {}".format(guests)
+                    notes = f"Guests: {guests}"
                 except KeyError:
                     pass
 
@@ -488,7 +488,7 @@ def generate_icalendar_invite(event, invite_type="request"):
     icalendar_event = icalendar.Event()
 
     account = event.namespace.account
-    organizer = icalendar.vCalAddress("MAILTO:{}".format(account.email_address))
+    organizer = icalendar.vCalAddress(f"MAILTO:{account.email_address}")
     if account.name is not None and account.name != "":
         organizer.params["CN"] = account.name
 
@@ -501,7 +501,7 @@ def generate_icalendar_invite(event, invite_type="request"):
     else:
         icalendar_event["status"] = "CONFIRMED"
 
-    icalendar_event["uid"] = "{}@nylas.com".format(event.public_id)
+    icalendar_event["uid"] = f"{event.public_id}@nylas.com"
     icalendar_event["description"] = event.description or ""
     icalendar_event["summary"] = event.title or ""
     icalendar_event["last-modified"] = serialize_datetime(event.updated_at)
@@ -520,7 +520,7 @@ def generate_icalendar_invite(event, invite_type="request"):
         # We may have to patch the iCalendar module for this.
         assert email is not None and email != ""
 
-        attendee = icalendar.vCalAddress("MAILTO:{}".format(email))
+        attendee = icalendar.vCalAddress(f"MAILTO:{email}")
         name = participant.get("name", None)
         if name is not None:
             attendee.params["CN"] = name
@@ -570,11 +570,11 @@ def generate_invite_message(ical_txt, event, account, invite_type="request"):
     msg.headers["Reply-To"] = account.email_address
 
     if invite_type == "request":
-        msg.headers["Subject"] = "Invitation: {}".format(event.title)
+        msg.headers["Subject"] = f"Invitation: {event.title}"
     elif invite_type == "update":
-        msg.headers["Subject"] = "Updated Invitation: {}".format(event.title)
+        msg.headers["Subject"] = f"Updated Invitation: {event.title}"
     elif invite_type == "cancel":
-        msg.headers["Subject"] = "Cancelled: {}".format(event.title)
+        msg.headers["Subject"] = f"Cancelled: {event.title}"
 
     return msg
 
@@ -600,7 +600,7 @@ def send_invite(ical_txt, event, account, invite_type="request"):
         msg.headers["To"] = email
         final_message = msg.to_string()
 
-        mg_url = "https://api.mailgun.net/v3/{}/messages.mime".format(MAILGUN_DOMAIN)
+        mg_url = f"https://api.mailgun.net/v3/{MAILGUN_DOMAIN}/messages.mime"
         r = requests.post(
             mg_url,
             auth=("api", MAILGUN_API_KEY),
@@ -658,7 +658,7 @@ def _generate_rsvp(status, account, event):
     if event.title is not None:
         icalevent["summary"] = event.title
 
-    attendee = icalendar.vCalAddress("MAILTO:{}".format(account.email_address))
+    attendee = icalendar.vCalAddress(f"MAILTO:{account.email_address}")
     attendee.params["cn"] = account.name
     attendee.params["partstat"] = status
     icalevent.add("attendee", attendee, encode=0)
@@ -730,13 +730,13 @@ def send_rsvp(ical_data, event, body_text, status, account):
     assert status in ["yes", "no", "maybe"]
 
     if status == "yes":
-        msg.headers["Subject"] = "Accepted: {}".format(event.message.subject)
+        msg.headers["Subject"] = f"Accepted: {event.message.subject}"
     elif status == "maybe":
         msg.headers["Subject"] = "Tentatively accepted: {}".format(
             event.message.subject
         )
     elif status == "no":
-        msg.headers["Subject"] = "Declined: {}".format(event.message.subject)
+        msg.headers["Subject"] = f"Declined: {event.message.subject}"
 
     final_message = msg.to_string()
 

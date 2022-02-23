@@ -62,7 +62,7 @@ class When(metaclass=abc.ABCMeta):
                 time = parse_utc(raw[key])
                 times.append(time)
             except (AttributeError, ValueError, TypeError):
-                raise ValueError("'{}' parameter invalid.".format(key))
+                raise ValueError(f"'{key}' parameter invalid.")
         return times
 
     def __init__(self, start, end=None):
@@ -70,7 +70,7 @@ class When(metaclass=abc.ABCMeta):
         self.end = end or start
 
     def __repr__(self):
-        return "{} ({} - {})".format(type(self), self.start, self.end)
+        return f"{type(self)} ({self.start} - {self.end})"
 
     @property
     def is_time(self):

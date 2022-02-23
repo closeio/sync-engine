@@ -145,7 +145,7 @@ def _get_from_s3_bucket(data_sha256, bucket_name):
     key = bucket.get_key(data_sha256)
 
     if not key:
-        log.warning("No key with name: {} returned!".format(data_sha256))
+        log.warning(f"No key with name: {data_sha256} returned!")
         return
 
     return key.get_contents_as_string()
@@ -158,8 +158,8 @@ def _get_from_disk(data_sha256):
     try:
         with open(_data_file_path(data_sha256), "rb") as f:
             return f.read()
-    except IOError:
-        log.warning("No file with name: {}!".format(data_sha256))
+    except OSError:
+        log.warning(f"No file with name: {data_sha256}!")
         return
 
 
@@ -189,7 +189,7 @@ def _delete_from_disk(data_sha256):
     try:
         os.remove(_data_file_path(data_sha256))
     except OSError:
-        log.warning("No file with name: {}!".format(data_sha256))
+        log.warning(f"No file with name: {data_sha256}!")
 
 
 def delete_from_blockstore(*data_sha256_hashes):

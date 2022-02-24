@@ -253,7 +253,7 @@ def global_deltas():
 
     txns = redis_txn.zrangebyscore(
         TXN_REDIS_KEY,
-        "({}".format(start_pointer),  # don't include start pointer
+        f"({start_pointer}",  # don't include start pointer
         "+inf",
         withscores=True,
         score_cast_func=int,

@@ -103,7 +103,7 @@ def engine(
         f, name = find_first_app_frame_and_name(
             ignores=["sqlalchemy", "inbox.ignition", "inbox.logging"]
         )
-        source = "{}:{}".format(name, f.f_lineno)
+        source = f"{name}:{f.f_lineno}"
 
         pool_tracker[dbapi_connection] = {
             "source": source,
@@ -138,12 +138,10 @@ class EngineManager:
 
                 # Perform some sanity checks on the configuration.
                 assert isinstance(key, int)
-                assert (
-                    key not in keys
-                ), "Shard key collision: key {} is repeated".format(key)
+                assert key not in keys, f"Shard key collision: key {key} is repeated"
                 assert (
                     schema_name not in schema_names
-                ), "Shard name collision: {} is repeated".format(schema_name)
+                ), f"Shard name collision: {schema_name} is repeated"
                 keys.add(key)
                 schema_names.add(schema_name)
 

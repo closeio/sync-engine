@@ -21,7 +21,7 @@ class SyncEngineRollbarHandler(RollbarHandler):
         try:
             data = json.loads(record.msg)
         except ValueError:
-            return super(SyncEngineRollbarHandler, self).emit(record)
+            return super().emit(record)
 
         event = data.get("event")
         # Prevent uncaught exceptions from being duplicated in Rollbar.
@@ -40,7 +40,7 @@ class SyncEngineRollbarHandler(RollbarHandler):
             "title": event,
         }
 
-        return super(SyncEngineRollbarHandler, self).emit(record)
+        return super().emit(record)
 
 
 def log_uncaught_errors(logger=None, **kwargs):

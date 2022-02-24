@@ -43,9 +43,7 @@ class CategoryNameString(StringWithTransform):
     """
 
     def __init__(self, *args, **kwargs):
-        super(CategoryNameString, self).__init__(
-            sanitize_name, MAX_INDEXABLE_LENGTH, collation="utf8mb4_bin"
-        )
+        super().__init__(sanitize_name, MAX_INDEXABLE_LENGTH, collation="utf8mb4_bin")
 
 
 class Category(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin):

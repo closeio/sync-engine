@@ -55,7 +55,7 @@ def new_session(engine, versioned=True):
         )
         funcname = frame.f_code.co_name
         modname = modname.replace(".", "-")
-        metric_name = "db.{}.{}.{}".format(engine.url.database, modname, funcname)
+        metric_name = f"db.{engine.url.database}.{modname}.{funcname}"
 
         @event.listens_for(session, "after_begin")
         def after_begin(session, transaction, connection):

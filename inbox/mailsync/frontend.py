@@ -33,7 +33,7 @@ class ProfilingHTTPFrontend(HTTPFrontend):
         self.port = port
         self.profiler = ProfileCollector() if profile else None
         self.tracer = self.greenlet_tracer_cls()() if trace_greenlets else None
-        super(ProfilingHTTPFrontend, self).__init__()
+        super().__init__()
 
     def greenlet_tracer_cls(self):
         return GreenletTracer
@@ -47,7 +47,7 @@ class ProfilingHTTPFrontend(HTTPFrontend):
             self.tracer.start()
         if self.profiler is not None:
             self.profiler.start()
-        super(ProfilingHTTPFrontend, self).start()
+        super().start()
 
     def _create_app_impl(self, app):
         @app.route("/profile")
@@ -83,13 +83,13 @@ class SyncbackHTTPFrontend(ProfilingHTTPFrontend):
 class SyncHTTPFrontend(ProfilingHTTPFrontend):
     def __init__(self, sync_service, port, trace_greenlets, profile):
         self.sync_service = sync_service
-        super(SyncHTTPFrontend, self).__init__(port, trace_greenlets, profile)
+        super().__init__(port, trace_greenlets, profile)
 
     def greenlet_tracer_cls(self):
         return KillerGreenletTracer
 
     def _create_app_impl(self, app):
-        super(SyncHTTPFrontend, self)._create_app_impl(app)
+        super()._create_app_impl(app)
 
         @app.route("/unassign", methods=["POST"])
         def unassign_account():
@@ -103,7 +103,7 @@ class SyncHTTPFrontend(ProfilingHTTPFrontend):
         @app.route("/build-metadata", methods=["GET"])
         def build_metadata():
             filename = "/usr/share/python/cloud-core/metadata.txt"
-            with open(filename, "r") as f:
+            with open(filename) as f:
                 _, build_id = f.readline().rstrip("\n").split()
                 build_id = build_id[1:-1]  # Remove first and last single quotes.
                 _, git_commit = f.readline().rstrip("\n").split()

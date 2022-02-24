@@ -202,7 +202,7 @@ class Account(
             [f.initial_sync_start is None for f in self.folders]
         ):
             return None
-        return min([f.initial_sync_start for f in self.folders])
+        return min(f.initial_sync_start for f in self.folders)
 
     @property
     def initial_sync_end(self):
@@ -210,7 +210,7 @@ class Account(
             [f.initial_sync_end is None for f in self.folders]
         ):
             return None
-        return max([f.initial_sync_end for f in self.folders])
+        return max(f.initial_sync_end for f in self.folders)
 
     @property
     def initial_sync_duration(self):

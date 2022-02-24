@@ -62,13 +62,13 @@ def load_overrides(file_path, loaded_config=config):
         try:
             overrides = json.load(data_file)
         except ValueError:
-            sys.exit("Failed parsing configuration file at {}".format(file_path))
+            sys.exit(f"Failed parsing configuration file at {file_path}")
         if not overrides:
             log.debug("No config overrides found.")
             return
         assert isinstance(overrides, dict), "overrides must be dictionary"
         loaded_config.update(overrides)
-        log.debug("Imported config overrides {}".format(list(overrides)))
+        log.debug(f"Imported config overrides {list(overrides)}")
 
 
 def preflight():

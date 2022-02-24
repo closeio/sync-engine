@@ -212,7 +212,7 @@ class SyncbackService(gevent.Greenlet):
         account_id = namespace.account.id
         semaphore = self.account_semaphores[account_id]
 
-        actions = set([entry.action for entry in log_entries])
+        actions = {entry.action for entry in log_entries}
         assert len(actions) == 1
         action = actions.pop()
 
@@ -370,7 +370,7 @@ class SyncbackService(gevent.Greenlet):
             if namespace.account.sync_state in ("invalid", "stopped"):
                 sync_state = namespace.account.sync_state
                 self.log.warning(
-                    "Skipping action for {} account".format(sync_state),
+                    f"Skipping action for {sync_state} account",
                     account_id=account_id,
                     action_log_id=log_entry.id,
                     action=log_entry.action,
@@ -389,10 +389,8 @@ class SyncbackService(gevent.Greenlet):
                         action_log_id=log_entry.id,
                         action=log_entry.action,
                     )
-                    statsd_client.incr("syncback.{}_failed.total".format(sync_state))
-                    statsd_client.incr(
-                        "syncback.{}_failed.{}".format(sync_state, account_id)
-                    )
+                    statsd_client.incr(f"syncback.{sync_state}_failed.total")
+                    statsd_client.incr(f"syncback.{sync_state}_failed.{account_id}")
                 continue
 
             # If there is a recently failed action, don't execute any actions
@@ -644,8 +642,8 @@ class SyncbackTask:
 
     def _log_to_statsd(self, action_log_status, latency=None):
         metric_names = [
-            "syncback.overall.{}".format(action_log_status),
-            "syncback.providers.{}.{}".format(self.provider, action_log_status),
+            f"syncback.overall.{action_log_status}",
+            f"syncback.providers.{self.provider}.{action_log_status}",
         ]
 
         for metric in metric_names:

@@ -142,7 +142,7 @@ class FolderSyncEngine(Greenlet):
                 )
             except NoResultFound:
                 raise MailsyncError(
-                    "Missing Folder '{}' on account {}".format(folder_name, account_id)
+                    f"Missing Folder '{folder_name}' on account {account_id}"
                 )
 
             self.folder_id = folder.id
@@ -739,9 +739,7 @@ class FolderSyncEngine(Greenlet):
             lastseenuid = common.lastseenuid(
                 self.account_id, db_session, self.folder_id
             )
-        latest_uids = crispin_client.conn.fetch(
-            "{}:*".format(lastseenuid + 1), ["UID"]
-        ).keys()
+        latest_uids = crispin_client.conn.fetch(f"{lastseenuid + 1}:*", ["UID"]).keys()
         new_uids = set(latest_uids) - {lastseenuid}
         if new_uids:
             for uid in sorted(new_uids):

@@ -268,9 +268,9 @@ class APIClient(json.JSONEncoder):
     def _get_resources(self, cls, extra=None, **filters):
         # FIXME @karim: remove this interim code when we've got rid
         # of the old accounts API.
-        postfix = "/{}".format(extra) if extra else ""
+        postfix = f"/{extra}" if extra else ""
         if cls.api_root != "a":
-            url = "{}/{}{}".format(self.api_server, cls.collection_name, postfix)
+            url = f"{self.api_server}/{cls.collection_name}{postfix}"
         else:
             url = "{}/a/{}/{}{}".format(
                 self.api_server, self.app_id, cls.collection_name, postfix
@@ -291,9 +291,9 @@ class APIClient(json.JSONEncoder):
         headers = headers or {}
         headers.update(self.session.headers)
 
-        postfix = "/{}".format(extra) if extra else ""
+        postfix = f"/{extra}" if extra else ""
         if cls.api_root != "a":
-            url = "{}/{}/{}{}".format(self.api_server, cls.collection_name, id, postfix)
+            url = f"{self.api_server}/{cls.collection_name}/{id}{postfix}"
         else:
             url = "{}/a/{}/{}/{}{}".format(
                 self.api_server, self.app_id, cls.collection_name, id, postfix
@@ -319,10 +319,10 @@ class APIClient(json.JSONEncoder):
 
     @nylas_excepted
     def _create_resource(self, cls, data, **kwargs):
-        url = "{}/{}/".format(self.api_server, cls.collection_name)
+        url = f"{self.api_server}/{cls.collection_name}/"
 
         if len(kwargs.keys()) > 0:
-            url = "{}?{}".format(url, urlencode(kwargs))
+            url = f"{url}?{urlencode(kwargs)}"
 
         session = self._get_http_session(cls.api_root)
 
@@ -341,7 +341,7 @@ class APIClient(json.JSONEncoder):
 
     @nylas_excepted
     def _create_resources(self, cls, data):
-        url = "{}/{}/".format(self.api_server, cls.collection_name)
+        url = f"{self.api_server}/{cls.collection_name}/"
         session = self._get_http_session(cls.api_root)
 
         if cls == File:
@@ -358,10 +358,10 @@ class APIClient(json.JSONEncoder):
     @nylas_excepted
     def _delete_resource(self, cls, id, data=None, **kwargs):
         name = cls.collection_name
-        url = "{}/{}/{}".format(self.api_server, name, id)
+        url = f"{self.api_server}/{name}/{id}"
 
         if len(kwargs.keys()) > 0:
-            url = "{}?{}".format(url, urlencode(kwargs))
+            url = f"{url}?{urlencode(kwargs)}"
         session = self._get_http_session(cls.api_root)
         if data:
             _validate(session.delete(url, json=data))
@@ -371,10 +371,10 @@ class APIClient(json.JSONEncoder):
     @nylas_excepted
     def _update_resource(self, cls, id, data, **kwargs):
         name = cls.collection_name
-        url = "{}/{}/{}".format(self.api_server, name, id)
+        url = f"{self.api_server}/{name}/{id}"
 
         if len(kwargs.keys()) > 0:
-            url = "{}?{}".format(url, urlencode(kwargs))
+            url = f"{url}?{urlencode(kwargs)}"
 
         session = self._get_http_session(cls.api_root)
 
@@ -389,7 +389,7 @@ class APIClient(json.JSONEncoder):
         for example /a/.../accounts/id/upgrade"""
         name = cls.collection_name
         if cls.api_root != "a":
-            url = "{}/{}/{}/{}".format(self.api_server, name, id, method_name)
+            url = f"{self.api_server}/{name}/{id}/{method_name}"
         else:
             # Management method.
             url = "{}/a/{}/{}/{}/{}".format(

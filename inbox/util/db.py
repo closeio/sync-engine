@@ -43,7 +43,7 @@ def drop_everything(engine, keep_tables=None, reset_columns=None):
                     if c["name"] in column_names:
                         assert c["default"]
 
-                        q = "UPDATE {0} SET {1}={2};".format(
+                        q = "UPDATE {} SET {}={};".format(
                             table_name, c["name"], c["default"]
                         )
                         conn.execute(q)

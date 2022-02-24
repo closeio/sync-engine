@@ -169,7 +169,7 @@ def create_email(
     utc_datetime = datetime.utcnow()
     day = utc_datetime.strftime("%a")
     date = utc_datetime.strftime("%d %b %Y %X")
-    date_header = "{day}, {date} +0000\r\n".format(day=day, date=date)
+    date_header = f"{day}, {date} +0000\r\n"
     msg.headers["Date"] = date_header
 
     rfcmsg = _rfc_transform(msg)
@@ -195,7 +195,7 @@ def _get_full_spec_without_validation(name, email):
     """
     if name:
         encoded_name = smart_quote(encode_string(name, maxlinelen=MAX_ADDRESS_LENGTH))
-        return "{0} <{1}>".format(encoded_name, email)
+        return f"{encoded_name} <{email}>"
     return str(email)
 
 
@@ -219,11 +219,11 @@ def add_nylas_headers(msg, nylas_uid):
     msg.headers["X-INBOX-ID"] = nylas_uid
     msg.headers["Message-Id"] = generate_message_id_header(nylas_uid)
     # Potentially also use `X-Mailer`
-    msg.headers["User-Agent"] = "NylasMailer/{0}".format(VERSION)
+    msg.headers["User-Agent"] = f"NylasMailer/{VERSION}"
 
 
 def generate_message_id_header(uid):
-    return "<{}@mailer.nylas.com>".format(uid)
+    return f"<{uid}@mailer.nylas.com>"
 
 
 def _rfc_transform(msg):

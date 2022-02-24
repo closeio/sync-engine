@@ -38,7 +38,7 @@ class ConfigError(Exception):
         )
 
     def __str__(self):
-        return "{0} {1}".format(self.error, self.help)
+        return f"{self.error} {self.help}"
 
 
 class Configuration(dict):
@@ -47,7 +47,7 @@ class Configuration(dict):
 
     def get_required(self, key):
         if key not in self:
-            raise ConfigError("Missing config value for {0}.".format(key))
+            raise ConfigError(f"Missing config value for {key}.")
 
         return self[key]
 
@@ -104,7 +104,7 @@ def _update_config_from_env(config, env):
             with open(filename) as f:
                 # this also parses json, which is a subset of yaml
                 config.update(yaml.safe_load(f))
-        except (IOError, OSError) as e:  # noqa: B014
+        except OSError as e:  # noqa: B014
             if e.errno != errno.ENOENT:
                 raise
 

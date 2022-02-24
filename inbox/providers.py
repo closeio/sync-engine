@@ -11,7 +11,7 @@ def provider_info(provider_name):
 
     """
     if provider_name not in providers:
-        raise NotSupportedError("Provider: {} not supported.".format(provider_name))
+        raise NotSupportedError(f"Provider: {provider_name} not supported.")
 
     return providers[provider_name]
 

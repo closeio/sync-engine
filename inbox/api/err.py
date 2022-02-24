@@ -57,7 +57,7 @@ class InputError(APIException):
 
     def __init__(self, message):
         self.message = message
-        super(InputError, self).__init__(message)
+        super().__init__(message)
 
 
 class NotFoundError(APIException):
@@ -67,7 +67,7 @@ class NotFoundError(APIException):
 
     def __init__(self, message):
         self.message = message
-        super(NotFoundError, self).__init__(message)
+        super().__init__(message)
 
 
 class ConflictError(APIException):
@@ -75,7 +75,7 @@ class ConflictError(APIException):
 
     def __init__(self, message):
         self.message = message
-        super(ConflictError, self).__init__(message)
+        super().__init__(message)
 
 
 class AccountInvalidError(APIException):

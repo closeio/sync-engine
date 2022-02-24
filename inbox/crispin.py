@@ -508,7 +508,7 @@ class CrispinClient:
 
         assert (
             "inbox" in have_folders
-        ), "Missing required 'inbox' folder for account_id: {}".format(self.account_id)
+        ), f"Missing required 'inbox' folder for account_id: {self.account_id}"
 
         # Sync inbox folder first, then sent, then others.
         to_sync = have_folders["inbox"]  # type: List[str]
@@ -721,7 +721,7 @@ class CrispinClient:
         criteria.
 
         """
-        return sorted([int(uid) for uid in self.conn.search(criteria)])
+        return sorted(int(uid) for uid in self.conn.search(criteria))
 
     def all_uids(self):
         # type: () -> List[int]
@@ -771,7 +771,7 @@ class CrispinClient:
         log.debug(
             "Requested all UIDs", search_time=elapsed, total_uids=len(fetch_result)
         )
-        return sorted([int(uid) for uid in fetch_result])
+        return sorted(int(uid) for uid in fetch_result)
 
     def uids(self, uids):
         # type: (List[int]) -> List[RawMessage]
@@ -841,7 +841,7 @@ class CrispinClient:
             # Some backends abort the connection if you give them a really
             # long sequence set of individual UIDs, so instead fetch flags for
             # all UIDs greater than or equal to min(uids).
-            seqset = "{}:*".format(min(uids))
+            seqset = f"{min(uids)}:*"
         else:
             seqset = uids
         data = self.conn.fetch(seqset, ["FLAGS"])  # type: Dict[int, Dict[bytes, Any]]
@@ -873,7 +873,7 @@ class CrispinClient:
     def save_draft(self, message, date=None):
         assert (
             self.selected_folder_name in self.folder_names()["drafts"]
-        ), "Must select a drafts folder first ({0})".format(self.selected_folder_name)
+        ), f"Must select a drafts folder first ({self.selected_folder_name})"
 
         self.conn.append(
             self.selected_folder_name, message, ["\\Draft", "\\Seen"], date
@@ -887,7 +887,7 @@ class CrispinClient:
         """
         assert (
             self.selected_folder_name in self.folder_names()["sent"]
-        ), "Must select sent folder first ({0})".format(self.selected_folder_name)
+        ), f"Must select sent folder first ({self.selected_folder_name})"
 
         return self.conn.append(self.selected_folder_name, message, ["\\Seen"], date)
 
@@ -1010,7 +1010,7 @@ class CrispinClient:
     def condstore_changed_flags(self, modseq):
         # type: (int) -> Dict[int, Flags]
         data = self.conn.fetch(
-            "1:*", ["FLAGS"], modifiers=["CHANGEDSINCE {}".format(modseq)]
+            "1:*", ["FLAGS"], modifiers=[f"CHANGEDSINCE {modseq}"]
         )  # type: Dict[int, Dict[bytes, Any]]
         return {
             uid: Flags(ret[b"FLAGS"], ret[b"MODSEQ"][0] if b"MODSEQ" in ret else None)
@@ -1081,9 +1081,7 @@ class GmailCrispinClient(CrispinClient):
     def condstore_changed_flags(self, modseq):
         # type: (int) -> Dict[int, GmailFlags]
         data = self.conn.fetch(
-            "1:*",
-            ["FLAGS", "X-GM-LABELS"],
-            modifiers=["CHANGEDSINCE {}".format(modseq)],
+            "1:*", ["FLAGS", "X-GM-LABELS"], modifiers=[f"CHANGEDSINCE {modseq}"],
         )  # type: Dict[int, Dict[bytes, Any]]
         results = {}  # type: Dict[int, GmailFlags]
         for uid, ret in data.items():
@@ -1393,10 +1391,10 @@ class GmailCrispinClient(CrispinClient):
         upsets Gmail IMAP server.
         """
         if len(criteria) != 2:
-            return super(GmailCrispinClient, self).search_uids(criteria)
+            return super().search_uids(criteria)
 
         if criteria[0] != "X-GM-LABELS":
-            return super(GmailCrispinClient, self).search_uids(criteria)
+            return super().search_uids(criteria)
 
         # First UTF-7 encode the label name
         label_name = criteria[1]
@@ -1405,7 +1403,7 @@ class GmailCrispinClient(CrispinClient):
         # If label contained only ASCII characters and does not contain asterisks
         # we don't need to do anything special
         if encoded_label_name.decode("ascii") == label_name and "*" not in label_name:
-            return super(GmailCrispinClient, self).search_uids(criteria)
+            return super().search_uids(criteria)
 
         # At this point quote Gmail label name since it could contain asterisks.
         # Sending unquotted label name containg asterisks upsets Gmail IMAP server
@@ -1432,7 +1430,7 @@ class GmailCrispinClient(CrispinClient):
                     "about search criteria syntax..\n"
                     "https://imapclient.readthedocs.io/en/master/#imapclient.IMAPClient.search".format(
                         original_msg=m.group(1),
-                        criteria='"{}"'.format(criteria)
+                        criteria=f'"{criteria}"'
                         if not isinstance(criteria, list)
                         else criteria,
                     )
@@ -1442,4 +1440,4 @@ class GmailCrispinClient(CrispinClient):
             raise
 
         response = imapclient.response_parser.parse_message_list(data)
-        return sorted([int(uid) for uid in response])
+        return sorted(int(uid) for uid in response)

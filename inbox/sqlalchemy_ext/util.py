@@ -96,7 +96,7 @@ class StringWithTransform(TypeDecorator):
     impl = String
 
     def __init__(self, string_transform, *args, **kwargs):
-        super(StringWithTransform, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if string_transform is None:
             raise ValueError("Must provide a string_transform")
         if not callable(string_transform):

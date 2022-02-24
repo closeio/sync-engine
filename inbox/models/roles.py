@@ -51,16 +51,14 @@ class Blob:
                 )
 
                 # Try to fetch the message from S3 first.
-                with statsd_client.timer("{}.blockstore_latency".format(statsd_string)):
+                with statsd_client.timer(f"{statsd_string}.blockstore_latency"):
                     raw_mime = blockstore.get_from_blockstore(message.data_sha256)
 
                 # If it's not there, get it from the provider.
                 if raw_mime is None:
-                    statsd_client.incr("{}.cache_misses".format(statsd_string))
+                    statsd_client.incr(f"{statsd_string}.cache_misses")
 
-                    with statsd_client.timer(
-                        "{}.provider_latency".format(statsd_string)
-                    ):
+                    with statsd_client.timer(f"{statsd_string}.provider_latency"):
                         raw_mime = get_raw_from_provider(message)
 
                     msg_sha256 = sha256(raw_mime).hexdigest()
@@ -69,18 +67,16 @@ class Blob:
                     # we don't have to fetch it over and over.
 
                     with statsd_client.timer(
-                        "{}.blockstore_save_latency".format(statsd_string)
+                        f"{statsd_string}.blockstore_save_latency"
                     ):
                         blockstore.save_to_blockstore(msg_sha256, raw_mime)
                 else:
                     # We found it in the blockstore --- report this.
-                    statsd_client.incr("{}.cache_hits".format(statsd_string))
+                    statsd_client.incr(f"{statsd_string}.cache_hits")
 
                 # If we couldn't find it there, give up.
                 if raw_mime is None:
-                    log.error(
-                        "Don't have raw message for hash {}".format(message.data_sha256)
-                    )
+                    log.error(f"Don't have raw message for hash {message.data_sha256}")
                     return None
 
                 parsed = mime.from_string(raw_mime)
@@ -101,12 +97,10 @@ class Blob:
 
                         # Found it!
                         if sha256(data).hexdigest() == self.data_sha256:
-                            log.info(
-                                "Found subpart with hash {}".format(self.data_sha256)
-                            )
+                            log.info(f"Found subpart with hash {self.data_sha256}")
 
                             with statsd_client.timer(
-                                "{}.blockstore_save_latency".format(statsd_string)
+                                f"{statsd_string}.blockstore_save_latency"
                             ):
                                 blockstore.save_to_blockstore(self.data_sha256, data)
                                 return data

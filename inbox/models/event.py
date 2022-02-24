@@ -438,7 +438,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
         for k in list(kwargs):
             if not hasattr(type(self), k):
                 del kwargs[k]
-        super(Event, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 # For API querying performance - default sort order is event.start ASC
@@ -462,7 +462,7 @@ class RecurringEvent(Event):
     def __init__(self, **kwargs):
         self.start_timezone = kwargs.pop("original_start_tz", None)
         kwargs["recurrence"] = repr(kwargs["recurrence"])
-        super(RecurringEvent, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         try:
             self.unwrap_rrule()
         except Exception as e:
@@ -537,7 +537,7 @@ class RecurringEvent(Event):
         return sorted(events, key=lambda e: e.start)
 
     def update(self, event):
-        super(RecurringEvent, self).update(event)
+        super().update(event)
         if isinstance(event, type(self)):
             self.rrule = event.rrule
             self.exdate = event.exdate
@@ -575,7 +575,7 @@ class RecurringEventOverride(Event):
         return unicode_safe_truncate(value, MAX_LENS[key])
 
     def update(self, event):
-        super(RecurringEventOverride, self).update(event)
+        super().update(event)
         if isinstance(event, type(self)):
             self.master_event_uid = event.master_event_uid
             self.original_start_time = event.original_start_time
@@ -600,8 +600,8 @@ class InflatedEvent(Event):
         # Give inflated events a UID consisting of the master UID and the
         # original UTC start time of the inflation.
         ts_id = instance_start.strftime("%Y%m%dT%H%M%SZ")
-        self.uid = "{}_{}".format(self.master.uid, ts_id)
-        self.public_id = "{}_{}".format(self.master.public_id, ts_id)
+        self.uid = f"{self.master.uid}_{ts_id}"
+        self.public_id = f"{self.master.public_id}_{ts_id}"
         self.set_start_end(instance_start)
 
     def set_start_end(self, start):
@@ -611,7 +611,7 @@ class InflatedEvent(Event):
         self.end = self.start + length
 
     def update(self, master):
-        super(InflatedEvent, self).update(master)
+        super().update(master)
         self.namespace_id = master.namespace_id
         self.calendar_id = master.calendar_id
 
@@ -628,7 +628,7 @@ class InflatedEvent(Event):
 
 
 def insert_warning(mapper, connection, target):
-    log.warn("InflatedEvent {} shouldn't be committed".format(target))
+    log.warn(f"InflatedEvent {target} shouldn't be committed")
     raise Exception("InflatedEvent should not be committed")
 
 

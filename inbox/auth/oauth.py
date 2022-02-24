@@ -191,7 +191,7 @@ class OAuthAuthHandler(AuthHandler):
         access_token = session_dict["access_token"]
         request = urllib.request.Request(
             self.OAUTH_USER_INFO_URL,
-            headers={"Authorization": "Bearer {}".format(access_token)},
+            headers={"Authorization": f"Bearer {access_token}"},
         )
         try:
             response = urllib.request.urlopen(request)
@@ -244,7 +244,7 @@ class OAuthRequestsWrapper(requests.auth.AuthBase):
         self.token = token
 
     def __call__(self, r):
-        r.headers["Authorization"] = "Bearer {}".format(self.token)
+        r.headers["Authorization"] = f"Bearer {self.token}"
         return r
 
 

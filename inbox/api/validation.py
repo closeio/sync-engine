@@ -34,7 +34,7 @@ class ValidatableArgument(reqparse.Argument):
 
 def bounded_str(value, key):
     if len(value) > 255:
-        raise ValueError("Value {} for {} is too long".format(value, key))
+        raise ValueError(f"Value {value} for {key} is too long")
     return value
 
 
@@ -50,7 +50,7 @@ def comma_separated_email_list(value, key):
     for unvalidated_address in addresses:
         parsed = address.parse(unvalidated_address, addr_spec_only=True)
         if not isinstance(parsed, address.EmailAddress):
-            raise InputError("Invalid recipient address {}".format(unvalidated_address))
+            raise InputError(f"Invalid recipient address {unvalidated_address}")
         good_emails.append(parsed.address)
 
     return good_emails
@@ -58,16 +58,14 @@ def comma_separated_email_list(value, key):
 
 def strict_bool(value, key):
     if value.lower() not in ["true", "false"]:
-        raise ValueError(
-            'Value must be "true" or "false" (not "{}") for {}'.format(value, key)
-        )
+        raise ValueError(f'Value must be "true" or "false" (not "{value}") for {key}')
     return value.lower() == "true"
 
 
 def view(value, key):
     allowed_views = ["count", "ids", "expanded"]
     if value not in allowed_views:
-        raise ValueError("Unknown view type {}.".format(value))
+        raise ValueError(f"Unknown view type {value}.")
     return value
 
 
@@ -79,9 +77,7 @@ def limit(value):
     if value < 0:
         raise ValueError("Limit parameter must be nonnegative.")
     if value > MAX_LIMIT:
-        raise ValueError(
-            "Cannot request more than {} resources at once.".format(MAX_LIMIT)
-        )
+        raise ValueError(f"Cannot request more than {MAX_LIMIT} resources at once.")
     return value
 
 
@@ -97,14 +93,14 @@ def offset(value):
 
 def valid_public_id(value):
     if "_" in value:
-        raise InputError("Invalid id: {}".format(value))
+        raise InputError(f"Invalid id: {value}")
 
     try:
         # raise ValueError on malformed public ids
         # raise TypeError if an integer is passed in
         int(value, 36)
     except (TypeError, ValueError):
-        raise InputError("Invalid id: {}".format(value))
+        raise InputError(f"Invalid id: {value}")
     return value
 
 
@@ -131,9 +127,9 @@ def timestamp(value, key):
 
         return arrow.get(value).datetime
     except ValueError:
-        raise ValueError("Invalid timestamp value {} for {}".format(value, key))
+        raise ValueError(f"Invalid timestamp value {value} for {key}")
     except ParserError:
-        raise ValueError("Invalid datetime value {} for {}".format(value, key))
+        raise ValueError(f"Invalid datetime value {value} for {key}")
 
 
 def strict_parse_args(parser, raw_args):
@@ -147,7 +143,7 @@ def strict_parse_args(parser, raw_args):
         allowed_arg.name for allowed_arg in parser.args
     }
     if unexpected_params:
-        raise InputError("Unexpected query parameters {}".format(unexpected_params))
+        raise InputError(f"Unexpected query parameters {unexpected_params}")
     return args
 
 
@@ -163,10 +159,10 @@ def get_sending_draft(draft_public_id, namespace_id, db_session):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError("Couldn't find multi-send draft {}".format(draft_public_id))
+        raise NotFoundError(f"Couldn't find multi-send draft {draft_public_id}")
 
     if draft.is_sent or not draft.is_sending:
-        raise InputError("Message {} is not a multi-send draft".format(draft_public_id))
+        raise InputError(f"Message {draft_public_id} is not a multi-send draft")
     return draft
 
 
@@ -188,13 +184,13 @@ def get_draft(draft_public_id, version, namespace_id, db_session):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError("Couldn't find draft {}".format(draft_public_id))
+        raise NotFoundError(f"Couldn't find draft {draft_public_id}")
 
     if draft.is_sent or not draft.is_draft:
-        raise InputError("Message {} is not a draft".format(draft_public_id))
+        raise InputError(f"Message {draft_public_id} is not a draft")
     if draft.version != version:
         raise ConflictError(
-            "Draft {0}.{1} has already been updated to version {2}".format(
+            "Draft {}.{} has already been updated to version {}".format(
                 draft_public_id, version, draft.version
             )
         )
@@ -206,7 +202,7 @@ def get_attachments(block_public_ids, namespace_id, db_session):
     if block_public_ids is None:
         return attachments
     if not isinstance(block_public_ids, list):
-        raise InputError("{} is not a list of block ids".format(block_public_ids))
+        raise InputError(f"{block_public_ids} is not a list of block ids")
     for block_public_id in block_public_ids:
         # Validate public ids before querying with them
         valid_public_id(block_public_id)
@@ -223,7 +219,7 @@ def get_attachments(block_public_ids, namespace_id, db_session):
             # data by using #magic.from_buffer(data, mime=True))
             attachments.add(block)
         except NoResultFound:
-            raise InputError("Invalid block public id {}".format(block_public_id))
+            raise InputError(f"Invalid block public id {block_public_id}")
     return attachments
 
 
@@ -241,7 +237,7 @@ def get_message(message_public_id, namespace_id, db_session):
             .one()
         )
     except NoResultFound:
-        raise InputError("Invalid message public id {}".format(message_public_id))
+        raise InputError(f"Invalid message public id {message_public_id}")
 
 
 def get_thread(thread_public_id, namespace_id, db_session):
@@ -259,20 +255,20 @@ def get_thread(thread_public_id, namespace_id, db_session):
             .one()
         )
     except NoResultFound:
-        raise InputError("Invalid thread public id {}".format(thread_public_id))
+        raise InputError(f"Invalid thread public id {thread_public_id}")
 
 
 def get_recipients(recipients, field):
     if recipients is None:
         return None
     if not isinstance(recipients, list):
-        raise InputError("Invalid {} field".format(field))
+        raise InputError(f"Invalid {field} field")
 
     for r in recipients:
         if not (isinstance(r, dict) and "email" in r and isinstance(r["email"], str)):
-            raise InputError("Invalid {} field".format(field))
+            raise InputError(f"Invalid {field} field")
         if "name" in r and not isinstance(r["name"], str):
-            raise InputError("Invalid {} field".format(field))
+            raise InputError(f"Invalid {field} field")
 
     return [(r.get("name", ""), r.get("email", "")) for r in recipients]
 
@@ -289,7 +285,7 @@ def get_calendar(calendar_public_id, namespace, db_session):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError("Calendar {} not found".format(calendar_public_id))
+        raise NotFoundError(f"Calendar {calendar_public_id} not found")
 
 
 def valid_when(when):
@@ -413,7 +409,7 @@ def valid_delta_object_types(types_arg):
     )
     for type_ in types:
         if type_ not in allowed_types:
-            raise InputError("Invalid object type {}".format(type_))
+            raise InputError(f"Invalid object type {type_}")
     return types
 
 
@@ -430,9 +426,7 @@ def validate_draft_recipients(draft):
             for _, email_address in field:
                 parsed = address.parse(email_address, addr_spec_only=True)
                 if not isinstance(parsed, address.EmailAddress):
-                    raise InputError(
-                        "Invalid recipient address {}".format(email_address)
-                    )
+                    raise InputError(f"Invalid recipient address {email_address}")
 
 
 def valid_display_name(namespace_id, category_type, display_name, db_session):
@@ -455,8 +449,6 @@ def valid_display_name(namespace_id, category_type, display_name, db_session):
         .first()
         is not None
     ):
-        raise InputError(
-            '{} with name "{}" already exists'.format(category_type, display_name)
-        )
+        raise InputError(f'{category_type} with name "{display_name}" already exists')
 
     return display_name

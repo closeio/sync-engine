@@ -148,7 +148,7 @@ app.log_exception = log_exception
 # see python mimetypes library
 common_extensions = {}
 mt_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mime_types.txt")
-with open(mt_path, "r") as f:
+with open(mt_path) as f:
     for x in f:
         x = x.strip()
         if not x or x.startswith("#"):
@@ -464,7 +464,7 @@ def thread_api(public_id):
         )
         return encoder.jsonify(thread)
     except NoResultFound:
-        raise NotFoundError("Couldn't find thread `{0}`".format(public_id))
+        raise NotFoundError(f"Couldn't find thread `{public_id}`")
 
 
 #
@@ -484,7 +484,7 @@ def thread_api_update(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError("Couldn't find thread `{0}` ".format(public_id))
+        raise NotFoundError(f"Couldn't find thread `{public_id}` ")
     data = request.get_json(force=True)
     if not isinstance(data, dict):
         raise InputError("Invalid request body")
@@ -623,7 +623,7 @@ def message_read_api(public_id):
         valid_public_id(public_id)
         message = Message.from_public_id(public_id, g.namespace.id, g.db_session)
     except NoResultFound:
-        raise NotFoundError("Couldn't find message {0}".format(public_id))
+        raise NotFoundError(f"Couldn't find message {public_id}")
 
     if request.headers.get("Accept", None) == "message/rfc822":
         raw_message = blockstore.get_from_blockstore(message.data_sha256)
@@ -637,11 +637,11 @@ def message_read_api(public_id):
             )
 
             try:
-                with statsd_client.timer("{}.provider_latency".format(statsd_string)):
+                with statsd_client.timer(f"{statsd_string}.provider_latency"):
                     contents = get_raw_from_provider(message)
-                statsd_client.incr("{}.successes".format(statsd_string))
+                statsd_client.incr(f"{statsd_string}.successes")
             except TemporaryEmailFetchException:
-                statsd_client.incr("{}.temporary_failure".format(statsd_string))
+                statsd_client.incr(f"{statsd_string}.temporary_failure")
                 log.warning(
                     "Exception when fetching email",
                     account_id=account.id,
@@ -656,7 +656,7 @@ def message_read_api(public_id):
                     "Please try again in a few minutes.",
                 )
             except EmailDeletedException:
-                statsd_client.incr("{}.deleted".format(statsd_string))
+                statsd_client.incr(f"{statsd_string}.deleted")
                 log.warning(
                     "Exception when fetching email",
                     account_id=account.id,
@@ -667,7 +667,7 @@ def message_read_api(public_id):
 
                 return err(404, "The data was deleted on the email server.")
             except EmailFetchException:
-                statsd_client.incr("{}.failures".format(statsd_string))
+                statsd_client.incr(f"{statsd_string}.failures")
                 log.warning(
                     "Exception when fetching email",
                     account_id=account.id,
@@ -686,7 +686,7 @@ def message_read_api(public_id):
 
             request.environ["log_context"]["message_id"] = message.id
             raise NotFoundError(
-                "Couldn't find raw contents for message `{0}`. "
+                "Couldn't find raw contents for message `{}`. "
                 "Please try again in a few minutes.".format(public_id)
             )
 
@@ -705,7 +705,7 @@ def message_update_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError("Couldn't find message {0} ".format(public_id))
+        raise NotFoundError(f"Couldn't find message {public_id} ")
     data = request.get_json(force=True)
     if not isinstance(data, dict):
         raise InputError("Invalid request body")
@@ -850,9 +850,9 @@ def folder_label_update_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise InputError("Couldn't find {} {}".format(category_type, public_id))
+        raise InputError(f"Couldn't find {category_type} {public_id}")
     if category.name:
-        raise InputError("Cannot modify a standard {}".format(category_type))
+        raise InputError(f"Cannot modify a standard {category_type}")
 
     data = request.get_json(force=True)
     display_name = data.get("display_name")
@@ -914,9 +914,9 @@ def folder_label_delete_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise InputError("Couldn't find {} {}".format(category_type, public_id))
+        raise InputError(f"Couldn't find {category_type} {public_id}")
     if category.name:
-        raise InputError("Cannot modify a standard {}".format(category_type))
+        raise InputError(f"Cannot modify a standard {category_type}")
 
     if category.type_ == "folder":
         messages_with_category = (
@@ -1019,7 +1019,7 @@ def contact_read_api(public_id):
     valid_public_id(public_id)
     result = inbox.contacts.crud.read(g.namespace, g.db_session, public_id)
     if result is None:
-        raise NotFoundError("Couldn't find contact {0}".format(public_id))
+        raise NotFoundError(f"Couldn't find contact {public_id}")
     return g.encoder.jsonify(result)
 
 
@@ -1155,7 +1155,7 @@ def event_read_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError("Couldn't find event id {0}".format(public_id))
+        raise NotFoundError(f"Couldn't find event id {public_id}")
     return g.encoder.jsonify(event)
 
 
@@ -1177,7 +1177,7 @@ def event_update_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError("Couldn't find event {0}".format(public_id))
+        raise NotFoundError(f"Couldn't find event {public_id}")
 
     # iCalendar-imported files are read-only by default but let's give a
     # slightly more helpful error message.
@@ -1279,15 +1279,13 @@ def event_delete_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError("Couldn't find event {0}".format(public_id))
+        raise NotFoundError(f"Couldn't find event {public_id}")
 
     if event.calendar == g.namespace.account.emailed_events_calendar:
         raise InputError("Can not update an event imported from an iCalendar file.")
 
     if event.calendar.read_only:
-        raise InputError(
-            "Cannot delete event {} from read_only calendar.".format(public_id)
-        )
+        raise InputError(f"Cannot delete event {public_id} from read_only calendar.")
 
     if g.api_features.optimistic_updates:
         # Set the local event status to 'cancelled' rather than deleting it,
@@ -1325,7 +1323,7 @@ def event_rsvp_api():
             .one()
         )
     except NoResultFound:
-        raise NotFoundError("Couldn't find event {0}".format(event_id))
+        raise NotFoundError(f"Couldn't find event {event_id}")
 
     if event.message is None:
         raise InputError("This is not a message imported " "from an iCalendar invite.")
@@ -1335,7 +1333,7 @@ def event_rsvp_api():
         raise InputError("You must define a status to RSVP.")
 
     if status not in ["yes", "no", "maybe"]:
-        raise InputError("Invalid status {}".format(status))
+        raise InputError(f"Invalid status {status}")
 
     comment = data.get("comment", "")
 
@@ -1348,7 +1346,7 @@ def event_rsvp_api():
     email = account.email_address
 
     if email not in participants:
-        raise InputError("Cannot find {} among the participants".format(email))
+        raise InputError(f"Cannot find {email} among the participants")
 
     p = participants[email]
 
@@ -1433,7 +1431,7 @@ def file_read_api(public_id):
         )
         return g.encoder.jsonify(f)
     except NoResultFound:
-        raise NotFoundError("Couldn't find file {0} ".format(public_id))
+        raise NotFoundError(f"Couldn't find file {public_id} ")
 
 
 @app.route("/files/<public_id>", methods=["DELETE"])
@@ -1462,7 +1460,7 @@ def file_delete_api(public_id):
         # Effectively no error == success
         return g.encoder.jsonify(None)
     except NoResultFound:
-        raise NotFoundError("Couldn't find file {0} ".format(public_id))
+        raise NotFoundError(f"Couldn't find file {public_id} ")
 
 
 #
@@ -1501,7 +1499,7 @@ def file_download_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError("Couldn't find file {0} ".format(public_id))
+        raise NotFoundError(f"Couldn't find file {public_id} ")
 
     # Here we figure out the filename.extension given the
     # properties which were set on the original attachment
@@ -1521,22 +1519,22 @@ def file_download_api(public_id):
     else:
         request.environ["log_context"]["no_filename"] = True
         if ct in common_extensions:
-            name = "attachment.{0}".format(common_extensions[ct])
+            name = f"attachment.{common_extensions[ct]}"
         else:
             # HACK just append the major part of the content type
-            name = "attachment.{0}".format(ct.split("/")[0])
+            name = "attachment.{}".format(ct.split("/")[0])
 
     # TODO the part.data object should really behave like a stream we can read
     # & write to
     try:
         account = g.namespace.account
-        statsd_string = "api.direct_fetching.{}.{}".format(account.provider, account.id)
+        statsd_string = f"api.direct_fetching.{account.provider}.{account.id}"
 
         response = make_response(f.data)
-        statsd_client.incr("{}.successes".format(statsd_string))
+        statsd_client.incr(f"{statsd_string}.successes")
 
     except TemporaryEmailFetchException:
-        statsd_client.incr("{}.temporary_failure".format(statsd_string))
+        statsd_client.incr(f"{statsd_string}.temporary_failure")
         log.warning(
             "Exception when fetching email",
             account_id=account.id,
@@ -1551,7 +1549,7 @@ def file_download_api(public_id):
             "Please try again in a few minutes.",
         )
     except EmailDeletedException:
-        statsd_client.incr("{}.deleted".format(statsd_string))
+        statsd_client.incr(f"{statsd_string}.deleted")
         log.warning(
             "Exception when fetching email",
             account_id=account.id,
@@ -1562,7 +1560,7 @@ def file_download_api(public_id):
 
         return err(404, "The data was deleted on the email server.")
     except EmailFetchException:
-        statsd_client.incr("{}.failures".format(statsd_string))
+        statsd_client.incr(f"{statsd_string}.failures")
         log.warning(
             "Exception when fetching email",
             logstash_tag="direct_fetching",
@@ -1628,7 +1626,7 @@ def calendar_read_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError("Couldn't find calendar {0}".format(public_id))
+        raise NotFoundError(f"Couldn't find calendar {public_id}")
     return g.encoder.jsonify(calendar)
 
 
@@ -1700,7 +1698,7 @@ def draft_get_api(public_id):
         .first()
     )
     if draft is None:
-        raise NotFoundError("Couldn't find draft {}".format(public_id))
+        raise NotFoundError(f"Couldn't find draft {public_id}")
     return g.encoder.jsonify(draft)
 
 

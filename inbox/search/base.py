@@ -15,7 +15,7 @@ class SearchBackendException(Exception):
         self.message = message
         self.http_code = http_code
         self.server_error = server_error
-        super(SearchBackendException, self).__init__(message, http_code, server_error)
+        super().__init__(message, http_code, server_error)
 
     def __str__(self):
         return self.message
@@ -28,4 +28,4 @@ class SearchStoreException(Exception):
 
     def __init__(self, err_code):
         self.err_code = err_code
-        super(SearchStoreException, self).__init__(err_code)
+        super().__init__(err_code)

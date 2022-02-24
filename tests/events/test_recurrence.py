@@ -433,7 +433,7 @@ def test_override_same_start(db, default_account, calendar):
     )
     all_events = event.all_events()
     assert len(all_events) == 7
-    unique_starts = list(set([e.start for e in all_events]))
+    unique_starts = list({e.start for e in all_events})
     assert len(unique_starts) == 7
     assert override in all_events
 

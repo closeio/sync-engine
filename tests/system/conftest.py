@@ -52,7 +52,7 @@ def timeout_loop(name):
     def wrap(f):
         def wrapped_f(*args, **kwargs):
             client = args[0]
-            print("Waiting for: {}...".format(name))
+            print(f"Waiting for: {name}...")
             success = False
             start_time = time()
             while time() - start_time < TEST_MAX_DURATION_SECS:
@@ -74,7 +74,7 @@ def timeout_loop(name):
 
 
 def format_test_result(function_name, provider, email, start_time):
-    print("{}\t{}\t{}\t{}".format(function_name, provider, email, time() - start_time))
+    print(f"{function_name}\t{provider}\t{email}\t{time() - start_time}")
 
 
 def create_account(db_session, email, password):

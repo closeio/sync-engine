@@ -39,4 +39,4 @@ def blockstore_backend(monkeypatch, request):
     elif request.param == "s3":
         monkeypatch.setattr("inbox.util.blockstore.STORE_MSG_ON_S3", True)
     else:
-        raise AssertionError("Unknown blockstore backend {}".format(request.param))
+        raise AssertionError(f"Unknown blockstore backend {request.param}")

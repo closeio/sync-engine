@@ -38,9 +38,7 @@ class TestGlobalDeltas:
         txnid = deltas["txnid_end"]
 
         # pull again, but with a cursor this time. nothing should be returned
-        response = unauthed_api_client.get(
-            "/metrics/global-deltas?txnid={}".format(txnid)
-        )
+        response = unauthed_api_client.get(f"/metrics/global-deltas?txnid={txnid}")
         deltas = json.loads(response.data)
         assert not deltas["deltas"]
         assert txnid == deltas["txnid_end"]
@@ -54,9 +52,7 @@ class TestGlobalDeltas:
         )
 
         # pull for global deltas again with a txnid
-        response = unauthed_api_client.get(
-            "/metrics/global-deltas?txnid={}".format(txnid)
-        )
+        response = unauthed_api_client.get(f"/metrics/global-deltas?txnid={txnid}")
         deltas = json.loads(response.data)
 
         # the default namespace should be returned again

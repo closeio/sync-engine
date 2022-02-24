@@ -131,7 +131,7 @@ def test_label_put(db, label_client, api_version):
     g_data = label_client.get_raw("/labels/")
     gmail_label = json.loads(g_data.data)[0]
 
-    new_name = "Test_Label_Renamed {}".format(api_version)
+    new_name = f"Test_Label_Renamed {api_version}"
     pu_data = label_client.put_data(
         "/labels/{}".format(gmail_label["id"]),
         {"display_name": new_name},
@@ -167,7 +167,7 @@ def test_folder_delete(db, generic_account, folder_client, api_version):
     # Add message to folder
     generic_folder = json.loads(g_data.data)[0]
     data = {"folder_id": generic_folder["id"]}
-    folder_client.put_data("/messages/{}".format(gen_message.public_id), data)
+    folder_client.put_data(f"/messages/{gen_message.public_id}", data)
 
     # Test that DELETE requests 403 on folders with items in them
     d_data = folder_client.delete("/folders/{}".format(generic_folder["id"]))
@@ -206,9 +206,7 @@ def test_label_delete(db, gmail_account, label_client, api_version):
     # Add label to message
     gmail_label = json.loads(g_data.data)[0]
     data = {"labels": [gmail_label["id"]]}
-    label_client.put_data(
-        "/messages/{}".format(gmail_message.public_id), data, headers=headers
-    )
+    label_client.put_data(f"/messages/{gmail_message.public_id}", data, headers=headers)
 
     # DELETE requests should work on labels whether or not messages have them
     d_data = label_client.delete(

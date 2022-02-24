@@ -60,7 +60,7 @@ def schedule_test_action(db_session, account):
         db_session,
         account.namespace.id,
         name=None,
-        display_name="{}-{}".format(account.id, random.randint(1, 356)),
+        display_name=f"{account.id}-{random.randint(1, 356)}",
         type_=category_type,
     )
     db_session.flush()
@@ -96,15 +96,11 @@ def test_all_keys_are_assigned_exactly_once(patched_enginemanager):
 @pytest.mark.skipif(True, reason="Need to investigate")
 def test_actions_are_claimed(purge_accounts_and_actions, patched_task):
     with session_scope_by_shard_id(0) as db_session:
-        account = add_generic_imap_account(
-            db_session, email_address="{}@test.com".format(0)
-        )
+        account = add_generic_imap_account(db_session, email_address=f"{0}@test.com")
         schedule_test_action(db_session, account)
 
     with session_scope_by_shard_id(1) as db_session:
-        account = add_generic_imap_account(
-            db_session, email_address="{}@test.com".format(1)
-        )
+        account = add_generic_imap_account(db_session, email_address=f"{1}@test.com")
         schedule_test_action(db_session, account)
 
     service = SyncbackService(
@@ -133,7 +129,7 @@ def test_actions_claimed_by_a_single_service(purge_accounts_and_actions, patched
     for key in (0, 1):
         with session_scope_by_shard_id(key) as db_session:
             account = add_generic_imap_account(
-                db_session, email_address="{}@test.com".format(key)
+                db_session, email_address=f"{key}@test.com"
             )
             schedule_test_action(db_session, account)
             actionlogs += [db_session.query(ActionLog).one().id]

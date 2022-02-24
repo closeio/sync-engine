@@ -64,7 +64,7 @@ def test_addresses_canonicalized(db, default_namespace, thread):
     # message (one each from the from/to/cc fields), but that they reference
     # the same contact.
     assert len(msg.contacts) == 3
-    assert len(set(association.contact for association in msg.contacts)) == 1
+    assert len({association.contact for association in msg.contacts}) == 1
 
 
 def test_handle_noreply_addresses(db, default_namespace, thread):

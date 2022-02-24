@@ -193,7 +193,7 @@ def test_thread_label_updates(
     )
 
     resp_data = api_client.get_data(
-        "/threads/{}".format(gmail_thread.public_id), headers=headers
+        f"/threads/{gmail_thread.public_id}", headers=headers
     )
 
     assert resp_data["labels"] == []
@@ -202,7 +202,7 @@ def test_thread_label_updates(
     update = dict(labels=[category.public_id])
 
     resp = api_client.put_data(
-        "/threads/{}".format(gmail_thread.public_id), update, headers=headers
+        f"/threads/{gmail_thread.public_id}", update, headers=headers
     )
 
     resp_data = json.loads(resp.data)
@@ -213,7 +213,7 @@ def test_thread_label_updates(
 
         # Also check that the label got added to the message.
         resp_data = api_client.get_data(
-            "/messages/{}".format(gmail_message.public_id), headers=headers
+            f"/messages/{gmail_message.public_id}", headers=headers
         )
 
         assert len(resp_data["labels"]) == 1

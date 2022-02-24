@@ -17,7 +17,7 @@ def test_get_calendar(db, default_namespace, api_client):
     db.session.add(cal)
     db.session.commit()
     cal_id = cal.public_id
-    calendar_item = api_client.get_data("/calendars/{}".format(cal_id))
+    calendar_item = api_client.get_data(f"/calendars/{cal_id}")
 
     assert calendar_item["account_id"] == default_namespace.public_id
     assert calendar_item["name"] == "Holidays"
@@ -49,7 +49,7 @@ def test_add_to_specific_calendar(db, default_namespace, api_client):
     r = api_client.post_data("/events", e_data)
     assert r.status_code == 200
 
-    events = api_client.get_data("/events?calendar_id={}".format(cal_id))
+    events = api_client.get_data(f"/events?calendar_id={cal_id}")
     assert len(events) == 1
 
 
@@ -103,5 +103,5 @@ def test_delete_from_readonly_calendar(db, default_namespace, api_client):
     assert read_only_calendar
     assert read_only_event
     e_id = read_only_event["id"]
-    resp = api_client.delete("/events/{}".format(e_id))
+    resp = api_client.delete(f"/events/{e_id}")
     assert resp.status_code == 400

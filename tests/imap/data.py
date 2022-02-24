@@ -49,7 +49,7 @@ short_text = s.text(string.ascii_letters, min_size=1, max_size=32)
 
 # An email address of the form 'foo@bar'.
 address = s.builds(
-    lambda localpart, domain: "{}@{}".format(localpart, domain), short_text, short_text
+    lambda localpart, domain: f"{localpart}@{domain}", short_text, short_text
 )
 
 

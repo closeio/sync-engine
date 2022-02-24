@@ -12,7 +12,7 @@ __all__ = ["default_account"]
 @pytest.fixture
 def example_draft(db, default_account):
     return {
-        "subject": "Draft test at {}".format(datetime.utcnow()),
+        "subject": f"Draft test at {datetime.utcnow()}",
         "body": "<html><body><h2>Sea, birds and sand.</h2></body></html>",
         "to": [
             {"name": "The red-haired mermaid", "email": default_account.email_address}
@@ -30,13 +30,13 @@ def test_send_draft(db, api_client, example_draft, default_account):
     r = api_client.post_data("/send", {"draft_id": public_id, "version": version})
     assert r.status_code == 200
 
-    draft = api_client.get_data("/drafts/{}".format(public_id))
+    draft = api_client.get_data(f"/drafts/{public_id}")
     assert draft is not None
 
     assert draft["object"] != "draft"
 
     with crispin_client(default_account.id, default_account.provider) as c:
-        criteria = ["NOT DELETED", 'SUBJECT "{0}"'.format(example_draft["subject"])]
+        criteria = ["NOT DELETED", 'SUBJECT "{}"'.format(example_draft["subject"])]
 
         c.conn.select_folder(default_account.drafts_folder.name, readonly=False)
 

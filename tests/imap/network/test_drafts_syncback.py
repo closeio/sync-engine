@@ -57,7 +57,7 @@ def test_remote_save_draft(db, config, message):
     )
 
     with crispin_client(account.id, account.provider) as c:
-        criteria = ["NOT DELETED", 'SUBJECT "{0}"'.format(subject)]
+        criteria = ["NOT DELETED", f'SUBJECT "{subject}"']
 
         c.conn.select_folder(account.drafts_folder.name, readonly=False)
 
@@ -107,7 +107,7 @@ def test_remote_delete_draft(db, config, message):
     inbox_uid = email.headers["X-INBOX-ID"]
 
     with crispin_client(account.id, account.provider) as c:
-        criteria = ["DRAFT", "NOT DELETED", "HEADER X-INBOX-ID {0}".format(inbox_uid)]
+        criteria = ["DRAFT", "NOT DELETED", f"HEADER X-INBOX-ID {inbox_uid}"]
 
         c.conn.select_folder(account.drafts_folder.name, readonly=False)
         uids = c.conn.search(criteria)

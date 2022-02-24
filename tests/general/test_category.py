@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from inbox.models import Folder, Label
 from inbox.models.category import sanitize_name
 from inbox.models.constants import MAX_INDEXABLE_LENGTH

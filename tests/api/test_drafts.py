@@ -13,7 +13,7 @@ from tests.util.base import add_fake_message, add_fake_thread
 @pytest.fixture
 def example_draft(db, default_account):
     return {
-        "subject": "Draft test at {}".format(datetime.utcnow()),
+        "subject": f"Draft test at {datetime.utcnow()}",
         "body": "<html><body><h2>Sea, birds and sand.</h2></body></html>",
         "to": [
             {"name": "The red-haired mermaid", "email": default_account.email_address}
@@ -24,13 +24,13 @@ def example_draft(db, default_account):
 @pytest.fixture
 def example_bad_recipient_drafts():
     bad_email = {
-        "subject": "Draft test at {}".format(datetime.utcnow()),
+        "subject": f"Draft test at {datetime.utcnow()}",
         "body": "<html><body><h2>Sea, birds and sand.</h2></body></html>",
         "to": [{"name": "The red-haired mermaid", "email": "froop"}],
     }
 
     empty_email = {
-        "subject": "Draft test at {}".format(datetime.utcnow()),
+        "subject": f"Draft test at {datetime.utcnow()}",
         "body": "<html><body><h2>Sea, birds and sand.</h2></body></html>",
         "to": [{"name": "The red-haired mermaid", "email": ""}],
     }
@@ -122,7 +122,7 @@ def test_create_draft_replying_to_thread(api_client, thread, message):
     assert thread_id == drafts[0]["thread_id"]
     assert drafts[0]["reply_to_message_id"] == latest_message_id
 
-    thread_data = api_client.get_data("/threads/{}".format(thread_id))
+    thread_data = api_client.get_data(f"/threads/{thread_id}")
     assert draft_id in thread_data["draft_ids"]
 
 
@@ -147,7 +147,7 @@ def test_reject_incompatible_reply_thread_and_message(
 
     thread = api_client.get_data("/threads")[0]
     alt_message_id = api_client.get_data("/threads")[1]["message_ids"][0]
-    alt_message = api_client.get_data("/messages/{}".format(alt_message_id))
+    alt_message = api_client.get_data(f"/messages/{alt_message_id}")
     assert thread["id"] != alt_message["thread_id"]
     reply_draft = {
         "subject": "test reply",
@@ -173,10 +173,10 @@ def test_drafts_filter(api_client, example_draft):
     results = api_client.get_data("/drafts" + _filter)
     assert len(results) == 0
 
-    results = api_client.get_data("/drafts?thread_id={}".format(thread_id))
+    results = api_client.get_data(f"/drafts?thread_id={thread_id}")
     assert len(results) == 2
 
-    results = api_client.get_data("/drafts?offset={}&thread_id={}".format(1, thread_id))
+    results = api_client.get_data(f"/drafts?offset={1}&thread_id={thread_id}")
     assert len(results) == 1
 
 
@@ -208,7 +208,7 @@ def test_create_draft_with_attachments(
 
     attachment_ids.append(first_attachment)
     example_draft["file_ids"] = attachment_ids
-    r = api_client.put_data("/drafts/{}".format(draft_public_id), example_draft)
+    r = api_client.put_data(f"/drafts/{draft_public_id}", example_draft)
     assert r.status_code == 200
     returned_draft = json.loads(r.data)
     assert len(returned_draft["files"]) == 3
@@ -217,28 +217,28 @@ def test_create_draft_with_attachments(
 
     # Make sure we can't delete the files now
     for file_id in attachment_ids:
-        r = api_client.delete("/files/{}".format(file_id))
+        r = api_client.delete(f"/files/{file_id}")
         assert r.status_code == 400
 
     # Now remove the attachment
     example_draft["file_ids"] = [first_attachment]
-    r = api_client.put_data("/drafts/{}".format(draft_public_id), example_draft)
+    r = api_client.put_data(f"/drafts/{draft_public_id}", example_draft)
 
-    draft_data = api_client.get_data("/drafts/{}".format(draft_public_id))
+    draft_data = api_client.get_data(f"/drafts/{draft_public_id}")
     assert len(draft_data["files"]) == 1
     assert draft_data["version"] == 2
     example_draft["version"] = draft_data["version"]
 
     example_draft["file_ids"] = []
-    r = api_client.put_data("/drafts/{}".format(draft_public_id), example_draft)
-    draft_data = api_client.get_data("/drafts/{}".format(draft_public_id))
+    r = api_client.put_data(f"/drafts/{draft_public_id}", example_draft)
+    draft_data = api_client.get_data(f"/drafts/{draft_public_id}")
     assert r.status_code == 200
     assert len(draft_data["files"]) == 0
     assert draft_data["version"] == 3
 
     # now that they're not attached, we should be able to delete them
     for file_id in attachment_ids:
-        r = api_client.delete("/files/{}".format(file_id))
+        r = api_client.delete(f"/files/{file_id}")
         assert r.status_code == 200
 
 
@@ -272,7 +272,7 @@ def test_update_draft(api_client):
             "version": version,
         }
 
-        r = api_client.put_data("/drafts/{}".format(draft_public_id), updated_draft)
+        r = api_client.put_data(f"/drafts/{draft_public_id}", updated_draft)
         updated_public_id = json.loads(r.data)["id"]
         updated_version = json.loads(r.data)["version"]
 
@@ -301,13 +301,11 @@ def test_delete_draft(api_client, thread, message):
         "body": "updated draft",
         "version": version,
     }
-    r = api_client.put_data("/drafts/{}".format(draft_public_id), updated_draft)
+    r = api_client.put_data(f"/drafts/{draft_public_id}", updated_draft)
     updated_public_id = json.loads(r.data)["id"]
     updated_version = json.loads(r.data)["version"]
 
-    r = api_client.delete(
-        "/drafts/{}".format(updated_public_id), {"version": updated_version}
-    )
+    r = api_client.delete(f"/drafts/{updated_public_id}", {"version": updated_version})
 
     # Check that drafts were deleted
     drafts = api_client.get_data("/drafts")
@@ -330,10 +328,10 @@ def test_delete_draft(api_client, thread, message):
     r = api_client.post_data("/drafts", reply_draft)
     public_id = json.loads(r.data)["id"]
     version = json.loads(r.data)["version"]
-    thread = api_client.get_data("/threads/{}".format(thread_public_id))
+    thread = api_client.get_data(f"/threads/{thread_public_id}")
     assert len(thread["draft_ids"]) > 0
-    api_client.delete("/drafts/{}".format(public_id), {"version": version})
-    thread = api_client.get_data("/threads/{}".format(thread_public_id))
+    api_client.delete(f"/drafts/{public_id}", {"version": version})
+    thread = api_client.get_data(f"/threads/{thread_public_id}")
     assert thread
     assert len(thread["draft_ids"]) == 0
 
@@ -350,7 +348,7 @@ def test_delete_remote_draft(db, api_client, message):
 
     assert public_id == message.public_id and version == message.version
 
-    api_client.delete("/drafts/{}".format(public_id), {"version": version})
+    api_client.delete(f"/drafts/{public_id}", {"version": version})
 
     # Check that drafts were deleted
     drafts = api_client.get_data("/drafts")
@@ -368,7 +366,7 @@ def test_conflicting_updates(api_client):
         "body": "updated draft",
         "version": version,
     }
-    r = api_client.put_data("/drafts/{}".format(original_public_id), updated_draft)
+    r = api_client.put_data(f"/drafts/{original_public_id}", updated_draft)
     assert r.status_code == 200
     updated_public_id = json.loads(r.data)["id"]
     updated_version = json.loads(r.data)["version"]
@@ -379,7 +377,7 @@ def test_conflicting_updates(api_client):
         "body": "conflicting draft",
         "version": version,
     }
-    r = api_client.put_data("/drafts/{}".format(original_public_id), conflicting_draft)
+    r = api_client.put_data(f"/drafts/{original_public_id}", conflicting_draft)
     assert r.status_code == 409
 
     drafts = api_client.get_data("/drafts")
@@ -414,7 +412,7 @@ def test_contacts_updated(api_client):
         "version": draft_version,
     }
 
-    r = api_client.put_data("/drafts/{}".format(draft_id), updated_draft)
+    r = api_client.put_data(f"/drafts/{draft_id}", updated_draft)
     assert r.status_code == 200
 
     r = api_client.get_data("/threads?to=alice@example.com")

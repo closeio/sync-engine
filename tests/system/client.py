@@ -15,7 +15,7 @@ class NylasTestClient(APIClient):
 
     @property
     def namespaces(self):
-        all_ns = super(NylasTestClient, self).namespaces
+        all_ns = super().namespaces
         if self.email_address:
             return all_ns.where(email_address=self.email_address)
         else:

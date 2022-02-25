@@ -219,7 +219,7 @@ def test_api_expand_recurring_message(db, api_client, message, recurring_event):
 
 
 def test_api_get_specific_event(db, api_client, recurring_event):
-    event = api_client.get_data("/events/{}".format(recurring_event.public_id))
+    event = api_client.get_data(f"/events/{recurring_event.public_id}")
     assert event["calendar_id"] == recurring_event.calendar.public_id
     assert event["title"] == "recurring-weekly"
     assert event["recurrence"] is not None
@@ -228,9 +228,7 @@ def test_api_get_specific_event(db, api_client, recurring_event):
 def test_get_specific_event_invalid_tz_fixed(
     db, api_client, recurring_event_with_invalid_tz
 ):
-    event = api_client.get_data(
-        "/events/{}".format(recurring_event_with_invalid_tz.public_id)
-    )
+    event = api_client.get_data(f"/events/{recurring_event_with_invalid_tz.public_id}")
     assert event["calendar_id"] == recurring_event_with_invalid_tz.calendar.public_id
     assert event["title"] == "recurring-weekly"
     assert event["recurrence"]["timezone"] == "Etc/GMT+9"
@@ -239,9 +237,7 @@ def test_get_specific_event_invalid_tz_fixed(
 def test_get_specific_event_with_bonkers_tz(
     db, api_client, recurring_event_with_bonkers_tz
 ):
-    event = api_client.get_data(
-        "/events/{}".format(recurring_event_with_bonkers_tz.public_id)
-    )
+    event = api_client.get_data(f"/events/{recurring_event_with_bonkers_tz.public_id}")
     assert event["calendar_id"] == recurring_event_with_bonkers_tz.calendar.public_id
     assert event["title"] == "recurring-weekly"
     assert event["recurrence"]["timezone"] == "ThisAint/NoTimeZone"

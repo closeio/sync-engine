@@ -28,7 +28,7 @@ def test_basic_auth(db, generic_account):  # noqa
 def test_bearer_token_auth(db, generic_account):  # noqa
     api_client = new_api_client(db, generic_account.namespace)
     api_client.auth_header = {
-        "Authorization": "Bearer {}".format(generic_account.namespace.public_id)
+        "Authorization": f"Bearer {generic_account.namespace.public_id}"
     }
 
     response = api_client.get_raw("/account")
@@ -55,7 +55,7 @@ def test_invalid_basic_auth(db, generic_account):  # noqa
 
 def test_invalid_bearer_token_auth(db, generic_account):  # noqa
     api_client = new_api_client(db, generic_account.namespace)
-    api_client.auth_header = {"Authorization": "Bearer {}".format(BAD_TOKEN)}
+    api_client.auth_header = {"Authorization": f"Bearer {BAD_TOKEN}"}
 
     response = api_client.get_raw("/account")
     assert response.status_code == 401

@@ -383,7 +383,7 @@ def test_api_filter(db, api_client, calendar, default_namespace):
     assert len(events) == 0
 
     # Test ID queries
-    _filter = "event_id={}".format(e3_id)
+    _filter = f"event_id={e3_id}"
     events = api_client.get_data("/events?" + _filter)
     assert len(events) == 1
 
@@ -405,7 +405,7 @@ def test_api_filter(db, api_client, calendar, default_namespace):
     assert len(events) == 1
 
     # Test calendar queries
-    _filter = "calendar_id={}".format(cal_id)
+    _filter = f"calendar_id={cal_id}"
     events = api_client.get_data("/events?" + _filter)
     assert len(events) == 3
 

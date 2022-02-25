@@ -14,7 +14,7 @@ from inbox.util.testutils import FILENAMES
 @pytest.fixture
 def draft(db, default_account):
     return {
-        "subject": "Draft test at {}".format(datetime.utcnow()),
+        "subject": f"Draft test at {datetime.utcnow()}",
         "body": "<html><body><h2>Sea, birds and sand.</h2></body></html>",
         "to": [
             {"name": "The red-haired mermaid", "email": default_account.email_address}
@@ -37,15 +37,15 @@ def test_file_filtering(api_client, uploaded_file_ids, draft):
     results = api_client.get_data("/files")
     assert len(results) == len(uploaded_file_ids)
 
-    results = api_client.get_data("/files?message_id={}".format(d_id))
+    results = api_client.get_data(f"/files?message_id={d_id}")
 
     assert all([d_id in f["message_ids"] for f in results])
     assert len(results) == len(uploaded_file_ids)
 
-    results = api_client.get_data("/files?message_id={}&limit=1".format(d_id))
+    results = api_client.get_data(f"/files?message_id={d_id}&limit=1")
     assert len(results) == 1
 
-    results = api_client.get_data("/files?message_id={}&offset=2".format(d_id))
+    results = api_client.get_data(f"/files?message_id={d_id}&offset=2")
     assert len(results) == 3
 
     results = api_client.get_data("/files?filename=LetMeSendYouEmail.wav")
@@ -85,17 +85,17 @@ def test_delete(api_client, uploaded_file_ids, draft):
     assert r.status_code == 200
 
     # Test that we can delete a non-attachment
-    r = api_client.delete("/files/{}".format(non_attachment_id))
+    r = api_client.delete(f"/files/{non_attachment_id}")
     assert r.status_code == 200
 
-    data = api_client.get_data("/files/{}".format(non_attachment_id))
+    data = api_client.get_data(f"/files/{non_attachment_id}")
     assert data["message"].startswith("Couldn't find file")
 
     # Make sure that we cannot delete attachments
-    r = api_client.delete("/files/{}".format(attachment_id))
+    r = api_client.delete(f"/files/{attachment_id}")
     assert r.status_code == 400
 
-    data = api_client.get_data("/files/{}".format(attachment_id))
+    data = api_client.get_data(f"/files/{attachment_id}")
     assert data["id"] == attachment_id
 
 
@@ -110,7 +110,7 @@ def test_get_with_id(api_client, uploaded_file_ids, filename):
         filename = "ἄνδρα μοι ἔννεπε"
     elif filename == "long-non-ascii-filename.txt":
         filename = 100 * "μ"
-    in_file = api_client.get_data("/files?filename={}".format(filename))[0]
+    in_file = api_client.get_data(f"/files?filename={filename}")[0]
     data = api_client.get_data("/files/{}".format(in_file["id"]))
     assert data["filename"] == filename
 
@@ -145,7 +145,7 @@ def test_download(api_client, uploaded_file_ids, filename):
     elif filename == "long-non-ascii-filename.txt":
         filename = 100 * "μ"
 
-    in_file = api_client.get_data("/files?filename={}".format(filename))[0]
+    in_file = api_client.get_data(f"/files?filename={filename}")[0]
     data = api_client.get_raw("/files/{}/download".format(in_file["id"])).data
 
     path = os.path.join(
@@ -199,9 +199,7 @@ def test_direct_fetching(api_client, db, message, fake_attachment, monkeypatch):
     raw_mock = mock.Mock(return_value=data)
     monkeypatch.setattr("inbox.s3.backends.gmail.get_gmail_raw_contents", raw_mock)
 
-    resp = api_client.get_raw(
-        "/files/{}/download".format(fake_attachment.block.public_id)
-    )
+    resp = api_client.get_raw(f"/files/{fake_attachment.block.public_id}/download")
 
     for m in [get_mock, save_mock, raw_mock]:
         assert m.called

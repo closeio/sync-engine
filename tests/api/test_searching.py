@@ -506,7 +506,7 @@ def test_streaming_search_results(
     search_client = get_search_client(generic_account)
     assert isinstance(search_client, IMAPSearchClient)
 
-    url = "/{}/search/streaming?q=fantastic".format(endpoint)
+    url = f"/{endpoint}/search/streaming?q=fantastic"
     raw_data = imap_api_client.get_raw(url).get_data(as_text=True)
     assert len(conn._responses) == 0, "Search should go through both folders"
 

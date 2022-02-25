@@ -41,11 +41,11 @@ def setup_account(message, thread, label, contact, event):
 def test_read_endpoints(db, setup_account, api_client, default_account):
     # Read operations succeed.
     for resource, public_id in setup_account.items():
-        endpoint = "/{}s".format(resource)
+        endpoint = f"/{resource}s"
         r = api_client.get_raw(endpoint)
         assert r.status_code == 200
 
-        read_endpoint = "{}/{}".format(endpoint, public_id)
+        read_endpoint = f"{endpoint}/{public_id}"
         r = api_client.get_raw(read_endpoint)
         assert r.status_code == 200
 
@@ -54,11 +54,11 @@ def test_read_endpoints(db, setup_account, api_client, default_account):
 
     # Read operations on an invalid account also succeed.
     for resource, public_id in setup_account.items():
-        endpoint = "/{}s".format(resource)
+        endpoint = f"/{resource}s"
         r = api_client.get_raw(endpoint)
         assert r.status_code == 200
 
-        read_endpoint = "{}/{}".format(endpoint, public_id)
+        read_endpoint = f"{endpoint}/{public_id}"
         r = api_client.get_raw(read_endpoint)
         assert r.status_code == 200
 
@@ -69,7 +69,7 @@ def test_search_endpoints(
 ):
     # Message, thread search succeeds.
     for endpoint in ("messages", "threads"):
-        r = api_client.get_raw("/{}/search?q=queryme".format(endpoint))
+        r = api_client.get_raw(f"/{endpoint}/search?q=queryme")
         assert r.status_code == 200
 
     default_account.sync_state = "invalid"
@@ -77,7 +77,7 @@ def test_search_endpoints(
 
     # Message, thread search on an invalid account fails with an HTTP 403.
     for endpoint in ("messages", "threads"):
-        r = api_client.get_raw("/{}/search?q=queryme".format(endpoint))
+        r = api_client.get_raw(f"/{endpoint}/search?q=queryme")
         assert r.status_code == 403
 
 
@@ -110,6 +110,6 @@ def test_write_endpoints(db, setup_account, api_client, default_account):
     r = api_client.put_data(endpoint, data={"starred": True})
     assert r.status_code == 403
 
-    endpoint = "/drafts/{}".format(draft_id)
+    endpoint = f"/drafts/{draft_id}"
     r = api_client.delete(endpoint)
     assert r.status_code == 403

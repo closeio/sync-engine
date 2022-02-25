@@ -42,22 +42,22 @@ def test_filtering(db, api_client, default_namespace):
     unread = not message.is_read
     starred = message.is_starred
 
-    results = api_client.get_data("/threads?thread_id={}".format(thread.public_id))
+    results = api_client.get_data(f"/threads?thread_id={thread.public_id}")
     assert len(results) == 1
 
-    results = api_client.get_data("/messages?thread_id={}".format(thread.public_id))
+    results = api_client.get_data(f"/messages?thread_id={thread.public_id}")
     assert len(results) == 1
 
-    results = api_client.get_data("/threads?cc={}".format(message.cc_addr))
+    results = api_client.get_data(f"/threads?cc={message.cc_addr}")
     assert len(results) == 0
 
-    results = api_client.get_data("/messages?cc={}".format(message.cc_addr))
+    results = api_client.get_data(f"/messages?cc={message.cc_addr}")
     assert len(results) == 0
 
-    results = api_client.get_data("/threads?bcc={}".format(message.bcc_addr))
+    results = api_client.get_data(f"/threads?bcc={message.bcc_addr}")
     assert len(results) == 0
 
-    results = api_client.get_data("/messages?bcc={}".format(message.bcc_addr))
+    results = api_client.get_data(f"/messages?bcc={message.bcc_addr}")
     assert len(results) == 0
 
     results = api_client.get_data("/threads?filename=test")
@@ -66,19 +66,19 @@ def test_filtering(db, api_client, default_namespace):
     results = api_client.get_data("/messages?filename=test")
     assert len(results) == 0
 
-    results = api_client.get_data("/threads?started_after={}".format(t_start - 1))
+    results = api_client.get_data(f"/threads?started_after={t_start - 1}")
     assert len(results) == 1
 
-    results = api_client.get_data("/messages?started_after={}".format(t_start - 1))
+    results = api_client.get_data(f"/messages?started_after={t_start - 1}")
     assert len(results) == 1
 
     results = api_client.get_data(
-        "/messages?last_message_before={}&limit=1".format(t_lastmsg + 1)
+        f"/messages?last_message_before={t_lastmsg + 1}&limit=1"
     )
     assert len(results) == 1
 
     results = api_client.get_data(
-        "/threads?last_message_before={}&limit=1".format(t_lastmsg + 1)
+        f"/threads?last_message_before={t_lastmsg + 1}&limit=1"
     )
     assert len(results) == 1
 
@@ -91,22 +91,22 @@ def test_filtering(db, api_client, default_namespace):
     results = api_client.get_data("/messages?in=banana%20rama")
     assert len(results) == 0
 
-    results = api_client.get_data("/threads?subject={}".format(subject))
+    results = api_client.get_data(f"/threads?subject={subject}")
     assert len(results) == 1
 
-    results = api_client.get_data("/messages?subject={}".format(subject))
+    results = api_client.get_data(f"/messages?subject={subject}")
     assert len(results) == 1
 
-    results = api_client.get_data("/threads?unread={}".format(unread))
+    results = api_client.get_data(f"/threads?unread={unread}")
     assert len(results) == 1
 
-    results = api_client.get_data("/messages?unread={}".format((not unread)))
+    results = api_client.get_data(f"/messages?unread={not unread}")
     assert len(results) == 0
 
-    results = api_client.get_data("/threads?starred={}".format((not starred)))
+    results = api_client.get_data(f"/threads?starred={not starred}")
     assert len(results) == 0
 
-    results = api_client.get_data("/messages?starred={}".format(starred))
+    results = api_client.get_data(f"/messages?starred={starred}")
     assert len(results) == 1
 
     for _ in range(3):
@@ -136,9 +136,9 @@ def test_filtering(db, api_client, default_namespace):
     )
     assert len(alternate_results) == len(results)
 
-    results = api_client.get_data("/messages?from={}".format(from_addr))
+    results = api_client.get_data(f"/messages?from={from_addr}")
     assert len(results) == 1
-    results = api_client.get_data("/threads?from={}".format(from_addr))
+    results = api_client.get_data(f"/threads?from={from_addr}")
     assert len(results) == 1
 
     early_time = received_date - datetime.timedelta(seconds=1)
@@ -147,63 +147,63 @@ def test_filtering(db, api_client, default_namespace):
     late_ts = calendar.timegm(late_time.utctimetuple())
 
     results = api_client.get_data(
-        "/messages?subject={}&started_before={}".format(subject, early_ts)
+        f"/messages?subject={subject}&started_before={early_ts}"
     )
     assert len(results) == 0
     results = api_client.get_data(
-        "/threads?subject={}&started_before={}".format(subject, early_ts)
-    )
-    assert len(results) == 0
-
-    results = api_client.get_data(
-        "/messages?subject={}&started_before={}".format(subject, late_ts)
-    )
-    assert len(results) == 1
-    results = api_client.get_data(
-        "/threads?subject={}&started_before={}".format(subject, late_ts)
-    )
-    assert len(results) == 1
-
-    results = api_client.get_data(
-        "/messages?subject={}&last_message_after={}".format(subject, early_ts)
-    )
-    assert len(results) == 1
-    results = api_client.get_data(
-        "/threads?subject={}&last_message_after={}".format(subject, early_ts)
-    )
-    assert len(results) == 1
-
-    results = api_client.get_data(
-        "/messages?subject={}&last_message_after={}".format(subject, late_ts)
-    )
-    assert len(results) == 0
-    results = api_client.get_data(
-        "/threads?subject={}&last_message_after={}".format(subject, late_ts)
+        f"/threads?subject={subject}&started_before={early_ts}"
     )
     assert len(results) == 0
 
     results = api_client.get_data(
-        "/messages?subject={}&started_before={}".format(subject, early_ts)
+        f"/messages?subject={subject}&started_before={late_ts}"
+    )
+    assert len(results) == 1
+    results = api_client.get_data(
+        f"/threads?subject={subject}&started_before={late_ts}"
+    )
+    assert len(results) == 1
+
+    results = api_client.get_data(
+        f"/messages?subject={subject}&last_message_after={early_ts}"
+    )
+    assert len(results) == 1
+    results = api_client.get_data(
+        f"/threads?subject={subject}&last_message_after={early_ts}"
+    )
+    assert len(results) == 1
+
+    results = api_client.get_data(
+        f"/messages?subject={subject}&last_message_after={late_ts}"
     )
     assert len(results) == 0
     results = api_client.get_data(
-        "/threads?subject={}&started_before={}".format(subject, early_ts)
+        f"/threads?subject={subject}&last_message_after={late_ts}"
     )
     assert len(results) == 0
 
     results = api_client.get_data(
-        "/messages?subject={}&started_before={}".format(subject, late_ts)
+        f"/messages?subject={subject}&started_before={early_ts}"
+    )
+    assert len(results) == 0
+    results = api_client.get_data(
+        f"/threads?subject={subject}&started_before={early_ts}"
+    )
+    assert len(results) == 0
+
+    results = api_client.get_data(
+        f"/messages?subject={subject}&started_before={late_ts}"
     )
     assert len(results) == 1
     results = api_client.get_data(
-        "/threads?subject={}&started_before={}".format(subject, late_ts)
+        f"/threads?subject={subject}&started_before={late_ts}"
     )
     assert len(results) == 1
 
-    results = api_client.get_data("/messages?from={}&to={}".format(from_addr, to_addr))
+    results = api_client.get_data(f"/messages?from={from_addr}&to={to_addr}")
     assert len(results) == 1
 
-    results = api_client.get_data("/threads?from={}&to={}".format(from_addr, to_addr))
+    results = api_client.get_data(f"/threads?from={from_addr}&to={to_addr}")
     assert len(results) == 1
 
     results = api_client.get_data(
@@ -371,7 +371,7 @@ def test_filtering_accounts(db, test_client, default_namespace):
     all_accounts = json.loads(test_client.get("/accounts/?limit=1").data)
     assert len(all_accounts) == 1
 
-    filter_ = "?email_address={}".format(email)
+    filter_ = f"?email_address={email}"
     all_accounts = json.loads(test_client.get("/accounts/" + filter_).data)
     assert all_accounts[0]["email_address"] == email
 
@@ -392,11 +392,11 @@ def test_namespace_limiting(db, api_client, default_namespaces):
     db.session.commit()
 
     for _ in namespaces:
-        r = api_client.get_data("/threads?subject={}".format(subject))
+        r = api_client.get_data(f"/threads?subject={subject}")
         assert len(r) == 1
 
-        r = api_client.get_data("/messages?subject={}".format(subject))
+        r = api_client.get_data(f"/messages?subject={subject}")
         assert len(r) == 1
 
-        r = api_client.get_data("/files?filename={}".format(subject))
+        r = api_client.get_data(f"/files?filename={subject}")
         assert len(r) == 1

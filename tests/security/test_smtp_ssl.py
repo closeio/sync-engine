@@ -95,7 +95,7 @@ def local_smtp_account(db):
 @pytest.fixture
 def example_draft(db, default_account):
     return {
-        "subject": "Draft test at {}".format(datetime.datetime.utcnow()),
+        "subject": f"Draft test at {datetime.datetime.utcnow()}",
         "body": "<html><body><h2>Sea, birds and sand.</h2></body></html>",
         "to": [
             {"name": "The red-haired mermaid", "email": default_account.email_address}

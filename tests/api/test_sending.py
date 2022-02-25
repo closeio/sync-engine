@@ -221,7 +221,7 @@ def test_send_existing_draft(patch_smtp, api_client, example_draft):
     drafts = api_client.get_data("/drafts")
     assert not drafts
 
-    message = api_client.get_data("/messages/{}".format(draft_public_id))
+    message = api_client.get_data(f"/messages/{draft_public_id}")
     assert message["object"] == "message"
 
 
@@ -711,7 +711,7 @@ def test_sent_messages_shown_in_delta(patch_smtp, api_client, example_draft):
     cursor = json.loads(r.data)["cursor"]
     r = api_client.post_data("/send", example_draft)
     message_id = json.loads(r.data)["id"]
-    deltas = api_client.get_data("/delta?cursor={}".format(cursor))["deltas"]
+    deltas = api_client.get_data(f"/delta?cursor={cursor}")["deltas"]
     message_delta = next((d for d in deltas if d["id"] == message_id), None)
     assert message_delta is not None
     assert message_delta["object"] == "message"
@@ -735,7 +735,7 @@ def test_multisend_init_new_draft(patch_smtp, api_client, example_draft):
     assert not drafts
 
     # We can retrieve it as a message, but it's not "sent" yet
-    message = api_client.get_data("/messages/{}".format(draft_public_id))
+    message = api_client.get_data(f"/messages/{draft_public_id}")
     assert message["object"] == "message"
 
 
@@ -974,7 +974,7 @@ def test_inline_image_send(patch_smtp, api_client, uploaded_file_ids):
         "/send",
         {
             "subject": "Inline image test",
-            "body": "Before image\r\n[cid:{}]\r\nAfter image".format(file_id),
+            "body": f"Before image\r\n[cid:{file_id}]\r\nAfter image",
             "file_ids": [file_id],
             "to": [{"name": "Foo Bar", "email": "foobar@nylas.com"}],
         },
@@ -985,7 +985,7 @@ def test_inline_image_send(patch_smtp, api_client, uploaded_file_ids):
     parsed = mime.from_string(msg)
     for mimepart in parsed.walk():
         if mimepart.headers["Content-Type"] == "image/jpeg":
-            assert mimepart.headers["Content-Id"] == "<{}>".format(file_id)
+            assert mimepart.headers["Content-Id"] == f"<{file_id}>"
             assert mimepart.headers["Content-Disposition"][0] == "inline"
 
 
@@ -1008,5 +1008,5 @@ def test_inline_html_image_send(patch_smtp, api_client, uploaded_file_ids):
     parsed = mime.from_string(msg)
     for mimepart in parsed.walk():
         if mimepart.headers["Content-Type"] == "image/jpeg":
-            assert mimepart.headers["Content-Id"] == "<{}>".format(file_id)
+            assert mimepart.headers["Content-Id"] == f"<{file_id}>"
             assert mimepart.headers["Content-Disposition"][0] == "inline"

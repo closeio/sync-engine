@@ -83,11 +83,11 @@ def test_multi_sending(client):
     )
     recv_body = subject + "Different body"
 
-    resp = client.session.post("{}/send-multiple".format(client.api_server))
+    resp = client.session.post(f"{client.api_server}/send-multiple")
     assert resp.status_code == 200
 
     resp = client.session.post(
-        "{}/send-multiple/{}".format(client.api_server, draft.id),
+        f"{client.api_server}/send-multiple/{draft.id}",
         data=json.dumps(
             {"body": recv_body, "send_to": [{"email": client.email_address}]}
         ),
@@ -95,9 +95,7 @@ def test_multi_sending(client):
     assert resp.status_code == 200
     wait_for_send(client, subject)
 
-    resp = client.session.delete(
-        "{}/send-multiple/{}".format(client.api_server, draft.id)
-    )
+    resp = client.session.delete(f"{client.api_server}/send-multiple/{draft.id}")
     assert resp.status_code == 200
     wait_for_send(client, subject)
 

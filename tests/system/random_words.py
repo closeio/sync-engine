@@ -11,17 +11,17 @@ DICT_FILE = "/etc/dictionaries-common/words"
 def get_words():
     words = []
     try:
-        with open(DICT_FILE, "r") as f:
+        with open(DICT_FILE) as f:
             words.extend(f.read().split("\n"))
-    except IOError:
+    except OSError:
         try:
-            with open("LICENSE", "r") as f:
+            with open("LICENSE") as f:
                 words.extend(
                     f.read()
                     .translate(string.maketrans("", ""), string.punctuation)
                     .split()
                 )
-        except IOError:
+        except OSError:
             print(
                 json.dumps(
                     {"error": "couldn't open dictionary file", "filename": DICT_FILE}
@@ -40,7 +40,7 @@ def random_words(count=None, sig="me"):
         random_word = words[word_index]
 
         salutation = ["Hey", "Hi", "Ahoy", "Yo"][int(random.uniform(0, 3))]
-        random_word_list.append("{} {},\n\n".format(salutation, random_word))
+        random_word_list.append(f"{salutation} {random_word},\n\n")
 
     just_entered = False
     for i in range(count):
@@ -70,12 +70,12 @@ def random_words(count=None, sig="me"):
         if int(random.uniform(1, 2)) == 1:
             salutation = ["Cheers", "Adios", "Ciao", "Bye"][int(random.uniform(0, 3))]
             punct = [".", ",", "!", ""][int(random.uniform(0, 3))]
-            text += "\n\n{}{}\n".format(salutation, punct)
+            text += f"\n\n{salutation}{punct}\n"
         else:
             text += "\n\n"
 
         punct = ["-", "- ", "--", "-- "][int(random.uniform(0, 3))]
-        text += "{}{}".format(punct, sig)
+        text += f"{punct}{sig}"
 
     return text
 

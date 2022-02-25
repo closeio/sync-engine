@@ -38,12 +38,12 @@ def test_resource_views(
     # Folders don't work with GMail accounts, need generic IMAP
     if resource_name == "folders":
         api_client = new_api_client(db, generic_account.namespace)
-    elements = api_client.get_data("/{}".format(resource_name))
-    count = api_client.get_data("/{}?view=count".format(resource_name))
+    elements = api_client.get_data(f"/{resource_name}")
+    count = api_client.get_data(f"/{resource_name}?view=count")
 
     assert count["count"] == len(elements)
 
-    ids = api_client.get_data("/{}?view=ids".format(resource_name))
+    ids = api_client.get_data(f"/{resource_name}?view=ids")
 
     for i, elem in enumerate(elements):
         assert isinstance(ids[i], str), "&views=ids should return string"

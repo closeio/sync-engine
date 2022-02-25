@@ -73,13 +73,13 @@ def test_events_are_condensed(api_client, message):
 
     # Modify a message, then modify it again
     message_id = api_client.get_data("/messages/")[0]["id"]
-    message_path = "/messages/{}".format(message_id)
+    message_path = f"/messages/{message_id}"
     api_client.put_data(message_path, {"unread": True})
     api_client.put_data(message_path, {"unread": False})
     api_client.put_data(message_path, {"unread": True})
 
     # Check that successive modifies are condensed.
-    sync_data = api_client.get_data("/delta?cursor={}".format(cursor))
+    sync_data = api_client.get_data(f"/delta?cursor={cursor}")
     deltas = sync_data["deltas"]
     # A message modify propagates to its thread
     message_deltas = [d for d in deltas if d["object"] == "message"]
@@ -107,11 +107,11 @@ def test_message_events_are_propagated_to_thread(api_client, message):
     assert thread["unread"] is True
 
     # Modify a `propagated_attribute` of the message
-    message_path = "/messages/{}".format(message_id)
+    message_path = f"/messages/{message_id}"
     api_client.put_data(message_path, {"unread": False})
 
     # Verify that a `message` and a `thread` modify delta is returned
-    sync_data = api_client.get_data("/delta?cursor={}".format(cursor))
+    sync_data = api_client.get_data(f"/delta?cursor={cursor}")
     deltas = sync_data["deltas"]
     assert len(deltas) == 2
 
@@ -139,9 +139,7 @@ def test_handle_missing_objects(api_client, db, thread, default_namespace):
     for message in messages:
         db.session.delete(message)
     db.session.commit()
-    sync_data = api_client.get_data(
-        "/delta?cursor={}&exclude_types=thread".format(cursor)
-    )
+    sync_data = api_client.get_data(f"/delta?cursor={cursor}&exclude_types=thread")
     assert len(sync_data["deltas"]) == 100
     assert all(delta["event"] == "delete" for delta in sync_data["deltas"])
 
@@ -157,18 +155,18 @@ def test_exclude_account(api_client, db, default_namespace, thread):
 
     # Verify the default value of `exclude_account`=True and
     # the account delta is *not* included
-    sync_data = api_client.get_data("/delta?cursor={}".format(cursor))
+    sync_data = api_client.get_data(f"/delta?cursor={cursor}")
     assert len(sync_data["deltas"]) == 2
-    assert set([d["object"] for d in sync_data["deltas"]]) == set(["message", "thread"])
+    assert {d["object"] for d in sync_data["deltas"]} == {"message", "thread"}
 
     # Verify setting `exclude_account`=True returns the account delta as well.
-    sync_data = api_client.get_data(
-        "/delta?cursor={}&exclude_account=false".format(cursor)
-    )
+    sync_data = api_client.get_data(f"/delta?cursor={cursor}&exclude_account=false")
     assert len(sync_data["deltas"]) == 3
-    assert set([d["object"] for d in sync_data["deltas"]]) == set(
-        ["message", "thread", "account"]
-    )
+    assert {d["object"] for d in sync_data["deltas"]} == {
+        "message",
+        "thread",
+        "account",
+    }
 
 
 def test_account_delta(api_client, db, default_namespace):
@@ -181,9 +179,7 @@ def test_account_delta(api_client, db, default_namespace):
     default_namespace.account.sync_state = "invalid"
     db.session.commit()
 
-    sync_data = api_client.get_data(
-        "/delta?cursor={}&exclude_account=false".format(cursor)
-    )
+    sync_data = api_client.get_data(f"/delta?cursor={cursor}&exclude_account=false")
     assert len(sync_data["deltas"]) == 1
     delta = sync_data["deltas"][0]
     assert delta["object"] == "account"
@@ -201,9 +197,7 @@ def test_account_delta(api_client, db, default_namespace):
     # Create an new `account` delta
     default_namespace.account.sync_state = "running"
     db.session.commit()
-    sync_data = api_client.get_data(
-        "/delta?cursor={}&exclude_account=false".format(cursor)
-    )
+    sync_data = api_client.get_data(f"/delta?cursor={cursor}&exclude_account=false")
 
     assert len(sync_data["deltas"]) == 1
     delta = sync_data["deltas"][0]

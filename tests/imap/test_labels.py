@@ -42,10 +42,10 @@ def folder_and_message_maps(db, default_account):
 def add_inbox_label(db, default_account, message):
     assert len(message.imapuids) == 1
     imapuid = message.imapuids[0]
-    assert set([c.name for c in imapuid.categories]) == set(["all"])
+    assert {c.name for c in imapuid.categories} == {"all"}
     imapuid.update_labels(["\\Inbox"])
     db.session.commit()
-    assert set([c.name for c in imapuid.categories]) == set(["all", "inbox"])
+    assert {c.name for c in imapuid.categories} == {"all", "inbox"}
     update_message_metadata(db.session, default_account, message, False)
     db.session.commit()
     return message
@@ -57,7 +57,7 @@ def add_custom_label(db, default_account, message):
     existing = [c.name for c in imapuid.categories][0]
     imapuid.update_labels(["<3"])
     db.session.commit()
-    assert set([c.name for c in imapuid.categories]) == set([existing, ""])
+    assert {c.name for c in imapuid.categories} == {existing, ""}
     update_message_metadata(db.session, default_account, message, False)
     db.session.commit()
     return message
@@ -68,7 +68,7 @@ def test_validation(db, api_client, default_account, folder_and_message_maps, la
     folder_map, message_map = folder_and_message_maps
 
     message = message_map[label]
-    resp_data = api_client.get_data("/messages/{}".format(message.public_id))
+    resp_data = api_client.get_data(f"/messages/{message.public_id}")
     labels = resp_data["labels"]
     assert len(labels) == 1
     assert labels[0]["name"] == label
@@ -84,14 +84,14 @@ def test_validation(db, api_client, default_account, folder_and_message_maps, la
         labels_to_add += [folder_map[key].category.public_id]
 
     response = api_client.put_data(
-        "/messages/{}".format(message.public_id), {"label_ids": labels_to_add}
+        f"/messages/{message.public_id}", {"label_ids": labels_to_add}
     )
     resp_data = json.loads(response.data)
     assert response.status_code == 400
     assert resp_data.get("type") == "invalid_request_error"
 
     response = api_client.put_data(
-        "/messages/{}".format(message.public_id),
+        f"/messages/{message.public_id}",
         {"label_ids": labels_to_add + [existing_label]},
     )
     resp_data = json.loads(response.data)
@@ -100,9 +100,7 @@ def test_validation(db, api_client, default_account, folder_and_message_maps, la
 
     # Removing all labels is not allowed, because this will remove
     # the required label (one of 'all'/ 'trash'/ 'spam') too.
-    response = api_client.put_data(
-        "/messages/{}".format(message.public_id), {"label_ids": []}
-    )
+    response = api_client.put_data(f"/messages/{message.public_id}", {"label_ids": []})
     resp_data = json.loads(response.data)
     assert response.status_code == 400
     assert resp_data.get("type") == "invalid_request_error"
@@ -124,7 +122,7 @@ def test_adding_a_mutually_exclusive_label_replaces_the_other(
             continue
 
         message = message_map[key]
-        resp_data = api_client.get_data("/messages/{}".format(message.public_id))
+        resp_data = api_client.get_data(f"/messages/{message.public_id}")
         labels = resp_data["labels"]
         assert len(labels) == 1
         assert labels[0]["name"] == key
@@ -133,7 +131,7 @@ def test_adding_a_mutually_exclusive_label_replaces_the_other(
         # Adding 'all'/ 'trash'/ 'spam' removes the existing one,
         # irrespective of whether it's provided in the request or not.
         response = api_client.put_data(
-            "/messages/{}".format(message.public_id),
+            f"/messages/{message.public_id}",
             {"label_ids": [label_to_add.category.public_id, existing_label]},
         )
         labels = json.loads(response.data)["labels"]
@@ -152,16 +150,16 @@ def test_adding_trash_or_spam_removes_inbox(
 
     message = message_map["all"]
     add_inbox_label(db, default_account, message)
-    resp_data = api_client.get_data("/messages/{}".format(message.public_id))
+    resp_data = api_client.get_data(f"/messages/{message.public_id}")
     labels = resp_data["labels"]
     assert len(labels) == 2
-    assert set([lbl["name"] for lbl in labels]) == set(["all", "inbox"])
+    assert {lbl["name"] for lbl in labels} == {"all", "inbox"}
 
     # Adding 'trash'/ 'spam' removes 'inbox' (and 'all'),
     # irrespective of whether it's provided in the request or not.
     label_to_add = folder_map[label]
     response = api_client.put_data(
-        "/messages/{}".format(message.public_id),
+        f"/messages/{message.public_id}",
         {
             "label_ids": [label_to_add.category.public_id]
             + [lbl["id"] for lbl in labels]
@@ -185,7 +183,7 @@ def test_adding_a_mutually_exclusive_label_does_not_affect_custom_labels(
 
         message = message_map[key]
         add_custom_label(db, default_account, message)
-        resp_data = api_client.get_data("/messages/{}".format(message.public_id))
+        resp_data = api_client.get_data(f"/messages/{message.public_id}")
         labels = resp_data["labels"]
         assert len(labels) == 2
         assert key in [lbl["name"] for lbl in labels]
@@ -193,7 +191,7 @@ def test_adding_a_mutually_exclusive_label_does_not_affect_custom_labels(
 
         # Adding only 'all'/ 'trash'/ 'spam' does not change custom labels.
         response = api_client.put_data(
-            "/messages/{}".format(message.public_id),
+            f"/messages/{message.public_id}",
             {
                 "label_ids": [label_to_add.category.public_id]
                 + [lbl["id"] for lbl in labels]
@@ -215,7 +213,7 @@ def test_adding_inbox_adds_all_and_removes_trash_spam(
     folder_map, message_map = folder_and_message_maps
 
     message = message_map[label]
-    resp_data = api_client.get_data("/messages/{}".format(message.public_id))
+    resp_data = api_client.get_data(f"/messages/{message.public_id}")
     labels = resp_data["labels"]
     assert len(labels) == 1
     assert labels[0]["name"] == label
@@ -226,13 +224,13 @@ def test_adding_inbox_adds_all_and_removes_trash_spam(
 
     # Adding 'inbox' adds 'all', replacing 'trash'/ 'spam' if needed.
     response = api_client.put_data(
-        "/messages/{}".format(message.public_id),
+        f"/messages/{message.public_id}",
         {"label_ids": [inbox_label.category.public_id, existing_label]},
     )
     db.session.commit()
     labels = json.loads(response.data)["labels"]
     assert len(labels) == 2
-    assert set([lbl["name"] for lbl in labels]) == set(["all", "inbox"])
+    assert {lbl["name"] for lbl in labels} == {"all", "inbox"}
 
 
 @pytest.mark.parametrize("label", ["all", "trash", "spam"])
@@ -242,7 +240,7 @@ def test_adding_a_custom_label_preserves_other_labels(
     folder_map, message_map = folder_and_message_maps
 
     message = message_map[label]
-    resp_data = api_client.get_data("/messages/{}".format(message.public_id))
+    resp_data = api_client.get_data(f"/messages/{message.public_id}")
     labels = resp_data["labels"]
     assert len(labels) == 1
     assert labels[0]["name"] == label
@@ -254,12 +252,12 @@ def test_adding_a_custom_label_preserves_other_labels(
     # Adding only a custom label does not move a message to a different folder
     # i.e. does not change its 'all'/ 'trash'/ 'spam' labels.
     response = api_client.put_data(
-        "/messages/{}".format(message.public_id),
+        f"/messages/{message.public_id}",
         {"label_ids": [custom_label.category.public_id, existing_label]},
     )
     labels = json.loads(response.data)["labels"]
     assert len(labels) == 2
-    assert set([lbl["name"] for lbl in labels]) == set([label, None])
+    assert {lbl["name"] for lbl in labels} == {label, None}
     assert "<3" in [lbl["display_name"] for lbl in labels]
 
 
@@ -270,7 +268,7 @@ def test_removing_a_mutually_exclusive_label_does_not_orphan_a_message(
     folder_map, message_map = folder_and_message_maps
 
     message = message_map[label]
-    resp_data = api_client.get_data("/messages/{}".format(message.public_id))
+    resp_data = api_client.get_data(f"/messages/{message.public_id}")
     labels = resp_data["labels"]
     assert len(labels) == 1
     assert labels[0]["name"] == label
@@ -281,10 +279,10 @@ def test_removing_a_mutually_exclusive_label_does_not_orphan_a_message(
     # Removing a message's ONLY folder "label" does not remove it.
     # Gmail messages MUST belong to one of 'all'/ 'trash'/ 'spam'.
     response = api_client.put_data(
-        "/messages/{}".format(message.public_id),
+        f"/messages/{message.public_id}",
         {"label_ids": [custom_label.category.public_id]},
     )
     labels = json.loads(response.data)["labels"]
     assert len(labels) == 2
-    assert set([lbl["name"] for lbl in labels]) == set([label, None])
+    assert {lbl["name"] for lbl in labels} == {label, None}
     assert "<3" in [lbl["display_name"] for lbl in labels]

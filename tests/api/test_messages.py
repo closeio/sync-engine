@@ -96,7 +96,7 @@ bicycle rights. Thundercats kale chips church-key American Apparel.
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_rfc822_format(stub_message_from_raw, api_client, mime_message):
     """ Test the API response to retreive raw message contents """
-    full_path = "/messages/{}".format(stub_message_from_raw.public_id)
+    full_path = f"/messages/{stub_message_from_raw.public_id}"
 
     resp = api_client.get_raw(full_path, headers={"Accept": "message/rfc822"})
     assert resp.data == get_from_blockstore(stub_message_from_raw.data_sha256)
@@ -116,7 +116,7 @@ def test_direct_fetching(stub_message_from_raw, api_client, mime_message, monkey
     raw_mock = mock.Mock(return_value=b"Return contents")
     monkeypatch.setattr("inbox.s3.backends.gmail.get_gmail_raw_contents", raw_mock)
 
-    full_path = "/messages/{}".format(stub_message_from_raw.public_id)
+    full_path = f"/messages/{stub_message_from_raw.public_id}"
 
     resp = api_client.get_raw(full_path, headers={"Accept": "message/rfc822"})
 
@@ -134,7 +134,7 @@ def test_sender_and_participants(stub_message, api_client, api_version):
     headers["Api-Version"] = api_version
 
     resp = api_client.get_raw(
-        "/threads/{}".format(stub_message.thread.public_id), headers=headers
+        f"/threads/{stub_message.thread.public_id}", headers=headers
     )
     assert resp.status_code == 200
     resp_dict = json.loads(resp.data)
@@ -196,8 +196,7 @@ def test_expanded_threads(stub_message, api_client, api_version):
 
     # /threads/<thread_id>
     resp = api_client.get_raw(
-        "/threads/{}?view=expanded".format(stub_message.thread.public_id),
-        headers=headers,
+        f"/threads/{stub_message.thread.public_id}?view=expanded", headers=headers,
     )
     assert resp.status_code == 200
     resp_dict = json.loads(resp.data)
@@ -237,9 +236,7 @@ def test_expanded_message(stub_message, api_client):
         assert all(x in msg_dict for x in valid_keys)
 
     # /message/<message_id>
-    resp = api_client.get_raw(
-        "/messages/{}?view=expanded".format(stub_message.public_id)
-    )
+    resp = api_client.get_raw(f"/messages/{stub_message.public_id}?view=expanded")
     assert resp.status_code == 200
     resp_dict = json.loads(resp.data)
     _check_json_message(resp_dict)
@@ -264,13 +261,13 @@ def test_message_folders(db, generic_account):
         db.session, generic_account.namespace.id, generic_thread
     )
 
-    resp_data = api_client.get_data("/threads/{}".format(generic_thread.public_id))
+    resp_data = api_client.get_data(f"/threads/{generic_thread.public_id}")
 
     assert resp_data["id"] == generic_thread.public_id
     assert resp_data["object"] == "thread"
     assert "folders" in resp_data and "labels" not in resp_data
 
-    resp_data = api_client.get_data("/messages/{}".format(generic_message.public_id))
+    resp_data = api_client.get_data(f"/messages/{generic_message.public_id}")
 
     assert resp_data["id"] == generic_message.public_id
     assert resp_data["object"] == "message"
@@ -287,13 +284,13 @@ def test_message_labels(db, gmail_account):
         db.session, gmail_account.namespace.id, gmail_thread
     )
 
-    resp_data = api_client.get_data("/threads/{}".format(gmail_thread.public_id))
+    resp_data = api_client.get_data(f"/threads/{gmail_thread.public_id}")
 
     assert resp_data["id"] == gmail_thread.public_id
     assert resp_data["object"] == "thread"
     assert "labels" in resp_data and "folders" not in resp_data
 
-    resp_data = api_client.get_data("/messages/{}".format(gmail_message.public_id))
+    resp_data = api_client.get_data(f"/messages/{gmail_message.public_id}")
 
     assert resp_data["id"] == gmail_message.public_id
     assert resp_data["object"] == "message"
@@ -318,7 +315,7 @@ def test_message_label_updates(
     )
 
     resp_data = api_client.get_data(
-        "/messages/{}".format(gmail_message.public_id), headers=headers
+        f"/messages/{gmail_message.public_id}", headers=headers
     )
 
     assert resp_data["labels"] == []
@@ -327,7 +324,7 @@ def test_message_label_updates(
     update = dict(labels=[category.public_id])
 
     resp = api_client.put_data(
-        "/messages/{}".format(gmail_message.public_id), update, headers=headers
+        f"/messages/{gmail_message.public_id}", update, headers=headers
     )
 
     resp_data = json.loads(resp.data)

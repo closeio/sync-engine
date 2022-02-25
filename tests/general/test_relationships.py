@@ -28,7 +28,7 @@ def test_category_delete(db, gmail_account):
             db.session, gmail_account.namespace.id, generic_thread
         )
         data = {"label_ids": [category_public_id]}
-        resp = api_client.put_data("/messages/{}".format(gen_message.public_id), data)
+        resp = api_client.put_data(f"/messages/{gen_message.public_id}", data)
         assert resp.status_code == 200
 
     associated_mcs = (
@@ -68,7 +68,7 @@ def test_message_delete(db, gmail_account):
         category_ids.append(json.loads(po_data.data)["id"])
 
     data = {"label_ids": category_ids}
-    resp = api_client.put_data("/messages/{}".format(gen_message.public_id), data)
+    resp = api_client.put_data(f"/messages/{gen_message.public_id}", data)
     assert resp.status_code == 200
 
     associated_mcs = (

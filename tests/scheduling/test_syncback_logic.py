@@ -96,11 +96,11 @@ def test_all_keys_are_assigned_exactly_once(patched_enginemanager):
 @pytest.mark.skipif(True, reason="Need to investigate")
 def test_actions_are_claimed(purge_accounts_and_actions, patched_task):
     with session_scope_by_shard_id(0) as db_session:
-        account = add_generic_imap_account(db_session, email_address=f"{0}@test.com")
+        account = add_generic_imap_account(db_session, email_address="0@test.com")
         schedule_test_action(db_session, account)
 
     with session_scope_by_shard_id(1) as db_session:
-        account = add_generic_imap_account(db_session, email_address=f"{1}@test.com")
+        account = add_generic_imap_account(db_session, email_address="1@test.com")
         schedule_test_action(db_session, account)
 
     service = SyncbackService(

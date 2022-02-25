@@ -44,7 +44,7 @@ def purge_other_accounts(default_account=None):
 
 def test_accounts_started_when_process_previously_assigned(db, default_account, config):
     config["SYNC_STEAL_ACCOUNTS"] = False
-    default_account.desired_sync_host = f"{host}:{0}"
+    default_account.desired_sync_host = f"{host}:0"
     db.session.commit()
     s = patched_sync_service(db, host=host, process_number=0)
     assert s.account_ids_to_sync() == {default_account.id}

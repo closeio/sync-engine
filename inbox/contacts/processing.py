@@ -128,8 +128,11 @@ def update_contacts_from_event(db_session, event, namespace_id):
             return
 
         contact_map = _get_contact_map(db_session, namespace_id, all_addresses)
+        db_session.add_all(contact_map.values())
+        db_session.flush()
 
         # Now associate each contact to the event.
+        values = []
         for field_name, addrs in (
             ("title", title_addrs),
             ("description", description_addrs),
@@ -141,6 +144,15 @@ def update_contacts_from_event(db_session, event, namespace_id):
                 if not contact:
                     continue
 
-                event.contacts.append(
-                    EventContactAssociation(contact=contact, field=field_name)
+                values.append(
+                    {
+                        "event_id": event.id,
+                        "contact_id": contact.id,
+                        "field": field_name,
+                    }
                 )
+
+        if values:
+            db_session.execute(
+                EventContactAssociation.__table__.insert().values(values)
+            )

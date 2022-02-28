@@ -66,7 +66,6 @@ def process_shard(shard_id, dry_run, id_start=0):
                     continue
 
                 if not dry_run:
-                    event.contacts = []
                     update_contacts_from_event(db_session, event, event.namespace_id)
                     n_updated += 1
 

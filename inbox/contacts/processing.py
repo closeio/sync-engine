@@ -124,6 +124,13 @@ def update_contacts_from_event(db_session, event, namespace_id):
             participant_addrs + owner_addrs + title_addrs + description_addrs
         )
 
+        # delete any previous EventContactAssociation for the event
+        db_session.execute(
+            EventContactAssociation.__table__.delete().where(
+                EventContactAssociation.event_id == event.id
+            )
+        )
+
         if not all_addresses:
             return
 

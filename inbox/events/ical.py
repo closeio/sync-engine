@@ -335,7 +335,6 @@ def process_invites(db_session, message, account, invites):
                     existing_event.participants.append(participant)
 
                 db_session.flush()
-                existing_event.contacts = []
                 update_contacts_from_event(
                     db_session, existing_event, account.namespace.id
                 )

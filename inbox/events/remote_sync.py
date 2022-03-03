@@ -208,7 +208,6 @@ def handle_event_updates(namespace_id, calendar_id, events, log, db_session):
 
         db_session.flush()
 
-        local_event.contacts = []
         update_contacts_from_event(db_session, local_event, namespace_id)
 
         # If we just updated/added a recurring event or override, make sure

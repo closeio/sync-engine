@@ -7,6 +7,7 @@ import re
 import sys
 
 import rollbar
+import structlog
 from rollbar.logger import RollbarHandler
 
 from inbox.logging import create_error_log_context, get_logger
@@ -56,7 +57,21 @@ def log_uncaught_errors(logger=None, **kwargs):
     logger = logger or get_logger()
     kwargs.update(create_error_log_context(sys.exc_info()))
     logger.error("Uncaught error", **kwargs)
-    rollbar.report_exc_info()
+
+    # extract interesting details from kwargs and fallback to logging context
+    extra_data = {}
+    context = structlog.get_context(logger)
+    account_id = kwargs.get("account_id") or context.get("account_id")
+    provider = kwargs.get("provider") or context.get("provider")
+    folder = kwargs.get("folder") or context.get("folder")
+    if account_id:
+        extra_data["account_id"] = account_id
+    if provider:
+        extra_data["provider"] = provider
+    if folder:
+        extra_data["folder"] = folder
+
+    rollbar.report_exc_info(extra_data=extra_data or None)
 
 
 GROUP_EXCEPTION_CLASSES = [

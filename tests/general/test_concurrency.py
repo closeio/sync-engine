@@ -11,6 +11,7 @@ from inbox.util.concurrency import retry_with_logging
 class MockLogger:
     def __init__(self):
         self.call_count = 0
+        self._context = {}
 
     def error(self, *args, **kwargs):
         self.call_count += 1

@@ -6,7 +6,7 @@ services:
       - 6379
 
   mysql:
-    image: mysql/mysql-server:8.0.27
+    image: mysql/mysql-server:${MYSQL_VERSION-8.0.27}
     environment:
       MYSQL_ROOT_PASSWORD: nylas_it
       MYSQL_ROOT_HOST: "%"

@@ -81,7 +81,7 @@ jobs:
                 name: run tests
                 command: |
                   if [[ -z $SKIP_TESTS ]]; then
-                    docker-compose run app bash -ec '
+                    MYSQL_VERSION=5.7.31 docker-compose run app bash -ec '
                       bin/wait-for-it.sh mysql:3306 \
                       && pytest --cov-report= --cov=inbox tests/ \
                       && coverage html -d pythoncov

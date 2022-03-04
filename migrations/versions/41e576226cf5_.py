@@ -1,4 +1,4 @@
-"""New unique contraint index on imapuid table
+"""New unique constraint index on imapuid table
 
 Revision ID: 41e576226cf5
 Revises: 52783469ee6c

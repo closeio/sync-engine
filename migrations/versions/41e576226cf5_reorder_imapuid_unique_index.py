@@ -15,12 +15,9 @@ from alembic import op
 
 def upgrade():
     op.create_index(
-        "uq_account_id_folder_id_msg_uid",
-        "imapuid",
-        ["account_id", "folder_id", "msg_uid"],
-        unique=True,
+        "account_id", "imapuid", ["account_id", "folder_id", "msg_uid"], unique=True,
     )
 
 
 def downgrade():
-    op.drop_constraint("uq_account_id_folder_id_msg_uid", "imapuid", type_="unique")
+    op.drop_constraint("account_id", "imapuid", type_="unique")

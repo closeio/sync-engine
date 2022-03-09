@@ -33,6 +33,7 @@ def local_uids(account_id, session, folder_id, limit=None):
         ImapUid.account_id == bindparam("account_id"),
         ImapUid.folder_id == bindparam("folder_id"),
     )
+    q = q.with_hint(ImapUid, "FORCE INDEX (account_id)", "mysql",)
     if limit:
         q = q.order_by(desc(ImapUid.msg_uid))
         q = q.limit(bindparam("limit"))

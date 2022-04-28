@@ -1,4 +1,4 @@
-FROM ubuntu:focal-20220105
+FROM ubuntu:20.04
 ARG PYTHON_VERSION=3.8
 
 RUN groupadd -g 5000 sync-engine \

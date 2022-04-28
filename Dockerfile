@@ -5,33 +5,34 @@ RUN groupadd -g 5000 sync-engine \
   && useradd -d /home/sync-engine -m -u 5000 -g 5000 sync-engine
 
 ENV TZ="Etc/GMT"
-RUN DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get dist-upgrade -y && \
-  apt-get install -y tzdata && \
-  apt-get install -y \
-  build-essential \
-  curl \
-  dnsutils \
-  gcc \
-  g++ \
-  git \
-  python-dev \
-  wget \
-  gettext-base \
-  language-pack-en \
-  libcurl4-openssl-dev \
-  libmysqlclient-dev \
-  libxml2-dev \
-  libxslt-dev \
-  libxslt1-dev \
-  mysql-client \
-  pkg-config \
-  lsof \
-  net-tools \
-  shared-mime-info \
-  telnet \
-  vim \
-  libffi-dev \
-  software-properties-common \
+RUN DEBIAN_FRONTEND=noninteractive && apt-get update \
+  && apt-get dist-upgrade -y \
+  && apt-get install -y \
+    tzdata \
+    build-essential \
+    curl \
+    dnsutils \
+    gcc \
+    g++ \
+    git \
+    python-dev \
+    wget \
+    gettext-base \
+    language-pack-en \
+    libcurl4-openssl-dev \
+    libmysqlclient-dev \
+    libxml2-dev \
+    libxslt-dev \
+    libxslt1-dev \
+    mysql-client \
+    pkg-config \
+    lsof \
+    net-tools \
+    shared-mime-info \
+    telnet \
+    vim \
+    libffi-dev \
+    software-properties-common \
   && rm -rf /var/lib/apt/lists/*
 
 RUN if [ "${PYTHON_VERSION}" != "3.8" ] ; \

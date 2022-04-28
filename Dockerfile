@@ -5,7 +5,8 @@ RUN groupadd -g 5000 sync-engine \
   && useradd -d /home/sync-engine -m -u 5000 -g 5000 sync-engine
 
 ENV TZ="Etc/GMT"
-RUN DEBIAN_FRONTEND=noninteractive && apt-get update \
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
   && apt-get dist-upgrade -y \
   && apt-get install -y \
     tzdata \
@@ -38,10 +39,16 @@ RUN DEBIAN_FRONTEND=noninteractive && apt-get update \
 RUN if [ "${PYTHON_VERSION}" != "3.8" ] ; \
   then \
     add-apt-repository ppa:deadsnakes/ppa; \
-  fi; \
-  DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y python"${PYTHON_VERSION}"-dev; \
-  if [ "${PYTHON_VERSION}" = "3.8" ] || [ "${PYTHON_VERSION}" = "3.9" ] ; then DEBIAN_FRONTEND=noninteractive apt-get install -y python"${PYTHON_VERSION}"-distutils; fi; \
-  rm -rf /var/lib/apt/lists/*
+  fi \
+  && DEBIAN_FRONTEND=noninteractive apt-get update \
+  && apt-get install -y python"${PYTHON_VERSION}"-dev \
+  && apt-get install --reinstall -y python3-distutils \
+  && if [ "${PYTHON_VERSION}" = "3.8" ] || [ "${PYTHON_VERSION}" = "3.9" ]; \
+  then \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        python"${PYTHON_VERSION}"-distutils; \
+  fi \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN curl -O https://bootstrap.pypa.io/pip/get-pip.py && \
   python"${PYTHON_VERSION}" get-pip.py && \

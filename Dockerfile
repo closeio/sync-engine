@@ -40,14 +40,15 @@ RUN if [ "${PYTHON_VERSION}" != "3.8" ] ; \
   then \
     add-apt-repository ppa:deadsnakes/ppa; \
   fi \
-  && DEBIAN_FRONTEND=noninteractive apt-get update \
+  && apt-get update \
   && apt-get install -y python"${PYTHON_VERSION}"-dev \
-  && apt-get install --reinstall -y python3-distutils \
-  && if [ "${PYTHON_VERSION}" = "3.8" ] || [ "${PYTHON_VERSION}" = "3.9" ]; \
-  then \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        python"${PYTHON_VERSION}"-distutils; \
-  fi \
+  && if [ "${PYTHON_VERSION}" = "3.7" ] \
+        || [ "${PYTHON_VERSION}" = "3.8" ] \
+	|| [ "${PYTHON_VERSION}" = "3.9" ]; \
+     then \
+        apt-get install -y \
+            python"${PYTHON_VERSION}"-distutils; \
+     fi \
   && rm -rf /var/lib/apt/lists/*
 
 RUN curl -O https://bootstrap.pypa.io/pip/get-pip.py && \

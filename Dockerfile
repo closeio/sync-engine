@@ -1,46 +1,50 @@
-FROM ubuntu:focal-20220105
+FROM ubuntu:20.04
 ARG PYTHON_VERSION=3.8
 
 RUN groupadd -g 5000 sync-engine \
   && useradd -d /home/sync-engine -m -u 5000 -g 5000 sync-engine
 
 ENV TZ="Etc/GMT"
-RUN DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get dist-upgrade -y && \
-  apt-get install -y tzdata && \
-  apt-get install -y \
-  build-essential \
-  curl \
-  dnsutils \
-  gcc \
-  g++ \
-  git \
-  python-dev \
-  wget \
-  gettext-base \
-  language-pack-en \
-  libcurl4-openssl-dev \
-  libmysqlclient-dev \
-  libxml2-dev \
-  libxslt-dev \
-  libxslt1-dev \
-  mysql-client \
-  pkg-config \
-  lsof \
-  net-tools \
-  shared-mime-info \
-  telnet \
-  vim \
-  libffi-dev \
-  software-properties-common \
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+  && apt-get dist-upgrade -y \
+  && apt-get install -y \
+    tzdata \
+    build-essential \
+    curl \
+    dnsutils \
+    gcc \
+    g++ \
+    git \
+    python-dev \
+    wget \
+    gettext-base \
+    language-pack-en \
+    libcurl4-openssl-dev \
+    libmysqlclient-dev \
+    libxml2-dev \
+    libxslt-dev \
+    libxslt1-dev \
+    mysql-client \
+    pkg-config \
+    lsof \
+    net-tools \
+    shared-mime-info \
+    telnet \
+    vim \
+    libffi-dev \
+    software-properties-common \
   && rm -rf /var/lib/apt/lists/*
 
 RUN if [ "${PYTHON_VERSION}" != "3.8" ] ; \
   then \
     add-apt-repository ppa:deadsnakes/ppa; \
-  fi; \
-  DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y python"${PYTHON_VERSION}"-dev; \
-  if [ "${PYTHON_VERSION}" = "3.8" ] || [ "${PYTHON_VERSION}" = "3.9" ] ; then DEBIAN_FRONTEND=noninteractive apt-get install -y python"${PYTHON_VERSION}"-distutils; fi; \
-  rm -rf /var/lib/apt/lists/*
+  fi \
+  && apt-get update \
+  && apt-get install -y \
+       python"${PYTHON_VERSION}"-dev \
+       python"${PYTHON_VERSION}"-distutils \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN curl -O https://bootstrap.pypa.io/pip/get-pip.py && \
   python"${PYTHON_VERSION}" get-pip.py && \

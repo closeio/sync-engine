@@ -88,6 +88,7 @@ RUN apt-get update \
   && apt-get dist-upgrade -y \
   && apt-get install -y \
     libmysqlclient21 \
+    mysql-client \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --chown=sync-engine:sync-engine --from=dependency_image /home/sync-engine/venv /home/sync-engine/venv

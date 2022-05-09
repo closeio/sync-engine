@@ -87,7 +87,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
   && apt-get dist-upgrade -y \
   && apt-get install -y \
-    libmysqlclient \
+    libmysqlclient21 \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --chown=sync-engine:sync-engine --from=dependency_image /home/sync-engine/venv /home/sync-engine/venv

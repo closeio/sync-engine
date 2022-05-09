@@ -12,6 +12,7 @@ RUN apt-get update \
     curl \
     python3 \
     python3-distutils \
+    software-properties-common \
   && rm -rf /var/lib/apt/lists/*
 
 RUN if [ "${PYTHON_VERSION}" != "3.8" ] ; \
@@ -65,7 +66,6 @@ RUN apt-get update \
     telnet \
     vim \
     libffi-dev \
-    software-properties-common \
   && rm -rf /var/lib/apt/lists/*
 
 # Set the virtual environment up.
@@ -82,6 +82,13 @@ RUN \
 
 # Final production image.
 FROM base_python_image
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+  && apt-get dist-upgrade -y \
+  && apt-get install -y \
+    libmysqlclient \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY --chown=sync-engine:sync-engine --from=dependency_image /home/sync-engine/venv /home/sync-engine/venv
 

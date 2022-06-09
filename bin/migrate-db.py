@@ -36,7 +36,7 @@ def main():
                 print("Upgrading shard_id {}".format(key))
                 alembic_cfg = alembic.config.Config(alembic_ini_filename)
                 alembic_cfg.set_main_option("shard_id", str(key))
-                alembic.command.upgrade(alembic_cfg, "+1")
+                alembic.command.upgrade(alembic_cfg, "head")
                 print("Upgraded shard_id {}\n".format(key))
             except alembic.util.CommandError as e:
                 print(

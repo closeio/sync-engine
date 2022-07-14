@@ -80,7 +80,7 @@ tldextract==3.1.2
 structlog==21.4.0
 traitlets==4.3.3
 typing_extensions==4.0.1
-urllib3==1.26.7
+urllib3==1.26.10
 vobject==0.9.6.1
 wcwidth==0.2.5
 WebOb==1.8.7

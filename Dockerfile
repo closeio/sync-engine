@@ -1,5 +1,4 @@
 FROM ubuntu:20.04
-ARG PYTHON_VERSION=3.8
 
 RUN groupadd -g 5000 sync-engine \
   && useradd -d /home/sync-engine -m -u 5000 -g 5000 sync-engine
@@ -17,7 +16,8 @@ RUN echo $BUILD_WEEK && apt-get update \
     gcc \
     g++ \
     git \
-    python-dev \
+    python3-dev \
+    python3-distutils \
     wget \
     gettext-base \
     language-pack-en \
@@ -34,17 +34,6 @@ RUN echo $BUILD_WEEK && apt-get update \
     telnet \
     vim \
     libffi-dev \
-    software-properties-common \
-  && rm -rf /var/lib/apt/lists/*
-
-RUN if [ "${PYTHON_VERSION}" != "3.8" ] ; \
-  then \
-    add-apt-repository ppa:deadsnakes/ppa; \
-  fi \
-  && apt-get update \
-  && apt-get install -y \
-       python"${PYTHON_VERSION}"-dev \
-       python"${PYTHON_VERSION}"-distutils \
   && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir /etc/inboxapp && \
@@ -64,13 +53,13 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 COPY --chown=sync-engine:sync-engine ./ ./
 RUN curl -O https://bootstrap.pypa.io/pip/get-pip.py && \
-  python"${PYTHON_VERSION}" get-pip.py && \
-  python"${PYTHON_VERSION}" -m pip install pip==22.1.2 virtualenv==20.15.1 && \
-  python"${PYTHON_VERSION}" -m virtualenv /opt/venv && \
-  /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install setuptools==57.5.0 && \
-  /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install --no-deps -r requirements/prod.txt -r requirements/test.txt && \
-  /opt/venv/bin/python"${PYTHON_VERSION}" -m pip install -e . && \
-  /opt/venv/bin/python"${PYTHON_VERSION}" -m pip check
+  python3 get-pip.py && \
+  python3 -m pip install pip==22.1.2 virtualenv==20.15.1 && \
+  python3 -m virtualenv /opt/venv && \
+  /opt/venv/bin/python3 -m pip install setuptools==57.5.0 && \
+  /opt/venv/bin/python3 -m pip install --no-deps -r requirements/prod.txt -r requirements/test.txt && \
+  /opt/venv/bin/python3 -m pip install -e . && \
+  /opt/venv/bin/python3 -m pip check
 
 RUN ln -s /opt/app/bin/wait-for-it.sh /opt/venv/bin/
 

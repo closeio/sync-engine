@@ -6,7 +6,8 @@ RUN groupadd -g 5000 sync-engine \
 
 ENV TZ="Etc/GMT"
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update \
+ARG BUILD_WEEK=0
+RUN echo $BUILD_WEEK && apt-get update \
   && apt-get dist-upgrade -y \
   && apt-get install -y \
     tzdata \

@@ -3,7 +3,6 @@ astor==0.8.1
 attrs==20.2.0
 black==19.10b0
 click==7.1.2
-importlib-metadata; python_version < '3.8'
 isort==5.4.2
 flake8==3.9.2
 flake8-bugbear==21.4.3

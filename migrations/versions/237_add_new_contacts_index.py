@@ -26,4 +26,4 @@ def upgrade():
 
 def downgrade():
     conn = op.get_bind()
-    conn.execute(text("ALTER TABLE contact" " DROP INDEX idx_namespace_created"))
+    conn.execute(text("ALTER TABLE contact DROP INDEX idx_namespace_created"))

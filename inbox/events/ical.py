@@ -121,7 +121,7 @@ def events_from_ics(namespace, calendar, ics_str):
                     last_modified = component_dtstamp.dt
                 else:
                     raise NotImplementedError(
-                        "We don't support arcane Windows" " timezones in timestamps yet"
+                        "We don't support arcane Windows timezones in timestamps yet"
                     )
             elif component_last_modified is not None:
                 # Try to look for a LAST-MODIFIED element instead.

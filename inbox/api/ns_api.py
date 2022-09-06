@@ -397,7 +397,7 @@ def thread_search_api():
     g.parser.add_argument("q", type=bounded_str, location="args")
     args = strict_parse_args(g.parser, request.args)
     if not args["q"]:
-        err_string = "GET HTTP method must include query" " url parameter"
+        err_string = "GET HTTP method must include query url parameter"
         raise InputError(err_string)
 
     try:
@@ -1003,7 +1003,7 @@ def contact_search_api():
     g.parser.add_argument("q", type=bounded_str, location="args")
     args = strict_parse_args(g.parser, request.args)
     if not args["q"]:
-        err_string = "GET HTTP method must include query" " url parameter"
+        err_string = "GET HTTP method must include query url parameter"
         raise InputError(err_string)
 
     search_client = ContactSearchClient(g.namespace.id)

@@ -41,6 +41,6 @@ def upgrade():
 
 def downgrade():
     conn = op.get_bind()
-    conn.execute(text("ALTER TABLE part" " DROP FOREIGN KEY part_ibfk_1"))
-    conn.execute(text("ALTER TABLE part" " DROP FOREIGN KEY part_ibfk_2"))
-    conn.execute(text("ALTER TABLE block" " DROP FOREIGN KEY block_ibfk_1"))
+    conn.execute(text("ALTER TABLE part DROP FOREIGN KEY part_ibfk_1"))
+    conn.execute(text("ALTER TABLE part DROP FOREIGN KEY part_ibfk_2"))
+    conn.execute(text("ALTER TABLE block DROP FOREIGN KEY block_ibfk_1"))

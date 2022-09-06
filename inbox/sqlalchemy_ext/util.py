@@ -355,12 +355,6 @@ def receive_connect(dbapi_connection, connection_record):
     dbapi_connection.encoding = "utf8-surrogate-fix"
 
 
-def maybe_refine_query(query, subquery):
-    if subquery is None:
-        return query
-    return query.join(subquery.subquery())
-
-
 def safer_yield_per(query, id_field, start_id, count):
     """Incautious execution of 'for result in query.yield_per(N):' may cause
     slowness or OOMing over large tables. This is a less general but less

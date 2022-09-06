@@ -321,7 +321,7 @@ def valid_event(event):
 
         if "status" in p and p["status"] not in ("yes", "no", "maybe", "noreply"):
             raise InputError(
-                "'participants' status must be one of: " "yes, no, maybe, noreply"
+                "'participants' status must be one of: yes, no, maybe, noreply"
             )
 
 
@@ -338,7 +338,7 @@ def valid_event_update(event, namespace, db_session):
             raise InputError("'participants' must have email")
         if "status" in p and p["status"] not in ("yes", "no", "maybe", "noreply"):
             raise InputError(
-                "'participants' status must be one of: " "yes, no, maybe, noreply"
+                "'participants' status must be one of: yes, no, maybe, noreply"
             )
 
 

@@ -1326,7 +1326,7 @@ def event_rsvp_api():
         raise NotFoundError(f"Couldn't find event {event_id}")
 
     if event.message is None:
-        raise InputError("This is not a message imported " "from an iCalendar invite.")
+        raise InputError("This is not a message imported from an iCalendar invite.")
 
     status = data.get("status")
     if not status:
@@ -1992,7 +1992,7 @@ def sync_deltas():
 
     if include_types and exclude_types:
         raise InputError(
-            "Invalid Request. Cannot specify both include_types" "and exclude_types"
+            "Invalid Request. Cannot specify both include_types and exclude_types"
         )
 
     if cursor == "0":
@@ -2140,7 +2140,7 @@ def stream_changes():
 
     if include_types and exclude_types:
         raise InputError(
-            "Invalid Request. Cannot specify both include_types" "and exclude_types"
+            "Invalid Request. Cannot specify both include_types and exclude_types"
         )
 
     if cursor == "0":

@@ -890,9 +890,7 @@ def page_over_shards(Model, cursor, limit, get_results=lambda q: q.all()):
                 elif "id" in last:
                     next_cursor = last["id"]
                 else:
-                    raise ValueError(
-                        "Results returned from get_query must" "have an id"
-                    )
+                    raise ValueError("Results returned from get_query must have an id")
 
                 # Handle invalid ids
                 cursor_implied_shard = next_cursor >> 48

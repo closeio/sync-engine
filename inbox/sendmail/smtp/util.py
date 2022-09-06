@@ -28,16 +28,13 @@ SMTP_ERRORS = {
     454: {
         "4.7.0": (
             429,
-            "Cannot authenticate due to temporary system problem. " "Try again later.",
+            "Cannot authenticate due to temporary system problem. Try again later.",
         )
     },
     522: {"5.7.1": (402, "Recipient address rejected."),},
     530: {"5.7.0": (402, "Recipient address rejected"),},
     535: {
-        "5.7.1": (
-            429,
-            "Please log in to Gmail with your web browser and " "try again.",
-        ),
+        "5.7.1": (429, "Please log in to Gmail with your web browser and try again.",),
     },
     550: {
         "5.1.1": (

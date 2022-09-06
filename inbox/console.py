@@ -79,5 +79,5 @@ def start_client_console(user_email_address=None):
         )
     client = NylasTestClient(user_email_address)  # noqa: F841
     IPython.embed(
-        banner1=("You can access a Nylas API client " "using the 'client' variable.")
+        banner1=("You can access a Nylas API client using the 'client' variable.")
     )

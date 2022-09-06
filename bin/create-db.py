@@ -18,7 +18,7 @@ from inbox.sqlalchemy_ext.util import ForceStrictModePool
 @click.option(
     "--target-hostname",
     default=None,
-    help="Limit database initialization to only one host / " "set of shards",
+    help="Limit database initialization to only one host / set of shards",
 )
 @click.option("--host-ip", default=None)
 def main(target_hostname, host_ip):

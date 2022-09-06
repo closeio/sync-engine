@@ -28,7 +28,7 @@ def get_api_access(db_session, email_address):
     )
     if account is None:
         raise Exception(
-            ("No account found for email address %s. " "Are you sure you've authed it?")
+            ("No account found for email address %s. Are you sure you've authed it?")
             % email_address
         )
 

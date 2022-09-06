@@ -44,11 +44,11 @@ def upgrade():
     )
 
     conn.execute(
-        text("ALTER TABLE accounttransaction DROP updated_at," "DROP deleted_at")
+        text("ALTER TABLE accounttransaction DROP updated_at, DROP deleted_at")
     )
-    conn.execute(text("ALTER TABLE messagecategory DROP updated_at," "DROP deleted_at"))
+    conn.execute(text("ALTER TABLE messagecategory DROP updated_at, DROP deleted_at"))
     conn.execute(
-        text("ALTER TABLE messagecontactassociation DROP updated_at," "DROP deleted_at")
+        text("ALTER TABLE messagecontactassociation DROP updated_at, DROP deleted_at")
     )
     conn.execute(
         text(
@@ -56,7 +56,7 @@ def upgrade():
             " ix_thread_namespace_id_recentdate_deleted_at"
         )
     )
-    conn.execute(text("ALTER TABLE transaction DROP deleted_at," "DROP updated_at"))
+    conn.execute(text("ALTER TABLE transaction DROP deleted_at, DROP updated_at"))
     if conn.engine.has_table("easdevice"):
         # Run EAS specific migrations
         conn.execute(
@@ -65,7 +65,7 @@ def upgrade():
                 " MODIFY COLUMN updated_at DATETIME NOT NULL DEFAULT '1970-01-01 00:00:00'"
             )
         )
-        conn.execute(text("ALTER TABLE easdevice DROP deleted_at," "DROP updated_at"))
+        conn.execute(text("ALTER TABLE easdevice DROP deleted_at, DROP updated_at"))
 
 
 def downgrade():

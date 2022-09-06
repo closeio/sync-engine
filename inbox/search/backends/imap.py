@@ -203,7 +203,7 @@ class IMAPSearchClient:
             return []
         except UidInvalid:
             self.log.error(
-                ("Got Uidvalidity error when searching. " "Skipping."), exc_info=True
+                ("Got Uidvalidity error when searching. Skipping."), exc_info=True
             )
             return []
 
@@ -212,7 +212,7 @@ class IMAPSearchClient:
         except IMAP4.error:
             self.log.warn("Search error", exc_info=True)
             raise SearchBackendException(
-                ("Unknown IMAP error when " "performing search."), 503
+                ("Unknown IMAP error when performing search."), 503
             )
 
         self.log.debug(

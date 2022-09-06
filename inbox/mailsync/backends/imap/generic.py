@@ -274,9 +274,7 @@ class FolderSyncEngine(Greenlet):
                 if self.folder_name.lower() == "inbox":
                     with session_scope(self.namespace_id) as db_session:
                         account = db_session.query(Account).get(self.account_id)
-                        account.disable_sync(
-                            "Detected endless uidvalidity " "resync loop"
-                        )
+                        account.disable_sync("Detected endless uidvalidity resync loop")
                         account.sync_state = "stopped"
                         db_session.commit()
                     raise MailsyncDone()
@@ -764,7 +762,7 @@ class FolderSyncEngine(Greenlet):
         elif new_highestmodseq < self.highestmodseq:
             # This should really never happen, but if it does, handle it.
             log.warning(
-                "got server highestmodseq less than saved " "highestmodseq",
+                "got server highestmodseq less than saved highestmodseq",
                 new_highestmodseq=new_highestmodseq,
                 saved_highestmodseq=self.highestmodseq,
             )

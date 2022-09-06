@@ -102,9 +102,9 @@ def events_from_ics(namespace, calendar, ics_str):
                 start = arrow.get(start)
                 end = arrow.get(end)
 
-            assert isinstance(start, type(end)), (
-                "Start and end should be of " "the same type"
-            )
+            assert isinstance(
+                start, type(end)
+            ), "Start and end should be of the same type"
 
             # Get the last modification date.
             # Exchange uses DtStamp, iCloud and Gmail LAST-MODIFIED.

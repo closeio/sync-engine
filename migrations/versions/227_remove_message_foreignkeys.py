@@ -16,9 +16,9 @@ from sqlalchemy.sql import text
 
 def upgrade():
     conn = op.get_bind()
-    conn.execute(text("ALTER TABLE message" " DROP FOREIGN KEY message_ibfk_1"))
-    conn.execute(text("ALTER TABLE message" " DROP FOREIGN KEY message_ibfk_2"))
-    conn.execute(text("ALTER TABLE message" " DROP FOREIGN KEY message_ibfk_3"))
+    conn.execute(text("ALTER TABLE message DROP FOREIGN KEY message_ibfk_1"))
+    conn.execute(text("ALTER TABLE message DROP FOREIGN KEY message_ibfk_2"))
+    conn.execute(text("ALTER TABLE message DROP FOREIGN KEY message_ibfk_3"))
 
 
 def downgrade():

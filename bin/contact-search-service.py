@@ -21,7 +21,7 @@ setproctitle("nylas-contact-search-index-service")
 @click.option(
     "--prod/--no-prod",
     default=False,
-    help="Disables the autoreloader and potentially other " "non-production features.",
+    help="Disables the autoreloader and potentially other non-production features.",
 )
 @click.option("-c", "--config", default=None, help="Path to JSON configuration file.")
 def main(prod, config):

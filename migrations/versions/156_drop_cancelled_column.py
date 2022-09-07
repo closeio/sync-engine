@@ -17,12 +17,12 @@ from sqlalchemy.sql import text
 
 def upgrade():
     conn = op.get_bind()
-    conn.execute(text("ALTER TABLE recurringeventoverride " "DROP COLUMN cancelled;"))
+    conn.execute(text("ALTER TABLE recurringeventoverride DROP COLUMN cancelled;"))
 
 
 def downgrade():
     conn = op.get_bind()
     conn.execute(
-        text("ALTER TABLE recurringeventoverride " "ADD COLUMN cancelled tinyint(1);")
+        text("ALTER TABLE recurringeventoverride ADD COLUMN cancelled tinyint(1);")
     )
     print("\nNote that you'll have to reset calendar syncs.")

@@ -26,7 +26,7 @@ class GenericAccount(ImapAccount):
     imap_password_id = Column(ForeignKey(Secret.id), nullable=False)
     imap_secret = relationship(
         "Secret",
-        cascade="save-update, merge, " "refresh-expire, expunge, " "delete",
+        cascade="save-update, merge, refresh-expire, expunge, delete",
         single_parent=True,
         uselist=False,
         lazy="joined",
@@ -36,7 +36,7 @@ class GenericAccount(ImapAccount):
     smtp_password_id = Column(ForeignKey(Secret.id), nullable=False)
     smtp_secret = relationship(
         "Secret",
-        cascade="save-update, merge, " "refresh-expire, expunge, " "delete",
+        cascade="save-update, merge, refresh-expire, expunge, delete",
         single_parent=True,
         uselist=False,
         lazy="joined",

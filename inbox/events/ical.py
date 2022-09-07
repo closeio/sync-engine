@@ -102,9 +102,9 @@ def events_from_ics(namespace, calendar, ics_str):
                 start = arrow.get(start)
                 end = arrow.get(end)
 
-            assert isinstance(start, type(end)), (
-                "Start and end should be of " "the same type"
-            )
+            assert isinstance(
+                start, type(end)
+            ), "Start and end should be of the same type"
 
             # Get the last modification date.
             # Exchange uses DtStamp, iCloud and Gmail LAST-MODIFIED.
@@ -121,7 +121,7 @@ def events_from_ics(namespace, calendar, ics_str):
                     last_modified = component_dtstamp.dt
                 else:
                     raise NotImplementedError(
-                        "We don't support arcane Windows" " timezones in timestamps yet"
+                        "We don't support arcane Windows timezones in timestamps yet"
                     )
             elif component_last_modified is not None:
                 # Try to look for a LAST-MODIFIED element instead.

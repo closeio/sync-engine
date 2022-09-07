@@ -358,11 +358,9 @@ def test_invalid_gmail_account_search(
 ):
 
     if is_streaming:
-        response = api_client.get_raw(
-            "/messages/search/streaming?" "q=blah%20blah%20blah"
-        )
+        response = api_client.get_raw("/messages/search/streaming?q=blah%20blah%20blah")
     else:
-        response = api_client.get_raw("/messages/search?" "q=blah%20blah%20blah")
+        response = api_client.get_raw("/messages/search?q=blah%20blah%20blah")
 
     assert response.status_code == 403
     assert (
@@ -385,10 +383,10 @@ def test_imap_message_search(
 
     if is_streaming:
         messages = imap_api_client.get_data(
-            "/messages/search/streaming?" "q=blah%20blah%20blah"
+            "/messages/search/streaming?q=blah%20blah%20blah"
         )
     else:
-        messages = imap_api_client.get_data("/messages/search?" "q=blah%20blah%20blah")
+        messages = imap_api_client.get_data("/messages/search?q=blah%20blah%20blah")
 
     imap_connection.assert_search([b"TEXT", b"blah blah blah"])
     assert_search_result(sorted_imap_messages, messages)
@@ -456,11 +454,11 @@ def test_invalid_imap_account_search(
         # Because of the way streaming search work, it will return a
         # 200 response even though we can't access the account.
         response = imap_api_client.get_raw(
-            "/messages/search/streaming?" "q=blah%20blah%20blah"
+            "/messages/search/streaming?q=blah%20blah%20blah"
         )
         assert response.status_code == 200
     else:
-        response = imap_api_client.get_raw("/messages/search?" "q=blah%20blah%20blah")
+        response = imap_api_client.get_raw("/messages/search?q=blah%20blah%20blah")
 
         assert response.status_code == 403
         assert (

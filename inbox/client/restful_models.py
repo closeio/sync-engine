@@ -427,7 +427,7 @@ class File(NylasAPIObject):
     def download(self):
         if not self.id:
             raise FileUploadError(
-                message=("Can't download a file that " "hasn't been uploaded.")
+                message=("Can't download a file that hasn't been uploaded.")
             )
 
         return self.api._get_resource_data(File, self.id, extra="download")

@@ -19,7 +19,7 @@ def upgrade():
     conn.execute(text("set @@lock_wait_timeout = 20;"))
     conn.execute(text("set @@foreign_key_checks = 0;"))
 
-    conn.execute(text("ALTER TABLE genericaccount " "ADD COLUMN ssl_required BOOLEAN;"))
+    conn.execute(text("ALTER TABLE genericaccount ADD COLUMN ssl_required BOOLEAN;"))
 
 
 def downgrade():

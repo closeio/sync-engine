@@ -793,7 +793,7 @@ class CrispinClient:
                         break
             except imapclient.IMAPClient.Error as e:
                 if (
-                    "[UNAVAILABLE] UID FETCH Server error " "while fetching messages"
+                    "[UNAVAILABLE] UID FETCH Server error while fetching messages"
                 ) in str(e):
                     log.info(
                         "Got an exception while requesting an UID",
@@ -804,7 +804,7 @@ class CrispinClient:
                     continue
                 else:
                     log.info(
-                        ("Got an unhandled exception while " "requesting an UID"),
+                        ("Got an unhandled exception while requesting an UID"),
                         uid=uid,
                         error=e,
                         logstash_tag="imap_download_exception",

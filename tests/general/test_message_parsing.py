@@ -357,7 +357,7 @@ def test_address_parsing():
     assert parsed == []
 
     # Duplicate header
-    mimepart = mime.from_string("From: bob@foocorp.com\r\n" "From: bob@foocorp.com")
+    mimepart = mime.from_string("From: bob@foocorp.com\r\nFrom: bob@foocorp.com")
     parsed = parse_mimepart_address_header(mimepart, "From")
     assert parsed == [["", "bob@foocorp.com"]]
 

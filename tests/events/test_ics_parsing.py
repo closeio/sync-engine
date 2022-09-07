@@ -98,7 +98,7 @@ def test_event_update(db, default_account, message):
     )
 
     assert ev.location == (
-        "Olympia Hall, 28 Boulevard des Capucines, " "75009 Paris, France"
+        "Olympia Hall, 28 Boulevard des Capucines, 75009 Paris, France"
     )
 
     with open(absolute_path(FIXTURES + "gcal_v2.ics")) as fd:
@@ -115,7 +115,7 @@ def test_event_update(db, default_account, message):
         .one()
     )
 
-    assert ev.location == ("Le Zenith, 211 Avenue Jean Jaures, " "75019 Paris, France")
+    assert ev.location == ("Le Zenith, 211 Avenue Jean Jaures, 75019 Paris, France")
 
 
 # This test checks that:
@@ -146,7 +146,7 @@ def test_self_sent_update(db, default_account, message):
     assert len(evs) == 1
     ev = evs[0]
     assert ev.location == (
-        "Olympia Hall, 28 Boulevard des Capucines, " "75009 Paris, France"
+        "Olympia Hall, 28 Boulevard des Capucines, 75009 Paris, France"
     )
 
     # Create a copy of the event, and store it in the default calendar.
@@ -172,11 +172,11 @@ def test_self_sent_update(db, default_account, message):
         db.session.refresh(ev)
         if ev.calendar_id == default_calendar.id:
             assert ev.location == (
-                "Olympia Hall, 28 Boulevard des Capucines, " "75009 Paris, France"
+                "Olympia Hall, 28 Boulevard des Capucines, 75009 Paris, France"
             )
         else:
             assert ev.location == (
-                "Le Zenith, 211 Avenue Jean Jaures, " "75019 Paris, France"
+                "Le Zenith, 211 Avenue Jean Jaures, 75019 Paris, France"
             )
 
 

@@ -397,7 +397,7 @@ def thread_search_api():
     g.parser.add_argument("q", type=bounded_str, location="args")
     args = strict_parse_args(g.parser, request.args)
     if not args["q"]:
-        err_string = "GET HTTP method must include query" " url parameter"
+        err_string = "GET HTTP method must include query url parameter"
         raise InputError(err_string)
 
     try:
@@ -1003,7 +1003,7 @@ def contact_search_api():
     g.parser.add_argument("q", type=bounded_str, location="args")
     args = strict_parse_args(g.parser, request.args)
     if not args["q"]:
-        err_string = "GET HTTP method must include query" " url parameter"
+        err_string = "GET HTTP method must include query url parameter"
         raise InputError(err_string)
 
     search_client = ContactSearchClient(g.namespace.id)
@@ -1326,7 +1326,7 @@ def event_rsvp_api():
         raise NotFoundError(f"Couldn't find event {event_id}")
 
     if event.message is None:
-        raise InputError("This is not a message imported " "from an iCalendar invite.")
+        raise InputError("This is not a message imported from an iCalendar invite.")
 
     status = data.get("status")
     if not status:
@@ -1992,7 +1992,7 @@ def sync_deltas():
 
     if include_types and exclude_types:
         raise InputError(
-            "Invalid Request. Cannot specify both include_types" "and exclude_types"
+            "Invalid Request. Cannot specify both include_types and exclude_types"
         )
 
     if cursor == "0":
@@ -2140,7 +2140,7 @@ def stream_changes():
 
     if include_types and exclude_types:
         raise InputError(
-            "Invalid Request. Cannot specify both include_types" "and exclude_types"
+            "Invalid Request. Cannot specify both include_types and exclude_types"
         )
 
     if cursor == "0":

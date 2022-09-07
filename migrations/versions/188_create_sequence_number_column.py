@@ -24,7 +24,7 @@ def upgrade():
         )
     )
     conn.execute(
-        text("UPDATE event SET sequence_number='0' " "WHERE sequence_number is NULL")
+        text("UPDATE event SET sequence_number='0' WHERE sequence_number is NULL")
     )
 
 

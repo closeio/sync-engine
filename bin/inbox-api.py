@@ -41,7 +41,7 @@ http_server = None
 @click.option(
     "--prod/--no-prod",
     default=False,
-    help="Disables the autoreloader and potentially other " "non-production features.",
+    help="Disables the autoreloader and potentially other non-production features.",
 )
 @click.option(
     "--start-syncback/--no-start-syncback",

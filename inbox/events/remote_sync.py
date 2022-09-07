@@ -278,7 +278,7 @@ class GoogleEventSync(EventSync):
             self._sync_data()
         except AccessNotEnabledError:
             self.log.warning(
-                "Access to provider calendar API not enabled; " "bypassing sync"
+                "Access to provider calendar API not enabled; bypassing sync"
             )
 
     def _refresh_gpush_subscriptions(self):

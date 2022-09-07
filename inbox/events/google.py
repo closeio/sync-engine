@@ -137,7 +137,7 @@ class GoogleEventsProvider:
             # Note explicit offset is required by Google calendar API.
             sync_from_time = datetime.datetime.isoformat(sync_from_time) + "Z"
 
-        url = "https://www.googleapis.com/calendar/v3/" "calendars/{}/events".format(
+        url = "https://www.googleapis.com/calendar/v3/calendars/{}/events".format(
             urllib.parse.quote(calendar_uid)
         )
         try:
@@ -227,7 +227,7 @@ class GoogleEventsProvider:
     def _make_event_request(self, method, calendar_uid, event_uid=None, **kwargs):
         """ Makes a POST/PUT/DELETE request for a particular event. """
         event_uid = event_uid or ""
-        url = "https://www.googleapis.com/calendar/v3/" "calendars/{}/events/{}".format(
+        url = "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}".format(
             urllib.parse.quote(calendar_uid), urllib.parse.quote(event_uid)
         )
         token = self._get_access_token()

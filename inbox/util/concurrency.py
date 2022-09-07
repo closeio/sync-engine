@@ -55,9 +55,7 @@ def retry(
         one of these exceptions is raised.
     """
     if fail_classes and retry_classes and set(fail_classes).intersection(retry_classes):
-        raise ValueError(
-            "Can't include exception classes in both fail_on and " "retry_on"
-        )
+        raise ValueError("Can't include exception classes in both fail_on and retry_on")
 
     def should_retry_on(exc):
         if fail_classes and isinstance(exc, tuple(fail_classes)):

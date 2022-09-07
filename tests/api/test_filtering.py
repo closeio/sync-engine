@@ -329,32 +329,32 @@ def test_distinct_results(api_client, db, default_namespace):
     db.session.commit()
 
     filtered_results = api_client.get_data(
-        "/threads?from=hello@example.com" "&limit=1&offset=0"
+        "/threads?from=hello@example.com&limit=1&offset=0"
     )
     assert len(filtered_results) == 1
     assert filtered_results[0]["id"] == first_thread.public_id
 
     filtered_results = api_client.get_data(
-        "/threads?from=hello@example.com" "&limit=1&offset=1"
+        "/threads?from=hello@example.com&limit=1&offset=1"
     )
     assert len(filtered_results) == 1
     assert filtered_results[0]["id"] == second_thread.public_id
 
     filtered_results = api_client.get_data(
-        "/threads?from=hello@example.com" "&limit=2&offset=0"
+        "/threads?from=hello@example.com&limit=2&offset=0"
     )
     assert len(filtered_results) == 2
 
     filtered_results = api_client.get_data(
-        "/threads?from=hello@example.com" "&limit=2&offset=1"
+        "/threads?from=hello@example.com&limit=2&offset=1"
     )
     assert len(filtered_results) == 1
 
     # Ensure that it works when using the _in filter
-    filtered_results = api_client.get_data("/threads?in=sent" "&limit=2&offset=0")
+    filtered_results = api_client.get_data("/threads?in=sent&limit=2&offset=0")
     assert len(filtered_results) == 2
 
-    filtered_results = api_client.get_data("/threads?in=sent" "&limit=1&offset=0")
+    filtered_results = api_client.get_data("/threads?in=sent&limit=1&offset=0")
     assert len(filtered_results) == 1
 
 

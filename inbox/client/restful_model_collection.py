@@ -91,7 +91,7 @@ class RestfulModelCollection:
                 raise ValueError("slice indices must be positive")
             elif key.stop - key.start < 0:
                 raise ValueError(
-                    "ending slice index cannot be less than " "starting index"
+                    "ending slice index cannot be less than starting index"
                 )
             return self._range(key.start, key.stop - key.start)
         else:

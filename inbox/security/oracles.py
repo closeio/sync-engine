@@ -172,7 +172,7 @@ class _DecryptionOracle(_EncryptionOracle):
         elif (
             encryption_scheme_value == EncryptionScheme.SECRETBOX_WITH_STATIC_KEY.value
         ):
-            return self._secret_box.decrypt(ciphertext)  # type: bytes
+            return self._secret_box.decrypt(ciphertext)
 
         else:
             raise ValueError(

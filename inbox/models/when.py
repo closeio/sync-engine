@@ -1,6 +1,6 @@
 import abc
 import contextlib
-from typing import Union
+from typing import List, Type, Union
 
 import arrow
 
@@ -45,7 +45,7 @@ class When(metaclass=abc.ABCMeta):
 
     """
 
-    json_keys = abc.abstractproperty()
+    json_keys: List[str]
     all_day = False
     spanning = False
 
@@ -95,7 +95,7 @@ class AllDayWhen(When):
 
 class SpanningWhen(When, metaclass=abc.ABCMeta):
     spanning = True
-    singular_cls = abc.abstractproperty()
+    singular_cls: Type
 
     @classmethod
     def parse(cls, raw):

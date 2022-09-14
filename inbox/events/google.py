@@ -462,7 +462,7 @@ class GoogleEventsProvider:
             )
 
 
-def parse_calendar_response(calendar: dict[str, Any]) -> Calendar:
+def parse_calendar_response(calendar: Dict[str, Any]) -> Calendar:
     """
     Constructs a Calendar object from a Google calendarList resource (a
     dictionary).  See

@@ -1,5 +1,6 @@
 import re
 from html.parser import HTMLParser
+from typing import Dict
 
 import requests
 
@@ -9,7 +10,7 @@ from inbox.util.url import url_concat
 
 class OutlookAuthParser(HTMLParser):
     _in_script = False
-    params = {}
+    params: Dict[str, str] = {}
     action = None
 
     def handle_starttag(self, tag, attrs):

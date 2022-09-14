@@ -5,6 +5,7 @@ import random
 import time
 import urllib.parse
 import uuid
+from typing import Any, Dict, List, Optional
 
 import arrow
 import gevent
@@ -52,7 +53,7 @@ class GoogleEventsProvider:
     specified account using the Google Calendar API.
     """
 
-    def __init__(self, account_id, namespace_id):
+    def __init__(self, account_id: int, namespace_id: int):
         self.account_id = account_id
         self.namespace_id = namespace_id
         self.log = log.new(account_id=account_id, component="calendar sync")
@@ -62,7 +63,7 @@ class GoogleEventsProvider:
         # by the Google Event API.
         self.calendars_table = {}
 
-    def sync_calendars(self):
+    def sync_calendars(self) -> CalendarSyncResponse:
         """ Fetches data for the user's calendars.
         Returns
         -------
@@ -82,7 +83,9 @@ class GoogleEventsProvider:
 
         return CalendarSyncResponse(deletes, updates)
 
-    def sync_events(self, calendar_uid, sync_from_time=None):
+    def sync_events(
+        self, calendar_uid: str, sync_from_time: Optional[datetime.datetime] = None
+    ) -> List[Event]:
         """ Fetches event data for an individual calendar.
 
         Parameters
@@ -112,11 +115,13 @@ class GoogleEventsProvider:
 
         return updates
 
-    def _get_raw_calendars(self):
+    def _get_raw_calendars(self) -> List[str, Any]:
         """Gets raw data for the user's calendars."""
         return self._get_resource_list(CALENDARS_URL)
 
-    def _get_raw_events(self, calendar_uid, sync_from_time=None):
+    def _get_raw_events(
+        self, calendar_uid: str, sync_from_time: Optional[datetime.datetime] = None
+    ) -> List[Dict[str, Any]]:
         """ Gets raw event data for the given calendar.
 
         Parameters
@@ -149,14 +154,14 @@ class GoogleEventsProvider:
             else:
                 raise
 
-    def _get_access_token(self, force_refresh=False):
+    def _get_access_token(self, force_refresh: bool = False) -> str:
         with session_scope(self.namespace_id) as db_session:
             acc = db_session.query(Account).get(self.account_id)
             # This will raise OAuthError if OAuth access was revoked. The
             # BaseSyncMonitor loop will catch this, clean up, and exit.
             return token_manager.get_token(acc, force_refresh=force_refresh)
 
-    def _get_resource_list(self, url, **params):
+    def _get_resource_list(self, url: str, **params) -> List[Dict[str, Any]]:
         """Handles response pagination."""
         token = self._get_access_token()
         items = []
@@ -222,7 +227,9 @@ class GoogleEventsProvider:
                 # Unexpected error; raise.
                 raise
 
-    def _make_event_request(self, method, calendar_uid, event_uid=None, **kwargs):
+    def _make_event_request(
+        self, method: str, calendar_uid: str, event_uid: Optional[str] = None, **kwargs
+    ) -> requests.Response:
         """ Makes a POST/PUT/DELETE request for a particular event. """
         event_uid = event_uid or ""
         url = "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}".format(
@@ -298,10 +305,10 @@ class GoogleEventsProvider:
             raise OAuthError("Account not enabled for push notifications.")
         return token_manager.get_token(account, force_refresh)
 
-    def push_notifications_enabled(self, account):
+    def push_notifications_enabled(self, account: Account) -> bool:
         return account.get_client_info()[0] in PUSH_ENABLED_CLIENT_IDS
 
-    def watch_calendar_list(self, account):
+    def watch_calendar_list(self, account: Account) -> Optional[int]:
         """
         Subscribe to google push notifications for the calendar list.
 
@@ -346,7 +353,7 @@ class GoogleEventsProvider:
             # Handle error and return None
             self.handle_watch_errors(r)
 
-    def watch_calendar(self, account, calendar):
+    def watch_calendar(self, account: Account, calendar: Calendar) -> Optional[int]:
         """
         Subscribe to google push notifications for a calendar.
 
@@ -403,7 +410,7 @@ class GoogleEventsProvider:
             # Handle error and return None
             self.handle_watch_errors(r)
 
-    def handle_watch_errors(self, r):
+    def handle_watch_errors(self, r: requests.Response) -> None:
         self.log.warning(
             "Error subscribing to Google push notifications",
             url=r.url,
@@ -455,7 +462,7 @@ class GoogleEventsProvider:
             )
 
 
-def parse_calendar_response(calendar):
+def parse_calendar_response(calendar: dict[str, Any]) -> Calendar:
     """
     Constructs a Calendar object from a Google calendarList resource (a
     dictionary).  See
@@ -481,7 +488,7 @@ def parse_calendar_response(calendar):
     return Calendar(uid=uid, name=name, read_only=read_only, description=description)
 
 
-def parse_event_response(event, read_only_calendar):
+def parse_event_response(event: dict[str, Any], read_only_calendar: bool) -> Event:
     """
     Constructs an Event object from a Google event resource (a dictionary).
     See https://developers.google.com/google-apps/calendar/v3/reference/events

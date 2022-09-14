@@ -1,11 +1,13 @@
-from io import StringIO
+from typing import List
+
+from six import StringIO
 
 from .errors import FileUploadError
 from .restful_model_collection import RestfulModelCollection
 
 
 class NylasAPIObject(dict):
-    attrs = []
+    attrs: List[str] = []
     # The Nylas API holds most objects for an account directly under '/',
     # but some of them are under '/a' (mostly the account-management
     # and billing code). api_root is a tiny metaprogramming hack to let

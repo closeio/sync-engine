@@ -1,6 +1,7 @@
 import time
 import weakref
 from socket import gethostname
+from typing import Any, Dict, Mapping
 from urllib.parse import quote_plus as urlquote
 from warnings import filterwarnings
 
@@ -27,7 +28,7 @@ DB_POOL_MAX_OVERFLOW = config.get("DB_POOL_MAX_OVERFLOW") or 5
 DB_POOL_TIMEOUT = config.get("DB_POOL_TIMEOUT") or 60
 
 
-pool_tracker = weakref.WeakKeyDictionary()
+pool_tracker: Mapping[Any, Dict[str, Any]] = weakref.WeakKeyDictionary()
 
 
 hub = gevent.hub.get_hub()

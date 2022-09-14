@@ -4,7 +4,7 @@ refresh tokens.
 """
 from datetime import datetime, timedelta
 from hashlib import sha256
-from typing import Union
+from typing import Optional, Union
 
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.ext.declarative import declared_attr
@@ -84,7 +84,7 @@ class OAuthAccount:
 
     @property
     def refresh_token(self):
-        # type: () -> str
+        # type: () -> Optional[str]
         if not self.secret:
             return None
         if self.secret.type == SecretType.Token.value:

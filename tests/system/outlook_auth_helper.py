@@ -70,7 +70,7 @@ class OutlookAuthParser(HTMLParser):
 
 class OutlookUpdateParser(HTMLParser):
     _in_form = False
-    params = {}
+    params: Dict[str, str] = {}
 
     def handle_starttag(self, tag, attrs):
         if tag == "form":

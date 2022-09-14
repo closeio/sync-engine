@@ -53,7 +53,7 @@ class HasRevisions(ABCMixin):
         return False
 
     # Must be defined by subclasses
-    API_OBJECT_NAME = abc.abstractproperty()
+    API_OBJECT_NAME: str
 
     def has_versioned_changes(self):
         """

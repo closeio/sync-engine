@@ -151,7 +151,7 @@ class Category(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedA
         return self.display_name.lower()
 
     @lowercase_name.comparator
-    def lowercase_name_comparator(cls):
+    def lowercase_name(cls):
         return CaseInsensitiveComparator(cls.display_name)
 
     @property

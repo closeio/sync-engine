@@ -115,7 +115,7 @@ class GoogleEventsProvider:
 
         return updates
 
-    def _get_raw_calendars(self) -> List[str, Any]:
+    def _get_raw_calendars(self) -> List[Dict[str, Any]]:
         """Gets raw data for the user's calendars."""
         return self._get_resource_list(CALENDARS_URL)
 

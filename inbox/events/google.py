@@ -488,7 +488,7 @@ def parse_calendar_response(calendar: Dict[str, Any]) -> Calendar:
     return Calendar(uid=uid, name=name, read_only=read_only, description=description)
 
 
-def parse_event_response(event: dict[str, Any], read_only_calendar: bool) -> Event:
+def parse_event_response(event: Dict[str, Any], read_only_calendar: bool) -> Event:
     """
     Constructs an Event object from a Google event resource (a dictionary).
     See https://developers.google.com/google-apps/calendar/v3/reference/events

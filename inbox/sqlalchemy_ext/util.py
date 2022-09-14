@@ -4,7 +4,7 @@ import re
 import struct
 import uuid
 import weakref
-from typing import Any, Optional, Tuple
+from typing import Any, Dict, Mapping, Optional, Tuple
 
 from bson import EPOCH_NAIVE, json_util
 
@@ -32,7 +32,7 @@ MAX_TEXT_CHARS = int(MAX_TEXT_BYTES / float(MAX_BYTES_PER_CHAR))
 MAX_MYSQL_INTEGER = 2147483647
 
 
-query_counts = weakref.WeakKeyDictionary()
+query_counts: Mapping[Any, int] = weakref.WeakKeyDictionary()
 should_log_dubiously_many_queries = True
 
 
@@ -281,7 +281,7 @@ def b36_to_bin(b36_string):
 
 
 def generate_public_id():
-    # type: () -> str
+    # type: () -> Optional[str]
     """ Returns a base-36 string UUID """
     u = uuid.uuid4().bytes
     return int128_to_b36(u)
@@ -321,7 +321,7 @@ def utf8_surrogate_fix_decode(memory, errors="strict"):
 
 
 def utf8_surrogate_fix_search_function(encoding_name):
-    # type: (str) -> codecs.Codecinfo
+    # type: (str) -> codecs.CodecInfo
     return codecs.CodecInfo(
         utf8_encode, utf8_surrogate_fix_decode, name="utf8-surrogate-fix"
     )

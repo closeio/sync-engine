@@ -7,33 +7,22 @@ from werkzeug.serving import WSGIRequestHandler, run_simple
 from inbox.instrumentation import GreenletTracer, KillerGreenletTracer, ProfileCollector
 
 
-class HTTPFrontend:
+class ProfilingHTTPFrontend:
     """This is a lightweight embedded HTTP server that runs inside a mailsync
     or syncback process. It allows you to programmatically interact with the
     process: to get profile/memory/load metrics, or to schedule new account
     syncs."""
 
-    def start(self):
-        app = self._create_app()
-        # We need to spawn an OS-level thread because we don't want a stuck
-        # greenlet to prevent us to access the web API.
-        gevent._threading.start_new_thread(
-            run_simple, ("0.0.0.0", self.port, app), {"request_handler": _QuietHandler}
-        )
+    def __init__(self, port, trace_greenlets, profile):
+        self.port = port
+        self.profiler = ProfileCollector() if profile else None
+        self.tracer = self.greenlet_tracer_cls()() if trace_greenlets else None
 
     def _create_app(self):
         app = Flask(__name__)
         app.config["JSON_SORT_KEYS"] = False
         self._create_app_impl(app)
         return app
-
-
-class ProfilingHTTPFrontend(HTTPFrontend):
-    def __init__(self, port, trace_greenlets, profile):
-        self.port = port
-        self.profiler = ProfileCollector() if profile else None
-        self.tracer = self.greenlet_tracer_cls()() if trace_greenlets else None
-        super().__init__()
 
     def greenlet_tracer_cls(self):
         return GreenletTracer
@@ -47,7 +36,13 @@ class ProfilingHTTPFrontend(HTTPFrontend):
             self.tracer.start()
         if self.profiler is not None:
             self.profiler.start()
-        super().start()
+
+        app = self._create_app()
+        # We need to spawn an OS-level thread because we don't want a stuck
+        # greenlet to prevent us to access the web API.
+        gevent._threading.start_new_thread(
+            run_simple, ("0.0.0.0", self.port, app), {"request_handler": _QuietHandler}
+        )
 
     def _create_app_impl(self, app):
         @app.route("/profile")

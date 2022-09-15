@@ -696,12 +696,10 @@ class SyncbackTask:
                         max_latency = latency
                     if func_latency > max_func_latency:
                         max_func_latency = func_latency
-                parent_service = self.parent_service()
-                assert parent_service
                 self.log.info(
                     "syncback action completed",
                     latency=max_latency,
-                    process=parent_service.process_number,
+                    process=self.parent_service().process_number,
                     func_latency=max_func_latency,
                 )
                 return True
@@ -822,16 +820,11 @@ class SyncbackWorker(gevent.Greenlet):
         gevent.Greenlet.__init__(self)
 
     def _run(self):
-        while True:
-            parent_service = self.parent_service()
-            assert parent_service
-            if not parent_service.keep_running:
-                break
-
-            task = parent_service.task_queue.get()
+        while self.parent_service().keep_running:
+            task = self.parent_service().task_queue.get()
 
             try:
-                parent_service.notify_worker_active()
+                self.parent_service().notify_worker_active()
                 gevent.with_timeout(task.timeout(self.task_timeout), task.execute)
             except Exception:
                 self.log.error(
@@ -840,6 +833,4 @@ class SyncbackWorker(gevent.Greenlet):
                     account_id=task.account_id,
                 )
             finally:
-                parent_service = self.parent_service()
-                assert parent_service
-                parent_service.notify_worker_finished(task.action_log_ids)
+                self.parent_service().notify_worker_finished(task.action_log_ids)

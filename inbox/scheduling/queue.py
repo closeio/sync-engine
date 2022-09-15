@@ -20,6 +20,7 @@ this happens atomically.
 """
 
 import itertools
+from typing import List, Set
 
 import gevent
 from redis import StrictRedis
@@ -138,7 +139,7 @@ class QueuePopulator:
         self.zone = zone
         self.poll_interval = poll_interval
         self.queue_client = QueueClient(zone)
-        self.shards = []
+        self.shards: List[int] = []
         for database in config["DATABASE_HOSTS"]:
             if database.get("ZONE") == self.zone:
                 shard_ids = [shard["ID"] for shard in database["SHARDS"]]
@@ -186,7 +187,7 @@ class QueuePopulator:
             self.queue_client.unassign(account_id, sync_host)
 
     def runnable_accounts(self):
-        accounts = set()
+        accounts: Set[int] = set()
         for key in self.shards:
             with session_scope_by_shard_id(key) as db_session:
                 accounts.update(

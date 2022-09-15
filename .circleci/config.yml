@@ -29,6 +29,10 @@ jobs:
           name: flake8
           command: flake8
 
+      - run:
+          name: mypy
+          command: mypy
+
   build:
     parameters:
       platform_suffix:

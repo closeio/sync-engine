@@ -12,6 +12,7 @@ from inbox.api.validation import (
     strict_parse_args,
     valid_public_id,
 )
+from inbox.auth.base import AuthHandler
 from inbox.auth.generic import GenericAccountData, GenericAuthHandler
 from inbox.auth.google import GoogleAccountData, GoogleAuthHandler
 from inbox.auth.microsoft import MicrosoftAccountData, MicrosoftAuthHandler
@@ -240,6 +241,7 @@ def create_account():
     """ Create a new account """
     data = request.get_json(force=True)
 
+    auth_handler: AuthHandler
     if data["type"] == "generic":
         auth_handler = GenericAuthHandler()
         account_data = _get_account_data_for_generic_account(data)
@@ -279,6 +281,7 @@ def modify_account(namespace_public_id):
         )
         account = namespace.account
 
+        auth_handler: AuthHandler
         if isinstance(account, GenericAccount):
             auth_handler = GenericAuthHandler()
             account_data = _get_account_data_for_generic_account(data)

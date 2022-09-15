@@ -1,4 +1,4 @@
-from six import StringIO
+from io import StringIO
 
 from .errors import FileUploadError
 from .restful_model_collection import RestfulModelCollection

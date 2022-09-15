@@ -1,5 +1,6 @@
 import datetime
 import json
+import urllib
 
 import pytz
 import requests
@@ -7,7 +8,6 @@ from authalligator_client.client import Client as AuthAlligatorApiClient
 from authalligator_client.enums import AccountErrorCode, ProviderType
 from authalligator_client.exceptions import AccountError
 from imapclient import IMAPClient
-from six.moves import urllib
 
 from inbox.basicauth import ConnectionError, ImapSupportDisabledError, OAuthError
 from inbox.config import config

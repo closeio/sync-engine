@@ -2,9 +2,9 @@ import contextlib
 import json
 import sys
 from os import environ
+from urllib.parse import urlencode
 
 import requests
-from six.moves.urllib.parse import urlencode
 
 from .errors import (
     APIClientError,

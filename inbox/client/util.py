@@ -1,7 +1,6 @@
 from struct import unpack
+from urllib.parse import urlencode
 from uuid import uuid4
-
-from six.moves.urllib.parse import urlencode
 
 
 # From tornado.httputil

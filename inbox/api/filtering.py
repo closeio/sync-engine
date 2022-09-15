@@ -3,7 +3,6 @@ from sqlalchemy.orm import contains_eager, subqueryload
 
 from inbox.api.err import InputError
 from inbox.api.validation import valid_public_id
-from inbox.ignition import engine_manager
 from inbox.models import (
     Block,
     Calendar,
@@ -14,12 +13,10 @@ from inbox.models import (
     Message,
     MessageCategory,
     MessageContactAssociation,
-    Metadata,
     Part,
     Thread,
 )
 from inbox.models.event import RecurringEvent
-from inbox.models.session import session_scope_by_shard_id
 
 
 def contact_subquery(db_session, namespace_id, email_address, field):
@@ -809,103 +806,3 @@ def messages_for_contact_scores(db_session, namespace_id, starts_after=None):
         query = query.filter(Message.received_date > starts_after)
 
     return query.all()
-
-
-def metadata(namespace_id, app_id, view, limit, offset, db_session):
-
-    if view == "count":
-        query = db_session.query(func.count(Metadata.id))
-    elif view == "ids":
-        query = db_session.query(Metadata.object_public_id)
-    else:
-        query = db_session.query(Metadata)
-
-    filters = [Metadata.namespace_id == namespace_id, Metadata.value.isnot(None)]
-    if app_id is not None:
-        filters.append(Metadata.app_id == app_id)
-
-    query = query.filter(*filters)
-    if view == "count":
-        return {"count": query.scalar()}
-
-    query = query.order_by(desc(Metadata.id)).limit(limit)
-
-    if offset:
-        query = query.offset(offset)
-
-    if view == "ids":
-        return [x[0] for x in query.all()]
-
-    return query.all()
-
-
-def metadata_for_app(app_id, limit, last, query_value, query_type, db_session):
-    if app_id is None:
-        raise ValueError("Must specify an app_id")
-
-    query = db_session.query(Metadata).filter(Metadata.app_id == app_id)
-    if last is not None:
-        query = query.filter(Metadata.id > last)
-
-    if query_type is not None:
-        if query_type not in METADATA_QUERY_OPERATORS:
-            raise ValueError(
-                "Invalid query operator for metadata query_type. Must be "
-                "one of {}".format(", ".join(METADATA_QUERY_OPERATORS))
-            )
-        operator_filter = METADATA_QUERY_OPERATORS[query_type](query_value)
-        query = query.filter(operator_filter)
-
-    query = query.order_by(asc(Metadata.id)).limit(limit)
-    return query.all()
-
-
-def page_over_shards(Model, cursor, limit, get_results=lambda q: q.all()):
-    # TODO revisit passing lambda, and cursor format
-    cursor = int(cursor)
-    start_shard_id = engine_manager.shard_key_for_id(cursor)
-    results = []
-    remaining_limit = limit
-    next_cursor = None
-    for shard_id in sorted(engine_manager.engines):
-        if shard_id < start_shard_id:
-            continue
-
-        if len(results) >= limit:
-            break
-
-        with session_scope_by_shard_id(shard_id) as mailsync_session:
-            latest_cursor = cursor if shard_id == start_shard_id else None
-            query = mailsync_session.query(Model)
-            if latest_cursor:
-                query = query.filter(Model.id > latest_cursor)
-            query = query.order_by(asc(Model.id)).limit(remaining_limit)
-            latest_results = get_results(query)
-
-            if latest_results:
-                results.extend(latest_results)
-                last = latest_results[-1]
-                if hasattr(last, "id"):
-                    next_cursor = last.id
-                elif "id" in last:
-                    next_cursor = last["id"]
-                else:
-                    raise ValueError("Results returned from get_query must have an id")
-
-                # Handle invalid ids
-                cursor_implied_shard = next_cursor >> 48
-                if shard_id != 0 and cursor_implied_shard == 0:
-                    next_cursor += shard_id << 48
-
-                remaining_limit -= len(latest_results)
-    return results, str(next_cursor)
-
-
-METADATA_QUERY_OPERATORS = {
-    ">": lambda v: Metadata.queryable_value > v,
-    ">=": lambda v: Metadata.queryable_value >= v,
-    "<": lambda v: Metadata.queryable_value < v,
-    "<=": lambda v: Metadata.queryable_value <= v,
-    "==": lambda v: Metadata.queryable_value == v,
-    "!=": lambda v: Metadata.queryable_value != v,
-}

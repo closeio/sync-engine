@@ -1,8 +1,11 @@
+import typing
 from collections import Counter
 from datetime import datetime
+from typing import Literal
 
 from sqlalchemy.orm.exc import NoResultFound
 
+from inbox.contacts.abc import AbstractContactsProvider
 from inbox.contacts.google import GoogleContactsProvider
 from inbox.contacts.icloud import ICloudContactsProvider
 from inbox.logging import get_logger
@@ -49,7 +52,7 @@ class ContactSync(BaseSyncMonitor):
         self.provider_name = provider_name
 
         provider_cls = CONTACT_SYNC_PROVIDER_MAP[self.provider_name]
-        self.provider = provider_cls(account_id, namespace_id)
+        self.provider: AbstractContactsProvider = provider_cls(account_id, namespace_id)
 
         BaseSyncMonitor.__init__(
             self,
@@ -79,7 +82,9 @@ class ContactSync(BaseSyncMonitor):
             all_contacts = self.provider.get_items(sync_from_dt=last_sync_dt)
 
             # Do a batch insertion of every 100 contact objects
-            change_counter = Counter()
+            change_counter: typing.Counter[
+                Literal["deleted", "updated", "added"]
+            ] = Counter()
             for new_contact in all_contacts:
                 new_contact.namespace = account.namespace
                 assert new_contact.uid is not None, "Got remote item with null uid"

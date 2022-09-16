@@ -2,6 +2,7 @@ import sys
 import traceback
 from datetime import date, datetime
 from email.utils import formataddr
+from typing import Dict, Literal
 
 import arrow
 import icalendar
@@ -40,7 +41,7 @@ def events_from_ics(namespace, calendar, ics_str):
     except (ValueError, IndexError, KeyError):
         raise MalformedEventError()
 
-    events = dict(invites=[], rsvps=[])
+    events: Dict[Literal["invites", "rsvps"], Event] = dict(invites=[], rsvps=[])
 
     # See: https://tools.ietf.org/html/rfc5546#section-3.2
     calendar_method = None
@@ -177,7 +178,7 @@ def events_from_ics(namespace, calendar, ics_str):
                 if "CN" in organizer.params:
                     organizer_name = organizer.params["CN"]
 
-                owner = formataddr([organizer_name, organizer_email.lower()])
+                owner = formataddr((organizer_name, organizer_email.lower()))
             else:
                 owner = None
 

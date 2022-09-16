@@ -31,7 +31,7 @@ jobs:
 
       - run:
           name: mypy
-          command: mypy -p inbox.s3 -p inbox.actions -p inbox.api -p inbox.contacts
+          command: mypy -p inbox.s3 -p inbox.actions -p inbox.api -p inbox.contacts -p inbox.events
 
   build:
     parameters:

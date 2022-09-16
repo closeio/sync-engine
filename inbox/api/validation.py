@@ -1,5 +1,6 @@
 """Utilities for validating user input to the API."""
 import contextlib
+from typing import Set
 
 import arrow
 from arrow.parser import ParserError
@@ -198,7 +199,7 @@ def get_draft(draft_public_id, version, namespace_id, db_session):
 
 
 def get_attachments(block_public_ids, namespace_id, db_session):
-    attachments = set()
+    attachments: Set[Block] = set()
     if block_public_ids is None:
         return attachments
     if not isinstance(block_public_ids, list):

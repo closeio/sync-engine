@@ -31,7 +31,7 @@ jobs:
 
       - run:
           name: mypy
-          command: mypy -p inbox.s3
+          command: mypy -p inbox.s3 -p inbox.actions -p inbox.api
 
   build:
     parameters:

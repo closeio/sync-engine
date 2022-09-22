@@ -62,32 +62,32 @@ class BaseMailSyncMonitor(Greenlet):
             raise
 
     def _run_impl(self):
-        self.sync = Greenlet(
+        self.sync_greenlet = Greenlet(
             retry_with_logging,
             self.sync,
             account_id=self.account_id,
             provider=self.provider_name,
             logger=self.log,
         )
-        self.sync.start()
-        self.sync.join()
+        self.sync_greenlet.start()
+        self.sync_greenlet.join()
 
-        if self.sync.successful():
+        if self.sync_greenlet.successful():
             return self._cleanup()
 
         self.log.error(
             "mail sync should run forever",
             provider=self.provider_name,
             account_id=self.account_id,
-            exc=self.sync.exception,
+            exc=self.sync_greenlet.exception,
         )
-        raise self.sync.exception
+        raise self.sync_greenlet.exception
 
     def sync(self):
         raise NotImplementedError
 
     def _cleanup(self):
-        self.sync.kill()
+        self.sync_greenlet.kill()
         with session_scope(self.namespace_id) as mailsync_db_session:
             for x in self.folder_monitors:
                 x.set_stopped(mailsync_db_session)

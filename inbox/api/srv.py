@@ -1,3 +1,5 @@
+from typing import Union
+
 from flask import Flask, g, jsonify, make_response, request
 from flask_restful import reqparse
 from sqlalchemy.orm.exc import NoResultFound
@@ -240,6 +242,7 @@ def create_account():
     """ Create a new account """
     data = request.get_json(force=True)
 
+    auth_handler: Union[GenericAuthHandler, GoogleAuthHandler, MicrosoftAuthHandler]
     if data["type"] == "generic":
         auth_handler = GenericAuthHandler()
         account_data = _get_account_data_for_generic_account(data)
@@ -279,6 +282,7 @@ def modify_account(namespace_public_id):
         )
         account = namespace.account
 
+        auth_handler: Union[GenericAuthHandler, GoogleAuthHandler, MicrosoftAuthHandler]
         if isinstance(account, GenericAccount):
             auth_handler = GenericAuthHandler()
             account_data = _get_account_data_for_generic_account(data)

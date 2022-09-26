@@ -3,6 +3,7 @@ import json
 import os
 import re
 import subprocess
+from typing import Dict, List, Literal, Union
 
 import attr
 import dns
@@ -79,7 +80,10 @@ class MockAnswer:
 
 class MockDNSResolver:
     def __init__(self):
-        self._registry = {"mx": {}, "ns": {}}
+        self._registry: Dict[Literal["mx", "ns"], Dict[str, List[str]]] = {
+            "mx": {},
+            "ns": {},
+        }
 
     def _load_records(self, filename):
         self._registry = json.loads(get_data(filename))
@@ -108,7 +112,9 @@ def mock_dns_resolver(monkeypatch):
 @pytest.fixture(scope="function")
 def dump_dns_queries(monkeypatch):
     original_query = dns.resolver.Resolver.query
-    query_results = {"ns": {}, "mx": {}}
+    query_results: Dict[
+        Literal["mx", "ns"], Dict[str, Union[Dict[Literal["error"], str], List[str]]]
+    ] = {"ns": {}, "mx": {}}
 
     def mock_query(self, domain, record_type):
         try:

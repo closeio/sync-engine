@@ -1,4 +1,5 @@
 import random
+from typing import List
 
 from inbox.config import config
 from inbox.ignition import engine_manager
@@ -12,7 +13,7 @@ def get_open_shards():
     # Can't use engine_manager.engines here because it does not track
     # shard state (open/ closed)
     database_hosts = config.get_required("DATABASE_HOSTS")
-    open_shards = []
+    open_shards: List[int] = []
     for host in database_hosts:
         open_shards.extend(
             shard["ID"]

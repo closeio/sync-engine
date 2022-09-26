@@ -76,11 +76,11 @@ def parse_references(references, in_reply_to):
         else:
             return []
 
-    references = references.split()
-    if replyto not in references:
-        references.append(replyto)
+    reference_list = references.split()
+    if replyto not in reference_list:
+        reference_list.append(replyto)
 
-    return references
+    return reference_list
 
 
 def dt_to_timestamp(dt):
@@ -91,10 +91,12 @@ def get_internaldate(date, received):
     # type: (Optional[str], Optional[str]) -> datetime
     """ Get the date from the headers. """
     if date is None:
+        assert received
         other, date = received.split(";")
 
     # All in UTC
     parsed_date = parsedate_tz(date)
+    assert parsed_date
     timestamp = mktime_tz(parsed_date)
     dt = datetime.utcfromtimestamp(timestamp)
 

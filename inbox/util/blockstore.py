@@ -15,8 +15,6 @@ STORE_MSG_ON_S3 = config.get("STORE_MESSAGES_ON_S3", None)
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 
-from inbox.util.file import mkdirp
-
 
 def _data_file_directory(h):
     return os.path.join(
@@ -41,7 +39,7 @@ def save_to_blockstore(data_sha256, data):
         _save_to_s3(data_sha256, data)
     else:
         directory = _data_file_directory(data_sha256)
-        mkdirp(directory)
+        os.makedirs(directory, exist_ok=True)
 
         with open(_data_file_path(data_sha256), "wb") as f:
             f.write(data)

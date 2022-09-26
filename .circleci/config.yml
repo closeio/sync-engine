@@ -45,7 +45,7 @@ jobs:
             -p inbox.sendmail \
             -p inbox.sqlalchemy_ext \
             -p inbox.sync \
-            -p inbox.utils \
+            -p inbox.util \
             -p inbox.webhooks
   build:
     parameters:

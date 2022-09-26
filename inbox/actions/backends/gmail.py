@@ -2,6 +2,7 @@
 
 import contextlib
 from imaplib import IMAP4
+from typing import Dict, List
 
 import imapclient
 
@@ -22,7 +23,7 @@ def _encode_labels(labels):
 def remote_change_labels(
     crispin_client, account_id, message_ids, removed_labels, added_labels
 ):
-    uids_for_message = {}
+    uids_for_message: Dict[str, List[str]] = {}
     with session_scope(account_id) as db_session:
         for message_id in message_ids:
             folder_uids_map = uids_by_folder(message_id, db_session)

@@ -29,6 +29,10 @@ jobs:
           name: flake8
           command: flake8
 
+      - run:
+          name: mypy
+          command: mypy -p inbox.s3 -p inbox.actions -p inbox.api -p inbox.contacts -p inbox.events
+
   build:
     parameters:
       platform_suffix:

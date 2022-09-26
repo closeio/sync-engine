@@ -16,6 +16,7 @@ import gevent
 
 from inbox.auth.google import GoogleAuthHandler
 from inbox.basicauth import ConnectionError, OAuthError, ValidationError
+from inbox.contacts.abc import AbstractContactsProvider
 from inbox.logging import get_logger
 from inbox.models import Contact
 from inbox.models.backends.gmail import GmailAccount
@@ -27,7 +28,7 @@ logger = get_logger()
 SOURCE_APP_NAME = "Nylas Sync Engine"
 
 
-class GoogleContactsProvider:
+class GoogleContactsProvider(AbstractContactsProvider):
     """
     A utility class to fetch and parse Google contact data for the specified
     account using the Google Contacts API.

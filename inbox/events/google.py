@@ -3,9 +3,7 @@ import datetime
 import json
 import random
 import time
-import urllib.error
 import urllib.parse
-import urllib.request
 import uuid
 
 import arrow
@@ -13,7 +11,7 @@ import gevent
 import requests
 
 from inbox.auth.oauth import OAuthRequestsWrapper
-from inbox.basicauth import AccessNotEnabledError
+from inbox.basicauth import AccessNotEnabledError, OAuthError
 from inbox.config import config
 from inbox.events.util import (
     CalendarSyncResponse,

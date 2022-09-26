@@ -56,7 +56,7 @@ class NylasWSGIHandler(WSGIHandler):
         # (https://github.com/gevent/gevent/blob/master/src/gevent/pywsgi.py#L706)
         # To make the logs clearer, use the positive status code and include
         # the socket error
-        if status < 0:
+        if status and status < 0:
             additional_context["error"] = "socket.error"
             additional_context["error_message"] = getattr(self, "status", None)
             status = abs(status)

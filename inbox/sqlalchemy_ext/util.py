@@ -2,7 +2,6 @@ import codecs
 import contextlib
 import re
 import struct
-import typing
 import uuid
 import weakref
 from typing import Any, MutableMapping, Optional, Tuple
@@ -288,7 +287,7 @@ RE_SURROGATE_CHARACTER = re.compile(r"[\ud800-\udfff]")
 RE_SURROGATE_PAIR = re.compile(r"[\ud800-\udbff][\udc00-\udfff]")
 
 
-def utf8_encode(text: typing.Text, errors: str = "strict") -> Tuple[bytes, int]:
+def utf8_encode(text: str, errors: str = "strict") -> Tuple[bytes, int]:
     return text.encode("utf-8", errors), len(text)
 
 

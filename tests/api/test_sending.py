@@ -22,7 +22,7 @@ class MockTokenManager:
     def __init__(self, allow_auth=True):
         self.allow_auth = allow_auth
 
-    def get_token(self, account, force_refresh=True):
+    def get_token(self, account, force_refresh=True, scopes=None):
         if self.allow_auth:
             # return a fake token.
             return "foo"

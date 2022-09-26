@@ -36,6 +36,7 @@ jobs:
             -p inbox.s3 \
             -p inbox.actions \
             -p inbox.api \
+            -p inbox.auth \
             -p inbox.contacts \
             -p inbox.events \
             -p inbox.mailsync \

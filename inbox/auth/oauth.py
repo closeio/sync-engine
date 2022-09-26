@@ -1,6 +1,8 @@
 import datetime
 import json
-import urllib
+import urllib.error
+import urllib.parse
+import urllib.request
 from typing import List, Optional, Tuple
 
 import pytz
@@ -23,7 +25,13 @@ log = get_logger()
 
 class OAuthAuthHandler(AuthHandler):
     # Defined by subclasses
-    OAUTH_ACCESS_TOKEN_URL = None
+    OAUTH_CLIENT_ID: Optional[str] = None
+    OAUTH_CLIENT_SECRET: Optional[str] = None
+    OAUTH_REDIRECT_URI: Optional[str] = None
+
+    OAUTH_AUTHENTICATE_URL: Optional[str] = None
+    OAUTH_ACCESS_TOKEN_URL: Optional[str] = None
+    OAUTH_USER_INFO_URL: Optional[str] = None
 
     AUTHALLIGATOR_AUTH_KEY = config.get("AUTHALLIGATOR_AUTH_KEY")
     AUTHALLIGATOR_SERVICE_URL = config.get("AUTHALLIGATOR_SERVICE_URL")
@@ -37,6 +45,7 @@ class OAuthAuthHandler(AuthHandler):
 
         client_id, client_secret = account.get_client_info()
 
+        assert self.OAUTH_ACCESS_TOKEN_URL, "OAUTH_ACCESS_TOKEN_URL is not defined"
         access_token_url = self.OAUTH_ACCESS_TOKEN_URL
 
         data = urllib.parse.urlencode(
@@ -207,6 +216,7 @@ class OAuthAuthHandler(AuthHandler):
 
     def _get_user_info(self, session_dict):
         access_token = session_dict["access_token"]
+        assert self.OAUTH_USER_INFO_URL, "OAUTH_USER_INFO_URL is not defined"
         request = urllib.request.Request(
             self.OAUTH_USER_INFO_URL,
             headers={"Authorization": f"Bearer {access_token}"},
@@ -240,6 +250,7 @@ class OAuthAuthHandler(AuthHandler):
             "Accept": "text/plain",
         }
         data = urllib.parse.urlencode(args)
+        assert self.OAUTH_ACCESS_TOKEN_URL, "OAUTH_ACCESS_TOKEN_URL is not defined"
         resp = requests.post(self.OAUTH_ACCESS_TOKEN_URL, data=data, headers=headers)
 
         session_dict = resp.json()

@@ -4,7 +4,7 @@ refresh tokens.
 """
 from datetime import datetime, timedelta
 from hashlib import sha256
-from typing import Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.ext.declarative import declared_attr
@@ -68,6 +68,22 @@ token_manager = TokenManager()
 
 
 class OAuthAccount:
+    @property
+    def email_scopes(self) -> Optional[List[str]]:
+        return None
+
+    @property
+    def contacts_scopes(self) -> Optional[List[str]]:
+        return None
+
+    @property
+    def calendar_scopes(self) -> Optional[List[str]]:
+        return None
+
+    @property
+    def scopes(self) -> Optional[List[str]]:
+        return None
+
     @declared_attr
     def refresh_token_id(cls):
         return Column(ForeignKey(Secret.id), nullable=False)

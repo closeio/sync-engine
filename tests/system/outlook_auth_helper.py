@@ -119,7 +119,7 @@ def outlook_auth(email, password):
         "redirect_uri": OutlookAuthHandler.OAUTH_REDIRECT_URI,
         "client_id": OutlookAuthHandler.OAUTH_CLIENT_ID,
         "response_type": "code",
-        "scope": OutlookAuthHandler.OAUTH_SCOPE,
+        "scope": OutlookAuthHandler.OAUTH_AUTH_SCOPES,
         "access_type": "offline",
         "login_hint": email,
     }

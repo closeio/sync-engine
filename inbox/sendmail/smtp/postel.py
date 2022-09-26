@@ -2,9 +2,7 @@ import base64
 import itertools
 import re
 import smtplib
-import socket
 import ssl
-import sys
 
 from inbox.logging import get_logger
 
@@ -161,18 +159,19 @@ class SMTPConnection:
 
     def setup(self):
         host, port = self.smtp_endpoint
+        self.connection: smtplib.SMTP
         if port in (SMTP_OVER_SSL_PORT, SMTP_OVER_SSL_TEST_PORT):
             self.connection = SMTP_SSL(host, timeout=SMTP_TIMEOUT)
             self._connect(host, port)
         else:
             self.connection = SMTP(timeout=SMTP_TIMEOUT)
             self._connect(host, port)
-            self.connection._host = host
+            self.connection._host = host  # type: ignore
             self._upgrade_connection()
 
         # Auth the connection
         self.connection.ehlo()
-        auth_handler = self.auth_handlers.get(self.auth_type)
+        auth_handler = self.auth_handlers[self.auth_type]
         auth_handler()
 
     def _upgrade_connection(self):
@@ -205,9 +204,9 @@ class SMTPConnection:
     def _try_xoauth2(self):
         auth_string = "user={}\1auth=Bearer {}\1\1".format(
             self.email_address, self.auth_token
-        )
+        ).encode()
         code, resp = self.connection.docmd(
-            "AUTH", f"XOAUTH2 {base64.b64encode(auth_string)}"
+            "AUTH", f"XOAUTH2 {base64.b64encode(auth_string).decode()}"
         )
         if code == SMTP_AUTH_CHALLENGE:
             log.error(
@@ -372,7 +371,7 @@ class SMTPClient:
                         message = res[1]
                         break
 
-            server_error = f"{err.smtp_code} : {err.smtp_error}"
+            server_error = f"{err.smtp_code} : {err.smtp_error!r}"
 
             self.log.error(
                 "Sending failed",

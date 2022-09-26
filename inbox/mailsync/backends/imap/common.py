@@ -64,7 +64,7 @@ def update_message_metadata(session, account, message, is_draft):
         categories.update(i.categories)
 
     if account.category_type == "folder":
-        categories = [_select_category(categories)] if categories else []
+        categories = {_select_category(categories)} if categories else set()
 
     # Use a consistent time across creating categories, message updated_at
     # and the subsequent transaction that may be created.

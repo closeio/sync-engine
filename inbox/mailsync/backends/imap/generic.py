@@ -65,7 +65,7 @@ import contextlib
 import imaplib
 import time
 from datetime import datetime, timedelta
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import gevent
 from gevent import Greenlet
@@ -163,12 +163,12 @@ class FolderSyncEngine(Greenlet):
         else:
             self.poll_frequency = DEFAULT_POLL_FREQUENCY
         self.syncmanager_lock = syncmanager_lock
-        self.state = None
+        self.state: Optional[str] = None
         self.provider_name = provider_name
         self.last_fast_refresh = None
         self.flags_fetch_results = {}
         self.conn_pool = connection_pool(self.account_id)
-        self.polling_logged_at = 0
+        self.polling_logged_at: float = 0
 
         self.state_handlers = {
             "initial": self.initial_sync,
@@ -253,10 +253,12 @@ class FolderSyncEngine(Greenlet):
 
     def _run_impl(self):
         old_state = self.state
+        assert old_state
         try:
             self.state = self.state_handlers[old_state]()
             self.heartbeat_status.publish(state=self.state)
         except UidInvalid:
+            assert self.state
             self.state = self.state + " uidinvalid"
             self.uidinvalid_count += 1
             self.heartbeat_status.publish(state=self.state)
@@ -1009,7 +1011,7 @@ def uidvalidity_cb(account_id, folder_name, select_info):
             raise UidInvalid(
                 "folder: {}, remote uidvalidity: {}, "
                 "cached uidvalidity: {}".format(
-                    folder_name.encode("utf-8"), selected_uidvalidity, saved_uidvalidity
+                    folder_name, selected_uidvalidity, saved_uidvalidity
                 )
             )
     return select_info

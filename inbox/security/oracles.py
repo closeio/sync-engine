@@ -72,7 +72,7 @@ class _EncryptionOracle:
 
         del self.default_scheme
         del self._secret_box
-        self._closed = 1
+        self._closed = True
 
     def encrypt(self, plaintext, encryption_scheme=None):
         """
@@ -105,6 +105,7 @@ class _EncryptionOracle:
             ciphertext = plaintext
 
         elif encryption_scheme == EncryptionScheme.SECRETBOX_WITH_STATIC_KEY:
+            assert self._secret_box
             ciphertext = self._secret_box.encrypt(
                 plaintext=plaintext,
                 nonce=nacl.utils.random(nacl.secret.SecretBox.NONCE_SIZE),
@@ -172,7 +173,8 @@ class _DecryptionOracle(_EncryptionOracle):
         elif (
             encryption_scheme_value == EncryptionScheme.SECRETBOX_WITH_STATIC_KEY.value
         ):
-            return self._secret_box.decrypt(ciphertext)  # type: bytes
+            assert self._secret_box
+            return self._secret_box.decrypt(ciphertext)
 
         else:
             raise ValueError(

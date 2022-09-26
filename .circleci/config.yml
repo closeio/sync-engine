@@ -31,8 +31,21 @@ jobs:
 
       - run:
           name: mypy
-          command: mypy -p inbox.s3 -p inbox.actions -p inbox.api -p inbox.contacts -p inbox.events
-
+          command: |
+            mypy \
+            -p inbox.s3 \
+            -p inbox.actions \
+            -p inbox.api \
+            -p inbox.contacts \
+            -p inbox.events \
+            -p inbox.mailsync \
+            -p inbox.scheduling \
+            -p inbox.search \
+            -p inbox.security \
+            -p inbox.sendmail \
+            -p inbox.sqlalchemy_ext \
+            -p inbox.sync \
+            -p inbox.transactions
   build:
     parameters:
       platform_suffix:

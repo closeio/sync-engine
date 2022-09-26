@@ -11,6 +11,7 @@ import random
 import weakref
 from collections import defaultdict
 from datetime import datetime, timedelta
+from typing import DefaultDict, Set
 
 import gevent
 import gevent.event
@@ -128,7 +129,9 @@ class SyncbackService(gevent.Greenlet):
         # on any given object. But IMAP actions are already effectively
         # serialized by using an IMAP connection pool of size 1, so it doesn't
         # matter too much.
-        self.account_semaphores = defaultdict(lambda: BoundedSemaphore(1))
+        self.account_semaphores: DefaultDict[int, BoundedSemaphore] = defaultdict(
+            lambda: BoundedSemaphore(1)
+        )
         # This SyncbackService performs syncback for only and all the accounts
         # on shards it is reponsible for; shards are divided up between
         # running SyncbackServices.
@@ -250,8 +253,8 @@ class SyncbackService(gevent.Greenlet):
         if action in ("move", "mark_unread"):
             extra_args = log_entries[-1].extra_args
         elif action == "change_labels":
-            added_labels = set()
-            removed_labels = set()
+            added_labels: Set[str] = set()
+            removed_labels: Set[str] = set()
             for log_entry in log_entries:
                 for label in log_entry.extra_args["added_labels"]:
                     if label in removed_labels:
@@ -693,10 +696,12 @@ class SyncbackTask:
                         max_latency = latency
                     if func_latency > max_func_latency:
                         max_func_latency = func_latency
+                parent_service = self.parent_service()
+                assert parent_service
                 self.log.info(
                     "syncback action completed",
                     latency=max_latency,
-                    process=self.parent_service().process_number,
+                    process=parent_service.process_number,
                     func_latency=max_func_latency,
                 )
                 return True

@@ -709,7 +709,7 @@ def send_rsvp(ical_data, event, body_text, status, account):
     rsvp_to = rsvp_recipient(event)
 
     if rsvp_to is None:
-        raise SendMailException("Couldn't find an organizer to RSVP to.")
+        raise SendMailException("Couldn't find an organizer to RSVP to.", None)
 
     sendmail_client = get_sendmail_client(account)
 

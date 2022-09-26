@@ -4,7 +4,7 @@ import re
 import struct
 import uuid
 import weakref
-from typing import Any, Optional, Tuple
+from typing import Any, MutableMapping, Optional, Tuple
 
 from bson import EPOCH_NAIVE, json_util
 
@@ -32,7 +32,7 @@ MAX_TEXT_CHARS = int(MAX_TEXT_BYTES / float(MAX_BYTES_PER_CHAR))
 MAX_MYSQL_INTEGER = 2147483647
 
 
-query_counts = weakref.WeakKeyDictionary()
+query_counts: MutableMapping[Any, int] = weakref.WeakKeyDictionary()
 should_log_dubiously_many_queries = True
 
 
@@ -223,16 +223,8 @@ class MutableList(Mutable, list):
         list.__setitem__(self, idx, value)
         self.changed()
 
-    def __setslice__(self, start, stop, values):
-        list.__setslice__(self, start, stop, values)
-        self.changed()
-
     def __delitem__(self, idx):
         list.__delitem__(self, idx)
-        self.changed()
-
-    def __delslice__(self, start, stop):
-        list.__delslice__(self, start, stop)
         self.changed()
 
     def append(self, value):
@@ -284,7 +276,9 @@ def generate_public_id():
     # type: () -> str
     """ Returns a base-36 string UUID """
     u = uuid.uuid4().bytes
-    return int128_to_b36(u)
+    result = int128_to_b36(u)
+    assert result
+    return result
 
 
 # Other utilities
@@ -293,13 +287,13 @@ RE_SURROGATE_CHARACTER = re.compile(r"[\ud800-\udfff]")
 RE_SURROGATE_PAIR = re.compile(r"[\ud800-\udbff][\udc00-\udfff]")
 
 
-def utf8_encode(text, errors="strict"):
-    # type: (str, str) -> Tuple[bytes, int]
+def utf8_encode(text: str, errors: str = "strict") -> Tuple[bytes, int]:
     return text.encode("utf-8", errors), len(text)
 
 
-def utf8_surrogate_fix_decode(memory, errors="strict"):
-    # type: (memoryview, str) -> Tuple[str, int]
+def utf8_surrogate_fix_decode(
+    memory: memoryview, errors: str = "strict"
+) -> Tuple[str, int]:
     binary = memory.tobytes()
 
     with contextlib.suppress(UnicodeDecodeError):
@@ -320,10 +314,9 @@ def utf8_surrogate_fix_decode(memory, errors="strict"):
     return text, len(binary)
 
 
-def utf8_surrogate_fix_search_function(encoding_name):
-    # type: (str) -> codecs.Codecinfo
+def utf8_surrogate_fix_search_function(encoding_name: str) -> codecs.CodecInfo:
     return codecs.CodecInfo(
-        utf8_encode, utf8_surrogate_fix_decode, name="utf8-surrogate-fix"
+        utf8_encode, utf8_surrogate_fix_decode, name="utf8-surrogate-fix"  # type: ignore
     )
 
 

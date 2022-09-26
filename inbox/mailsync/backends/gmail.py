@@ -23,6 +23,7 @@ user always gets the full thread when they look at mail.
 
 from collections import OrderedDict
 from datetime import datetime, timedelta
+from typing import Dict, List
 
 import gevent
 from gevent.lock import Semaphore
@@ -472,7 +473,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
         # that you don't see incomplete thread views for the duration of the
         # sync. Given a 'seed set' of UIDs, this function returns a generator
         # which yields the 'expanded' set of UIDs to download.
-        thrids = OrderedDict()
+        thrids: Dict[str, List[str]] = OrderedDict()
         for uid in sorted(uids, reverse=True):
             g_thrid = metadata[uid].g_thrid
             if g_thrid in thrids:
@@ -505,7 +506,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
         count = 0
         while True:
             dl_size = 0
-            batch = []
+            batch: List[str] = []
             while dl_size < max_download_bytes and len(batch) < max_download_count:
                 try:
                     uid = next(expanded_pending_uids)

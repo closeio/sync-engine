@@ -1,6 +1,7 @@
 import datetime
 import json
 import urllib
+from typing import List, Optional, Tuple
 
 import pytz
 import requests
@@ -12,7 +13,7 @@ from imapclient import IMAPClient
 from inbox.basicauth import ConnectionError, ImapSupportDisabledError, OAuthError
 from inbox.config import config
 from inbox.logging import get_logger
-from inbox.models.backends.oauth import token_manager
+from inbox.models.backends.oauth import OAuthAccount, token_manager
 from inbox.models.secret import SecretType
 
 from .base import AuthHandler
@@ -27,7 +28,9 @@ class OAuthAuthHandler(AuthHandler):
     AUTHALLIGATOR_AUTH_KEY = config.get("AUTHALLIGATOR_AUTH_KEY")
     AUTHALLIGATOR_SERVICE_URL = config.get("AUTHALLIGATOR_SERVICE_URL")
 
-    def _new_access_token_from_refresh_token(self, account):
+    def _new_access_token_from_refresh_token(
+        self, account: OAuthAccount
+    ) -> Tuple[str, int]:
         refresh_token = account.refresh_token
         if not refresh_token:
             raise OAuthError("refresh_token required")
@@ -76,7 +79,9 @@ class OAuthAuthHandler(AuthHandler):
 
         return session_dict["access_token"], session_dict["expires_in"]
 
-    def _new_access_token_from_authalligator(self, account, force_refresh):
+    def _new_access_token_from_authalligator(
+        self, account: OAuthAccount, force_refresh: bool, scopes: Optional[List[str]]
+    ) -> Tuple[str, int]:
         """
         Return the access token based on an account created in AuthAlligator.
         """
@@ -94,16 +99,15 @@ class OAuthAuthHandler(AuthHandler):
         account_key = aa_data["account_key"]
 
         try:
-            if force_refresh:
-                aa_response = aa_client.verify_account(
-                    provider=provider, username=username, account_key=account_key,
-                )
-                aa_account = aa_response.account
-            else:
-                aa_response = aa_client.query_account(
-                    provider=provider, username=username, account_key=account_key,
-                )
-                aa_account = aa_response
+            # TODO - handle force_refresh once it's supported
+            # by AuthAlligator and its client.
+            aa_response = aa_client.query_account(
+                provider=provider,
+                username=username,
+                account_key=account_key,
+                scopes=scopes,
+            )
+            aa_account = aa_response
         except AccountError as exc:
             log.warn(
                 "AccountError during AuthAlligator account query",
@@ -124,17 +128,25 @@ class OAuthAuthHandler(AuthHandler):
                 )
         else:
             now = datetime.datetime.now(pytz.UTC)
-            expires_in = int((aa_account.access_token_expires_at - now).total_seconds())
+            access_token = aa_account.access.token
+            expires_in = int((aa_account.access.expires_at - now).total_seconds())
             assert expires_in > 0
-            return (aa_account.access_token, expires_in)
+            return (access_token, expires_in)
 
-    def acquire_access_token(self, account, force_refresh=False):
+    def acquire_access_token(
+        self,
+        account: OAuthAccount,
+        force_refresh: bool = False,
+        scopes: Optional[List[str]] = None,
+    ) -> Tuple[str, int]:
         """
         Acquire a new access token for the given account.
 
         Args:
             force_refresh (bool): Whether a token refresh should be forced when
                 requesting it from an external token service (AuthAlligator)
+            scopes (Optional[List[str]]): Specific scopes for the
+                requested access token (AuthAlligator only)
 
         Raises:
             OAuthError: If the token is no longer valid and syncing should stop.
@@ -142,15 +154,19 @@ class OAuthAuthHandler(AuthHandler):
                 the auth token.
         """
         if account.secret.type == SecretType.AuthAlligator.value:
-            return self._new_access_token_from_authalligator(account, force_refresh)
+            return self._new_access_token_from_authalligator(
+                account, force_refresh, scopes
+            )
         elif account.secret.type == SecretType.Token.value:
             # Any token requested from the refresh token is refreshed already.
             return self._new_access_token_from_refresh_token(account)
         else:
             raise OAuthError("No supported secret found.")
 
-    def authenticate_imap_connection(self, account, conn):
-        token = token_manager.get_token(account)
+    def authenticate_imap_connection(self, account: OAuthAccount, conn: IMAPClient):
+        token = token_manager.get_token(
+            account, force_refresh=False, scopes=account.email_scopes
+        )
         try:
             conn.oauth2_login(account.email_address, token)
         except IMAPClient.Error as exc:
@@ -173,7 +189,9 @@ class OAuthAuthHandler(AuthHandler):
             # If we got an AUTHENTICATIONFAILED response, force a token refresh
             # and try again. If IMAP auth still fails, it's likely that IMAP
             # access is disabled, so propagate that errror.
-            token = token_manager.get_token(account, force_refresh=True)
+            token = token_manager.get_token(
+                account, force_refresh=True, scopes=account.email_scopes
+            )
             try:
                 conn.oauth2_login(account.email_address, token)
             except IMAPClient.Error as exc:

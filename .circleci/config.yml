@@ -45,8 +45,8 @@ jobs:
             -p inbox.sendmail \
             -p inbox.sqlalchemy_ext \
             -p inbox.sync \
-            -p inbox.transactions \
-            -p inbox.utils
+            -p inbox.utils \
+            -p inbox.webhooks
   build:
     parameters:
       platform_suffix:

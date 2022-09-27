@@ -61,7 +61,7 @@ class GoogleEventsProvider:
         # A hash to store whether a calendar is read-only or not.
         # This is a bit of a hack because this isn't exposed at the event level
         # by the Google Event API.
-        self.calendars_table = {}
+        self.calendars_table: Dict[str, bool] = {}
 
     def sync_calendars(self) -> CalendarSyncResponse:
         """ Fetches data for the user's calendars.
@@ -138,13 +138,13 @@ class GoogleEventsProvider:
         """
         if sync_from_time is not None:
             # Note explicit offset is required by Google calendar API.
-            sync_from_time = datetime.datetime.isoformat(sync_from_time) + "Z"
+            sync_from_time_str = datetime.datetime.isoformat(sync_from_time) + "Z"
 
         url = "https://www.googleapis.com/calendar/v3/calendars/{}/events".format(
             urllib.parse.quote(calendar_uid)
         )
         try:
-            return self._get_resource_list(url, updatedMin=sync_from_time)
+            return self._get_resource_list(url, updatedMin=sync_from_time_str)
         except requests.exceptions.HTTPError as exc:
             if exc.response.status_code == 410:
                 # The calendar API may return 410 if you pass a value for
@@ -352,6 +352,7 @@ class GoogleEventsProvider:
         else:
             # Handle error and return None
             self.handle_watch_errors(r)
+            return None
 
     def watch_calendar(self, account: Account, calendar: Calendar) -> Optional[int]:
         """
@@ -401,7 +402,7 @@ class GoogleEventsProvider:
                 url=watch_url,
                 exc_info=True,
             )
-            return
+            return None
 
         if r.status_code == 200:
             data = r.json()
@@ -409,6 +410,7 @@ class GoogleEventsProvider:
         else:
             # Handle error and return None
             self.handle_watch_errors(r)
+            return None
 
     def handle_watch_errors(self, r: requests.Response) -> None:
         self.log.warning(

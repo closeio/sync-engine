@@ -38,11 +38,11 @@ class EventSync(BaseSyncMonitor):
 
     def __init__(
         self,
-        email_address,
-        provider_name,
-        account_id,
-        namespace_id,
-        poll_frequency=POLL_FREQUENCY,
+        email_address: str,
+        provider_name: str,
+        account_id: int,
+        namespace_id: int,
+        poll_frequency: int = POLL_FREQUENCY,
     ):
         bind_context(self, "eventsync", account_id)
         # Only Google for now, can easily parametrize by provider later.

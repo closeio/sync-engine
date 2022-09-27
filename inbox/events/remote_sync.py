@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import Any, List, Tuple
 
 from requests.exceptions import HTTPError
 
@@ -37,11 +38,11 @@ class EventSync(BaseSyncMonitor):
 
     def __init__(
         self,
-        email_address,
-        provider_name,
-        account_id,
-        namespace_id,
-        poll_frequency=POLL_FREQUENCY,
+        email_address: str,
+        provider_name: str,
+        account_id: int,
+        namespace_id: int,
+        poll_frequency: int = POLL_FREQUENCY,
     ):
         bind_context(self, "eventsync", account_id)
         # Only Google for now, can easily parametrize by provider later.
@@ -60,7 +61,7 @@ class EventSync(BaseSyncMonitor):
             scope="calendar",
         )
 
-    def sync(self):
+    def sync(self) -> None:
         """Query a remote provider for updates and persist them to the
         database. This function runs every `self.poll_frequency`.
         """
@@ -104,7 +105,9 @@ class EventSync(BaseSyncMonitor):
                 db_session.commit()
 
 
-def handle_calendar_deletes(namespace_id, deleted_calendar_uids, log, db_session):
+def handle_calendar_deletes(
+    namespace_id: int, deleted_calendar_uids: List[str], log: Any, db_session: Any
+) -> None:
     """
     Delete any local Calendar rows with uid in `deleted_calendar_uids`. This
     delete cascades to associated events (if the calendar is gone, so are all
@@ -124,7 +127,9 @@ def handle_calendar_deletes(namespace_id, deleted_calendar_uids, log, db_session
     log.info("deleted calendars", deleted=deleted_count)
 
 
-def handle_calendar_updates(namespace_id, calendars, log, db_session):
+def handle_calendar_updates(
+    namespace_id: int, calendars, log: Any, db_session: Any
+) -> List[Tuple[str, int]]:
     """Persists new or updated Calendar objects to the database."""
     ids_ = []
     added_count = 0
@@ -156,7 +161,9 @@ def handle_calendar_updates(namespace_id, calendars, log, db_session):
     return ids_
 
 
-def handle_event_updates(namespace_id, calendar_id, events, log, db_session):
+def handle_event_updates(
+    namespace_id: int, calendar_id: int, events: List[Event], log: Any, db_session: Any
+) -> None:
     """Persists new or updated Event objects to the database."""
     added_count = 0
     updated_count = 0
@@ -242,7 +249,7 @@ class GoogleEventSync(EventSync):
                 # too long.
                 self.poll_frequency = PUSH_NOTIFICATION_POLL_FREQUENCY
 
-    def sync(self):
+    def sync(self) -> None:
         """Query a remote provider for updates and persist them to the
         database. This function runs every `self.poll_frequency`.
 
@@ -281,7 +288,7 @@ class GoogleEventSync(EventSync):
                 "Access to provider calendar API not enabled; bypassing sync"
             )
 
-    def _refresh_gpush_subscriptions(self):
+    def _refresh_gpush_subscriptions(self) -> None:
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(Account).get(self.account_id)
 
@@ -321,7 +328,7 @@ class GoogleEventSync(EventSync):
                         )
                         raise exc
 
-    def _sync_data(self):
+    def _sync_data(self) -> None:
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(Account).get(self.account_id)
             if account.should_update_calendars(
@@ -365,7 +372,7 @@ class GoogleEventSync(EventSync):
                         )
                         raise exc
 
-    def _sync_calendar_list(self, account, db_session):
+    def _sync_calendar_list(self, account: Account, db_session: Any) -> None:
         sync_timestamp = datetime.utcnow()
         deleted_uids, calendar_changes = self.provider.sync_calendars()
 
@@ -377,7 +384,7 @@ class GoogleEventSync(EventSync):
         account.last_calendar_list_sync = sync_timestamp
         db_session.commit()
 
-    def _sync_calendar(self, calendar, db_session):
+    def _sync_calendar(self, calendar: Calendar, db_session: Any) -> None:
         sync_timestamp = datetime.utcnow()
         event_changes = self.provider.sync_events(
             calendar.uid, sync_from_time=calendar.last_synced
@@ -390,7 +397,7 @@ class GoogleEventSync(EventSync):
         db_session.commit()
 
 
-def _delete_calendar(db_session, calendar):
+def _delete_calendar(db_session: Any, calendar: Calendar) -> None:
     """
     Delete the calendar after deleting its events in batches.
 

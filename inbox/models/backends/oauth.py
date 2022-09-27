@@ -41,7 +41,7 @@ class TokenManager:
     def __init__(self):
         self._tokens = {}
 
-    def get_token(self, account, force_refresh: bool = False) -> str:
+    def get_token(self, account, force_refresh=False):
         if account.id in self._tokens:
             token, expiration = self._tokens[account.id]
             if not force_refresh and expiration > datetime.utcnow():

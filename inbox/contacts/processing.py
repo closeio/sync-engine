@@ -1,5 +1,4 @@
 import uuid
-from typing import Any
 
 from inbox.contacts.crud import INBOX_PROVIDER_NAME
 from inbox.models import Contact, EventContactAssociation, MessageContactAssociation

@@ -71,7 +71,7 @@ def google_auth(email, password):
         "redirect_uri": GmailAuthHandler.OAUTH_REDIRECT_URI,
         "client_id": GmailAuthHandler.OAUTH_CLIENT_ID,
         "response_type": "code",
-        "scope": GmailAuthHandler.OAUTH_AUTH_SCOPES,
+        "scope": GmailAuthHandler.OAUTH_AUTH_SCOPE,
         "access_type": "offline",
         "login_hint": email,
     }

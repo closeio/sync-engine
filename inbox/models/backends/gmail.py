@@ -34,8 +34,10 @@ class GmailAccount(OAuthAccount, ImapAccount):
 
     # for google push notifications:
     last_calendar_list_sync = Column(DateTime)
-    gpush_calendar_list_last_ping = Column(DateTime)
-    gpush_calendar_list_expiration = Column(DateTime)
+    webhook_calendar_list_last_ping = Column("gpush_calendar_list_last_ping", DateTime)
+    webhook_calendar_list_subscription_expiration = Column(
+        "gpush_calendar_list_expiration", DateTime
+    )
 
     @property
     def provider(self):
@@ -60,11 +62,11 @@ class GmailAccount(OAuthAccount, ImapAccount):
     def new_calendar_list_watch(self, expiration):
         # Google gives us back expiration timestamps in milliseconds
         expiration = datetime.fromtimestamp(int(expiration) / 1000.0)
-        self.gpush_calendar_list_expiration = expiration
-        self.gpush_calendar_list_last_ping = datetime.utcnow()
+        self.webhook_calendar_list_subscription_expiration = expiration
+        self.webhook_calendar_list_last_ping = datetime.utcnow()
 
     def handle_gpush_notification(self):
-        self.gpush_calendar_list_last_ping = datetime.utcnow()
+        self.webhook_calendar_list_last_ping = datetime.utcnow()
 
     def should_update_calendars(self, max_time_between_syncs, poll_frequency):
         """
@@ -91,15 +93,17 @@ class GmailAccount(OAuthAccount, ImapAccount):
             or
             # Our info is stale, according to google's push notifications
             (
-                self.gpush_calendar_list_last_ping is not None
-                and (self.last_calendar_list_sync < self.gpush_calendar_list_last_ping)
+                self.webhook_calendar_list_last_ping is not None
+                and (
+                    self.last_calendar_list_sync < self.webhook_calendar_list_last_ping
+                )
             )
         )
 
     def needs_new_calendar_list_watch(self):
         return (
-            self.gpush_calendar_list_expiration is None
-            or self.gpush_calendar_list_expiration < datetime.utcnow()
+            self.webhook_calendar_list_subscription_expiration is None
+            or self.webhook_calendar_list_subscription_expiration < datetime.utcnow()
         )
 
     def get_raw_message_contents(self, message):

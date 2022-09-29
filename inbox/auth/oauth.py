@@ -108,6 +108,11 @@ class OAuthAuthHandler(AuthHandler):
         account_key = aa_data["account_key"]
 
         try:
+            log.info(
+                "requesting new access token from AuthAlligator",
+                force_refresh=force_refresh,
+                scopes=scopes,
+            )
             # TODO - handle force_refresh once it's supported
             # by AuthAlligator and its client.
             aa_response = aa_client.query_account(

@@ -74,7 +74,7 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
         self.webhook_subscription_expiration = expiration
         self.webhook_last_ping = datetime.utcnow()
 
-    def handle_gpush_notification(self):
+    def handle_webhook_notification(self):
         self.webhook_last_ping = datetime.utcnow()
 
     def can_sync(self):

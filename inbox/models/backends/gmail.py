@@ -65,7 +65,7 @@ class GmailAccount(OAuthAccount, ImapAccount):
         self.webhook_calendar_list_subscription_expiration = expiration
         self.webhook_calendar_list_last_ping = datetime.utcnow()
 
-    def handle_gpush_notification(self):
+    def handle_webhook_notification(self):
         self.webhook_calendar_list_last_ping = datetime.utcnow()
 
     def should_update_calendars(self, max_time_between_syncs, poll_frequency):

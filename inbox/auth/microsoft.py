@@ -36,7 +36,7 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
     )
     OAUTH_USER_INFO_URL = "https://outlook.office.com/api/v2.0/me"
 
-    OAUTH_SCOPE = " ".join(
+    OAUTH_AUTH_SCOPE = " ".join(
         [
             "https://outlook.office.com/IMAP.AccessAsUser.All",
             "https://outlook.office.com/SMTP.Send",
@@ -76,7 +76,7 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
             "redirect_uri": self.OAUTH_REDIRECT_URI,
             "client_id": self.OAUTH_CLIENT_ID,
             "response_type": "code",
-            "scope": self.OAUTH_SCOPE,
+            "scope": self.OAUTH_AUTH_SCOPE,
             "prompt": "select_account",
         }
         if email_address:

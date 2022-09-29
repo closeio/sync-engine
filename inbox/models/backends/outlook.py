@@ -6,6 +6,11 @@ from inbox.models.backends.oauth import OAuthAccount
 
 PROVIDER = "microsoft"
 
+MICROSOFT_EMAIL_SCOPES = [
+    "https://outlook.office.com/IMAP.AccessAsUser.All",
+    "https://outlook.office.com/SMTP.Send",
+]
+
 
 class OutlookAccount(ImapAccount, OAuthAccount):
     OAUTH_CLIENT_ID = config.get_required("MICROSOFT_OAUTH_CLIENT_ID")
@@ -27,6 +32,22 @@ class OutlookAccount(ImapAccount, OAuthAccount):
     o_id_token = Column(String(1024))  # `id_token`
     link = Column(String(256))
     locale = Column(String(8))
+
+    @property
+    def email_scopes(self):
+        return MICROSOFT_EMAIL_SCOPES
+
+    @property
+    def contacts_scopes(self):
+        return None
+
+    @property
+    def calendar_scopes(self):
+        return None
+
+    @property
+    def scopes(self):
+        return self.email_scopes
 
     @property
     def provider(self):

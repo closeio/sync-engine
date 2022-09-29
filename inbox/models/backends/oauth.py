@@ -4,7 +4,7 @@ refresh tokens.
 """
 from datetime import datetime, timedelta
 from hashlib import sha256
-from typing import Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.ext.declarative import declared_attr
@@ -39,9 +39,14 @@ def log_token_usage(reason, refresh_token=None, access_token=None, account=None)
 
 class TokenManager:
     def __init__(self):
-        self._tokens = {}
+        self._tokens: Dict[str, str] = {}
 
-    def get_token(self, account, force_refresh=False):
+    def get_token(
+        self,
+        account: "OAuthAccount",
+        force_refresh: bool = False,
+        scopes: Optional[List[str]] = None,
+    ) -> str:
         if account.id in self._tokens:
             token, expiration = self._tokens[account.id]
             if not force_refresh and expiration > datetime.utcnow():
@@ -50,7 +55,9 @@ class TokenManager:
                 )
                 return token
 
-        new_token, expires_in = account.new_token(force_refresh=force_refresh)
+        new_token, expires_in = account.new_token(
+            force_refresh=force_refresh, scopes=scopes
+        )
         log_token_usage(
             "access token obtained", access_token=new_token, account=account
         )
@@ -58,7 +65,7 @@ class TokenManager:
         self.cache_token(account, new_token, expires_in)
         return new_token
 
-    def cache_token(self, account, token, expires_in):
+    def cache_token(self, account: "OAuthAccount", token: str, expires_in: int) -> None:
         expires_in -= 10
         expiration = datetime.utcnow() + timedelta(seconds=expires_in)
         self._tokens[account.id] = token, expiration
@@ -68,6 +75,22 @@ token_manager = TokenManager()
 
 
 class OAuthAccount:
+    @property
+    def email_scopes(self) -> Optional[List[str]]:
+        return None
+
+    @property
+    def contacts_scopes(self) -> Optional[List[str]]:
+        return None
+
+    @property
+    def calendar_scopes(self) -> Optional[List[str]]:
+        return None
+
+    @property
+    def scopes(self) -> Optional[List[str]]:
+        return None
+
     @declared_attr
     def refresh_token_id(cls):
         return Column(ForeignKey(Secret.id), nullable=False)
@@ -134,7 +157,9 @@ class OAuthAccount:
         else:
             raise OAuthError("No valid tokens.")
 
-    def new_token(self, force_refresh=False):
+    def new_token(
+        self, force_refresh: bool = False, scopes: Optional[List[str]] = None
+    ) -> Tuple[str, int]:
         """
         Retrieves a new access token.
 
@@ -149,7 +174,7 @@ class OAuthAccount:
         """
         try:
             return self.auth_handler.acquire_access_token(
-                self, force_refresh=force_refresh
+                self, force_refresh=force_refresh, scopes=scopes
             )
         except Exception as e:
             log.error(

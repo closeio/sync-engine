@@ -39,7 +39,7 @@ class GoogleAuthHandler(OAuthAuthHandler):
     OAUTH_ACCESS_TOKEN_URL = "https://accounts.google.com/o/oauth2/token"
     OAUTH_USER_INFO_URL = "https://www.googleapis.com/oauth2/v1/userinfo"
 
-    OAUTH_SCOPE = " ".join(
+    OAUTH_AUTH_SCOPE = " ".join(
         [
             "email",  # email address
             "https://mail.google.com/",  # email
@@ -78,7 +78,7 @@ class GoogleAuthHandler(OAuthAuthHandler):
             "redirect_uri": self.OAUTH_REDIRECT_URI,
             "client_id": self.OAUTH_CLIENT_ID,
             "response_type": "code",
-            "scope": self.OAUTH_SCOPE,
+            "scope": self.OAUTH_AUTH_SCOPE,
             "access_type": "offline",
             "approval_prompt": "force",
         }

@@ -199,7 +199,9 @@ class SMTPConnection:
     def _smtp_oauth2_try_refresh(self):
         with session_scope(self.account_id) as db_session:
             account = db_session.query(ImapAccount).get(self.account_id)
-            self.auth_token = token_manager.get_token(account, force_refresh=True)
+            self.auth_token = token_manager.get_token(
+                account, force_refresh=True, scopes=account.email_scopes
+            )
 
     def _try_xoauth2(self):
         auth_string = "user={}\1auth=Bearer {}\1\1".format(
@@ -292,7 +294,9 @@ class SMTPClient:
 
         if self.auth_type == "oauth2":
             try:
-                self.auth_token = token_manager.get_token(account)
+                self.auth_token = token_manager.get_token(
+                    account, force_refresh=False, scopes=account.email_scopes
+                )
             except OAuthError:
                 raise SendMailException(
                     "Could not authenticate with the SMTP server.", 403

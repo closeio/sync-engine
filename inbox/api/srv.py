@@ -1,3 +1,5 @@
+from typing import Union
+
 from flask import Flask, g, jsonify, make_response, request
 from flask_restful import reqparse
 from sqlalchemy.orm.exc import NoResultFound
@@ -18,7 +20,7 @@ from inbox.auth.microsoft import MicrosoftAccountData, MicrosoftAuthHandler
 from inbox.logging import get_logger
 from inbox.models import Account, Namespace
 from inbox.models.backends.generic import GenericAccount
-from inbox.models.backends.gmail import GOOGLE_EMAIL_SCOPE, GmailAccount
+from inbox.models.backends.gmail import GOOGLE_EMAIL_SCOPES, GmailAccount
 from inbox.models.backends.outlook import OutlookAccount
 from inbox.models.secret import SecretType
 from inbox.models.session import global_session_scope
@@ -175,7 +177,7 @@ def _get_account_data_for_generic_account(data):
 
 def _get_account_data_for_google_account(data):
     email_address = data["email_address"]
-    scopes = data.get("scopes", GOOGLE_EMAIL_SCOPE)
+    scopes = data.get("scopes", " ".join(GOOGLE_EMAIL_SCOPES))
     client_id = data.get("client_id")
 
     sync_email = data.get("sync_email", True)
@@ -240,6 +242,7 @@ def create_account():
     """ Create a new account """
     data = request.get_json(force=True)
 
+    auth_handler: Union[GenericAuthHandler, GoogleAuthHandler, MicrosoftAuthHandler]
     if data["type"] == "generic":
         auth_handler = GenericAuthHandler()
         account_data = _get_account_data_for_generic_account(data)
@@ -279,6 +282,7 @@ def modify_account(namespace_public_id):
         )
         account = namespace.account
 
+        auth_handler: Union[GenericAuthHandler, GoogleAuthHandler, MicrosoftAuthHandler]
         if isinstance(account, GenericAccount):
             auth_handler = GenericAuthHandler()
             account_data = _get_account_data_for_generic_account(data)

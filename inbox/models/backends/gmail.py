@@ -16,9 +16,9 @@ log = get_logger()
 
 PROVIDER = "gmail"
 
-GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar"
-GOOGLE_EMAIL_SCOPE = "https://mail.google.com/"
-GOOGLE_CONTACTS_SCOPE = "https://www.google.com/m8/feeds"
+GOOGLE_CALENDAR_SCOPES = ["https://www.googleapis.com/auth/calendar"]
+GOOGLE_EMAIL_SCOPES = ["https://mail.google.com/"]
+GOOGLE_CONTACTS_SCOPES = ["https://www.google.com/m8/feeds"]
 
 
 class GmailAccount(OAuthAccount, ImapAccount):
@@ -36,6 +36,22 @@ class GmailAccount(OAuthAccount, ImapAccount):
     last_calendar_list_sync = Column(DateTime)
     gpush_calendar_list_last_ping = Column(DateTime)
     gpush_calendar_list_expiration = Column(DateTime)
+
+    @property
+    def email_scopes(self):
+        return GOOGLE_EMAIL_SCOPES
+
+    @property
+    def contacts_scopes(self):
+        return GOOGLE_CONTACTS_SCOPES
+
+    @property
+    def calendar_scopes(self):
+        return GOOGLE_CALENDAR_SCOPES
+
+    @property
+    def scopes(self):
+        return [*self.calendar_scopes, *self.contacts_scopes, *self.email_scopes]
 
     @property
     def provider(self):

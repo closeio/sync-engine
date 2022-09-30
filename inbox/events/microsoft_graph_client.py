@@ -60,7 +60,11 @@ class MicrosoftGraphClient:
         except Exception as e:
             raise MicrosoftGraphClientException(response) from e
 
-        return response.json()
+        if not response.text:
+            # Some DELETE operations return empty body
+            return {}
+        else:
+            return response.json()
 
     def _iter(
         self, initial_url: str, *, params: Optional[Dict[str, str]] = None

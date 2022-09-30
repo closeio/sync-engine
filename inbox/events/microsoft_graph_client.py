@@ -1,3 +1,4 @@
+import contextlib
 import datetime
 import time
 from typing import Any, Callable, Dict, Iterable, Optional
@@ -6,6 +7,20 @@ import pytz
 import requests
 
 BASE_URL = "https://graph.microsoft.com/v1.0"
+
+
+class MicrosoftGraphClientException(Exception):
+    def __init__(self, response: requests.Response):
+        args = []
+        with contextlib.suppress(Exception):
+            error = response.json()["error"]
+            code = error["code"]
+            args.append(code)
+            message = error["message"]
+            args.append(message)
+
+        super().__init__(*args)
+        self.response = response
 
 
 class MicrosoftGraphClient:
@@ -40,7 +55,10 @@ class MicrosoftGraphClient:
                 raise NotImplementedError()  # TODO
             break
 
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except Exception as e:
+            raise MicrosoftGraphClientException(response) from e
 
         return response.json()
 
@@ -70,7 +88,59 @@ class MicrosoftGraphClient:
     ) -> Iterable[Dict[str, Any]]:
         assert start.tzinfo == pytz.UTC
         assert end.tzinfo == pytz.UTC
+        assert end > start
         return self._iter(
             f"/me/events/{event_id}/instances",
             params={"startDateTime": start.isoformat(), "endDateTime": end.isoformat()},
         )
+
+    def iter_subscriptions(self) -> Iterable[Dict[str, Any]]:
+        yield from self._iter("/subscriptions")
+
+    def get_subscription(self, subscription_id: str) -> Dict[str, Any]:
+        return self.request("GET", f"/subscriptions/{subscription_id}")
+
+    def subscribe(
+        self,
+        *,
+        resource_url: str,
+        change_type: Iterable[str],
+        webhook_url: str,
+        secret: str,
+        expiration: Optional[datetime.datetime] = None,
+    ) -> Dict[str, Any]:
+        assert resource_url.startswith("/")
+
+        if not expiration:
+            expiration = datetime.datetime.now(tz=pytz.UTC) + datetime.timedelta(
+                minutes=4230
+            )
+        assert expiration.tzinfo == pytz.UTC
+
+        json = {
+            "changeType": ",".join(change_type),
+            "notificationUrl": webhook_url,
+            "resource": resource_url,
+            "expirationDateTime": expiration.isoformat(),
+            "clientState": secret,
+        }
+
+        return self.request("POST", "/subscriptions", json=json)
+
+    def unsubscribe(self, subscription_id: str) -> Dict[str, Any]:
+        return self.request("DELETE", f"/subscriptions/{subscription_id}")
+
+    def renew_subscription(
+        self, subscription_id: str, expiration: Optional[datetime.datetime] = None
+    ) -> Dict[str, Any]:
+        if not expiration:
+            expiration = datetime.datetime.now(tz=pytz.UTC) + datetime.timedelta(
+                minutes=4230
+            )
+        assert expiration.tzinfo == pytz.UTC
+
+        json = {
+            "expirationDateTime": expiration.isoformat(),
+        }
+
+        return self.request("PATCH", f"/subscriptions/{subscription_id}", json=json)

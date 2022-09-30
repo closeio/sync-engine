@@ -139,6 +139,8 @@ class GoogleEventsProvider:
         if sync_from_time is not None:
             # Note explicit offset is required by Google calendar API.
             sync_from_time_str = datetime.datetime.isoformat(sync_from_time) + "Z"
+        else:
+            sync_from_time_str = None
 
         url = "https://www.googleapis.com/calendar/v3/calendars/{}/events".format(
             urllib.parse.quote(calendar_uid)

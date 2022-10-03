@@ -8,11 +8,11 @@ Mostly based off http://www.structlog.org/en/16.1.0/standard-library.html.
 
 import contextlib
 import logging
-import logging.handlers
 import os
 import re
 import sys
 import traceback
+from typing import Any, Dict
 
 import colorlog
 import gevent
@@ -307,7 +307,7 @@ def configure_logging(log_level=None):
     else:
         formatter = ConditionalFormatter()
     tty_handler.setFormatter(formatter)
-    tty_handler._nylas = True
+    tty_handler._nylas = True  # type: ignore
 
     # Configure the root logger.
     root_logger = logging.getLogger()
@@ -329,7 +329,7 @@ def configure_logging(log_level=None):
 
 def create_error_log_context(exc_info):
     exc_type, exc_value, exc_tb = exc_info
-    out = dict()
+    out: Dict[str, Any] = {}
 
     if exc_type is None and exc_value is None and exc_tb is None:
         return out

@@ -6,6 +6,7 @@ import socket
 import sys
 import time
 import traceback
+from typing import List
 
 import gevent._threading  # This is a clone of the *real* threading module
 import gevent.hub
@@ -43,13 +44,13 @@ class ProfileCollector:
         signal.setitimer(signal.ITIMER_VIRTUAL, self.interval, 0)
 
     def _sample(self, signum, frame):
-        stack = []
+        stack: List[str] = []
         while frame is not None:
             stack.append(self._format_frame(frame))
             frame = frame.f_back
 
-        stack = ";".join(reversed(stack))
-        self._stack_counts[stack] += 1
+        stack_str = ";".join(reversed(stack))
+        self._stack_counts[stack_str] += 1
         signal.setitimer(signal.ITIMER_VIRTUAL, self.interval, 0)
 
     def _format_frame(self, frame):

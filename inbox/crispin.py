@@ -4,7 +4,7 @@ import imaplib
 import re
 import ssl
 import time
-from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple
+from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple, Type, Union
 
 import imapclient
 import imapclient.exceptions
@@ -12,12 +12,12 @@ import imapclient.imap_utf7
 import imapclient.response_parser
 
 # Prevent "got more than 1000000 bytes" errors for servers that send more data.
-imaplib._MAXLINE = 10000000
+imaplib._MAXLINE = 10000000  # type: ignore
 
 # Even though RFC 2060 says that the date component must have two characters
 # (either two digits or space+digit), it seems that some IMAP servers only
 # return one digit. Fun times.
-imaplib.InternalDate = re.compile(
+imaplib.InternalDate = re.compile(  # type: ignore
     r'.*INTERNALDATE "'
     r"(?P<day>[ 0123]?[0-9])-"  # insert that `?` to make first digit optional
     r"(?P<mon>[A-Z][a-z][a-z])-"
@@ -71,7 +71,7 @@ GmailFlags = namedtuple("GmailFlags", "flags labels modseq")
 #     modseq: Optional[int]
 GMetadata = namedtuple("GMetadata", "g_msgid g_thrid size")
 RawMessage = namedtuple(
-    "RawImapMessage", "uid internaldate flags body g_thrid g_msgid g_labels"
+    "RawMessage", "uid internaldate flags body g_thrid g_msgid g_labels"
 )
 # class RawMessage(NamedTuple):
 #     uid: int
@@ -89,7 +89,7 @@ RawFolder = namedtuple("RawFolder", "display_name role")
 # Lazily-initialized map of account ids to lock objects.
 # This prevents multiple greenlets from concurrently creating duplicate
 # connection pools for a given account.
-_lock_map = defaultdict(threading.Lock)
+_lock_map: DefaultDict[int, threading.Lock] = defaultdict(threading.Lock)
 
 # Exception classes which indicate the network connection to the IMAP
 # server is broken.
@@ -129,7 +129,7 @@ def _get_connection_pool(account_id, pool_size, pool_map, readonly):
         return pool_map[account_id]
 
 
-_pool_map = {}
+_pool_map: Dict[int, "CrispinConnectionPool"] = {}
 
 
 def connection_pool(account_id, pool_size=None):
@@ -156,7 +156,7 @@ def connection_pool(account_id, pool_size=None):
     return _get_connection_pool(account_id, pool_size, _pool_map, True)
 
 
-_writable_pool_map = {}
+_writable_pool_map: Dict[int, "CrispinConnectionPool"] = {}
 
 
 def writable_connection_pool(account_id, pool_size=1):
@@ -256,6 +256,7 @@ class CrispinConnectionPool:
             self.provider_info = account.provider_info
             self.email_address = account.email_address
             self.auth_handler = account.auth_handler
+            self.client_cls: Type[CrispinClient]
             if account.provider == "gmail":
                 self.client_cls = GmailCrispinClient
             else:
@@ -836,7 +837,8 @@ class CrispinClient:
         return raw_messages
 
     def flags(self, uids):
-        # type: (List[int]) -> List[Flags]
+        # type: (List[int]) -> Dict[int, Flags]
+        seqset: Union[str, List[int]]
         if len(uids) > 100:
             # Some backends abort the connection if you give them a really
             # long sequence set of individual UIDs, so instead fetch flags for
@@ -916,7 +918,7 @@ class CrispinClient:
         matching_draft_headers = self.fetch_headers(all_uids)
         results = []
         for uid, response in matching_draft_headers.items():
-            headers = response["BODY[HEADER]"]
+            headers = response[b"BODY[HEADER]"]
             parser = HeaderParser()
             header = parser.parsestr(headers).get(header_name)
             if header == header_value:

@@ -163,7 +163,7 @@ def events_from_ics(namespace, calendar, ics_str):
 
             recur = component.get("rrule")
             if recur:
-                recur = f"RRULE:{recur.to_ical()}"
+                recur = f"RRULE:{recur.to_ical().decode()}"
 
             participants = []
 

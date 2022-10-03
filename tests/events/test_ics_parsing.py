@@ -200,6 +200,8 @@ def test_recurring_ical(db, default_account):
     assert isinstance(ev, RecurringEvent)
     assert isinstance(ev.recurring, list)
     assert ev.start_timezone == "America/Los_Angeles"
+    assert ev.recurrence == "'RRULE:FREQ=WEEKLY;WKST=SU'"
+    assert ev.rrule == "RRULE:FREQ=WEEKLY;WKST=SU"
 
 
 def test_event_no_end_time(db, default_account):

@@ -382,7 +382,7 @@ class CrispinClient:
         return [
             (flags, delimiter, name)
             for flags, delimiter, name in self.conn.list_folders()
-            if name
+            if name is not None
         ]
 
     def select_folder_if_necessary(self, folder_name, uidvalidity_callback):

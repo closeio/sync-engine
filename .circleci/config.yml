@@ -47,7 +47,16 @@ jobs:
             -p inbox.sqlalchemy_ext \
             -p inbox.sync \
             -p inbox.util \
-            -p inbox.webhooks
+            -p inbox.webhooks \
+            -p inbox.basicauth \
+            -p inbox.console \
+            -p inbox.error_handling \
+            -p inbox.folder_edge_cases \
+            -p inbox.ignition \
+            -p inbox.instrumentation \
+            -p inbox.logging \
+            -p inbox.providers
+
   build:
     parameters:
       platform_suffix:

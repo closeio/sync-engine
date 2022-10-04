@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 from inbox.basicauth import NotSupportedError
 
 __all__ = ["provider_info", "providers"]
@@ -16,7 +18,7 @@ def provider_info(provider_name):
     return providers[provider_name]
 
 
-providers = dict(
+providers: Dict[str, Dict[str, Any]] = dict(
     [
         (
             "aol",

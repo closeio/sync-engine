@@ -376,7 +376,14 @@ class CrispinClient:
         IMAPClient parses this response into a list of
         (flags, delimiter, name) tuples.
         """
-        return self.conn.list_folders()
+
+        # As discovered in the wild list_folders() can return None as name,
+        # we cannot handle those folders anyway so just filter them out.
+        return [
+            (flags, delimiter, name)
+            for flags, delimiter, name in self.conn.list_folders()
+            if name is not None
+        ]
 
     def select_folder_if_necessary(self, folder_name, uidvalidity_callback):
         # type: (str, Callable[[int, str, Dict[bytes, Any]], Dict[bytes, Any]]) -> Dict[bytes, Any]

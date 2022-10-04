@@ -81,8 +81,17 @@ class MicrosoftGraphClient:
     def get_calendar(self, calendar_id: str) -> Dict[str, Any]:
         return self.request("GET", f"/me/calendars/{calendar_id}")
 
-    def iter_events(self, calendar_id: str) -> Iterable[Dict[str, Any]]:
-        yield from self._iter(f"/me/calendars/{calendar_id}/events")
+    def iter_events(
+        self, calendar_id: str, *, modified_after: Optional[datetime.datetime] = None
+    ) -> Iterable[Dict[str, Any]]:
+        if modified_after:
+            assert modified_after.tzinfo == pytz.UTC
+            params = {
+                "$filter": f"lastModifiedDateTime gt {modified_after.replace(tzinfo=None).isoformat()}Z"
+            }
+        else:
+            params = None
+        yield from self._iter(f"/me/calendars/{calendar_id}/events", params=params)
 
     def get_event(self, event_id: str) -> Dict[str, Any]:
         return self.request("GET", f"/me/events/{event_id}")

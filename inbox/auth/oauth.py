@@ -142,8 +142,8 @@ class OAuthAuthHandler(AuthHandler):
                 )
         else:
             now = datetime.datetime.now(pytz.UTC)
-            access_token = aa_account.access.token
-            expires_in = int((aa_account.access.expires_at - now).total_seconds())
+            access_token = aa_account.access_token
+            expires_in = int((aa_account.access_token_expires_at - now).total_seconds())
             assert expires_in > 0
             return (access_token, expires_in)
 

@@ -3,7 +3,7 @@ aniso8601==2.0.0
 arrow==0.17.0
 asn1crypto==0.24.0
 attrs==21.2.0
-git+https://github.com/closeio/authalligator-client.git@f182905f0d6462363a1d597cb75cd1b4c3a907a7#egg=authalligator_client
+git+https://github.com/closeio/authalligator-client.git@a3b176b333c33614988e698b432910cfe5bacdd7#egg=authalligator_client
 backcall==0.2.0
 jedi==0.18.1
 boto==2.49.0

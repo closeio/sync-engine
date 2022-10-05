@@ -1,12 +1,15 @@
 import contextlib
 import datetime
 import time
-from typing import Any, Callable, Dict, Iterable, Optional
+from typing import Any, Callable, Dict, Iterable, Literal, Optional
 
 import pytz
 import requests
 
 BASE_URL = "https://graph.microsoft.com/v1.0"
+
+
+ChangeType = Iterable[Literal["updated", "created", "deleted"]]
 
 
 class MicrosoftGraphClientException(Exception):
@@ -57,7 +60,7 @@ class MicrosoftGraphClient:
 
         try:
             response.raise_for_status()
-        except Exception as e:
+        except requests.HTTPError as e:
             raise MicrosoftGraphClientException(response) from e
 
         if not response.text:
@@ -117,7 +120,7 @@ class MicrosoftGraphClient:
         self,
         *,
         resource_url: str,
-        change_type: Iterable[str],
+        change_type: ChangeType,
         webhook_url: str,
         secret: str,
         expiration: Optional[datetime.datetime] = None,
@@ -157,3 +160,23 @@ class MicrosoftGraphClient:
         }
 
         return self.request("PATCH", f"/subscriptions/{subscription_id}", json=json)
+
+    def subscribe_to_calendar_changes(
+        self, *, webhook_url: str, secret: str
+    ) -> Dict[str, Any]:
+        return self.subscribe(
+            resource_url="/me/calendars",
+            change_type=["updated", "deleted"],
+            webhook_url=webhook_url,
+            secret=secret,
+        )
+
+    def subscribe_to_event_changes(
+        self, calendar_id, *, webhook_url: str, secret: str
+    ) -> Dict[str, Any]:
+        return self.subscribe(
+            resource_url=f"/me/calendars/{calendar_id}/events",
+            change_type=["created", "updated", "deleted"],
+            webhook_url=webhook_url,
+            secret=secret,
+        )

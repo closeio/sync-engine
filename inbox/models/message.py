@@ -370,7 +370,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             for field in ("to_addr", "cc_addr", "bcc_addr", "references", "reply_to"):
                 value = getattr(msg, field)  # type: List[Any]
                 if json_field_too_long(value):
-                    log.error(
+                    log.warning(
                         "Recipient field too long",
                         field=field,
                         account_id=account.id,

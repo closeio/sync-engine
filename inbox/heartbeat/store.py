@@ -1,5 +1,6 @@
 import itertools
 import time
+from typing import Dict, Optional
 
 # We're doing this weird rename import to make it easier to monkeypatch
 # get_redis_client. That's the only way we have to test our very brittle
@@ -97,7 +98,7 @@ class HeartbeatStore:
     """ Store that proxies requests to Redis with handlers that also
         update indexes and handle scanning through results. """
 
-    _instances = {}
+    _instances: Dict[Optional[str], "HeartbeatStore"] = {}
 
     def __init__(self, host=None, port=6379):
         self.host = host
@@ -115,9 +116,10 @@ class HeartbeatStore:
         # Update indexes
         self.update_folder_index(key, float(timestamp))
 
-    def remove(self, key, device_id=None):
+    def remove(self, key, device_id=None, client=None):
         # Remove a key from the store, or device entry from a key.
-        client = heartbeat_config.get_redis_client(key.account_id)
+        if not client:
+            client = heartbeat_config.get_redis_client(key.account_id)
 
         if device_id:
             client.hdel(key, device_id)

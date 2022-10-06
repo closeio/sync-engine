@@ -51,7 +51,7 @@ def _save_to_s3(data_sha256, data):
         "TEMP_MESSAGE_STORE_BUCKET_NAME" in config
     ), "Need temp bucket name to store message data!"
 
-    _save_to_s3_bucket(data_sha256, config.get("TEMP_MESSAGE_STORE_BUCKET_NAME"), data)
+    _save_to_s3_bucket(data_sha256, config["TEMP_MESSAGE_STORE_BUCKET_NAME"], data)
 
 
 def get_s3_bucket(bucket_name):

@@ -33,13 +33,14 @@ jobs:
           name: mypy
           command: |
             mypy \
-            -p inbox.s3 \
             -p inbox.actions \
             -p inbox.api \
             -p inbox.auth \
             -p inbox.contacts \
             -p inbox.events \
+            -p inbox.heartbeat \
             -p inbox.mailsync \
+            -p inbox.s3 \
             -p inbox.scheduling \
             -p inbox.search \
             -p inbox.security \
@@ -49,7 +50,9 @@ jobs:
             -p inbox.util \
             -p inbox.webhooks \
             -p inbox.basicauth \
+            -p inbox.config \
             -p inbox.console \
+            -p inbox.crispin \
             -p inbox.error_handling \
             -p inbox.folder_edge_cases \
             -p inbox.ignition \

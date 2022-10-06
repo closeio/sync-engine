@@ -273,9 +273,9 @@ def reset_invalid_autoincrements(engine, schema, key, dry_run=True):
 # should be able to assume this will be loaded
 # before a DB is accessed.
 redis_limitlion = redis.Redis(
-    config.get("THROTTLE_REDIS_HOSTNAME"),
-    int(config.get("REDIS_PORT")),
-    db=config.get("THROTTLE_REDIS_DB"),
+    config["THROTTLE_REDIS_HOSTNAME"],
+    int(config["REDIS_PORT"]),
+    db=config.get("THROTTLE_REDIS_DB", 0),
 )
 limitlion.throttle_configure(redis_limitlion)
 

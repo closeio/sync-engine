@@ -8,7 +8,7 @@ import yaml
 urllib3.disable_warnings()
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  # type: ignore
 
 __all__ = ["config"]
 
@@ -110,10 +110,7 @@ def _update_config_from_env(config, env):
 
 
 def _get_local_feature_flags(config):
-    if os.environ.get("FEATURE_FLAGS") is not None:
-        flags = os.environ.get("FEATURE_FLAGS").split()
-    else:
-        flags = config.get("FEATURE_FLAGS", "").split()
+    flags = config.get("FEATURE_FLAGS", "").split()
     config["FEATURE_FLAGS"] = flags
 
 

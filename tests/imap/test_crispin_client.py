@@ -304,6 +304,20 @@ def test_internaldate(generic_client, constants):
         ]
 
 
+def test_missing_internaldate(generic_client, constants):
+    expected_resp = (
+        "{seq} (UID {uid} MODSEQ ({modseq}) "
+        "FLAGS {flags} "
+        "BODY[] {{{body_size}}}".format(**constants).encode(),
+        constants["body"],
+    )
+    generic_client.selected_folder = ("Name", None)
+    patch_imap4(generic_client, [expected_resp, b")"])
+
+    uid = constants["uid"]
+    assert generic_client.uids([uid]) == []
+
+
 def test_deleted_folder_on_select(monkeypatch, generic_client, constants):
     """ Test that a 'select failed EXAMINE' error specifying that a folder
         doesn't exist is converted into a FolderMissingError. (Yahoo style)

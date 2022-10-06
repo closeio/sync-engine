@@ -826,8 +826,14 @@ class CrispinClient:
             if uid not in uid_set:
                 continue
             imap_message = imap_messages[uid]
-            if list(imap_message) == [b"SEQ"]:
-                log.error("No data returned for UID, skipping", uid=uid)
+            if not set(imap_message).issuperset({b"INTERNALDATE", b"FLAGS", b"BODY[]"}):
+                assert self.selected_folder
+                log.warning(
+                    "Missing one of INTERNALDATE, FLAGS or BODY[] for UID, skipping",
+                    folder=self.selected_folder[0],
+                    uid=uid,
+                    keys=list(imap_message.keys()),
+                )
                 continue
 
             raw_messages.append(

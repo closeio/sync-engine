@@ -347,7 +347,7 @@ class CrispinClient:
     """
 
     def __init__(self, account_id, provider_info, email_address, conn, readonly=True):
-        # type: (int, Dict[str, Any], str, imaplib.IMAPClient, bool) -> None
+        # type: (int, Dict[str, Any], str, imapclient.imapclient.IMAPClient, bool) -> None
         self.account_id = account_id
         self.provider_info = provider_info
         self.email_address = email_address
@@ -595,7 +595,7 @@ class CrispinClient:
         )  # type: List[str]
         guessed_roles = [
             self._guess_role(folder.display_name) for folder in raw_folders
-        ]  # type: List[str]
+        ]  # type: List[Optional[str]]
 
         for role in missing_roles:
             if guessed_roles.count(role) == 1:
@@ -632,7 +632,7 @@ class CrispinClient:
         return list(missing_roles)
 
     def _guess_role(self, folder):
-        # type: (str) -> str
+        # type: (str) -> Optional[str]
         """
         Given a folder, guess the system role that corresponds to that folder
 
@@ -650,6 +650,8 @@ class CrispinClient:
         for role in localized_folder_names:
             if folder in localized_folder_names[role]:
                 return role
+
+        return None
 
     def _process_folder(self, display_name, flags):
         # type: (str, Tuple[bytes, ...]) -> RawFolder
@@ -844,7 +846,7 @@ class CrispinClient:
         return raw_messages
 
     def flags(self, uids):
-        # type: (List[int]) -> Dict[int, Flags]
+        # type: (List[int]) -> Dict[int, Union[GmailFlags, Flags]]
         seqset: Union[str, List[int]]
         if len(uids) > 100:
             # Some backends abort the connection if you give them a really
@@ -1017,7 +1019,7 @@ class CrispinClient:
         return r
 
     def condstore_changed_flags(self, modseq):
-        # type: (int) -> Dict[int, Flags]
+        # type: (int) -> Dict[int, Union[GmailFlags, Flags]]
         data = self.conn.fetch(
             "1:*", ["FLAGS"], modifiers=[f"CHANGEDSINCE {modseq}"]
         )  # type: Dict[int, Dict[bytes, Any]]
@@ -1063,7 +1065,7 @@ class GmailCrispinClient(CrispinClient):
         return to_sync
 
     def flags(self, uids):
-        # type: (List[int]) -> Dict[int, GmailFlags]
+        # type: (List[int]) -> Dict[int, Union[GmailFlags, Flags]]
         """
         Gmail-specific flags.
 
@@ -1088,11 +1090,11 @@ class GmailCrispinClient(CrispinClient):
         }
 
     def condstore_changed_flags(self, modseq):
-        # type: (int) -> Dict[int, GmailFlags]
+        # type: (int) -> Dict[int, Union[GmailFlags, Flags]]
         data = self.conn.fetch(
             "1:*", ["FLAGS", "X-GM-LABELS"], modifiers=[f"CHANGEDSINCE {modseq}"],
         )  # type: Dict[int, Dict[bytes, Any]]
-        results = {}  # type: Dict[int, GmailFlags]
+        results = {}  # type: Dict[int, Union[GmailFlags, Flags]]
         for uid, ret in data.items():
             if b"FLAGS" not in ret or b"X-GM-LABELS" not in ret:
                 # We might have gotten an unsolicited fetch response that

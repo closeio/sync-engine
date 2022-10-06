@@ -116,9 +116,10 @@ class HeartbeatStore:
         # Update indexes
         self.update_folder_index(key, float(timestamp))
 
-    def remove(self, key, device_id=None):
+    def remove(self, key, device_id=None, client=None):
         # Remove a key from the store, or device entry from a key.
-        client = heartbeat_config.get_redis_client(key.account_id)
+        if not client:
+            client = heartbeat_config.get_redis_client(key.account_id)
 
         if device_id:
             client.hdel(key, device_id)
@@ -131,13 +132,29 @@ class HeartbeatStore:
             self.remove_from_folder_index(key, client)
 
     @safe_failure
-    def remove_folders(self, account_id, folder_id, device_id=None):
+    def remove_folders(self, account_id, folder_id=None, device_id=None):
         # Remove heartbeats for the given account, folder and/or device.
-        key = HeartbeatStatusKey(account_id, folder_id)
-        self.remove(key, device_id)
-        # Update the account's oldest heartbeat after deleting a folder
-        self.update_accounts_index(key)
-        return 1  # 1 item removed
+        if folder_id:
+            key = HeartbeatStatusKey(account_id, folder_id)
+            self.remove(key, device_id)
+            # Update the account's oldest heartbeat after deleting a folder
+            self.update_accounts_index(key)
+            return 1  # 1 item removed
+        else:
+            # Remove all folder timestamps and account-level indices
+            match = HeartbeatStatusKey.all_folders(account_id)
+
+            client = heartbeat_config.get_redis_client(account_id)
+            pipeline = client.pipeline()
+            n = 0
+            for key in client.scan_iter(match, 100):
+                self.remove(key, device_id, pipeline)
+                n += 1  # noqa: SIM113
+            if not device_id:
+                self.remove_from_account_index(account_id, pipeline)
+            pipeline.execute()
+            pipeline.reset()
+            return n
 
     def update_folder_index(self, key, timestamp):
         assert isinstance(timestamp, float)

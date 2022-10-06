@@ -50,6 +50,7 @@ jobs:
             -p inbox.util \
             -p inbox.webhooks \
             -p inbox.basicauth \
+            -p inbox.config \
             -p inbox.console \
             -p inbox.error_handling \
             -p inbox.folder_edge_cases \

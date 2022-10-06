@@ -7,8 +7,8 @@ from inbox.config import config
 STATUS_DATABASE = 1
 
 ALIVE_EXPIRY = int(config.get("BASE_ALIVE_THRESHOLD", 480))
-REDIS_SHARDS = config.get("REDIS_SHARDS")
-REDIS_PORT = int(config.get("REDIS_PORT"))
+REDIS_SHARDS = config["REDIS_SHARDS"]
+REDIS_PORT = int(config["REDIS_PORT"])
 
 CONTACTS_FOLDER_ID = "-1"
 EVENTS_FOLDER_ID = "-2"

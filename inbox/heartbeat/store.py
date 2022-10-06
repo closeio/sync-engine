@@ -1,5 +1,6 @@
 import itertools
 import time
+from typing import Dict, Optional
 
 # We're doing this weird rename import to make it easier to monkeypatch
 # get_redis_client. That's the only way we have to test our very brittle
@@ -97,7 +98,7 @@ class HeartbeatStore:
     """ Store that proxies requests to Redis with handlers that also
         update indexes and handle scanning through results. """
 
-    _instances = {}
+    _instances: Dict[Optional[str], "HeartbeatStore"] = {}
 
     def __init__(self, host=None, port=6379):
         self.host = host
@@ -130,29 +131,13 @@ class HeartbeatStore:
             self.remove_from_folder_index(key, client)
 
     @safe_failure
-    def remove_folders(self, account_id, folder_id=None, device_id=None):
+    def remove_folders(self, account_id, folder_id, device_id=None):
         # Remove heartbeats for the given account, folder and/or device.
-        if folder_id:
-            key = HeartbeatStatusKey(account_id, folder_id)
-            self.remove(key, device_id)
-            # Update the account's oldest heartbeat after deleting a folder
-            self.update_accounts_index(key)
-            return 1  # 1 item removed
-        else:
-            # Remove all folder timestamps and account-level indices
-            match = HeartbeatStatusKey.all_folders(account_id)
-
-            client = heartbeat_config.get_redis_client(account_id)
-            pipeline = client.pipeline()
-            n = 0
-            for key in client.scan_iter(match, 100):
-                self.remove(key, device_id, pipeline)
-                n += 1  # noqa: SIM113
-            if not device_id:
-                self.remove_from_account_index(account_id, pipeline)
-            pipeline.execute()
-            pipeline.reset()
-            return n
+        key = HeartbeatStatusKey(account_id, folder_id)
+        self.remove(key, device_id)
+        # Update the account's oldest heartbeat after deleting a folder
+        self.update_accounts_index(key)
+        return 1  # 1 item removed
 
     def update_folder_index(self, key, timestamp):
         assert isinstance(timestamp, float)

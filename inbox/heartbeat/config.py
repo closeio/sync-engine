@@ -1,3 +1,5 @@
+from typing import Dict, Optional
+
 from redis import BlockingConnectionPool, StrictRedis
 
 from inbox.config import config
@@ -16,7 +18,9 @@ WAIT_TIMEOUT = 15
 SOCKET_TIMEOUT = 60
 
 assert REDIS_SHARDS is not None, "REDIS_SHARDS is None. Did you set NYLAS_ENV?"
-connection_pool_map = {instance_name: None for instance_name in REDIS_SHARDS}
+connection_pool_map: Dict[str, Optional[BlockingConnectionPool]] = {
+    instance_name: None for instance_name in REDIS_SHARDS
+}
 
 
 def _get_redis_connection_pool(host, port, db):

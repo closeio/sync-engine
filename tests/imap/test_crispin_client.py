@@ -304,10 +304,10 @@ def test_internaldate(generic_client, constants):
         ]
 
 
-def test_missing_internaldate(generic_client, constants):
+def test_missing_flags(generic_client, constants):
     expected_resp = (
         "{seq} (UID {uid} MODSEQ ({modseq}) "
-        "FLAGS {flags} "
+        'INTERNALDATE "{internaldate}" '
         "BODY[] {{{body_size}}}".format(**constants).encode(),
         constants["body"],
     )

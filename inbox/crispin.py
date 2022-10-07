@@ -839,10 +839,10 @@ class CrispinClient:
             if uid not in uid_set:
                 continue
             imap_message = imap_messages[uid]
-            if not set(imap_message).issuperset({b"INTERNALDATE", b"FLAGS", b"BODY[]"}):
+            if not set(imap_message).issuperset({b"FLAGS", b"BODY[]"}):
                 assert self.selected_folder
                 log.warning(
-                    "Missing one of INTERNALDATE, FLAGS or BODY[] for UID, skipping",
+                    "Missing one of FLAGS or BODY[] for UID, skipping",
                     folder=self.selected_folder[0],
                     uid=uid,
                     keys=list(imap_message.keys()),
@@ -852,7 +852,7 @@ class CrispinClient:
             raw_messages.append(
                 RawMessage(
                     uid=int(uid),
-                    internaldate=imap_message[b"INTERNALDATE"],
+                    internaldate=imap_message.get(b"INTERNALDATE"),
                     flags=imap_message[b"FLAGS"],
                     body=imap_message[b"BODY[]"],
                     # TODO: use data structure that isn't

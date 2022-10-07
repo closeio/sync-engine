@@ -845,7 +845,7 @@ class CrispinClient:
                     "Missing one of FLAGS or BODY[] for UID, skipping",
                     folder=self.selected_folder[0],
                     uid=uid,
-                    keys=list(imap_message.keys()),
+                    keys=list(imap_message),
                 )
                 continue
 

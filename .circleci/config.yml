@@ -41,6 +41,9 @@ jobs:
             -p inbox.heartbeat \
             -p inbox.mailsync \
             -p inbox.models.when \
+            -p inbox.models.block \
+            -p inbox.models.calendar \
+            -p inbox.models.constants \
             -p inbox.s3 \
             -p inbox.scheduling \
             -p inbox.search \

@@ -1,10 +1,22 @@
 """ IMAPClient wrapper for the Nylas Sync Engine."""
 import contextlib
+import datetime
 import imaplib
 import re
 import ssl
 import time
-from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple, Type, Union
+from typing import (
+    Any,
+    Callable,
+    DefaultDict,
+    Dict,
+    List,
+    NamedTuple,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 
 import imapclient
 import imapclient.exceptions
@@ -70,17 +82,18 @@ GmailFlags = namedtuple("GmailFlags", "flags labels modseq")
 #     labels: List[str]
 #     modseq: Optional[int]
 GMetadata = namedtuple("GMetadata", "g_msgid g_thrid size")
-RawMessage = namedtuple(
-    "RawMessage", "uid internaldate flags body g_thrid g_msgid g_labels"
-)
-# class RawMessage(NamedTuple):
-#     uid: int
-#     internaldate: datetime.datetime
-#     flags: Tuple[bytes, ...]
-#     body: bytes
-#     g_msgid: int
-#     g_thrid: int
-#     g_labels: List[str]
+
+
+class RawMessage(NamedTuple):
+    uid: int
+    internaldate: Optional[datetime.datetime]
+    flags: Tuple[bytes, ...]
+    body: bytes
+    g_msgid: Optional[int]
+    g_thrid: Optional[int]
+    g_labels: Optional[List[str]]
+
+
 RawFolder = namedtuple("RawFolder", "display_name role")
 # class RawFolder(NamedTuple):
 #     display_name: str

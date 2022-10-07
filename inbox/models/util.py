@@ -323,9 +323,9 @@ def _batch_delete(
                 delete_from_blockstore(*block_hashes)
 
             with session_scope(account_id) as db_session:
-                query = db_session.query(Block).filter(Block.id.in_(block_ids))
+                block_query = db_session.query(Block).filter(Block.id.in_(block_ids))
                 if dry_run is False:
-                    query.delete(synchronize_session=False)
+                    block_query.delete(synchronize_session=False)
 
         elif table == "message":
             with session_scope(account_id) as db_session:
@@ -359,9 +359,11 @@ def _batch_delete(
                 delete_from_blockstore(*list(remove_hashes))
 
             with session_scope(account_id) as db_session:
-                query = db_session.query(Message).filter(Message.id.in_(message_ids))
+                message_query = db_session.query(Message).filter(
+                    Message.id.in_(message_ids)
+                )
                 if dry_run is False:
-                    query.delete(synchronize_session=False)
+                    message_query.delete(synchronize_session=False)
 
         else:
             if dry_run is False:

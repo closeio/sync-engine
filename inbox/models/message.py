@@ -1,6 +1,7 @@
 import datetime
 import itertools
 import os
+import typing
 from collections import defaultdict
 from hashlib import sha256
 from typing import Any, DefaultDict, Dict, List, Optional, Set, Tuple, Union
@@ -56,9 +57,12 @@ log = get_logger()
 
 SNIPPET_LENGTH = 191
 
+if typing.TYPE_CHECKING:
+    from inbox.models.block import Part
+
 
 def _trim_filename(s, namespace_id, max_len=255):
-    # type: (Optional[Union[str, bytes]], int, int) -> str
+    # type: (Optional[Union[str, bytes]], int, int) -> Optional[str]
     if s is None:
         return s
 
@@ -258,7 +262,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         # when, for example, UTF-8 text decoded from an RFC2047-encoded header
         # contains null bytes.
         if value is None:
-            return
+            return None
         value = unicode_safe_truncate(value, 255)
         value = value.replace("\0", "")
         return value
@@ -718,7 +722,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         # type: (str, int) -> Optional[str]
         if self.decode_error:
             log.warning("Error getting message header", mid=mid)
-            return
+            return None
         return self.parsed_body.headers.get(header)
 
     @classmethod

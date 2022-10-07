@@ -58,7 +58,7 @@ def events_from_ics(namespace, calendar, ics_str):
     except (ValueError, IndexError, KeyError, TypeError) as e:
         raise MalformedEventError("Error while parsing ICS file") from e
 
-    events: Dict[Literal["invites", "rsvps"], Event] = dict(invites=[], rsvps=[])
+    events: Dict[Literal["invites", "rsvps"], List[Event]] = dict(invites=[], rsvps=[])
 
     # See: https://tools.ietf.org/html/rfc5546#section-3.2
     calendar_method = None

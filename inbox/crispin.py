@@ -852,6 +852,9 @@ class CrispinClient:
             raw_messages.append(
                 RawMessage(
                     uid=int(uid),
+                    # we can recover from missing INTERNALDATE by parsing BODY[]
+                    # and relying on Date and Received headers. This is done in
+                    # inbox.models.message.Message._parse_metadata.
                     internaldate=imap_message.get(b"INTERNALDATE"),
                     flags=imap_message[b"FLAGS"],
                     body=imap_message[b"BODY[]"],

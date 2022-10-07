@@ -1,10 +1,22 @@
 """ IMAPClient wrapper for the Nylas Sync Engine."""
 import contextlib
+import datetime
 import imaplib
 import re
 import ssl
 import time
-from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple, Type, Union
+from typing import (
+    Any,
+    Callable,
+    DefaultDict,
+    Dict,
+    List,
+    NamedTuple,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 
 import imapclient
 import imapclient.exceptions
@@ -70,17 +82,18 @@ GmailFlags = namedtuple("GmailFlags", "flags labels modseq")
 #     labels: List[str]
 #     modseq: Optional[int]
 GMetadata = namedtuple("GMetadata", "g_msgid g_thrid size")
-RawMessage = namedtuple(
-    "RawMessage", "uid internaldate flags body g_thrid g_msgid g_labels"
-)
-# class RawMessage(NamedTuple):
-#     uid: int
-#     internaldate: datetime.datetime
-#     flags: Tuple[bytes, ...]
-#     body: bytes
-#     g_msgid: int
-#     g_thrid: int
-#     g_labels: List[str]
+
+
+class RawMessage(NamedTuple):
+    uid: int
+    internaldate: Optional[datetime.datetime]
+    flags: Tuple[bytes, ...]
+    body: bytes
+    g_msgid: Optional[int]
+    g_thrid: Optional[int]
+    g_labels: Optional[List[str]]
+
+
 RawFolder = namedtuple("RawFolder", "display_name role")
 # class RawFolder(NamedTuple):
 #     display_name: str
@@ -826,14 +839,23 @@ class CrispinClient:
             if uid not in uid_set:
                 continue
             imap_message = imap_messages[uid]
-            if list(imap_message) == [b"SEQ"]:
-                log.error("No data returned for UID, skipping", uid=uid)
+            if not set(imap_message).issuperset({b"FLAGS", b"BODY[]"}):
+                assert self.selected_folder
+                log.warning(
+                    "Missing one of FLAGS or BODY[] for UID, skipping",
+                    folder=self.selected_folder[0],
+                    uid=uid,
+                    keys=list(imap_message),
+                )
                 continue
 
             raw_messages.append(
                 RawMessage(
                     uid=int(uid),
-                    internaldate=imap_message[b"INTERNALDATE"],
+                    # we can recover from missing INTERNALDATE by parsing BODY[]
+                    # and relying on Date and Received headers. This is done in
+                    # inbox.models.message.Message._parse_metadata.
+                    internaldate=imap_message.get(b"INTERNALDATE"),
                     flags=imap_message[b"FLAGS"],
                     body=imap_message[b"BODY[]"],
                     # TODO: use data structure that isn't

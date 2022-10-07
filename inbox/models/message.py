@@ -418,6 +418,8 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                 logstash_tag="truncated_message_id",
             )
 
+        # received_date is passed from INTERNALDATE on IMAP protocol level,
+        # fallback to Date and Received headers from BODY[] if not present.
         self.received_date = (
             received_date
             if received_date

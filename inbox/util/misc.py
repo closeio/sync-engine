@@ -92,7 +92,7 @@ def get_internaldate(date, received):
     """ Get the date from the headers. """
     if date is None:
         assert received
-        other, date = received.split(";")
+        _, date = received.split(";")
 
     # All in UTC
     parsed_date = parsedate_tz(date)

@@ -58,9 +58,14 @@ def events_from_ics(namespace, calendar, ics_str):
             # Make sure the times are in UTC.
             try:
                 original_start = component.get("dtstart").dt
-                original_end = component.get("dtend").dt
+                if component.get("dtend"):
+                    original_end = component.get("dtend").dt
+                else:
+                    original_end = original_start + component.get("duration").dt
             except AttributeError:
-                raise MalformedEventError("Event lacks start and/or end time")
+                raise MalformedEventError(
+                    "Event lacks one of DTSTART, DTEND or DURATION"
+                )
 
             start = original_start
             end = original_end

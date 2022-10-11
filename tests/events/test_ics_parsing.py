@@ -1,5 +1,8 @@
+import datetime
+
 import arrow
 import pytest
+import pytz
 
 from inbox.events.ical import events_from_ics, import_attached_events
 from inbox.events.util import MalformedEventError
@@ -560,3 +563,16 @@ def test_handle_missing_sequence_number(db, default_account):
     assert len(events) == 1
     ev = events[0]
     assert ev.sequence_number == 0
+
+
+def test_event_without_dtend_with_duration(db, default_account):
+    with open(absolute_path(FIXTURES + "event_without_dtend_with_duration.ics")) as fd:
+        data = fd.read()
+
+    events = events_from_ics(
+        default_account.namespace, default_account.emailed_events_calendar, data
+    )
+
+    (event,) = events["invites"]
+    assert event.start == datetime.datetime(2022, 10, 9, 11, 0, tzinfo=pytz.UTC)
+    assert event.end == datetime.datetime(2022, 10, 9, 11, 30, tzinfo=pytz.UTC)

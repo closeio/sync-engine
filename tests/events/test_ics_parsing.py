@@ -576,3 +576,16 @@ def test_event_without_dtend_with_duration(db, default_account):
     (event,) = events["invites"]
     assert event.start == datetime.datetime(2022, 10, 9, 11, 0, tzinfo=pytz.UTC)
     assert event.end == datetime.datetime(2022, 10, 9, 11, 30, tzinfo=pytz.UTC)
+
+
+def test_event_with_windows_timezone(db, default_account):
+    with open(absolute_path(FIXTURES + "event_with_windows_timezone.ics")) as fd:
+        data = fd.read()
+
+    events = events_from_ics(
+        default_account.namespace, default_account.emailed_events_calendar, data
+    )
+
+    (event,) = events["rsvps"]
+    assert event.start == datetime.datetime(2022, 10, 11, 15, 0, tzinfo=pytz.UTC)
+    assert event.end == datetime.datetime(2022, 10, 11, 15, 30, tzinfo=pytz.UTC)

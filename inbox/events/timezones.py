@@ -294,6 +294,7 @@ awful_timezones = {
     "US/CST": "America/Chicago",
     "Eastern": "America/New_York",
     "US/EST": "America/New_York",
+    "Dublin, Edinburgh, Lisbon, London": "Europe/London",
 }
 
 GMT_awful_timezones = {

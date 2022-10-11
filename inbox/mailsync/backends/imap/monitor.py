@@ -79,10 +79,6 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
         account = db_session.query(Account).get(self.account_id)
         remote_folder_names = {sanitize_name(f.display_name) for f in raw_folders}
 
-        assert "inbox" in {
-            f.role for f in raw_folders
-        }, f"Account {account.email_address} has no detected inbox folder"
-
         local_folders = {
             f.name: f
             for f in db_session.query(Folder).filter(

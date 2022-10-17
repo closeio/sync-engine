@@ -79,9 +79,10 @@ def events_from_ics(namespace, calendar, ics_str):
 
                 if original_start.tzinfo is None:
                     tzid = component.get("dtstart").params.get("TZID", None)
-                    assert (
-                        tzid in timezones_table
-                    ), "Non-UTC timezone should be in table"
+                    if tzid not in timezones_table:
+                        raise MalformedEventError(
+                            "Non-UTC timezone should be in table", tzid
+                        )
 
                     corresponding_tz = timezones_table[tzid]
                     original_start_tz = corresponding_tz
@@ -91,9 +92,10 @@ def events_from_ics(namespace, calendar, ics_str):
 
                 if original_end.tzinfo is None:
                     tzid = component.get("dtend").params.get("TZID", None)
-                    assert (
-                        tzid in timezones_table
-                    ), "Non-UTC timezone should be in table"
+                    if tzid not in timezones_table:
+                        raise MalformedEventError(
+                            "Non-UTC timezone should be in table", tzid
+                        )
 
                     corresponding_tz = timezones_table[tzid]
                     local_timezone = pytz.timezone(corresponding_tz)

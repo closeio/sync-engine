@@ -104,7 +104,17 @@ def test_iter_events(client):
 
 
 @responses.activate
-def test_iter_events_modified_after(client):
+@pytest.mark.parametrize(
+    "modified_after,subjects",
+    [
+        (datetime.datetime(2022, 9, 9, 12, tzinfo=pytz.UTC), {"Business meeting"}),
+        (
+            datetime.datetime(2022, 9, 8, 12, tzinfo=pytz.UTC),
+            {"Business meeting", "Contract negotations"},
+        ),
+    ],
+)
+def test_iter_events_modified_after(client, modified_after, subjects):
     def request_callback(request):
         ((_, odata_filter),) = request.params.items()
         _, _, modified_after = odata_filter.split()
@@ -125,9 +135,6 @@ def test_iter_events_modified_after(client):
         content_type="application/json",
     )
 
-    events = client.iter_events(
-        "fake_calendar_id",
-        modified_after=datetime.datetime(2022, 9, 9, 12, tzinfo=pytz.UTC),
-    )
+    events = client.iter_events("fake_calendar_id", modified_after=modified_after,)
 
-    assert {event["subject"] for event in events} == {"Business meeting"}
+    assert {event["subject"] for event in events} == subjects

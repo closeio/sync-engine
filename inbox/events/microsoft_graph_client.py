@@ -29,6 +29,10 @@ class MicrosoftGraphClientException(Exception):
 class MicrosoftGraphClient:
     def __init__(self, get_token: Callable[[], str]):
         self._get_token = get_token
+        # Session lets us use HTTP connection pooling
+        # lowering the number of TCP connections needed
+        # to make many requests
+        self._session = requests.Session()
 
     def request(
         self,
@@ -38,6 +42,7 @@ class MicrosoftGraphClient:
         params: Optional[Dict[str, str]] = None,
         json: Optional[Dict[str, str]] = None,
         max_retries=10,
+        timeout=10,
     ) -> Dict[str, Any]:
         assert resource_url.startswith("/")
         resource_url = BASE_URL + resource_url
@@ -46,16 +51,19 @@ class MicrosoftGraphClient:
 
         retry = 0
         while retry < max_retries:
-            response = requests.request(
-                method, resource_url, params=params, headers=headers, json=json
+            response = self._session.request(
+                method,
+                resource_url,
+                params=params,
+                headers=headers,
+                json=json,
+                timeout=timeout,
             )
             if response.status_code == 429:
-                sleep_seconds = int(response.headers.get("Retry-After", 10))
+                sleep_seconds = int(response.headers.get("Retry-After", 5))
                 time.sleep(sleep_seconds)
                 retry += 1
                 continue
-            elif response.status_code == 401:
-                raise NotImplementedError()  # TODO
             break
 
         try:
@@ -104,7 +112,7 @@ class MicrosoftGraphClient:
     ) -> Iterable[Dict[str, Any]]:
         assert start.tzinfo == pytz.UTC
         assert end.tzinfo == pytz.UTC
-        assert end > start
+        assert end >= start
         return self._iter(
             f"/me/events/{event_id}/instances",
             params={"startDateTime": start.isoformat(), "endDateTime": end.isoformat()},

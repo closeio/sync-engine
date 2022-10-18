@@ -49,7 +49,7 @@ def normalize_repeated_component(
     elif isinstance(component, list) and set(component) == {component[0]}:
         return component[0]
     else:
-        raise MalformedEventError("Cannot normalized component", component)
+        raise MalformedEventError("Cannot normalize component", component)
 
 
 def events_from_ics(namespace, calendar, ics_str):

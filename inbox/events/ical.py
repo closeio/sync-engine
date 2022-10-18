@@ -52,7 +52,8 @@ def events_from_ics(namespace, calendar, ics_str):
 
         if component.name == "VTIMEZONE":
             tzname = component.get("TZID")
-            assert tzname in timezones_table, "Non-UTC timezone should be in table"
+            if tzname not in timezones_table:
+                raise MalformedEventError("Non-UTC timezone should be in table", tzname)
 
         if component.name == "VEVENT":
             # Make sure the times are in UTC.

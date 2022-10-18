@@ -92,11 +92,11 @@ bad_id_json = {
 def test_request_exception(client):
     responses.get(BASE_URL + "/me/calendars/bad_id", status=400, json=bad_id_json)
 
-    with pytest.raises(MicrosoftGraphClientException) as e:
+    with pytest.raises(MicrosoftGraphClientException) as exc_info:
         client.request("GET", "/me/calendars/bad_id")
 
-    assert e.value.args == ("ErrorInvalidIdMalformed", "Id is malformed.")
-    assert e.value.response.status_code == 400
+    assert exc_info.value.args == ("ErrorInvalidIdMalformed", "Id is malformed.")
+    assert exc_info.value.response.status_code == 400
 
 
 @responses.activate

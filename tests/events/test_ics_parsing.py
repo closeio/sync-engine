@@ -601,3 +601,15 @@ def test_event_with_status_repeated(db, default_account):
 
     (event,) = events["rsvps"]
     assert event.status == "confirmed"
+
+
+def test_event_with_method_repeated(db, default_account):
+    with open(absolute_path(FIXTURES + "event_with_method_repeated.ics")) as fd:
+        data = fd.read()
+
+    events = events_from_ics(
+        default_account.namespace, default_account.emailed_events_calendar, data
+    )
+
+    (event,) = events["rsvps"]
+    assert event.description == "Appointment with Apple Support"

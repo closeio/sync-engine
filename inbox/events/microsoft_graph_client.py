@@ -129,8 +129,13 @@ class MicrosoftGraphClient:
     def iter_calendars(self) -> Iterable[Dict[str, Any]]:
         """
         Lazily iterate user calendars.
-        """
 
+        https://learn.microsoft.com/en-us/graph/api/user-list-calendars
+
+        Returns:
+            Iterable of calendars.
+            https://learn.microsoft.com/en-us/graph/api/resources/calendar
+        """
         # TODO: Figure out the top limit we can use on this endpoint
         yield from self._iter("/me/calendars")
 
@@ -138,8 +143,14 @@ class MicrosoftGraphClient:
         """
         Get a single calendar.
 
+        https://learn.microsoft.com/en-us/graph/api/calendar-get
+
         Arguments:
             calendar_id: The calendar id
+
+        Returns:
+            The calendar.
+            https://learn.microsoft.com/en-us/graph/api/resources/calendar
         """
         return self.request("GET", f"/me/calendars/{calendar_id}")
 
@@ -149,9 +160,15 @@ class MicrosoftGraphClient:
         """
         Lazily iterate events in a calendar.
 
+        https://learn.microsoft.com/en-us/graph/api/user-list-events
+
         Arguments:
             calendar_id: The calendar id
             modified_after: If specified only return events given datetime
+
+        Returns:
+            Iterable of events.
+            https://learn.microsoft.com/en-us/graph/api/resources/event
         """
         if modified_after:
             assert modified_after.tzinfo == pytz.UTC
@@ -167,8 +184,14 @@ class MicrosoftGraphClient:
         """
         Get a single event.
 
+        https://learn.microsoft.com/en-us/graph/api/event-get
+
         Arguments:
             event_id: The event id
+
+        Returns:
+            The event.
+            https://learn.microsoft.com/en-us/graph/api/resources/event
         """
         return self.request("GET", f"/me/events/{event_id}")
 
@@ -176,12 +199,18 @@ class MicrosoftGraphClient:
         self, event_id: str, *, start: datetime.datetime, end: datetime.datetime
     ) -> Iterable[Dict[str, Any]]:
         """
-        Expand series master instances.
+        Lazily expand series master instances.
+
+        https://learn.microsoft.com/en-us/graph/api/event-list-instances
 
         Arguments:
             event_id: The event id
             start: the start of the period
             end: the end of the period
+
+        Returns:
+            Iterable of event instances.
+            https://learn.microsoft.com/en-us/graph/api/resources/event
         """
         assert start.tzinfo == pytz.UTC
         assert end.tzinfo == pytz.UTC
@@ -201,6 +230,12 @@ class MicrosoftGraphClient:
     def iter_subscriptions(self) -> Iterable[Dict[str, Any]]:
         """
         Lazily iterate subscriptions.
+
+        https://learn.microsoft.com/en-us/graph/api/subscription-list
+
+        Returns:
+            Iterable of subscriptions.
+            https://learn.microsoft.com/en-us/graph/api/resources/subscription
         """
         yield from self._iter("/subscriptions")
 
@@ -208,8 +243,14 @@ class MicrosoftGraphClient:
         """
         Get a single subscription.
 
+        https://learn.microsoft.com/en-us/graph/api/subscription-get
+
         Arguments:
             subscription_id: The subscription id
+
+        Returns:
+            The subscription.
+            https://learn.microsoft.com/en-us/graph/api/resources/subscription
         """
         return self.request("GET", f"/subscriptions/{subscription_id}")
 
@@ -223,7 +264,9 @@ class MicrosoftGraphClient:
         expiration: Optional[datetime.datetime] = None,
     ) -> Dict[str, Any]:
         """
-        Subsribe to resource changes.
+        Subscribe to resource changes.
+
+        https://learn.microsoft.com/en-us/graph/api/subscription-post-subscriptions
 
         Arguments:
             resource_url: The resource URL we want to subscribe to
@@ -232,6 +275,10 @@ class MicrosoftGraphClient:
             secret: Secret that can be used to verify authenticity of
                 date arriving on a webhook
             expiration: The date that subscription will expire
+
+        Returns:
+            The subscription.
+            https://learn.microsoft.com/en-us/graph/api/resources/subscription
         """
 
         if resource_url.startswith(BASE_URL):
@@ -261,8 +308,13 @@ class MicrosoftGraphClient:
         """
         Unsubscribe from resource changes.
 
+        https://learn.microsoft.com/en-us/graph/api/subscription-delete
+
         Arguments:
             subscription_id: The subscription id
+
+        Returns:
+            Empty dict.
         """
         return self.request("DELETE", f"/subscriptions/{subscription_id}")
 
@@ -272,9 +324,15 @@ class MicrosoftGraphClient:
         """
         Renew a subscription before it expires.
 
+        https://learn.microsoft.com/en-us/graph/api/subscription-update
+
         Arguments:
             subscription_id: The subscription id
             expiration: The new date that subscription will expire at
+
+        Returns:
+            The subscription.
+            https://learn.microsoft.com/en-us/graph/api/resources/subscription
         """
         if not expiration:
             expiration = datetime.datetime.now(tz=pytz.UTC) + datetime.timedelta(
@@ -294,10 +352,16 @@ class MicrosoftGraphClient:
         """
         Subscribe to calendar changes.
 
+        https://learn.microsoft.com/en-us/graph/api/subscription-post-subscriptions
+
         Arguments:
             webhook_url: The webhook URL that should receive changes
             secret: Secret that can be used to verify authenticity of
                 date arriving on a webhook
+
+        Returns:
+            The subscription.
+            https://learn.microsoft.com/en-us/graph/api/resources/subscription
         """
         return self.subscribe(
             resource_url="/me/calendars",
@@ -315,11 +379,17 @@ class MicrosoftGraphClient:
         """
         Subscribe to event changes in a calendar.
 
+        https://learn.microsoft.com/en-us/graph/api/subscription-post-subscriptions
+
         Arguments:
             calendar_id: The calendar id
             webhook_url: The webhook URL that should receive changes
             secret: Secret that can be used to verify authenticity of
                 date arriving on a webhook
+
+        Returns:
+            The subscription.
+            https://learn.microsoft.com/en-us/graph/api/resources/subscription
         """
 
         return self.subscribe(

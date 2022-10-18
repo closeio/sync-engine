@@ -1,5 +1,6 @@
 import datetime
 import json
+import unittest.mock
 
 import ciso8601
 import pytest
@@ -7,7 +8,11 @@ import pytz
 import responses
 from responses.registries import OrderedRegistry
 
-from inbox.events.microsoft_graph_client import BASE_URL, MicrosoftGraphClient
+from inbox.events.microsoft_graph_client import (
+    BASE_URL,
+    MicrosoftGraphClient,
+    MicrosoftGraphClientException,
+)
 
 
 @pytest.fixture
@@ -35,6 +40,61 @@ calendars_json = {
         },
     ],
 }
+
+
+@responses.activate
+def test_request(client):
+    def request_callback(request):
+        assert request.method == "GET"
+        assert request.url == BASE_URL + "/me/calendars"
+        assert request.headers["Authorization"] == "Bearer fake_token"
+
+        return (200, {}, json.dumps(calendars_json))
+
+    responses.add_callback(
+        responses.GET,
+        BASE_URL + "/me/calendars",
+        callback=request_callback,
+        content_type="application/json",
+    )
+
+    list(client.iter_calendars())
+
+
+@responses.activate(registry=OrderedRegistry)
+def test_request_retry(client):
+    responses.get(BASE_URL + "/me/calendars", status=429, headers={"Retry-After": "12"})
+    responses.get(BASE_URL + "/me/calendars", json=calendars_json)
+
+    with unittest.mock.patch("time.sleep") as sleep_mock:
+        list(client.iter_calendars())
+
+    ((args, _),) = sleep_mock.call_args_list
+    assert args == (12,)
+
+
+bad_id_json = {
+    "error": {
+        "code": "ErrorInvalidIdMalformed",
+        "message": "Id is malformed.",
+        "innerError": {
+            "date": "2022-10-18T11:42:54",
+            "request-id": "5a07348e-1150-42cc-a2a4-5a30064ccb65",
+            "client-request-id": "3d6261a4-3882-61c8-39d1-cd4878fdb503",
+        },
+    }
+}
+
+
+@responses.activate
+def test_request_exception(client):
+    responses.get(BASE_URL + "/me/calendars/bad_id", status=400, json=bad_id_json)
+
+    with pytest.raises(MicrosoftGraphClientException) as e:
+        client.request("GET", "/me/calendars/bad_id")
+
+    assert e.value.args == ("ErrorInvalidIdMalformed", "Id is malformed.")
+    assert e.value.response.status_code == 400
 
 
 @responses.activate

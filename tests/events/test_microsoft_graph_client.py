@@ -242,3 +242,35 @@ def test_subscribe_to_event_changes(client):
     assert subscription["changeType"] == "created,updated,deleted"
     assert subscription["notificationUrl"] == "https://example.com"
     assert subscription["clientState"] == "s3cr3t"
+
+
+subscriptions_json = {
+    "value": [
+        {
+            "id": "1ab7c0e6-8073-4121-ad7f-a477a30b6c25",
+            "resource": "/me/calendars",
+            "changeType": "updated,deleted",
+            "notificationUrl": "https://example.com/1",
+        },
+        {
+            "id": "39529cfc-ad79-4add-9a1d-14e4b4a4dfdb",
+            "resource": "/me/calendars",
+            "changeType": "updated,deleted",
+            "notificationUrl": "https://example.com/2",
+        },
+    ]
+}
+
+
+@responses.activate(registry=OrderedRegistry)
+def test_iter_subscriptions(client):
+    responses.get(
+        BASE_URL + "/subscriptions", json=subscriptions_json,
+    )
+
+    subscriptions = client.iter_subscriptions()
+
+    assert {subscription["notificationUrl"] for subscription in subscriptions} == {
+        "https://example.com/1",
+        "https://example.com/2",
+    }

@@ -1,7 +1,8 @@
 import contextlib
 import datetime
+import enum
 import time
-from typing import Any, Callable, Dict, Iterable, Literal, Optional
+from typing import Any, Callable, Dict, Iterable, Optional
 
 import pytz
 import requests
@@ -9,7 +10,10 @@ import requests
 BASE_URL = "https://graph.microsoft.com/v1.0"
 
 
-ChangeType = Iterable[Literal["updated", "created", "deleted"]]
+class ChangeType(enum.Enum):
+    UPDATED = "updated"
+    CREATED = "created"
+    DELETED = "deleted"
 
 
 class MicrosoftGraphClientException(Exception):
@@ -138,7 +142,7 @@ class MicrosoftGraphClient:
         self,
         *,
         resource_url: str,
-        change_type: ChangeType,
+        change_types: Iterable[ChangeType],
         webhook_url: str,
         secret: str,
         expiration: Optional[datetime.datetime] = None,
@@ -156,7 +160,7 @@ class MicrosoftGraphClient:
         assert expiration.tzinfo == pytz.UTC
 
         json = {
-            "changeType": ",".join(change_type),
+            "changeType": ",".join(change_type.value for change_type in change_types),
             "notificationUrl": webhook_url,
             "resource": resource_url,
             "expirationDateTime": expiration.isoformat(),
@@ -191,7 +195,7 @@ class MicrosoftGraphClient:
             # Quirk: subscribing to "created" on calendars raises an API error.
             # Nonetheless calendar creations, updates and deletes are all delivered
             # as updates to webhooks.
-            change_type=["updated", "deleted"],
+            change_types=[ChangeType.UPDATED, ChangeType.DELETED],
             webhook_url=webhook_url,
             secret=secret,
         )
@@ -201,7 +205,7 @@ class MicrosoftGraphClient:
     ) -> Dict[str, Any]:
         return self.subscribe(
             resource_url=f"/me/calendars/{calendar_id}/events",
-            change_type=["created", "updated", "deleted"],
+            change_types=[ChangeType.CREATED, ChangeType.UPDATED, ChangeType.DELETED],
             webhook_url=webhook_url,
             secret=secret,
         )

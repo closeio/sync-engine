@@ -151,6 +151,12 @@ def events_from_ics(namespace, calendar, ics_str):
                 description = str(description)
 
             event_status = component.get("status")
+            # Yahoo Calendar can include the same component several times.
+            # If all of them have the same value we can safely recover
+            if isinstance(event_status, list) and set(event_status) == {
+                event_status[0]
+            }:
+                event_status = event_status[0]
             if event_status is not None:
                 event_status = event_status.lower()
             else:

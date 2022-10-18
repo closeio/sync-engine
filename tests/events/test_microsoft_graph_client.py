@@ -198,3 +198,47 @@ def test_iter_event_instances(client):
         "Instance 2",
         "Instance 3",
     }
+
+
+@responses.activate
+def test_subscribe_to_calendar_changes(client):
+    def request_callback(request):
+        return (200, {}, request.body)
+
+    responses.add_callback(
+        responses.POST,
+        BASE_URL + "/subscriptions",
+        callback=request_callback,
+        content_type="application/json",
+    )
+
+    subscription = client.subscribe_to_calendar_changes(
+        webhook_url="https://example.com", secret="s3cr3t"
+    )
+
+    assert subscription["resource"] == "/me/calendars"
+    assert subscription["changeType"] == "updated,deleted"
+    assert subscription["notificationUrl"] == "https://example.com"
+    assert subscription["clientState"] == "s3cr3t"
+
+
+@responses.activate
+def test_subscribe_to_event_changes(client):
+    def request_callback(request):
+        return (200, {}, request.body)
+
+    responses.add_callback(
+        responses.POST,
+        BASE_URL + "/subscriptions",
+        callback=request_callback,
+        content_type="application/json",
+    )
+
+    subscription = client.subscribe_to_event_changes(
+        "fake_calendar_id", webhook_url="https://example.com", secret="s3cr3t"
+    )
+
+    assert subscription["resource"] == "/me/calendars/fake_calendar_id/events"
+    assert subscription["changeType"] == "created,updated,deleted"
+    assert subscription["notificationUrl"] == "https://example.com"
+    assert subscription["clientState"] == "s3cr3t"

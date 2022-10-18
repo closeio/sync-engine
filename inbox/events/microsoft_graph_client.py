@@ -143,6 +143,10 @@ class MicrosoftGraphClient:
         secret: str,
         expiration: Optional[datetime.datetime] = None,
     ) -> Dict[str, Any]:
+        """
+        The maximum expiration for a webhook subscription is 4230 minutes, which
+        is slightly less than 3 days.
+        """
         assert resource_url.startswith("/")
 
         if not expiration:
@@ -184,6 +188,9 @@ class MicrosoftGraphClient:
     ) -> Dict[str, Any]:
         return self.subscribe(
             resource_url="/me/calendars",
+            # Quirk: subscribing to "created" on calendars raises an API error.
+            # Nonetheless calendar creations, updates and deletes are all delivered
+            # as updates to webhooks.
             change_type=["updated", "deleted"],
             webhook_url=webhook_url,
             secret=secret,

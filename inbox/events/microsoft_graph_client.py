@@ -112,12 +112,20 @@ class MicrosoftGraphClient:
     def iter_event_instances(
         self, event_id: str, *, start: datetime.datetime, end: datetime.datetime
     ) -> Iterable[Dict[str, Any]]:
+        """
+        The default amount of instances per page is 10, as we want to do the least
+        amount of requests possible we raise it to 500.
+        """
         assert start.tzinfo == pytz.UTC
         assert end.tzinfo == pytz.UTC
         assert end >= start
         yield from self._iter(
             f"/me/events/{event_id}/instances",
-            params={"startDateTime": start.isoformat(), "endDateTime": end.isoformat()},
+            params={
+                "startDateTime": start.isoformat(),
+                "endDateTime": end.isoformat(),
+                "top": "500",
+            },
         )
 
     def iter_subscriptions(self) -> Iterable[Dict[str, Any]]:

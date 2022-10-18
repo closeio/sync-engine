@@ -190,7 +190,7 @@ def test_iter_event_instances(client):
     instances = client.iter_event_instances(
         "fake_event_id",
         start=datetime.datetime(2022, 10, 17, tzinfo=pytz.UTC),
-        end=datetime.datetime(2023, 10, 10, tzinfo=pytz.UTC),
+        end=datetime.datetime(2023, 10, 17, tzinfo=pytz.UTC),
     )
 
     assert {instance["subject"] for instance in instances} == {

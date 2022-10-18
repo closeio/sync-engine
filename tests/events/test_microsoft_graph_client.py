@@ -274,3 +274,12 @@ def test_iter_subscriptions(client):
         "https://example.com/1",
         "https://example.com/2",
     }
+
+
+@responses.activate
+def test_unsubscribe(client):
+    responses.delete(
+        BASE_URL + "/subscriptions/fake_subscription_id", body="",
+    )
+
+    assert client.unsubscribe("fake_subscription_id") == {}

@@ -138,3 +138,14 @@ def test_iter_events_modified_after(client, modified_after, subjects):
     events = client.iter_events("fake_calendar_id", modified_after=modified_after,)
 
     assert {event["subject"] for event in events} == subjects
+
+
+@responses.activate
+def test_get_event(client):
+    responses.get(
+        BASE_URL + f"/me/events/{events_json['value'][0]['id']}",
+        json=events_json["value"][0],
+    )
+
+    event = client.get_event(events_json["value"][0]["id"])
+    assert event["subject"] == "Business meeting"

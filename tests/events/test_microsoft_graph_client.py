@@ -64,13 +64,15 @@ def test_request(client):
 @responses.activate(registry=OrderedRegistry)
 def test_request_retry(client):
     responses.get(BASE_URL + "/me/calendars", status=429, headers={"Retry-After": "12"})
+    responses.get(BASE_URL + "/me/calendars", status=429, headers={"Retry-After": "3"})
     responses.get(BASE_URL + "/me/calendars", json=calendars_json)
 
     with unittest.mock.patch("time.sleep") as sleep_mock:
         list(client.iter_calendars())
 
-    ((args, _),) = sleep_mock.call_args_list
-    assert args == (12,)
+    ((args1, _), (args2, _)) = sleep_mock.call_args_list
+    assert args1 == (12,)
+    assert args2 == (3,)
 
 
 bad_id_json = {

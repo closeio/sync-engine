@@ -44,8 +44,9 @@ class MicrosoftGraphClient:
         max_retries=10,
         timeout=10,
     ) -> Dict[str, Any]:
-        assert resource_url.startswith("/")
-        resource_url = BASE_URL + resource_url
+        if not resource_url.startswith(BASE_URL):
+            assert resource_url.startswith("/")
+            resource_url = BASE_URL + resource_url
 
         headers = {"Authorization": "Bearer " + self._get_token()}
 
@@ -85,6 +86,7 @@ class MicrosoftGraphClient:
             response = self.request("GET", next_url, params=params)
             yield from response["value"]
             next_url = response.get("@odata.nextLink")
+            params = None
 
     def iter_calendars(self) -> Iterable[Dict[str, Any]]:
         yield from self._iter("/me/calendars")
@@ -108,12 +110,12 @@ class MicrosoftGraphClient:
         return self.request("GET", f"/me/events/{event_id}")
 
     def iter_event_instances(
-        self, event_id: str, start: datetime.datetime, end: datetime.datetime
+        self, event_id: str, *, start: datetime.datetime, end: datetime.datetime
     ) -> Iterable[Dict[str, Any]]:
         assert start.tzinfo == pytz.UTC
         assert end.tzinfo == pytz.UTC
         assert end >= start
-        return self._iter(
+        yield from self._iter(
             f"/me/events/{event_id}/instances",
             params={"startDateTime": start.isoformat(), "endDateTime": end.isoformat()},
         )

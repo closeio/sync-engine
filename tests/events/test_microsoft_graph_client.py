@@ -5,6 +5,7 @@ import ciso8601
 import pytest
 import pytz
 import responses
+from responses.registries import OrderedRegistry
 
 from inbox.events.microsoft_graph_client import BASE_URL, MicrosoftGraphClient
 
@@ -149,3 +150,51 @@ def test_get_event(client):
 
     event = client.get_event(events_json["value"][0]["id"])
     assert event["subject"] == "Business meeting"
+
+
+event_instances_first_page = {
+    "@odata.nextLink": "https://graph.microsoft.com/v1.0/me/events/fake_event_id/instances?startDateTime=2022-10-17&endDateTime=2023-10-17&$skip=2",
+    "value": [
+        {
+            "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQFRAAgI2q-SiNUAAEYAAAAAovUUFgf0jU2QbgCzOiiDrAcAbX_IPMmPs02YGYesdF-_dAACG91UqgAAbX_IPMmPs02YGYesdF-_dAACG93T0AAAEA==",
+            "subject": "Instance 1",
+        },
+        {
+            "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQFRAAgI2rCbsz7AAEYAAAAAovUUFgf0jU2QbgCzOiiDrAcAbX_IPMmPs02YGYesdF-_dAACG91UqgAAbX_IPMmPs02YGYesdF-_dAACG93T0AAAEA==",
+            "subject": "Instance 2",
+        },
+    ],
+}
+
+event_instances_second_page = {
+    "value": [
+        {
+            "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQFRAAgI2rFk3aiAAEYAAAAAovUUFgf0jU2QbgCzOiiDrAcAbX_IPMmPs02YGYesdF-_dAACG91UqgAAbX_IPMmPs02YGYesdF-_dAACG93T0AAAEA==",
+            "subject": "Instance 3",
+        }
+    ]
+}
+
+
+@responses.activate(registry=OrderedRegistry)
+def test_iter_event_instances(client):
+    responses.get(
+        BASE_URL + "/me/events/fake_event_id/instances",
+        json=event_instances_first_page,
+    )
+
+    responses.get(
+        event_instances_first_page["@odata.nextLink"], json=event_instances_second_page
+    )
+
+    instances = client.iter_event_instances(
+        "fake_event_id",
+        start=datetime.datetime(2022, 10, 17, tzinfo=pytz.UTC),
+        end=datetime.datetime(2023, 10, 10, tzinfo=pytz.UTC),
+    )
+
+    assert {instance["subject"] for instance in instances} == {
+        "Instance 1",
+        "Instance 2",
+        "Instance 3",
+    }

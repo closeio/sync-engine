@@ -126,12 +126,14 @@ def events_from_ics(namespace, calendar, ics_str):
                 # the right thing by giving us an UTC timestamp. Also note that
                 # Google calendar also include the DtStamp field, probably to
                 # be a good citizen.
-                if component_dtstamp.dt.tzinfo is not None:
-                    last_modified = component_dtstamp.dt
-                else:
-                    raise NotImplementedError(
-                        "We don't support arcane Windows timezones in timestamps yet"
-                    )
+                last_modified = component_dtstamp.dt
+                # Acording to https://www.rfc-editor.org/rfc/rfc5545#section-3.8.7.2
+                # DTSTAMP value MUST be specified in the UTC time format
+                # so it should always go with 'Z' at the end. There is software
+                # in the wild that interprets it as not needing 'Z' and implicitely
+                # UTC
+                if last_modified.tzinfo is None:
+                    last_modified = pytz.UTC.localize(last_modified)
             elif component_last_modified is not None:
                 # Try to look for a LAST-MODIFIED element instead.
                 # Note: LAST-MODIFIED is always in UTC.

@@ -1,0 +1,17 @@
+BEGIN:VCALENDAR
+CALSCALE:GREGORIAN
+METHOD:REPLY
+PRODID:-//Apple Computer\, Inc//iCal 3.0//EN
+X-WR-CALNAME:Appointment with Apple Support
+VERSION:2.0
+METHOD:REPLY
+BEGIN:VEVENT
+SEQUENCE:5
+DTSTART;TZID=America/Winnipeg:20211010T141500
+SUMMARY:Appointment with Apple Support
+UID:EC9439B1-FF65-11D6-9973-003065F99D04
+ORGANIZER;CN="Apple Support":mailto:applesupport@email.apple.com
+DTEND;TZID=America/Winnipeg:20211010T151500
+DESCRIPTION:Appointment with Apple Support
+END:VEVENT
+END:VCALENDAR

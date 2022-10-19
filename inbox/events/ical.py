@@ -2,7 +2,7 @@ import sys
 import traceback
 from datetime import date, datetime
 from email.utils import formataddr
-from typing import Dict, Literal
+from typing import Dict, List, Literal, Optional, Union
 
 import arrow
 import icalendar
@@ -35,6 +35,23 @@ STATUS_MAP = {
 INVERTED_STATUS_MAP = {value: key for key, value in STATUS_MAP.items()}
 
 
+def normalize_repeated_component(
+    component: Union[List[str], Optional[str]]
+) -> Optional[str]:
+    """
+    Some software can repeat components several times.
+    We can safely recover from it if all of them have the same value.
+    """
+    if component is None:
+        return None
+    elif isinstance(component, str):
+        return component
+    elif isinstance(component, list) and set(component) == {component[0]}:
+        return component[0]
+    else:
+        raise MalformedEventError("Cannot normalize component", component)
+
+
 def events_from_ics(namespace, calendar, ics_str):
     try:
         cal = iCalendar.from_ical(ics_str)
@@ -48,7 +65,7 @@ def events_from_ics(namespace, calendar, ics_str):
 
     for component in cal.walk():
         if component.name == "VCALENDAR":
-            calendar_method = component.get("method")
+            calendar_method = normalize_repeated_component(component.get("method"))
 
         if component.name == "VTIMEZONE":
             tzname = component.get("TZID")
@@ -150,7 +167,7 @@ def events_from_ics(namespace, calendar, ics_str):
             if description is not None:
                 description = str(description)
 
-            event_status = component.get("status")
+            event_status = normalize_repeated_component(component.get("status"))
             if event_status is not None:
                 event_status = event_status.lower()
             else:

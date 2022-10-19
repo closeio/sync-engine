@@ -31,6 +31,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - .:/opt/app
+      - ipython_data_local:/root/.ipython/profile_default
     user: root
     depends_on:
       - redis
@@ -43,3 +44,6 @@ services:
     working_dir: /src
     volumes:
       - .:/src
+
+volumes:
+  ipython_data_local: {}

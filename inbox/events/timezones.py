@@ -295,6 +295,7 @@ awful_timezones = {
     "Eastern": "America/New_York",
     "US/EST": "America/New_York",
     "Dublin, Edinburgh, Lisbon, London": "Europe/London",
+    "Europe/Kyiv": "Europe/Kiev",  # alternative spelling https://en.wikipedia.org/wiki/Kyiv
 }
 
 GMT_awful_timezones = {

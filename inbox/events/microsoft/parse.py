@@ -1,10 +1,11 @@
 import datetime
-from typing import Dict, Union
+from typing import Union
 
 import ciso8601
 import pytz
 import pytz.tzinfo
 
+from inbox.events.microsoft.graph_types import MsGraphDateTimeTimeZone
 from inbox.events.timezones import windows_timezones
 
 TzInfo = Union["pytz._UTCclass", pytz.tzinfo.StaticTzInfo, pytz.tzinfo.DstTzInfo]
@@ -21,9 +22,6 @@ def get_microsoft_tzinfo(timezone_id: str) -> TzInfo:
     timezone_id = convert_microsoft_timezone_to_olson(timezone_id)
 
     return pytz.timezone(timezone_id)
-
-
-MsGraphDateTimeTimeZone = Dict[str, str]
 
 
 def parse_msgraph_datetime_tz_as_utc(datetime_tz: MsGraphDateTimeTimeZone):

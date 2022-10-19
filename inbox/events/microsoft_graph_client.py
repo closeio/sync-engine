@@ -34,6 +34,21 @@ class MicrosoftGraphClientException(Exception):
         self.response = response
 
 
+def format_datetime(dt: datetime.datetime) -> str:
+    """
+    Format UTC datetime in format accepted by Microsoft Graph.
+
+    Arguments:
+        dt: the datetime
+
+    Returns:
+        Formatted datetime e.g. 2022-10-17T15:46:36.335288Z
+    """
+    assert dt.tzinfo == pytz.UTC
+
+    return dt.replace(tzinfo=None).isoformat() + "Z"
+
+
 class MicrosoftGraphClient:
     """
     Provide basic operations to read Outlook calendar
@@ -173,7 +188,7 @@ class MicrosoftGraphClient:
         if modified_after:
             assert modified_after.tzinfo == pytz.UTC
             params = {
-                "$filter": f"lastModifiedDateTime gt {modified_after.replace(tzinfo=None).isoformat()}Z"
+                "$filter": f"lastModifiedDateTime gt {format_datetime(modified_after)}"
             }
         else:
             params = None
@@ -218,8 +233,8 @@ class MicrosoftGraphClient:
         yield from self._iter(
             f"/me/events/{event_id}/instances",
             params={
-                "startDateTime": start.isoformat(),
-                "endDateTime": end.isoformat(),
+                "startDateTime": format_datetime(start),
+                "endDateTime": format_datetime(end),
                 # The default amount of instances per page is 10,
                 # as we want to do the least
                 # amount of requests possible we raise it to 500.
@@ -298,7 +313,7 @@ class MicrosoftGraphClient:
             "changeType": ",".join(change_type.value for change_type in change_types),
             "notificationUrl": webhook_url,
             "resource": resource_url,
-            "expirationDateTime": expiration.isoformat(),
+            "expirationDateTime": format_datetime(expiration),
             "clientState": secret,
         }
 
@@ -341,7 +356,7 @@ class MicrosoftGraphClient:
         assert expiration.tzinfo == pytz.UTC
 
         json = {
-            "expirationDateTime": expiration.isoformat(),
+            "expirationDateTime": format_datetime(expiration),
         }
 
         return self.request("PATCH", f"/subscriptions/{subscription_id}", json=json)

@@ -12,7 +12,15 @@ from inbox.events.microsoft_graph_client import (
     BASE_URL,
     MicrosoftGraphClient,
     MicrosoftGraphClientException,
+    format_datetime,
 )
+
+
+def test_format_datetime():
+    assert (
+        format_datetime(datetime.datetime(2022, 10, 1, 3, 4, 5, tzinfo=pytz.UTC))
+        == "2022-10-01T03:04:05Z"
+    )
 
 
 @pytest.fixture

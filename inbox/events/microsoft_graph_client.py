@@ -72,7 +72,7 @@ class MicrosoftGraphClient:
             params: GET parameters
             json: JSON to POST or PATCH
             max_retries: The number of maximum retires for 429
-            timeout: HTTP request timeout
+            timeout: HTTP request timeout in seconds
         """
         if not resource_url.startswith(BASE_URL):
             assert resource_url.startswith("/")

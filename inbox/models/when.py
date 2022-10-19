@@ -1,6 +1,5 @@
-import abc
 import contextlib
-from typing import Union
+from typing import List, Type, Union
 
 import arrow
 
@@ -33,7 +32,7 @@ def parse_utc(datetime):
     return arrow.get(datetime).to("utc")
 
 
-class When(metaclass=abc.ABCMeta):
+class When:
     """
     Abstract class which can represent a moment in time or a span between
         two moments. Initialize one of its subclasses `Time`, `TimeSpan`,
@@ -45,7 +44,7 @@ class When(metaclass=abc.ABCMeta):
 
     """
 
-    json_keys = abc.abstractproperty()
+    json_keys: List[str]
     all_day = False
     spanning = False
 
@@ -93,9 +92,9 @@ class AllDayWhen(When):
     all_day = True
 
 
-class SpanningWhen(When, metaclass=abc.ABCMeta):
+class SpanningWhen(When):
     spanning = True
-    singular_cls = abc.abstractproperty()
+    singular_cls: Type
 
     @classmethod
     def parse(cls, raw):

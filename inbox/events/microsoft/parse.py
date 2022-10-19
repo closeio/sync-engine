@@ -3,6 +3,7 @@ from typing import Dict, Union
 
 import ciso8601
 import pytz
+import pytz.tzinfo
 
 from inbox.events.timezones import windows_timezones
 

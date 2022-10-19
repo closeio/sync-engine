@@ -591,6 +591,22 @@ def test_event_with_windows_timezone(db, default_account):
     assert event.end == datetime.datetime(2022, 10, 11, 15, 30, tzinfo=pytz.UTC)
 
 
+def test_event_with_dtstamp_without_timezone(db, default_account):
+    with open(
+        absolute_path(FIXTURES + "event_with_dtstamp_without_timezone.ics")
+    ) as fd:
+        data = fd.read()
+
+    events = events_from_ics(
+        default_account.namespace, default_account.emailed_events_calendar, data
+    )
+    (event,) = events["rsvps"]
+
+    assert event.last_modified == datetime.datetime(
+        2020, 6, 23, 16, 33, 57, tzinfo=pytz.UTC
+    )
+
+
 def test_event_with_status_repeated(db, default_account):
     with open(absolute_path(FIXTURES + "event_with_status_repeated.ics")) as fd:
         data = fd.read()

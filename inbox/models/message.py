@@ -1,4 +1,3 @@
-import binascii
 import datetime
 import itertools
 import os
@@ -340,7 +339,6 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                     AttributeError,
                     RuntimeError,
                     TypeError,
-                    binascii.Error,
                     ValueError,
                 ) as e:
                     if isinstance(e, ValueError) and not isinstance(

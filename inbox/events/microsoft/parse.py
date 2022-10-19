@@ -1,5 +1,4 @@
 import datetime
-from typing import Union
 
 import ciso8601
 import pytz
@@ -7,8 +6,6 @@ import pytz.tzinfo
 
 from inbox.events.microsoft.graph_types import MsGraphDateTimeTimeZone
 from inbox.events.timezones import windows_timezones
-
-TzInfo = Union["pytz._UTCclass", pytz.tzinfo.StaticTzInfo, pytz.tzinfo.DstTzInfo]
 
 
 def convert_microsoft_timezone_to_olson(timezone_id: str) -> str:
@@ -34,7 +31,7 @@ def convert_microsoft_timezone_to_olson(timezone_id: str) -> str:
     return timezone_id
 
 
-def get_microsoft_tzinfo(timezone_id: str) -> TzInfo:
+def get_microsoft_tzinfo(timezone_id: str) -> pytz.tzinfo.BaseTzInfo:
     """
     Get TzInfo object given Windows timzone id
 

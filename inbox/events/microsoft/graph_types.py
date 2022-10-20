@@ -31,6 +31,10 @@ MsGraphRecurrencePatternType = Literal[
     "relativeYearly",
 ]
 
+ICalFreq = Literal[
+    "DAILY", "WEEKLY", "MONTHLY", "YEARLY",
+]
+
 
 class MsGraphRecurrencePattern(TypedDict):
     """

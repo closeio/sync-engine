@@ -133,7 +133,7 @@ def test_dump_datetime_as_msgraph_datetime_tz():
                     "numberOfOccurrences": 0,
                 },
             },
-            "RRULE:FREQ=WEEKLY;WKST=SU;INTERVAL=3;BYDAY=TU,SU;UNTIL=20230317T035959Z",
+            "RRULE:FREQ=WEEKLY;INTERVAL=3;WKST=SU;BYDAY=TU,SU;UNTIL=20230317T035959Z",
         ),
         (
             {
@@ -173,7 +173,7 @@ def test_dump_datetime_as_msgraph_datetime_tz():
                     "numberOfOccurrences": 0,
                 },
             },
-            "RRULE:FREQ=MONTHLY;WKST=SU;INTERVAL=2;UNTIL=20230923T035959Z",
+            "RRULE:FREQ=MONTHLY;INTERVAL=2;WKST=SU;UNTIL=20230923T035959Z",
         ),
         (
             {
@@ -236,7 +236,7 @@ def test_dump_datetime_as_msgraph_datetime_tz():
                     "numberOfOccurrences": 0,
                 },
             },
-            "RRULE:FREQ=MONTHLY;WKST=SU;BYDAY=-1TH;INTERVAL=12;UNTIL=20230923T035959Z",
+            "RRULE:FREQ=MONTHLY;INTERVAL=12;WKST=SU;BYDAY=-1TH;UNTIL=20230923T035959Z",
         ),
         (
             {

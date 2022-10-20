@@ -9,9 +9,11 @@ import pytz.tzinfo
 from inbox.events import util
 from inbox.events.microsoft.graph_types import (
     ICalDayOfWeek,
+    ICalFreq,
     MsGraphDateTimeTimeZone,
     MsGraphDayOfWeek,
     MsGraphPatternedRecurrence,
+    MsGraphRecurrencePatternType,
     MsGraphRecurrenceRange,
     MsGraphWeekIndex,
 )
@@ -157,10 +159,57 @@ def parse_msgraph_range_start_and_until(
     return start_datetime, until_datetime
 
 
+MS_GRAPH_PATTERN_TYPE_TO_ICAL_FREQ_INTERVAL_MULTIPLIER: Dict[
+    MsGraphRecurrencePatternType, Tuple[ICalFreq, int]
+] = {
+    "daily": ("DAILY", 1),
+    "weekly": ("WEEKLY", 1),
+    "absoluteMonthly": ("MONTHLY", 1),
+    "relativeMonthly": ("MONTHLY", 1),
+    "absoluteYearly": ("YEARLY", 1),
+    # although this is yearly in Outlook,
+    # for iCalendar RRULE to work like Outlook we need every 12 months.
+    "relativeYearly": ("MONTHLY", 12),
+}
+
+RRULE_SERIALIZATION_ORDER = ["FREQ", "INTERVAL", "WKST", "BYDAY", "UNTIL", "COUNT"]
+
+
 def convert_msgraph_patterned_recurrence_to_ical_rrule(
     patterned_recurrence: MsGraphPatternedRecurrence,
 ) -> str:
     pattern, range = patterned_recurrence["pattern"], patterned_recurrence["range"]
+
+    freq, multiplier = MS_GRAPH_PATTERN_TYPE_TO_ICAL_FREQ_INTERVAL_MULTIPLIER[
+        pattern["type"]
+    ]
+    interval = pattern["interval"] * multiplier
+    wkst = MS_GRAPH_TO_ICAL_DAY[pattern["firstDayOfWeek"]]
+
+    rrule: Dict[str, str] = {
+        "FREQ": freq,
+    }
+    if interval != 1:
+        rrule["INTERVAL"] = str(interval)
+
+    if pattern["type"] in ["daily", "absoluteYearly"]:
+        pass  # only FREQ and INTERVAL
+    elif pattern["type"] == "weekly":
+        rrule["WKST"] = wkst
+        rrule["BYDAY"] = ",".join(
+            MS_GRAPH_TO_ICAL_DAY[day_of_week] for day_of_week in pattern["daysOfWeek"]
+        )
+    elif pattern["type"] == "absoluteMonthly":
+        rrule["WKST"] = wkst
+    elif pattern["type"] in ["relativeMonthly", "relativeYearly"]:
+        rrule["WKST"] = wkst
+        (day_of_week,) = pattern["daysOfWeek"]
+        rrule["BYDAY"] = (
+            str(MS_GRAPH_TO_ICAL_INDEX[pattern["index"]])
+            + MS_GRAPH_TO_ICAL_DAY[day_of_week]
+        )
+    else:
+        raise NotImplementedError()
 
     count = None
     until = None
@@ -172,59 +221,11 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
     else:
         raise NotImplementedError()
 
-    rrule = {}
-
-    interval = pattern["interval"]
-    wkst = MS_GRAPH_TO_ICAL_DAY[pattern["firstDayOfWeek"]]
-
-    if pattern["type"] == "daily":
-        rrule["FREQ"] = "DAILY"
-        if interval != 1:
-            rrule["INTERVAL"] = str(interval)
-    elif pattern["type"] == "weekly":
-        rrule["FREQ"] = "WEEKLY"
-        rrule["WKST"] = wkst
-        if interval != 1:
-            rrule["INTERVAL"] = str(interval)
-        rrule["BYDAY"] = ",".join(
-            MS_GRAPH_TO_ICAL_DAY[day_of_week] for day_of_week in pattern["daysOfWeek"]
-        )
-    elif pattern["type"] == "absoluteMonthly":
-        rrule["FREQ"] = "MONTHLY"
-        rrule["WKST"] = wkst
-        if interval != 1:
-            rrule["INTERVAL"] = str(interval)
-    elif pattern["type"] == "relativeMonthly":
-        rrule["FREQ"] = "MONTHLY"
-        rrule["WKST"] = wkst
-        (day_of_week,) = pattern["daysOfWeek"]
-        rrule["BYDAY"] = (
-            str(MS_GRAPH_TO_ICAL_INDEX[pattern["index"]])
-            + MS_GRAPH_TO_ICAL_DAY[day_of_week]
-        )
-        if interval != 1:
-            rrule["INTERVAL"] = str(interval)
-    elif pattern["type"] == "absoluteYearly":
-        rrule["FREQ"] = "YEARLY"
-        if interval != 1:
-            rrule["INTERVAL"] = str(interval)
-    elif pattern["type"] == "relativeYearly":
-        # although this is yearly in Outlook,
-        # for iCalendar RRULE to work like Outlook we need every 12 months.
-        rrule["FREQ"] = "MONTHLY"
-        rrule["WKST"] = wkst
-        (day_of_week,) = pattern["daysOfWeek"]
-        rrule["BYDAY"] = (
-            str(MS_GRAPH_TO_ICAL_INDEX[pattern["index"]])
-            + MS_GRAPH_TO_ICAL_DAY[day_of_week]
-        )
-        rrule["INTERVAL"] = str(interval * 12)
-    else:
-        raise NotImplementedError()
-
     if until:
         rrule["UNTIL"] = util.serialize_datetime(until)
     if count:
         rrule["COUNT"] = str(count)
 
-    return "RRULE:" + ";".join(f"{key}={value}" for key, value in rrule.items())
+    return "RRULE:" + ";".join(
+        f"{key}={rrule[key]}" for key in RRULE_SERIALIZATION_ORDER if key in rrule
+    )

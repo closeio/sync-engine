@@ -5,7 +5,7 @@ import pytest
 import pytz
 
 from inbox.events.microsoft.parse import (
-    convert_msgraph_recurrence_to_rrule,
+    convert_msgraph_patterned_recurrence_to_ical_rrule,
     dump_datetime_as_msgraph_datetime_tz,
     get_microsoft_tzinfo,
     parse_msgraph_datetime_tz_as_utc,
@@ -240,8 +240,8 @@ def test_dump_datetime_as_msgraph_datetime_tz():
         ),
     ],
 )
-def test_convert_msgraph_recurrence_to_rrule(recurrence, rrule):
-    assert convert_msgraph_recurrence_to_rrule(recurrence) == rrule
+def test_convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence, rrule):
+    assert convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence) == rrule
 
 
 @pytest.mark.parametrize(
@@ -424,8 +424,8 @@ def test_convert_msgraph_recurrence_to_rrule(recurrence, rrule):
         ),
     ],
 )
-def test_infalte_msgraph_recurrence(recurrence, inflated_dates):
-    rrule = convert_msgraph_recurrence_to_rrule(recurrence)
+def test_inflate_msgraph_patterned_recurrence(recurrence, inflated_dates):
+    rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence)
     start_datetime = datetime.datetime(2022, 9, 19, 12, tzinfo=pytz.UTC)
     parsed_rrule = dateutil.rrule.rrulestr(rrule, dtstart=start_datetime)
     assert [dt.date() for dt in parsed_rrule] == inflated_dates

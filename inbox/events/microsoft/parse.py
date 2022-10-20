@@ -157,8 +157,10 @@ def parse_msgraph_range_start_and_until(
     return start_datetime, until_datetime
 
 
-def convert_msgraph_recurrence_to_rrule(recurrence: MsGraphPatternedRecurrence) -> str:
-    pattern, range = recurrence["pattern"], recurrence["range"]
+def convert_msgraph_patterned_recurrence_to_ical_rrule(
+    patterned_recurrence: MsGraphPatternedRecurrence,
+) -> str:
+    pattern, range = patterned_recurrence["pattern"], patterned_recurrence["range"]
 
     _, until = parse_msgraph_range_start_and_until(range)
 

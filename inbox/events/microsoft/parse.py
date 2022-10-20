@@ -162,7 +162,15 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
 ) -> str:
     pattern, range = patterned_recurrence["pattern"], patterned_recurrence["range"]
 
-    _, until = parse_msgraph_range_start_and_until(range)
+    count = None
+    until = None
+    if range["type"] in ["endDate", "noend"]:
+        _, until = parse_msgraph_range_start_and_until(range)
+    elif range["type"] == "numbered":
+        count = range["numberOfOccurrences"]
+        assert count > 0
+    else:
+        raise NotImplementedError()
 
     rrule = {}
 
@@ -216,5 +224,7 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
 
     if until:
         rrule["UNTIL"] = util.serialize_datetime(until)
+    if count:
+        rrule["COUNT"] = str(count)
 
     return "RRULE:" + ";".join(f"{key}={value}" for key, value in rrule.items())

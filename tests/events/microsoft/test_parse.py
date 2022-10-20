@@ -238,6 +238,26 @@ def test_dump_datetime_as_msgraph_datetime_tz():
             },
             "RRULE:FREQ=MONTHLY;WKST=SU;BYDAY=-1TH;INTERVAL=12;UNTIL=20230923T035959Z",
         ),
+        (
+            {
+                "pattern": {
+                    "type": "daily",
+                    "interval": 1,
+                    "month": 0,
+                    "dayOfMonth": 0,
+                    "firstDayOfWeek": "sunday",
+                    "index": "first",
+                },
+                "range": {
+                    "type": "numbered",
+                    "startDate": "2022-09-22",
+                    "endDate": "0000-00-00",
+                    "recurrenceTimeZone": "Eastern Standard Time",
+                    "numberOfOccurrences": 10,
+                },
+            },
+            "RRULE:FREQ=DAILY;COUNT=10",
+        ),
     ],
 )
 def test_convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence, rrule):
@@ -421,6 +441,30 @@ def test_convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence, rrule):
                 },
             },
             [datetime.date(2022, 9, 19), datetime.date(2023, 9, 18)],
+        ),
+        (
+            {
+                "pattern": {
+                    "type": "daily",
+                    "interval": 1,
+                    "month": 0,
+                    "dayOfMonth": 0,
+                    "firstDayOfWeek": "sunday",
+                    "index": "first",
+                },
+                "range": {
+                    "type": "numbered",
+                    "startDate": "2022-09-19",
+                    "endDate": "0000-00-00",
+                    "recurrenceTimeZone": "Eastern Standard Time",
+                    "numberOfOccurrences": 3,
+                },
+            },
+            [
+                datetime.date(2022, 9, 19),
+                datetime.date(2022, 9, 20),
+                datetime.date(2022, 9, 21),
+            ],
         ),
     ],
 )

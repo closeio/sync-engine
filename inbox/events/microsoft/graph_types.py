@@ -62,6 +62,7 @@ class MsGraphRecurrenceRange(TypedDict):
     endDate: str
     recurrenceTimeZone: str
     type: MsGraphRecurrenceRangeType
+    numberOfOccurrences: int
 
 
 class MsGraphPatternedRecurrence(TypedDict):

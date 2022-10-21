@@ -66,6 +66,9 @@ def events_from_ics(namespace, calendar, ics_str):
     for component in cal.walk():
         if component.name == "VCALENDAR":
             calendar_method = normalize_repeated_component(component.get("method"))
+            # Return early if we see calendar_method we don't care about
+            if calendar_method not in ["REQUEST", "CANCEL", "REPLY"]:
+                return events
 
         if component.name == "VTIMEZONE":
             tzname = component.get("TZID")

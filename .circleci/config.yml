@@ -40,6 +40,7 @@ jobs:
             -p inbox.events \
             -p inbox.heartbeat \
             -p inbox.mailsync \
+            -p inbox.models.when \
             -p inbox.s3 \
             -p inbox.scheduling \
             -p inbox.search \

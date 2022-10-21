@@ -1,8 +1,10 @@
+import contextlib
 import sys
 import traceback
 from datetime import date, datetime
 from email.utils import formataddr
-from typing import Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
+from unittest.mock import patch
 
 import arrow
 import icalendar
@@ -52,6 +54,16 @@ def normalize_repeated_component(
         raise MalformedEventError("Cannot normalize component", component)
 
 
+@contextlib.contextmanager
+def per_call_timezone_cache():
+    cache: Dict[str, Any] = {}
+    with patch("icalendar.prop._timezone_cache", cache), patch(
+        "icalendar.cal._timezone_cache", cache
+    ):
+        yield
+
+
+@per_call_timezone_cache()
 def events_from_ics(namespace, calendar, ics_str):
     try:
         cal = iCalendar.from_ical(ics_str)
@@ -95,7 +107,8 @@ def events_from_ics(namespace, calendar, ics_str):
                     tzid = component.get("dtstart").params.get("TZID", None)
                     if tzid not in timezones_table:
                         raise MalformedEventError(
-                            "Non-UTC timezone should be in table", tzid
+                            "Timezone ID should be in timezones_table or embedded in ICS file",
+                            tzid,
                         )
 
                     corresponding_tz = timezones_table[tzid]
@@ -108,7 +121,8 @@ def events_from_ics(namespace, calendar, ics_str):
                     tzid = component.get("dtend").params.get("TZID", None)
                     if tzid not in timezones_table:
                         raise MalformedEventError(
-                            "Non-UTC timezone should be in table", tzid
+                            "Timezone ID should be in timezones_table or embedded in ICS file",
+                            tzid,
                         )
 
                     corresponding_tz = timezones_table[tzid]

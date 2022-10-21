@@ -645,6 +645,8 @@ def test_event_with_dstart_only(db, default_account):
 
 
 def test_event_with_custom_timezone(db, default_account):
+    # File contains "Customized Time Zone" VTIMEZONE referenced from dtstart and dtend
+    # This time zone is equivalent to CET/CEST.
     with open(absolute_path(FIXTURES + "event_with_custom_timezone.ics")) as fd:
         data = fd.read()
 
@@ -655,3 +657,21 @@ def test_event_with_custom_timezone(db, default_account):
     (event,) = events["rsvps"]
     assert event.start == datetime.datetime(2022, 10, 21, 14, 0, tzinfo=pytz.UTC)
     assert event.end == datetime.datetime(2022, 10, 21, 14, 30, tzinfo=pytz.UTC)
+
+
+def test_event_with_custom_timezone_malformed(db, default_account):
+    # dtstart and dtend reference "Customized Time Zone" but VTIMEZONE is missing
+    with open(
+        absolute_path(FIXTURES + "event_with_custom_timezone_malformed.ics")
+    ) as fd:
+        data = fd.read()
+
+    with pytest.raises(MalformedEventError) as excinfo:
+        events_from_ics(
+            default_account.namespace, default_account.emailed_events_calendar, data
+        )
+
+    assert excinfo.value.args == (
+        "Timezone ID should be in timezones_table or embedded in ICS file",
+        "Customized Time Zone",
+    )

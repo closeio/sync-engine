@@ -1,11 +1,11 @@
-import abc
 import contextlib
-from typing import Union
+import datetime
+from typing import Any, Dict, List, Optional, Type, Union
 
 import arrow
 
 
-def parse_as_when(raw):
+def parse_as_when(raw: Dict[str, Any]) -> Union["TimeSpan", "Time", "DateSpan", "Date"]:
     """
     Tries to parse a dictionary into a corresponding Date, DateSpan,
     Time, or TimeSpan instance.
@@ -24,8 +24,7 @@ def parse_as_when(raw):
     return when_type.parse(raw)
 
 
-def parse_utc(datetime):
-    # type: (Union[float, int, str, arrow.Arrow]) -> arrow.Arrow
+def parse_utc(datetime: Union[float, int, str, arrow.Arrow]) -> arrow.Arrow:
     # Arrow can handle epoch timestamps as well as most ISO-8601 strings
     with contextlib.suppress(ValueError, TypeError):
         datetime = float(datetime)
@@ -33,29 +32,24 @@ def parse_utc(datetime):
     return arrow.get(datetime).to("utc")
 
 
-class When(metaclass=abc.ABCMeta):
+class When:
     """
-    Abstract class which can represent a moment in time or a span between
-        two moments. Initialize one of its subclasses `Time`, `TimeSpan`,
-        `Date` or `DateSpan` to concretely define which type you need.
-
-    Args:
-        start (datetime): Starting time
-        end (datetime, optional): End time. If missing, start will be used.
-
+    Represent a moment in time or a span between
+    two moments. Initialize one of its subclasses `Time`, `TimeSpan`,
+    `Date` or `DateSpan` to concretely define which type you need.
     """
 
-    json_keys = abc.abstractproperty()
+    json_keys: List[str]
     all_day = False
     spanning = False
 
     @classmethod
-    def parse(cls, raw):
+    def parse(cls, raw: Dict[str, Any]):
         parsed_times = cls.parse_keys(raw)
         return cls(*parsed_times)
 
     @classmethod
-    def parse_keys(cls, raw):
+    def parse_keys(cls, raw: Dict[str, Any]) -> List[arrow.Arrow]:
         times = []
         for key in cls.json_keys:
             try:
@@ -65,40 +59,36 @@ class When(metaclass=abc.ABCMeta):
                 raise ValueError(f"'{key}' parameter invalid.")
         return times
 
-    def __init__(self, start, end=None):
+    def __init__(self, start: arrow.Arrow, end: Optional[arrow.Arrow] = None):
         self.start = start
         self.end = end or start
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{type(self)} ({self.start} - {self.end})"
 
     @property
-    def is_time(self):
+    def is_time(self) -> bool:
         return isinstance(self, Time)
 
     @property
-    def is_date(self):
+    def is_date(self) -> bool:
         return isinstance(self, Date)
 
     @property
-    def delta(self):
+    def delta(self) -> datetime.timedelta:
         return self.end - self.start
 
-    def get_time_dict(self):
+    def get_time_dict(self) -> Dict[str, arrow.Arrow]:
         times = (self.start, self.end)
         return dict(zip(self.json_keys, times))
 
 
-class AllDayWhen(When):
-    all_day = True
-
-
-class SpanningWhen(When, metaclass=abc.ABCMeta):
+class SpanningWhen(When):
     spanning = True
-    singular_cls = abc.abstractproperty()
+    singular_cls: Type
 
     @classmethod
-    def parse(cls, raw):
+    def parse(cls, raw: Dict[str, Any]):
         # If initializing a span, we sanity check the timestamps and initialize
         # the singular form if they are equal.
         start, end = cls.parse_keys(raw)
@@ -118,10 +108,12 @@ class TimeSpan(Time, SpanningWhen):
     singular_cls = Time
 
 
-class Date(AllDayWhen):
+class Date(When):
     json_keys = ["date"]
+    all_day = True
 
 
-class DateSpan(Date, AllDayWhen, SpanningWhen):
+class DateSpan(Date, SpanningWhen):
     json_keys = ["start_date", "end_date"]
     singular_cls = Date
+    all_day = True

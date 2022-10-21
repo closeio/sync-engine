@@ -105,25 +105,6 @@ def dump_datetime_as_msgraph_datetime_tz(
     }
 
 
-MS_GRAPH_TO_ICAL_DAY: Dict[MsGraphDayOfWeek, ICalDayOfWeek] = {
-    "sunday": "SU",
-    "monday": "MO",
-    "tuesday": "TU",
-    "wednesday": "WE",
-    "thursday": "TH",
-    "friday": "FR",
-    "saturday": "SA",
-}
-
-MS_GRAPH_TO_ICAL_INDEX: Dict[MsGraphWeekIndex, int] = {
-    "first": 1,
-    "second": 2,
-    "third": 3,
-    "fourth": 4,
-    "last": -1,
-}
-
-
 class CombineMode(enum.Enum):
     START = datetime.time(0, 0, 0)
     END = datetime.time(23, 59, 59)
@@ -170,6 +151,24 @@ MS_GRAPH_PATTERN_TYPE_TO_ICAL_FREQ_INTERVAL_MULTIPLIER: Dict[
     # although this is yearly in Outlook,
     # for iCalendar RRULE to work like Outlook we need every 12 months.
     "relativeYearly": ("MONTHLY", 12),
+}
+
+MS_GRAPH_TO_ICAL_DAY: Dict[MsGraphDayOfWeek, ICalDayOfWeek] = {
+    "sunday": "SU",
+    "monday": "MO",
+    "tuesday": "TU",
+    "wednesday": "WE",
+    "thursday": "TH",
+    "friday": "FR",
+    "saturday": "SA",
+}
+
+MS_GRAPH_TO_ICAL_INDEX: Dict[MsGraphWeekIndex, int] = {
+    "first": 1,
+    "second": 2,
+    "third": 3,
+    "fourth": 4,
+    "last": -1,
 }
 
 RRULE_SERIALIZATION_ORDER = ["FREQ", "INTERVAL", "WKST", "BYDAY", "UNTIL", "COUNT"]

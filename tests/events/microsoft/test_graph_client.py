@@ -8,7 +8,7 @@ import pytz
 import responses
 from responses.registries import OrderedRegistry
 
-from inbox.events.microsoft_graph_client import (
+from inbox.events.microsoft.graph_client import (
     BASE_URL,
     MicrosoftGraphClient,
     MicrosoftGraphClientException,

@@ -642,3 +642,16 @@ def test_event_with_dstart_only(db, default_account):
     (event,) = events["rsvps"]
     assert event.start == datetime.datetime(2019, 12, 5, 15, tzinfo=pytz.UTC)
     assert event.start == event.end
+
+
+def test_event_with_custom_timezone(db, default_account):
+    with open(absolute_path(FIXTURES + "event_with_custom_timezone.ics")) as fd:
+        data = fd.read()
+
+    events = events_from_ics(
+        default_account.namespace, default_account.emailed_events_calendar, data
+    )
+
+    (event,) = events["rsvps"]
+    assert event.start == datetime.datetime(2022, 10, 21, 14, 0, tzinfo=pytz.UTC)
+    assert event.end == datetime.datetime(2022, 10, 21, 14, 30, tzinfo=pytz.UTC)

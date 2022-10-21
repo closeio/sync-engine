@@ -67,11 +67,6 @@ def events_from_ics(namespace, calendar, ics_str):
         if component.name == "VCALENDAR":
             calendar_method = normalize_repeated_component(component.get("method"))
 
-        if component.name == "VTIMEZONE":
-            tzname = component.get("TZID")
-            if tzname not in timezones_table:
-                raise MalformedEventError("Non-UTC timezone should be in table", tzname)
-
         if component.name == "VEVENT":
             # Make sure the times are in UTC.
             try:

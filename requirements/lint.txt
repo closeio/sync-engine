@@ -10,12 +10,12 @@ flake8-future-import==0.4.7
 flake8-no-u-prefixed-strings==0.2
 flake8-simplify==0.14.2
 flake8-sfs==0.0.3
-flake8-tidy-imports==4.6.0
-mccabe==0.6.1
+flake8-tidy-imports==4.8.0
+mccabe==0.7.0
 mypy==0.982
 regex==2020.9.27
 pathspec==0.8.0
-pyflakes==2.3.1
+pyflakes==2.5.0
 pycodestyle==2.9.1
 toml==0.10.1
 tomli==2.0.1

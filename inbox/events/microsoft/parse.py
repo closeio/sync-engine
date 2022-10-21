@@ -25,10 +25,7 @@ def convert_microsoft_timezone_to_olson(timezone_id: str) -> str:
     Returns:
         Olson timezone id
     """
-    if timezone_id in windows_timezones:
-        timezone_id = windows_timezones[timezone_id]
-
-    return timezone_id
+    return windows_timezones.get(timezone_id, timezone_id)
 
 
 def get_microsoft_tzinfo(timezone_id: str) -> pytz.tzinfo.BaseTzInfo:

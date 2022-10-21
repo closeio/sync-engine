@@ -113,6 +113,17 @@ class CombineMode(enum.Enum):
 def combine_msgraph_recurrence_date_with_time(
     date: str, tzinfo: pytz.tzinfo.BaseTzInfo, mode: CombineMode
 ) -> datetime.datetime:
+    """
+    Combine date with time according to mode and localize it as UTC.
+
+    Arguments:
+        date: ISO date string
+        tzinfo: timezone the date should be in after combining with time
+        mode: Either append 0:00 or 23:59:59 as time
+
+    Returns:
+        Timezone-aware UTC datetime
+    """
     parsed_date = datetime.date.fromisoformat(date)
     extended_datetime = datetime.datetime.combine(parsed_date, mode.value)
     return tzinfo.localize(extended_datetime).astimezone(pytz.UTC)
@@ -121,19 +132,30 @@ def combine_msgraph_recurrence_date_with_time(
 def parse_msgraph_range_start_and_until(
     range: MsGraphRecurrenceRange,
 ) -> Tuple[datetime.datetime, Optional[datetime.datetime]]:
+    """
+    Parse Microsoft Graph Recurrence Range start and end dates.
+
+    It also combines start date with 0:00 time and end date with 23:59:59
+    time because recurrence processing always uses datetimes.
+
+    Arguments:
+        range: Microsoft Graph RecurranceRange
+
+    Returns:
+        Tuple of timezone-aware UTC datetimes
+    """
     tzinfo = get_microsoft_tzinfo(range["recurrenceTimeZone"])
 
     start_datetime = combine_msgraph_recurrence_date_with_time(
         range["startDate"], tzinfo, CombineMode.START
     )
 
-    until_datetime = None
     if range["type"] == "endDate":
         until_datetime = combine_msgraph_recurrence_date_with_time(
             range["endDate"], tzinfo, CombineMode.END
         )
     elif range["type"] == "noEnd":
-        pass
+        until_datetime = None
     else:
         raise NotImplementedError()
 
@@ -171,19 +193,34 @@ MS_GRAPH_TO_ICAL_INDEX: Dict[MsGraphWeekIndex, int] = {
     "last": -1,
 }
 
+# It's not strictly necessary to serialize RRULEs this way but it's common
+# to do it in this order and it also makes testing easier.
 RRULE_SERIALIZATION_ORDER = ["FREQ", "INTERVAL", "WKST", "BYDAY", "UNTIL", "COUNT"]
 
 
 def convert_msgraph_patterned_recurrence_to_ical_rrule(
     patterned_recurrence: MsGraphPatternedRecurrence,
 ) -> str:
+    """
+    Convert Microsoft Graph PatternedRecurrence to iCal RRULE.
+
+    This was reverse-engineered by looking at recurrence occurances
+    in Outlook UI, corresponding API results and then coming up with
+    iCal RRULEs. See tests for examples.
+
+    Arguments:
+        patterned_recurrence: Microsoft Graph PatternedRecurrence
+
+    Returns:
+        iCal RRULE string
+    """
     pattern, range = patterned_recurrence["pattern"], patterned_recurrence["range"]
 
+    # first handle FREQ (Frequency), INTERVAL and BYDAY
     freq, multiplier = MS_GRAPH_PATTERN_TYPE_TO_ICAL_FREQ_INTERVAL_MULTIPLIER[
         pattern["type"]
     ]
     interval = pattern["interval"] * multiplier
-    wkst = MS_GRAPH_TO_ICAL_DAY[pattern["firstDayOfWeek"]]
 
     rrule: Dict[str, str] = {
         "FREQ": freq,
@@ -191,34 +228,42 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
     if interval != 1:
         rrule["INTERVAL"] = str(interval)
 
-    if pattern["type"] in ["daily", "absoluteYearly"]:
+    if pattern["type"] in ["daily", "absoluteMonthly", "absoluteYearly"]:
         pass  # only FREQ and INTERVAL
     elif pattern["type"] == "weekly":
-        rrule["WKST"] = wkst
         rrule["BYDAY"] = ",".join(
             MS_GRAPH_TO_ICAL_DAY[day_of_week] for day_of_week in pattern["daysOfWeek"]
         )
-    elif pattern["type"] == "absoluteMonthly":
-        rrule["WKST"] = wkst
     elif pattern["type"] in ["relativeMonthly", "relativeYearly"]:
-        rrule["WKST"] = wkst
         (day_of_week,) = pattern["daysOfWeek"]
         rrule["BYDAY"] = (
             str(MS_GRAPH_TO_ICAL_INDEX[pattern["index"]])
             + MS_GRAPH_TO_ICAL_DAY[day_of_week]
         )
     else:
-        raise NotImplementedError()
+        # Should be unreachable
+        raise ValueError(f"Unexpected value {pattern['type']} for pattern type")
 
+    # WKST (Week start) is only significant when BYDAY is also present.
+    # See WKST Rule Notes in
+    # https://ewsoftware.github.io/PDI/html/3f7e1bcc-3afe-4978-95e7-e6515eae45df.htm
+    if "BYDAY" in rrule:
+        rrule["WKST"] = MS_GRAPH_TO_ICAL_DAY[pattern["firstDayOfWeek"]]
+
+    # Recurrences can be either limited by end date (`endDate`),
+    # infinite (`noEnd`) or have limited number of occurences (`numbered`).
+    # In practice I only saw `endDate` and `noEnd` in Outlook UI but according
+    # to docs it's also possible to have `numbered`.
     count = None
     until = None
-    if range["type"] in ["endDate", "noend"]:
+    if range["type"] in ["endDate", "noEnd"]:
         _, until = parse_msgraph_range_start_and_until(range)
     elif range["type"] == "numbered":
         count = range["numberOfOccurrences"]
         assert count > 0
     else:
-        raise NotImplementedError()
+        # Shoud be unreachable
+        raise ValueError(f"Unexpected value {range['type']} for range type")
 
     if until:
         rrule["UNTIL"] = util.serialize_datetime(until)

@@ -153,7 +153,7 @@ def test_dump_datetime_as_msgraph_datetime_tz():
                     "numberOfOccurrences": 0,
                 },
             },
-            "RRULE:FREQ=MONTHLY;WKST=SU;UNTIL=20230923T035959Z",
+            "RRULE:FREQ=MONTHLY;UNTIL=20230923T035959Z",
         ),
         (
             {
@@ -173,7 +173,7 @@ def test_dump_datetime_as_msgraph_datetime_tz():
                     "numberOfOccurrences": 0,
                 },
             },
-            "RRULE:FREQ=MONTHLY;INTERVAL=2;WKST=SU;UNTIL=20230923T035959Z",
+            "RRULE:FREQ=MONTHLY;INTERVAL=2;UNTIL=20230923T035959Z",
         ),
         (
             {

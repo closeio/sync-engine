@@ -144,7 +144,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
         """Handles response pagination."""
         token = self._get_access_token()
         items = []
-        next_page_token = None
+        next_page_token: Optional[str] = None
         params["showDeleted"] = True
         while True:
             if next_page_token is not None:

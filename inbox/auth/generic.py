@@ -114,5 +114,3 @@ class GenericAuthHandler(AuthHandler):
             smtp_password=smtp_p,
             sync_email=True,
         )
-
-        return response

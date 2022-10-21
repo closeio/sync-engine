@@ -206,7 +206,10 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
 
     This was reverse-engineered by looking at recurrence occurances
     in Outlook UI, corresponding API results and then coming up with
-    iCal RRULEs. See tests for examples.
+    iCal RRULEs. See tests for examples. Note that even though
+    Microsoft Graph PatternedRecurence contains start date iCal RRULE
+    does not because one can use series master event start date when
+    expanding.
 
     Arguments:
         patterned_recurrence: Microsoft Graph PatternedRecurrence
@@ -242,7 +245,7 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
         )
     else:
         # Should be unreachable
-        raise ValueError(f"Unexpected value {pattern['type']} for pattern type")
+        raise ValueError(f"Unexpected value {pattern['type']!r} for pattern type")
 
     # WKST (Week start) is only significant when BYDAY is also present.
     # See WKST Rule Notes in
@@ -263,7 +266,7 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
         assert count > 0
     else:
         # Shoud be unreachable
-        raise ValueError(f"Unexpected value {range['type']} for range type")
+        raise ValueError(f"Unexpected value {range['type']!r} for range type")
 
     if until:
         rrule["UNTIL"] = util.serialize_datetime(until)

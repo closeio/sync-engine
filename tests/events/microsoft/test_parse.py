@@ -258,6 +258,26 @@ def test_dump_datetime_as_msgraph_datetime_tz():
             },
             "RRULE:FREQ=DAILY;COUNT=10",
         ),
+        (
+            {
+                "pattern": {
+                    "type": "absoluteYearly",
+                    "interval": 1,
+                    "month": 9,
+                    "dayOfMonth": 19,
+                    "firstDayOfWeek": "sunday",
+                    "index": "first",
+                },
+                "range": {
+                    "type": "noEnd",
+                    "startDate": "2022-09-19",
+                    "endDate": "0001-01-01",
+                    "recurrenceTimeZone": "Eastern Standard Time",
+                    "numberOfOccurrences": 0,
+                },
+            },
+            "RRULE:FREQ=YEARLY",
+        ),
     ],
 )
 def test_convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence, rrule):

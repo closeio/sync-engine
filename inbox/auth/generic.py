@@ -86,8 +86,6 @@ class GenericAuthHandler(AuthHandler):
                 raise
 
     def interactive_auth(self, email_address):
-        response = dict(email=email_address)
-
         imap_server_host = input("IMAP server host: ").strip()
         imap_server_port = input("IMAP server port: ").strip() or 993
         imap_um = "IMAP username (empty for same as email address): "

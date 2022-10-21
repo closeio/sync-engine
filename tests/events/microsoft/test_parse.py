@@ -251,7 +251,7 @@ def test_dump_datetime_as_msgraph_datetime_tz():
                 "range": {
                     "type": "numbered",
                     "startDate": "2022-09-22",
-                    "endDate": "0000-00-00",
+                    "endDate": "0000-01-01",
                     "recurrenceTimeZone": "Eastern Standard Time",
                     "numberOfOccurrences": 10,
                 },
@@ -475,7 +475,7 @@ def test_convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence, rrule):
                 "range": {
                     "type": "numbered",
                     "startDate": "2022-09-19",
-                    "endDate": "0000-00-00",
+                    "endDate": "0001-01-01",
                     "recurrenceTimeZone": "Eastern Standard Time",
                     "numberOfOccurrences": 3,
                 },
@@ -486,10 +486,37 @@ def test_convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence, rrule):
                 datetime.date(2022, 9, 21),
             ],
         ),
+        (
+            {
+                "pattern": {
+                    "type": "absoluteYearly",
+                    "interval": 1,
+                    "month": 9,
+                    "dayOfMonth": 19,
+                    "firstDayOfWeek": "sunday",
+                    "index": "first",
+                },
+                "range": {
+                    "type": "noEnd",
+                    "startDate": "2022-09-19",
+                    "endDate": "0001-01-01",
+                    "recurrenceTimeZone": "Eastern Standard Time",
+                    "numberOfOccurrences": 0,
+                },
+            },
+            [
+                datetime.date(2022, 9, 19),
+                datetime.date(2023, 9, 19),
+                datetime.date(2024, 9, 19),
+            ],
+        ),
     ],
 )
 def test_inflate_msgraph_patterned_recurrence(recurrence, inflated_dates):
     rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence)
     start_datetime = datetime.datetime(2022, 9, 19, 12, tzinfo=pytz.UTC)
     parsed_rrule = dateutil.rrule.rrulestr(rrule, dtstart=start_datetime)
+    # For infinite recurrences expand only first 3
+    if not parsed_rrule._count and not parsed_rrule._until:
+        parsed_rrule = parsed_rrule.replace(count=3)
     assert [dt.date() for dt in parsed_rrule] == inflated_dates

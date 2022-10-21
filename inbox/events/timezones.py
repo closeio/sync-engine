@@ -296,6 +296,7 @@ awful_timezones = {
     "US/EST": "America/New_York",
     "Dublin, Edinburgh, Lisbon, London": "Europe/London",
     "Europe/Kyiv": "Europe/Kiev",  # alternative spelling https://en.wikipedia.org/wiki/Kyiv
+    "Pacific Time (US & Canada)": "America/Los_Angeles",
 }
 
 GMT_awful_timezones = {

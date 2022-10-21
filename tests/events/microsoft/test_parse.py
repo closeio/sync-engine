@@ -5,6 +5,8 @@ import pytest
 import pytz
 
 from inbox.events.microsoft.parse import (
+    CombineMode,
+    combine_msgraph_recurrence_date_with_time,
     convert_msgraph_patterned_recurrence_to_ical_rrule,
     dump_datetime_as_msgraph_datetime_tz,
     get_microsoft_tzinfo,
@@ -48,6 +50,22 @@ def test_dump_datetime_as_msgraph_datetime_tz():
     assert dump_datetime_as_msgraph_datetime_tz(
         datetime.datetime(2022, 9, 22, 16, 31, 45, tzinfo=pytz.UTC)
     ) == {"dateTime": "2022-09-22T16:31:45.0000000", "timeZone": "UTC",}
+
+
+@pytest.mark.parametrize(
+    "mode,dt",
+    [
+        (CombineMode.START, datetime.datetime(2022, 9, 19, 4, 0, 0, tzinfo=pytz.UTC)),
+        (CombineMode.END, datetime.datetime(2022, 9, 20, 3, 59, 59, tzinfo=pytz.UTC)),
+    ],
+)
+def test_combine_msgraph_recurrence_date_with_time(mode, dt):
+    assert (
+        combine_msgraph_recurrence_date_with_time(
+            "2022-09-19", pytz.timezone("America/New_York"), mode
+        )
+        == dt
+    )
 
 
 @pytest.mark.parametrize(

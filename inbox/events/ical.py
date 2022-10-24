@@ -55,8 +55,8 @@ def normalize_repeated_component(
 def events_from_ics(namespace, calendar, ics_str):
     try:
         cal = iCalendar.from_ical(ics_str)
-    except (ValueError, IndexError, KeyError, TypeError):
-        raise MalformedEventError("Error while parsing ICS file")
+    except (ValueError, IndexError, KeyError, TypeError) as e:
+        raise MalformedEventError("Error while parsing ICS file") from e
 
     events: Dict[Literal["invites", "rsvps"], Event] = dict(invites=[], rsvps=[])
 

@@ -460,7 +460,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         if disposition not in (None, "inline", "attachment"):
             log.error(
                 "Unknown Content-Disposition",
-                message_public_id=self.public_id,
+                mid=mid,
                 bad_content_disposition=mimepart.content_disposition,
             )
             self._mark_error()

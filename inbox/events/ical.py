@@ -55,8 +55,8 @@ def normalize_repeated_component(
 def events_from_ics(namespace, calendar, ics_str):
     try:
         cal = iCalendar.from_ical(ics_str)
-    except (ValueError, IndexError, KeyError):
-        raise MalformedEventError()
+    except (ValueError, IndexError, KeyError, TypeError):
+        raise MalformedEventError("Error while parsing ICS file")
 
     events: Dict[Literal["invites", "rsvps"], Event] = dict(invites=[], rsvps=[])
 
@@ -190,7 +190,8 @@ def events_from_ics(namespace, calendar, ics_str):
                     # Otherwise assume the event has been confirmed.
                     event_status = "confirmed"
 
-            assert event_status in EVENT_STATUSES
+            if event_status not in EVENT_STATUSES:
+                raise MalformedEventError("Bad event status", event_status)
 
             recur = component.get("rrule")
             if recur:

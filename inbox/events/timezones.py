@@ -294,7 +294,19 @@ awful_timezones = {
     "US/CST": "America/Chicago",
     "Eastern": "America/New_York",
     "US/EST": "America/New_York",
+    # Outlook for Mac
     "Dublin, Edinburgh, Lisbon, London": "Europe/London",
+    "Guadalajara, Mexico City, Monterrey": "America/Mexico_City",
+    "Belgrade, Bratislava, Budapest, Ljubljana, Prague": "Europe/Prague",
+    "Belgrad, Bratislava (Pressburg), Budapest, Laibach, Prag (Praha)": "Europe/Prague",
+    "Sarajevo, Skopje, Warsaw, Zagreb": "Europe/Warsaw",
+    "Amsterdam, Belgrade, Berlin, Brussels, Budapest, Madrid, Paris, Prague, Stockholm": "Europe/Madrid",
+    "Brussels, Copenhagen, Madrid, Paris": "Europe/Madrid",
+    "Paris, Madrid": "Europe/Madrid",
+    "Europe/Kyiv": "Europe/Kiev",  # alternative spelling https://en.wikipedia.org/wiki/Kyiv
+    "Pacific Time (US & Canada)": "America/Los_Angeles",
+    "Central Time (US & Canada)": "America/Chicago",
+    "Eastern Time (US & Canada)": "America/New_York",
 }
 
 GMT_awful_timezones = {
@@ -327,6 +339,33 @@ GMT_awful_timezones = {
     "GMT-12:00": "Etc/GMT-12",
     "GMT-13:00": "Etc/GMT-13",
     "GMT-14:00": "Etc/GMT-14",
+    "GMT+1200": "Etc/GMT+12",
+    "GMT+1100": "Etc/GMT+11",
+    "GMT+1000": "Etc/GMT+10",
+    "GMT+0900": "Etc/GMT+9",
+    "GMT+0800": "Etc/GMT+8",
+    "GMT+0700": "Etc/GMT+7",
+    "GMT+0600": "Etc/GMT+6",
+    "GMT+0500": "Etc/GMT+5",
+    "GMT+0400": "Etc/GMT+4",
+    "GMT+0300": "Etc/GMT+3",
+    "GMT+0200": "Etc/GMT+2",
+    "GMT+0100": "Etc/GMT+1",
+    "GMT+0000": "Etc/GMT",
+    "GMT-0000": "Etc/GMT",
+    "GMT-0100": "Etc/GMT-1",
+    "GMT-0200": "Etc/GMT-2",
+    "GMT-0300": "Etc/GMT-3",
+    "GMT-0400": "Etc/GMT-4",
+    "GMT-0500": "Etc/GMT-5",
+    "GMT-0600": "Etc/GMT-6",
+    "GMT-0700": "Etc/GMT-7",
+    "GMT-0800": "Etc/GMT-8",
+    "GMT-0900": "Etc/GMT-9",
+    "GMT-1000": "Etc/GMT-10",
+    "GMT-1100": "Etc/GMT-11",
+    "GMT-1200": "Etc/GMT-12",
+    "GMT-1300": "Etc/GMT-13",
 }
 
 timezones_table = {}

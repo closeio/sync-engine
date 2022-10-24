@@ -657,3 +657,19 @@ def test_event_malformed_publish(db, default_account):
     )
 
     assert events == {"invites": [], "rsvps": []}
+
+
+def test_event_with_organizer_list(db, default_account):
+    # The event is missing timezone specifier on dtstart and dtend
+    # and so is malformed, but the calendar method is PUBLISH
+    # so we don't need to process it at all because it does not contain
+    # rsvps or invites.
+    with open(absolute_path(FIXTURES + "event_with_organizer_list.ics")) as fd:
+        data = fd.read()
+
+    events = events_from_ics(
+        default_account.namespace, default_account.emailed_events_calendar, data
+    )
+    (event,) = events["rsvps"]
+
+    assert event.owner == '"Example1, Example2" <example@example.com>'

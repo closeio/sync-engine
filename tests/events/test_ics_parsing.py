@@ -660,10 +660,6 @@ def test_event_malformed_publish(db, default_account):
 
 
 def test_event_with_organizer_list(db, default_account):
-    # The event is missing timezone specifier on dtstart and dtend
-    # and so is malformed, but the calendar method is PUBLISH
-    # so we don't need to process it at all because it does not contain
-    # rsvps or invites.
     with open(absolute_path(FIXTURES + "event_with_organizer_list.ics")) as fd:
         data = fd.read()
 

@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import List, Literal, TypedDict
 
 
 class MsGraphDateTimeTimeZone(TypedDict):
@@ -10,3 +10,71 @@ class MsGraphDateTimeTimeZone(TypedDict):
 
     dateTime: str
     timeZone: str
+
+
+MsGraphDayOfWeek = Literal[
+    "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"
+]
+
+ICalDayOfWeek = Literal["SU", "MO", "TU", "WE", "TH", "FR", "SA"]
+
+
+MsGraphWeekIndex = Literal["first", "second", "third", "fourth", "last"]
+
+
+MsGraphRecurrencePatternType = Literal[
+    "daily",
+    "weekly",
+    "absoluteMonthly",
+    "relativeMonthly",
+    "absoluteYearly",
+    "relativeYearly",
+]
+
+ICalFreq = Literal[
+    "DAILY", "WEEKLY", "MONTHLY", "YEARLY",
+]
+
+
+class MsGraphRecurrencePattern(TypedDict):
+    """
+    Describes the frequency by which a recurring event repeats.
+
+    https://learn.microsoft.com/en-us/graph/api/resources/recurrencepattern
+    """
+
+    dayOfMonth: int
+    daysOfWeek: List[MsGraphDayOfWeek]
+    firstDayOfWeek: MsGraphDayOfWeek
+    index: MsGraphWeekIndex
+    interval: int
+    month: int
+    type: MsGraphRecurrencePatternType
+
+
+MsGraphRecurrenceRangeType = Literal["endDate", "noEnd", "numbered"]
+
+
+class MsGraphRecurrenceRange(TypedDict):
+    """
+    Describes a date range over which a recurring event.
+
+    https://learn.microsoft.com/en-us/graph/api/resources/recurrencerange
+    """
+
+    startDate: str
+    endDate: str
+    recurrenceTimeZone: str
+    type: MsGraphRecurrenceRangeType
+    numberOfOccurrences: int
+
+
+class MsGraphPatternedRecurrence(TypedDict):
+    """
+    The recurrence pattern and range.
+
+    https://learn.microsoft.com/en-us/graph/api/resources/patternedrecurrence
+    """
+
+    pattern: MsGraphRecurrencePattern
+    range: MsGraphRecurrenceRange

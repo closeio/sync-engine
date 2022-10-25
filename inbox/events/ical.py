@@ -209,6 +209,8 @@ def events_from_ics(namespace, calendar, ics_str):
 
                 if "CN" in organizer.params:
                     organizer_name = organizer.params["CN"]
+                    if isinstance(organizer_name, list):
+                        organizer_name = ",".join(organizer_name)
 
                 owner = formataddr((organizer_name, organizer_email.lower()))
             else:

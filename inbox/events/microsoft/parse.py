@@ -1,8 +1,10 @@
+import copy
 import datetime
 import enum
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import ciso8601
+import dateutil.rrule
 import pytz
 import pytz.tzinfo
 
@@ -276,3 +278,76 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
     return "RRULE:" + ";".join(
         f"{key}={rrule[key]}" for key in RRULE_SERIALIZATION_ORDER if key in rrule
     )
+
+
+def synthetize_cancellation(
+    master_event: Dict[str, Any], start_datetime: datetime.datetime
+) -> Dict[str, Any]:
+    assert master_event["type"] == "seriesMaster"
+    assert start_datetime.tzinfo == pytz.UTC
+
+    duration = parse_msgraph_datetime_tz_as_utc(
+        master_event["end"]
+    ) - parse_msgraph_datetime_tz_as_utc(master_event["start"])
+    synthetized_event = copy.deepcopy(master_event)
+    synthetized_event["id"] += "-synthetizedCancellation-" + start_datetime.isoformat()
+    synthetized_event["type"] = "synthetizedCancellation"
+    synthetized_event["isCancelled"] = True
+    synthetized_event["start"] = dump_datetime_as_msgraph_datetime_tz(start_datetime)
+    synthetized_event["end"] = dump_datetime_as_msgraph_datetime_tz(
+        start_datetime + duration
+    )
+    synthetized_event["recurrence"] = None
+
+    return synthetized_event
+
+
+def enrich_exception(
+    exception_instance: Dict[str, Any], original_start_time: datetime.datetime
+) -> Dict[str, Any]:
+    assert exception_instance["type"] == "exception"
+    assert original_start_time.tzinfo == pytz.UTC
+
+    exception_instance["originalStart"] = dump_datetime_as_msgraph_datetime_tz(
+        original_start_time
+    )
+
+    return exception_instance
+
+
+def calculate_event_exceptions_and_cancellations(
+    master_event: Dict[str, Any], event_instances: List[Dict[str, Any]]
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    assert master_event["type"] == "seriesMaster"
+
+    rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(
+        master_event["recurrence"]
+    )
+    start_datetime = parse_msgraph_datetime_tz_as_utc(master_event["start"])
+    parsed_rrule = dateutil.rrule.rrulestr(rrule, dtstart=start_datetime)
+    inflated_datetimes = {dt.date(): dt for dt in parsed_rrule}
+
+    exception_instances = [
+        instance for instance in event_instances if instance["type"] == "exception"
+    ]
+    exception_datetimes = {
+        parse_msgraph_datetime_tz_as_utc(instance["start"])
+        for instance in exception_instances
+    }
+    original_datetimes = {inflated_datetimes[dt.date()] for dt in exception_datetimes}
+    for exception_instance, original_exception_datetime in zip(
+        exception_instances, original_datetimes
+    ):
+        enrich_exception(exception_instance, original_exception_datetime)
+
+    instance_datetimes = {
+        parse_msgraph_datetime_tz_as_utc(instance["start"])
+        for instance in event_instances
+    }
+    cancelled_dates = set(inflated_datetimes) - {dt.date() for dt in instance_datetimes}
+    cancelled_instances = [
+        synthetize_cancellation(master_event, inflated_datetimes[date])
+        for date in cancelled_dates
+    ]
+
+    return exception_instances, cancelled_instances

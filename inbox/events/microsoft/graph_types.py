@@ -84,6 +84,12 @@ MsGraphEventType = Literal["singleInstance", "occurrence", "exception", "seriesM
 
 
 class MsGraphEvent(TypedDict):
+    """
+    An event in a user calendar, or the default calendar.
+
+    https://learn.microsoft.com/en-us/graph/api/resources/event
+    """
+
     id: str
     type: MsGraphEventType
     start: MsGraphDateTimeTimeZone

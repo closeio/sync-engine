@@ -1,4 +1,4 @@
-from typing import List, Literal, TypedDict
+from typing import List, Literal, Optional, TypedDict
 
 
 class MsGraphDateTimeTimeZone(TypedDict):
@@ -78,3 +78,19 @@ class MsGraphPatternedRecurrence(TypedDict):
 
     pattern: MsGraphRecurrencePattern
     range: MsGraphRecurrenceRange
+
+
+MsGraphEventType = Literal["singleInstance", "occurrence", "exception", "seriesMaster"]
+
+
+class MsGraphEvent(TypedDict):
+    id: str
+    type: MsGraphEventType
+    start: MsGraphDateTimeTimeZone
+    end: MsGraphDateTimeTimeZone
+    subject: str
+    isAllDay: bool
+    isCancelled: bool
+    isOrganizer: bool
+    recurrence: Optional[MsGraphPatternedRecurrence]
+    originalStart: MsGraphDateTimeTimeZone

@@ -793,6 +793,10 @@ def test_calculate_exception_and_canceled_ocurrences_with_deletion():
     assert cancellation["isCancelled"] is True
     assert cancellation["start"] == event_ocurrences[1]["start"]
     assert cancellation["end"] == event_ocurrences[1]["end"]
+    assert cancellation["recurrence"] is None
+    assert cancellation["subject"] == master_event["subject"]
+    with pytest.raises(KeyError):
+        cancellation["wrong"]
 
 
 master_with_exception = {

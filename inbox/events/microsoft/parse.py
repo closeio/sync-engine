@@ -1,4 +1,3 @@
-import copy
 import datetime
 import enum
 from typing import Any, Dict, List, Optional, Tuple
@@ -14,6 +13,7 @@ from inbox.events.microsoft.graph_types import (
     ICalFreq,
     MsGraphDateTimeTimeZone,
     MsGraphDayOfWeek,
+    MsGraphEvent,
     MsGraphPatternedRecurrence,
     MsGraphRecurrencePatternType,
     MsGraphRecurrenceRange,
@@ -280,31 +280,56 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
     )
 
 
-def synthetize_canceled_ocurrence(
-    master_event: Dict[str, Any], start_datetime: datetime.datetime
-) -> Dict[str, Any]:
-    assert master_event["type"] == "seriesMaster"
-    assert start_datetime.tzinfo == pytz.UTC
+class SynthetizedCanceledOcurrence:
+    def __init__(self, master_event: MsGraphEvent, start_datetime: datetime.datetime):
+        assert master_event["type"] == "seriesMaster"
+        assert start_datetime.tzinfo == pytz.UTC
 
-    duration = parse_msgraph_datetime_tz_as_utc(
-        master_event["end"]
-    ) - parse_msgraph_datetime_tz_as_utc(master_event["start"])
-    synthetized_event = copy.deepcopy(master_event)
-    synthetized_event["id"] += "-synthetizedCancellation-" + start_datetime.isoformat()
-    synthetized_event["type"] = "synthetizedCancellation"
-    synthetized_event["isCancelled"] = True
-    synthetized_event["start"] = dump_datetime_as_msgraph_datetime_tz(start_datetime)
-    synthetized_event["end"] = dump_datetime_as_msgraph_datetime_tz(
-        start_datetime + duration
-    )
-    synthetized_event["recurrence"] = None
+        self.start_datetime = start_datetime
+        self.master_event = master_event
 
-    return synthetized_event
+    @property
+    def id(self) -> str:
+        return (
+            self.master_event["id"]
+            + "-synthetizedCancellation-"
+            + self.start_datetime.isoformat()
+        )
+
+    @property
+    def type(self) -> str:
+        return "synthetizedCancellation"
+
+    @property
+    def isCancelled(self) -> bool:
+        return True
+
+    @property
+    def start(self) -> MsGraphDateTimeTimeZone:
+        return dump_datetime_as_msgraph_datetime_tz(self.start_datetime)
+
+    @property
+    def end(self) -> MsGraphDateTimeTimeZone:
+        duration = parse_msgraph_datetime_tz_as_utc(
+            self.master_event["end"]
+        ) - parse_msgraph_datetime_tz_as_utc(self.master_event["start"])
+
+        return dump_datetime_as_msgraph_datetime_tz(self.start_datetime + duration)
+
+    @property
+    def recurrence(self) -> Optional[MsGraphPatternedRecurrence]:
+        return None
+
+    def __getitem__(self, key: str) -> Any:
+        if key in ["id", "type", "isCancelled", "start", "end", "recurrence"]:
+            return getattr(self, key)
+
+        return self.master_event[key]  # type: ignore
 
 
 def populate_original_start_in_exception_ocurrence(
-    exception_instance: Dict[str, Any], original_start_time: datetime.datetime
-) -> Dict[str, Any]:
+    exception_instance: MsGraphEvent, original_start_time: datetime.datetime
+) -> MsGraphEvent:
     assert exception_instance["type"] == "exception"
     assert original_start_time.tzinfo == pytz.UTC
 
@@ -316,9 +341,10 @@ def populate_original_start_in_exception_ocurrence(
 
 
 def calculate_exception_and_canceled_ocurrences(
-    master_event: Dict[str, Any], event_ocurrences: List[Dict[str, Any]]
-) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    master_event: MsGraphEvent, event_ocurrences: List[MsGraphEvent]
+) -> Tuple[List[MsGraphEvent], List[SynthetizedCanceledOcurrence]]:
     assert master_event["type"] == "seriesMaster"
+    assert master_event["recurrence"]
 
     master_rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(
         master_event["recurrence"]
@@ -352,7 +378,7 @@ def calculate_exception_and_canceled_ocurrences(
     }
     cancelled_dates = set(master_datetimes) - {dt.date() for dt in ocurrence_datetimes}
     cancelled_ocurrences = [
-        synthetize_canceled_ocurrence(master_event, master_datetimes[date])
+        SynthetizedCanceledOcurrence(master_event, master_datetimes[date])
         for date in cancelled_dates
     ]
 

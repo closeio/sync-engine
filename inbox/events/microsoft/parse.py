@@ -87,7 +87,7 @@ def dump_datetime_as_msgraph_datetime_tz(
 
     The only reason we need this is to create phantom exception
     events for gaps in recurring events i.e when a user deletes
-    ocurrence inside a recurring event. Google keeps those deletions
+    occurrence inside a recurring event. Google keeps those deletions
     around and in Microsoft Outlook they just disappear. The whole
     system is built around Google model so we need to synthetize
     them.
@@ -280,17 +280,17 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
     )
 
 
-class SynthetizedCanceledOcurrence:
+class SynthetizedCanceledoccurrence:
     """
     Represents gaps in series occurences i.e. what happens
-    if one deletes an ocurrence that is part of recurring event.
+    if one deletes an occurrence that is part of recurring event.
 
-    This quacks like MsGraphEvent but does not respresent ocurrences that
+    This quacks like MsGraphEvent but does not respresent occurrences that
     were retrieved from API since Microsoft does not return deleted
-    ocurrences. Those phantom ocurrences are created on the
+    occurrences. Those phantom occurrences are created on the
     fly by expanding series master recurrence rule and seeing which
     ones are missing. The reason we are doing this is to mock how Google works
-    i.e. you can still retrieve deleted ocurrences in Google APIs, and the
+    i.e. you can still retrieve deleted occurrences in Google APIs, and the
     whole system is built around this assumption.
     """
 
@@ -348,7 +348,7 @@ class SynthetizedCanceledOcurrence:
         return self.master_event[key]  # type: ignore
 
 
-def populate_original_start_in_exception_ocurrence(
+def populate_original_start_in_exception_occurrence(
     exception_instance: MsGraphEvent, original_start: datetime.datetime
 ) -> MsGraphEvent:
     """
@@ -372,19 +372,19 @@ def populate_original_start_in_exception_ocurrence(
     return exception_instance
 
 
-def calculate_exception_and_canceled_ocurrences(
-    master_event: MsGraphEvent, event_ocurrences: List[MsGraphEvent]
-) -> Tuple[List[MsGraphEvent], List[SynthetizedCanceledOcurrence]]:
+def calculate_exception_and_canceled_occurrences(
+    master_event: MsGraphEvent, event_occurrences: List[MsGraphEvent]
+) -> Tuple[List[MsGraphEvent], List[SynthetizedCanceledoccurrence]]:
     """
-    Given master event recurrence rule and occurences find exception ocurrences
+    Given master event recurrence rule and occurences find exception occurrences
     and synthesize canceled occurences.
 
     Arguments:
         master_event: The master event
-        event_ocurrences: Ocurrences correspoing to the master event
+        event_occurrences: occurrences correspoing to the master event
 
     Returns:
-        Tuple containing exception ocurrences and cancelled ocurrences
+        Tuple containing exception occurrences and cancelled occurrences
     """
     assert master_event["type"] == "seriesMaster"
     assert master_event["recurrence"]
@@ -398,31 +398,33 @@ def calculate_exception_and_canceled_ocurrences(
     )
     master_datetimes = {dt.date(): dt for dt in master_parsed_rrule}
 
-    exception_ocurrences = [
-        ocurrence for ocurrence in event_ocurrences if ocurrence["type"] == "exception"
+    exception_occurrences = [
+        occurrence
+        for occurrence in event_occurrences
+        if occurrence["type"] == "exception"
     ]
     exception_datetimes = {
-        parse_msgraph_datetime_tz_as_utc(ocurrence["start"])
-        for ocurrence in exception_ocurrences
+        parse_msgraph_datetime_tz_as_utc(occurrence["start"])
+        for occurrence in exception_occurrences
     }
     original_exception_datetimes = {
         master_datetimes[dt.date()] for dt in exception_datetimes
     }
     for exception_instance, original_exception_datetime in zip(
-        exception_ocurrences, original_exception_datetimes
+        exception_occurrences, original_exception_datetimes
     ):
-        populate_original_start_in_exception_ocurrence(
+        populate_original_start_in_exception_occurrence(
             exception_instance, original_exception_datetime
         )
 
-    ocurrence_datetimes = {
+    occurrence_datetimes = {
         parse_msgraph_datetime_tz_as_utc(instance["start"])
-        for instance in event_ocurrences
+        for instance in event_occurrences
     }
-    cancelled_dates = set(master_datetimes) - {dt.date() for dt in ocurrence_datetimes}
-    cancelled_ocurrences = [
-        SynthetizedCanceledOcurrence(master_event, master_datetimes[date])
+    cancelled_dates = set(master_datetimes) - {dt.date() for dt in occurrence_datetimes}
+    cancelled_occurrences = [
+        SynthetizedCanceledoccurrence(master_event, master_datetimes[date])
         for date in cancelled_dates
     ]
 
-    return exception_ocurrences, cancelled_ocurrences
+    return exception_occurrences, cancelled_occurrences

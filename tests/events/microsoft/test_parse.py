@@ -6,7 +6,7 @@ import pytz
 
 from inbox.events.microsoft.parse import (
     CombineMode,
-    calculate_event_exceptions_and_cancellations,
+    calculate_exception_and_canceled_ocurrences,
     combine_msgraph_recurrence_date_with_time,
     convert_msgraph_patterned_recurrence_to_ical_rrule,
     dump_datetime_as_msgraph_datetime_tz,
@@ -612,7 +612,7 @@ master_event = {
     },
 }
 
-master_instances = [
+event_ocurrences = [
     {
         "@odata.etag": 'W/"bX+IPMmPs02YGYesdF/+dAACDYEM6g=="',
         "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQFRAAgI2pnR5UQAAEYAAAAAovUUFgf0jU2QbgCzOiiDrAcAbX_IPMmPs02YGYesdF-_dAACDNNrIwAAbX_IPMmPs02YGYesdF-_dAACDNPqOAAAEA==",
@@ -778,21 +778,21 @@ master_instances = [
 ]
 
 
-def test_calculate_event_exceptions_and_cancellations_without_changes():
-    assert calculate_event_exceptions_and_cancellations(
-        master_event, master_instances
+def test_calculate_exception_and_canceled_ocurrences_without_changes():
+    assert calculate_exception_and_canceled_ocurrences(
+        master_event, event_ocurrences
     ) == ([], [])
 
 
-def test_calculate_event_exceptions_and_cancellations_with_deletion():
-    ((), (cancellation,)) = calculate_event_exceptions_and_cancellations(
-        master_event, [master_instances[0], master_instances[2]]
+def test_calculate_exception_and_canceled_ocurrences_with_deletion():
+    ((), (cancellation,)) = calculate_exception_and_canceled_ocurrences(
+        master_event, [event_ocurrences[0], event_ocurrences[2]]
     )
 
     assert cancellation["type"] == "synthetizedCancellation"
     assert cancellation["isCancelled"] is True
-    assert cancellation["start"] == master_instances[1]["start"]
-    assert cancellation["end"] == master_instances[1]["end"]
+    assert cancellation["start"] == event_ocurrences[1]["start"]
+    assert cancellation["end"] == event_ocurrences[1]["end"]
 
 
 master_with_exception = {
@@ -867,7 +867,7 @@ master_with_exception = {
     },
 }
 
-master_with_exception_instances = [
+master_with_exception_ocurrences = [
     {
         "@odata.etag": 'W/"bX+IPMmPs02YGYesdF/+dAACD11wnA=="',
         "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQFRAAgI2qAbOJIAAEYAAAAAovUUFgf0jU2QbgCzOiiDrAcAbX_IPMmPs02YGYesdF-_dAACDNNrIwAAbX_IPMmPs02YGYesdF-_dAACEAmKTwAAEA==",
@@ -1033,11 +1033,11 @@ master_with_exception_instances = [
 ]
 
 
-def test_calculate_event_exceptions_and_cancellations_with_exception():
-    ((exception,), ()) = calculate_event_exceptions_and_cancellations(
-        master_with_exception, master_with_exception_instances
+def test_calculate_exception_and_canceled_ocurrences_with_exception():
+    ((exception,), ()) = calculate_exception_and_canceled_ocurrences(
+        master_with_exception, master_with_exception_ocurrences
     )
-    assert master_with_exception_instances[0] == exception
+    assert master_with_exception_ocurrences[0] == exception
     assert exception["start"] == {
         "dateTime": "2022-09-27T13:30:00.0000000",
         "timeZone": "UTC",

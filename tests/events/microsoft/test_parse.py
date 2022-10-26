@@ -6,6 +6,7 @@ import pytz
 
 from inbox.events.microsoft.parse import (
     CombineMode,
+    calculate_exception_and_canceled_occurrences,
     combine_msgraph_recurrence_date_with_time,
     convert_msgraph_patterned_recurrence_to_ical_rrule,
     dump_datetime_as_msgraph_datetime_tz,
@@ -538,3 +539,210 @@ def test_inflate_msgraph_patterned_recurrence(recurrence, inflated_dates):
     if not parsed_rrule._count and not parsed_rrule._until:
         parsed_rrule = parsed_rrule.replace(count=3)
     assert [dt.date() for dt in parsed_rrule] == inflated_dates
+
+
+master_event = {
+    "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIM02sjAABtf4g8yY_zTZgZh6x0X-50AAIM0_o4AAA=",
+    "subject": "Expansion",
+    "importance": "normal",
+    "sensitivity": "normal",
+    "isAllDay": False,
+    "isCancelled": False,
+    "isOrganizer": True,
+    "seriesMasterId": None,
+    "showAs": "busy",
+    "type": "seriesMaster",
+    "body": {"contentType": "html", "content": ""},
+    "start": {"dateTime": "2022-09-19T15:00:00.0000000", "timeZone": "UTC"},
+    "end": {"dateTime": "2022-09-19T15:30:00.0000000", "timeZone": "UTC"},
+    "recurrence": {
+        "pattern": {
+            "type": "daily",
+            "interval": 1,
+            "month": 0,
+            "dayOfMonth": 0,
+            "firstDayOfWeek": "sunday",
+            "index": "first",
+        },
+        "range": {
+            "type": "endDate",
+            "startDate": "2022-09-19",
+            "endDate": "2022-09-21",
+            "recurrenceTimeZone": "Pacific Standard Time",
+            "numberOfOccurrences": 0,
+        },
+    },
+}
+
+event_occurrences = [
+    {
+        "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQFRAAgI2pnR5UQAAEYAAAAAovUUFgf0jU2QbgCzOiiDrAcAbX_IPMmPs02YGYesdF-_dAACDNNrIwAAbX_IPMmPs02YGYesdF-_dAACDNPqOAAAEA==",
+        "subject": "Expansion",
+        "importance": "normal",
+        "sensitivity": "normal",
+        "isAllDay": False,
+        "isCancelled": False,
+        "isOrganizer": True,
+        "seriesMasterId": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIM02sjAABtf4g8yY_zTZgZh6x0X-50AAIM0_o4AAA=",
+        "showAs": "busy",
+        "type": "occurrence",
+        "recurrence": None,
+        "body": {"contentType": "html", "content": ""},
+        "start": {"dateTime": "2022-09-19T15:00:00.0000000", "timeZone": "UTC"},
+        "end": {"dateTime": "2022-09-19T15:30:00.0000000", "timeZone": "UTC"},
+    },
+    {
+        "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQFRAAgI2pqbD63AAEYAAAAAovUUFgf0jU2QbgCzOiiDrAcAbX_IPMmPs02YGYesdF-_dAACDNNrIwAAbX_IPMmPs02YGYesdF-_dAACDNPqOAAAEA==",
+        "subject": "Expansion",
+        "importance": "normal",
+        "sensitivity": "normal",
+        "isAllDay": False,
+        "isCancelled": False,
+        "isOrganizer": True,
+        "seriesMasterId": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIM02sjAABtf4g8yY_zTZgZh6x0X-50AAIM0_o4AAA=",
+        "showAs": "busy",
+        "type": "occurrence",
+        "recurrence": None,
+        "body": {"contentType": "html", "content": ""},
+        "start": {"dateTime": "2022-09-20T15:00:00.0000000", "timeZone": "UTC"},
+        "end": {"dateTime": "2022-09-20T15:30:00.0000000", "timeZone": "UTC"},
+    },
+    {
+        "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQFRAAgI2ptkOheAAEYAAAAAovUUFgf0jU2QbgCzOiiDrAcAbX_IPMmPs02YGYesdF-_dAACDNNrIwAAbX_IPMmPs02YGYesdF-_dAACDNPqOAAAEA==",
+        "subject": "Expansion",
+        "importance": "normal",
+        "sensitivity": "normal",
+        "isAllDay": False,
+        "isCancelled": False,
+        "isOrganizer": True,
+        "seriesMasterId": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIM02sjAABtf4g8yY_zTZgZh6x0X-50AAIM0_o4AAA=",
+        "showAs": "busy",
+        "type": "occurrence",
+        "recurrence": None,
+        "body": {"contentType": "html", "content": ""},
+        "start": {"dateTime": "2022-09-21T15:00:00.0000000", "timeZone": "UTC"},
+        "end": {"dateTime": "2022-09-21T15:30:00.0000000", "timeZone": "UTC"},
+    },
+]
+
+
+def test_calculate_exception_and_canceled_occurrences_without_changes():
+    assert calculate_exception_and_canceled_occurrences(
+        master_event, event_occurrences
+    ) == ([], [])
+
+
+def test_calculate_exception_and_canceled_occurrences_with_deletion():
+    ((), (cancellation,)) = calculate_exception_and_canceled_occurrences(
+        master_event, [event_occurrences[0], event_occurrences[2]]
+    )
+
+    assert cancellation["type"] == "synthetizedCancellation"
+    assert cancellation["isCancelled"] is True
+    assert cancellation["start"] == event_occurrences[1]["start"]
+    assert cancellation["end"] == event_occurrences[1]["end"]
+    assert cancellation["recurrence"] is None
+    assert cancellation["subject"] == master_event["subject"]
+    with pytest.raises(KeyError):
+        cancellation["wrong"]
+
+
+master_with_exception = {
+    "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIM02sjAABtf4g8yY_zTZgZh6x0X-50AAIQCYpPAAA=",
+    "subject": "Expansion",
+    "importance": "normal",
+    "sensitivity": "normal",
+    "isAllDay": False,
+    "isCancelled": False,
+    "isOrganizer": True,
+    "seriesMasterId": None,
+    "showAs": "busy",
+    "type": "seriesMaster",
+    "body": {"contentType": "html", "content": ""},
+    "start": {"dateTime": "2022-09-26T12:00:00.0000000", "timeZone": "UTC"},
+    "end": {"dateTime": "2022-09-26T12:30:00.0000000", "timeZone": "UTC"},
+    "recurrence": {
+        "pattern": {
+            "type": "daily",
+            "interval": 1,
+            "month": 0,
+            "dayOfMonth": 0,
+            "firstDayOfWeek": "sunday",
+            "index": "first",
+        },
+        "range": {
+            "type": "endDate",
+            "startDate": "2022-09-26",
+            "endDate": "2022-09-28",
+            "recurrenceTimeZone": "Eastern Standard Time",
+            "numberOfOccurrences": 0,
+        },
+    },
+}
+
+master_with_exception_occurrences = [
+    {
+        "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQFRAAgI2qAbOJIAAEYAAAAAovUUFgf0jU2QbgCzOiiDrAcAbX_IPMmPs02YGYesdF-_dAACDNNrIwAAbX_IPMmPs02YGYesdF-_dAACEAmKTwAAEA==",
+        "subject": "Expansion",
+        "importance": "normal",
+        "sensitivity": "normal",
+        "isAllDay": False,
+        "isCancelled": False,
+        "isOrganizer": True,
+        "seriesMasterId": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIM02sjAABtf4g8yY_zTZgZh6x0X-50AAIQCYpPAAA=",
+        "showAs": "busy",
+        "type": "exception",
+        "recurrence": None,
+        "body": {"contentType": "html", "content": ""},
+        "start": {"dateTime": "2022-09-27T13:30:00.0000000", "timeZone": "UTC"},
+        "end": {"dateTime": "2022-09-27T14:00:00.0000000", "timeZone": "UTC"},
+    },
+    {
+        "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQFRAAgI2p9SDihAAEYAAAAAovUUFgf0jU2QbgCzOiiDrAcAbX_IPMmPs02YGYesdF-_dAACDNNrIwAAbX_IPMmPs02YGYesdF-_dAACEAmKTwAAEA==",
+        "subject": "Expansion",
+        "importance": "normal",
+        "sensitivity": "normal",
+        "isAllDay": False,
+        "isCancelled": False,
+        "isOrganizer": True,
+        "seriesMasterId": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIM02sjAABtf4g8yY_zTZgZh6x0X-50AAIQCYpPAAA=",
+        "showAs": "busy",
+        "type": "occurrence",
+        "recurrence": None,
+        "body": {"contentType": "html", "content": ""},
+        "start": {"dateTime": "2022-09-26T12:00:00.0000000", "timeZone": "UTC"},
+        "end": {"dateTime": "2022-09-26T12:30:00.0000000", "timeZone": "UTC"},
+    },
+    {
+        "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQFRAAgI2qDkYvvAAEYAAAAAovUUFgf0jU2QbgCzOiiDrAcAbX_IPMmPs02YGYesdF-_dAACDNNrIwAAbX_IPMmPs02YGYesdF-_dAACEAmKTwAAEA==",
+        "subject": "Expansion",
+        "bodyPreview": "",
+        "importance": "normal",
+        "sensitivity": "normal",
+        "isAllDay": False,
+        "isCancelled": False,
+        "isOrganizer": True,
+        "seriesMasterId": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIM02sjAABtf4g8yY_zTZgZh6x0X-50AAIQCYpPAAA=",
+        "showAs": "busy",
+        "type": "occurrence",
+        "recurrence": None,
+        "body": {"contentType": "html", "content": ""},
+        "start": {"dateTime": "2022-09-28T12:00:00.0000000", "timeZone": "UTC"},
+        "end": {"dateTime": "2022-09-28T12:30:00.0000000", "timeZone": "UTC"},
+    },
+]
+
+
+def test_calculate_exception_and_canceled_occurrences_with_exception():
+    ((exception,), ()) = calculate_exception_and_canceled_occurrences(
+        master_with_exception, master_with_exception_occurrences
+    )
+    assert master_with_exception_occurrences[0] == exception
+    assert exception["start"] == {
+        "dateTime": "2022-09-27T13:30:00.0000000",
+        "timeZone": "UTC",
+    }
+    assert exception["originalStart"] == {
+        "dateTime": "2022-09-27T12:00:00.0000000",
+        "timeZone": "UTC",
+    }

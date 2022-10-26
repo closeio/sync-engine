@@ -281,7 +281,25 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
 
 
 class SynthetizedCanceledOcurrence:
+    """
+    Represents gaps in series occurences i.e. what happens
+    if one deletes an ocurrence that is part of recurring event.
+
+    This quacks like MsGraphEvent but does not respresent ocurrences that
+    were retrieved from API since Microsoft does not return deleted
+    ocurrences. Those phantom ocurrences are created on the
+    fly by expanding series master recurrence rule and seeing which
+    ones are missing. The reason we are doing this is to mock how Google works
+    i.e. you can still retrieve deleted ocurrences in Google APIs, and the
+    whole system is built around this assumption.
+    """
+
     def __init__(self, master_event: MsGraphEvent, start_datetime: datetime.datetime):
+        """
+        Arguments:
+            master_event: The master event this cancellation belongs to
+            start_datetime: The gap date
+        """
         assert master_event["type"] == "seriesMaster"
         assert start_datetime.tzinfo == pytz.UTC
 
@@ -290,6 +308,7 @@ class SynthetizedCanceledOcurrence:
 
     @property
     def id(self) -> str:
+        """Provide phantom id based on master id and gap date"""
         return (
             self.master_event["id"]
             + "-synthetizedCancellation-"
@@ -318,9 +337,11 @@ class SynthetizedCanceledOcurrence:
 
     @property
     def recurrence(self) -> Optional[MsGraphPatternedRecurrence]:
+        """Shadow master event recurrence with None."""
         return None
 
     def __getitem__(self, key: str) -> Any:
+        """Make it quack like MsGraphEvent."""
         if key in ["id", "type", "isCancelled", "start", "end", "recurrence"]:
             return getattr(self, key)
 
@@ -328,13 +349,24 @@ class SynthetizedCanceledOcurrence:
 
 
 def populate_original_start_in_exception_ocurrence(
-    exception_instance: MsGraphEvent, original_start_time: datetime.datetime
+    exception_instance: MsGraphEvent, original_start: datetime.datetime
 ) -> MsGraphEvent:
+    """
+    Populate originalStart on exception occurences.
+
+    The reason we need this is to mimick how Google works i.e.
+    you can know the original time if an occurrence was rescheduled.
+
+    Arguments:
+        exception_instance: The exception instance
+        original_start: Original start time as retrieved by
+            expanding master event
+    """
     assert exception_instance["type"] == "exception"
-    assert original_start_time.tzinfo == pytz.UTC
+    assert original_start.tzinfo == pytz.UTC
 
     exception_instance["originalStart"] = dump_datetime_as_msgraph_datetime_tz(
-        original_start_time
+        original_start
     )
 
     return exception_instance
@@ -343,6 +375,17 @@ def populate_original_start_in_exception_ocurrence(
 def calculate_exception_and_canceled_ocurrences(
     master_event: MsGraphEvent, event_ocurrences: List[MsGraphEvent]
 ) -> Tuple[List[MsGraphEvent], List[SynthetizedCanceledOcurrence]]:
+    """
+    Given master event recurrence rule and occurences find exception ocurrences
+    and synthesize canceled occurences.
+
+    Arguments:
+        master_event: The master event
+        event_ocurrences: Ocurrences correspoing to the master event
+
+    Returns:
+        Tuple containing exception ocurrences and cancelled ocurrences
+    """
     assert master_event["type"] == "seriesMaster"
     assert master_event["recurrence"]
 

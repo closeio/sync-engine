@@ -384,7 +384,7 @@ def calculate_exception_and_canceled_occurrences(
         event_occurrences: occurrences correspoing to the master event
 
     Returns:
-        Tuple containing exception occurrences and cancelled occurrences
+        Tuple containing exception occurrences and canceled occurrences
     """
     assert master_event["type"] == "seriesMaster"
     assert master_event["recurrence"]
@@ -421,10 +421,10 @@ def calculate_exception_and_canceled_occurrences(
         parse_msgraph_datetime_tz_as_utc(instance["start"])
         for instance in event_occurrences
     }
-    cancelled_dates = set(master_datetimes) - {dt.date() for dt in occurrence_datetimes}
-    cancelled_occurrences = [
+    canceled_dates = set(master_datetimes) - {dt.date() for dt in occurrence_datetimes}
+    canceled_occurrences = [
         SynthetizedCanceledoccurrence(master_event, master_datetimes[date])
-        for date in cancelled_dates
+        for date in canceled_dates
     ]
 
-    return exception_occurrences, cancelled_occurrences
+    return exception_occurrences, canceled_occurrences

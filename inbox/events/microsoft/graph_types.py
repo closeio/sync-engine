@@ -83,6 +83,86 @@ class MsGraphPatternedRecurrence(TypedDict):
 MsGraphEventType = Literal["singleInstance", "occurrence", "exception", "seriesMaster"]
 
 
+class MsGraphEmailAddress(TypedDict):
+    address: str
+    name: str
+
+
+MsGraphResponse = Literal[
+    "none", "organizer", "tentativelyAccepted", "accepted", "declined", "notResponded"
+]
+
+
+class MsGraphResponseStatus(TypedDict):
+    """
+    The response status of an attendee or organizer for a meeting request.
+
+    https://learn.microsoft.com/en-us/graph/api/resources/responsestatus
+    """
+
+    response: MsGraphResponse
+
+
+class MsGraphAttendee(TypedDict):
+    """
+    An event attendee.
+
+    https://learn.microsoft.com/en-us/graph/api/resources/attendee
+    """
+
+    emailAddress: MsGraphEmailAddress
+    status: MsGraphResponseStatus
+
+
+class MsGraphOnelineMeetingInfo(TypedDict):
+    """
+    Details for an attendee to join the meeting online.
+
+    https://learn.microsoft.com/en-us/graph/api/resources/onlinemeetinginfo
+    """
+
+    joinUrl: Optional[str]
+
+
+class MsGraphPhysicalAddress(TypedDict):
+    """
+    Represents the street address of a resource such as a contact or event.
+
+    https://learn.microsoft.com/en-us/graph/api/resources/physicaladdress
+    """
+
+    city: str
+    countryOrRegion: str
+    postalCode: str
+    state: str
+    street: str
+
+
+class MsGraphLocation(TypedDict):
+    """
+    Represents location information of an event.
+
+    https://learn.microsoft.com/en-us/graph/api/resources/location
+    """
+
+    displayName: str
+    address: MsGraphPhysicalAddress
+
+
+MsGraphContentType = Literal["text", "html"]
+
+
+class MsGraphItemBody(TypedDict):
+    """
+    Represents properties of the body of an item, such as a message, event or group post.
+
+    https://learn.microsoft.com/en-us/graph/api/resources/itembody
+    """
+
+    content: str
+    contentType: MsGraphContentType
+
+
 class MsGraphEvent(TypedDict):
     """
     An event in a user calendar, or the default calendar.
@@ -100,3 +180,7 @@ class MsGraphEvent(TypedDict):
     isOrganizer: bool
     recurrence: Optional[MsGraphPatternedRecurrence]
     originalStart: MsGraphDateTimeTimeZone
+    attendees: List[MsGraphAttendee]
+    onlineMeeting: Optional[MsGraphOnelineMeetingInfo]
+    locations: List[MsGraphLocation]
+    body: MsGraphItemBody

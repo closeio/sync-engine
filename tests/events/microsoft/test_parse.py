@@ -10,6 +10,9 @@ from inbox.events.microsoft.parse import (
     combine_msgraph_recurrence_date_with_time,
     convert_msgraph_patterned_recurrence_to_ical_rrule,
     dump_datetime_as_msgraph_datetime_tz,
+    get_event_description,
+    get_event_location,
+    get_event_participant,
     get_microsoft_tzinfo,
     parse_msgraph_datetime_tz_as_utc,
 )
@@ -746,3 +749,130 @@ def test_calculate_exception_and_canceled_occurrences_with_exception():
         "dateTime": "2022-09-27T12:00:00.0000000",
         "timeZone": "UTC",
     }
+
+
+@pytest.mark.parametrize(
+    "event,location",
+    [
+        ({"locations": []}, None),
+        (
+            {
+                "locations": [
+                    {
+                        "displayName": "Test Valley",
+                        "address": {
+                            "street": "Test Valley Golf Club Micheldever Road Overton",
+                            "city": "Basingstoke",
+                            "state": "Hampshire",
+                            "countryOrRegion": "United Kingdom",
+                            "postalCode": "RG25 3DS",
+                        },
+                    }
+                ]
+            },
+            "Test Valley Golf Club Micheldever Road Overton, Basingstoke, Hampshire, RG25 3DS, United Kingdom",
+        ),
+        ({"locations": [{"displayName": "Kitchen",}]}, "Kitchen",),
+        (
+            {
+                "onlineMeeting": {
+                    "joinUrl": "https://teams.microsoft.com/l/meetup-join/xxx"
+                }
+            },
+            "https://teams.microsoft.com/l/meetup-join/xxx",
+        ),
+    ],
+)
+def test_get_event_location(event, location):
+    assert get_event_location(event) == location
+
+
+@pytest.mark.parametrize(
+    "attendee,participant",
+    [
+        (
+            {
+                "status": {"response": "none", "time": "0001-01-01T00:00:00Z"},
+                "emailAddress": {
+                    "name": "ralij86905@d3ff.com",
+                    "address": "ralij86905@d3ff.com",
+                },
+            },
+            {
+                "email": "ralij86905@d3ff.com",
+                "name": "ralij86905@d3ff.com",
+                "status": "noreply",
+                "notes": None,
+            },
+        ),
+        (
+            {
+                "status": {"response": "declined", "time": "2022-09-08T15:40:17Z"},
+                "emailAddress": {"name": "Somebody", "address": "somebody@close.com"},
+            },
+            {
+                "email": "somebody@close.com",
+                "name": "Somebody",
+                "status": "no",
+                "notes": None,
+            },
+        ),
+        (
+            {
+                "status": {"response": "accepted", "time": "2022-09-08T15:45:09Z"},
+                "emailAddress": {"name": "Test User", "address": "testing@gmail.com"},
+            },
+            {
+                "email": "testing@gmail.com",
+                "name": "Test User",
+                "status": "yes",
+                "notes": None,
+            },
+        ),
+        (
+            {
+                "status": {
+                    "response": "tentativelyAccepted",
+                    "time": "2022-09-08T15:47:46Z",
+                },
+                "emailAddress": {"name": "Test User", "address": "testing@gmail.com"},
+            },
+            {
+                "email": "testing@gmail.com",
+                "name": "Test User",
+                "status": "maybe",
+                "notes": None,
+            },
+        ),
+    ],
+)
+def test_get_event_participant(attendee, participant):
+    assert get_event_participant(attendee) == participant
+
+
+@pytest.mark.parametrize(
+    "event,description",
+    [
+        (
+            {
+                "body": {
+                    "contentType": "html",
+                    "content": """
+                        <html>
+                            <head>
+                                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+                            </head>
+                            <body>
+                                <div class="cal_a3fe">Test description</div>
+                            </body>
+                        </html>
+                    """,
+                }
+            },
+            "Test description",
+        ),
+        ({"body": {"contentType": "text", "content": "Text\n"}}, "Text"),
+    ],
+)
+def test_get_event_description(event, description):
+    assert get_event_description(event) == description

@@ -442,6 +442,15 @@ MS_GRAPH_TO_SYNC_ENGINE_STATUS_MAP = {
 
 
 def get_event_participant(attendee: MsGraphAttendee) -> Dict[str, Any]:
+    """
+    Convert Microsoft Graph attendee into sync-engine participant.
+
+    Arguments:
+        attendee: The attendee as returned by Microsoft Graph API
+
+    Returns:
+        Sync-engine participant dictionary
+    """
     return {
         "email": attendee["emailAddress"]["address"],
         "name": attendee["emailAddress"]["name"],
@@ -451,6 +460,21 @@ def get_event_participant(attendee: MsGraphAttendee) -> Dict[str, Any]:
 
 
 def get_event_location(event: MsGraphEvent) -> Optional[str]:
+    """
+    Figure out event location.
+
+    Most meetings happen online these days so we always prefer
+    meeting URL. Microsoft unlike Google supports multiple physical locations,
+    the order of locations field corresponds to the one in the UI. For the
+    time being we use the first physical location by looking at its address and
+    finally falling back to display name.
+
+    Arguments:
+        event: The event
+
+    Returns:
+        String representing event location
+    """
     online_meeting = event.get("onlineMeeting")
     join_url = online_meeting.get("joinUrl") if online_meeting else None
     if join_url:
@@ -475,6 +499,19 @@ def get_event_location(event: MsGraphEvent) -> Optional[str]:
 
 
 def get_event_description(event: MsGraphEvent) -> Optional[str]:
+    """
+    Get event description as plain text.
+
+    Note that I was only able to get HTML bodies using
+    Outlook UI but Microsoft also documents plain text
+    so we handle that as well.
+
+    Arguments:
+        event: The event
+
+    Returns:
+        Plain text string with all the HTML removed
+    """
     content_type = event["body"]["contentType"]
 
     assert content_type in ["text", "html"]

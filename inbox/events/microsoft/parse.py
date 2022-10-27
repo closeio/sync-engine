@@ -11,6 +11,7 @@ from inbox.events import util
 from inbox.events.microsoft.graph_types import (
     ICalDayOfWeek,
     ICalFreq,
+    MsGraphAttendee,
     MsGraphDateTimeTimeZone,
     MsGraphDayOfWeek,
     MsGraphEvent,
@@ -20,6 +21,7 @@ from inbox.events.microsoft.graph_types import (
     MsGraphWeekIndex,
 )
 from inbox.events.timezones import windows_timezones
+from inbox.util.html import strip_tags
 
 
 def convert_microsoft_timezone_to_olson(timezone_id: str) -> str:
@@ -428,3 +430,57 @@ def calculate_exception_and_canceled_occurrences(
     ]
 
     return exception_occurrences, canceled_occurrences
+
+
+MS_GRAPH_TO_SYNC_ENGINE_STATUS_MAP = {
+    "none": "noreply",
+    "notResponded": "noreply",
+    "declined": "no",
+    "accepted": "yes",
+    "tentativelyAccepted": "maybe",
+}
+
+
+def get_event_participant(attendee: MsGraphAttendee) -> Dict[str, Any]:
+    return {
+        "email": attendee["emailAddress"]["address"],
+        "name": attendee["emailAddress"]["name"],
+        "status": MS_GRAPH_TO_SYNC_ENGINE_STATUS_MAP[attendee["status"]["response"]],
+        "notes": None,
+    }
+
+
+def get_event_location(event: MsGraphEvent) -> Optional[str]:
+    online_meeting = event.get("onlineMeeting")
+    join_url = online_meeting.get("joinUrl") if online_meeting else None
+    if join_url:
+        return join_url
+
+    locations = event["locations"]
+    if locations:
+        location, *_ = locations
+        address = location.get("address")
+        if address:
+            address_list = [
+                address.get("street"),
+                address.get("city"),
+                address.get("state"),
+                address.get("postalCode"),
+                address.get("countryOrRegion"),
+            ]
+            return ", ".join(part for part in address_list if part) or None
+        return location.get("displayName") or None
+
+    return None
+
+
+def get_event_description(event: MsGraphEvent) -> Optional[str]:
+    content_type = event["body"]["contentType"]
+
+    assert content_type in ["text", "html"]
+    content = event["body"]["content"]
+
+    if content_type == "html":
+        content = strip_tags(content)
+
+    return content.strip() or None

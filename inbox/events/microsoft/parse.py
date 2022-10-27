@@ -18,6 +18,7 @@ from inbox.events.microsoft.graph_types import (
     MsGraphPatternedRecurrence,
     MsGraphRecurrencePatternType,
     MsGraphRecurrenceRange,
+    MsGraphResponse,
     MsGraphWeekIndex,
 )
 from inbox.events.timezones import windows_timezones
@@ -432,7 +433,7 @@ def calculate_exception_and_canceled_occurrences(
     return exception_occurrences, canceled_occurrences
 
 
-MS_GRAPH_TO_SYNC_ENGINE_STATUS_MAP = {
+MS_GRAPH_TO_SYNC_ENGINE_STATUS_MAP: Dict[MsGraphResponse, str] = {
     "none": "noreply",
     "notResponded": "noreply",
     "declined": "no",

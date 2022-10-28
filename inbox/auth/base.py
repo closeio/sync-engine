@@ -65,7 +65,7 @@ class AuthHandler:
         try:
             return create_imap_connection(host, port, use_timeout)
         except (IMAPClient.Error, OSError) as exc:
-            log.error(
+            log.warning(
                 "Error instantiating IMAP connection",
                 account_id=account.id,
                 host=host,

@@ -13,6 +13,7 @@ from inbox.events.microsoft.graph_types import (
     ICalDayOfWeek,
     ICalFreq,
     MsGraphAttendee,
+    MsGraphCalendar,
     MsGraphDateTimeTimeZone,
     MsGraphDayOfWeek,
     MsGraphEvent,
@@ -622,7 +623,7 @@ def parse_event(
     )
 
 
-def parse_calendar(calendar: Dict[str, Any]) -> Calendar:
+def parse_calendar(calendar: MsGraphCalendar) -> Calendar:
     uid = calendar["id"]
     name = calendar["name"]
     read_only = not calendar["canEdit"]

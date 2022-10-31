@@ -206,3 +206,15 @@ class MsGraphEvent(TypedDict):
     onlineMeeting: Optional[MsGraphOnelineMeetingInfo]
     locations: List[MsGraphLocation]
     body: MsGraphItemBody
+
+
+class MsGraphCalendar(TypedDict):
+    """
+    Represents a container for event resources.
+
+    https://learn.microsoft.com/en-us/graph/api/resources/calendar
+    """
+
+    id: str
+    name: str
+    canEdit: bool

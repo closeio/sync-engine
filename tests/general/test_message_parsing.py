@@ -1,7 +1,6 @@
 # flake8: noqa: F401, F811
 """Sanity-check our construction of a Message object from raw synced data."""
 import datetime
-import sys
 from unittest.mock import patch
 
 import pytest
@@ -580,4 +579,4 @@ def test_long_message_body(db, default_account, raw_message_too_long):
     with patch("inbox.models.message.log") as mock:
         m = create_from_synced(db, default_account, raw_message_too_long)
         assert m.decode_error
-        assert "over the parsing limit" in mock.error.call_args[1]["error"].args[0]
+        assert "over the parsing limit" in mock.warning.call_args[1]["error"].args[0]

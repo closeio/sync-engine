@@ -14,8 +14,11 @@ from inbox.events.microsoft.parse import (
     get_event_location,
     get_event_participant,
     get_microsoft_tzinfo,
+    parse_calendar,
+    parse_event,
     parse_msgraph_datetime_tz_as_utc,
 )
+from inbox.models.event import RecurringEvent
 
 
 @pytest.mark.parametrize(
@@ -876,3 +879,127 @@ def test_get_event_participant(attendee, participant):
 )
 def test_get_event_description(event, description):
     assert get_event_description(event) == description
+
+
+recurring_event = {
+    "@odata.etag": 'W/"bX+IPMmPs02YGYesdF/+dAACDYEM6g=="',
+    "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIM02sjAABtf4g8yY_zTZgZh6x0X-50AAIM0_o4AAA=",
+    "createdDateTime": "2022-09-24T15:32:22.239054Z",
+    "lastModifiedDateTime": "2022-09-27T14:41:23.1042764Z",
+    "changeKey": "bX+IPMmPs02YGYesdF/+dAACDYEM6g==",
+    "categories": [],
+    "transactionId": "68faba75-324e-1e37-018d-b239fe0d3c8b",
+    "originalStartTimeZone": "Pacific Standard Time",
+    "originalEndTimeZone": "Pacific Standard Time",
+    "iCalUId": "040000008200E00074C5B7101A82E00800000000F8620CD72AD0D801000000000000000010000000EB99E61264138D46A203CC0931BB688A",
+    "reminderMinutesBeforeStart": 15,
+    "isReminderOn": True,
+    "hasAttachments": False,
+    "subject": "Expansion",
+    "bodyPreview": "",
+    "importance": "normal",
+    "sensitivity": "normal",
+    "isAllDay": False,
+    "isCancelled": False,
+    "isOrganizer": True,
+    "responseRequested": True,
+    "seriesMasterId": None,
+    "showAs": "busy",
+    "type": "seriesMaster",
+    "webLink": "https://outlook.office365.com/owa/?itemid=AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB%2FSNTZBuALM6KIOsBwBtf4g8yY%2BzTZgZh6x0X%2F50AAIM02sjAABtf4g8yY%2BzTZgZh6x0X%2F50AAIM0%2Bo4AAA%3D&exvsurl=1&path=/calendar/item",
+    "onlineMeetingUrl": None,
+    "isOnlineMeeting": False,
+    "onlineMeetingProvider": "unknown",
+    "allowNewTimeProposals": True,
+    "isDraft": False,
+    "hideAttendees": False,
+    "onlineMeeting": None,
+    "responseStatus": {"response": "organizer", "time": "0001-01-01T00:00:00Z"},
+    "body": {"contentType": "html", "content": ""},
+    "start": {"dateTime": "2022-09-19T15:00:00.0000000", "timeZone": "UTC"},
+    "end": {"dateTime": "2022-09-19T15:30:00.0000000", "timeZone": "UTC"},
+    "location": {
+        "displayName": "",
+        "locationType": "default",
+        "uniqueIdType": "unknown",
+        "address": {},
+        "coordinates": {},
+    },
+    "locations": [],
+    "recurrence": {
+        "pattern": {
+            "type": "daily",
+            "interval": 1,
+            "month": 0,
+            "dayOfMonth": 0,
+            "firstDayOfWeek": "sunday",
+            "index": "first",
+        },
+        "range": {
+            "type": "endDate",
+            "startDate": "2022-09-19",
+            "endDate": "2022-09-21",
+            "recurrenceTimeZone": "Pacific Standard Time",
+            "numberOfOccurrences": 0,
+        },
+    },
+    "attendees": [],
+    "organizer": {
+        "emailAddress": {
+            "name": "Close Testing",
+            "address": "closetesting@closetesting.onmicrosoft.com",
+        }
+    },
+}
+
+
+def test_parse_event_recurrence():
+    event = parse_event(recurring_event, read_only=False)
+
+    assert isinstance(event, RecurringEvent)
+    assert event.uid == recurring_event["id"]
+    assert event.title == "Expansion"
+    assert event.start == datetime.datetime(2022, 9, 19, 15, tzinfo=pytz.UTC)
+    assert event.end == datetime.datetime(2022, 9, 19, 15, 30, tzinfo=pytz.UTC)
+    assert event.all_day is False
+    assert event.last_modified == datetime.datetime(
+        2022, 9, 27, 14, 41, 23, tzinfo=pytz.UTC
+    )
+    assert event.description is None
+    assert event.location is None
+    assert event.busy is True
+    assert event.status == "confirmed"
+    assert event.owner == "Close Testing <closetesting@closetesting.onmicrosoft.com>"
+    assert event.participants == []
+    assert event.is_owner is True
+    assert event.rrule == "RRULE:FREQ=DAILY;UNTIL=20220922T065959Z"
+    assert event.cancelled is False
+    assert event.visibility is None
+
+
+outlook_calendar = {
+    "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAAAAAEGAABtf4g8yY_zTZgZh6x0X-50AAAAADafAAA=",
+    "name": "Calendar",
+    "color": "auto",
+    "hexColor": "",
+    "isDefaultCalendar": True,
+    "changeKey": "bX+IPMmPs02YGYesdF/+dAAAAAACtA==",
+    "canShare": True,
+    "canViewPrivateItems": True,
+    "canEdit": True,
+    "allowedOnlineMeetingProviders": ["teamsForBusiness"],
+    "defaultOnlineMeetingProvider": "teamsForBusiness",
+    "isTallyingResponses": True,
+    "isRemovable": True,
+    "owner": {
+        "name": "Close Testing",
+        "address": "closetesting@closetesting.onmicrosoft.com",
+    },
+}
+
+
+def test_parse_calendar():
+    calendar = parse_calendar(outlook_calendar)
+    assert calendar.uid == outlook_calendar["id"]
+    assert calendar.name == "Calendar"
+    assert calendar.read_only is False

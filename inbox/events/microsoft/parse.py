@@ -1,5 +1,6 @@
 import datetime
 import enum
+import json
 from typing import Any, Dict, List, Optional, Tuple
 
 import ciso8601
@@ -22,6 +23,8 @@ from inbox.events.microsoft.graph_types import (
     MsGraphWeekIndex,
 )
 from inbox.events.timezones import windows_timezones
+from inbox.models.calendar import Calendar
+from inbox.models.event import Event
 from inbox.util.html import strip_tags
 
 
@@ -522,3 +525,94 @@ def get_event_description(event: MsGraphEvent) -> Optional[str]:
         content = strip_tags(content)
 
     return content.strip() or None
+
+
+MS_GRAPH_SENSITIVITY_MAP = {
+    "private": "private",
+    "normal": None,
+    "personal": "private",
+    "confidential": "private",
+}
+
+
+def parse_event(
+    event: Dict[str, Any], *, read_only: bool, master_event_uid: Optional[str] = None,
+) -> Event:
+    if master_event_uid:
+        assert event["type"] in ["exception", "synthetizedCancellation"]
+
+    uid = event["id"]
+    raw_data = json.dumps(event)
+    title = event["subject"]
+    start = parse_msgraph_datetime_tz_as_utc(event["start"])
+    end = parse_msgraph_datetime_tz_as_utc(event["end"])
+    all_day = event["isAllDay"]
+    last_modified = ciso8601.parse_datetime(event["lastModifiedDateTime"]).replace(
+        microsecond=0
+    )
+    description = get_event_description(event)
+    location = get_event_location(event)
+    busy = event["showAs"] == "busy"
+    sequence_number = 0
+    status = "cancelled" if event["isCancelled"] else "confirmed"
+    organizer = event["organizer"].get("emailAddress", {})
+    if organizer:
+        owner = "{} <{}>".format(
+            organizer.get("name", ""), organizer.get("address", "")
+        )
+    else:
+        owner = ""
+    attendees = event.get("attendees", [])
+    participants = [get_event_participant(attendee) for attendee in attendees]
+    is_owner = event["isOrganizer"]
+    if event["type"] == "seriesMaster":
+        recurrence = [
+            convert_msgraph_patterned_recurrence_to_ical_rrule(event["recurrence"])
+        ]
+    cancelled = status == "cancelled"
+    visibility = MS_GRAPH_SENSITIVITY_MAP[event["sensitivity"]]
+    if event["type"] == "seriesMaster":
+        start_tz = convert_microsoft_timezone_to_olson(
+            event["recurrence"]["range"]["recurrenceTimeZone"]
+        )
+    else:
+        start_tz = None
+
+    if event["type"] == "exception":
+        original_start = parse_msgraph_datetime_tz_as_utc(event["originalStart"])
+    else:
+        original_start = None
+
+    return Event.create(
+        uid=uid,
+        raw_data=raw_data,
+        title=title,
+        description=description,
+        location=location,
+        busy=busy,
+        start=start,
+        end=end,
+        all_day=all_day,
+        owner=owner,
+        is_owner=is_owner,
+        ready_only=read_only,
+        participants=participants,
+        recurrence=recurrence,
+        last_modified=last_modified,
+        original_start_tz=start_tz,
+        original_start_time=original_start,
+        master_event_uid=master_event_uid,
+        cancelled=cancelled,
+        status=status,
+        sequence_number=sequence_number,
+        source="local",
+        visibility=visibility,
+    )
+
+
+def parse_calendar(calendar: Dict[str, Any]) -> Calendar:
+    uid = calendar["id"]
+    name = calendar["name"]
+    read_only = not calendar["canEdit"]
+
+    return Calendar(uid=uid, name=name, read_only=read_only)

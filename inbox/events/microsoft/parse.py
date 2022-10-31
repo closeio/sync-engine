@@ -20,6 +20,8 @@ from inbox.events.microsoft.graph_types import (
     MsGraphRecurrencePatternType,
     MsGraphRecurrenceRange,
     MsGraphResponse,
+    MsGraphSensitivity,
+    MsGraphShowAs,
     MsGraphWeekIndex,
 )
 from inbox.events.timezones import windows_timezones
@@ -527,16 +529,25 @@ def get_event_description(event: MsGraphEvent) -> Optional[str]:
     return content.strip() or None
 
 
-MS_GRAPH_SENSITIVITY_MAP = {
+MS_GRAPH_SENSITIVITY_TO_VISIBILITY_MAP: Dict[MsGraphSensitivity, Optional[str]] = {
     "private": "private",
     "normal": None,
     "personal": "private",
     "confidential": "private",
 }
 
+MS_GRAPH_SHOW_AS_TO_BUSY_MAP: Dict[MsGraphShowAs, bool] = {
+    "free": False,
+    "tentative": True,
+    "busy": True,
+    "oof": True,
+    "workingElsewhere": True,
+    "unknown": False,
+}
+
 
 def parse_event(
-    event: Dict[str, Any], *, read_only: bool, master_event_uid: Optional[str] = None,
+    event: MsGraphEvent, *, read_only: bool, master_event_uid: Optional[str] = None,
 ) -> Event:
     if master_event_uid:
         assert event["type"] in ["exception", "synthetizedCancellation"]
@@ -552,7 +563,7 @@ def parse_event(
     )
     description = get_event_description(event)
     location = get_event_location(event)
-    busy = event["showAs"] == "busy"
+    busy = MS_GRAPH_SHOW_AS_TO_BUSY_MAP[event["showAs"]]
     sequence_number = 0
     status = "cancelled" if event["isCancelled"] else "confirmed"
     organizer = event["organizer"].get("emailAddress", {})
@@ -565,17 +576,18 @@ def parse_event(
     attendees = event.get("attendees", [])
     participants = [get_event_participant(attendee) for attendee in attendees]
     is_owner = event["isOrganizer"]
+    cancelled = status == "cancelled"
+    visibility = MS_GRAPH_SENSITIVITY_TO_VISIBILITY_MAP[event["sensitivity"]]
     if event["type"] == "seriesMaster":
+        assert event["recurrence"]
         recurrence = [
             convert_msgraph_patterned_recurrence_to_ical_rrule(event["recurrence"])
         ]
-    cancelled = status == "cancelled"
-    visibility = MS_GRAPH_SENSITIVITY_MAP[event["sensitivity"]]
-    if event["type"] == "seriesMaster":
         start_tz = convert_microsoft_timezone_to_olson(
             event["recurrence"]["range"]["recurrenceTimeZone"]
         )
     else:
+        recurrence = None
         start_tz = None
 
     if event["type"] == "exception":

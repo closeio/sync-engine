@@ -376,8 +376,8 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 "saving new uids for existing messages",
                 count=len(previously_synced_messages),
             )
-            account = Account.get(self.account_id, db_session)
-            folder = Folder.get(self.folder_id, db_session)
+            account = db_session.query(Account).filter_by(id=self.account_id).one()
+            folder = db_session.query(Folder).filter_by(id=self.folder_id).one()
             for raw_message in previously_synced_messages:
                 message_obj = (
                     db_session.query(Message)
@@ -441,8 +441,8 @@ class GmailFolderSyncEngine(FolderSyncEngine):
             return
         new_uids = set()
         with self.syncmanager_lock, session_scope(self.namespace_id) as db_session:
-            account = Account.get(self.account_id, db_session)
-            folder = Folder.get(self.folder_id, db_session)
+            account = db_session.query(Account).filter_by(id=self.account_id).one()
+            folder = db_session.query(Folder).filter_by(id=self.folder_id).one()
             raw_messages = self.__deduplicate_message_object_creation(
                 db_session, raw_messages, account
             )

@@ -11,7 +11,6 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     String,
-    bindparam,
     event,
     inspect,
 )
@@ -311,12 +310,6 @@ class Account(
             self._sync_status["sync_end_time"] = datetime.utcnow()
             return True
         return False
-
-    @classmethod
-    def get(cls, id_, session):
-        q = session.query(cls)
-        q = q.filter(cls.id == bindparam("id_"))
-        return q.params(id_=id_).first()
 
     @property
     def is_killed(self):

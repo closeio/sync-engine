@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, ForeignKey, String, bindparam
+from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.orm import backref, relationship, synonym, validates
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.schema import UniqueConstraint
@@ -107,11 +107,5 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             raise
 
         return obj
-
-    @classmethod
-    def get(cls, id_, session):
-        q = session.query(cls)
-        q = q.filter(cls.id == bindparam("id_"))
-        return q.params(id_=id_).first()
 
     __table_args__ = (UniqueConstraint("account_id", "name", "canonical_name"),)

@@ -11,6 +11,7 @@ from inbox.events.recurring import link_events
 from inbox.logging import get_logger
 from inbox.models import Calendar, Event
 from inbox.models.account import Account
+from inbox.models.calendar import is_default_calendar
 from inbox.models.event import RecurringEvent, RecurringEventOverride
 from inbox.models.session import session_scope
 from inbox.sync.base_sync import BaseSyncMonitor
@@ -336,38 +337,42 @@ class GoogleEventSync(EventSync):
             ):
                 self._sync_calendar_list(account, db_session)
 
-            stale_calendars = (
-                cal
-                for cal in account.namespace.calendars
-                if cal.should_update_events(
+            stale_calendars = [
+                calendar
+                for calendar in account.namespace.calendars
+                if calendar.should_update_events(
                     MAX_TIME_WITHOUT_SYNC, timedelta(seconds=POLL_FREQUENCY)
                 )
-            )
+            ]
 
-            # Sync user's primary calendar first. Note that the UID of the
-            # primary calendar corresponds to the user's account email address.
-            account_email = account.email_address
-            stale_calendars_sorted = sorted(
-                stale_calendars, key=lambda cal: cal.uid != account_email
-            )
+            # Sync user's primary/default calendar first.
+            stale_calendars_sorted = [
+                calendar
+                for calendar in stale_calendars
+                if is_default_calendar(calendar)
+            ] + [
+                calendar
+                for calendar in stale_calendars
+                if not is_default_calendar(calendar)
+            ]
 
-            for cal in stale_calendars_sorted:
+            for calendar in stale_calendars_sorted:
                 try:
-                    self._sync_calendar(cal, db_session)
+                    self._sync_calendar(calendar, db_session)
                 except HTTPError as exc:
                     if exc.response.status_code == 404:
                         self.log.warning(
                             "Tried to sync a deleted calendar."
                             "Deleting local calendar.",
-                            calendar_id=cal.id,
-                            calendar_uid=cal.uid,
+                            calendar_id=calendar.id,
+                            calendar_uid=calendar.uid,
                         )
-                        _delete_calendar(db_session, cal)
+                        _delete_calendar(db_session, calendar)
                     else:
                         self.log.error(
                             "Error while syncing calendar",
-                            cal_id=cal.id,
-                            calendar_uid=cal.uid,
+                            calendar_id=calendar.id,
+                            calendar_uid=calendar.uid,
                             status_code=exc.response.status_code,
                         )
                         raise exc

@@ -24,12 +24,20 @@ from inbox.util.testutils import dump_dns_queries  # noqa; noqa
 
 
 @fixture
-def api_client(db, default_namespace):
-    from inbox.api.srv import app
+def make_api_client():
+    def _make_api_client(db, namespace):
+        from inbox.api.srv import app
 
-    app.config["TESTING"] = True
-    with app.test_client() as c:
-        yield TestAPIClient(c, default_namespace.public_id)
+        app.config["TESTING"] = True
+        with app.test_client() as c:
+            return TestAPIClient(c, namespace.public_id)
+
+    return _make_api_client
+
+
+@fixture
+def api_client(db, default_namespace, make_api_client):
+    return make_api_client(db, default_namespace)
 
 
 @fixture

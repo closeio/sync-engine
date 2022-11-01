@@ -26,7 +26,8 @@ def test_get_google_calendar(db, default_namespace, api_client, uid, default):
     assert calendar_item["default"] == default
 
 
-def test_get_outlook_calendar(db, outlook_namespace, api_client):
+def test_get_outlook_calendar(db, outlook_namespace, make_api_client):
+    api_client = make_api_client(db, outlook_namespace)
     cal = Calendar(
         namespace_id=outlook_namespace.id, uid="uid", name="Holidays", default=False,
     )

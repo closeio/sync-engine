@@ -34,7 +34,7 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
     name = Column(String(MAX_INDEXABLE_LENGTH), nullable=True)
     provider_name = Column(String(128), nullable=True, default="DEPRECATED")
     description = Column(Text, nullable=True)
-    _default = Column("default", Boolean)
+    default = Column(Boolean, nullable=True)  # only set for Outlook calendars
 
     # A server-provided unique ID.
     uid = Column(String(767, collation="ascii_general_ci"), nullable=False)
@@ -49,28 +49,6 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
     __table_args__ = (
         UniqueConstraint("namespace_id", "provider_name", "name", "uid", name="uuid"),
     )
-
-    @property
-    def default(self) -> bool:
-        from inbox.models.backends.gmail import GmailAccount
-        from inbox.models.backends.outlook import OutlookAccount
-
-        if isinstance(self.namespace.account, GmailAccount):
-            return self.uid == self.namespace.account.email_address
-        elif isinstance(self.namespace.account, OutlookAccount):
-            assert self._default is not None
-            return self._default
-        else:
-            raise NotImplementedError()
-
-    @default.setter
-    def default(self, value: bool):
-        from inbox.models.backends.outlook import OutlookAccount
-
-        if isinstance(self.namespace.account, OutlookAccount):
-            self._default = value
-        else:
-            raise NotImplementedError()
 
     @property
     def should_suppress_transaction_creation(self):
@@ -161,3 +139,26 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
                 and self.gpush_last_ping > self.last_synced
             )
         )
+
+
+def is_default_calendar(calendar: Calendar) -> bool:
+    """
+    Determine if this is a default/primary user calendar.
+
+    For Google calendars the default calendar's uid is the same as account
+    email address. In case of Microsoft uids are opaque and one needs
+    to store it in the database on the default field.
+
+    Arguments:
+        calendar: The google or microsoft calendar
+    """
+    from inbox.models.backends.gmail import GmailAccount
+    from inbox.models.backends.outlook import OutlookAccount
+
+    if isinstance(calendar.namespace.account, GmailAccount):
+        return calendar.uid == calendar.namespace.account.email_address
+    elif isinstance(calendar.namespace.account, OutlookAccount):
+        assert calendar.default is not None
+        return calendar.default
+    else:
+        raise NotImplementedError()

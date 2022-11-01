@@ -20,6 +20,7 @@ from inbox.models import (
     Thread,
     When,
 )
+from inbox.models.calendar import is_default_calendar
 from inbox.models.event import InflatedEvent, RecurringEvent, RecurringEventOverride
 
 log = get_logger()
@@ -356,7 +357,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
             "description": obj.description,
             "read_only": obj.read_only,
             "uid": obj.uid,
-            "default": obj.default,
+            "default": is_default_calendar(obj),
         }
 
     elif isinstance(obj, When):

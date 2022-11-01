@@ -1,5 +1,6 @@
 atomicwrites==1.4.0
 coverage==6.1.2
+exceptiongroup==1.0.0rc8
 funcsigs==1.0.2
 freezegun==1.1.0
 hypothesis==6.30.0
@@ -17,3 +18,4 @@ responses==0.22.0
 types-toml==0.10.8
 sortedcontainers==2.4.0
 toml==0.10.2
+tomli==2.0.1

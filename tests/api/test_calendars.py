@@ -9,16 +9,10 @@ __all__ = ["db", "default_namespace"]
 
 
 @pytest.mark.parametrize(
-    "uid,default",
-    [("inboxapptest@gmail.com", True), ("other", False),],  # same as email address
+    "uid,default", [("inboxapptest@gmail.com", True), ("other", False),],
 )
-def test_get_calendar(db, default_namespace, api_client, uid, default):
-    cal = Calendar(
-        namespace_id=default_namespace.id,
-        uid=uid,
-        provider_name="WTF",
-        name="Holidays",
-    )
+def test_get_google_calendar(db, default_namespace, api_client, uid, default):
+    cal = Calendar(namespace_id=default_namespace.id, uid=uid, name="Holidays",)
     db.session.add(cal)
     db.session.commit()
     cal_id = cal.public_id
@@ -32,15 +26,30 @@ def test_get_calendar(db, default_namespace, api_client, uid, default):
     assert calendar_item["default"] == default
 
 
+def test_get_outlook_calendar(db, outlook_namespace, api_client):
+    cal = Calendar(
+        namespace_id=outlook_namespace.id, uid="uid", name="Holidays", default=False,
+    )
+    db.session.add(cal)
+    db.session.commit()
+    cal_id = cal.public_id
+    calendar_item = api_client.get_data(f"/calendars/{cal_id}")
+
+    assert calendar_item["account_id"] == outlook_namespace.public_id
+    assert calendar_item["name"] == "Holidays"
+    assert calendar_item["description"] is None
+    assert calendar_item["read_only"] is False
+    assert calendar_item["object"] == "calendar"
+    assert calendar_item["default"] is False
+
+
 def test_handle_not_found_calendar(api_client):
     resp_data = api_client.get_raw("/calendars/foo")
     assert resp_data.status_code == 404
 
 
 def test_add_to_specific_calendar(db, default_namespace, api_client):
-    cal = Calendar(
-        namespace_id=default_namespace.id, uid="uid", provider_name="WTF", name="Custom"
-    )
+    cal = Calendar(namespace_id=default_namespace.id, uid="uid", name="Custom")
     db.session.add(cal)
     db.session.commit()
     cal_id = cal.public_id

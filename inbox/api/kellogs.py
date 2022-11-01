@@ -356,6 +356,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
             "description": obj.description,
             "read_only": obj.read_only,
             "uid": obj.uid,
+            "default": obj.default,
         }
 
     elif isinstance(obj, When):

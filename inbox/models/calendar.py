@@ -34,6 +34,7 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
     name = Column(String(MAX_INDEXABLE_LENGTH), nullable=True)
     provider_name = Column(String(128), nullable=True, default="DEPRECATED")
     description = Column(Text, nullable=True)
+    _default = Column("default", Boolean)
 
     # A server-provided unique ID.
     uid = Column(String(767, collation="ascii_general_ci"), nullable=False)
@@ -48,6 +49,28 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
     __table_args__ = (
         UniqueConstraint("namespace_id", "provider_name", "name", "uid", name="uuid"),
     )
+
+    @property
+    def default(self) -> bool:
+        from inbox.models.backends.gmail import GmailAccount
+        from inbox.models.backends.outlook import OutlookAccount
+
+        if isinstance(self.namespace.account, GmailAccount):
+            return self.uid == self.namespace.account.email_address
+        elif isinstance(self.namespace.account, OutlookAccount):
+            assert self._default is not None
+            return self._default
+        else:
+            raise NotImplementedError()
+
+    @default.setter
+    def default(self, value: bool):
+        from inbox.models.backends.outlook import OutlookAccount
+
+        if isinstance(self.namespace.account, OutlookAccount):
+            self._default = value
+        else:
+            raise NotImplementedError()
 
     @property
     def should_suppress_transaction_creation(self):

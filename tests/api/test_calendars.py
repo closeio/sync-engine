@@ -1,3 +1,4 @@
+import pytest
 from sqlalchemy import true
 
 from inbox.models import Calendar
@@ -7,10 +8,14 @@ from tests.util.base import add_fake_event, db, default_namespace
 __all__ = ["db", "default_namespace"]
 
 
-def test_get_calendar(db, default_namespace, api_client):
+@pytest.mark.parametrize(
+    "uid,default",
+    [("inboxapptest@gmail.com", True), ("other", False),],  # same as email address
+)
+def test_get_calendar(db, default_namespace, api_client, uid, default):
     cal = Calendar(
         namespace_id=default_namespace.id,
-        uid="uid",
+        uid=uid,
         provider_name="WTF",
         name="Holidays",
     )
@@ -24,6 +29,7 @@ def test_get_calendar(db, default_namespace, api_client):
     assert calendar_item["description"] is None
     assert calendar_item["read_only"] is False
     assert calendar_item["object"] == "calendar"
+    assert calendar_item["default"] == default
 
 
 def test_handle_not_found_calendar(api_client):

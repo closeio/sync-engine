@@ -262,7 +262,7 @@ class GoogleEventSync(EventSync):
 
         try:
             if URL_PREFIX:
-                self._refresh_gpush_subscriptions()
+                self._refresh_webhook_subscriptions()
             else:
                 self.log.warning(
                     "Cannot use Google push notifications (URL_PREFIX not "
@@ -288,7 +288,7 @@ class GoogleEventSync(EventSync):
                 "Access to provider calendar API not enabled; bypassing sync"
             )
 
-    def _refresh_gpush_subscriptions(self) -> None:
+    def _refresh_webhook_subscriptions(self) -> None:
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(Account).get(self.account_id)
 

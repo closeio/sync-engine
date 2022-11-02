@@ -163,6 +163,24 @@ class MsGraphItemBody(TypedDict):
     contentType: MsGraphContentType
 
 
+MsGraphShowAs = Literal[
+    "free", "tentative", "busy", "oof", "workingElsewhere", "unknown"
+]
+
+
+class MsGraphRecipient(TypedDict):
+    """
+    Represents information about a user in the sending or receiving end of an event.
+
+    https://learn.microsoft.com/en-us/graph/api/resources/recipient
+    """
+
+    emailAddress: MsGraphEmailAddress
+
+
+MsGraphSensitivity = Literal["private", "normal", "personal", "confidential"]
+
+
 class MsGraphEvent(TypedDict):
     """
     An event in a user calendar, or the default calendar.
@@ -174,6 +192,10 @@ class MsGraphEvent(TypedDict):
     type: MsGraphEventType
     start: MsGraphDateTimeTimeZone
     end: MsGraphDateTimeTimeZone
+    lastModifiedDateTime: str
+    showAs: MsGraphShowAs
+    organizer: MsGraphRecipient
+    sensitivity: MsGraphSensitivity
     subject: str
     isAllDay: bool
     isCancelled: bool
@@ -184,3 +206,15 @@ class MsGraphEvent(TypedDict):
     onlineMeeting: Optional[MsGraphOnelineMeetingInfo]
     locations: List[MsGraphLocation]
     body: MsGraphItemBody
+
+
+class MsGraphCalendar(TypedDict):
+    """
+    Represents a container for event resources.
+
+    https://learn.microsoft.com/en-us/graph/api/resources/calendar
+    """
+
+    id: str
+    name: str
+    canEdit: bool

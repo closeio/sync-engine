@@ -3,6 +3,7 @@ from unittest import mock
 
 import limitlion
 import pytest
+import pytz
 from gevent import sleep
 
 from inbox.models.calendar import Calendar
@@ -33,7 +34,7 @@ UPDATE_HEADERS = {
     "X-Goog-Resource-URI": "resource/location",
 }
 
-WATCH_EXPIRATION = 1426325213000  # 3/14/15 - utc TS in milliseconds
+WATCH_EXPIRATION = datetime(2015, 3, 14)
 
 
 @pytest.fixture
@@ -66,7 +67,7 @@ def test_should_update_logic_push(db, watched_account, watched_calendar):
     the watch is expired.
     """
     # Watch should be not-expired
-    expiration = WATCH_EXPIRATION + 20 * 365 * 24 * 60 * 60 * 1000
+    expiration = WATCH_EXPIRATION + timedelta(days=20 * 365)
     watched_account.new_calendar_list_watch(expiration)
     watched_calendar.new_event_watch(expiration)
 
@@ -150,7 +151,7 @@ def test_needs_new_watch_logic(db, watched_account, watched_calendar):
     assert watched_account.needs_new_calendar_list_watch()
     assert watched_calendar.needs_new_watch()
 
-    expiration = WATCH_EXPIRATION + 20 * 365 * 24 * 60 * 60 * 1000
+    expiration = WATCH_EXPIRATION + timedelta(days=20 * 365)
     watched_account.new_calendar_list_watch(expiration)
     watched_calendar.new_event_watch(expiration)
 

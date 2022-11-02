@@ -3,7 +3,6 @@ import datetime
 import email.utils
 import json
 import random
-import time
 import urllib.parse
 import uuid
 from typing import Any, Dict, List, Optional
@@ -311,18 +310,18 @@ class GoogleEventsProvider:
     def push_notifications_enabled(self, account: Account) -> bool:
         return account.get_client_info()[0] in PUSH_ENABLED_CLIENT_IDS
 
-    def watch_calendar_list(self, account: Account) -> Optional[int]:
+    def watch_calendar_list(self, account: Account) -> Optional[datetime.datetime]:
         """
         Subscribe to google push notifications for the calendar list.
 
-        Returns the expiration of the notification channel (as a
-        Unix timestamp in ms)
 
         Raises an OAuthError if no credentials are authorized to
         set up push notifications for this account.
 
         Raises an AccessNotEnabled error if calendar sync is not enabled
 
+        Returns:
+            The expiration of the notification channel
         """
         token = self._get_access_token_for_push_notifications(account)
         receiving_url = CALENDAR_LIST_WEBHOOK_URL.format(
@@ -332,8 +331,8 @@ class GoogleEventsProvider:
         one_week = datetime.timedelta(weeks=1)
         in_a_week = datetime.datetime.utcnow() + one_week
 
-        # * 1000 because google uses Unix timestamps with an ms precision.
-        expiration_date = int(time.mktime(in_a_week.timetuple())) * 1000
+        # * 1000 because Google uses Unix timestamps with an ms precision.
+        expiration_date = int(in_a_week.timestamp()) * 1000
 
         data = {
             "id": uuid.uuid4().hex,
@@ -351,18 +350,22 @@ class GoogleEventsProvider:
 
         if r.status_code == 200:
             data = r.json()
-            return data.get("expiration")
+            expiration = data.get("expiration")
+            if not expiration:
+                return None
+
+            # / 1000 because Google uses Unix timestamps with an ms precision.
+            return datetime.datetime.fromtimestamp(int(expiration) / 1000)
         else:
             # Handle error and return None
             self.handle_watch_errors(r)
             return None
 
-    def watch_calendar(self, account: Account, calendar: Calendar) -> Optional[int]:
+    def watch_calendar(
+        self, account: Account, calendar: Calendar
+    ) -> Optional[datetime.datetime]:
         """
         Subscribe to google push notifications for a calendar.
-
-        Returns the expiration of the notification channel (as a
-        Unix timestamp in ms)
 
         Raises an OAuthError if no credentials are authorized to
         set up push notifications for this account.
@@ -372,6 +375,8 @@ class GoogleEventsProvider:
         Raises an HTTPError if google gives us a 404 (which implies the
         calendar was deleted)
 
+        Returns:
+            The expiration of the notification channel
         """
         token = self._get_access_token_for_push_notifications(account)
         watch_url = WATCH_EVENTS_URL.format(urllib.parse.quote(calendar.uid))
@@ -382,8 +387,8 @@ class GoogleEventsProvider:
         one_week = datetime.timedelta(weeks=1)
         in_a_week = datetime.datetime.utcnow() + one_week
 
-        # * 1000 because google uses Unix timestamps with an ms precision.
-        expiration_date = int(time.mktime(in_a_week.timetuple())) * 1000
+        # * 1000 because Google uses Unix timestamps with an ms precision.
+        expiration_date = int(in_a_week.timestamp()) * 1000
 
         data = {
             "id": uuid.uuid4().hex,
@@ -409,7 +414,12 @@ class GoogleEventsProvider:
 
         if r.status_code == 200:
             data = r.json()
-            return data.get("expiration")
+            expiration = data.get("expiration")
+            if not expiration:
+                return None
+
+            # / 1000 because Google uses Unix timestamps with an ms precision.
+            return datetime.datetime.fromtimestamp(int(expiration) / 1000)
         else:
             # Handle error and return None
             self.handle_watch_errors(r)

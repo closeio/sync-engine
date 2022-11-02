@@ -297,18 +297,18 @@ class GoogleEventSync(EventSync):
                 return
 
             if account.needs_new_calendar_list_watch():
-                expir = self.provider.watch_calendar_list(account)
-                if expir is not None:
-                    account.new_calendar_list_watch(expir)
+                calendar_list_expiration = self.provider.watch_calendar_list(account)
+                if calendar_list_expiration is not None:
+                    account.new_calendar_list_watch(calendar_list_expiration)
 
             cals_to_update = (
                 cal for cal in account.namespace.calendars if cal.needs_new_watch()
             )
             for cal in cals_to_update:
                 try:
-                    expir = self.provider.watch_calendar(account, cal)
-                    if expir is not None:
-                        cal.new_event_watch(expir)
+                    event_list_expiration = self.provider.watch_calendar(account, cal)
+                    if event_list_expiration is not None:
+                        cal.new_event_watch(event_list_expiration)
                 except HTTPError as exc:
                     if exc.response.status_code == 404:
                         self.log.warning(

@@ -906,7 +906,6 @@ recurring_event = {
     "seriesMasterId": None,
     "showAs": "busy",
     "type": "seriesMaster",
-    "webLink": "https://outlook.office365.com/owa/?itemid=AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB%2FSNTZBuALM6KIOsBwBtf4g8yY%2BzTZgZh6x0X%2F50AAIM02sjAABtf4g8yY%2BzTZgZh6x0X%2F50AAIM0%2Bo4AAA%3D&exvsurl=1&path=/calendar/item",
     "onlineMeetingUrl": None,
     "isOnlineMeeting": False,
     "onlineMeetingProvider": "unknown",
@@ -915,17 +914,25 @@ recurring_event = {
     "hideAttendees": False,
     "onlineMeeting": None,
     "responseStatus": {"response": "organizer", "time": "0001-01-01T00:00:00Z"},
-    "body": {"contentType": "html", "content": ""},
+    "body": {"contentType": "html", "content": "<b>Hello world!</b>"},
     "start": {"dateTime": "2022-09-19T15:00:00.0000000", "timeZone": "UTC"},
     "end": {"dateTime": "2022-09-19T15:30:00.0000000", "timeZone": "UTC"},
     "location": {
-        "displayName": "",
+        "displayName": "Parking",
         "locationType": "default",
         "uniqueIdType": "unknown",
         "address": {},
         "coordinates": {},
     },
-    "locations": [],
+    "locations": [
+        {
+            "displayName": "Parking",
+            "locationType": "default",
+            "uniqueIdType": "unknown",
+            "address": {},
+            "coordinates": {},
+        },
+    ],
     "recurrence": {
         "pattern": {
             "type": "daily",
@@ -943,12 +950,18 @@ recurring_event = {
             "numberOfOccurrences": 0,
         },
     },
-    "attendees": [],
-    "organizer": {
-        "emailAddress": {
-            "name": "Close Testing",
-            "address": "closetesting@closetesting.onmicrosoft.com",
+    "attendees": [
+        {
+            "type": "required",
+            "status": {"response": "declined", "time": "2022-09-08T15:40:17Z"},
+            "emailAddress": {
+                "name": "attendee@example.com",
+                "address": "attendee@example.com",
+            },
         }
+    ],
+    "organizer": {
+        "emailAddress": {"name": "Example", "address": "example@example.com",}
     },
 }
 
@@ -965,12 +978,19 @@ def test_parse_event_recurrence():
     assert event.last_modified == datetime.datetime(
         2022, 9, 27, 14, 41, 23, tzinfo=pytz.UTC
     )
-    assert event.description is None
-    assert event.location is None
+    assert event.description == "Hello world!"
+    assert event.location == "Parking"
     assert event.busy is True
     assert event.status == "confirmed"
-    assert event.owner == "Close Testing <closetesting@closetesting.onmicrosoft.com>"
-    assert event.participants == []
+    assert event.owner == "Example <example@example.com>"
+    assert event.participants == [
+        {
+            "email": "attendee@example.com",
+            "name": "attendee@example.com",
+            "notes": None,
+            "status": "no",
+        }
+    ]
     assert event.is_owner is True
     assert event.rrule == "RRULE:FREQ=DAILY;UNTIL=20220922T065959Z"
     assert event.cancelled is False

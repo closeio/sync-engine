@@ -650,5 +650,6 @@ def parse_calendar(calendar: MsGraphCalendar) -> Calendar:
     uid = calendar["id"]
     name = calendar["name"]
     read_only = not calendar["canEdit"]
+    default = calendar["isDefaultCalendar"]
 
-    return Calendar(uid=uid, name=name, read_only=read_only)
+    return Calendar(uid=uid, name=name, read_only=read_only, default=default)

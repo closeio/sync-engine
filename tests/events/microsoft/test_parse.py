@@ -1095,3 +1095,4 @@ def test_parse_calendar():
     assert calendar.uid == outlook_calendar["id"]
     assert calendar.name == "Calendar"
     assert calendar.read_only is False
+    assert calendar.default is True

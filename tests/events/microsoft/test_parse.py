@@ -1049,7 +1049,7 @@ single_instance_event = {
 }
 
 
-def test_parse_event_recurrence():
+def test_parse_event_singular():
     event = parse_event(single_instance_event, read_only=False)
 
     assert isinstance(event, Event)

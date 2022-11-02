@@ -1,4 +1,5 @@
 import datetime
+import email.utils
 import enum
 import json
 from typing import Any, Dict, List, Optional, Tuple
@@ -582,8 +583,8 @@ def parse_event(
     status = "cancelled" if event["isCancelled"] else "confirmed"
     organizer = event["organizer"].get("emailAddress", {})
     if organizer:
-        owner = "{} <{}>".format(
-            organizer.get("name", ""), organizer.get("address", "")
+        owner = email.utils.formataddr(
+            (organizer.get("name", ""), organizer.get("address", ""))
         )
     else:
         owner = ""

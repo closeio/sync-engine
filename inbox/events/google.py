@@ -1,5 +1,6 @@
 """Provide Google Calendar events."""
 import datetime
+import email.utils
 import json
 import random
 import time
@@ -536,8 +537,8 @@ def parse_event_response(event: Dict[str, Any], read_only_calendar: bool) -> Eve
     creator = event.get("creator")
 
     if creator:
-        owner = "{} <{}>".format(
-            creator.get("displayName", ""), creator.get("email", "")
+        owner = email.utils.formataddr(
+            (creator.get("displayName", ""), creator.get("email", ""))
         )
     else:
         owner = ""

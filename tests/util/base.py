@@ -112,14 +112,13 @@ def patch_network_functions(monkeypatch):
             )
 
 
-def make_default_account(db, config):
+def make_account(db, config, *, cls):
     import platform
 
     from inbox.models import Namespace
-    from inbox.models.backends.gmail import GmailAccount
 
     ns = Namespace()
-    account = GmailAccount(
+    account = cls(
         sync_host=f"{platform.node()}:0", email_address="inboxapptest@gmail.com",
     )
     account.namespace = ns
@@ -145,7 +144,9 @@ def delete_default_accounts(db):
 
 @fixture(scope="function")
 def default_account(db, config, redis_mock):
-    yield make_default_account(db, config)
+    from inbox.models.backends.gmail import GmailAccount
+
+    yield make_account(db, config, cls=GmailAccount)
     delete_default_accounts(db)
 
 
@@ -154,9 +155,24 @@ def default_namespace(db, default_account):
     yield default_account.namespace
 
 
+@fixture
+def outlook_account(db, config, redis_mock):
+    from inbox.models.backends.outlook import OutlookAccount
+
+    yield make_account(db, config, cls=OutlookAccount)
+    delete_default_accounts(db)
+
+
+@fixture
+def outlook_namespace(db, outlook_account):
+    yield outlook_account.namespace
+
+
 @fixture(scope="function")
 def default_accounts(db, config, redis_mock):
-    yield [make_default_account(db, config) for _ in range(3)]
+    from inbox.models.backends.gmail import GmailAccount
+
+    yield [make_account(db, config, cls=GmailAccount) for _ in range(3)]
     delete_default_accounts(db)
 
 

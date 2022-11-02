@@ -18,7 +18,7 @@ from inbox.events.microsoft.parse import (
     parse_event,
     parse_msgraph_datetime_tz_as_utc,
 )
-from inbox.models.event import RecurringEvent
+from inbox.models.event import Event, RecurringEvent
 
 
 @pytest.mark.parametrize(
@@ -1011,11 +1011,83 @@ outlook_calendar = {
     "defaultOnlineMeetingProvider": "teamsForBusiness",
     "isTallyingResponses": True,
     "isRemovable": True,
-    "owner": {
-        "name": "Close Testing",
-        "address": "closetesting@closetesting.onmicrosoft.com",
+    "owner": {"name": "Close Testing", "address": "example@example.com",},
+}
+
+
+single_instance_event = {
+    "@odata.etag": 'W/"bX+IPMmPs02YGYesdF/+dAAB/52fpA=="',
+    "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIAQ6TlAABtf4g8yY_zTZgZh6x0X-50AAIARNwsAAA=",
+    "createdDateTime": "2022-09-07T08:39:36.2273624Z",
+    "lastModifiedDateTime": "2022-09-07T08:41:36.5027961Z",
+    "changeKey": "bX+IPMmPs02YGYesdF/+dAAB/52fpA==",
+    "categories": [],
+    "transactionId": "962593bf-9e1b-ef34-bff6-da63d058df7f",
+    "originalStartTimeZone": "Eastern Standard Time",
+    "originalEndTimeZone": "Eastern Standard Time",
+    "iCalUId": "040000008200E00074C5B7101A82E00800000000D0C4525C95C2D80100000000000000001000000007003FD5ECC09F42A0ACCA4299772507",
+    "reminderMinutesBeforeStart": 15,
+    "isReminderOn": True,
+    "hasAttachments": False,
+    "subject": "Test event 2",
+    "bodyPreview": "",
+    "importance": "normal",
+    "sensitivity": "normal",
+    "isAllDay": False,
+    "isCancelled": False,
+    "isOrganizer": True,
+    "responseRequested": True,
+    "seriesMasterId": None,
+    "showAs": "busy",
+    "type": "singleInstance",
+    "onlineMeetingUrl": None,
+    "isOnlineMeeting": True,
+    "onlineMeetingProvider": "teamsForBusiness",
+    "allowNewTimeProposals": True,
+    "isDraft": False,
+    "hideAttendees": False,
+    "recurrence": None,
+    "onlineMeeting": {"joinUrl": "https://teams.microsoft.com/l/meetup-join/xyz"},
+    "responseStatus": {"response": "organizer", "time": "0001-01-01T00:00:00Z"},
+    "body": {"contentType": "html", "content": "<i>Singular</i>"},
+    "start": {"dateTime": "2022-09-15T12:00:00.0000000", "timeZone": "UTC"},
+    "end": {"dateTime": "2022-09-15T12:30:00.0000000", "timeZone": "UTC"},
+    "location": {
+        "displayName": "Balcony",
+        "locationType": "default",
+        "uniqueIdType": "unknown",
+        "address": {},
+        "coordinates": {},
+    },
+    "locations": [],
+    "attendees": [],
+    "organizer": {
+        "emailAddress": {"name": "Example", "address": "example_2@example.com"}
     },
 }
+
+
+def test_parse_event_recurrence():
+    event = parse_event(single_instance_event, read_only=False)
+
+    assert isinstance(event, Event)
+    assert event.uid == single_instance_event["id"]
+    assert event.title == "Test event 2"
+    assert event.start == datetime.datetime(2022, 9, 15, 12, tzinfo=pytz.UTC)
+    assert event.end == datetime.datetime(2022, 9, 15, 12, 30, tzinfo=pytz.UTC)
+    assert event.all_day is False
+    assert event.last_modified == datetime.datetime(
+        2022, 9, 7, 8, 41, 36, tzinfo=pytz.UTC
+    )
+    assert event.description == "Singular"
+    assert event.location == "https://teams.microsoft.com/l/meetup-join/xyz"
+    assert event.busy is True
+    assert event.status == "confirmed"
+    assert event.owner == "Example <example_2@example.com>"
+    assert event.participants == []
+    assert event.is_owner is True
+    assert event.cancelled is False
+    assert event.visibility is None
 
 
 def test_parse_calendar():

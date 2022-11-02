@@ -1086,7 +1086,7 @@ outlook_calendar = {
     "defaultOnlineMeetingProvider": "teamsForBusiness",
     "isTallyingResponses": True,
     "isRemovable": True,
-    "owner": {"name": "Close Testing", "address": "example@example.com",},
+    "owner": {"name": "Example", "address": "example@example.com",},
 }
 
 

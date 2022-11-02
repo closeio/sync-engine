@@ -550,6 +550,19 @@ MS_GRAPH_SHOW_AS_TO_BUSY_MAP: Dict[MsGraphShowAs, bool] = {
 def parse_event(
     event: MsGraphEvent, *, read_only: bool, master_event_uid: Optional[str] = None,
 ) -> Event:
+    """
+    Parse event coming from Microsoft Graph API as ORM object.
+
+    Arguments:
+        event: The event as returned by Microsoft
+        read_only: If the event is read-only i.e. comes from a calendar
+            user cannot edit
+        master_event_uid: Links exceptions and cancellations with their
+            master event
+
+    Returns:
+        ORM event
+    """
     if master_event_uid:
         assert event["type"] in ["exception", "synthetizedCancellation"]
 
@@ -624,6 +637,15 @@ def parse_event(
 
 
 def parse_calendar(calendar: MsGraphCalendar) -> Calendar:
+    """
+    Parse calendar coming from Microsoft Graph API as ORM object.
+
+    Arguments:
+        calendar: The calendar as returned by Microsoft
+
+    Returns:
+        ORM calendar
+    """
     uid = calendar["id"]
     name = calendar["name"]
     read_only = not calendar["canEdit"]

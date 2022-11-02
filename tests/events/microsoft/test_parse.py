@@ -997,24 +997,6 @@ def test_parse_event_recurrence():
     assert event.visibility is None
 
 
-outlook_calendar = {
-    "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAAAAAEGAABtf4g8yY_zTZgZh6x0X-50AAAAADafAAA=",
-    "name": "Calendar",
-    "color": "auto",
-    "hexColor": "",
-    "isDefaultCalendar": True,
-    "changeKey": "bX+IPMmPs02YGYesdF/+dAAAAAACtA==",
-    "canShare": True,
-    "canViewPrivateItems": True,
-    "canEdit": True,
-    "allowedOnlineMeetingProviders": ["teamsForBusiness"],
-    "defaultOnlineMeetingProvider": "teamsForBusiness",
-    "isTallyingResponses": True,
-    "isRemovable": True,
-    "owner": {"name": "Close Testing", "address": "example@example.com",},
-}
-
-
 single_instance_event = {
     "@odata.etag": 'W/"bX+IPMmPs02YGYesdF/+dAAB/52fpA=="',
     "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIAQ6TlAABtf4g8yY_zTZgZh6x0X-50AAIARNwsAAA=",
@@ -1088,6 +1070,24 @@ def test_parse_event_recurrence():
     assert event.is_owner is True
     assert event.cancelled is False
     assert event.visibility is None
+
+
+outlook_calendar = {
+    "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAAAAAEGAABtf4g8yY_zTZgZh6x0X-50AAAAADafAAA=",
+    "name": "Calendar",
+    "color": "auto",
+    "hexColor": "",
+    "isDefaultCalendar": True,
+    "changeKey": "bX+IPMmPs02YGYesdF/+dAAAAAACtA==",
+    "canShare": True,
+    "canViewPrivateItems": True,
+    "canEdit": True,
+    "allowedOnlineMeetingProviders": ["teamsForBusiness"],
+    "defaultOnlineMeetingProvider": "teamsForBusiness",
+    "isTallyingResponses": True,
+    "isRemovable": True,
+    "owner": {"name": "Close Testing", "address": "example@example.com",},
+}
 
 
 def test_parse_calendar():

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import Column, DateTime, ForeignKey, String
 
@@ -73,23 +73,23 @@ class GmailAccount(OAuthAccount, ImapAccount):
 
         return ActionLog
 
-    def new_calendar_list_watch(self, expiration):
-        # Google gives us back expiration timestamps in milliseconds
-        expiration = datetime.fromtimestamp(int(expiration) / 1000.0)
+    def new_calendar_list_watch(self, expiration: datetime) -> None:
         self.gpush_calendar_list_expiration = expiration
         self.gpush_calendar_list_last_ping = datetime.utcnow()
 
     def handle_gpush_notification(self):
         self.gpush_calendar_list_last_ping = datetime.utcnow()
 
-    def should_update_calendars(self, max_time_between_syncs, poll_frequency):
+    def should_update_calendars(
+        self, max_time_between_syncs: timedelta, poll_frequency: timedelta
+    ) -> bool:
         """
-        max_time_between_syncs: a timedelta object. The maximum amount of
-        time we should wait until we sync, even if we haven't received
-        any push notifications
+        Arguments:
+            max_time_between_syncs: The maximum amount of time we should wait
+                until we sync, even if we haven't received any push notifications.
 
-        poll_frequency: a timedelta object. Amount of time we should wait until
-        we sync if we don't have working push notifications.
+            poll_frequency: Amount of time we should wait until
+                we sync if we don't have working push notifications.
         """
         now = datetime.utcnow()
         return (
@@ -112,7 +112,7 @@ class GmailAccount(OAuthAccount, ImapAccount):
             )
         )
 
-    def needs_new_calendar_list_watch(self):
+    def needs_new_calendar_list_watch(self) -> bool:
         return (
             self.gpush_calendar_list_expiration is None
             or self.gpush_calendar_list_expiration < datetime.utcnow()

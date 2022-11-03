@@ -218,3 +218,4 @@ class MsGraphCalendar(TypedDict):
     id: str
     name: str
     canEdit: bool
+    isDefaultCalendar: bool

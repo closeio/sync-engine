@@ -1,12 +1,10 @@
 import re
 import sys
-import time
 from datetime import datetime
 from email.utils import mktime_tz, parsedate_tz
 from importlib import import_module
 from typing import List, Optional
 
-from inbox.logging import get_logger
 from inbox.providers import providers
 from inbox.util.file import iter_module_names
 
@@ -100,30 +98,6 @@ def get_internaldate(date, received):
     dt = datetime.utcfromtimestamp(timestamp)
 
     return dt
-
-
-def timed(fn):
-    """ A decorator for timing methods. """
-
-    def timed_fn(self, *args, **kwargs):
-        start_time = time.time()
-        ret = fn(self, *args, **kwargs)
-
-        # TODO some modules like gmail.py don't have self.logger
-        try:
-            if self.log:
-                fn_logger = self.log
-        except AttributeError:
-            fn_logger = get_logger()
-            # out = None
-        fn_logger.info(
-            "[timer] {} took {:.3f} seconds.".format(
-                str(fn), float(time.time() - start_time)
-            )
-        )
-        return ret
-
-    return timed_fn
 
 
 # Based on: http://stackoverflow.com/a/8556471

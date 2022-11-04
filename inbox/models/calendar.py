@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import (
     Boolean,
@@ -34,6 +34,7 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
     name = Column(String(MAX_INDEXABLE_LENGTH), nullable=True)
     provider_name = Column(String(128), nullable=True, default="DEPRECATED")
     description = Column(Text, nullable=True)
+    default = Column(Boolean, nullable=True)  # only set for Outlook calendars
 
     # A server-provided unique ID.
     uid = Column(String(767, collation="ascii_general_ci"), nullable=False)
@@ -66,11 +67,7 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
         self.read_only = calendar.read_only
         self.description = calendar.description
 
-    def new_event_watch(self, expiration):
-        """
-        Google gives us expiration as a timestamp in milliseconds
-        """
-        expiration = datetime.fromtimestamp(int(expiration) / 1000.0)
+    def new_event_watch(self, expiration: datetime) -> None:
         self.gpush_expiration = expiration
         self.gpush_last_ping = datetime.utcnow()
 
@@ -99,7 +96,7 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
 
         return True
 
-    def needs_new_watch(self):
+    def needs_new_watch(self) -> bool:
         if not self.can_sync():
             return False
 
@@ -107,7 +104,9 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
             self.gpush_expiration is None or self.gpush_expiration < datetime.utcnow()
         )
 
-    def should_update_events(self, max_time_between_syncs, poll_frequency):
+    def should_update_events(
+        self, max_time_between_syncs: timedelta, poll_frequency: timedelta
+    ) -> bool:
         """
         max_time_between_syncs: a timedelta object. The maximum amount of
         time we should wait until we sync, even if we haven't received
@@ -138,3 +137,26 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
                 and self.gpush_last_ping > self.last_synced
             )
         )
+
+
+def is_default_calendar(calendar: Calendar) -> bool:
+    """
+    Determine if this is a default/primary user calendar.
+
+    For Google calendars the default calendar's uid is the same as account
+    email address. In case of Microsoft uids are opaque and one needs
+    to store it in the database on the default field.
+
+    Arguments:
+        calendar: The google or microsoft calendar
+    """
+    from inbox.models.backends.gmail import GmailAccount
+    from inbox.models.backends.outlook import OutlookAccount
+
+    if isinstance(calendar.namespace.account, GmailAccount):
+        return calendar.uid == calendar.namespace.account.email_address
+    elif isinstance(calendar.namespace.account, OutlookAccount):
+        assert calendar.default is not None
+        return calendar.default
+    else:
+        raise NotImplementedError()

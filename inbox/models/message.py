@@ -82,6 +82,11 @@ def _trim_filename(s, namespace_id, max_len=255):
     return s
 
 
+class MessageTooBigException(Exception):
+    def __init__(self, body_length):
+        super().__init__(f"message length ({body_length}) is over the parsing limit")
+
+
 class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin):
     @property
     def API_OBJECT_NAME(self):
@@ -302,15 +307,24 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         try:
             body_length = len(body_string)
             if body_length > MAX_MESSAGE_BODY_PARSE_LENGTH:
-                raise Exception(
-                    f"message length ({body_length}) is over the parsing limit"
-                )
+                raise MessageTooBigException(body_length)
             parsed = mime.from_string(body_string)  # type: MimePart
             # Non-persisted instance attribute used by EAS.
             msg.parsed_body = parsed
             msg._parse_metadata(
                 parsed, body_string, received_date, account.id, folder_name, mid
             )
+        except (mime.DecodingError, MessageTooBigException) as e:
+            parsed = None
+            msg.parsed_body = ""
+            log.warning(
+                "Error parsing message metadata",
+                folder_name=folder_name,
+                account_id=account.id,
+                error=e,
+                mid=mid,
+            )
+            msg._mark_error()
         except Exception as e:
             parsed = None
             # Non-persisted instance attribute used by EAS.
@@ -458,7 +472,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         if disposition not in (None, "inline", "attachment"):
             log.error(
                 "Unknown Content-Disposition",
-                message_public_id=self.public_id,
+                mid=mid,
                 bad_content_disposition=mimepart.content_disposition,
             )
             self._mark_error()

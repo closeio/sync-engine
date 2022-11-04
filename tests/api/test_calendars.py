@@ -1,3 +1,4 @@
+import pytest
 from sqlalchemy import true
 
 from inbox.models import Calendar
@@ -7,13 +8,11 @@ from tests.util.base import add_fake_event, db, default_namespace
 __all__ = ["db", "default_namespace"]
 
 
-def test_get_calendar(db, default_namespace, api_client):
-    cal = Calendar(
-        namespace_id=default_namespace.id,
-        uid="uid",
-        provider_name="WTF",
-        name="Holidays",
-    )
+@pytest.mark.parametrize(
+    "uid,default", [("inboxapptest@gmail.com", True), ("other", False),],
+)
+def test_get_google_calendar(db, default_namespace, api_client, uid, default):
+    cal = Calendar(namespace_id=default_namespace.id, uid=uid, name="Holidays",)
     db.session.add(cal)
     db.session.commit()
     cal_id = cal.public_id
@@ -24,6 +23,25 @@ def test_get_calendar(db, default_namespace, api_client):
     assert calendar_item["description"] is None
     assert calendar_item["read_only"] is False
     assert calendar_item["object"] == "calendar"
+    assert calendar_item["default"] == default
+
+
+def test_get_outlook_calendar(db, outlook_namespace, make_api_client):
+    api_client = make_api_client(db, outlook_namespace)
+    cal = Calendar(
+        namespace_id=outlook_namespace.id, uid="uid", name="Holidays", default=False,
+    )
+    db.session.add(cal)
+    db.session.commit()
+    cal_id = cal.public_id
+    calendar_item = api_client.get_data(f"/calendars/{cal_id}")
+
+    assert calendar_item["account_id"] == outlook_namespace.public_id
+    assert calendar_item["name"] == "Holidays"
+    assert calendar_item["description"] is None
+    assert calendar_item["read_only"] is False
+    assert calendar_item["object"] == "calendar"
+    assert calendar_item["default"] is False
 
 
 def test_handle_not_found_calendar(api_client):
@@ -32,9 +50,7 @@ def test_handle_not_found_calendar(api_client):
 
 
 def test_add_to_specific_calendar(db, default_namespace, api_client):
-    cal = Calendar(
-        namespace_id=default_namespace.id, uid="uid", provider_name="WTF", name="Custom"
-    )
+    cal = Calendar(namespace_id=default_namespace.id, uid="uid", name="Custom")
     db.session.add(cal)
     db.session.commit()
     cal_id = cal.public_id

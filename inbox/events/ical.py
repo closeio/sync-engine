@@ -55,8 +55,8 @@ def normalize_repeated_component(
 def events_from_ics(namespace, calendar, ics_str):
     try:
         cal = iCalendar.from_ical(ics_str)
-    except (ValueError, IndexError, KeyError):
-        raise MalformedEventError()
+    except (ValueError, IndexError, KeyError, TypeError) as e:
+        raise MalformedEventError("Error while parsing ICS file") from e
 
     events: Dict[Literal["invites", "rsvps"], Event] = dict(invites=[], rsvps=[])
 
@@ -66,6 +66,9 @@ def events_from_ics(namespace, calendar, ics_str):
     for component in cal.walk():
         if component.name == "VCALENDAR":
             calendar_method = normalize_repeated_component(component.get("method"))
+            # Return early if we see calendar_method we don't care about
+            if calendar_method not in ["REQUEST", "CANCEL", "REPLY"]:
+                return events
 
         if component.name == "VTIMEZONE":
             tzname = component.get("TZID")
@@ -76,14 +79,15 @@ def events_from_ics(namespace, calendar, ics_str):
             # Make sure the times are in UTC.
             try:
                 original_start = component.get("dtstart").dt
-                if component.get("dtend"):
-                    original_end = component.get("dtend").dt
-                else:
-                    original_end = original_start + component.get("duration").dt
             except AttributeError:
-                raise MalformedEventError(
-                    "Event lacks one of DTSTART, DTEND or DURATION"
-                )
+                raise MalformedEventError("Event lacks one of DTSTART")
+
+            if component.get("dtend"):
+                original_end = component["dtend"].dt
+            elif component.get("duration"):
+                original_end = original_start + component["duration"].dt
+            else:
+                original_end = original_start
 
             start = original_start
             end = original_end
@@ -185,7 +189,8 @@ def events_from_ics(namespace, calendar, ics_str):
                     # Otherwise assume the event has been confirmed.
                     event_status = "confirmed"
 
-            assert event_status in EVENT_STATUSES
+            if event_status not in EVENT_STATUSES:
+                raise MalformedEventError("Bad event status", event_status)
 
             recur = component.get("rrule")
             if recur:
@@ -202,6 +207,8 @@ def events_from_ics(namespace, calendar, ics_str):
                     organizer_email = organizer_email[7:]
 
                 organizer_name = organizer.params.get("CN", organizer_name)
+                if isinstance(organizer_name, list):
+                    organizer_name = ",".join(organizer_name)
 
                 owner = formataddr((organizer_name, organizer_email.lower()))
             else:

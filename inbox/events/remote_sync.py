@@ -11,6 +11,7 @@ from inbox.events.recurring import link_events
 from inbox.logging import get_logger
 from inbox.models import Calendar, Event
 from inbox.models.account import Account
+from inbox.models.calendar import is_default_calendar
 from inbox.models.event import RecurringEvent, RecurringEventOverride
 from inbox.models.session import session_scope
 from inbox.sync.base_sync import BaseSyncMonitor
@@ -262,7 +263,7 @@ class GoogleEventSync(EventSync):
 
         try:
             if URL_PREFIX:
-                self._refresh_gpush_subscriptions()
+                self._refresh_webhook_subscriptions()
             else:
                 self.log.warning(
                     "Cannot use Google push notifications (URL_PREFIX not "
@@ -288,7 +289,7 @@ class GoogleEventSync(EventSync):
                 "Access to provider calendar API not enabled; bypassing sync"
             )
 
-    def _refresh_gpush_subscriptions(self) -> None:
+    def _refresh_webhook_subscriptions(self) -> None:
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(Account).get(self.account_id)
 
@@ -296,18 +297,18 @@ class GoogleEventSync(EventSync):
                 return
 
             if account.needs_new_calendar_list_watch():
-                expir = self.provider.watch_calendar_list(account)
-                if expir is not None:
-                    account.new_calendar_list_watch(expir)
+                calendar_list_expiration = self.provider.watch_calendar_list(account)
+                if calendar_list_expiration is not None:
+                    account.new_calendar_list_watch(calendar_list_expiration)
 
             cals_to_update = (
                 cal for cal in account.namespace.calendars if cal.needs_new_watch()
             )
             for cal in cals_to_update:
                 try:
-                    expir = self.provider.watch_calendar(account, cal)
-                    if expir is not None:
-                        cal.new_event_watch(expir)
+                    event_list_expiration = self.provider.watch_calendar(account, cal)
+                    if event_list_expiration is not None:
+                        cal.new_event_watch(event_list_expiration)
                 except HTTPError as exc:
                     if exc.response.status_code == 404:
                         self.log.warning(
@@ -336,38 +337,42 @@ class GoogleEventSync(EventSync):
             ):
                 self._sync_calendar_list(account, db_session)
 
-            stale_calendars = (
-                cal
-                for cal in account.namespace.calendars
-                if cal.should_update_events(
+            stale_calendars = [
+                calendar
+                for calendar in account.namespace.calendars
+                if calendar.should_update_events(
                     MAX_TIME_WITHOUT_SYNC, timedelta(seconds=POLL_FREQUENCY)
                 )
-            )
+            ]
 
-            # Sync user's primary calendar first. Note that the UID of the
-            # primary calendar corresponds to the user's account email address.
-            account_email = account.email_address
-            stale_calendars_sorted = sorted(
-                stale_calendars, key=lambda cal: cal.uid != account_email
-            )
+            # Sync user's primary/default calendar first.
+            stale_calendars_sorted = [
+                calendar
+                for calendar in stale_calendars
+                if is_default_calendar(calendar)
+            ] + [
+                calendar
+                for calendar in stale_calendars
+                if not is_default_calendar(calendar)
+            ]
 
-            for cal in stale_calendars_sorted:
+            for calendar in stale_calendars_sorted:
                 try:
-                    self._sync_calendar(cal, db_session)
+                    self._sync_calendar(calendar, db_session)
                 except HTTPError as exc:
                     if exc.response.status_code == 404:
                         self.log.warning(
                             "Tried to sync a deleted calendar."
                             "Deleting local calendar.",
-                            calendar_id=cal.id,
-                            calendar_uid=cal.uid,
+                            calendar_id=calendar.id,
+                            calendar_uid=calendar.uid,
                         )
-                        _delete_calendar(db_session, cal)
+                        _delete_calendar(db_session, calendar)
                     else:
                         self.log.error(
                             "Error while syncing calendar",
-                            cal_id=cal.id,
-                            calendar_uid=cal.uid,
+                            calendar_id=calendar.id,
+                            calendar_uid=calendar.uid,
                             status_code=exc.response.status_code,
                         )
                         raise exc

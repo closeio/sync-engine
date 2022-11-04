@@ -629,3 +629,43 @@ def test_event_with_method_repeated(db, default_account):
 
     (event,) = events["rsvps"]
     assert event.description == "Appointment with Apple Support"
+
+
+def test_event_with_dstart_only(db, default_account):
+    with open(absolute_path(FIXTURES + "event_with_dtstart_only.ics")) as fd:
+        data = fd.read()
+
+    events = events_from_ics(
+        default_account.namespace, default_account.emailed_events_calendar, data
+    )
+
+    (event,) = events["rsvps"]
+    assert event.start == datetime.datetime(2019, 12, 5, 15, tzinfo=pytz.UTC)
+    assert event.start == event.end
+
+
+def test_event_malformed_publish(db, default_account):
+    # The event is missing timezone specifier on dtstart and dtend
+    # and so is malformed, but the calendar method is PUBLISH
+    # so we don't need to process it at all because it does not contain
+    # rsvps or invites.
+    with open(absolute_path(FIXTURES + "event_malformed_publish.ics")) as fd:
+        data = fd.read()
+
+    events = events_from_ics(
+        default_account.namespace, default_account.emailed_events_calendar, data
+    )
+
+    assert events == {"invites": [], "rsvps": []}
+
+
+def test_event_with_organizer_list(db, default_account):
+    with open(absolute_path(FIXTURES + "event_with_organizer_list.ics")) as fd:
+        data = fd.read()
+
+    events = events_from_ics(
+        default_account.namespace, default_account.emailed_events_calendar, data
+    )
+    (event,) = events["rsvps"]
+
+    assert event.owner == '"Example1, Example2" <example@example.com>'

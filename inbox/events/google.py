@@ -14,19 +14,16 @@ import requests
 from inbox.auth.oauth import OAuthRequestsWrapper
 from inbox.basicauth import AccessNotEnabledError, OAuthError
 from inbox.config import config
+from inbox.events.abstract import AbstractEventsProvider
 from inbox.events.util import (
     CalendarSyncResponse,
     google_to_event_time,
     parse_datetime,
     parse_google_time,
 )
-from inbox.logging import get_logger
 from inbox.models import Account, Calendar
 from inbox.models.backends.oauth import token_manager
 from inbox.models.event import EVENT_STATUSES, Event
-from inbox.models.session import session_scope
-
-log = get_logger()
 
 CALENDARS_URL = "https://www.googleapis.com/calendar/v3/users/me/calendarList"
 STATUS_MAP = {
@@ -47,27 +44,15 @@ WATCH_CALENDARS_URL = CALENDARS_URL + "/watch"
 WATCH_EVENTS_URL = "https://www.googleapis.com/calendar/v3/calendars/{}/events/watch"
 
 
-class GoogleEventsProvider:
+class GoogleEventsProvider(AbstractEventsProvider):
     """
     A utility class to fetch and parse Google calendar data for the
     specified account using the Google Calendar API.
     """
 
-    def __init__(self, account_id: int, namespace_id: int):
-        self.account_id = account_id
-        self.namespace_id = namespace_id
-        self.log = log.new(account_id=account_id, component="calendar sync")
-
-        # A hash to store whether a calendar is read-only or not.
-        # This is a bit of a hack because this isn't exposed at the event level
-        # by the Google Event API.
-        self.calendars_table: Dict[str, bool] = {}
-
     def sync_calendars(self) -> CalendarSyncResponse:
-        """ Fetches data for the user's calendars.
-        Returns
-        -------
-        CalendarSyncResponse
+        """
+        Fetch data for the user's calendars.
         """
 
         deletes = []
@@ -86,22 +71,21 @@ class GoogleEventsProvider:
     def sync_events(
         self, calendar_uid: str, sync_from_time: Optional[datetime.datetime] = None
     ) -> List[Event]:
-        """ Fetches event data for an individual calendar.
+        """
+        Fetch event data for an individual calendar.
 
-        Parameters
-        ----------
-        calendar_uid: the google identifier for the calendar.
-            Usually username@gmail.com for the primary calendar, otherwise
-            random-alphanumeric-address@*.google.com
-        sync_from_time: datetime
-            Only sync events which have been added or changed since this time.
-            Note that if this is too far in the past, the Google calendar API
-            may return an HTTP 410 error, in which case we transparently fetch
-            all event data.
+        Arguments:
+            calendar_uid: the google identifier for the calendar.
+                Usually username@gmail.com for the primary calendar, otherwise
+                random-alphanumeric-address@*.google.com
+            sync_from_time: datetime
+                Only sync events which have been added or changed since this time.
+                Note that if this is too far in the past, the Google calendar API
+                may return an HTTP 410 error, in which case we transparently fetch
+                all event data.
 
-        Returns
-        -------
-        A list of uncommited Event instances.
+        Returns:
+            A list of uncommited Event instances
         """
         updates = []
         items = self._get_raw_events(calendar_uid, sync_from_time)
@@ -111,7 +95,7 @@ class GoogleEventsProvider:
                 parsed = parse_event_response(item, read_only_calendar)
                 updates.append(parsed)
             except (arrow.parser.ParserError, ValueError):
-                log.warning("Skipping unparseable event", exc_info=True, raw=item)
+                self.log.warning("Skipping unparseable event", exc_info=True, raw=item)
 
         return updates
 
@@ -156,13 +140,6 @@ class GoogleEventsProvider:
             else:
                 raise
 
-    def _get_access_token(self, force_refresh: bool = False) -> str:
-        with session_scope(self.namespace_id) as db_session:
-            acc = db_session.query(Account).get(self.account_id)
-            # This will raise OAuthError if OAuth access was revoked. The
-            # BaseSyncMonitor loop will catch this, clean up, and exit.
-            return token_manager.get_token(acc, force_refresh=force_refresh)
-
     def _get_resource_list(self, url: str, **params) -> List[Dict[str, Any]]:
         """Handles response pagination."""
         token = self._get_access_token()
@@ -206,25 +183,25 @@ class GoogleEventsProvider:
                     token = self._get_access_token(force_refresh=True)
                     continue
                 elif r.status_code in (500, 503):
-                    log.warning("Backend error in calendar API; retrying")
+                    self.log.warning("Backend error in calendar API; retrying")
                     gevent.sleep(30 + random.randrange(0, 60))
                     continue
                 elif r.status_code == 403:
                     try:
                         reason = r.json()["error"]["errors"][0]["reason"]
                     except (KeyError, ValueError):
-                        log.error(
+                        self.log.error(
                             "Couldn't parse API error response",
                             response=r.content,
                             status=r.status_code,
                         )
                         r.raise_for_status()
                     if reason == "userRateLimitExceeded":
-                        log.warning("API request was rate-limited; retrying")
+                        self.log.warning("API request was rate-limited; retrying")
                         gevent.sleep(30 + random.randrange(0, 60))
                         continue
                     elif reason == "accessNotConfigured":
-                        log.warning("API not enabled; returning empty result")
+                        self.log.warning("API not enabled; returning empty result")
                         raise AccessNotEnabledError()
                 # Unexpected error; raise.
                 raise
@@ -291,7 +268,7 @@ class GoogleEventsProvider:
         if response.status_code == 410:
             # The Google API returns an 'HTTPError: 410 Client Error: Gone'
             # for an event that no longer exists on the remote
-            log.warning(
+            self.log.warning(
                 "Event no longer exists on remote",
                 calendar_uid=calendar_uid,
                 event_uid=event_uid,
@@ -358,7 +335,7 @@ class GoogleEventsProvider:
             return datetime.datetime.fromtimestamp(int(expiration) / 1000)
         else:
             # Handle error and return None
-            self.handle_watch_errors(r)
+            self._handle_watch_errors(r)
             return None
 
     def watch_calendar(
@@ -422,10 +399,10 @@ class GoogleEventsProvider:
             return datetime.datetime.fromtimestamp(int(expiration) / 1000)
         else:
             # Handle error and return None
-            self.handle_watch_errors(r)
+            self._handle_watch_errors(r)
             return None
 
-    def handle_watch_errors(self, r: requests.Response) -> None:
+    def _handle_watch_errors(self, r: requests.Response) -> None:
         self.log.warning(
             "Error subscribing to Google push notifications",
             url=r.url,

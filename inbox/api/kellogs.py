@@ -266,11 +266,11 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
                 "unread": not msg.is_read,
                 "starred": msg.is_starred,
                 "files": msg.api_attachment_metadata,
-            }
-            resp["headers"] = {
-                "Message-Id": msg.message_id_header,
-                "In-Reply-To": msg.in_reply_to,
-                "References": msg.references,
+                "headers": {
+                    "Message-Id": msg.message_id_header,
+                    "In-Reply-To": msg.in_reply_to,
+                    "References": msg.references,
+                },
             }
             categories = format_messagecategories(msg.messagecategories)
             if obj.namespace.account.category_type == "folder":

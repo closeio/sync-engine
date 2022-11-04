@@ -619,13 +619,13 @@ def parse_event_response(event: Dict[str, Any], read_only_calendar: bool) -> Eve
 
 def _dump_event(event):
     """Convert an event db object to the Google API JSON format."""
-    dump = {}
-    dump["summary"] = event.title
-    dump["description"] = event.description
-    dump["location"] = event.location
-
-    # Whether the event blocks time on the calendar.
-    dump["transparency"] = "opaque" if event.busy else "transparent"
+    dump = {
+        "summary": event.title,
+        "description": event.description,
+        "location": event.location,
+        # Whether the event blocks time on the calendar.
+        "transparency": "opaque" if event.busy else "transparent",
+    }
 
     if event.all_day:
         dump["start"] = {"date": event.start.strftime("%Y-%m-%d")}

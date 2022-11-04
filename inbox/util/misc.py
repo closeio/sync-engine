@@ -34,16 +34,15 @@ def parse_ml_headers(headers):
     these headers are optional (RFC 2369).
 
     """
-    attrs = {}
-    attrs["List-Archive"] = headers.get("List-Archive")
-    attrs["List-Help"] = headers.get("List-Help")
-    attrs["List-Id"] = headers.get("List-Id")
-    attrs["List-Owner"] = headers.get("List-Owner")
-    attrs["List-Post"] = headers.get("List-Post")
-    attrs["List-Subscribe"] = headers.get("List-Subscribe")
-    attrs["List-Unsubscribe"] = headers.get("List-Unsubscribe")
-
-    return attrs
+    return {
+        "List-Archive": headers.get("List-Archive"),
+        "List-Help": headers.get("List-Help"),
+        "List-Id": headers.get("List-Id"),
+        "List-Owner": headers.get("List-Owner"),
+        "List-Post": headers.get("List-Post"),
+        "List-Subscribe": headers.get("List-Subscribe"),
+        "List-Unsubscribe": headers.get("List-Unsubscribe"),
+    }
 
 
 def parse_references(references, in_reply_to):
@@ -117,10 +116,7 @@ def load_modules(base_name, base_path):
     for module_name in iter_module_names(base_path):
         full_module_name = f"{base_name}.{module_name}"
 
-        if full_module_name not in sys.modules:
-            module = import_module(full_module_name)
-        else:
-            module = sys.modules[full_module_name]
+        module = sys.modules.get(full_module_name, import_module(full_module_name))
         modules.append(module)
 
     return modules

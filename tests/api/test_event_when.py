@@ -129,9 +129,11 @@ def test_api_invalid_event_when_bad_params(db, api_client, calendar, default_nam
 def test_api_invalid_event_when_timespan_bad_params(
     db, api_client, calendar, default_namespace
 ):
-    e_data = {"title": "Friday Office Party"}
+    e_data = {
+        "title": "Friday Office Party",
+        "when": {"object": "time", "start": 0},
+    }
 
-    e_data["when"] = {"object": "time", "start": 0}
     with pytest.raises(CreateError):
         _verify_create(default_namespace.public_id, api_client, e_data)
 
@@ -166,9 +168,9 @@ def test_api_invalid_event_when_datespan_bad_params(
     e_data = {
         "title": "Friday Office Party",
         "calendar_id": calendar.public_id,
+        "when": {"object": "date", "start": 0},
     }
 
-    e_data["when"] = {"object": "date", "start": 0}
     with pytest.raises(CreateError):
         _verify_create(default_namespace.public_id, api_client, e_data)
 
@@ -211,9 +213,10 @@ def test_api_invalid_event_when_time_bad_params(
     e_data = {
         "title": "Friday Office Party",
         "calendar_id": calendar.public_id,
+        "when": {"object": "date", "time": 0},
     }
 
-    e_data["when"] = {"object": "date", "time": 0}
+    e_data
     with pytest.raises(CreateError):
         _verify_create(default_namespace.public_id, api_client, e_data)
 
@@ -232,9 +235,9 @@ def test_api_invalid_event_when_date_bad_params(
     e_data = {
         "title": "Friday Office Party",
         "calendar_id": calendar.public_id,
+        "when": {"object": "time", "date": 0},
     }
 
-    e_data["when"] = {"object": "time", "date": 0}
     with pytest.raises(CreateError):
         _verify_create(default_namespace.public_id, api_client, e_data)
 
@@ -248,9 +251,9 @@ def test_api_event_when_update(db, api_client, calendar, default_namespace):
         "title": "Friday Office Party",
         "location": "home",
         "calendar_id": calendar.public_id,
+        "when": {"time": 0},
     }
 
-    e_data["when"] = {"time": 0}
     e_resp_data = _verify_create(default_namespace.public_id, api_client, e_data)
     e_id = e_resp_data["id"]
 

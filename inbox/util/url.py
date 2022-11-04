@@ -83,10 +83,7 @@ def mx_match(mx_domains, match_domains):
         # Match the given domain against any of the mx_server regular
         # expressions we have stored for the given domain. If none of them
         # match, then we cannot confirm this as the given provider
-        def match_filter(x):
-            return re.match(x, mx_domain)
-
-        if any(match_filter(m) for m in match_domains):
+        if any(re.match(m, mx_domain) for m in match_domains):
             return True
 
     return False

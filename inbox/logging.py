@@ -180,7 +180,7 @@ def _safe_exc_info_renderer(_, __, event_dict):
     elif isinstance(exc_info, tuple):
         # This supports passing the value of `sys.exc_info()` to the
         # `exc_info` argument. If that's the case, we take it verbatim.
-        exc_info = exc_info
+        pass
     else:
         # All other cases of normal log types that didn't pass any any
         # exception info.
@@ -287,8 +287,7 @@ def configure_logging(log_level=None):
     # may be passing in None explicitly if it's not defined.)
     if log_level is None:
         log_level = logging.INFO
-    elif log_level in LOG_LEVELS:
-        log_level = LOG_LEVELS[log_level]
+    log_level = LOG_LEVELS.get(log_level, log_level)
 
     tty_handler = logging.StreamHandler(sys.stdout)
     if sys.stdout.isatty():

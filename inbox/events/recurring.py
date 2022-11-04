@@ -114,8 +114,7 @@ def get_start_times(event, start=None, end=None):
             # https://phab.nylas.com/T3612. Remove it after
             # running the timezones migration.
             tz = event.start_timezone
-            if tz in timezones_table:
-                tz = timezones_table[tz]
+            tz = timezones_table.get(tz, tz)
 
             event.start = event.start.to(tz)
 

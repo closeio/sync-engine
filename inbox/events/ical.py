@@ -96,8 +96,7 @@ def events_from_ics(namespace, calendar, ics_str):
             all_day = False
             if isinstance(start, datetime) and isinstance(end, datetime):
                 tzid = str(original_start.tzinfo)
-                if tzid in timezones_table:
-                    original_start_tz = timezones_table[tzid]
+                original_start_tz = timezones_table.get(tzid)
 
                 if original_start.tzinfo is None:
                     tzid = component.get("dtstart").params.get("TZID", None)
@@ -207,10 +206,9 @@ def events_from_ics(namespace, calendar, ics_str):
                 if organizer_email.lower().startswith("mailto:"):
                     organizer_email = organizer_email[7:]
 
-                if "CN" in organizer.params:
-                    organizer_name = organizer.params["CN"]
-                    if isinstance(organizer_name, list):
-                        organizer_name = ",".join(organizer_name)
+                organizer_name = organizer.params.get("CN", organizer_name)
+                if isinstance(organizer_name, list):
+                    organizer_name = ",".join(organizer_name)
 
                 owner = formataddr((organizer_name, organizer_email.lower()))
             else:
@@ -698,10 +696,7 @@ def _generate_rsvp(status, account, event):
     icalevent.add("attendee", attendee, encode=0)
     cal.add_component(icalevent)
 
-    ret = {}
-    ret["cal"] = cal
-
-    return ret
+    return {"cal": cal}
 
 
 def generate_rsvp(event, participant, account):

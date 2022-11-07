@@ -38,7 +38,7 @@ STATUS_MAP = {
 
 URL_PREFIX = config.get("API_URL", "")
 
-PUSH_ENABLED_CLIENT_IDS = config.get("PUSH_ENABLED_CLIENT_IDS", [])
+WEBHOOK_ENABLED_CLIENT_IDS = config.get("WEBHOOK_ENABLED_CLIENT_IDS", [])
 
 CALENDAR_LIST_WEBHOOK_URL = URL_PREFIX + "/w/calendar_list_update/{}"
 EVENTS_LIST_WEHOOK_URL = URL_PREFIX + "/w/calendar_update/{}"
@@ -303,12 +303,12 @@ class GoogleEventsProvider:
     # -------- logic for push notification subscriptions -------- #
 
     def _get_access_token_for_push_notifications(self, account, force_refresh=False):
-        if not self.push_notifications_enabled(account):
+        if not self.webhook_notifications_enabled(account):
             raise OAuthError("Account not enabled for push notifications.")
         return token_manager.get_token(account, force_refresh)
 
-    def push_notifications_enabled(self, account: Account) -> bool:
-        return account.get_client_info()[0] in PUSH_ENABLED_CLIENT_IDS
+    def webhook_notifications_enabled(self, account: Account) -> bool:
+        return account.get_client_info()[0] in WEBHOOK_ENABLED_CLIENT_IDS
 
     def watch_calendar_list(self, account: Account) -> Optional[datetime.datetime]:
         """

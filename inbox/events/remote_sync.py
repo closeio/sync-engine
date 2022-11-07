@@ -241,7 +241,7 @@ class GoogleEventSync(EventSync):
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(Account).get(self.account_id)
             if (
-                self.provider.push_notifications_enabled(account)
+                self.provider.webhook_notifications_enabled(account)
                 and kwargs.get("poll_frequency") is None
             ):
                 # Run the sync loop more frequently if push notifications are
@@ -293,7 +293,7 @@ class GoogleEventSync(EventSync):
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(Account).get(self.account_id)
 
-            if not self.provider.push_notifications_enabled(account):
+            if not self.provider.webhook_notifications_enabled(account):
                 return
 
             if account.needs_new_calendar_list_watch():

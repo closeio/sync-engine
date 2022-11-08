@@ -45,7 +45,7 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
     last_synced = Column(DateTime, nullable=True)
 
     webhook_last_ping = Column("gpush_last_ping", DateTime)
-    gpush_expiration = Column(DateTime)
+    webhook_subscription_expiration = Column("gpush_expiration", DateTime)
 
     __table_args__ = (
         UniqueConstraint("namespace_id", "provider_name", "name", "uid", name="uuid"),
@@ -69,7 +69,7 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
         self.description = calendar.description
 
     def new_event_watch(self, expiration: datetime) -> None:
-        self.gpush_expiration = expiration
+        self.webhook_subscription_expiration = expiration
         self.webhook_last_ping = datetime.utcnow()
 
     def handle_gpush_notification(self):
@@ -102,7 +102,8 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
             return False
 
         return (
-            self.gpush_expiration is None or self.gpush_expiration < datetime.utcnow()
+            self.webhook_subscription_expiration is None
+            or self.webhook_subscription_expiration < datetime.utcnow()
         )
 
     def should_update_events(

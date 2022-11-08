@@ -99,7 +99,7 @@ def test_should_update_logic_push(db, watched_account, watched_calendar):
 
     # Received push notification - should update
     watched_account.handle_gpush_notification()
-    watched_calendar.handle_gpush_notification()
+    watched_calendar.handle_webhook_notification()
     assert watched_account.should_update_calendars(ten_minutes, zero)
     assert watched_calendar.should_update_events(ten_minutes, zero)
 

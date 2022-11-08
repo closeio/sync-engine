@@ -44,6 +44,20 @@ def test_get_outlook_calendar(db, outlook_namespace, make_api_client):
     assert calendar_item["default"] is False
 
 
+def test_inbox_calendar(db, outlook_namespace, make_api_client):
+    api_client = make_api_client(db, outlook_namespace)
+    cal = db.session.query(Calendar).filter_by(uid="inbox").one()
+    cal_id = cal.public_id
+    calendar_item = api_client.get_data(f"/calendars/{cal_id}")
+
+    assert calendar_item["account_id"] == outlook_namespace.public_id
+    assert calendar_item["name"] == "Emailed events"
+    assert calendar_item["description"] == "Emailed events"
+    assert calendar_item["read_only"] is True
+    assert calendar_item["object"] == "calendar"
+    assert calendar_item["default"] is None
+
+
 def test_handle_not_found_calendar(api_client):
     resp_data = api_client.get_raw("/calendars/foo")
     assert resp_data.status_code == 404

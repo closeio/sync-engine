@@ -44,7 +44,7 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
 
     last_synced = Column(DateTime, nullable=True)
 
-    gpush_last_ping = Column(DateTime)
+    webhook_last_ping = Column("gpush_last_ping", DateTime)
     gpush_expiration = Column(DateTime)
 
     __table_args__ = (
@@ -70,10 +70,10 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
 
     def new_event_watch(self, expiration: datetime) -> None:
         self.gpush_expiration = expiration
-        self.gpush_last_ping = datetime.utcnow()
+        self.webhook_last_ping = datetime.utcnow()
 
     def handle_gpush_notification(self):
-        self.gpush_last_ping = datetime.utcnow()
+        self.webhook_last_ping = datetime.utcnow()
 
     def can_sync(self):
         if self.name == "Emailed events" and self.uid == "inbox":
@@ -134,8 +134,8 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
             or
             # Events are stale, according to the push notifications
             (
-                self.gpush_last_ping is not None
-                and self.gpush_last_ping > self.last_synced
+                self.webhook_last_ping is not None
+                and self.webhook_last_ping > self.last_synced
             )
         )
 

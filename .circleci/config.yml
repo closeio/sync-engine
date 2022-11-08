@@ -40,6 +40,25 @@ jobs:
             -p inbox.events \
             -p inbox.heartbeat \
             -p inbox.mailsync \
+            -p inbox.models.account \
+            -p inbox.models.action_log \
+            -p inbox.models.base \
+            -p inbox.models.block \
+            -p inbox.models.calendar \
+            -p inbox.models.constants \
+            -p inbox.models.contact \
+            -p inbox.models.data_processing \
+            -p inbox.models.folder \
+            -p inbox.models.label \
+            -p inbox.models.metadata \
+            -p inbox.models.namespace \
+            -p inbox.models.roles \
+            -p inbox.models.search \
+            -p inbox.models.secret \
+            -p inbox.models.session \
+            -p inbox.models.thread \
+            -p inbox.models.transaction \
+            -p inbox.models.util \
             -p inbox.models.when \
             -p inbox.s3 \
             -p inbox.scheduling \

@@ -158,7 +158,11 @@ def session_scope(id_, versioned=True):
     try:
         if config.get("LOG_DB_SESSIONS"):
             start_time = time.time()
-            calling_frame = sys._getframe().f_back.f_back
+            frame = sys._getframe()
+            assert frame
+            assert frame.f_back
+            assert frame.f_back.f_back
+            calling_frame = frame.f_back.f_back
             call_loc = "{}:{}".format(
                 calling_frame.f_globals.get("__name__"), calling_frame.f_lineno
             )

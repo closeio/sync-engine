@@ -35,7 +35,9 @@ class GmailAccount(OAuthAccount, ImapAccount):
     # for Google webhook notifications:
     last_calendar_list_sync = Column(DateTime)
     webhook_calendar_list_last_ping = Column("gpush_calendar_list_last_ping", DateTime)
-    gpush_calendar_list_expiration = Column(DateTime)
+    webhook_calendar_list_expiration = Column(
+        "gpush_calendar_list_expiration", DateTime
+    )
 
     @property
     def email_scopes(self):
@@ -74,7 +76,7 @@ class GmailAccount(OAuthAccount, ImapAccount):
         return ActionLog
 
     def new_calendar_list_watch(self, expiration: datetime) -> None:
-        self.gpush_calendar_list_expiration = expiration
+        self.webhook_calendar_list_expiration = expiration
         self.webhook_calendar_list_last_ping = datetime.utcnow()
 
     def handle_gpush_notification(self):
@@ -116,8 +118,8 @@ class GmailAccount(OAuthAccount, ImapAccount):
 
     def needs_new_calendar_list_watch(self) -> bool:
         return (
-            self.gpush_calendar_list_expiration is None
-            or self.gpush_calendar_list_expiration < datetime.utcnow()
+            self.webhook_calendar_list_expiration is None
+            or self.webhook_calendar_list_expiration < datetime.utcnow()
         )
 
     def get_raw_message_contents(self, message):

@@ -32,9 +32,9 @@ class GmailAccount(OAuthAccount, ImapAccount):
     client_id = Column(String(256))
     scope = Column(String(512))
 
-    # for google push notifications:
+    # for Google webhook notifications:
     last_calendar_list_sync = Column(DateTime)
-    gpush_calendar_list_last_ping = Column(DateTime)
+    webhook_calendar_list_last_ping = Column("gpush_calendar_list_last_ping", DateTime)
     gpush_calendar_list_expiration = Column(DateTime)
 
     @property
@@ -75,10 +75,10 @@ class GmailAccount(OAuthAccount, ImapAccount):
 
     def new_calendar_list_watch(self, expiration: datetime) -> None:
         self.gpush_calendar_list_expiration = expiration
-        self.gpush_calendar_list_last_ping = datetime.utcnow()
+        self.webhook_calendar_list_last_ping = datetime.utcnow()
 
     def handle_gpush_notification(self):
-        self.gpush_calendar_list_last_ping = datetime.utcnow()
+        self.webhook_calendar_list_last_ping = datetime.utcnow()
 
     def should_update_calendars(
         self, max_time_between_syncs: timedelta, poll_frequency: timedelta
@@ -107,8 +107,10 @@ class GmailAccount(OAuthAccount, ImapAccount):
             or
             # Our info is stale, according to google's push notifications
             (
-                self.gpush_calendar_list_last_ping is not None
-                and (self.last_calendar_list_sync < self.gpush_calendar_list_last_ping)
+                self.webhook_calendar_list_last_ping is not None
+                and (
+                    self.last_calendar_list_sync < self.webhook_calendar_list_last_ping
+                )
             )
         )
 

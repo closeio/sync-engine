@@ -3,7 +3,6 @@ from unittest import mock
 
 import limitlion
 import pytest
-import pytz
 from gevent import sleep
 
 from inbox.models.calendar import Calendar
@@ -88,7 +87,7 @@ def test_should_update_logic_push(db, watched_account, watched_calendar):
     assert watched_calendar.should_update_events(ten_minutes, zero)
 
     # Updated recently and no webhook received - should not update
-    watched_account.gpush_calendar_list_last_ping = fifteen_minutes_ago
+    watched_account.webhook_calendar_list_last_ping = fifteen_minutes_ago
     watched_calendar.gpush_last_ping = fifteen_minutes_ago
     assert not watched_account.should_update_calendars(ten_minutes, zero)
     assert not watched_calendar.should_update_events(ten_minutes, zero)
@@ -178,14 +177,14 @@ def test_calendar_update(db, webhooks_client, watched_account):
     calendar_path = CALENDAR_LIST_PATH.format(watched_account.public_id)
 
     before = datetime.utcnow() - timedelta(seconds=1)
-    watched_account.gpush_calendar_list_last_ping = datetime(2010, 1, 1)
+    watched_account.webhook_calendar_list_last_ping = datetime(2010, 1, 1)
 
     headers = UPDATE_HEADERS.copy()
     headers["X-Goog-Channel-Id"] = ACCOUNT_WATCH_UUID
     r = webhooks_client.post_data(calendar_path, {}, headers)
     assert r.status_code == 200
     db.session.refresh(watched_account)
-    assert watched_account.gpush_calendar_list_last_ping > before
+    assert watched_account.webhook_calendar_list_last_ping > before
 
     unknown_id_path = CALENDAR_LIST_PATH.format(11111111111)
     r = webhooks_client.post_data(unknown_id_path, {}, headers)

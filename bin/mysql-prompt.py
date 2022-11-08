@@ -19,7 +19,16 @@ def main(shard_num):
 
     creds = dict(hostname=None, username=None, password=None, db_name=None)
 
-    for database in config.get_required("DATABASE_HOSTS"):
+    database_hosts = config.get_required("DATABASE_HOSTS")
+    if shard_num is None:
+        if len(database_hosts) == 1 and len(database_hosts[0]["SHARDS"]) == 1:
+            shard_num = database_hosts[0]["SHARDS"][0]["ID"]
+            print("No shard provided, falling back to", shard_num)
+        else:
+            print("There are many shards, please provide --shard-num", file=sys.stderr)
+            sys.exit(1)
+
+    for database in database_hosts:
         for shard in database["SHARDS"]:
             if shard["ID"] == shard_num:
                 creds["hostname"] = database["HOSTNAME"]
@@ -39,7 +48,7 @@ def main(shard_num):
             "mysql",
             "-h" + creds["hostname"],
             "-u" + creds["username"],
-            "-D " + creds["db_name"],
+            "-D" + creds["db_name"],
             "-p" + creds["password"],
             "--safe-updates",
         ]

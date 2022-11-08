@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import Optional
 
 from sqlalchemy import (
     Boolean,
@@ -139,19 +140,26 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
         )
 
 
-def is_default_calendar(calendar: Calendar) -> bool:
+def is_default_calendar(calendar: Calendar) -> Optional[bool]:
     """
     Determine if this is a default/primary user calendar.
+
+    For calendars that are special "inbox" calendars which
+    store events created from ICS attachments found in mail
+    this is always None.
 
     For Google calendars the default calendar's uid is the same as account
     email address. In case of Microsoft uids are opaque and one needs
     to store it in the database on the default field.
 
     Arguments:
-        calendar: The google or microsoft calendar
+        calendar: The google, microsoft or "inbox" calendar
     """
     from inbox.models.backends.gmail import GmailAccount
     from inbox.models.backends.outlook import OutlookAccount
+
+    if calendar.uid == "inbox":
+        return None
 
     if isinstance(calendar.namespace.account, GmailAccount):
         return calendar.uid == calendar.namespace.account.email_address

@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, Type
 
 from requests.exceptions import HTTPError
 
@@ -44,7 +44,7 @@ class EventSync(BaseSyncMonitor):
         provider_name: str,
         account_id: int,
         namespace_id: int,
-        provider_class: AbstractEventsProvider,
+        provider_class: Type[AbstractEventsProvider],
         poll_frequency: int = POLL_FREQUENCY,
     ):
         bind_context(self, "eventsync", account_id)

@@ -1,6 +1,7 @@
 # flake8: noqa: F401
 from datetime import datetime
 
+from inbox.events.google import GoogleEventsProvider
 from inbox.events.remote_sync import EventSync
 from inbox.events.util import CalendarSyncResponse
 from inbox.models import Calendar, Event, Transaction
@@ -122,7 +123,11 @@ def event_response_with_delete(calendar_uid, sync_from_time):
 def test_handle_changes(db, generic_account):
     namespace_id = generic_account.namespace.id
     event_sync = EventSync(
-        generic_account.email_address, "google", generic_account.id, namespace_id
+        generic_account.email_address,
+        "google",
+        generic_account.id,
+        namespace_id,
+        provider_class=GoogleEventsProvider,
     )
 
     # Sync calendars/events

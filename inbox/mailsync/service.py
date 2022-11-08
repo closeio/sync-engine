@@ -10,7 +10,7 @@ from sqlalchemy.exc import OperationalError
 from inbox.config import config
 from inbox.contacts.remote_sync import ContactSync
 from inbox.error_handling import log_uncaught_errors
-from inbox.events.remote_sync import EventSync, GoogleEventSync
+from inbox.events.remote_sync import EventSync, WebhookEventSync
 from inbox.heartbeat.status import clear_heartbeat_status
 from inbox.logging import get_logger
 from inbox.mailsync.backends import module_registry
@@ -307,11 +307,12 @@ class SyncService:
 
                 if info.get("events", None) and acc.sync_events:
                     if USE_GOOGLE_PUSH_NOTIFICATIONS and acc.provider == "gmail":
-                        event_sync = GoogleEventSync(
+                        event_sync = WebhookEventSync(
                             acc.email_address,
                             acc.verbose_provider,
                             acc.id,
                             acc.namespace.id,
+                            GoogleEventsProvider,
                         )
                     else:
                         event_sync = EventSync(

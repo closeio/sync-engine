@@ -6,7 +6,8 @@ from requests.exceptions import HTTPError
 from inbox.basicauth import AccessNotEnabledError, OAuthError
 from inbox.config import config
 from inbox.contacts.processing import update_contacts_from_event
-from inbox.events.google import URL_PREFIX, GoogleEventsProvider
+from inbox.events.abstract import AbstractEventsProvider
+from inbox.events.google import URL_PREFIX
 from inbox.events.recurring import link_events
 from inbox.logging import get_logger
 from inbox.models import Calendar, Event
@@ -43,11 +44,11 @@ class EventSync(BaseSyncMonitor):
         provider_name: str,
         account_id: int,
         namespace_id: int,
+        provider_class: AbstractEventsProvider,
         poll_frequency: int = POLL_FREQUENCY,
     ):
         bind_context(self, "eventsync", account_id)
-        # Only Google for now, can easily parametrize by provider later.
-        self.provider = GoogleEventsProvider(account_id, namespace_id)
+        self.provider = provider_class(account_id, namespace_id)
         self.log = logger.new(account_id=account_id, component="calendar sync")
 
         BaseSyncMonitor.__init__(
@@ -235,7 +236,7 @@ def handle_event_updates(
     )
 
 
-class GoogleEventSync(EventSync):
+class WebhookEventSync(EventSync):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         with session_scope(self.namespace_id) as db_session:

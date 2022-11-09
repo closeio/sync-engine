@@ -27,10 +27,6 @@ class GmailAccount(CalendarSyncAccountMixin, OAuthAccount, ImapAccount):
     scope = Column(String(512))
 
     @property
-    def email_scopes(self):
-        return GOOGLE_EMAIL_SCOPES
-
-    @property
     def contacts_scopes(self):
         return GOOGLE_CONTACTS_SCOPES
 

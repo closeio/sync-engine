@@ -69,7 +69,7 @@ def calendar_update(account_public_id):
                 .filter(GmailAccount.public_id == account_public_id)
                 .one()
             )
-            account.handle_gpush_notification()
+            account.handle_webhook_notification()
             db_session.commit()
         return resp(200)
     except ValueError:

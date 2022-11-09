@@ -44,8 +44,18 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
 
     last_synced = Column(DateTime, nullable=True)
 
-    webhook_last_ping = Column("gpush_last_ping", DateTime)
+    old_webhook_last_ping = Column("gpush_last_ping", DateTime)
+    new_webhook_last_ping = Column("webhook_last_ping", DateTime)
     webhook_subscription_expiration = Column("gpush_expiration", DateTime)
+
+    @property
+    def webhook_last_ping(self) -> Optional[datetime]:
+        return self.new_webhook_last_ping or self.old_webhook_last_ping
+
+    @webhook_last_ping.setter
+    def webhook_last_ping(self, value: datetime):
+        self.old_webhook_last_ping = value
+        self.new_webhook_last_ping = value
 
     __table_args__ = (
         UniqueConstraint("namespace_id", "provider_name", "name", "uid", name="uuid"),

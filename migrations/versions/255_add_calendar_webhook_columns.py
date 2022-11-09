@@ -23,6 +23,13 @@ def upgrade():
         sa.Column("webhook_subscription_expiration", sa.DateTime(), nullable=True),
     )
 
+    op.execute(
+        "UPDATE calendar SET webhook_last_ping = gpush_last_ping WHERE gpush_last_ping IS NOT NULL;"
+    )
+    op.execute(
+        "UPDATE calendar SET webhook_subscription_expiration = gpush_expiration WHERE gpush_expiration IS NOT NULL;"
+    )
+
 
 def downgrade():
     op.drop_column("calendar", "webhook_subscription_expiration")

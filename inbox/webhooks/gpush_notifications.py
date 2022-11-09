@@ -93,7 +93,7 @@ def event_update(calendar_public_id):
                     .filter(Calendar.public_id == calendar_public_id)
                     .one()
                 )
-                calendar.handle_gpush_notification()
+                calendar.handle_webhook_notification()
                 db_session.commit()
         return resp(200)
     except ValueError:

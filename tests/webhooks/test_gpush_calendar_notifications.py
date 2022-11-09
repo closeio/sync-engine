@@ -88,7 +88,7 @@ def test_should_update_logic_push(db, watched_account, watched_calendar):
 
     # Updated recently and no webhook received - should not update
     watched_account.webhook_calendar_list_last_ping = fifteen_minutes_ago
-    watched_calendar.gpush_last_ping = fifteen_minutes_ago
+    watched_calendar.webhook_last_ping = fifteen_minutes_ago
     assert not watched_account.should_update_calendars(ten_minutes, zero)
     assert not watched_calendar.should_update_events(ten_minutes, zero)
 
@@ -99,7 +99,7 @@ def test_should_update_logic_push(db, watched_account, watched_calendar):
 
     # Received push notification - should update
     watched_account.handle_webhook_notification()
-    watched_calendar.handle_gpush_notification()
+    watched_calendar.handle_webhook_notification()
     assert watched_account.should_update_calendars(ten_minutes, zero)
     assert watched_calendar.should_update_events(ten_minutes, zero)
 
@@ -205,7 +205,7 @@ def test_event_update(db, webhooks_client, watched_calendar):
     event_path = CALENDAR_PATH.format(watched_calendar.public_id)
 
     before = datetime.utcnow() - timedelta(seconds=1)
-    watched_calendar.gpush_last_ping = datetime(2010, 1, 1)
+    watched_calendar.webhook_last_ping = datetime(2010, 1, 1)
 
     headers = UPDATE_HEADERS.copy()
     headers["X-Goog-Channel-Id"] = CALENDAR_WATCH_UUID
@@ -213,17 +213,17 @@ def test_event_update(db, webhooks_client, watched_calendar):
     assert r.status_code == 200
     assert len(limitlion.throttle.mock_calls) == 1
     db.session.refresh(watched_calendar)
-    gpush_last_ping = watched_calendar.gpush_last_ping
-    assert gpush_last_ping > before
+    webhook_last_ping = watched_calendar.webhook_last_ping
+    assert webhook_last_ping > before
 
     sleep(1)
 
-    # Test that gpush_last_ping *is* updated if last updated too long ago
-    watched_calendar.gpush_last_ping = gpush_last_ping - timedelta(seconds=22)
+    # Test that webhook_last_ping *is* updated if last updated too long ago
+    watched_calendar.webhook_last_ping = webhook_last_ping - timedelta(seconds=22)
     db.session.commit()
     r = webhooks_client.post_data(event_path, {}, headers)
     db.session.refresh(watched_calendar)
-    assert watched_calendar.gpush_last_ping > gpush_last_ping
+    assert watched_calendar.webhook_last_ping > webhook_last_ping
 
     bad_event_path = CALENDAR_PATH.format(1111111111111)
     r = webhooks_client.post_data(bad_event_path, {}, headers)

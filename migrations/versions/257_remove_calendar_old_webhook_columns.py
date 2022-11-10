@@ -1,14 +1,14 @@
 """Remove calendar old webhook columns
 
 Revision ID: 4af0d2f17967
-Revises: 9ea81ca0f64b
+Revises: 93cc6f4ce113
 Create Date: 2022-11-10 12:21:52.306392
 
 """
 
 # revision identifiers, used by Alembic.
 revision = "4af0d2f17967"
-down_revision = "9ea81ca0f64b"
+down_revision = "93cc6f4ce113"
 
 import sqlalchemy as sa
 from alembic import op

@@ -747,11 +747,9 @@ class FolderSyncEngine(Greenlet):
         self.uidnext = remote_uidnext
 
     def condstore_refresh_flags(self, crispin_client):
-        new_highestmodseq = crispin_client.conn.folder_status(
+        new_highestmodseq: int = crispin_client.conn.folder_status(
             self.folder_name, ["HIGHESTMODSEQ"]
-        )[
-            b"HIGHESTMODSEQ"
-        ]  # type: int
+        )[b"HIGHESTMODSEQ"]
         # Ensure that we have an initial highestmodseq value stored before we
         # begin polling for changes.
         if self.highestmodseq is None:
@@ -994,8 +992,9 @@ class UidInvalid(Exception):
 
 # This version is elsewhere in the codebase, so keep it for now
 # TODO(emfree): clean this up.
-def uidvalidity_cb(account_id, folder_name, select_info):
-    # type: (int, str, Dict[bytes, Any]) -> Dict[bytes, Any]
+def uidvalidity_cb(
+    account_id: int, folder_name: str, select_info: Dict[bytes, Any]
+) -> Dict[bytes, Any]:
     assert (
         folder_name is not None and select_info is not None
     ), "must start IMAP session before verifying UIDVALIDITY"

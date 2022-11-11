@@ -126,8 +126,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     # TO BE DEPRECATED
     g_labels = Column(JSON, default=lambda: [], nullable=True)
 
-    def update_flags(self, new_flags):
-        # type: (List[bytes]) -> None
+    def update_flags(self, new_flags: List[bytes]) -> None:
         """
         Sets flag and g_labels values based on the new_flags and x_gm_labels
         parameters. Returns True if any values have changed compared to what we

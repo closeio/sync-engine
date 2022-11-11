@@ -63,8 +63,7 @@ class GenericAccount(ImapAccount):
             return "imap"
         return self.provider
 
-    def valid_password(self, value):
-        # type: (UnionType[str, bytes]) -> bytes
+    def valid_password(self, value: Union[str, bytes]) -> bytes:
         # Must be a valid UTF-8 byte sequence without NULL bytes.
         if not isinstance(value, bytes):
             value = value.encode("utf-8")
@@ -80,28 +79,24 @@ class GenericAccount(ImapAccount):
         return value
 
     @property
-    def imap_password(self):
-        # type: () -> str
+    def imap_password(self) -> str:
         return self.imap_secret.secret.decode("utf-8")
 
     @imap_password.setter
-    def imap_password(self, value):
-        # type: (Union[str, bytes]) -> None
-        value = self.valid_password(value)  # type: bytes
+    def imap_password(self, value: Union[str, bytes]) -> None:
+        value: bytes = self.valid_password(value)
         if not self.imap_secret:
             self.imap_secret = Secret()
         self.imap_secret.secret = value
         self.imap_secret.type = "password"
 
     @property
-    def smtp_password(self):
-        # type: () -> str
+    def smtp_password(self) -> str:
         return self.smtp_secret.secret.decode("utf-8")
 
     @smtp_password.setter
-    def smtp_password(self, value):
-        # type: (Union[str, bytes]) -> None
-        value = self.valid_password(value)  # type: bytes
+    def smtp_password(self, value: Union[str, bytes]) -> None:
+        value: bytes = self.valid_password(value)
         if not self.smtp_secret:
             self.smtp_secret = Secret()
         self.smtp_secret.secret = value

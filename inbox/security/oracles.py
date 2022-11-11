@@ -22,8 +22,7 @@ def get_encryption_oracle(secret_name):
     return _EncryptionOracle(secret_name)
 
 
-def get_decryption_oracle(secret_name):
-    # type: (str) -> _DecryptionOracle
+def get_decryption_oracle(secret_name: str) -> "_DecryptionOracle":
     """
     Return an decryption oracle for the given secret.
 

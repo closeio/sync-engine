@@ -30,16 +30,14 @@ class Secret(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     encryption_scheme = Column(Integer, server_default="0", nullable=False)
 
     @property
-    def secret(self):
-        # type: () -> bytes
+    def secret(self) -> bytes:
         with get_decryption_oracle("SECRET_ENCRYPTION_KEY") as d_oracle:
             return d_oracle.decrypt(
                 self._secret, encryption_scheme=self.encryption_scheme
             )
 
     @secret.setter
-    def secret(self, plaintext):
-        # type: (Union[str, bytes]) -> None
+    def secret(self, plaintext: Union[str, bytes]) -> None:
         if not isinstance(plaintext, bytes):
             plaintext = plaintext.encode("utf-8")
         if not isinstance(plaintext, bytes):

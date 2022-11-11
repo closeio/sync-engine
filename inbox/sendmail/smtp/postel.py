@@ -103,8 +103,7 @@ def _transform_ssl_error(strerror):
         return strerror
 
 
-def _substitute_bcc(raw_message):
-    # type: (bytes) -> bytes
+def _substitute_bcc(raw_message: bytes) -> bytes:
     """
     Substitute BCC in raw message.
     """

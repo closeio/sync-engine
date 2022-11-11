@@ -69,8 +69,7 @@ MAX_LENS = {
 _EVENT_CREATED_SANELY_SENTINEL = object()
 
 
-def time_parse(x):
-    # type: (Union[float, int, str, arrow.Arrow]) -> arrow.Arrow
+def time_parse(x: Union[float, int, str, arrow.Arrow]) -> arrow.Arrow:
     with contextlib.suppress(ValueError, TypeError):
         x = float(x)
 

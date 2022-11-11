@@ -63,7 +63,7 @@ class GenericAccount(ImapAccount):
             return "imap"
         return self.provider
 
-    def valid_password(self, value: UnionType[str, bytes]) -> bytes:
+    def valid_password(self, value: Union[str, bytes]) -> bytes:
         # Must be a valid UTF-8 byte sequence without NULL bytes.
         if not isinstance(value, bytes):
             value = value.encode("utf-8")

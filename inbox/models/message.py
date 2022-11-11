@@ -273,7 +273,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         folder_name: str,
         received_date: Optional[datetime.datetime],
         body_string: bytes,
-    ) -> Message:
+    ) -> "Message":
         """
         Parses message data and writes out db metadata and MIME blocks.
 

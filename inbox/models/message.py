@@ -678,7 +678,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         return p
 
     @property
-    def attachments(self) -> List[Part]:
+    def attachments(self) -> List["Part"]:
         return [part for part in self.parts if part.is_attachment]
 
     @property
@@ -714,7 +714,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         return "text/calendar" in [p.block.content_type for p in self.parts]
 
     @property
-    def attached_event_files(self) -> List[Part]:
+    def attached_event_files(self) -> List["Part"]:
         return [
             part for part in self.parts if part.block.content_type == "text/calendar"
         ]
@@ -732,7 +732,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     @classmethod
     def from_public_id(
         cls, public_id: str, namespace_id: int, db_session: Any
-    ) -> Message:
+    ) -> "Message":
         q = db_session.query(cls)
         q = q.filter(
             Message.public_id == bindparam("public_id"),

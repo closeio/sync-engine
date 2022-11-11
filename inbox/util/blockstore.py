@@ -26,8 +26,7 @@ def _data_file_path(h):
     return os.path.join(_data_file_directory(h), h)
 
 
-def save_to_blockstore(data_sha256, data):
-    # type: (str, bytes) -> None
+def save_to_blockstore(data_sha256: str, data: bytes) -> None:
     assert data is not None
     assert isinstance(data, bytes)
 
@@ -45,8 +44,7 @@ def save_to_blockstore(data_sha256, data):
             f.write(data)
 
 
-def _save_to_s3(data_sha256, data):
-    # type: (str, bytes) -> None
+def _save_to_s3(data_sha256: str, data: bytes) -> None:
     assert (
         "TEMP_MESSAGE_STORE_BUCKET_NAME" in config
     ), "Need temp bucket name to store message data!"
@@ -65,8 +63,7 @@ def get_s3_bucket(bucket_name):
     return conn.get_bucket(bucket_name, validate=False)
 
 
-def _save_to_s3_bucket(data_sha256, bucket_name, data):
-    # type: (str, str, bytes) -> None
+def _save_to_s3_bucket(data_sha256: str, bucket_name: str, data: bytes) -> None:
     assert "AWS_ACCESS_KEY_ID" in config, "Need AWS key!"
     assert "AWS_SECRET_ACCESS_KEY" in config, "Need AWS secret!"
     start = time.time()

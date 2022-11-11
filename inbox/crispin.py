@@ -359,19 +359,24 @@ class CrispinClient:
 
     """
 
-    def __init__(self, account_id, provider_info, email_address, conn, readonly=True):
-        # type: (int, Dict[str, Any], str, imapclient.imapclient.IMAPClient, bool) -> None
+    def __init__(
+        self,
+        account_id: int,
+        provider_info: Dict[str, Any],
+        email_address: str,
+        conn: imapclient.imapclient.IMAPClient,
+        readonly: bool = True,
+    ) -> None:
         self.account_id = account_id
         self.provider_info = provider_info
         self.email_address = email_address
         # IMAP isn't stateless :(
-        self.selected_folder = None  # type: Optional[Tuple[str, Dict[bytes, Any]]]
-        self._folder_names = None  # type: Optional[DefaultDict[str, List[str]]]
+        self.selected_folder: Optional[Tuple[str, Dict[bytes, Any]]] = None
+        self._folder_names: Optional[DefaultDict[str, List[str]]] = None
         self.conn = conn
         self.readonly = readonly
 
-    def _fetch_folder_list(self):
-        # type: () -> List[Tuple[Tuple[bytes, ...], bytes, str]]
+    def _fetch_folder_list(self) -> List[Tuple[Tuple[bytes, ...], bytes, str]]:
         r""" NOTE: XLIST is deprecated, so we just use LIST.
 
         An example response with some other flags:
@@ -398,8 +403,11 @@ class CrispinClient:
             if name is not None
         ]
 
-    def select_folder_if_necessary(self, folder_name, uidvalidity_callback):
-        # type: (str, Callable[[int, str, Dict[bytes, Any]], Dict[bytes, Any]]) -> Dict[bytes, Any]
+    def select_folder_if_necessary(
+        self,
+        folder_name: str,
+        uidvalidity_callback: Callable[[int, str, Dict[bytes, Any]], Dict[bytes, Any]],
+    ) -> Dict[bytes, Any]:
         """ Selects a given folder if it isn't already the currently selected
         folder.
 
@@ -421,8 +429,11 @@ class CrispinClient:
             self.account_id, folder_name, self.selected_folder[1]
         )
 
-    def select_folder(self, folder_name, uidvalidity_callback):
-        # type: (str, Callable[[int, str, Dict[bytes, Any]], Dict[bytes, Any]]) -> Dict[bytes, Any]
+    def select_folder(
+        self,
+        folder_name: str,
+        uidvalidity_callback: Callable[[int, str, Dict[bytes, Any]], Dict[bytes, Any]],
+    ) -> Dict[bytes, Any]:
         """ Selects a given folder.
 
         Makes sure to set the 'selected_folder' attribute to a
@@ -437,9 +448,9 @@ class CrispinClient:
         cached/out-of-date values for HIGHESTMODSEQ from the IMAP server.
         """
         try:
-            select_info = self.conn.select_folder(
+            select_info: Dict[bytes, Any] = self.conn.select_folder(
                 folder_name, readonly=self.readonly
-            )  # type: Dict[bytes, Any]
+            )
         except imapclient.IMAPClient.Error as e:
             # Specifically point out folders that come back as missing by
             # checking for Yahoo / Gmail / Outlook (Hotmail) specific errors:
@@ -488,12 +499,11 @@ class CrispinClient:
         return or_none(self.selected_folder_info, lambda i: i.get(b"UIDNEXT"))
 
     @property
-    def folder_separator(self):
-        # type: () -> str
+    def folder_separator(self) -> str:
         # We use the list command because it works for most accounts.
-        folders_list = (
+        folders_list: List[Tuple[Tuple[bytes, ...], bytes, str]] = (
             self.conn.list_folders()
-        )  # type: List[Tuple[Tuple[bytes, ...], bytes, str]]
+        )
 
         if len(folders_list) == 0:
             return "."
@@ -501,8 +511,7 @@ class CrispinClient:
         return folders_list[0][1].decode()
 
     @property
-    def folder_prefix(self):
-        # type: () -> str
+    def folder_prefix(self) -> str:
         # Unfortunately, some servers don't support the NAMESPACE command.
         # In this case, assume that there's no folder prefix.
         if self.conn.has_capability("NAMESPACE"):
@@ -526,7 +535,7 @@ class CrispinClient:
             Folders to sync (as strings).
 
         """
-        have_folders = self.folder_names()  # type: DefaultDict[str, List[str]]
+        have_folders: DefaultDict[str, List[str]] = self.folder_names()
 
         # Sync inbox folder first, then sent, then others.
         to_sync: List[str] = []
@@ -542,8 +551,7 @@ class CrispinClient:
 
         return to_sync
 
-    def folder_names(self, force_resync=False):
-        # type: (bool) -> DefaultDict[str, List[str]]
+    def folder_names(self, force_resync: bool = False) -> DefaultDict[str, List[str]]:
         """
         Return the folder names for the account as a mapping from
         recognized role: list of folder names,
@@ -567,14 +575,13 @@ class CrispinClient:
         if force_resync or self._folder_names is None:
             self._folder_names = defaultdict(list)
 
-            raw_folders = self.folders()  # type: List[RawFolder]
+            raw_folders: List[RawFolder] = self.folders()
             for raw_folder in raw_folders:
                 self._folder_names[raw_folder.role].append(raw_folder.display_name)
 
         return self._folder_names
 
-    def folders(self):
-        # type: () -> List[RawFolder]
+    def folders(self) -> List[RawFolder]:
         """
         Fetch the list of folders for the account from the remote, return as a
         list of RawFolder objects.
@@ -583,14 +590,14 @@ class CrispinClient:
         Always fetches the list of folders from the remote.
 
         """
-        raw_folders = []  # type: List[RawFolder]
+        raw_folders: List[RawFolder] = []
 
         # Folders that provide basic functionality of email
         system_role_names = ["inbox", "sent", "trash", "spam"]
 
-        folders = (
+        folders: List[Tuple[Tuple[bytes, ...], bytes, str]] = (
             self._fetch_folder_list()
-        )  # type: List[Tuple[Tuple[bytes, ...], bytes, str]]
+        )
         for flags, _, name in folders:
             if (
                 b"\\Noselect" in flags
@@ -600,16 +607,16 @@ class CrispinClient:
                 # Special folders that can't contain messages
                 continue
 
-            raw_folder = self._process_folder(name, flags)  # type: RawFolder
+            raw_folder: RawFolder = self._process_folder(name, flags)
             raw_folders.append(raw_folder)
 
         # Check to see if we have to guess the roles for any system role
-        missing_roles = self._get_missing_roles(
+        missing_roles: List[str] = self._get_missing_roles(
             raw_folders, system_role_names
-        )  # type: List[str]
-        guessed_roles = [
+        )
+        guessed_roles: List[Optional[str]] = [
             self._guess_role(folder.display_name) for folder in raw_folders
-        ]  # type: List[Optional[str]]
+        ]
 
         for role in missing_roles:
             if guessed_roles.count(role) == 1:
@@ -620,8 +627,9 @@ class CrispinClient:
 
         return raw_folders
 
-    def _get_missing_roles(self, folders, roles):
-        # type: (List[RawFolder], List[str]) -> List[str]
+    def _get_missing_roles(
+        self, folders: List[RawFolder], roles: List[str]
+    ) -> List[str]:
         """
         Given a list of folders, and a list of roles, returns a list
         a list of roles that did not appear in the list of folders
@@ -637,7 +645,7 @@ class CrispinClient:
         assert len(folders) > 0
         assert len(roles) > 0
 
-        missing_roles = {role: "" for role in roles}  # type: Dict[str, str]
+        missing_roles: Dict[str, str] = {role: "" for role in roles}
         for folder in folders:
             # if role is in missing_roles, then we lied about it being missing
             if folder.role in missing_roles:
@@ -645,8 +653,7 @@ class CrispinClient:
 
         return list(missing_roles)
 
-    def _guess_role(self, folder):
-        # type: (str) -> Optional[str]
+    def _guess_role(self, folder: str) -> Optional[str]:
         """
         Given a folder, guess the system role that corresponds to that folder
 
@@ -667,8 +674,7 @@ class CrispinClient:
 
         return None
 
-    def _process_folder(self, display_name, flags):
-        # type: (str, Tuple[bytes, ...]) -> RawFolder
+    def _process_folder(self, display_name: str, flags: Tuple[bytes, ...]) -> RawFolder:
         """
         Determine the role for the remote folder from its `name` and `flags`.
 
@@ -682,7 +688,7 @@ class CrispinClient:
         # Different providers have different names for folders, here
         # we have a default map for common name mapping, additional
         # mappings can be provided via the provider configuration file
-        default_folder_map = {
+        default_folder_map: Dict[str, str] = {
             "inbox": "inbox",
             "drafts": "drafts",
             "draft": "drafts",
@@ -693,7 +699,7 @@ class CrispinClient:
             "sent": "sent",
             "sent items": "sent",
             "trash": "trash",
-        }  # type: Dict[str, str]
+        }
 
         # Additionally we provide a custom mapping for providers that
         # don't fit into the defaults.
@@ -701,14 +707,14 @@ class CrispinClient:
 
         # Some providers also provide flags to determine common folders
         # Here we read these flags and apply the mapping
-        flag_map = {
+        flag_map: Dict[bytes, str] = {
             b"\\Trash": "trash",
             b"\\Sent": "sent",
             b"\\Drafts": "drafts",
             b"\\Junk": "spam",
             b"\\Inbox": "inbox",
             b"\\Spam": "spam",
-        }  # type: Dict[bytes, str]
+        }
 
         role = default_folder_map.get(display_name.lower())
 
@@ -726,19 +732,16 @@ class CrispinClient:
     def create_folder(self, name):
         self.conn.create_folder(name)
 
-    def condstore_supported(self):
-        # type: () -> bool
+    def condstore_supported(self) -> bool:
         # Technically QRESYNC implies CONDSTORE, although this is unlikely to
         # matter in practice.
-        capabilities = self.conn.capabilities()  # type: Tuple[bytes, ...]
+        capabilities: Tuple[bytes, ...] = self.conn.capabilities()
         return b"CONDSTORE" in capabilities or b"QRESYNC" in capabilities
 
-    def idle_supported(self):
-        # type: () -> bool
+    def idle_supported(self) -> bool:
         return b"IDLE" in self.conn.capabilities()
 
-    def search_uids(self, criteria):
-        # type: (List[str]) -> List[int]
+    def search_uids(self, criteria: List[str]) -> List[int]:
         """
         Find UIDs in this folder matching the criteria. See
         http://tools.ietf.org/html/rfc3501.html#section-6.4.4 for valid
@@ -747,8 +750,7 @@ class CrispinClient:
         """
         return sorted(int(uid) for uid in self.conn.search(criteria))
 
-    def all_uids(self):
-        # type: () -> List[int]
+    def all_uids(self) -> List[int]:
         """ Fetch all UIDs associated with the currently selected folder.
 
         Returns
@@ -765,7 +767,7 @@ class CrispinClient:
 
         try:
             t = time.time()
-            fetch_result = self.conn.search(["ALL"])  # type: List[int]
+            fetch_result: List[int] = self.conn.search(["ALL"])
         except imaplib.IMAP4.error as e:
             message = e.args[0] if e.args else ""
             if message.find("UID SEARCH wrong arguments passed") >= 0:
@@ -797,11 +799,10 @@ class CrispinClient:
         )
         return sorted(int(uid) for uid in fetch_result)
 
-    def uids(self, uids):
-        # type: (List[int]) -> List[RawMessage]
+    def uids(self, uids: List[int]) -> List[RawMessage]:
         uid_set = set(uids)
-        imap_messages = {}  # type: Dict[int, Dict[bytes, Any]]
-        raw_messages = []  # type: List[RawMessage]
+        imap_messages: Dict[int, Dict[bytes, Any]] = {}
+        raw_messages: List[RawMessage] = []
 
         for uid in uid_set:
             try:
@@ -809,9 +810,9 @@ class CrispinClient:
                 # corrupt other UID data. Also we don't always get a message
                 # back at the first try.
                 for _ in range(3):
-                    result = self.conn.fetch(
+                    result: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
                         uid, ["BODY.PEEK[]", "INTERNALDATE", "FLAGS"]
-                    )  # type: Dict[int, Dict[bytes, Any]]
+                    )
                     if uid in result:
                         imap_messages[uid] = result[uid]
                         break
@@ -868,8 +869,7 @@ class CrispinClient:
             )
         return raw_messages
 
-    def flags(self, uids):
-        # type: (List[int]) -> Dict[int, Union[GmailFlags, Flags]]
+    def flags(self, uids: List[int]) -> Dict[int, Union[GmailFlags, Flags]]:
         seqset: Union[str, List[int]]
         if len(uids) > 100:
             # Some backends abort the connection if you give them a really
@@ -878,7 +878,7 @@ class CrispinClient:
             seqset = f"{min(uids)}:*"
         else:
             seqset = uids
-        data = self.conn.fetch(seqset, ["FLAGS"])  # type: Dict[int, Dict[bytes, Any]]
+        data: Dict[int, Dict[bytes, Any]] = self.conn.fetch(seqset, ["FLAGS"])
         uid_set = set(uids)
         return {
             uid: Flags(ret[b"FLAGS"], None)
@@ -925,15 +925,14 @@ class CrispinClient:
 
         return self.conn.append(self.selected_folder_name, message, ["\\Seen"], date)
 
-    def fetch_headers(self, uids):
-        # type: (List[int]) -> Dict[int, Dict[bytes, Any]]
+    def fetch_headers(self, uids: List[int]) -> Dict[int, Dict[bytes, Any]]:
         """
         Fetch headers for the given uids. Chunked because certain providers
         fail with 'Command line too large' if you feed them too many uids at
         once.
 
         """
-        headers = {}  # type: Dict[int, Dict[bytes, Any]]
+        headers: Dict[int, Dict[bytes, Any]] = {}
         for uid_chunk in chunk(uids, 100):
             headers.update(self.conn.fetch(uid_chunk, ["BODY.PEEK[HEADER]"]))
         return headers
@@ -1041,11 +1040,12 @@ class CrispinClient:
         self.conn.idle_done()
         return r
 
-    def condstore_changed_flags(self, modseq):
-        # type: (int) -> Dict[int, Union[GmailFlags, Flags]]
-        data = self.conn.fetch(
+    def condstore_changed_flags(
+        self, modseq: int
+    ) -> Dict[int, Union[GmailFlags, Flags]]:
+        data: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
             "1:*", ["FLAGS"], modifiers=[f"CHANGEDSINCE {modseq}"]
-        )  # type: Dict[int, Dict[bytes, Any]]
+        )
         return {
             uid: Flags(ret[b"FLAGS"], ret[b"MODSEQ"][0] if b"MODSEQ" in ret else None)
             for uid, ret in data.items()
@@ -1055,8 +1055,7 @@ class CrispinClient:
 class GmailCrispinClient(CrispinClient):
     PROVIDER = "gmail"
 
-    def sync_folders(self):
-        # type: () -> List[str]
+    def sync_folders(self) -> List[str]:
         """
         Gmail-specific list of folders to sync.
 
@@ -1081,14 +1080,13 @@ class GmailCrispinClient(CrispinClient):
             )
 
         # If the account has Trash, Spam folders, sync those too.
-        to_sync = []  # type: List[str]
+        to_sync: List[str] = []
         for folder in ["all", "trash", "spam"]:
             if folder in present_folders:
                 to_sync.append(present_folders[folder][0])
         return to_sync
 
-    def flags(self, uids):
-        # type: (List[int]) -> Dict[int, Union[GmailFlags, Flags]]
+    def flags(self, uids: List[int]) -> Dict[int, Union[GmailFlags, Flags]]:
         """
         Gmail-specific flags.
 
@@ -1098,9 +1096,9 @@ class GmailCrispinClient(CrispinClient):
             Mapping of `uid` : GmailFlags.
 
         """
-        data = self.conn.fetch(
+        data: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
             uids, ["FLAGS", "X-GM-LABELS"]
-        )  # type: Dict[int, Dict[bytes, Any]]
+        )
         uid_set = set(uids)
         return {
             uid: GmailFlags(
@@ -1112,12 +1110,13 @@ class GmailCrispinClient(CrispinClient):
             if uid in uid_set
         }
 
-    def condstore_changed_flags(self, modseq):
-        # type: (int) -> Dict[int, Union[GmailFlags, Flags]]
-        data = self.conn.fetch(
+    def condstore_changed_flags(
+        self, modseq: int
+    ) -> Dict[int, Union[GmailFlags, Flags]]:
+        data: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
             "1:*", ["FLAGS", "X-GM-LABELS"], modifiers=[f"CHANGEDSINCE {modseq}"],
-        )  # type: Dict[int, Dict[bytes, Any]]
-        results = {}  # type: Dict[int, Union[GmailFlags, Flags]]
+        )
+        results: Dict[int, Union[GmailFlags, Flags]] = {}
         for uid, ret in data.items():
             if b"FLAGS" not in ret or b"X-GM-LABELS" not in ret:
                 # We might have gotten an unsolicited fetch response that
@@ -1126,9 +1125,9 @@ class GmailCrispinClient(CrispinClient):
                 log.info(
                     "Got incomplete response in flags fetch", uid=uid, ret=str(ret)
                 )
-                data_for_uid = self.conn.fetch(
+                data_for_uid: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
                     uid, ["FLAGS", "X-GM-LABELS"]
-                )  # type: Dict[int, Dict[bytes, Any]]
+                )
                 if not data_for_uid:
                     continue
                 ret = data_for_uid[uid]
@@ -1139,8 +1138,7 @@ class GmailCrispinClient(CrispinClient):
             )
         return results
 
-    def g_msgids(self, uids):
-        # type: (List[int]) -> Dict[int, int]
+    def g_msgids(self, uids: List[int]) -> Dict[int, int]:
         """
         X-GM-MSGIDs for the given UIDs.
 
@@ -1150,14 +1148,11 @@ class GmailCrispinClient(CrispinClient):
             Mapping of `uid` (int) : `g_msgid` (int)
 
         """
-        data = self.conn.fetch(
-            uids, ["X-GM-MSGID"]
-        )  # type: Dict[int, Dict[bytes, Any]]
+        data: Dict[int, Dict[bytes, Any]] = self.conn.fetch(uids, ["X-GM-MSGID"])
         uid_set = set(uids)
         return {uid: ret[b"X-GM-MSGID"] for uid, ret in data.items() if uid in uid_set}
 
-    def g_msgid_to_uids(self, g_msgid):
-        # type: (int) -> List[int]
+    def g_msgid_to_uids(self, g_msgid: int) -> List[int]:
         """
         Find all message UIDs in the selected folder with X-GM-MSGID equal to
         g_msgid.
@@ -1170,8 +1165,7 @@ class GmailCrispinClient(CrispinClient):
         # UIDs ascend over time; return in order most-recent first
         return sorted(uids, reverse=True)
 
-    def folder_names(self, force_resync=False):
-        # type: (bool) -> DefaultDict[str, List[str]]
+    def folder_names(self, force_resync: bool = False) -> DefaultDict[str, List[str]]:
         """
         Return the folder names ( == label names for Gmail) for the account
         as a mapping from recognized role: list of folder names in the
@@ -1195,14 +1189,13 @@ class GmailCrispinClient(CrispinClient):
         if force_resync or self._folder_names is None:
             self._folder_names = defaultdict(list)
 
-            raw_folders = self.folders()  # type: List[RawFolder]
+            raw_folders: List[RawFolder] = self.folders()
             for raw_folder in raw_folders:
                 self._folder_names[raw_folder.role].append(raw_folder.display_name)
 
         return self._folder_names
 
-    def _process_folder(self, display_name, flags):
-        # type: (str, Tuple[bytes, ...]) -> RawFolder
+    def _process_folder(self, display_name: str, flags: Tuple[bytes, ...]) -> RawFolder:
         """
         Determine the canonical_name for the remote folder from its `name` and
         `flags`.
@@ -1239,9 +1232,8 @@ class GmailCrispinClient(CrispinClient):
 
         return RawFolder(display_name=display_name, role=role)
 
-    def uids(self, uids):
-        # type: (List[int]) -> List[RawMessage]
-        imap_messages = self.conn.fetch(
+    def uids(self, uids: List[int]) -> List[RawMessage]:
+        imap_messages: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
             uids,
             [
                 "BODY.PEEK[]",
@@ -1251,7 +1243,7 @@ class GmailCrispinClient(CrispinClient):
                 "X-GM-MSGID",
                 "X-GM-LABELS",
             ],
-        )  # type: Dict[int, Dict[bytes, Any]]
+        )
 
         raw_messages = []
         uid_set = set(uids)
@@ -1414,8 +1406,7 @@ class GmailCrispinClient(CrispinClient):
         self._delete_message(message_id_header, delete_multiple)
         return True
 
-    def search_uids(self, criteria):
-        # type: (List[str]) -> List[int]
+    def search_uids(self, criteria: List[str]) -> List[int]:
         """
         Handle Gmail label search oddities.
         https://developers.google.com/gmail/imap/imap-extensions#access_to_gmail_labels_x-gm-labels.
@@ -1432,7 +1423,7 @@ class GmailCrispinClient(CrispinClient):
 
         # First UTF-7 encode the label name
         label_name = criteria[1]
-        encoded_label_name = imapclient.imap_utf7.encode(label_name)  # type: bytes
+        encoded_label_name: bytes = imapclient.imap_utf7.encode(label_name)
 
         # If label contained only ASCII characters and does not contain asterisks
         # we don't need to do anything special

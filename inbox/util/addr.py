@@ -32,8 +32,9 @@ def canonicalize_address(addr):
     return "@".join((local_part, hostname))
 
 
-def parse_mimepart_address_header(mimepart, header_name):
-    # type: (MimePart, str) -> List[List[str]]
+def parse_mimepart_address_header(
+    mimepart: MimePart, header_name: str
+) -> List[List[str]]:
     # Header parsing is complicated by the fact that:
     # (1) You can have multiple occurrences of the same header;
     # (2) Phrases or comments can be RFC2047-style encoded words;
@@ -47,7 +48,7 @@ def parse_mimepart_address_header(mimepart, header_name):
     # you can end up parsing 'FooCorp, Inc. <info@foocorp.com> (note lack of
     # quoting) into two separate addresses.
     # Consult RFC822 Section 6.1 and RFC2047 section 5 for details.
-    addresses = set()  # type: Set[Tuple[str, str]]
+    addresses: Set[Tuple[str, str]] = set()
     for section in mimepart.headers._v.getall(normalize(header_name)):
         for phrase, addrspec in email.utils.getaddresses([section]):
             if not addrspec and not phrase:

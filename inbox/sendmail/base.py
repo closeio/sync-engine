@@ -50,8 +50,9 @@ def get_sendmail_client(account):
     return sendmail_client
 
 
-def create_draft_from_mime(account, raw_mime, db_session):
-    # type: (Account, bytes, Any) -> Message
+def create_draft_from_mime(
+    account: Account, raw_mime: bytes, db_session: Any
+) -> Message:
     our_uid = generate_public_id()  # base-36 encoded string
     new_headers = (
         (

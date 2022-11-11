@@ -156,14 +156,14 @@ class Base36UID(TypeDecorator):
 
     impl = BINARY(16)  # 128 bit unsigned integer
 
-    def process_bind_param(self, value, dialect):
-        # type: (Optional[str], Any) -> Optional[bytes]
+    def process_bind_param(self, value: Optional[str], dialect: Any) -> Optional[bytes]:
         if not value:
             return None
         return b36_to_bin(value)
 
-    def process_result_value(self, value, dialect):
-        # type: (Optional[bytes], Any) -> Optional[str]
+    def process_result_value(
+        self, value: Optional[bytes], dialect: Any
+    ) -> Optional[str]:
         return int128_to_b36(value)
 
 
@@ -249,8 +249,7 @@ class MutableList(Mutable, list):
         self.changed()
 
 
-def int128_to_b36(int128):
-    # type: (Optional[bytes]) -> Optional[str]
+def int128_to_b36(int128: Optional[bytes]) -> Optional[str]:
     """ int128: a 128 bit unsigned integer
         returns a base-36 string representation
     """
@@ -262,8 +261,7 @@ def int128_to_b36(int128):
     return base36encode(pub_id).lower()
 
 
-def b36_to_bin(b36_string):
-    # type: (str) -> bytes
+def b36_to_bin(b36_string: str) -> bytes:
     """ b36_string: a base-36 encoded string
         returns binary 128 bit unsigned integer
     """
@@ -272,8 +270,7 @@ def b36_to_bin(b36_string):
     return struct.pack(">QQ", (int128 >> 64) & MAX_INT64, int128 & MAX_INT64)
 
 
-def generate_public_id():
-    # type: () -> str
+def generate_public_id() -> str:
     """ Returns a base-36 string UUID """
     u = uuid.uuid4().bytes
     result = int128_to_b36(u)

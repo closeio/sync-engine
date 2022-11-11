@@ -9,8 +9,7 @@ from inbox.logging import get_logger
 log = get_logger()
 
 
-def safe_decode(message):
-    # type: (Union[str, bytes]) -> str
+def safe_decode(message: Union[str, bytes]) -> str:
     if isinstance(message, bytes):
         return message.decode("utf-8", errors="replace")
 

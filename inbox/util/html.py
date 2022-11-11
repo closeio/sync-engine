@@ -8,8 +8,6 @@ if sys.version_info < (3, 8):
 else:
     from html import escape as html_escape
 
-from inbox.logging import get_logger
-
 
 class HTMLParseError(Exception):
     pass
@@ -56,13 +54,11 @@ class HTMLTagStripper(HTMLParser):
             return
         self.fed.append(val)
 
-    def get_data(self):
-        # type: () -> str
+    def get_data(self) -> str:
         return "".join(self.fed)
 
 
-def strip_tags(html):
-    # type: (str) -> str
+def strip_tags(html: str) -> str:
     """
     Return textual content of HTML.
     Remove title, script and style alltogether. Replace br and div
@@ -83,8 +79,7 @@ re_string = re.compile(
 )
 
 
-def plaintext2html(text, tabstop=4):
-    # type: (str, int) -> str
+def plaintext2html(text: str, tabstop: int = 4) -> str:
     assert "\r" not in text, "newlines not normalized"
 
     def do_sub(m):

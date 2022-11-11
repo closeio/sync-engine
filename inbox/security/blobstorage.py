@@ -21,20 +21,17 @@ KEY_VERSION = 0
 HEADER_WIDTH = 5
 
 
-def _pack_header(scheme):
-    # type: (int) -> bytes
+def _pack_header(scheme: int) -> bytes:
     return struct.pack("<BI", scheme, KEY_VERSION)
 
 
-def _unpack_header(header):
-    # type: (bytes) -> int
+def _unpack_header(header: bytes) -> int:
     scheme, key_version = struct.unpack("<BI", header)
     assert key_version == KEY_VERSION
     return scheme
 
 
-def encode_blob(plaintext):
-    # type: (bytes) -> bytes
+def encode_blob(plaintext: bytes) -> bytes:
     assert isinstance(plaintext, bytes), "Plaintext should be bytes"
     compressed = zlib.compress(plaintext)
     encryption_oracle = get_encryption_oracle("BLOCK_ENCRYPTION_KEY")
@@ -43,8 +40,7 @@ def encode_blob(plaintext):
     return header + ciphertext
 
 
-def decode_blob(blob):
-    # type: (bytes) -> bytes
+def decode_blob(blob: bytes) -> bytes:
     header = blob[:HEADER_WIDTH]
     body = blob[HEADER_WIDTH:]
     scheme = _unpack_header(header)

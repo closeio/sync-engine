@@ -61,8 +61,9 @@ if typing.TYPE_CHECKING:
     from inbox.models.block import Part
 
 
-def _trim_filename(s, namespace_id, max_len=255):
-    # type: (Optional[Union[str, bytes]], int, int) -> Optional[str]
+def _trim_filename(
+    s: Optional[Union[str, bytes]], namespace_id: int, max_len: int = 255
+) -> Optional[str]:
     if s is None:
         return s
 
@@ -211,8 +212,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     # The uid as set in the X-INBOX-ID header of a sent message we create
     nylas_uid = Column(String(64), nullable=True, index=True, name="inbox_uid")
 
-    def regenerate_nylas_uid(self):
-        # type: () -> None
+    def regenerate_nylas_uid(self) -> None:
         """
         The value of nylas_uid is simply the draft public_id and version,
         concatenated. Because the nylas_uid identifies the draft on the remote
@@ -246,8 +246,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         backref="replies",
     )
 
-    def mark_for_deletion(self):
-        # type: () -> None
+    def mark_for_deletion(self) -> None:
         """
         Mark this message to be deleted by an asynchronous delete
         handler.
@@ -256,8 +255,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         self.deleted_at = datetime.datetime.utcnow()
 
     @validates("subject")
-    def sanitize_subject(self, key, value):
-        # type: (Any, Optional[str]) -> Optional[str]
+    def sanitize_subject(self, key: Any, value: Optional[str]) -> Optional[str]:
         # Trim overlong subjects, and remove null bytes. The latter can result
         # when, for example, UTF-8 text decoded from an RFC2047-encoded header
         # contains null bytes.
@@ -268,8 +266,14 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         return value
 
     @classmethod
-    def create_from_synced(cls, account, mid, folder_name, received_date, body_string):
-        # type: (Account, int, str, Optional[datetime.datetime], bytes) -> Message
+    def create_from_synced(
+        cls,
+        account: Account,
+        mid: int,
+        folder_name: str,
+        received_date: Optional[datetime.datetime],
+        body_string: bytes,
+    ) -> Message:
         """
         Parses message data and writes out db metadata and MIME blocks.
 
@@ -312,7 +316,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             body_length = len(body_string)
             if body_length > MAX_MESSAGE_BODY_PARSE_LENGTH:
                 raise MessageTooBigException(body_length)
-            parsed = mime.from_string(body_string)  # type: MimePart
+            parsed: MimePart = mime.from_string(body_string)
             # Non-persisted instance attribute used by EAS.
             msg.parsed_body = parsed
             msg._parse_metadata(
@@ -343,8 +347,8 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             msg._mark_error()
 
         if parsed is not None:
-            plain_parts = []  # type: List[bytes]
-            html_parts = []  # type: List[bytes]
+            plain_parts: List[bytes] = []
+            html_parts: List[bytes] = []
             for mimepart in parsed.walk(with_self=parsed.content_type.is_singlepart()):
                 try:
                     if mimepart.content_type.is_multipart():
@@ -377,14 +381,14 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                         mid=mid,
                     )
                     msg._mark_error()
-            store_body = config.get("STORE_MESSAGE_BODIES", True)  # type: bool
+            store_body: bool = config.get("STORE_MESSAGE_BODIES", True)
             msg.calculate_body(html_parts, plain_parts, store_body=store_body)
 
             # Occasionally people try to send messages to way too many
             # recipients. In such cases, empty the field and treat as a parsing
             # error so that we don't break the entire sync.
             for field in ("to_addr", "cc_addr", "bcc_addr", "references", "reply_to"):
-                value = getattr(msg, field)  # type: List[Any]
+                value: List[Any] = getattr(msg, field)
                 if json_field_too_long(value):
                     log.warning(
                         "Recipient field too long",
@@ -399,10 +403,15 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         return msg
 
     def _parse_metadata(
-        self, parsed, body_string, received_date, account_id, folder_name, mid
-    ):
-        # type: (MimePart, bytes, Optional[datetime.datetime], int, str, int) -> None
-        mime_version = parsed.headers.get("Mime-Version")  # type: Optional[str]
+        self,
+        parsed: MimePart,
+        body_string: bytes,
+        received_date: Optional[datetime.datetime],
+        account_id: int,
+        folder_name: str,
+        mid: int,
+    ) -> None:
+        mime_version: Optional[str] = parsed.headers.get("Mime-Version")
         # sometimes MIME-Version is '1.0 (1.0)', hence the .startswith()
         if mime_version is not None and not mime_version.startswith("1.0"):
             log.warning(
@@ -413,7 +422,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                 mime_version=mime_version,
             )
 
-        self.subject = parsed.subject  # type: Optional[str]
+        self.subject: Optional[str] = parsed.subject
         self.from_addr = parse_mimepart_address_header(parsed, "From")
         self.sender_addr = parse_mimepart_address_header(parsed, "Sender")
         self.reply_to = parse_mimepart_address_header(parsed, "Reply-To")
@@ -421,11 +430,11 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         self.cc_addr = parse_mimepart_address_header(parsed, "Cc")
         self.bcc_addr = parse_mimepart_address_header(parsed, "Bcc")
 
-        self.in_reply_to = parsed.headers.get("In-Reply-To")  # type: Optional[str]
+        self.in_reply_to: Optional[str] = parsed.headers.get("In-Reply-To")
 
         # The RFC mandates that the Message-Id header must be at most 998
         # characters. Sadly, not everybody follows specs.
-        self.message_id_header = parsed.headers.get("Message-Id")  # type: Optional[str]
+        self.message_id_header: Optional[str] = parsed.headers.get("Message-Id")
         if self.message_id_header and len(self.message_id_header) > 998:
             self.message_id_header = self.message_id_header[:998]
             log.warning(
@@ -451,7 +460,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         self.received_date = self.received_date.replace(microsecond=0)
 
         # Custom Nylas header
-        self.nylas_uid = parsed.headers.get("X-INBOX-ID")  # type: Optional[str]
+        self.nylas_uid: Optional[str] = parsed.headers.get("X-INBOX-ID")
 
         # In accordance with JWZ (http://www.jwz.org/doc/threading.html)
         self.references = parse_references(
@@ -460,17 +469,23 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
         self.size = len(body_string)  # includes headers text
 
-    def _parse_mimepart(self, mid, mimepart, namespace_id, html_parts, plain_parts):
-        # type: (int, MimePart, int, List[bytes], List[bytes]) -> None
+    def _parse_mimepart(
+        self,
+        mid: int,
+        mimepart: MimePart,
+        namespace_id: int,
+        html_parts: List[bytes],
+        plain_parts: List[bytes],
+    ) -> None:
         disposition, _ = mimepart.content_disposition
-        content_id = mimepart.headers.get("Content-Id")  # type: Optional[str]
+        content_id: Optional[str] = mimepart.headers.get("Content-Id")
         content_type, params = mimepart.content_type
 
-        filename = mimepart.detected_file_name  # type: Optional[str]
+        filename: Optional[str] = mimepart.detected_file_name
         if filename == "":
             filename = None
 
-        data = mimepart.body  # type: Optional[str]
+        data: Optional[str] = mimepart.body
 
         is_text = content_type.startswith("text")
         if disposition not in (None, "inline", "attachment"):
@@ -502,7 +517,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         if is_text:
             if data is None:
                 return
-            normalized_data = data.encode("utf-8", "strict")  # type: bytes
+            normalized_data: bytes = data.encode("utf-8", "strict")
             normalized_data = normalized_data.replace(b"\r\n", b"\n").replace(
                 b"\r", b"\n"
             )
@@ -535,15 +550,14 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
     def _save_attachment(
         self,
-        data,
-        content_disposition,
-        content_type,
-        filename,
-        content_id,
-        namespace_id,
-        mid,
-    ):
-        # type: (Optional[str], str, str, Optional[str], Optional[str], int, int) -> None
+        data: Optional[str],
+        content_disposition: str,
+        content_type: str,
+        filename: Optional[str],
+        content_id: Optional[str],
+        namespace_id: int,
+        mid: int,
+    ) -> None:
         from inbox.models import Block, Part
 
         block = Block()
@@ -560,8 +574,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             data = data.encode("utf-8", "strict")
         block.data = data
 
-    def _mark_error(self):
-        # type: () -> None
+    def _mark_error(self) -> None:
         """
         Mark message as having encountered errors while parsing.
 
@@ -583,8 +596,9 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         if self.snippet is None:
             self.snippet = ""
 
-    def calculate_body(self, html_parts, plain_parts, store_body=True):
-        # type: (List[bytes], List[bytes], bool) -> None
+    def calculate_body(
+        self, html_parts: List[bytes], plain_parts: List[bytes], store_body: bool = True
+    ) -> None:
         html_body = b"".join(html_parts).decode("utf-8").strip()
         plain_body = b"\n".join(plain_parts).decode("utf-8").strip()
         if html_body:
@@ -603,8 +617,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             self.body = None
             self.snippet = ""
 
-    def calculate_html_snippet(self, text):
-        # type: (str) -> str
+    def calculate_html_snippet(self, text: str) -> str:
         try:
             text = strip_tags(text)
         except HTMLParseError:
@@ -615,28 +628,24 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
         return self.calculate_plaintext_snippet(text)
 
-    def calculate_plaintext_snippet(self, text):
-        # type: (str) -> str
+    def calculate_plaintext_snippet(self, text: str) -> str:
         return unicode_safe_truncate(" ".join(text.split()), SNIPPET_LENGTH)
 
     @property
-    def body(self):
-        # type: () -> Optional[str]
+    def body(self) -> Optional[str]:
         if self._compacted_body is None:
             return None
         return decode_blob(self._compacted_body).decode("utf-8")
 
     @body.setter
-    def body(self, value):
-        # type: (Optional[str]) -> None
+    def body(self, value: Optional[str]) -> None:
         if value is None:
             self._compacted_body = None
         else:
             self._compacted_body = encode_blob(value.encode("utf-8"))
 
     @property
-    def participants(self):
-        # type: () -> List[Tuple[str, str]]
+    def participants(self) -> List[Tuple[str, str]]:
         """
         Different messages in the thread may reference the same email
         address with different phrases. We partially deduplicate: if the same
@@ -644,7 +653,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         separately return the (empty phrase, address) pair.
 
         """
-        deduped_participants = defaultdict(set)  # type: DefaultDict[str, Set[str]]
+        deduped_participants: DefaultDict[str, Set[str]] = defaultdict(set)
         chain = []
         if self.from_addr:
             chain.append(self.from_addr)
@@ -669,13 +678,11 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         return p
 
     @property
-    def attachments(self):
-        # type: () -> List[Part]
+    def attachments(self) -> List[Part]:
         return [part for part in self.parts if part.is_attachment]
 
     @property
-    def api_attachment_metadata(self):
-        # type: () -> List[Dict[str, Any]]
+    def api_attachment_metadata(self) -> List[Dict[str, Any]]:
         resp = []
         for part in self.parts:
             if not part.is_attachment:
@@ -707,27 +714,25 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         return "text/calendar" in [p.block.content_type for p in self.parts]
 
     @property
-    def attached_event_files(self):
-        # type: () -> List[Part]
+    def attached_event_files(self) -> List[Part]:
         return [
             part for part in self.parts if part.block.content_type == "text/calendar"
         ]
 
     @property
-    def account(self):
-        # type: () -> Account
+    def account(self) -> Account:
         return self.namespace.account
 
-    def get_header(self, header, mid):
-        # type: (str, int) -> Optional[str]
+    def get_header(self, header: str, mid: int) -> Optional[str]:
         if self.decode_error:
             log.warning("Error getting message header", mid=mid)
             return None
         return self.parsed_body.headers.get(header)
 
     @classmethod
-    def from_public_id(cls, public_id, namespace_id, db_session):
-        # type: (str, int, Any) -> Message
+    def from_public_id(
+        cls, public_id: str, namespace_id: int, db_session: Any
+    ) -> Message:
         q = db_session.query(cls)
         q = q.filter(
             Message.public_id == bindparam("public_id"),

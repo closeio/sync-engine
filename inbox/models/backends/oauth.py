@@ -106,8 +106,7 @@ class OAuthAccount:
         )
 
     @property
-    def refresh_token(self):
-        # type: () -> str
+    def refresh_token(self) -> str:
         if not self.secret:
             return None
         if self.secret.type == SecretType.Token.value:
@@ -120,8 +119,7 @@ class OAuthAccount:
             raise ValueError("Invalid secret type.")
 
     @refresh_token.setter
-    def refresh_token(self, value):
-        # type: (Union[str, bytes]) -> None
+    def refresh_token(self, value: Union[str, bytes]) -> None:
         # Must be a valid UTF-8 byte sequence without NULL bytes.
         if not isinstance(value, bytes):
             value = value.encode("utf-8")
@@ -137,8 +135,7 @@ class OAuthAccount:
         log_token_usage("refresh token stored", refresh_token=value, account=self)
         self.set_secret(SecretType.Token, value)
 
-    def set_secret(self, secret_type, secret_value):
-        # type: (SecretType, bytes) -> None
+    def set_secret(self, secret_type: SecretType, secret_value: bytes) -> None:
         if not self.secret:
             self.secret = Secret()
 

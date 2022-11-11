@@ -45,8 +45,7 @@ def parse_ml_headers(headers):
     }
 
 
-def parse_references(references, in_reply_to):
-    # type: (str, str) -> List[str]
+def parse_references(references: str, in_reply_to: str) -> List[str]:
     """
     Parse a References: header and returns an array of MessageIDs.
     The returned array contains the MessageID in In-Reply-To if
@@ -84,8 +83,7 @@ def dt_to_timestamp(dt):
     return int((dt - datetime(1970, 1, 1)).total_seconds())
 
 
-def get_internaldate(date, received):
-    # type: (Optional[str], Optional[str]) -> datetime
+def get_internaldate(date: Optional[str], received: Optional[str]) -> datetime:
     """ Get the date from the headers. """
     if date is None:
         assert received

@@ -57,10 +57,9 @@ def parse_google_time(d):
             return arrow.get(dt)
 
 
-def google_to_event_time(start_raw, end_raw):
-    # type: (str, str) -> EventTime
-    start = parse_google_time(start_raw)  # type: arrow.Arrow
-    end = parse_google_time(end_raw)  # type: arrow.Arrow
+def google_to_event_time(start_raw: str, end_raw: str) -> EventTime:
+    start: arrow.Arrow = parse_google_time(start_raw)
+    end: arrow.Arrow = parse_google_time(end_raw)
     if start > end:
         start, end = (end, start)
 

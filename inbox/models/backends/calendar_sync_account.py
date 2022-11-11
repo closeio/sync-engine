@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import Optional
 
 from sqlalchemy import Column, DateTime
 
@@ -6,10 +7,42 @@ from sqlalchemy import Column, DateTime
 class CalendarSyncAccountMixin:
 
     last_calendar_list_sync = Column(DateTime)
-    webhook_calendar_list_last_ping = Column("gpush_calendar_list_last_ping", DateTime)
-    webhook_calendar_list_expiration = Column(
+    old_webhook_calendar_list_last_ping = Column(
+        "gpush_calendar_list_last_ping", DateTime
+    )
+    new_webhook_calendar_list_last_ping = Column(
+        "webhook_calendar_list_last_ping", DateTime
+    )
+    old_webhook_calendar_list_expiration = Column(
         "gpush_calendar_list_expiration", DateTime
     )
+    new_webhook_calendar_list_expiration = Column(
+        "webhook_calendar_list_expiration", DateTime
+    )
+
+    @property
+    def webhook_calendar_list_last_ping(self) -> Optional[datetime]:
+        return (
+            self.new_webhook_calendar_list_last_ping
+            or self.old_webhook_calendar_list_last_ping
+        )
+
+    @webhook_calendar_list_last_ping.setter
+    def webhook_calendar_list_last_ping(self, value: datetime) -> None:
+        self.old_webhook_calendar_last_last_ping = value
+        self.new_webhook_calendar_list_last_ping = value
+
+    @property
+    def webhook_calendar_list_expiration(self) -> Optional[datetime]:
+        return (
+            self.new_webhook_calendar_list_expiration
+            or self.old_webhook_calendar_list_expiration
+        )
+
+    @webhook_calendar_list_expiration.setter
+    def webhook_calendar_list_expiration(self, value: datetime) -> None:
+        self.old_webhook_calendar_list_expiration = value
+        self.new_webhook_calendar_list_expiration = value
 
     def new_calendar_list_watch(self, expiration: datetime) -> None:
         self.webhook_calendar_list_expiration = expiration

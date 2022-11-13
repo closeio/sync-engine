@@ -26,6 +26,7 @@ from inbox.models.secret import SecretType
 from inbox.models.session import global_session_scope
 from inbox.util.logging_helper import reconfigure_logging
 from inbox.webhooks.google_notifications import app as google_webhooks_api
+from inbox.webhooks.microsoft_notifications import app as microsoft_webhooks_api
 
 from .metrics_api import app as metrics_api
 from .ns_api import DEFAULT_LIMIT, app as ns_api
@@ -344,3 +345,4 @@ def logout():
 app.register_blueprint(metrics_api)
 app.register_blueprint(ns_api)
 app.register_blueprint(google_webhooks_api)  # /w/...
+app.register_blueprint(microsoft_webhooks_api)  # /w/microsoft/...

@@ -12,7 +12,7 @@ from inbox.models import Calendar
 from inbox.models.backends.gmail import GmailAccount
 from inbox.models.session import global_session_scope
 
-app = Blueprint("webhooks", "webhooks_api", url_prefix="/w")
+app = Blueprint("google_webhooks", "google_webhooks_api", url_prefix="/w")
 
 GOOGLE_CHANNEL_ID_STRING = "X-Goog-Channel-ID"
 GOOGLE_RESOURCE_STATE_STRING = "X-Goog-Resource-State"

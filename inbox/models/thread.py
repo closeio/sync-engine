@@ -1,6 +1,7 @@
 import datetime
 import itertools
 from collections import defaultdict
+from typing import Optional
 
 from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import (
@@ -81,7 +82,7 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
 
     @property
     def most_recent_received_date(self):
-        received_recent_date = None
+        received_recent_date: Optional[datetime.datetime] = None
         for m in self.messages:
             if (
                 all(

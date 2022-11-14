@@ -11,7 +11,7 @@ import random
 import weakref
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import DefaultDict, Set
+from typing import DefaultDict, Optional, Set
 
 import gevent
 import gevent.event
@@ -344,7 +344,7 @@ class SyncbackService(gevent.Greenlet):
         account.
         """
         valid_log_entries = []
-        account_id = None
+        account_id: Optional[int] = None
 
         has_more = len(log_entries) == self.fetch_batch_size
 
@@ -363,7 +363,12 @@ class SyncbackService(gevent.Greenlet):
                 return None
 
             namespace = log_entry.namespace
-            account_id = namespace.account.id
+            if account_id is None:
+                account_id = namespace.account.id
+            else:
+                assert (
+                    account_id is namespace.account.id
+                ), "account_id and namespace.account.id do not match"
 
             if namespace.account.sync_state in ("invalid", "stopped"):
                 sync_state = namespace.account.sync_state

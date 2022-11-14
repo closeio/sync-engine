@@ -1,6 +1,7 @@
 from sqlalchemy import Column, ForeignKey, String
 
 from inbox.config import config
+from inbox.models.backends.calendar_sync_account import CalendarSyncAccountMixin
 from inbox.models.backends.imap import ImapAccount
 from inbox.models.backends.oauth import OAuthAccount
 
@@ -12,7 +13,7 @@ MICROSOFT_EMAIL_SCOPES = [
 ]
 
 
-class OutlookAccount(ImapAccount, OAuthAccount):
+class OutlookAccount(CalendarSyncAccountMixin, ImapAccount, OAuthAccount):
     OAUTH_CLIENT_ID = config.get_required("MICROSOFT_OAUTH_CLIENT_ID")
     OAUTH_CLIENT_SECRET = config.get_required("MICROSOFT_OAUTH_CLIENT_SECRET")
 
@@ -43,6 +44,7 @@ class OutlookAccount(ImapAccount, OAuthAccount):
 
     @property
     def calendar_scopes(self):
+
         return None
 
     @property

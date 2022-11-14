@@ -1,6 +1,7 @@
 import os
 import time
 from hashlib import sha256
+from typing import Optional
 
 from inbox.config import config
 from inbox.logging import get_logger
@@ -85,7 +86,7 @@ def _save_to_s3_bucket(data_sha256: str, bucket_name: str, data: bytes) -> None:
     statsd_client.timing("s3_blockstore.save_latency", latency_millis)
 
 
-def get_from_blockstore(data_sha256):
+def get_from_blockstore(data_sha256) -> Optional[bytes]:
     if STORE_MSG_ON_S3:
         value = _get_from_s3(data_sha256)
     else:

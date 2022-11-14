@@ -11,7 +11,7 @@ import random
 import weakref
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import DefaultDict, Set
+from typing import DefaultDict, Optional, Set
 
 import gevent
 import gevent.event
@@ -344,7 +344,7 @@ class SyncbackService(gevent.Greenlet):
         account.
         """
         valid_log_entries = []
-        account_id = None
+        account_id: Optional[int] = None
 
         has_more = len(log_entries) == self.fetch_batch_size
 

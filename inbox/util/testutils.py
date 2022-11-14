@@ -80,7 +80,9 @@ class MockAnswer:
 
 class MockDNSResolver:
     def __init__(self):
-        self._registry: Dict[Literal["mx", "ns"], Dict[str, List[str]]] = {
+        self._registry: Dict[
+            Literal["mx", "ns"], Dict[str, Union[Dict[str, str], List[str]]]
+        ] = {
             "mx": {},
             "ns": {},
         }

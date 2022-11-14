@@ -1,4 +1,5 @@
 from hashlib import sha256
+from typing import Optional
 
 from flanker import mime
 from sqlalchemy import Column, Integer, String
@@ -24,6 +25,7 @@ class Blob:
 
     @property
     def data(self):
+        value: Optional[bytes]
         if self.size == 0:
             log.warning("Block size is 0")
             return ""

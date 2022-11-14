@@ -498,6 +498,7 @@ class SMTPClient:
         ]
 
         raw_message = get_from_blockstore(msg.data_sha256)
+        assert raw_message
         mime_body = _substitute_bcc(raw_message)
         self._send(recipient_emails, mime_body)
 

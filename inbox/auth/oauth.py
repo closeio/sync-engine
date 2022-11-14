@@ -183,8 +183,8 @@ class OAuthAuthHandler(AuthHandler):
         )
         try:
             conn.oauth2_login(account.email_address, token)
-        except IMAPClient.Error as exc:
-            exc = _process_imap_exception(exc)
+        except IMAPClient.Error as original_exc:
+            exc = _process_imap_exception(original_exc)
 
             # Raise all IMAP disabled errors except authentication_failed
             # error, which we handle differently.
@@ -192,7 +192,7 @@ class OAuthAuthHandler(AuthHandler):
                 isinstance(exc, ImapSupportDisabledError)
                 and exc.reason != "authentication_failed"
             ):
-                raise exc
+                raise exc from original_exc
 
             log.error(
                 "Error during IMAP XOAUTH2 login", account_id=account.id, error=exc,
@@ -208,16 +208,18 @@ class OAuthAuthHandler(AuthHandler):
             )
             try:
                 conn.oauth2_login(account.email_address, token)
-            except IMAPClient.Error as exc:
-                exc = _process_imap_exception(exc)
+            except IMAPClient.Error as original_exc:
+                exc = _process_imap_exception(original_exc)
                 if (
                     not isinstance(exc, ImapSupportDisabledError)
                     or exc.reason != "authentication_failed"
                 ):
-                    raise exc
+                    raise exc from original_exc
                 else:
                     # Instead of authentication_failed, report imap disabled
-                    raise ImapSupportDisabledError("imap_disabled_for_account")
+                    raise ImapSupportDisabledError(
+                        "imap_disabled_for_account"
+                    ) from original_exc
 
     def _get_user_info(self, session_dict):
         access_token = session_dict["access_token"]

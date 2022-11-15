@@ -58,6 +58,9 @@ def validate_webhook_payload_factory(type: MsGraphType):
             have two separate endpoints, one for calendar changes and one for
             event changes.
             """
+            if request.json is None:
+                return ("Malformed JSON payload", 400)
+
             change_notifications: List[MsGraphChangeNotification] = cast(
                 MsGraphChangeNotificationCollection, request.json
             )["value"]

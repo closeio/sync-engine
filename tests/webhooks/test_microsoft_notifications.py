@@ -23,6 +23,15 @@ def test_handle_initial_validation_response(test_client):
     assert response.status_code == 200
 
 
+def test_validate_webhook_payload_malformed(test_client):
+    response = test_client.post(
+        "/w/microsoft/calendar_list_update/fake_id", data="something"
+    )
+
+    assert response.data.decode() == "Malformed JSON payload"
+    assert response.status_code == 400
+
+
 bad_client_state_payload = {
     "value": [
         {

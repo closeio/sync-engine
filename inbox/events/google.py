@@ -522,13 +522,18 @@ def parse_event_response(event: Dict[str, Any], read_only_calendar: bool) -> Eve
 
     # Ownership, read_only information
     creator = event.get("creator")
+    organizer = event.get("organizer")
+    is_owner = bool(organizer and organizer.get("self"))
 
-    if creator:
+    owner = ""
+    if organizer:
+        owner = email.utils.formataddr(
+            (organizer.get("displayName", ""), organizer.get("email", ""))
+        )
+    elif creator:
         owner = email.utils.formataddr(
             (creator.get("displayName", ""), creator.get("email", ""))
         )
-    else:
-        owner = ""
 
     participants = []
     attendees = event.get("attendees", [])
@@ -542,9 +547,6 @@ def parse_event_response(event: Dict[str, Any], read_only_calendar: bool) -> Eve
                 "notes": attendee.get("comment"),
             }
         )
-
-    organizer = event.get("organizer")
-    is_owner = bool(organizer and organizer.get("self"))
 
     # FIXME @karim: The right thing here would be to use Google's ACL API.
     # There's some obscure cases, like an autoimported event which guests can

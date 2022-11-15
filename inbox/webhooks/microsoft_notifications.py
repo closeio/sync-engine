@@ -2,6 +2,7 @@ from functools import wraps
 from typing import List, cast
 
 from flask import Blueprint, make_response, request
+from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.config import config
 from inbox.events.microsoft.graph_types import (
@@ -9,6 +10,8 @@ from inbox.events.microsoft.graph_types import (
     MsGraphChangeNotificationCollection,
     MsGraphType,
 )
+from inbox.models.backends.outlook import OutlookAccount
+from inbox.models.session import global_session_scope
 
 app = Blueprint(
     "microsoft_webhooks", "microsoft_webhooks_api", url_prefix="/w/microsoft"
@@ -63,7 +66,20 @@ def validate_webhook_payload_factory(type: MsGraphType):
 @handle_initial_validation_response
 @validate_webhook_payload_factory("#Microsoft.Graph.Calendar")
 def calendar_update(account_public_id):
-    return "calendar_list_update"
+    with global_session_scope() as db_session:
+        try:
+            account = (
+                db_session.query(OutlookAccount)
+                .filter(OutlookAccount.public_id == account_public_id)
+                .one()
+            )
+        except NoResultFound:
+            return f"Couldn't find account '{account_public_id}'", 404
+
+        account.handle_webhook_notification()
+        db_session.commit()
+
+    return "", 200
 
 
 @app.route("/calendar_update/<calendar_public_id>", methods=["POST"])

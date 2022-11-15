@@ -63,3 +63,24 @@ def test_validate_webhook_payload(test_client, payload, data):
 
     assert response.data.decode() == data
     assert response.status_code == 400
+
+
+def test_calendar_update(test_client, outlook_account):
+    response = test_client.post(
+        f"/w/microsoft/calendar_list_update/{outlook_account.public_id}",
+        json={
+            "value": [
+                {
+                    "changeType": "updated",
+                    "resourceData": {
+                        "@odata.type": "#Microsoft.Graph.Calendar",
+                        "id": "fake_id",
+                    },
+                    "clientState": "good_s3cr3t",
+                }
+            ]
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.data == b""

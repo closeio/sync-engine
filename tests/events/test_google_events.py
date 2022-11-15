@@ -1,3 +1,4 @@
+import email
 import json
 from unittest import mock
 
@@ -607,6 +608,58 @@ def test_override_creation():
     assert isinstance(event, RecurringEventOverride)
     assert event.master_event_uid == "tn7krk4cekt8ag3pk6gapqqbro"
     assert event.original_start_time == arrow.get(2012, 10, 23, 0, 0, 0)
+
+
+def test_owner_from_organizer():
+    event_dict = {
+        "created": "2012-10-09T22:35:50.000Z",
+        "creator": {
+            "displayName": "Eben Freeman",
+            "email": "freemaneben@gmail.com",
+            "self": True,
+        },
+        "end": {"dateTime": "2012-10-22T19:00:00-07:00"},
+        "etag": '"3336842760746000"',
+        "htmlLink": "https://www.google.com/calendar/event?eid=FOO",
+        "iCalUID": "4qpljm0446jgh9925evicmh4ke@google.com",
+        "id": "4qpljm0446jgh9925evicmh4ke",
+        "kind": "calendar#event",
+        "organizer": {
+            "displayName": "MITOC BOD",
+            "email": "mitoc-bod@mit.edu",
+            "self": False,
+        },
+        "attendees": [
+            {
+                "displayName": "MITOC BOD",
+                "email": "mitoc-bod@mit.edu",
+                "responseStatus": "accepted",
+            },
+            {
+                "displayName": "Eben Freeman",
+                "email": "freemaneben@gmail.com",
+                "responseStatus": "accepted",
+            },
+        ],
+        "originalStartTime": {
+            "dateTime": "2012-10-22T17:00:00-07:00",
+            "timeZone": "America/Los_Angeles",
+        },
+        "recurringEventId": "tn7krk4cekt8ag3pk6gapqqbro",
+        "reminders": {"useDefault": True},
+        "sequence": 0,
+        "start": {
+            "dateTime": "2012-10-22T18:00:00-07:00",
+            "timeZone": "America/Los_Angeles",
+        },
+        "status": "confirmed",
+        "summary": "BOD Meeting",
+        "updated": "2014-06-21T21:42:09.072Z",
+    }
+    event = parse_event_response(event_dict, False)
+    owner_name, owner_email = email.utils.parseaddr(event.owner)
+    assert (owner_name, owner_email) == ("MITOC BOD", "mitoc-bod@mit.edu")
+    assert owner_email != event_dict["creator"]["email"]
 
 
 def test_cancelled_override_creation():

@@ -22,6 +22,19 @@ app = Blueprint(
 def handle_initial_validation_response(view_function):
     @wraps(view_function)
     def _handle_initial_validation_response(*args, **kwargs):
+        """
+        Handle initial validation of webhook endpoint.
+
+        When subscription is created Microsoft Office365 servers
+        immediately contact the endpoint provided POSTing to it with
+        validationToken GET argument set. Endpoints are supposed
+        to answer with 200 OK, text/plain MIME type and body set to
+        validationToken. If an endpoint is unreachable or does not
+        respond correctly subscription creation won't succeed.
+        Subsequent POSTs contain change notifications.
+
+        https://learn.microsoft.com/en-us/graph/webhooks#notification-endpoint-validation
+        """
         validation_token = request.args.get("validationToken")
         if validation_token is not None:
             response = make_response(validation_token)
@@ -37,6 +50,14 @@ def validate_webhook_payload_factory(type: MsGraphType):
     def validate_webhook_payload(view_function):
         @wraps(view_function)
         def _validate_webhook_payload(*args, **kwargs):
+            """
+            Validate webhook payload.
+
+            Checks weather clientState matches MICROSOFT_SUBSCRIPTION_SECRET
+            which we use to create subscriptions. Also checks @odata.type as we
+            have two separate endpoints, one for calendar changes and one for
+            event changes.
+            """
             change_notifications: List[MsGraphChangeNotification] = cast(
                 MsGraphChangeNotificationCollection, request.json
             )["value"]
@@ -67,6 +88,7 @@ def validate_webhook_payload_factory(type: MsGraphType):
 @handle_initial_validation_response
 @validate_webhook_payload_factory("#Microsoft.Graph.Calendar")
 def calendar_update(account_public_id):
+    """Handle calendar list update for given account."""
     with global_session_scope() as db_session:
         try:
             account = (
@@ -87,6 +109,7 @@ def calendar_update(account_public_id):
 @handle_initial_validation_response
 @validate_webhook_payload_factory("#Microsoft.Graph.Event")
 def event_update(calendar_public_id):
+    """Handle events update for given calendar."""
     with global_session_scope() as db_session:
         try:
             calendar = (

@@ -11,6 +11,7 @@ from inbox.events.microsoft.graph_types import (
     MsGraphType,
 )
 from inbox.models.backends.outlook import OutlookAccount
+from inbox.models.calendar import Calendar
 from inbox.models.session import global_session_scope
 
 app = Blueprint(
@@ -86,4 +87,17 @@ def calendar_update(account_public_id):
 @handle_initial_validation_response
 @validate_webhook_payload_factory("#Microsoft.Graph.Event")
 def event_update(calendar_public_id):
-    return "calendar_list_update"
+    with global_session_scope() as db_session:
+        try:
+            calendar = (
+                db_session.query(Calendar)
+                .filter(Calendar.public_id == calendar_public_id)
+                .one()
+            )
+        except NoResultFound:
+            return f"Couldn't find calendar '{calendar_public_id}'", 404
+
+        calendar.handle_webhook_notification()
+        db_session.commit()
+
+    return "", 200

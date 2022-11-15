@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 
 from inbox.config import config
+from inbox.models.calendar import Calendar
 
 
 @pytest.fixture(autouse=True)
@@ -65,7 +66,29 @@ def test_validate_webhook_payload(test_client, payload, data):
     assert response.status_code == 400
 
 
-def test_calendar_update(test_client, outlook_account):
+def test_calendar_update_404(test_client):
+    response = test_client.post(
+        "/w/microsoft/calendar_list_update/does_not_exist",
+        json={
+            "value": [
+                {
+                    "changeType": "updated",
+                    "resourceData": {
+                        "@odata.type": "#Microsoft.Graph.Calendar",
+                        "id": "fake_id",
+                    },
+                    "clientState": "good_s3cr3t",
+                }
+            ]
+        },
+    )
+
+    assert response.status_code == 404
+
+
+def test_calendar_update(db, test_client, outlook_account):
+    assert outlook_account.webhook_calendar_list_last_ping is None
+
     response = test_client.post(
         f"/w/microsoft/calendar_list_update/{outlook_account.public_id}",
         json={
@@ -82,5 +105,62 @@ def test_calendar_update(test_client, outlook_account):
         },
     )
 
+    db.session.refresh(outlook_account)
+    assert outlook_account.webhook_calendar_list_last_ping is not None
+
     assert response.status_code == 200
-    assert response.data == b""
+
+
+def test_event_update_404(test_client):
+    response = test_client.post(
+        "/w/microsoft/calendar_update/does_not_exist",
+        json={
+            "value": [
+                {
+                    "changeType": "updated",
+                    "resourceData": {
+                        "@odata.type": "#Microsoft.Graph.Event",
+                        "id": "fake_id",
+                    },
+                    "clientState": "good_s3cr3t",
+                }
+            ]
+        },
+    )
+
+    assert response.status_code == 404
+
+
+def test_event_update(db, test_client, outlook_account):
+    calendar = Calendar(
+        name="Calendar",
+        uid="uid",
+        read_only=False,
+        namespace_id=outlook_account.namespace.id,
+    )
+    db.session.add(calendar)
+    db.session.commit()
+
+    assert calendar.webhook_last_ping is None
+
+    response = test_client.post(
+        f"/w/microsoft/calendar_update/{calendar.public_id}",
+        json={
+            "value": [
+                {
+                    "changeType": "updated",
+                    "resourceData": {
+                        "@odata.type": "#Microsoft.Graph.Event",
+                        "id": "fake_id",
+                    },
+                    "clientState": "good_s3cr3t",
+                }
+            ]
+        },
+    )
+
+    db.session.refresh(calendar)
+
+    assert calendar.webhook_last_ping is not None
+
+    assert response.status_code == 200

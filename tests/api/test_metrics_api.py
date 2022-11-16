@@ -1,8 +1,10 @@
 import json
+from unittest import mock
 
 import pytest
 
 from inbox.ignition import redis_txn
+from inbox.models.namespace import Namespace
 
 from tests.util.base import add_fake_message
 
@@ -58,3 +60,37 @@ class TestGlobalDeltas:
         # the default namespace should be returned again
         assert str(default_namespace.public_id) in deltas["deltas"]
         assert deltas["txnid_end"] > txnid
+
+
+def test_metrics_index(test_client, outlook_account):
+    metrics = test_client.get("/metrics")
+
+    (outlook_account_metrics,) = metrics.json
+    assert outlook_account_metrics["account_private_id"] == outlook_account.id
+    assert (
+        outlook_account_metrics["namespace_private_id"] == outlook_account.namespace.id
+    )
+
+
+def test_metrics_index_busted_account(
+    db, test_client, outlook_account, default_account
+):
+    # Bust outlook_account by deleting its namespace
+    db.session.query(Namespace).filter_by(id=outlook_account.namespace.id).delete()
+    db.session.commit()
+
+    with mock.patch("inbox.api.metrics_api.log") as log_mock:
+        metrics = test_client.get("/metrics")
+
+    # outlook_account gets error
+    ((method, (message,), kwargs),) = log_mock.method_calls
+    assert method == "error"
+    assert message == "Error while serializing account metrics"
+    assert kwargs["account_id"] == outlook_account.id
+
+    # but we still serialize default_account
+    (default_account_metrics,) = metrics.json
+    assert default_account_metrics["account_private_id"] == default_account.id
+    assert (
+        default_account_metrics["namespace_private_id"] == default_account.namespace.id
+    )

@@ -10,10 +10,13 @@ from inbox.api.err import InputError
 from inbox.api.kellogs import APIEncoder
 from inbox.events.remote_sync import EVENT_SYNC_FOLDER_ID
 from inbox.heartbeat.status import get_ping_status
+from inbox.logging import get_logger
 from inbox.models import Account, Calendar, Folder, Namespace
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.imap import ImapAccount, ImapFolderSyncStatus
 from inbox.models.session import global_session_scope
+
+log = get_logger()
 
 app = Blueprint("metrics_api", __name__, url_prefix="/metrics")
 
@@ -196,39 +199,46 @@ def index():
                 # Nylas is no longer syncing this account.
                 sync_status_str = "dead"
 
-            data.append(
-                {
-                    "account_private_id": account.id,
-                    "namespace_private_id": account.namespace.id,
-                    "account_id": account.public_id,
-                    "namespace_id": account.namespace.public_id,
-                    "events_alive": events_alive,
-                    "email_alive": email_alive,
-                    "alive": alive,
-                    "email_initial_sync": email_initial_sync,
-                    "events_initial_sync": events_initial_sync,
-                    "initial_sync": initial_sync,
-                    "provider_name": account.provider,
-                    "email_address": account.email_address,
-                    "folders": sorted(
-                        folder_data[account.id].values(), key=itemgetter("name")
-                    ),
-                    "calendars": sorted(
-                        calendar_data[account.id], key=itemgetter("name")
-                    ),
-                    "sync_email": account.sync_email,
-                    "sync_events": account.sync_events,
-                    "sync_status": sync_status_str,
-                    "sync_error": sync_status.get("sync_error"),
-                    "sync_end_time": sync_status.get("sync_end_time"),
-                    "sync_disabled_reason": sync_status.get("sync_disabled_reason"),
-                    "sync_host": account.sync_host,
-                    "progress": progress,
-                    "throttled": account.throttled,
-                    "created_at": account.created_at,
-                    "updated_at": account.updated_at,
-                }
-            )
+            try:
+                data.append(
+                    {
+                        "account_private_id": account.id,
+                        "namespace_private_id": account.namespace.id,
+                        "account_id": account.public_id,
+                        "namespace_id": account.namespace.public_id,
+                        "events_alive": events_alive,
+                        "email_alive": email_alive,
+                        "alive": alive,
+                        "email_initial_sync": email_initial_sync,
+                        "events_initial_sync": events_initial_sync,
+                        "initial_sync": initial_sync,
+                        "provider_name": account.provider,
+                        "email_address": account.email_address,
+                        "folders": sorted(
+                            folder_data[account.id].values(), key=itemgetter("name")
+                        ),
+                        "calendars": sorted(
+                            calendar_data[account.id], key=itemgetter("name")
+                        ),
+                        "sync_email": account.sync_email,
+                        "sync_events": account.sync_events,
+                        "sync_status": sync_status_str,
+                        "sync_error": sync_status.get("sync_error"),
+                        "sync_end_time": sync_status.get("sync_end_time"),
+                        "sync_disabled_reason": sync_status.get("sync_disabled_reason"),
+                        "sync_host": account.sync_host,
+                        "progress": progress,
+                        "throttled": account.throttled,
+                        "created_at": account.created_at,
+                        "updated_at": account.updated_at,
+                    }
+                )
+            except Exception:
+                log.error(
+                    "Error while serializing account metrics",
+                    account_id=account.id,
+                    exc_info=True,
+                )
 
         return APIEncoder().jsonify(data)
 

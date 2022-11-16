@@ -133,11 +133,11 @@ def make_account(db, config, *, cls):
 
 def delete_default_accounts(db):
     from inbox.models import Namespace
-    from inbox.models.backends.gmail import GmailAccount
+    from inbox.models.account import Account
 
     delete_messages(db.session)
     db.session.rollback()
-    db.session.query(GmailAccount).delete()
+    db.session.query(Account).delete()
     db.session.query(Namespace).delete()
     db.session.commit()
 

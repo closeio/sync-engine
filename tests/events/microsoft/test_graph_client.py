@@ -10,7 +10,6 @@ from responses.registries import OrderedRegistry
 
 from inbox.events.microsoft.graph_client import (
     BASE_URL,
-    MicrosoftGraphClient,
     MicrosoftGraphClientException,
     format_datetime,
 )
@@ -21,11 +20,6 @@ def test_format_datetime():
         format_datetime(datetime.datetime(2022, 10, 1, 3, 4, 5, tzinfo=pytz.UTC))
         == "2022-10-01T03:04:05Z"
     )
-
-
-@pytest.fixture
-def client():
-    return MicrosoftGraphClient(lambda: "fake_token")
 
 
 calendars_json = {

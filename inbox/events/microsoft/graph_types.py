@@ -219,3 +219,35 @@ class MsGraphCalendar(TypedDict):
     name: str
     canEdit: bool
     isDefaultCalendar: bool
+
+
+MsGraphType = Literal["#Microsoft.Graph.Event", "#Microsoft.Graph.Calendar"]
+
+MsGraphResourceData = TypedDict(
+    "MsGraphResourceData", {"@odata.type": MsGraphType, "id": str}
+)
+
+MsGraphChangeType = Literal["created", "updated", "deleted"]
+
+
+class MsGraphChangeNotification(TypedDict):
+    """
+    Represents the notification sent to the subscriber.
+
+    https://learn.microsoft.com/en-us/graph/api/resources/changenotification
+    """
+
+    changeType: MsGraphChangeType
+    clientState: str
+    resource: str
+    resourceData: MsGraphResourceData
+
+
+class MsGraphChangeNotificationCollection(TypedDict):
+    """
+    Represents a collection of resource change notifications sent to the subscriber.
+
+    https://learn.microsoft.com/en-us/graph/api/resources/changenotificationcollection
+    """
+
+    value: List[MsGraphChangeNotification]

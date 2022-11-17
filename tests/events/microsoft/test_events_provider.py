@@ -3,6 +3,8 @@ import responses
 
 from inbox.events.microsoft.events_provider import MicrosoftEventsProvider
 from inbox.events.microsoft.graph_client import BASE_URL
+from inbox.events.remote_sync import EventSync
+from inbox.models.calendar import Calendar
 from inbox.models.event import Event, RecurringEvent
 
 
@@ -11,19 +13,29 @@ def provider(client):
     provider = MicrosoftEventsProvider("fake_account_id", "fake_namespace_id")
     provider.client = client
 
+    responses.get(
+        BASE_URL + "/me/calendars", json=calendars_json,
+    )
+    responses.get(
+        BASE_URL + "/me/calendars/fake_calendar_id/events", json=events_json,
+    )
+    responses.get(
+        BASE_URL + "/me/calendars/fake_test_calendar_id/events", json={"value": []}
+    )
+
     return provider
 
 
 calendars_json = {
     "value": [
         {
-            "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAAAAAEGAABtf4g8yY_zTZgZh6x0X-50AAAAADafAAA=",
+            "id": "fake_calendar_id",
             "name": "Calendar",
             "canEdit": True,
             "isDefaultCalendar": True,
         },
         {
-            "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAAAAAEGAABtf4g8yY_zTZgZh6x0X-50AAIM0_ZOAAA=",
+            "id": "fake_test_calendar_id",
             "name": "Test",
             "canEdit": True,
             "isDefaultCalendar": False,
@@ -34,10 +46,6 @@ calendars_json = {
 
 @responses.activate
 def test_sync_calendars(provider):
-    responses.get(
-        BASE_URL + "/me/calendars", json=calendars_json,
-    )
-
     _, calendars = provider.sync_calendars()
     calendars_by_name = {calendar.name: calendar for calendar in calendars}
 
@@ -193,10 +201,6 @@ events_json = {
 
 @responses.activate
 def test_sync_events(provider):
-    responses.get(
-        BASE_URL + "/me/calendars/fake_calendar_id/events", json=events_json,
-    )
-
     events = provider.sync_events("fake_calendar_id")
     events_by_title = {event.title: event for event in events}
 
@@ -204,3 +208,28 @@ def test_sync_events(provider):
     assert events_by_title["Singular"].description == "Singular"
     assert isinstance(events_by_title["Recurring"], RecurringEvent)
     assert events_by_title["Recurring"].description == "Hello world!"
+
+
+@responses.activate
+def test_sync(db, provider, outlook_account):
+    event_sync = EventSync(
+        outlook_account.email_address,
+        outlook_account.verbose_provider,
+        outlook_account.id,
+        outlook_account.namespace.id,
+        provider_class=lambda *args, **kwargs: provider,
+    )
+    event_sync.sync()
+
+    calendars = db.session.query(Calendar).filter_by(
+        namespace_id=outlook_account.namespace.id
+    )
+    calendars_by_name = {calendar.name: calendar for calendar in calendars}
+
+    # Emailed events is the calendar we always create for ICS files in mail
+    assert set(calendars_by_name) == {"Emailed events", "Calendar", "Test"}
+    assert {event.title for event in calendars_by_name["Calendar"].events} == {
+        "Singular",
+        "Recurring",
+    }
+    assert calendars_by_name["Test"].events == []

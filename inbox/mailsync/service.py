@@ -11,6 +11,7 @@ from inbox.config import config
 from inbox.contacts.remote_sync import ContactSync
 from inbox.error_handling import log_uncaught_errors
 from inbox.events.google import GoogleEventsProvider
+from inbox.events.microsoft.events_provider import MicrosoftEventsProvider
 from inbox.events.remote_sync import EventSync, WebhookEventSync
 from inbox.heartbeat.status import clear_heartbeat_status
 from inbox.logging import get_logger
@@ -315,13 +316,22 @@ class SyncService:
                             acc.namespace.id,
                             provider_class=GoogleEventsProvider,
                         )
-                    else:
+                    elif acc.provider == "gmail":
                         event_sync = EventSync(
                             acc.email_address,
                             acc.verbose_provider,
                             acc.id,
                             acc.namespace.id,
                             provider_class=GoogleEventsProvider,
+                        )
+                    elif acc.provider == "microsoft":
+                        # FIXME: Use WebhookEventSync for incremental
+                        event_sync = EventSync(
+                            acc.email_address,
+                            acc.verbose_provider,
+                            acc.id,
+                            acc.namespace.id,
+                            provider_class=MicrosoftEventsProvider,
                         )
                     self.event_sync_monitors[acc.id] = event_sync
                     event_sync.start()

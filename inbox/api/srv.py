@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Any, Dict, Union
 
 from flask import Flask, g, jsonify, make_response, request
 from flask_restful import reqparse
@@ -176,7 +176,7 @@ def _get_account_data_for_generic_account(data):
     )
 
 
-def _get_account_data_for_google_account(data):
+def _get_account_data_for_google_account(data: Dict[str, Any]) -> GoogleAccountData:
     email_address = data["email_address"]
     scopes = data.get("scopes", " ".join(GOOGLE_EMAIL_SCOPES))
     client_id = data.get("client_id")
@@ -209,7 +209,9 @@ def _get_account_data_for_google_account(data):
     )
 
 
-def _get_account_data_for_microsoft_account(data):
+def _get_account_data_for_microsoft_account(
+    data: Dict[str, Any]
+) -> MicrosoftAccountData:
     email_address = data["email_address"]
     scopes = data["scopes"]
     client_id = data.get("client_id")
@@ -218,6 +220,7 @@ def _get_account_data_for_microsoft_account(data):
     authalligator = data.get("authalligator")
 
     sync_email = data.get("sync_email", True)
+    sync_calendar = data.get("sync_calendar", False)
 
     if authalligator:
         secret_type = SecretType.AuthAlligator
@@ -235,6 +238,7 @@ def _get_account_data_for_microsoft_account(data):
         client_id=client_id,
         scope=scopes,
         sync_email=sync_email,
+        sync_events=sync_calendar,
     )
 
 

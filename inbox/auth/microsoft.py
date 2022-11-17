@@ -21,6 +21,7 @@ class MicrosoftAccountData:
     scope = attr.ib()
 
     sync_email = attr.ib()
+    sync_events = attr.ib()
 
 
 class MicrosoftAuthHandler(OAuthAuthHandler):
@@ -48,14 +49,16 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
         ]
     )
 
-    def create_account(self, account_data):
+    def create_account(self, account_data: MicrosoftAccountData) -> OutlookAccount:
         namespace = Namespace()
         account = OutlookAccount(namespace=namespace)
         account.create_emailed_events_calendar()
         account.sync_should_run = False
         return self.update_account(account, account_data)
 
-    def update_account(self, account, account_data):
+    def update_account(
+        self, account: OutlookAccount, account_data: MicrosoftAccountData
+    ) -> OutlookAccount:
         account.email_address = account_data.email
 
         if account_data.secret_type:
@@ -65,6 +68,7 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
             raise OAuthError("No valid auth info.")
 
         account.sync_email = account_data.sync_email
+        account.sync_events = account_data.sync_events
 
         account.client_id = account_data.client_id
         account.scope = account_data.scope
@@ -97,6 +101,7 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
                     client_id=self.OAUTH_CLIENT_ID,
                     scope=auth_response["scope"],
                     sync_email=True,
+                    sync_events=False,
                 )
             except OAuthError:
                 print("\nInvalid authorization code, try again...\n")

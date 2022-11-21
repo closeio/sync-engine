@@ -1,11 +1,22 @@
+import datetime
+from unittest import mock
+
 import pytest
+import pytz
 import responses
 
+from inbox.config import config
 from inbox.events.microsoft.events_provider import MicrosoftEventsProvider
 from inbox.events.microsoft.graph_client import BASE_URL
 from inbox.events.remote_sync import EventSync
 from inbox.models.calendar import Calendar
 from inbox.models.event import Event, RecurringEvent
+
+
+@pytest.fixture(autouse=True)
+def populate_microsoft_subscrtipion_secret():
+    with mock.patch.dict(config, {"MICROSOFT_SUBSCRIPTION_SECRET": "good_s3cr3t"}):
+        yield
 
 
 @pytest.fixture
@@ -22,6 +33,8 @@ def provider(client):
     responses.get(
         BASE_URL + "/me/calendars/fake_test_calendar_id/events", json={"value": []}
     )
+
+    responses.post(BASE_URL + "/subscriptions", json=subscribe_json)
 
     return provider
 
@@ -208,6 +221,32 @@ def test_sync_events(provider):
     assert events_by_title["Singular"].description == "Singular"
     assert isinstance(events_by_title["Recurring"], RecurringEvent)
     assert events_by_title["Recurring"].description == "Hello world!"
+
+
+subscribe_json = {
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#subscriptions/$entity",
+    "id": "f798ca9d-d630-4306-b065-af52199f5613",
+    "resource": "/me/calendars",
+    "applicationId": "de8bc8b5-d9f9-48b1-a8ad-b748da725064",
+    "changeType": "updated,deleted",
+    "clientState": "mxMHZhfnRRntwzKCWhPgRQFVuWymHyja",
+    "notificationUrl": "https://nylas-a-googlewebhooksync.close.com/w/microsoft/calendar_update/asd",
+    "notificationQueryOptions": None,
+    "lifecycleNotificationUrl": None,
+    "expirationDateTime": "2022-11-24T18:31:12.829451Z",
+    "creatorId": "0db5de84-a1b3-47bf-8342-44ab4f415fe4",
+    "includeResourceData": None,
+    "latestSupportedTlsVersion": "v1_2",
+    "encryptionCertificate": None,
+    "encryptionCertificateId": None,
+    "notificationUrlAppId": None,
+}
+
+
+@responses.activate
+def test_watch_calendar_list(provider, outlook_account):
+    expiration = provider.watch_calendar_list(outlook_account)
+    assert expiration == datetime.datetime(2022, 11, 24, 18, 31, 12, tzinfo=pytz.UTC)
 
 
 @responses.activate

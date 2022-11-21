@@ -106,7 +106,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         expiration = cast(MsGraphSubscription, response)["expirationDateTime"]
 
-        return ciso8601.parse_datetime(expiration)
+        return ciso8601.parse_datetime(expiration).replace(microsecond=0)
 
     def watch_calendar(
         self, account: Account, calendar: Calendar
@@ -129,4 +129,4 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         expiration = cast(MsGraphSubscription, response)["expirationDateTime"]
 
-        return ciso8601.parse_datetime(expiration)
+        return ciso8601.parse_datetime(expiration).replace(microsecond=0)

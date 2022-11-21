@@ -1,3 +1,9 @@
+import json
+
+import pytest
+
+from inbox.models.account import Account
+
 from tests.api.base import new_api_client
 from tests.util.base import add_fake_yahoo_account, db, generic_account, gmail_account
 
@@ -90,3 +96,26 @@ def test_account_repr_for_new_account(db):
     resp_data = api_client.get_data("/account")
     assert resp_data["id"] == account.namespace.public_id
     assert resp_data["sync_state"] == "invalid"
+
+
+@pytest.mark.parametrize("type", ["microsoft", "gmail"])
+@pytest.mark.parametrize("sync_calendar", [True, False])
+def test_account_create(db, api_client, type, sync_calendar):
+    data = {
+        "type": type,
+        "email_address": "fake@example.com",
+        "scopes": "fake",
+        "authalligator": "fake",
+        "sync_calendar": sync_calendar,
+    }
+
+    response = api_client.post_data("/accounts/", data)
+    public_id = json.loads(response.data)["account_id"]
+    account = (
+        db.session.query(Account)
+        .filter(Account.namespace.has(public_id=public_id))
+        .one()
+    )
+
+    assert account.provider == type
+    assert account.sync_events == sync_calendar

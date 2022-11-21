@@ -1,12 +1,15 @@
 import datetime
 from typing import Iterable, List, Optional, cast
 
+import pytz
+
 from inbox.events.abstract import AbstractEventsProvider
 from inbox.events.microsoft.graph_client import MicrosoftGraphClient
 from inbox.events.microsoft.graph_types import MsGraphCalendar, MsGraphEvent
 from inbox.events.microsoft.parse import parse_calendar, parse_event
 from inbox.events.util import CalendarSyncResponse
 from inbox.models.account import Account
+from inbox.models.backends.outlook import MICROSOFT_CALENDAR_SCOPES
 from inbox.models.calendar import Calendar
 from inbox.models.event import Event
 
@@ -15,7 +18,9 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
     def __init__(self, account_id: int, namespace_id: int):
         super().__init__(account_id, namespace_id)
 
-        self.client = MicrosoftGraphClient(lambda: self._get_access_token())
+        self.client = MicrosoftGraphClient(
+            lambda: self._get_access_token(scopes=MICROSOFT_CALENDAR_SCOPES)
+        )
 
     def sync_calendars(self) -> CalendarSyncResponse:
         """
@@ -46,6 +51,12 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         Returns:
             A list of uncommited Event instances
         """
+        if sync_from_time:
+            # this got here from the database, we store them as naive
+            # UTC in the database. The code downstream is timezone aware so
+            # we attach timezone here.
+            sync_from_time = sync_from_time.replace(tzinfo=pytz.UTC)
+
         updates = []
         raw_events = cast(
             Iterable[MsGraphEvent],

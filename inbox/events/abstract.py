@@ -89,12 +89,15 @@ class AbstractEventsProvider(abc.ABC):
         """
         raise NotImplementedError()
 
-    def _get_access_token(self, force_refresh: bool = False) -> str:
+    def _get_access_token(
+        self, force_refresh: bool = False, scopes: Optional[List[str]] = None
+    ) -> str:
         """
         Get access token used to fetch data using APIs.
 
         Arguments:
             force_refresh: Whether to force refreshing the token
+            scopes: Desired token scopes
 
         Returns:
             The token
@@ -103,4 +106,6 @@ class AbstractEventsProvider(abc.ABC):
             acc = db_session.query(Account).get(self.account_id)
             # This will raise OAuthError if OAuth access was revoked. The
             # BaseSyncMonitor loop will catch this, clean up, and exit.
-            return token_manager.get_token(acc, force_refresh=force_refresh)
+            return token_manager.get_token(
+                acc, force_refresh=force_refresh, scopes=scopes
+            )

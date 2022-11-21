@@ -24,7 +24,9 @@ def hash_token(token, prefix=None):
     return sha256(string.encode()).hexdigest()
 
 
-def log_token_usage(reason, refresh_token=None, access_token=None, account=None):
+def log_token_usage(
+    reason, refresh_token=None, access_token=None, account=None, scopes=None
+):
     nylas_account_id = (
         account.namespace.public_id if account and account.namespace else None
     )
@@ -34,12 +36,15 @@ def log_token_usage(reason, refresh_token=None, access_token=None, account=None)
         access_hash=hash_token(access_token, prefix="access_token"),
         nylas_account_id=nylas_account_id,
         email=account.email_address if account else None,
+        scopes=scopes,
     )
 
 
 class TokenManager:
     def __init__(self):
-        self._tokens: Dict[str, str] = {}
+        self._token_cache: Dict[
+            Tuple[str, Optional[Tuple[str, ...]]], Tuple[str, datetime]
+        ] = {}
 
     def get_token(
         self,
@@ -47,11 +52,15 @@ class TokenManager:
         force_refresh: bool = False,
         scopes: Optional[List[str]] = None,
     ) -> str:
-        if account.id in self._tokens:
-            token, expiration = self._tokens[account.id]
+        cache_key = self.get_cache_key(account, scopes)
+        if cache_key in self._token_cache:
+            token, expiration = self._token_cache[cache_key]
             if not force_refresh and expiration > datetime.utcnow():
                 log_token_usage(
-                    "access token used", access_token=token, account=account
+                    "access token used",
+                    access_token=token,
+                    account=account,
+                    scopes=scopes,
                 )
                 return token
 
@@ -59,16 +68,33 @@ class TokenManager:
             force_refresh=force_refresh, scopes=scopes
         )
         log_token_usage(
-            "access token obtained", access_token=new_token, account=account
+            "access token obtained",
+            access_token=new_token,
+            account=account,
+            scopes=scopes,
         )
-        log_token_usage("access token used", access_token=new_token, account=account)
-        self.cache_token(account, new_token, expires_in)
+        log_token_usage(
+            "access token used", access_token=new_token, account=account, scopes=scopes
+        )
+        self.cache_token(account, scopes, new_token, expires_in)
         return new_token
 
-    def cache_token(self, account: "OAuthAccount", token: str, expires_in: int) -> None:
+    def get_cache_key(
+        self, account: "OAuthAccount", scopes: Optional[List[str]]
+    ) -> Tuple[str, Optional[Tuple[str, ...]]]:
+        return (account.id, tuple(scopes) if scopes else None)
+
+    def cache_token(
+        self,
+        account: "OAuthAccount",
+        scopes: Optional[List[str]],
+        token: str,
+        expires_in: int,
+    ) -> None:
         expires_in -= 10
         expiration = datetime.utcnow() + timedelta(seconds=expires_in)
-        self._tokens[account.id] = token, expiration
+        cache_key = self.get_cache_key(account, scopes)
+        self._token_cache[cache_key] = token, expiration
 
 
 token_manager = TokenManager()
@@ -106,7 +132,7 @@ class OAuthAccount:
         )
 
     @property
-    def refresh_token(self) -> str:
+    def refresh_token(self) -> Optional[str]:
         if not self.secret:
             return None
         if self.secret.type == SecretType.Token.value:

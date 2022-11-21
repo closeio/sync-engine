@@ -251,3 +251,15 @@ class MsGraphChangeNotificationCollection(TypedDict):
     """
 
     value: List[MsGraphChangeNotification]
+
+
+class MsGraphSubscription(TypedDict):
+    """
+    A subscription allows a client app to receive change notifications
+    about changes to data in Microsoft Graph.
+
+    https://learn.microsoft.com/en-us/graph/api/resources/subscription
+    """
+
+    id: str
+    expirationDateTime: str

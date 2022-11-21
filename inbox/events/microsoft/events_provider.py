@@ -1,17 +1,28 @@
 import datetime
 from typing import Iterable, List, Optional, cast
 
+import ciso8601
 import pytz
 
+from inbox.config import config
 from inbox.events.abstract import AbstractEventsProvider
 from inbox.events.microsoft.graph_client import MicrosoftGraphClient
-from inbox.events.microsoft.graph_types import MsGraphCalendar, MsGraphEvent
+from inbox.events.microsoft.graph_types import (
+    MsGraphCalendar,
+    MsGraphEvent,
+    MsGraphSubscription,
+)
 from inbox.events.microsoft.parse import parse_calendar, parse_event
 from inbox.events.util import CalendarSyncResponse
 from inbox.models.account import Account
 from inbox.models.backends.outlook import MICROSOFT_CALENDAR_SCOPES
 from inbox.models.calendar import Calendar
 from inbox.models.event import Event
+
+URL_PREFIX = config.get("API_URL", "")
+
+CALENDAR_LIST_WEBHOOK_URL = URL_PREFIX + "/w/microsoft/calendar_list_update/{}"
+EVENTS_LIST_WEBHOOK_URL = URL_PREFIX + "/w/microsoft/calendar_update/{}"
 
 
 class MicrosoftEventsProvider(AbstractEventsProvider):
@@ -88,7 +99,14 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         Returns:
             The expiration of the notification channel
         """
-        raise NotImplementedError()
+        response = self.client.subscribe_to_calendar_changes(
+            webhook_url=CALENDAR_LIST_WEBHOOK_URL.format(account.public_id),
+            secret=config["MICROSOFT_SUBSCRIPTION_SECRET"],
+        )
+
+        expiration = cast(MsGraphSubscription, response)["expirationDateTime"]
+
+        return ciso8601.parse_datetime(expiration)
 
     def watch_calendar(
         self, account: Account, calendar: Calendar
@@ -103,4 +121,12 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         Returns:
             The expiration of the notification channel
         """
-        raise NotImplementedError()
+        response = self.client.subscribe_to_event_changes(
+            calendar.uid,
+            webhook_url=EVENTS_LIST_WEBHOOK_URL.format(calendar.public_id),
+            secret=config["MICROSOFT_SUBSCRIPTION_SECRET"],
+        )
+
+        expiration = cast(MsGraphSubscription, response)["expirationDateTime"]
+
+        return ciso8601.parse_datetime(expiration)

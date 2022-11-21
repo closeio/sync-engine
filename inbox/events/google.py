@@ -38,7 +38,7 @@ URL_PREFIX = config.get("API_URL", "")
 WEBHOOK_ENABLED_CLIENT_IDS = config.get("WEBHOOK_ENABLED_CLIENT_IDS", [])
 
 CALENDAR_LIST_WEBHOOK_URL = URL_PREFIX + "/w/calendar_list_update/{}"
-EVENTS_LIST_WEHOOK_URL = URL_PREFIX + "/w/calendar_update/{}"
+EVENTS_LIST_WEBHOOK_URL = URL_PREFIX + "/w/calendar_update/{}"
 
 WATCH_CALENDARS_URL = CALENDARS_URL + "/watch"
 WATCH_EVENTS_URL = "https://www.googleapis.com/calendar/v3/calendars/{}/events/watch"
@@ -357,7 +357,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
         """
         token = self._get_access_token_for_push_notifications(account)
         watch_url = WATCH_EVENTS_URL.format(urllib.parse.quote(calendar.uid))
-        receiving_url = EVENTS_LIST_WEHOOK_URL.format(
+        receiving_url = EVENTS_LIST_WEBHOOK_URL.format(
             urllib.parse.quote(calendar.public_id)
         )
 

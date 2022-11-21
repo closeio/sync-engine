@@ -48,14 +48,16 @@ class GoogleAuthHandler(OAuthAuthHandler):
         ]
     )
 
-    def create_account(self, account_data):
+    def create_account(self, account_data: GoogleAccountData) -> GmailAccount:
         namespace = Namespace()
         account = GmailAccount(namespace=namespace)
         account.create_emailed_events_calendar()
         account.sync_should_run = False
         return self.update_account(account, account_data)
 
-    def update_account(self, account, account_data):
+    def update_account(
+        self, account: GmailAccount, account_data: GoogleAccountData
+    ) -> GmailAccount:
         account.email_address = account_data.email
 
         if account_data.secret_type:

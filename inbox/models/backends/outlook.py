@@ -12,6 +12,11 @@ MICROSOFT_EMAIL_SCOPES = [
     "https://outlook.office.com/SMTP.Send",
 ]
 
+MICROSOFT_CALENDAR_SCOPES = [
+    "https://graph.microsoft.com/Calendars.Read",
+    "https://graph.microsoft.com/Calendars.Read.Shared",
+]
+
 
 class OutlookAccount(CalendarSyncAccountMixin, ImapAccount, OAuthAccount):
     OAUTH_CLIENT_ID = config.get_required("MICROSOFT_OAUTH_CLIENT_ID")
@@ -44,8 +49,7 @@ class OutlookAccount(CalendarSyncAccountMixin, ImapAccount, OAuthAccount):
 
     @property
     def calendar_scopes(self):
-
-        return None
+        return MICROSOFT_CALENDAR_SCOPES
 
     @property
     def scopes(self):

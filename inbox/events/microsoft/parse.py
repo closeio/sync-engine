@@ -619,7 +619,7 @@ def parse_event(
         all_day=all_day,
         owner=owner,
         is_owner=is_owner,
-        ready_only=read_only,
+        read_only=read_only,
         participants=participants,
         recurrence=recurrence,
         last_modified=last_modified,

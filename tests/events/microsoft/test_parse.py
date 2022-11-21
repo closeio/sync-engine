@@ -995,6 +995,7 @@ def test_parse_event_recurrence():
     assert event.rrule == "RRULE:FREQ=DAILY;UNTIL=20220922T065959Z"
     assert event.cancelled is False
     assert event.visibility is None
+    assert event.read_only is False
 
 
 single_instance_event = {
@@ -1070,6 +1071,7 @@ def test_parse_event_singular():
     assert event.is_owner is True
     assert event.cancelled is False
     assert event.visibility is None
+    assert event.read_only is False
 
 
 outlook_calendar = {

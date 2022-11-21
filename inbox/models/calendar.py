@@ -62,11 +62,12 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
             or obj_state.attrs.read_only.history.has_changes()
         )
 
-    def update(self, calendar):
+    def update(self, calendar: "Calendar"):
         self.uid = calendar.uid
         self.name = calendar.name[:MAX_INDEXABLE_LENGTH]
         self.read_only = calendar.read_only
         self.description = calendar.description
+        self.default = calendar.default
 
     def new_event_watch(self, expiration: datetime) -> None:
         self.webhook_subscription_expiration = expiration

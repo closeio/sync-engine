@@ -267,8 +267,7 @@ class WebhookEventSync(EventSync):
                 self._refresh_webhook_subscriptions()
             else:
                 self.log.warning(
-                    "Cannot use Google push notifications (URL_PREFIX not "
-                    "configured)"
+                    "Cannot use webhook notifications (URL_PREFIX not configured)"
                 )
         except AccessNotEnabledError:
             self.log.warning(

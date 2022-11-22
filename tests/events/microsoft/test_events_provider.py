@@ -4,6 +4,7 @@ from unittest import mock
 import pytest
 import pytz
 import responses
+from responses.matchers import json_params_matcher
 
 from inbox.config import config
 from inbox.events.microsoft.events_provider import MicrosoftEventsProvider
@@ -34,7 +35,22 @@ def provider(client):
         BASE_URL + "/me/calendars/fake_test_calendar_id/events", json={"value": []}
     )
 
-    responses.post(BASE_URL + "/subscriptions", json=subscribe_json)
+    responses.post(
+        BASE_URL + "/subscriptions",
+        json=calendar_list_subscribe_json,
+        match=[json_params_matcher({"resource": "/me/calendars"}, strict_match=False)],
+    )
+
+    responses.post(
+        BASE_URL + "/subscriptions",
+        json=calendar_subscribe_json,
+        match=[
+            json_params_matcher(
+                {"resource": "/me/calendars/fake_calendar_id/events"},
+                strict_match=False,
+            )
+        ],
+    )
 
     return provider
 
@@ -223,23 +239,10 @@ def test_sync_events(provider):
     assert events_by_title["Recurring"].description == "Hello world!"
 
 
-subscribe_json = {
-    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#subscriptions/$entity",
+calendar_list_subscribe_json = {
     "id": "f798ca9d-d630-4306-b065-af52199f5613",
     "resource": "/me/calendars",
-    "applicationId": "de8bc8b5-d9f9-48b1-a8ad-b748da725064",
-    "changeType": "updated,deleted",
-    "clientState": "mxMHZhfnRRntwzKCWhPgRQFVuWymHyja",
-    "notificationUrl": "https://nylas-a-googlewebhooksync.close.com/w/microsoft/calendar_update/asd",
-    "notificationQueryOptions": None,
-    "lifecycleNotificationUrl": None,
     "expirationDateTime": "2022-11-24T18:31:12.829451Z",
-    "creatorId": "0db5de84-a1b3-47bf-8342-44ab4f415fe4",
-    "includeResourceData": None,
-    "latestSupportedTlsVersion": "v1_2",
-    "encryptionCertificate": None,
-    "encryptionCertificateId": None,
-    "notificationUrlAppId": None,
 }
 
 
@@ -247,6 +250,25 @@ subscribe_json = {
 def test_watch_calendar_list(provider, outlook_account):
     expiration = provider.watch_calendar_list(outlook_account)
     assert expiration == datetime.datetime(2022, 11, 24, 18, 31, 12, tzinfo=pytz.UTC)
+
+
+calendar_subscribe_json = {
+    "id": "f798ca9d-d630-4306-b065-af52199f5613",
+    "resource": "/me/calendars/fake_calendar_id/events",
+    "expirationDateTime": "2022-10-25T04:22:34.929451Z",
+}
+
+
+@responses.activate
+def test_watch_calendar(provider, outlook_account):
+    calendar = Calendar(uid="fake_calendar_id", public_id="fake_public_id")
+
+    expiration = provider.watch_calendar(outlook_account, calendar)
+    assert expiration == datetime.datetime(2022, 10, 25, 4, 22, 34, tzinfo=pytz.UTC)
+
+
+def test_webhook_notifications_enabled(provider, outlook_account):
+    assert provider.webhook_notifications_enabled(outlook_account)
 
 
 @responses.activate

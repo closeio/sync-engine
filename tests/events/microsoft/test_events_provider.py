@@ -9,7 +9,7 @@ from responses.matchers import json_params_matcher
 from inbox.config import config
 from inbox.events.microsoft.events_provider import MicrosoftEventsProvider
 from inbox.events.microsoft.graph_client import BASE_URL
-from inbox.events.remote_sync import EventSync
+from inbox.events.remote_sync import WebhookEventSync
 from inbox.models.calendar import Calendar
 from inbox.models.event import Event, RecurringEvent
 
@@ -17,6 +17,12 @@ from inbox.models.event import Event, RecurringEvent
 @pytest.fixture(autouse=True)
 def populate_microsoft_subscrtipion_secret():
     with mock.patch.dict(config, {"MICROSOFT_SUBSCRIPTION_SECRET": "good_s3cr3t"}):
+        yield
+
+
+@pytest.fixture(autouse=True)
+def populate_url_prefix():
+    with mock.patch("inbox.events.remote_sync.URL_PREFIX", "https://example.com"):
         yield
 
 
@@ -47,6 +53,17 @@ def provider(client):
         match=[
             json_params_matcher(
                 {"resource": "/me/calendars/fake_calendar_id/events"},
+                strict_match=False,
+            )
+        ],
+    )
+
+    responses.post(
+        BASE_URL + "/subscriptions",
+        json=calendar_subscribe_json,
+        match=[
+            json_params_matcher(
+                {"resource": "/me/calendars/fake_test_calendar_id/events"},
                 strict_match=False,
             )
         ],
@@ -273,13 +290,15 @@ def test_webhook_notifications_enabled(provider, outlook_account):
 
 @responses.activate
 def test_sync(db, provider, outlook_account):
-    event_sync = EventSync(
+    event_sync = WebhookEventSync(
         outlook_account.email_address,
         outlook_account.verbose_provider,
         outlook_account.id,
         outlook_account.namespace.id,
         provider_class=lambda *args, **kwargs: provider,
     )
+
+    # First sync, initially we just read without subscriptions
     event_sync.sync()
 
     calendars = db.session.query(Calendar).filter_by(
@@ -294,3 +313,22 @@ def test_sync(db, provider, outlook_account):
         "Recurring",
     }
     assert calendars_by_name["Test"].events == []
+
+    assert outlook_account.webhook_calendar_list_expiration is None
+    assert outlook_account.webhook_calendar_list_last_ping is None
+    assert calendars_by_name["Calendar"].webhook_subscription_expiration is None
+    assert calendars_by_name["Calendar"].webhook_last_ping is None
+    assert calendars_by_name["Test"].webhook_subscription_expiration is None
+    assert calendars_by_name["Test"].webhook_last_ping is None
+
+    db.session.expire_all()
+
+    # Second sync, creates subscriptions
+    event_sync.sync()
+
+    assert outlook_account.webhook_calendar_list_expiration is not None
+    assert outlook_account.webhook_calendar_list_last_ping is not None
+    assert calendars_by_name["Calendar"].webhook_subscription_expiration is not None
+    assert calendars_by_name["Calendar"].webhook_last_ping is not None
+    assert calendars_by_name["Test"].webhook_subscription_expiration is not None
+    assert calendars_by_name["Test"].webhook_last_ping is not None

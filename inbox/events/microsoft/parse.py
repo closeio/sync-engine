@@ -3,7 +3,7 @@ import email.utils
 import enum
 import itertools
 import json
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import ciso8601
 import dateutil.rrule
@@ -322,7 +322,7 @@ def synthetize_canceled_occurrence(
     ) - parse_msgraph_datetime_tz_as_utc(master_event["start"])
     cancellation_end = dump_datetime_as_msgraph_datetime_tz(start_datetime + duration)
 
-    return {
+    result = {
         **master_event,
         "id": cancellation_id,
         "type": "synthetizedCancellation",
@@ -331,6 +331,8 @@ def synthetize_canceled_occurrence(
         "start": cancellation_start,
         "end": cancellation_end,
     }
+
+    return cast(MsGraphEvent, result)
 
 
 def populate_original_start_in_exception_occurrence(

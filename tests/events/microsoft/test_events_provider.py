@@ -269,13 +269,41 @@ def subscribe_responses():
 
 
 @pytest.fixture
+def instances_response():
+    responses.get(
+        BASE_URL + "/me/events/recurrence_id/instances",
+        json={
+            "value": [
+                {
+                    "type": "occurrence",
+                    "start": {
+                        "dateTime": "2022-09-19T15:00:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                },
+                {
+                    "type": "occurrence",
+                    "start": {
+                        "dateTime": "2022-09-20T15:00:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                },
+                {
+                    "type": "occurrence",
+                    "start": {
+                        "dateTime": "2022-09-21T15:00:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                },
+            ]
+        },
+    )
+
+
+@pytest.fixture
 def provider(client):
     provider = MicrosoftEventsProvider("fake_account_id", "fake_namespace_id")
     provider.client = client
-
-    responses.get(
-        BASE_URL + "/me/events/recurrence_id/instances", json=recurrence_instances_json
-    )
 
     return provider
 
@@ -292,26 +320,8 @@ def test_sync_calendars(provider):
     assert not calendars_by_name["Test"].default
 
 
-recurrence_instances_json = {
-    "value": [
-        {
-            "type": "occurrence",
-            "start": {"dateTime": "2022-09-19T15:00:00.0000000", "timeZone": "UTC"},
-        },
-        {
-            "type": "occurrence",
-            "start": {"dateTime": "2022-09-20T15:00:00.0000000", "timeZone": "UTC"},
-        },
-        {
-            "type": "occurrence",
-            "start": {"dateTime": "2022-09-21T15:00:00.0000000", "timeZone": "UTC"},
-        },
-    ]
-}
-
-
 @responses.activate
-@pytest.mark.usefixtures("events_responses")
+@pytest.mark.usefixtures("events_responses", "instances_response")
 def test_sync_events(provider):
     events = provider.sync_events("fake_calendar_id")
     events_by_title = {event.title: event for event in events}
@@ -344,7 +354,10 @@ def test_webhook_notifications_enabled(provider, outlook_account):
 
 @responses.activate
 @pytest.mark.usefixtures(
-    "calendars_response", "events_responses", "subscribe_responses"
+    "calendars_response",
+    "events_responses",
+    "subscribe_responses",
+    "instances_response",
 )
 def test_sync(db, provider, outlook_account):
     event_sync = WebhookEventSync(

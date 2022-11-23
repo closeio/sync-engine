@@ -40,6 +40,9 @@ def provider(client):
     responses.get(
         BASE_URL + "/me/calendars/fake_test_calendar_id/events", json={"value": []}
     )
+    responses.get(
+        BASE_URL + "/me/events/recurrence_id/instances", json=recurrence_instances_json
+    )
 
     responses.post(
         BASE_URL + "/subscriptions",
@@ -105,7 +108,7 @@ events_json = {
     "value": [
         {
             "@odata.etag": 'W/"bX+IPMmPs02YGYesdF/+dAAB/52fpA=="',
-            "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIAQ6TlAABtf4g8yY_zTZgZh6x0X-50AAIARNwsAAA=",
+            "id": "singular_id",
             "createdDateTime": "2022-09-07T08:39:36.2273624Z",
             "lastModifiedDateTime": "2022-09-07T08:41:36.5027961Z",
             "changeKey": "bX+IPMmPs02YGYesdF/+dAAB/52fpA==",
@@ -160,7 +163,7 @@ events_json = {
         },
         {
             "@odata.etag": 'W/"bX+IPMmPs02YGYesdF/+dAACDYEM6g=="',
-            "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIM02sjAABtf4g8yY_zTZgZh6x0X-50AAIM0_o4AAA=",
+            "id": "recurrence_id",
             "createdDateTime": "2022-09-24T15:32:22.239054Z",
             "lastModifiedDateTime": "2022-09-27T14:41:23.1042764Z",
             "changeKey": "bX+IPMmPs02YGYesdF/+dAACDYEM6g==",
@@ -240,6 +243,24 @@ events_json = {
             "organizer": {
                 "emailAddress": {"name": "Example", "address": "example@example.com",}
             },
+        },
+    ]
+}
+
+
+recurrence_instances_json = {
+    "value": [
+        {
+            "type": "occurrence",
+            "start": {"dateTime": "2022-09-19T15:00:00.0000000", "timeZone": "UTC"},
+        },
+        {
+            "type": "occurrence",
+            "start": {"dateTime": "2022-09-20T15:00:00.0000000", "timeZone": "UTC"},
+        },
+        {
+            "type": "occurrence",
+            "start": {"dateTime": "2022-09-21T15:00:00.0000000", "timeZone": "UTC"},
         },
     ]
 }

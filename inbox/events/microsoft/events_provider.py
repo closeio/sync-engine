@@ -12,7 +12,11 @@ from inbox.events.microsoft.graph_types import (
     MsGraphEvent,
     MsGraphSubscription,
 )
-from inbox.events.microsoft.parse import parse_calendar, parse_event
+from inbox.events.microsoft.parse import (
+    calculate_exception_and_canceled_occurrences,
+    parse_calendar,
+    parse_event,
+)
 from inbox.events.util import CalendarSyncResponse
 from inbox.models.account import Account
 from inbox.models.backends.outlook import MICROSOFT_CALENDAR_SCOPES
@@ -23,6 +27,9 @@ URL_PREFIX = config.get("API_URL", "")
 
 CALENDAR_LIST_WEBHOOK_URL = URL_PREFIX + "/w/microsoft/calendar_list_update/{}"
 EVENTS_LIST_WEBHOOK_URL = URL_PREFIX + "/w/microsoft/calendar_update/{}"
+
+
+MAX_RECURRING_EVENT_DURATION = datetime.timedelta(days=365)
 
 
 class MicrosoftEventsProvider(AbstractEventsProvider):
@@ -76,10 +83,35 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         read_only = self.calendars_table.get(calendar_uid, True)
         for raw_event in raw_events:
             event = parse_event(raw_event, read_only=read_only)
-
-            # FIXME implement exceptions and cancellations
-
             updates.append(event)
+
+            if raw_event["type"] == "seriesMaster":
+                start = event.start
+                end = start + MAX_RECURRING_EVENT_DURATION
+
+                raw_occurrences = list(
+                    self.client.iter_event_instances(
+                        raw_event["id"], start=start, end=end
+                    )
+                )
+                (
+                    raw_exceptions,
+                    raw_cancellations,
+                ) = calculate_exception_and_canceled_occurrences(
+                    raw_event, raw_occurrences, end
+                )
+
+                exceptions = [
+                    parse_event(exception, read_only=read_only)
+                    for exception in raw_exceptions
+                ]
+                cancellations = [
+                    parse_event(cancellation, read_only=read_only)
+                    for cancellation in raw_cancellations
+                ]
+
+                updates.extend(exceptions)
+                updates.extend(cancellations)
 
         return updates
 

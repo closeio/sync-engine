@@ -301,6 +301,31 @@ def instances_response():
 
 
 @pytest.fixture
+def cancellation_response():
+    responses.get(
+        BASE_URL + "/me/events/recurrence_id/instances",
+        json={
+            "value": [
+                {
+                    "type": "occurrence",
+                    "start": {
+                        "dateTime": "2022-09-19T15:00:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                },
+                {
+                    "type": "occurrence",
+                    "start": {
+                        "dateTime": "2022-09-21T15:00:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                },
+            ]
+        },
+    )
+
+
+@pytest.fixture
 def provider(client):
     provider = MicrosoftEventsProvider("fake_account_id", "fake_namespace_id")
     provider.client = client
@@ -330,6 +355,34 @@ def test_sync_events(provider):
     assert events_by_title["Singular"].description == "Singular"
     assert isinstance(events_by_title["Recurring"], RecurringEvent)
     assert events_by_title["Recurring"].description == "Hello world!"
+
+
+@responses.activate
+@pytest.mark.usefixtures("events_responses", "cancellation_response")
+def test_sync_events_cancellation(provider):
+    events = provider.sync_events("fake_calendar_id")
+    events_by_title_and_status = {
+        (event.title, event.status): event for event in events
+    }
+
+    assert isinstance(events_by_title_and_status[("Singular", "confirmed")], Event)
+    assert (
+        events_by_title_and_status[("Singular", "confirmed")].description == "Singular"
+    )
+    assert isinstance(
+        events_by_title_and_status[("Recurring", "confirmed")], RecurringEvent
+    )
+    assert (
+        events_by_title_and_status[("Recurring", "confirmed")].description
+        == "Hello world!"
+    )
+    assert events_by_title_and_status[
+        ("Recurring", "confirmed")
+    ].start == datetime.datetime(2022, 9, 19, 15, tzinfo=pytz.UTC)
+    assert isinstance(events_by_title_and_status[("Recurring", "cancelled")], Event)
+    assert events_by_title_and_status[
+        ("Recurring", "cancelled")
+    ].start == datetime.datetime(2022, 9, 20, 15, tzinfo=pytz.UTC)
 
 
 @responses.activate

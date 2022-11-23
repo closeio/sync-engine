@@ -288,72 +288,49 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
     )
 
 
-class SynthetizedCanceledoccurrence:
+def synthetize_canceled_occurrence(
+    master_event: MsGraphEvent, start_datetime: datetime.datetime
+) -> MsGraphEvent:
     """
-    Represents gaps in series occurences i.e. what happens
+    Create gap in series occurences i.e. what happens
     if one deletes an occurrence that is part of recurring event.
 
-    This quacks like MsGraphEvent but does not respresent occurrences that
+    This does not respresent occurrences that
     were retrieved from API since Microsoft does not return deleted
     occurrences. Those phantom occurrences are created on the
     fly by expanding series master recurrence rule and seeing which
     ones are missing. The reason we are doing this is to mock how Google works
     i.e. you can still retrieve deleted occurrences in Google APIs, and the
     whole system is built around this assumption.
+
+    Arguments:
+        master_event: The master event this cancellation belongs to
+        start_datetime: The gap date
+
+    Returns:
+        Canceled ocurrence
     """
+    assert master_event["type"] == "seriesMaster"
+    assert start_datetime.tzinfo == pytz.UTC
 
-    def __init__(self, master_event: MsGraphEvent, start_datetime: datetime.datetime):
-        """
-        Arguments:
-            master_event: The master event this cancellation belongs to
-            start_datetime: The gap date
-        """
-        assert master_event["type"] == "seriesMaster"
-        assert start_datetime.tzinfo == pytz.UTC
+    cancellation_id = (
+        master_event["id"] + "-synthetizedCancellation-" + start_datetime.isoformat()
+    )
+    cancellation_start = dump_datetime_as_msgraph_datetime_tz(start_datetime)
+    duration = parse_msgraph_datetime_tz_as_utc(
+        master_event["end"]
+    ) - parse_msgraph_datetime_tz_as_utc(master_event["start"])
+    cancellation_end = dump_datetime_as_msgraph_datetime_tz(start_datetime + duration)
 
-        self.start_datetime = start_datetime
-        self.master_event = master_event
-
-    @property
-    def id(self) -> str:
-        """Provide phantom id based on master id and gap date"""
-        return (
-            self.master_event["id"]
-            + "-synthetizedCancellation-"
-            + self.start_datetime.isoformat()
-        )
-
-    @property
-    def type(self) -> str:
-        return "synthetizedCancellation"
-
-    @property
-    def isCancelled(self) -> bool:
-        return True
-
-    @property
-    def start(self) -> MsGraphDateTimeTimeZone:
-        return dump_datetime_as_msgraph_datetime_tz(self.start_datetime)
-
-    @property
-    def end(self) -> MsGraphDateTimeTimeZone:
-        duration = parse_msgraph_datetime_tz_as_utc(
-            self.master_event["end"]
-        ) - parse_msgraph_datetime_tz_as_utc(self.master_event["start"])
-
-        return dump_datetime_as_msgraph_datetime_tz(self.start_datetime + duration)
-
-    @property
-    def recurrence(self) -> Optional[MsGraphPatternedRecurrence]:
-        """Shadow master event recurrence with None."""
-        return None
-
-    def __getitem__(self, key: str) -> Any:
-        """Make it quack like MsGraphEvent."""
-        if key in ["id", "type", "isCancelled", "start", "end", "recurrence"]:
-            return getattr(self, key)
-
-        return self.master_event[key]  # type: ignore
+    return {
+        **master_event,
+        "id": cancellation_id,
+        "type": "synthetizedCancellation",
+        "isCancelled": True,
+        "recurrence": None,
+        "start": cancellation_start,
+        "end": cancellation_end,
+    }
 
 
 def populate_original_start_in_exception_occurrence(
@@ -384,7 +361,7 @@ def calculate_exception_and_canceled_occurrences(
     master_event: MsGraphEvent,
     event_occurrences: List[MsGraphEvent],
     end: datetime.datetime,
-) -> Tuple[List[MsGraphEvent], List[SynthetizedCanceledoccurrence]]:
+) -> Tuple[List[MsGraphEvent], List[MsGraphEvent]]:
     """
     Given master event recurrence rule and occurences find exception occurrences
     and synthesize canceled occurences.
@@ -439,7 +416,7 @@ def calculate_exception_and_canceled_occurrences(
     }
     canceled_dates = set(master_datetimes) - {dt.date() for dt in occurrence_datetimes}
     canceled_occurrences = [
-        SynthetizedCanceledoccurrence(master_event, master_datetimes[date])
+        synthetize_canceled_occurrence(master_event, master_datetimes[date])
         for date in canceled_dates
     ]
 

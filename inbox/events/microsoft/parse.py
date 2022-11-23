@@ -1,6 +1,7 @@
 import datetime
 import email.utils
 import enum
+import itertools
 import json
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -380,7 +381,9 @@ def populate_original_start_in_exception_occurrence(
 
 
 def calculate_exception_and_canceled_occurrences(
-    master_event: MsGraphEvent, event_occurrences: List[MsGraphEvent]
+    master_event: MsGraphEvent,
+    event_occurrences: List[MsGraphEvent],
+    end: datetime.datetime,
 ) -> Tuple[List[MsGraphEvent], List[SynthetizedCanceledoccurrence]]:
     """
     Given master event recurrence rule and occurences find exception occurrences
@@ -389,12 +392,15 @@ def calculate_exception_and_canceled_occurrences(
     Arguments:
         master_event: The master event
         event_occurrences: occurrences correspoing to the master event
+        end: The maximum date of recurrence expansion, this is important
+            to prevent infinite or very long running recurrences.
 
     Returns:
         Tuple containing exception occurrences and canceled occurrences
     """
     assert master_event["type"] == "seriesMaster"
     assert master_event["recurrence"]
+    assert end.tzinfo == pytz.UTC
 
     master_rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(
         master_event["recurrence"]
@@ -403,7 +409,10 @@ def calculate_exception_and_canceled_occurrences(
     master_parsed_rrule = dateutil.rrule.rrulestr(
         master_rrule, dtstart=master_start_datetime
     )
-    master_datetimes = {dt.date(): dt for dt in master_parsed_rrule}
+    master_datetimes = {
+        dt.date(): dt
+        for dt in itertools.takewhile(lambda dt: dt <= end, master_parsed_rrule)
+    }
 
     exception_occurrences = [
         occurrence

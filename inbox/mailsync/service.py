@@ -325,8 +325,7 @@ class SyncService:
                             provider_class=GoogleEventsProvider,
                         )
                     elif acc.provider == "microsoft":
-                        # FIXME: Use WebhookEventSync for incremental
-                        event_sync = EventSync(
+                        event_sync = WebhookEventSync(
                             acc.email_address,
                             acc.verbose_provider,
                             acc.id,

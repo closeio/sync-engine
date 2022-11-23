@@ -89,10 +89,13 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
                 start = event.start
                 end = start + MAX_RECURRING_EVENT_DURATION
 
-                raw_occurrences = list(
-                    self.client.iter_event_instances(
-                        raw_event["id"], start=start, end=end
-                    )
+                raw_occurrences = cast(
+                    List[MsGraphEvent],
+                    list(
+                        self.client.iter_event_instances(
+                            raw_event["id"], start=start, end=end
+                        )
+                    ),
                 )
                 (
                     raw_exceptions,

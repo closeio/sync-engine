@@ -1,5 +1,5 @@
 import datetime
-from typing import Iterable, List, Optional, cast
+from typing import Iterable, List, Optional, Tuple, cast
 
 import ciso8601
 import pytz
@@ -21,7 +21,7 @@ from inbox.events.util import CalendarSyncResponse
 from inbox.models.account import Account
 from inbox.models.backends.outlook import MICROSOFT_CALENDAR_SCOPES
 from inbox.models.calendar import Calendar
-from inbox.models.event import Event
+from inbox.models.event import Event, RecurringEvent
 
 URL_PREFIX = config.get("API_URL", "")
 
@@ -85,38 +85,50 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
             event = parse_event(raw_event, read_only=read_only)
             updates.append(event)
 
-            if raw_event["type"] == "seriesMaster":
-                start = event.start
-                end = start + MAX_RECURRING_EVENT_DURATION
-
-                raw_occurrences = cast(
-                    List[MsGraphEvent],
-                    list(
-                        self.client.iter_event_instances(
-                            raw_event["id"], start=start, end=end
-                        )
-                    ),
+            if isinstance(event, RecurringEvent):
+                exceptions, cancellations = self._sync_event_overrides(
+                    raw_event, event, read_only=read_only
                 )
-                (
-                    raw_exceptions,
-                    raw_cancellations,
-                ) = calculate_exception_and_canceled_occurrences(
-                    raw_event, raw_occurrences, end
-                )
-
-                exceptions = [
-                    parse_event(exception, read_only=read_only)
-                    for exception in raw_exceptions
-                ]
-                cancellations = [
-                    parse_event(cancellation, read_only=read_only)
-                    for cancellation in raw_cancellations
-                ]
-
                 updates.extend(exceptions)
                 updates.extend(cancellations)
 
         return updates
+
+    def _sync_event_overrides(
+        self, raw_master_event: MsGraphEvent, master_event: RecurringEvent, *, read_only
+    ) -> Tuple[List[MsGraphEvent], List[MsGraphEvent]]:
+        assert raw_master_event["type"] == "seriesMaster"
+
+        start = master_event.start
+        end = start + MAX_RECURRING_EVENT_DURATION
+
+        raw_occurrences = cast(
+            List[MsGraphEvent],
+            list(
+                self.client.iter_event_instances(master_event.uid, start=start, end=end)
+            ),
+        )
+        (
+            raw_exceptions,
+            raw_cancellations,
+        ) = calculate_exception_and_canceled_occurrences(
+            raw_master_event, raw_occurrences, end
+        )
+
+        exceptions = [
+            parse_event(
+                exception, read_only=read_only, master_event_uid=master_event.uid
+            )
+            for exception in raw_exceptions
+        ]
+        cancellations = [
+            parse_event(
+                cancellation, read_only=read_only, master_event_uid=master_event.uid
+            )
+            for cancellation in raw_cancellations
+        ]
+
+        return exceptions, cancellations
 
     def webhook_notifications_enabled(self, account: Account) -> bool:
         """

@@ -314,7 +314,9 @@ def synthetize_canceled_occurrence(
     assert start_datetime.tzinfo == pytz.UTC
 
     cancellation_id = (
-        master_event["id"] + "-synthetizedCancellation-" + start_datetime.isoformat()
+        master_event["id"]
+        + "-synthetizedCancellation-"
+        + start_datetime.date().isoformat()
     )
     cancellation_start = dump_datetime_as_msgraph_datetime_tz(start_datetime)
     duration = parse_msgraph_datetime_tz_as_utc(

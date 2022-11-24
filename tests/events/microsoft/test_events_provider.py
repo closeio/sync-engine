@@ -11,7 +11,7 @@ from inbox.events.microsoft.events_provider import MicrosoftEventsProvider
 from inbox.events.microsoft.graph_client import BASE_URL
 from inbox.events.remote_sync import WebhookEventSync
 from inbox.models.calendar import Calendar
-from inbox.models.event import Event, RecurringEvent
+from inbox.models.event import Event, RecurringEvent, RecurringEventOverride
 
 
 @pytest.fixture(autouse=True)
@@ -365,24 +365,23 @@ def test_sync_events_cancellation(provider):
         (event.title, event.status): event for event in events
     }
 
-    assert isinstance(events_by_title_and_status[("Singular", "confirmed")], Event)
-    assert (
-        events_by_title_and_status[("Singular", "confirmed")].description == "Singular"
-    )
     assert isinstance(
         events_by_title_and_status[("Recurring", "confirmed")], RecurringEvent
-    )
-    assert (
-        events_by_title_and_status[("Recurring", "confirmed")].description
-        == "Hello world!"
     )
     assert events_by_title_and_status[
         ("Recurring", "confirmed")
     ].start == datetime.datetime(2022, 9, 19, 15, tzinfo=pytz.UTC)
-    assert isinstance(events_by_title_and_status[("Recurring", "cancelled")], Event)
+    assert events_by_title_and_status[("Recurring", "confirmed")].uid == "recurrence_id"
+    assert isinstance(
+        events_by_title_and_status[("Recurring", "cancelled")], RecurringEventOverride
+    )
     assert events_by_title_and_status[
         ("Recurring", "cancelled")
     ].start == datetime.datetime(2022, 9, 20, 15, tzinfo=pytz.UTC)
+    assert (
+        events_by_title_and_status[("Recurring", "cancelled")].uid
+        == "recurrence_id-synthetizedCancellation-2022-09-20"
+    )
 
 
 @responses.activate

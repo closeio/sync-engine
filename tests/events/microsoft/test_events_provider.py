@@ -301,7 +301,7 @@ def instances_response():
 
 
 @pytest.fixture
-def cancellation_response():
+def cancellation_override_response():
     responses.get(
         BASE_URL + "/me/events/recurrence_id/instances",
         json={
@@ -311,6 +311,89 @@ def cancellation_response():
                     "start": {
                         "dateTime": "2022-09-19T15:00:00.0000000",
                         "timeZone": "UTC",
+                    },
+                },
+                {
+                    "type": "occurrence",
+                    "start": {
+                        "dateTime": "2022-09-21T15:00:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                },
+            ]
+        },
+    )
+
+
+@pytest.fixture
+def exception_override_response():
+    responses.get(
+        BASE_URL + "/me/events/recurrence_id/instances",
+        json={
+            "value": [
+                {
+                    "type": "occurrence",
+                    "start": {
+                        "dateTime": "2022-09-19T15:00:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                },
+                {
+                    "id": "recurrence_id_exception",
+                    "lastModifiedDateTime": "2022-09-27T14:41:23.1042764Z",
+                    "originalStartTimeZone": "Pacific Standard Time",
+                    "originalEndTimeZone": "Pacific Standard Time",
+                    "reminderMinutesBeforeStart": 15,
+                    "subject": "Recurring exception",
+                    "importance": "normal",
+                    "sensitivity": "normal",
+                    "isAllDay": False,
+                    "isCancelled": False,
+                    "isOrganizer": True,
+                    "showAs": "busy",
+                    "type": "exception",
+                    "onlineMeeting": None,
+                    "responseStatus": {
+                        "response": "organizer",
+                        "time": "0001-01-01T00:00:00Z",
+                    },
+                    "body": {"contentType": "html", "content": "<b>Hello world!</b>"},
+                    "start": {
+                        "dateTime": "2022-09-20T15:00:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                    "end": {
+                        "dateTime": "2022-09-20T15:30:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                    "locations": [
+                        {
+                            "displayName": "Parking",
+                            "locationType": "default",
+                            "uniqueIdType": "unknown",
+                            "address": {},
+                            "coordinates": {},
+                        },
+                    ],
+                    "recurrence": None,
+                    "attendees": [
+                        {
+                            "type": "required",
+                            "status": {
+                                "response": "declined",
+                                "time": "2022-09-08T15:40:17Z",
+                            },
+                            "emailAddress": {
+                                "name": "attendee@example.com",
+                                "address": "attendee@example.com",
+                            },
+                        }
+                    ],
+                    "organizer": {
+                        "emailAddress": {
+                            "name": "Example",
+                            "address": "example@example.com",
+                        }
                     },
                 },
                 {
@@ -358,7 +441,7 @@ def test_sync_events(provider):
 
 
 @responses.activate
-@pytest.mark.usefixtures("events_responses", "cancellation_response")
+@pytest.mark.usefixtures("events_responses", "cancellation_override_response")
 def test_sync_events_cancellation(provider):
     events = provider.sync_events("fake_calendar_id")
     events_by_title_and_status = {
@@ -382,6 +465,24 @@ def test_sync_events_cancellation(provider):
         events_by_title_and_status[("Recurring", "cancelled")].uid
         == "recurrence_id-synthetizedCancellation-2022-09-20"
     )
+
+
+@responses.activate
+@pytest.mark.usefixtures("events_responses", "exception_override_response")
+def test_sync_events_exception(provider):
+    events = provider.sync_events("fake_calendar_id")
+    events_by_title = {event.title: event for event in events}
+
+    assert isinstance(events_by_title["Recurring"], RecurringEvent)
+    assert events_by_title["Recurring"].start == datetime.datetime(
+        2022, 9, 19, 15, tzinfo=pytz.UTC
+    )
+    assert events_by_title["Recurring"].uid == "recurrence_id"
+    assert isinstance(events_by_title["Recurring exception"], RecurringEventOverride)
+    assert events_by_title["Recurring exception"].start == datetime.datetime(
+        2022, 9, 20, 15, tzinfo=pytz.UTC
+    )
+    assert events_by_title["Recurring exception"].uid == "recurrence_id_exception"
 
 
 @responses.activate

@@ -552,8 +552,19 @@ def parse_event(
     Returns:
         ORM event
     """
-    if master_event_uid:
-        assert event["type"] in ["exception", "synthetizedCancellation"]
+    assert event["type"] != "occurrence"
+
+    if not master_event_uid or event["type"] in ["singleInstance", "seriesMaster"]:
+        assert not master_event_uid and event["type"] in [
+            "singleInstance",
+            "seriesMaster",
+        ]
+
+    if master_event_uid or event["type"] in ["exception", "synthetizedCancellation"]:
+        assert master_event_uid and event["type"] in [
+            "exception",
+            "synthetizedCancellation",
+        ]
 
     uid = event["id"]
     raw_data = json.dumps(event)

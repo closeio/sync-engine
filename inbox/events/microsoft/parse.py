@@ -331,6 +331,7 @@ def synthetize_canceled_occurrence(
         "isCancelled": True,
         "recurrence": None,
         "start": cancellation_start,
+        "originalStart": cancellation_start,
         "end": cancellation_end,
     }
 
@@ -592,7 +593,7 @@ def parse_event(
         recurrence = None
         start_tz = None
 
-    if event["type"] == "exception":
+    if event["type"] in ["exception", "synthetizedCancellation"]:
         original_start = parse_msgraph_datetime_tz_as_utc(event["originalStart"])
     else:
         original_start = None

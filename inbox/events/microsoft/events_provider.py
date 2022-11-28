@@ -34,7 +34,7 @@ EVENTS_LIST_WEBHOOK_URL = URL_PREFIX + "/w/microsoft/calendar_update/{}"
 # future but you can override it of course in the UI.
 # To prevent infinite or very long looping when searching
 # for exceptions and cancellations we need to establish a limit.
-MAX_RECURRING_EVENT_DURATION = datetime.timedelta(days=365)
+MAX_RECURRING_EVENT_WINDOW = datetime.timedelta(days=365)
 
 
 class MicrosoftEventsProvider(AbstractEventsProvider):
@@ -116,7 +116,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         assert raw_master_event["type"] == "seriesMaster"
 
         start = master_event.start
-        end = start + MAX_RECURRING_EVENT_DURATION
+        end = start + MAX_RECURRING_EVENT_WINDOW
 
         raw_occurrences = cast(
             List[MsGraphEvent],

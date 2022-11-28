@@ -1,5 +1,5 @@
 import datetime
-from typing import Iterable, List, Optional, cast
+from typing import Iterable, List, Optional, Tuple, cast
 
 import ciso8601
 import pytz
@@ -12,17 +12,29 @@ from inbox.events.microsoft.graph_types import (
     MsGraphEvent,
     MsGraphSubscription,
 )
-from inbox.events.microsoft.parse import parse_calendar, parse_event
+from inbox.events.microsoft.parse import (
+    calculate_exception_and_canceled_occurrences,
+    parse_calendar,
+    parse_event,
+)
 from inbox.events.util import CalendarSyncResponse
 from inbox.models.account import Account
 from inbox.models.backends.outlook import MICROSOFT_CALENDAR_SCOPES
 from inbox.models.calendar import Calendar
-from inbox.models.event import Event
+from inbox.models.event import Event, RecurringEvent
 
 URL_PREFIX = config.get("API_URL", "")
 
 CALENDAR_LIST_WEBHOOK_URL = URL_PREFIX + "/w/microsoft/calendar_list_update/{}"
 EVENTS_LIST_WEBHOOK_URL = URL_PREFIX + "/w/microsoft/calendar_update/{}"
+
+
+# Microsoft Graph supports infinite and finite recursions.
+# By default recurring events are created 6 months into the
+# future but you can override it of course in the UI.
+# To prevent infinite or very long looping when searching
+# for exceptions and cancellations we need to establish a limit.
+MAX_RECURRING_EVENT_WINDOW = datetime.timedelta(days=365)
 
 
 class MicrosoftEventsProvider(AbstractEventsProvider):
@@ -76,12 +88,63 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         read_only = self.calendars_table.get(calendar_uid, True)
         for raw_event in raw_events:
             event = parse_event(raw_event, read_only=read_only)
-
-            # FIXME implement exceptions and cancellations
-
             updates.append(event)
 
+            if isinstance(event, RecurringEvent):
+                exceptions, cancellations = self._get_event_overrides(
+                    raw_event, event, read_only=read_only
+                )
+                updates.extend(exceptions)
+                updates.extend(cancellations)
+
         return updates
+
+    def _get_event_overrides(
+        self, raw_master_event: MsGraphEvent, master_event: RecurringEvent, *, read_only
+    ) -> Tuple[List[MsGraphEvent], List[MsGraphEvent]]:
+        """
+        Fetch recurring event instances and determine exceptions and cancellations.
+
+        Arguments:
+            raw_master_event: Recurring master event as retruend by the API
+            master_event: Parsed recurring master event as ORM object
+            read_only: Does master event come from read-only calendar
+
+        Returns:
+            Tuple of exceptions and cancellations
+        """
+        assert raw_master_event["type"] == "seriesMaster"
+
+        start = master_event.start
+        end = start + MAX_RECURRING_EVENT_WINDOW
+
+        raw_occurrences = cast(
+            List[MsGraphEvent],
+            list(
+                self.client.iter_event_instances(master_event.uid, start=start, end=end)
+            ),
+        )
+        (
+            raw_exceptions,
+            raw_cancellations,
+        ) = calculate_exception_and_canceled_occurrences(
+            raw_master_event, raw_occurrences, end
+        )
+
+        exceptions = [
+            parse_event(
+                exception, read_only=read_only, master_event_uid=master_event.uid
+            )
+            for exception in raw_exceptions
+        ]
+        cancellations = [
+            parse_event(
+                cancellation, read_only=read_only, master_event_uid=master_event.uid
+            )
+            for cancellation in raw_cancellations
+        ]
+
+        return exceptions, cancellations
 
     def webhook_notifications_enabled(self, account: Account) -> bool:
         """

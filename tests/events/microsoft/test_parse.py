@@ -634,16 +634,20 @@ event_occurrences = [
 
 def test_calculate_exception_and_canceled_occurrences_without_changes():
     assert calculate_exception_and_canceled_occurrences(
-        master_event, event_occurrences
+        master_event,
+        event_occurrences,
+        datetime.datetime(2022, 9, 21, 23, 59, 59, tzinfo=pytz.UTC),
     ) == ([], [])
 
 
 def test_calculate_exception_and_canceled_occurrences_with_deletion():
     ((), (cancellation,)) = calculate_exception_and_canceled_occurrences(
-        master_event, [event_occurrences[0], event_occurrences[2]]
+        master_event,
+        [event_occurrences[0], event_occurrences[2]],
+        datetime.datetime(2022, 9, 21, 23, 59, 59, tzinfo=pytz.UTC),
     )
 
-    assert cancellation["type"] == "synthetizedCancellation"
+    assert cancellation["type"] == "synthesizedCancellation"
     assert cancellation["isCancelled"] is True
     assert cancellation["start"] == event_occurrences[1]["start"]
     assert cancellation["end"] == event_occurrences[1]["end"]
@@ -741,7 +745,9 @@ master_with_exception_occurrences = [
 
 def test_calculate_exception_and_canceled_occurrences_with_exception():
     ((exception,), ()) = calculate_exception_and_canceled_occurrences(
-        master_with_exception, master_with_exception_occurrences
+        master_with_exception,
+        master_with_exception_occurrences,
+        datetime.datetime(2022, 9, 28, 23, 59, 59, tzinfo=pytz.UTC),
     )
     assert master_with_exception_occurrences[0] == exception
     assert exception["start"] == {

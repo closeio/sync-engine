@@ -1,8 +1,9 @@
 import datetime
 import email.utils
 import enum
+import itertools
 import json
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import ciso8601
 import dateutil.rrule
@@ -96,7 +97,7 @@ def dump_datetime_as_msgraph_datetime_tz(
     events for gaps in recurring events i.e when a user deletes
     occurrence inside a recurring event. Google keeps those deletions
     around and in Microsoft Outlook they just disappear. The whole
-    system is built around Google model so we need to synthetize
+    system is built around Google model so we need to synthesize
     them.
 
     Arguments:
@@ -287,72 +288,54 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
     )
 
 
-class SynthetizedCanceledoccurrence:
+def synthesize_canceled_occurrence(
+    master_event: MsGraphEvent, start_datetime: datetime.datetime
+) -> MsGraphEvent:
     """
-    Represents gaps in series occurences i.e. what happens
+    Create gap in series occurences i.e. what happens
     if one deletes an occurrence that is part of recurring event.
 
-    This quacks like MsGraphEvent but does not respresent occurrences that
+    This does not respresent occurrences that
     were retrieved from API since Microsoft does not return deleted
     occurrences. Those phantom occurrences are created on the
     fly by expanding series master recurrence rule and seeing which
     ones are missing. The reason we are doing this is to mock how Google works
     i.e. you can still retrieve deleted occurrences in Google APIs, and the
     whole system is built around this assumption.
+
+    Arguments:
+        master_event: The master event this cancellation belongs to
+        start_datetime: The gap date
+
+    Returns:
+        Canceled ocurrence
     """
+    assert master_event["type"] == "seriesMaster"
+    assert start_datetime.tzinfo == pytz.UTC
 
-    def __init__(self, master_event: MsGraphEvent, start_datetime: datetime.datetime):
-        """
-        Arguments:
-            master_event: The master event this cancellation belongs to
-            start_datetime: The gap date
-        """
-        assert master_event["type"] == "seriesMaster"
-        assert start_datetime.tzinfo == pytz.UTC
+    cancellation_id = (
+        master_event["id"]
+        + "-synthesizedCancellation-"
+        + start_datetime.date().isoformat()
+    )
+    cancellation_start = dump_datetime_as_msgraph_datetime_tz(start_datetime)
+    duration = parse_msgraph_datetime_tz_as_utc(
+        master_event["end"]
+    ) - parse_msgraph_datetime_tz_as_utc(master_event["start"])
+    cancellation_end = dump_datetime_as_msgraph_datetime_tz(start_datetime + duration)
 
-        self.start_datetime = start_datetime
-        self.master_event = master_event
+    result = {
+        **master_event,
+        "id": cancellation_id,
+        "type": "synthesizedCancellation",
+        "isCancelled": True,
+        "recurrence": None,
+        "start": cancellation_start,
+        "originalStart": cancellation_start,
+        "end": cancellation_end,
+    }
 
-    @property
-    def id(self) -> str:
-        """Provide phantom id based on master id and gap date"""
-        return (
-            self.master_event["id"]
-            + "-synthetizedCancellation-"
-            + self.start_datetime.isoformat()
-        )
-
-    @property
-    def type(self) -> str:
-        return "synthetizedCancellation"
-
-    @property
-    def isCancelled(self) -> bool:
-        return True
-
-    @property
-    def start(self) -> MsGraphDateTimeTimeZone:
-        return dump_datetime_as_msgraph_datetime_tz(self.start_datetime)
-
-    @property
-    def end(self) -> MsGraphDateTimeTimeZone:
-        duration = parse_msgraph_datetime_tz_as_utc(
-            self.master_event["end"]
-        ) - parse_msgraph_datetime_tz_as_utc(self.master_event["start"])
-
-        return dump_datetime_as_msgraph_datetime_tz(self.start_datetime + duration)
-
-    @property
-    def recurrence(self) -> Optional[MsGraphPatternedRecurrence]:
-        """Shadow master event recurrence with None."""
-        return None
-
-    def __getitem__(self, key: str) -> Any:
-        """Make it quack like MsGraphEvent."""
-        if key in ["id", "type", "isCancelled", "start", "end", "recurrence"]:
-            return getattr(self, key)
-
-        return self.master_event[key]  # type: ignore
+    return cast(MsGraphEvent, result)
 
 
 def populate_original_start_in_exception_occurrence(
@@ -380,8 +363,10 @@ def populate_original_start_in_exception_occurrence(
 
 
 def calculate_exception_and_canceled_occurrences(
-    master_event: MsGraphEvent, event_occurrences: List[MsGraphEvent]
-) -> Tuple[List[MsGraphEvent], List[SynthetizedCanceledoccurrence]]:
+    master_event: MsGraphEvent,
+    event_occurrences: List[MsGraphEvent],
+    end: datetime.datetime,
+) -> Tuple[List[MsGraphEvent], List[MsGraphEvent]]:
     """
     Given master event recurrence rule and occurences find exception occurrences
     and synthesize canceled occurences.
@@ -389,12 +374,15 @@ def calculate_exception_and_canceled_occurrences(
     Arguments:
         master_event: The master event
         event_occurrences: occurrences correspoing to the master event
+        end: The maximum date of recurrence expansion, this is important
+            to prevent infinite or very long running recurrences.
 
     Returns:
         Tuple containing exception occurrences and canceled occurrences
     """
     assert master_event["type"] == "seriesMaster"
     assert master_event["recurrence"]
+    assert end.tzinfo == pytz.UTC
 
     master_rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(
         master_event["recurrence"]
@@ -403,7 +391,10 @@ def calculate_exception_and_canceled_occurrences(
     master_parsed_rrule = dateutil.rrule.rrulestr(
         master_rrule, dtstart=master_start_datetime
     )
-    master_datetimes = {dt.date(): dt for dt in master_parsed_rrule}
+    master_datetimes = {
+        dt.date(): dt
+        for dt in itertools.takewhile(lambda dt: dt <= end, master_parsed_rrule)
+    }
 
     exception_occurrences = [
         occurrence
@@ -430,7 +421,7 @@ def calculate_exception_and_canceled_occurrences(
     }
     canceled_dates = set(master_datetimes) - {dt.date() for dt in occurrence_datetimes}
     canceled_occurrences = [
-        SynthetizedCanceledoccurrence(master_event, master_datetimes[date])
+        synthesize_canceled_occurrence(master_event, master_datetimes[date])
         for date in canceled_dates
     ]
 
@@ -561,8 +552,19 @@ def parse_event(
     Returns:
         ORM event
     """
-    if master_event_uid:
-        assert event["type"] in ["exception", "synthetizedCancellation"]
+    assert event["type"] != "occurrence"
+
+    if not master_event_uid or event["type"] in ["singleInstance", "seriesMaster"]:
+        assert not master_event_uid and event["type"] in [
+            "singleInstance",
+            "seriesMaster",
+        ]
+
+    if master_event_uid or event["type"] in ["exception", "synthesizedCancellation"]:
+        assert master_event_uid and event["type"] in [
+            "exception",
+            "synthesizedCancellation",
+        ]
 
     uid = event["id"]
     raw_data = json.dumps(event)
@@ -602,7 +604,7 @@ def parse_event(
         recurrence = None
         start_tz = None
 
-    if event["type"] == "exception":
+    if event["type"] in ["exception", "synthesizedCancellation"]:
         original_start = parse_msgraph_datetime_tz_as_utc(event["originalStart"])
     else:
         original_start = None

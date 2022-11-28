@@ -22,6 +22,7 @@ from inbox.models.account import Account
 from inbox.models.backends.outlook import MICROSOFT_CALENDAR_SCOPES
 from inbox.models.calendar import Calendar
 from inbox.models.event import Event, RecurringEvent
+from inbox.models.session import session_scope
 
 URL_PREFIX = config.get("API_URL", "")
 
@@ -49,16 +50,33 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         """
         Fetch data for the user's calendars.
         """
-        deletes: List[str] = []  # FIXME implement deletes
         updates = []
 
-        raw_calendars = cast(Iterable[MsGraphCalendar], self.client.iter_calendars())
+        raw_calendars = list(
+            cast(Iterable[MsGraphCalendar], self.client.iter_calendars())
+        )
         for raw_calendar in raw_calendars:
             calendar = parse_calendar(raw_calendar)
             self.calendars_table[calendar.uid] = calendar.read_only
             updates.append(calendar)
 
-        return CalendarSyncResponse(deletes, updates)
+        # Microsfot Graph API does not support fetching deleted calendars, so
+        # instead we compare the calendar uids we have in the database with
+        # the ones we fetched remotely
+        remote_uids = [update.uid for update in updates]
+        with session_scope(self.namespace_id) as db_session:
+            # We need to exclude "Emailed events" calendar i.e. the one that
+            # stores events parsed from email message attachements
+            deleted_uids = [
+                uid
+                for uid, in db_session.query(Calendar.uid).filter(
+                    Calendar.namespace_id == self.namespace_id,
+                    Calendar.uid.not_in(remote_uids),
+                )
+                if uid != "inbox"
+            ]
+
+        return CalendarSyncResponse(deleted_uids, updates)
 
     def sync_events(
         self, calendar_uid: str, sync_from_time: Optional[datetime.datetime] = None

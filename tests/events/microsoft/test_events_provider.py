@@ -379,6 +379,25 @@ def test_sync_calendars(provider):
 
 
 @responses.activate
+@pytest.mark.usefixtures("calendars_response")
+def test_sync_calendars_deletion(db, client, outlook_account):
+    deleted_calendar = Calendar(
+        uid="deleted_calendar_id",
+        public_id="fake_deleted_public_id",
+        namespace_id=outlook_account.namespace.id,
+    )
+    db.session.add(deleted_calendar)
+    db.session.commit()
+
+    provider = MicrosoftEventsProvider(outlook_account.id, outlook_account.namespace.id)
+    provider.client = client
+
+    deleted_uids, _ = provider.sync_calendars()
+
+    assert deleted_uids == [deleted_calendar.uid]
+
+
+@responses.activate
 @pytest.mark.usefixtures("events_responses", "instances_response")
 def test_sync_events(provider):
     events = provider.sync_events("fake_calendar_id")

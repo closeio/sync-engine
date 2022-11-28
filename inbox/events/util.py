@@ -1,9 +1,11 @@
 import string
 from collections import namedtuple
+from typing import List, NamedTuple
 
 import arrow
 from dateutil.parser import parse
 
+from inbox.models.calendar import Calendar
 from inbox.models.when import parse_as_when
 
 
@@ -103,10 +105,15 @@ def removed_participants(original_participants, update_participants):
     return ret
 
 
-# Container for a parsed API response. API calls return adds/updates/deletes
-# all together, but we want to handle deletions separately in our persistence
-# logic. deleted_uids should be a list of uids, and updated_objects should be a
-# list of (un-added, uncommitted) model instances.
-CalendarSyncResponse = namedtuple(
-    "CalendarSyncResponse", ["deleted_uids", "updated_objects"]
-)
+class CalendarSyncResponse(NamedTuple):
+    """
+    Container for a parsed API response.
+
+    API calls return adds/updates/deletes
+    all together, but we want to handle deletions separately in our persistence
+    logic. deleted_uids should be a list of uids, and updated_objects should be a
+    list of (un-added, uncommitted) model instances.
+    """
+
+    deleted_uids: List[str]
+    updated_objects: List[Calendar]

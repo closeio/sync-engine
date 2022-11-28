@@ -647,7 +647,7 @@ def test_calculate_exception_and_canceled_occurrences_with_deletion():
         datetime.datetime(2022, 9, 21, 23, 59, 59, tzinfo=pytz.UTC),
     )
 
-    assert cancellation["type"] == "synthetizedCancellation"
+    assert cancellation["type"] == "synthesizedCancellation"
     assert cancellation["isCancelled"] is True
     assert cancellation["start"] == event_occurrences[1]["start"]
     assert cancellation["end"] == event_occurrences[1]["end"]

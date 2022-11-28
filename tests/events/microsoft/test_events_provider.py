@@ -413,7 +413,7 @@ def test_sync_events_cancellation(provider):
     ].start == datetime.datetime(2022, 9, 20, 15, tzinfo=pytz.UTC)
     assert (
         events_by_title_and_status[("Recurring", "cancelled")].uid
-        == "recurrence_id-synthetizedCancellation-2022-09-20"
+        == "recurrence_id-synthesizedCancellation-2022-09-20"
     )
 
 

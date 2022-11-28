@@ -97,7 +97,7 @@ def dump_datetime_as_msgraph_datetime_tz(
     events for gaps in recurring events i.e when a user deletes
     occurrence inside a recurring event. Google keeps those deletions
     around and in Microsoft Outlook they just disappear. The whole
-    system is built around Google model so we need to synthetize
+    system is built around Google model so we need to synthesize
     them.
 
     Arguments:
@@ -288,7 +288,7 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
     )
 
 
-def synthetize_canceled_occurrence(
+def synthesize_canceled_occurrence(
     master_event: MsGraphEvent, start_datetime: datetime.datetime
 ) -> MsGraphEvent:
     """
@@ -315,7 +315,7 @@ def synthetize_canceled_occurrence(
 
     cancellation_id = (
         master_event["id"]
-        + "-synthetizedCancellation-"
+        + "-synthesizedCancellation-"
         + start_datetime.date().isoformat()
     )
     cancellation_start = dump_datetime_as_msgraph_datetime_tz(start_datetime)
@@ -327,7 +327,7 @@ def synthetize_canceled_occurrence(
     result = {
         **master_event,
         "id": cancellation_id,
-        "type": "synthetizedCancellation",
+        "type": "synthesizedCancellation",
         "isCancelled": True,
         "recurrence": None,
         "start": cancellation_start,
@@ -421,7 +421,7 @@ def calculate_exception_and_canceled_occurrences(
     }
     canceled_dates = set(master_datetimes) - {dt.date() for dt in occurrence_datetimes}
     canceled_occurrences = [
-        synthetize_canceled_occurrence(master_event, master_datetimes[date])
+        synthesize_canceled_occurrence(master_event, master_datetimes[date])
         for date in canceled_dates
     ]
 
@@ -560,10 +560,10 @@ def parse_event(
             "seriesMaster",
         ]
 
-    if master_event_uid or event["type"] in ["exception", "synthetizedCancellation"]:
+    if master_event_uid or event["type"] in ["exception", "synthesizedCancellation"]:
         assert master_event_uid and event["type"] in [
             "exception",
-            "synthetizedCancellation",
+            "synthesizedCancellation",
         ]
 
     uid = event["id"]
@@ -604,7 +604,7 @@ def parse_event(
         recurrence = None
         start_tz = None
 
-    if event["type"] in ["exception", "synthetizedCancellation"]:
+    if event["type"] in ["exception", "synthesizedCancellation"]:
         original_start = parse_msgraph_datetime_tz_as_utc(event["originalStart"])
     else:
         original_start = None

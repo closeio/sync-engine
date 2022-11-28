@@ -12,7 +12,8 @@ from inbox.events.microsoft.graph_types import (
 )
 from inbox.models.backends.outlook import OutlookAccount
 from inbox.models.calendar import Calendar
-from inbox.models.session import global_session_scope
+from inbox.models.event import Event, RecurringEvent
+from inbox.models.session import global_session_scope, session_scope
 
 app = Blueprint(
     "microsoft_webhooks", "microsoft_webhooks_api", url_prefix="/w/microsoft"
@@ -123,7 +124,45 @@ def event_update(calendar_public_id):
         except NoResultFound:
             return f"Couldn't find calendar '{calendar_public_id}'", 404
 
+        change_notifications: List[MsGraphChangeNotification] = cast(
+            MsGraphChangeNotificationCollection, request.json
+        )["value"]
+
+        handle_event_deletions(calendar, change_notifications)
         calendar.handle_webhook_notification()
         db_session.commit()
 
     return "", 200
+
+
+def handle_event_deletions(
+    calendar: Calendar, change_notifications: List[MsGraphChangeNotification],
+) -> None:
+    deleted_event_uids = [
+        change_notification["resourceData"]["id"]
+        for change_notification in change_notifications
+        if change_notification["changeType"] == "deleted"
+    ]
+    if not deleted_event_uids:
+        return
+
+    with session_scope(calendar.namespace_id) as db_session:
+        deleted_events = (
+            db_session.query(Event)
+            .filter(
+                Event.namespace_id == calendar.namespace_id,
+                Event.calendar_id == calendar.id,
+                Event.uid.in_(deleted_event_uids),
+            )
+            .all()
+        )
+        if not deleted_events:
+            return
+
+        for deleted_event in deleted_events:
+            deleted_event.status = "cancelled"
+            if isinstance(deleted_event, RecurringEvent):
+                for override in deleted_event.overrides:
+                    override.status = "cancelled"
+
+        db_session.commit()

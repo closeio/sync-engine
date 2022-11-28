@@ -1,9 +1,11 @@
+import datetime
 from unittest import mock
 
 import pytest
 
 from inbox.config import config
 from inbox.models.calendar import Calendar
+from inbox.models.event import Event
 
 
 @pytest.fixture(autouse=True)
@@ -173,3 +175,50 @@ def test_event_update(db, test_client, outlook_account):
     assert calendar.webhook_last_ping is not None
 
     assert response.status_code == 200
+
+
+def test_event_delete(db, test_client, outlook_account):
+    calendar = Calendar(
+        name="Calendar",
+        uid="uid",
+        read_only=False,
+        namespace_id=outlook_account.namespace.id,
+    )
+    db.session.add(calendar)
+    db.session.flush()
+
+    event = Event.create(
+        namespace_id=calendar.namespace_id,
+        calendar_id=calendar.id,
+        uid="fake_event_id",
+        status="confirmed",
+        raw_data="{}",
+        read_only=False,
+        start=datetime.datetime(2022, 10, 15),
+        all_day=False,
+    )
+    db.session.add(event)
+
+    db.session.commit()
+
+    response = test_client.post(
+        f"/w/microsoft/calendar_update/{calendar.public_id}",
+        json={
+            "value": [
+                {
+                    "changeType": "deleted",
+                    "resourceData": {
+                        "@odata.type": "#Microsoft.Graph.Event",
+                        "id": "fake_event_id",
+                    },
+                    "clientState": "good_s3cr3t",
+                }
+            ]
+        },
+    )
+
+    assert response.status_code == 200
+
+    db.session.refresh(event)
+
+    assert event.status == "cancelled"

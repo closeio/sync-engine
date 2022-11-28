@@ -29,6 +29,11 @@ CALENDAR_LIST_WEBHOOK_URL = URL_PREFIX + "/w/microsoft/calendar_list_update/{}"
 EVENTS_LIST_WEBHOOK_URL = URL_PREFIX + "/w/microsoft/calendar_update/{}"
 
 
+# Microsoft Graph supports infinite and finite recursions.
+# By default recurring events are created 6 months into the
+# future but you can override it of course in the UI.
+# To prevent infinite or very long looping when searching
+# for exceptions and cancellations we need to establish a limit.
 MAX_RECURRING_EVENT_DURATION = datetime.timedelta(days=365)
 
 
@@ -86,7 +91,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
             updates.append(event)
 
             if isinstance(event, RecurringEvent):
-                exceptions, cancellations = self._sync_event_overrides(
+                exceptions, cancellations = self._get_event_overrides(
                     raw_event, event, read_only=read_only
                 )
                 updates.extend(exceptions)
@@ -94,9 +99,20 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         return updates
 
-    def _sync_event_overrides(
+    def _get_event_overrides(
         self, raw_master_event: MsGraphEvent, master_event: RecurringEvent, *, read_only
     ) -> Tuple[List[MsGraphEvent], List[MsGraphEvent]]:
+        """
+        Fetch recurring event instances and determine exceptions and cancellations.
+
+        Arguments:
+            raw_master_event: Recurring master event as retruend by the API
+            master_event: Parsed recurring master event as ORM object
+            read_only: Does master event come from read-only calendar
+
+        Returns:
+            Tuple of exceptions and cancellations
+        """
         assert raw_master_event["type"] == "seriesMaster"
 
         start = master_event.start

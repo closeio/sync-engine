@@ -147,7 +147,7 @@ def parse_msgraph_range_start_and_until(
     time because recurrence processing always uses datetimes.
 
     Arguments:
-        event: Microsoft Graph Event
+        event: Recurring Microsoft Graph event
 
     Returns:
         Tuple of timezone-aware UTC datetimes
@@ -222,7 +222,7 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(event: MsGraphEvent,) -> 
     expanding.
 
     Arguments:
-        event: Microsoft Graph Event
+        event: Recurring Microsoft Graph event
 
     Returns:
         iCal RRULE string

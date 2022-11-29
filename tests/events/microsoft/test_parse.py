@@ -853,6 +853,21 @@ def test_get_event_location(event, location):
                 "notes": None,
             },
         ),
+        (
+            {
+                "status": {"response": "organizer", "time": "0001-01-01T00:00:00Z"},
+                "emailAddress": {
+                    "name": "Maria di Pomodoro | The future",
+                    "address": "m.pomodoro@thefuture.com",
+                },
+            },
+            {
+                "email": "m.pomodoro@thefuture.com",
+                "name": "Maria di Pomodoro | The future",
+                "status": "yes",
+                "notes": None,
+            },
+        ),
     ],
 )
 def test_get_event_participant(attendee, participant):

@@ -152,6 +152,7 @@ def parse_msgraph_range_start_and_until(
     Returns:
         Tuple of timezone-aware UTC datetimes
     """
+    assert event["recurrence"]
     range = event["recurrence"]["range"]
     tzinfo = get_microsoft_tzinfo(
         range["recurrenceTimeZone"] or event["originalStartTimeZone"]
@@ -226,6 +227,7 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(event: MsGraphEvent,) -> 
     Returns:
         iCal RRULE string
     """
+    assert event["recurrence"]
     patterned_recurrence = event["recurrence"]
     pattern, range = patterned_recurrence["pattern"], patterned_recurrence["range"]
 

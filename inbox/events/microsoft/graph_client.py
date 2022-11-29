@@ -170,7 +170,11 @@ class MicrosoftGraphClient:
         return self.request("GET", f"/me/calendars/{calendar_id}")
 
     def iter_events(
-        self, calendar_id: str, *, modified_after: Optional[datetime.datetime] = None
+        self,
+        calendar_id: str,
+        *,
+        modified_after: Optional[datetime.datetime] = None,
+        fields: Optional[Iterable[str]] = None,
     ) -> Iterable[Dict[str, Any]]:
         """
         Lazily iterate events in a calendar.
@@ -185,17 +189,22 @@ class MicrosoftGraphClient:
             Iterable of events.
             https://learn.microsoft.com/en-us/graph/api/resources/event
         """
+        params = {}
+
         if modified_after:
             assert modified_after.tzinfo == pytz.UTC
-            params = {
-                "$filter": f"lastModifiedDateTime gt {format_datetime(modified_after)}"
-            }
-        else:
-            params = None
+            params[
+                "$filter"
+            ] = f"lastModifiedDateTime gt {format_datetime(modified_after)}"
+        if fields:
+            params["$select"] = ",".join(fields)
+
         # TODO: Figure out the top limit we can use on this endpoint
         yield from self._iter(f"/me/calendars/{calendar_id}/events", params=params)
 
-    def get_event(self, event_id: str) -> Dict[str, Any]:
+    def get_event(
+        self, event_id: str, *, fields: Optional[Iterable[str]] = None
+    ) -> Dict[str, Any]:
         """
         Get a single event.
 
@@ -208,10 +217,20 @@ class MicrosoftGraphClient:
             The event.
             https://learn.microsoft.com/en-us/graph/api/resources/event
         """
-        return self.request("GET", f"/me/events/{event_id}")
+
+        params = {}
+        if fields:
+            params["$select"] = ",".join(fields)
+
+        return self.request("GET", f"/me/events/{event_id}", params=params)
 
     def iter_event_instances(
-        self, event_id: str, *, start: datetime.datetime, end: datetime.datetime
+        self,
+        event_id: str,
+        *,
+        start: datetime.datetime,
+        end: datetime.datetime,
+        fields: Optional[Iterable[str]] = None,
     ) -> Iterable[Dict[str, Any]]:
         """
         Lazily expand series master instances.
@@ -230,16 +249,21 @@ class MicrosoftGraphClient:
         assert start.tzinfo == pytz.UTC
         assert end.tzinfo == pytz.UTC
         assert end >= start
+
+        params = {
+            "startDateTime": format_datetime(start),
+            "endDateTime": format_datetime(end),
+            # The default amount of instances per page is 10,
+            # as we want to do the least
+            # amount of requests possible we raise it to 500.
+            "top": "500",
+        }
+
+        if fields:
+            params["$select"] = ",".join(fields)
+
         yield from self._iter(
-            f"/me/events/{event_id}/instances",
-            params={
-                "startDateTime": format_datetime(start),
-                "endDateTime": format_datetime(end),
-                # The default amount of instances per page is 10,
-                # as we want to do the least
-                # amount of requests possible we raise it to 500.
-                "top": "500",
-            },
+            f"/me/events/{event_id}/instances", params=params,
         )
 
     def iter_subscriptions(self) -> Iterable[Dict[str, Any]]:

@@ -191,6 +191,7 @@ class MsGraphEvent(TypedDict):
     id: str
     type: MsGraphEventType
     start: MsGraphDateTimeTimeZone
+    originalStart: str
     end: MsGraphDateTimeTimeZone
     lastModifiedDateTime: str
     showAs: MsGraphShowAs
@@ -201,11 +202,11 @@ class MsGraphEvent(TypedDict):
     isCancelled: bool
     isOrganizer: bool
     recurrence: Optional[MsGraphPatternedRecurrence]
-    originalStart: MsGraphDateTimeTimeZone
     attendees: List[MsGraphAttendee]
     onlineMeeting: Optional[MsGraphOnelineMeetingInfo]
     locations: List[MsGraphLocation]
     body: MsGraphItemBody
+    originalStartTimeZone: str
 
 
 class MsGraphCalendar(TypedDict):

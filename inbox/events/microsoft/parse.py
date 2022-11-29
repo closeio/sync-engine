@@ -375,6 +375,7 @@ def calculate_exception_and_canceled_occurrences(
     )
     recurrence_timezone = get_microsoft_tzinfo(
         master_event["recurrence"]["range"]["recurrenceTimeZone"]
+        or master_event["originalStartTimeZone"]
     )
     master_start_datetime = parse_msgraph_datetime_tz_as_utc(
         master_event["start"]

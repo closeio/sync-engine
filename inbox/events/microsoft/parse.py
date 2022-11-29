@@ -433,6 +433,7 @@ MS_GRAPH_TO_SYNC_ENGINE_STATUS_MAP: Dict[MsGraphResponse, str] = {
     "notResponded": "noreply",
     "declined": "no",
     "accepted": "yes",
+    "organizer": "yes",
     "tentativelyAccepted": "maybe",
 }
 

@@ -595,6 +595,7 @@ event_occurrences = [
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
         "start": {"dateTime": "2022-09-19T15:00:00.0000000", "timeZone": "UTC"},
+        "originalStart": "2022-09-19T15:00:00Z",
         "end": {"dateTime": "2022-09-19T15:30:00.0000000", "timeZone": "UTC"},
     },
     {
@@ -611,6 +612,7 @@ event_occurrences = [
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
         "start": {"dateTime": "2022-09-20T15:00:00.0000000", "timeZone": "UTC"},
+        "originalStart": "2022-09-20T15:00:00Z",
         "end": {"dateTime": "2022-09-20T15:30:00.0000000", "timeZone": "UTC"},
     },
     {
@@ -627,6 +629,7 @@ event_occurrences = [
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
         "start": {"dateTime": "2022-09-21T15:00:00.0000000", "timeZone": "UTC"},
+        "originalStart": "2022-09-21T15:00:00Z",
         "end": {"dateTime": "2022-09-21T15:30:00.0000000", "timeZone": "UTC"},
     },
 ]
@@ -653,8 +656,7 @@ def test_calculate_exception_and_canceled_occurrences_with_deletion():
     assert cancellation["end"] == event_occurrences[1]["end"]
     assert cancellation["recurrence"] is None
     assert cancellation["subject"] == master_event["subject"]
-    with pytest.raises(KeyError):
-        cancellation["wrong"]
+    assert cancellation["originalStart"] == event_occurrences[1]["originalStart"]
 
 
 master_with_exception = {
@@ -705,6 +707,7 @@ master_with_exception_occurrences = [
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
         "start": {"dateTime": "2022-09-27T13:30:00.0000000", "timeZone": "UTC"},
+        "originalStart": "2022-09-27T12:00:00Z",
         "end": {"dateTime": "2022-09-27T14:00:00.0000000", "timeZone": "UTC"},
     },
     {
@@ -721,6 +724,7 @@ master_with_exception_occurrences = [
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
         "start": {"dateTime": "2022-09-26T12:00:00.0000000", "timeZone": "UTC"},
+        "originalStart": "2022-09-26T12:00:00Z",
         "end": {"dateTime": "2022-09-26T12:30:00.0000000", "timeZone": "UTC"},
     },
     {
@@ -738,6 +742,7 @@ master_with_exception_occurrences = [
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
         "start": {"dateTime": "2022-09-28T12:00:00.0000000", "timeZone": "UTC"},
+        "originalStart": "2022-09-28T12:00:00Z",
         "end": {"dateTime": "2022-09-28T12:30:00.0000000", "timeZone": "UTC"},
     },
 ]
@@ -754,10 +759,7 @@ def test_calculate_exception_and_canceled_occurrences_with_exception():
         "dateTime": "2022-09-27T13:30:00.0000000",
         "timeZone": "UTC",
     }
-    assert exception["originalStart"] == {
-        "dateTime": "2022-09-27T12:00:00.0000000",
-        "timeZone": "UTC",
-    }
+    assert exception["originalStart"] == "2022-09-27T12:00:00Z"
 
 
 @pytest.mark.parametrize(

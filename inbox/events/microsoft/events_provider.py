@@ -38,6 +38,27 @@ EVENTS_LIST_WEBHOOK_URL = URL_PREFIX + "/w/microsoft/calendar_update/{}"
 MAX_RECURRING_EVENT_WINDOW = datetime.timedelta(days=365)
 
 
+EVENT_FIELDS = [
+    "id",
+    "type",
+    "subject",
+    "start",
+    "originalStart",
+    "end",
+    "isAllDay",
+    "lastModifiedDateTime",
+    "body",
+    "locations",
+    "showAs",
+    "sensitivity",
+    "isCancelled",
+    "organizer",
+    "attendees",
+    "recurrence",
+    "onlineMeeting",
+]
+
+
 class MicrosoftEventsProvider(AbstractEventsProvider):
     def __init__(self, account_id: int, namespace_id: int):
         super().__init__(account_id, namespace_id)
@@ -101,7 +122,9 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         updates = []
         raw_events = cast(
             Iterable[MsGraphEvent],
-            self.client.iter_events(calendar_uid, modified_after=sync_from_time),
+            self.client.iter_events(
+                calendar_uid, modified_after=sync_from_time, fields=EVENT_FIELDS
+            ),
         )
         read_only = self.calendars_table.get(calendar_uid, True)
         for raw_event in raw_events:
@@ -139,7 +162,9 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         raw_occurrences = cast(
             List[MsGraphEvent],
             list(
-                self.client.iter_event_instances(master_event.uid, start=start, end=end)
+                self.client.iter_event_instances(
+                    master_event.uid, start=start, end=end, fields=EVENT_FIELDS
+                )
             ),
         )
         (

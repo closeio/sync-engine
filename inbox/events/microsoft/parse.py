@@ -10,7 +10,6 @@ import dateutil.rrule
 import pytz
 import pytz.tzinfo
 
-from inbox.events import util
 from inbox.events.microsoft.graph_types import (
     ICalDayOfWeek,
     ICalFreq,
@@ -209,7 +208,7 @@ RRULE_SERIALIZATION_ORDER = ["FREQ", "INTERVAL", "WKST", "BYDAY", "UNTIL", "COUN
 
 
 def convert_msgraph_patterned_recurrence_to_ical_rrule(
-    patterned_recurrence: MsGraphPatternedRecurrence,
+    patterned_recurrence: MsGraphPatternedRecurrence, *, naive=False
 ) -> str:
     """
     Convert Microsoft Graph PatternedRecurrence to iCal RRULE.
@@ -223,6 +222,8 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
 
     Arguments:
         patterned_recurrence: Microsoft Graph PatternedRecurrence
+        naive: Weather until should be serialized in recurrence timezone
+            without Z suffix, or in UTC with Z suffix
 
     Returns:
         iCal RRULE string
@@ -279,7 +280,14 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
         raise ValueError(f"Unexpected value {range['type']!r} for range type")
 
     if until:
-        rrule["UNTIL"] = util.serialize_datetime(until)
+        assert until.tzinfo == pytz.UTC
+        recurrence_timezone = get_microsoft_tzinfo(range["recurrenceTimeZone"])
+        if naive:
+            rrule["UNTIL"] = until.astimezone(recurrence_timezone).strftime(
+                "%Y%m%dT%H%M%S"
+            )
+        else:
+            rrule["UNTIL"] = until.strftime("%Y%m%dT%H%M%SZ")
     if count:
         rrule["COUNT"] = str(count)
 
@@ -385,15 +393,25 @@ def calculate_exception_and_canceled_occurrences(
     assert end.tzinfo == pytz.UTC
 
     master_rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(
-        master_event["recurrence"]
+        master_event["recurrence"], naive=True
     )
-    master_start_datetime = parse_msgraph_datetime_tz_as_utc(master_event["start"])
+    recurrence_timezone = get_microsoft_tzinfo(
+        master_event["recurrence"]["range"]["recurrenceTimeZone"]
+    )
+    master_start_datetime = parse_msgraph_datetime_tz_as_utc(
+        master_event["start"]
+    ).astimezone(recurrence_timezone)
     master_parsed_rrule = dateutil.rrule.rrulestr(
-        master_rrule, dtstart=master_start_datetime
+        master_rrule, dtstart=master_start_datetime.replace(tzinfo=None)
     )
     master_datetimes = {
-        dt.date(): dt
-        for dt in itertools.takewhile(lambda dt: dt <= end, master_parsed_rrule)
+        recurrence_timezone.localize(dt)
+        .astimezone(pytz.UTC)
+        .date(): recurrence_timezone.localize(dt)
+        .astimezone(pytz.UTC)
+        for dt in itertools.takewhile(
+            lambda dt: recurrence_timezone.localize(dt) <= end, master_parsed_rrule
+        )
     }
 
     exception_occurrences = [

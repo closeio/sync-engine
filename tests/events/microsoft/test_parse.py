@@ -17,6 +17,7 @@ from inbox.events.microsoft.parse import (
     parse_calendar,
     parse_event,
     parse_msgraph_datetime_tz_as_utc,
+    parse_msgraph_range_start_and_until,
 )
 from inbox.models.event import Event, RecurringEvent
 
@@ -72,6 +73,57 @@ def test_combine_msgraph_recurrence_date_with_time(mode, dt):
             "2022-09-19", pytz.timezone("America/New_York"), mode
         )
         == dt
+    )
+
+
+@pytest.mark.parametrize(
+    "event",
+    [
+        {
+            "recurrence": {
+                "pattern": {
+                    "type": "daily",
+                    "interval": 1,
+                    "month": 0,
+                    "dayOfMonth": 0,
+                    "firstDayOfWeek": "sunday",
+                    "index": "first",
+                },
+                "range": {
+                    "type": "endDate",
+                    "startDate": "2022-09-22",
+                    "endDate": "2022-12-22",
+                    "recurrenceTimeZone": "Eastern Standard Time",
+                    "numberOfOccurrences": 0,
+                },
+            }
+        },
+        {
+            "recurrence": {
+                "pattern": {
+                    "type": "daily",
+                    "interval": 1,
+                    "month": 0,
+                    "dayOfMonth": 0,
+                    "firstDayOfWeek": "sunday",
+                    "index": "first",
+                },
+                "range": {
+                    "type": "endDate",
+                    "startDate": "2022-09-22",
+                    "endDate": "2022-12-22",
+                    "recurrenceTimeZone": "",
+                    "numberOfOccurrences": 0,
+                },
+            },
+            "originalStartTimeZone": "Eastern Standard Time",
+        },
+    ],
+)
+def test_parse_msgraph_range_start_and_until(event):
+    assert parse_msgraph_range_start_and_until(event) == (
+        datetime.datetime(2022, 9, 22, 4, tzinfo=pytz.UTC),
+        datetime.datetime(2022, 12, 23, 4, 59, 59, tzinfo=pytz.UTC),
     )
 
 
@@ -306,7 +358,10 @@ def test_combine_msgraph_recurrence_date_with_time(mode, dt):
     ],
 )
 def test_convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence, rrule):
-    assert convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence) == rrule
+    assert (
+        convert_msgraph_patterned_recurrence_to_ical_rrule({"recurrence": recurrence})
+        == rrule
+    )
 
 
 @pytest.mark.parametrize(
@@ -538,7 +593,9 @@ def test_convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence, rrule):
     ],
 )
 def test_inflate_msgraph_patterned_recurrence(recurrence, inflated_dates):
-    rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence)
+    rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(
+        {"recurrence": recurrence}
+    )
     start_datetime = datetime.datetime(2022, 9, 19, 12, tzinfo=pytz.UTC)
     parsed_rrule = dateutil.rrule.rrulestr(rrule, dtstart=start_datetime)
     # For infinite recurrences expand only first 3

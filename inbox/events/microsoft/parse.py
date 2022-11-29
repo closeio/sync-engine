@@ -19,9 +19,7 @@ from inbox.events.microsoft.graph_types import (
     MsGraphDateTimeTimeZone,
     MsGraphDayOfWeek,
     MsGraphEvent,
-    MsGraphPatternedRecurrence,
     MsGraphRecurrencePatternType,
-    MsGraphRecurrenceRange,
     MsGraphResponse,
     MsGraphSensitivity,
     MsGraphShowAs,
@@ -140,7 +138,7 @@ def combine_msgraph_recurrence_date_with_time(
 
 
 def parse_msgraph_range_start_and_until(
-    range: MsGraphRecurrenceRange,
+    event: MsGraphEvent,
 ) -> Tuple[datetime.datetime, Optional[datetime.datetime]]:
     """
     Parse Microsoft Graph Recurrence Range start and end dates.
@@ -149,12 +147,15 @@ def parse_msgraph_range_start_and_until(
     time because recurrence processing always uses datetimes.
 
     Arguments:
-        range: Microsoft Graph RecurranceRange
+        event: Microsoft Graph Event
 
     Returns:
         Tuple of timezone-aware UTC datetimes
     """
-    tzinfo = get_microsoft_tzinfo(range["recurrenceTimeZone"])
+    range = event["recurrence"]["range"]
+    tzinfo = get_microsoft_tzinfo(
+        range["recurrenceTimeZone"] or event["originalStartTimeZone"]
+    )
 
     start_datetime = combine_msgraph_recurrence_date_with_time(
         range["startDate"], tzinfo, CombineMode.START
@@ -208,9 +209,7 @@ MS_GRAPH_TO_ICAL_INDEX: Dict[MsGraphWeekIndex, int] = {
 RRULE_SERIALIZATION_ORDER = ["FREQ", "INTERVAL", "WKST", "BYDAY", "UNTIL", "COUNT"]
 
 
-def convert_msgraph_patterned_recurrence_to_ical_rrule(
-    patterned_recurrence: MsGraphPatternedRecurrence,
-) -> str:
+def convert_msgraph_patterned_recurrence_to_ical_rrule(event: MsGraphEvent,) -> str:
     """
     Convert Microsoft Graph PatternedRecurrence to iCal RRULE.
 
@@ -222,11 +221,12 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
     expanding.
 
     Arguments:
-        patterned_recurrence: Microsoft Graph PatternedRecurrence
+        event: Microsoft Graph Event
 
     Returns:
         iCal RRULE string
     """
+    patterned_recurrence = event["recurrence"]
     pattern, range = patterned_recurrence["pattern"], patterned_recurrence["range"]
 
     # first handle FREQ (Frequency), INTERVAL and BYDAY
@@ -270,7 +270,7 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
     count = None
     until = None
     if range["type"] in ["endDate", "noEnd"]:
-        _, until = parse_msgraph_range_start_and_until(range)
+        _, until = parse_msgraph_range_start_and_until(event)
     elif range["type"] == "numbered":
         count = range["numberOfOccurrences"]
         assert count > 0
@@ -384,9 +384,7 @@ def calculate_exception_and_canceled_occurrences(
     assert master_event["recurrence"]
     assert end.tzinfo == pytz.UTC
 
-    master_rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(
-        master_event["recurrence"]
-    )
+    master_rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(master_event)
     master_start_datetime = parse_msgraph_datetime_tz_as_utc(master_event["start"])
     master_parsed_rrule = dateutil.rrule.rrulestr(
         master_rrule, dtstart=master_start_datetime
@@ -599,11 +597,10 @@ def parse_event(
     visibility = MS_GRAPH_SENSITIVITY_TO_VISIBILITY_MAP[event["sensitivity"]]
     if event["type"] == "seriesMaster":
         assert event["recurrence"]
-        recurrence = [
-            convert_msgraph_patterned_recurrence_to_ical_rrule(event["recurrence"])
-        ]
+        recurrence = [convert_msgraph_patterned_recurrence_to_ical_rrule(event)]
         start_tz = convert_microsoft_timezone_to_olson(
             event["recurrence"]["range"]["recurrenceTimeZone"]
+            or event["originalStartTimeZone"]
         )
     else:
         recurrence = None

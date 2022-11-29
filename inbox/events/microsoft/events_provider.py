@@ -53,6 +53,7 @@ EVENT_FIELDS = [
     "sensitivity",
     "isCancelled",
     "organizer",
+    "isOrganizer",
     "attendees",
     "recurrence",
     "onlineMeeting",

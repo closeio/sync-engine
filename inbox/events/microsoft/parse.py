@@ -581,10 +581,14 @@ def parse_event(
     busy = MS_GRAPH_SHOW_AS_TO_BUSY_MAP[event["showAs"]]
     sequence_number = 0
     status = "cancelled" if event["isCancelled"] else "confirmed"
-    organizer = event["organizer"].get("emailAddress", {})
+    organizer = event["organizer"]
     if organizer:
+        organizer_email_address = organizer.get("emailAddress", {})
         owner = email.utils.formataddr(
-            (organizer.get("name", ""), organizer.get("address", ""))
+            (
+                organizer_email_address.get("name", ""),
+                organizer_email_address.get("address", ""),
+            )
         )
     else:
         owner = ""

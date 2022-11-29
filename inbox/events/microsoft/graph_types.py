@@ -194,7 +194,7 @@ class MsGraphEvent(TypedDict):
     end: MsGraphDateTimeTimeZone
     lastModifiedDateTime: str
     showAs: MsGraphShowAs
-    organizer: MsGraphRecipient
+    organizer: Optional[MsGraphRecipient]
     sensitivity: MsGraphSensitivity
     subject: str
     isAllDay: bool

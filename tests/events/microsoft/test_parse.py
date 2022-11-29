@@ -1065,9 +1065,7 @@ single_instance_event = {
     },
     "locations": [],
     "attendees": [],
-    "organizer": {
-        "emailAddress": {"name": "Example <>", "address": "example_2@example.com"}
-    },
+    "organizer": None,
 }
 
 
@@ -1087,7 +1085,7 @@ def test_parse_event_singular():
     assert event.location == "https://teams.microsoft.com/l/meetup-join/xyz"
     assert event.busy is True
     assert event.status == "confirmed"
-    assert event.owner == '"Example <>" <example_2@example.com>'
+    assert event.owner == ""
     assert event.participants == []
     assert event.is_owner is True
     assert event.cancelled is False

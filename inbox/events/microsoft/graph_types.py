@@ -1,5 +1,7 @@
 from typing import List, Literal, Optional, TypedDict
 
+from typing_extensions import NotRequired
+
 
 class MsGraphDateTimeTimeZone(TypedDict):
     """
@@ -84,7 +86,7 @@ MsGraphEventType = Literal["singleInstance", "occurrence", "exception", "seriesM
 
 
 class MsGraphEmailAddress(TypedDict):
-    address: str
+    address: NotRequired[str]
     name: str
 
 

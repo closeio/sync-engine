@@ -927,6 +927,16 @@ def test_get_event_location(event, location):
                 "notes": None,
             },
         ),
+        (
+            {
+                "status": {
+                    "response": "tentativelyAccepted",
+                    "time": "2022-09-08T15:47:46Z",
+                },
+                "emailAddress": {"name": "Test User"},
+            },
+            {"email": None, "name": "Test User", "status": "maybe", "notes": None,},
+        ),
     ],
 )
 def test_get_event_participant(attendee, participant):

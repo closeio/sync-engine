@@ -209,7 +209,9 @@ MS_GRAPH_TO_ICAL_INDEX: Dict[MsGraphWeekIndex, int] = {
 RRULE_SERIALIZATION_ORDER = ["FREQ", "INTERVAL", "WKST", "BYDAY", "UNTIL", "COUNT"]
 
 
-def convert_msgraph_patterned_recurrence_to_ical_rrule(event: MsGraphEvent, *, naive=False) -> str:
+def convert_msgraph_patterned_recurrence_to_ical_rrule(
+    event: MsGraphEvent, *, naive=False
+) -> str:
     """
     Convert Microsoft Graph PatternedRecurrence to iCal RRULE.
 
@@ -431,7 +433,7 @@ def get_event_participant(attendee: MsGraphAttendee) -> Dict[str, Any]:
         Sync-engine participant dictionary
     """
     return {
-        "email": attendee["emailAddress"]["address"],
+        "email": attendee["emailAddress"].get("address"),
         "name": attendee["emailAddress"]["name"],
         "status": MS_GRAPH_TO_SYNC_ENGINE_STATUS_MAP[attendee["status"]["response"]],
         "notes": None,

@@ -58,6 +58,7 @@ EVENT_FIELDS = [
     "recurrence",
     "onlineMeeting",
     "originalStartTimeZone",
+    "originalEndTimeZone",
 ]
 
 

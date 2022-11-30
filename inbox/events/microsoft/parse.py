@@ -449,7 +449,7 @@ def get_event_participant(attendee: MsGraphAttendee) -> Dict[str, Any]:
         Sync-engine participant dictionary
     """
     return {
-        "email": attendee["emailAddress"]["address"],
+        "email": attendee["emailAddress"].get("address"),
         "name": attendee["emailAddress"]["name"],
         "status": MS_GRAPH_TO_SYNC_ENGINE_STATUS_MAP[attendee["status"]["response"]],
         "notes": None,

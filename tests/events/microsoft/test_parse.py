@@ -18,6 +18,7 @@ from inbox.events.microsoft.parse import (
     parse_calendar,
     parse_event,
     parse_msgraph_datetime_tz_as_utc,
+    validate_event,
 )
 from inbox.models.event import Event, RecurringEvent
 
@@ -1025,6 +1026,56 @@ recurring_event = {
         "emailAddress": {"name": "Example", "address": "example@example.com",}
     },
 }
+
+
+@pytest.mark.parametrize(
+    "event,valid",
+    [
+        ({"recurrence": None}, True),
+        (
+            {"recurrence": {"range": {"recurrenceTimeZone": "Eastern Standard Time"}}},
+            True,
+        ),
+        (
+            {
+                "recurrence": {"range": {"recurrenceTimeZone": ""}},
+                "originalStartTimeZone": "Eastern Standard Time",
+            },
+            True,
+        ),
+        (
+            {
+                "recurrence": {"range": {"recurrenceTimeZone": ""}},
+                "originalStartTimeZone": "tzone://Microsoft/Custom",
+                "originalEndTimeZone": "Eastern Standard Time",
+            },
+            True,
+        ),
+        (
+            {
+                "recurrence": {
+                    "range": {"recurrenceTimeZone": "tzone://Microsoft/Custom"}
+                },
+                "originalStartTimeZone": "tzone://Microsoft/Custom",
+                "originalEndTimeZone": "Eastern Standard Time",
+            },
+            True,
+        ),
+        (
+            {
+                "recurrence": {
+                    "range": {"recurrenceTimeZone": "tzone://Microsoft/Custom"}
+                },
+                "originalStartTimeZone": "tzone://Microsoft/Custom",
+                "originalEndTimeZone": "tzone://Microsoft/Custom",
+            },
+            False,
+        ),
+        ({"recurrence": {"range": {"recurrenceTimeZone": "Garbage"}}}, False),
+    ],
+)
+def test_validate_event(event, valid):
+    assert validate_event(event) == valid
 
 
 def test_parse_event_recurrence():

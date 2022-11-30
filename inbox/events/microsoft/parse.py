@@ -578,6 +578,32 @@ MS_GRAPH_SHOW_AS_TO_BUSY_MAP: Dict[MsGraphShowAs, bool] = {
 }
 
 
+def validate_event(event: MsGraphEvent) -> bool:
+    """
+    Validate if we can successfully parse an event.
+
+    Currently it checks if we can correctly extract recurring event
+    timezone. If we don't find valid timezone we need to bail out
+    as such recurrence cannot be expanded reliably.
+
+    Arguments:
+        event: Microsoft Graph event
+    """
+    if not event["recurrence"]:
+        return True
+
+    recurrence_timezone = get_recurrence_timezone(event)
+    if not recurrence_timezone:
+        return False
+
+    try:
+        get_microsoft_tzinfo(recurrence_timezone)
+    except pytz.UnknownTimeZoneError:
+        return False
+
+    return True
+
+
 def parse_event(
     event: MsGraphEvent, *, read_only: bool, master_event_uid: Optional[str] = None,
 ) -> Event:

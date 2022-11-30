@@ -16,6 +16,7 @@ from inbox.events.microsoft.parse import (
     calculate_exception_and_canceled_occurrences,
     parse_calendar,
     parse_event,
+    validate_event,
 )
 from inbox.events.util import CalendarSyncResponse
 from inbox.models.account import Account
@@ -105,6 +106,10 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         )
         read_only = self.calendars_table.get(calendar_uid, True)
         for raw_event in raw_events:
+            if not validate_event(raw_event):
+                self.log.warning("Invalid event", raw_event=raw_event)
+                continue
+
             event = parse_event(raw_event, read_only=read_only)
             updates.append(event)
 

@@ -14,10 +14,12 @@ from inbox.events.microsoft.parse import (
     get_event_location,
     get_event_participant,
     get_microsoft_tzinfo,
+    get_recurrence_timezone,
     parse_calendar,
     parse_event,
     parse_msgraph_datetime_tz_as_utc,
     parse_msgraph_range_start_and_until,
+    validate_event,
 )
 from inbox.models.event import Event, RecurringEvent
 
@@ -58,6 +60,30 @@ def test_dump_datetime_as_msgraph_datetime_tz():
     assert dump_datetime_as_msgraph_datetime_tz(
         datetime.datetime(2022, 9, 22, 16, 31, 45, tzinfo=pytz.UTC)
     ) == {"dateTime": "2022-09-22T16:31:45.0000000", "timeZone": "UTC",}
+
+
+@pytest.mark.parametrize(
+    "event",
+    [
+        {"recurrence": {"range": {"recurrenceTimeZone": "Eastern Standard Time"}}},
+        {
+            "recurrence": {"range": {"recurrenceTimeZone": ""}},
+            "originalStartTimeZone": "Eastern Standard Time",
+        },
+        {
+            "recurrence": {"range": {"recurrenceTimeZone": ""}},
+            "originalStartTimeZone": "tzone://Microsoft/Custom",
+            "originalEndTimeZone": "Eastern Standard Time",
+        },
+        {
+            "recurrence": {"range": {"recurrenceTimeZone": "tzone://Microsoft/Custom"}},
+            "originalStartTimeZone": "tzone://Microsoft/Custom",
+            "originalEndTimeZone": "Eastern Standard Time",
+        },
+    ],
+)
+def test_get_recurrence_timezone(event):
+    assert get_recurrence_timezone(event) == "Eastern Standard Time"
 
 
 @pytest.mark.parametrize(
@@ -1054,6 +1080,56 @@ recurring_event = {
         "emailAddress": {"name": "Example", "address": "example@example.com",}
     },
 }
+
+
+@pytest.mark.parametrize(
+    "event,valid",
+    [
+        ({"recurrence": None}, True),
+        (
+            {"recurrence": {"range": {"recurrenceTimeZone": "Eastern Standard Time"}}},
+            True,
+        ),
+        (
+            {
+                "recurrence": {"range": {"recurrenceTimeZone": ""}},
+                "originalStartTimeZone": "Eastern Standard Time",
+            },
+            True,
+        ),
+        (
+            {
+                "recurrence": {"range": {"recurrenceTimeZone": ""}},
+                "originalStartTimeZone": "tzone://Microsoft/Custom",
+                "originalEndTimeZone": "Eastern Standard Time",
+            },
+            True,
+        ),
+        (
+            {
+                "recurrence": {
+                    "range": {"recurrenceTimeZone": "tzone://Microsoft/Custom"}
+                },
+                "originalStartTimeZone": "tzone://Microsoft/Custom",
+                "originalEndTimeZone": "Eastern Standard Time",
+            },
+            True,
+        ),
+        (
+            {
+                "recurrence": {
+                    "range": {"recurrenceTimeZone": "tzone://Microsoft/Custom"}
+                },
+                "originalStartTimeZone": "tzone://Microsoft/Custom",
+                "originalEndTimeZone": "tzone://Microsoft/Custom",
+            },
+            False,
+        ),
+        ({"recurrence": {"range": {"recurrenceTimeZone": "Garbage"}}}, False),
+    ],
+)
+def test_validate_event(event, valid):
+    assert validate_event(event) == valid
 
 
 def test_parse_event_recurrence():

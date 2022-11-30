@@ -209,6 +209,7 @@ class MsGraphEvent(TypedDict):
     locations: List[MsGraphLocation]
     body: MsGraphItemBody
     originalStartTimeZone: str
+    originalEndTimeZone: str
 
 
 class MsGraphCalendar(TypedDict):

@@ -326,9 +326,11 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
 
     if until:
         assert until.tzinfo == pytz.UTC
-        recurrence_timezone = get_microsoft_tzinfo(range["recurrenceTimeZone"])
+        recurrence_timezone = get_recurrence_timezone(event)
+        assert recurrence_timezone
+        recurrence_tzinfo = get_microsoft_tzinfo(recurrence_timezone)
         if naive:
-            rrule["UNTIL"] = until.astimezone(recurrence_timezone).strftime(
+            rrule["UNTIL"] = until.astimezone(recurrence_tzinfo).strftime(
                 "%Y%m%dT%H%M%S"
             )
         else:

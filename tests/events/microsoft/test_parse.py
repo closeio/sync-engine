@@ -14,10 +14,10 @@ from inbox.events.microsoft.parse import (
     get_event_location,
     get_event_participant,
     get_microsoft_tzinfo,
+    get_recurrence_timezone,
     parse_calendar,
     parse_event,
     parse_msgraph_datetime_tz_as_utc,
-    parse_msgraph_range_start_and_until,
 )
 from inbox.models.event import Event, RecurringEvent
 
@@ -61,6 +61,30 @@ def test_dump_datetime_as_msgraph_datetime_tz():
 
 
 @pytest.mark.parametrize(
+    "event",
+    [
+        {"recurrence": {"range": {"recurrenceTimeZone": "Eastern Standard Time"}}},
+        {
+            "recurrence": {"range": {"recurrenceTimeZone": ""}},
+            "originalStartTimeZone": "Eastern Standard Time",
+        },
+        {
+            "recurrence": {"range": {"recurrenceTimeZone": ""}},
+            "originalStartTimeZone": "tzone://Microsoft/Custom",
+            "originalEndTimeZone": "Eastern Standard Time",
+        },
+        {
+            "recurrence": {"range": {"recurrenceTimeZone": "tzone://Microsoft/Custom"}},
+            "originalStartTimeZone": "tzone://Microsoft/Custom",
+            "originalEndTimeZone": "Eastern Standard Time",
+        },
+    ],
+)
+def test_get_recurrence_timezone(event):
+    assert get_recurrence_timezone(event) == "Eastern Standard Time"
+
+
+@pytest.mark.parametrize(
     "mode,dt",
     [
         (CombineMode.START, datetime.datetime(2022, 9, 19, 4, 0, 0, tzinfo=pytz.UTC)),
@@ -73,57 +97,6 @@ def test_combine_msgraph_recurrence_date_with_time(mode, dt):
             "2022-09-19", pytz.timezone("America/New_York"), mode
         )
         == dt
-    )
-
-
-@pytest.mark.parametrize(
-    "event",
-    [
-        {
-            "recurrence": {
-                "pattern": {
-                    "type": "daily",
-                    "interval": 1,
-                    "month": 0,
-                    "dayOfMonth": 0,
-                    "firstDayOfWeek": "sunday",
-                    "index": "first",
-                },
-                "range": {
-                    "type": "endDate",
-                    "startDate": "2022-09-22",
-                    "endDate": "2022-12-22",
-                    "recurrenceTimeZone": "Eastern Standard Time",
-                    "numberOfOccurrences": 0,
-                },
-            }
-        },
-        {
-            "recurrence": {
-                "pattern": {
-                    "type": "daily",
-                    "interval": 1,
-                    "month": 0,
-                    "dayOfMonth": 0,
-                    "firstDayOfWeek": "sunday",
-                    "index": "first",
-                },
-                "range": {
-                    "type": "endDate",
-                    "startDate": "2022-09-22",
-                    "endDate": "2022-12-22",
-                    "recurrenceTimeZone": "",
-                    "numberOfOccurrences": 0,
-                },
-            },
-            "originalStartTimeZone": "Eastern Standard Time",
-        },
-    ],
-)
-def test_parse_msgraph_range_start_and_until(event):
-    assert parse_msgraph_range_start_and_until(event) == (
-        datetime.datetime(2022, 9, 22, 4, tzinfo=pytz.UTC),
-        datetime.datetime(2022, 12, 23, 4, 59, 59, tzinfo=pytz.UTC),
     )
 
 

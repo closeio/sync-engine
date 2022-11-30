@@ -14,9 +14,11 @@ from inbox.events.microsoft.parse import (
     get_event_location,
     get_event_participant,
     get_microsoft_tzinfo,
+    get_recurrence_timezone,
     parse_calendar,
     parse_event,
     parse_msgraph_datetime_tz_as_utc,
+    validate_event,
 )
 from inbox.models.event import Event, RecurringEvent
 
@@ -57,6 +59,30 @@ def test_dump_datetime_as_msgraph_datetime_tz():
     assert dump_datetime_as_msgraph_datetime_tz(
         datetime.datetime(2022, 9, 22, 16, 31, 45, tzinfo=pytz.UTC)
     ) == {"dateTime": "2022-09-22T16:31:45.0000000", "timeZone": "UTC",}
+
+
+@pytest.mark.parametrize(
+    "event",
+    [
+        {"recurrence": {"range": {"recurrenceTimeZone": "Eastern Standard Time"}}},
+        {
+            "recurrence": {"range": {"recurrenceTimeZone": ""}},
+            "originalStartTimeZone": "Eastern Standard Time",
+        },
+        {
+            "recurrence": {"range": {"recurrenceTimeZone": ""}},
+            "originalStartTimeZone": "tzone://Microsoft/Custom",
+            "originalEndTimeZone": "Eastern Standard Time",
+        },
+        {
+            "recurrence": {"range": {"recurrenceTimeZone": "tzone://Microsoft/Custom"}},
+            "originalStartTimeZone": "tzone://Microsoft/Custom",
+            "originalEndTimeZone": "Eastern Standard Time",
+        },
+    ],
+)
+def test_get_recurrence_timezone(event):
+    assert get_recurrence_timezone(event) == "Eastern Standard Time"
 
 
 @pytest.mark.parametrize(
@@ -306,7 +332,10 @@ def test_combine_msgraph_recurrence_date_with_time(mode, dt):
     ],
 )
 def test_convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence, rrule):
-    assert convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence) == rrule
+    assert (
+        convert_msgraph_patterned_recurrence_to_ical_rrule({"recurrence": recurrence})
+        == rrule
+    )
 
 
 @pytest.mark.parametrize(
@@ -538,7 +567,9 @@ def test_convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence, rrule):
     ],
 )
 def test_inflate_msgraph_patterned_recurrence(recurrence, inflated_dates):
-    rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence)
+    rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(
+        {"recurrence": recurrence}
+    )
     start_datetime = datetime.datetime(2022, 9, 19, 12, tzinfo=pytz.UTC)
     parsed_rrule = dateutil.rrule.rrulestr(rrule, dtstart=start_datetime)
     # For infinite recurrences expand only first 3
@@ -995,6 +1026,56 @@ recurring_event = {
         "emailAddress": {"name": "Example", "address": "example@example.com",}
     },
 }
+
+
+@pytest.mark.parametrize(
+    "event,valid",
+    [
+        ({"recurrence": None}, True),
+        (
+            {"recurrence": {"range": {"recurrenceTimeZone": "Eastern Standard Time"}}},
+            True,
+        ),
+        (
+            {
+                "recurrence": {"range": {"recurrenceTimeZone": ""}},
+                "originalStartTimeZone": "Eastern Standard Time",
+            },
+            True,
+        ),
+        (
+            {
+                "recurrence": {"range": {"recurrenceTimeZone": ""}},
+                "originalStartTimeZone": "tzone://Microsoft/Custom",
+                "originalEndTimeZone": "Eastern Standard Time",
+            },
+            True,
+        ),
+        (
+            {
+                "recurrence": {
+                    "range": {"recurrenceTimeZone": "tzone://Microsoft/Custom"}
+                },
+                "originalStartTimeZone": "tzone://Microsoft/Custom",
+                "originalEndTimeZone": "Eastern Standard Time",
+            },
+            True,
+        ),
+        (
+            {
+                "recurrence": {
+                    "range": {"recurrenceTimeZone": "tzone://Microsoft/Custom"}
+                },
+                "originalStartTimeZone": "tzone://Microsoft/Custom",
+                "originalEndTimeZone": "tzone://Microsoft/Custom",
+            },
+            False,
+        ),
+        ({"recurrence": {"range": {"recurrenceTimeZone": "Garbage"}}}, False),
+    ],
+)
+def test_validate_event(event, valid):
+    assert validate_event(event) == valid
 
 
 def test_parse_event_recurrence():

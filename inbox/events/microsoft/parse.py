@@ -19,9 +19,7 @@ from inbox.events.microsoft.graph_types import (
     MsGraphDateTimeTimeZone,
     MsGraphDayOfWeek,
     MsGraphEvent,
-    MsGraphPatternedRecurrence,
     MsGraphRecurrencePatternType,
-    MsGraphRecurrenceRange,
     MsGraphResponse,
     MsGraphSensitivity,
     MsGraphShowAs,
@@ -87,6 +85,47 @@ def parse_msgraph_datetime_tz_as_utc(datetime_tz: MsGraphDateTimeTimeZone):
     return tzinfo.localize(dt).astimezone(pytz.UTC)
 
 
+# Older versions of Outlook had an ability to create custom timezones. This typically
+# happened by users editing or creating a copy of one of the built-in timezones by
+# mistake. Nevertheless we cannot reliably know what was the original timezone in
+# such cases.
+CUSTOM_TIMEZONE = "tzone://Microsoft/Custom"
+
+
+def get_recurrence_timezone(event: MsGraphEvent) -> Optional[str]:
+    """
+    Find out recurrence timezone.
+
+    Normally it's stored under `["recurrence"]["range"]["recurrenceTimeZone"]`
+    but in some cases this field can contain empty string. Also sometimes
+    it can be set to `"tzone://Microsoft/Custom"` in which cases we keep
+    searching in other places. If we don't find valid timezone string in any
+    of those places we need to bail out as such recurrence cannot be expanded
+    reliably.
+
+    Arguments:
+        event: Recurring Microsoft Graph event
+
+    Returns:
+        Timezone identifier
+    """
+    assert event["recurrence"]
+
+    recurrence_timezone = event["recurrence"]["range"]["recurrenceTimeZone"]
+    if recurrence_timezone and recurrence_timezone != CUSTOM_TIMEZONE:
+        return recurrence_timezone
+
+    original_start_timezone = event["originalStartTimeZone"]
+    if original_start_timezone and original_start_timezone != CUSTOM_TIMEZONE:
+        return original_start_timezone
+
+    original_end_timezone = event["originalEndTimeZone"]
+    if original_end_timezone and original_end_timezone != CUSTOM_TIMEZONE:
+        return original_end_timezone
+
+    return None
+
+
 def dump_datetime_as_msgraph_datetime_tz(
     dt: datetime.datetime,
 ) -> MsGraphDateTimeTimeZone:
@@ -140,7 +179,7 @@ def combine_msgraph_recurrence_date_with_time(
 
 
 def parse_msgraph_range_start_and_until(
-    range: MsGraphRecurrenceRange,
+    event: MsGraphEvent,
 ) -> Tuple[datetime.datetime, Optional[datetime.datetime]]:
     """
     Parse Microsoft Graph Recurrence Range start and end dates.
@@ -149,12 +188,16 @@ def parse_msgraph_range_start_and_until(
     time because recurrence processing always uses datetimes.
 
     Arguments:
-        range: Microsoft Graph RecurranceRange
+        event: Recurring Microsoft Graph event
 
     Returns:
         Tuple of timezone-aware UTC datetimes
     """
-    tzinfo = get_microsoft_tzinfo(range["recurrenceTimeZone"])
+    assert event["recurrence"]
+    recurrence_timezone = get_recurrence_timezone(event)
+    assert recurrence_timezone
+    tzinfo = get_microsoft_tzinfo(recurrence_timezone)
+    range = event["recurrence"]["range"]
 
     start_datetime = combine_msgraph_recurrence_date_with_time(
         range["startDate"], tzinfo, CombineMode.START
@@ -208,9 +251,7 @@ MS_GRAPH_TO_ICAL_INDEX: Dict[MsGraphWeekIndex, int] = {
 RRULE_SERIALIZATION_ORDER = ["FREQ", "INTERVAL", "WKST", "BYDAY", "UNTIL", "COUNT"]
 
 
-def convert_msgraph_patterned_recurrence_to_ical_rrule(
-    patterned_recurrence: MsGraphPatternedRecurrence,
-) -> str:
+def convert_msgraph_patterned_recurrence_to_ical_rrule(event: MsGraphEvent,) -> str:
     """
     Convert Microsoft Graph PatternedRecurrence to iCal RRULE.
 
@@ -222,11 +263,13 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
     expanding.
 
     Arguments:
-        patterned_recurrence: Microsoft Graph PatternedRecurrence
+        event: Recurring Microsoft Graph event
 
     Returns:
         iCal RRULE string
     """
+    assert event["recurrence"]
+    patterned_recurrence = event["recurrence"]
     pattern, range = patterned_recurrence["pattern"], patterned_recurrence["range"]
 
     # first handle FREQ (Frequency), INTERVAL and BYDAY
@@ -270,7 +313,7 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
     count = None
     until = None
     if range["type"] in ["endDate", "noEnd"]:
-        _, until = parse_msgraph_range_start_and_until(range)
+        _, until = parse_msgraph_range_start_and_until(event)
     elif range["type"] == "numbered":
         count = range["numberOfOccurrences"]
         assert count > 0
@@ -384,9 +427,7 @@ def calculate_exception_and_canceled_occurrences(
     assert master_event["recurrence"]
     assert end.tzinfo == pytz.UTC
 
-    master_rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(
-        master_event["recurrence"]
-    )
+    master_rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(master_event)
     master_start_datetime = parse_msgraph_datetime_tz_as_utc(master_event["start"])
     master_parsed_rrule = dateutil.rrule.rrulestr(
         master_rrule, dtstart=master_start_datetime
@@ -537,6 +578,32 @@ MS_GRAPH_SHOW_AS_TO_BUSY_MAP: Dict[MsGraphShowAs, bool] = {
 }
 
 
+def validate_event(event: MsGraphEvent) -> bool:
+    """
+    Validate if we can successfully parse an event.
+
+    Currently it checks if we can correctly extract recurring event
+    timezone. If we don't find valid timezone we need to bail out
+    as such recurrence cannot be expanded reliably.
+
+    Arguments:
+        event: Microsoft Graph event
+    """
+    if not event["recurrence"]:
+        return True
+
+    recurrence_timezone = get_recurrence_timezone(event)
+    if not recurrence_timezone:
+        return False
+
+    try:
+        get_microsoft_tzinfo(recurrence_timezone)
+    except pytz.UnknownTimeZoneError:
+        return False
+
+    return True
+
+
 def parse_event(
     event: MsGraphEvent, *, read_only: bool, master_event_uid: Optional[str] = None,
 ) -> Event:
@@ -599,12 +666,10 @@ def parse_event(
     visibility = MS_GRAPH_SENSITIVITY_TO_VISIBILITY_MAP[event["sensitivity"]]
     if event["type"] == "seriesMaster":
         assert event["recurrence"]
-        recurrence = [
-            convert_msgraph_patterned_recurrence_to_ical_rrule(event["recurrence"])
-        ]
-        start_tz = convert_microsoft_timezone_to_olson(
-            event["recurrence"]["range"]["recurrenceTimeZone"]
-        )
+        recurrence = [convert_msgraph_patterned_recurrence_to_ical_rrule(event)]
+        recurrence_timezone = get_recurrence_timezone(event)
+        assert recurrence_timezone
+        start_tz = convert_microsoft_timezone_to_olson(recurrence_timezone)
     else:
         recurrence = None
         start_tz = None

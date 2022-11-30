@@ -208,6 +208,8 @@ class MsGraphEvent(TypedDict):
     onlineMeeting: Optional[MsGraphOnelineMeetingInfo]
     locations: List[MsGraphLocation]
     body: MsGraphItemBody
+    originalStartTimeZone: str
+    originalEndTimeZone: str
 
 
 class MsGraphCalendar(TypedDict):

@@ -435,12 +435,9 @@ def calculate_exception_and_canceled_occurrences(
         naive_master_rrule, dtstart=naive_master_start_datetime
     )
     naive_end = end.astimezone(recurrence_tzinfo).replace(tzinfo=None)
-    naive_master_datetimes = {
-        dt
-        for dt in itertools.takewhile(
-            lambda dt: dt <= naive_end, naive_master_parsed_rrule
-        )
-    }
+    naive_master_datetimes = itertools.takewhile(
+        lambda dt: dt <= naive_end, naive_master_parsed_rrule
+    )
 
     master_datetimes = {
         recurrence_tzinfo.localize(dt).astimezone(pytz.UTC)

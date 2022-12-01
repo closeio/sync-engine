@@ -1,5 +1,6 @@
 import datetime
 
+import ciso8601
 import dateutil
 import pytest
 import pytz
@@ -740,6 +741,67 @@ def test_calculate_exception_and_canceled_occurrences_with_deletion():
     assert cancellation["recurrence"] is None
     assert cancellation["subject"] == master_event["subject"]
     assert cancellation["originalStart"] == event_occurrences[1]["originalStart"]
+
+
+master_event_crossing_dst = {
+    "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIzYW90AABtf4g8yY_zTZgZh6x0X-50AAI4iyJwAAA=",
+    "originalStartTimeZone": "Eastern Standard Time",
+    "originalEndTimeZone": "Eastern Standard Time",
+    "type": "seriesMaster",
+    "start": {"dateTime": "2022-11-05T12:00:00.0000000", "timeZone": "UTC"},
+    "end": {"dateTime": "2022-11-05T12:30:00.0000000", "timeZone": "UTC"},
+    "recurrence": {
+        "pattern": {
+            "type": "daily",
+            "interval": 1,
+            "month": 0,
+            "dayOfMonth": 0,
+            "firstDayOfWeek": "sunday",
+            "index": "first",
+        },
+        "range": {
+            "type": "endDate",
+            "startDate": "2022-11-05",
+            "endDate": "2022-11-06",
+            "recurrenceTimeZone": "Eastern Standard Time",
+            "numberOfOccurrences": 0,
+        },
+    },
+}
+
+
+event_occurrences_crossing_dst = [
+    {"originalStart": "2022-11-05T12:00:00Z", "type": "occurrence"},
+    {  # DST happens in New York
+        "originalStart": "2022-11-06T13:00:00Z",
+        "type": "occurrence",
+    },
+]
+
+
+def test_calculate_exception_and_canceled_occurrences_without_changes_around_dst():
+    assert calculate_exception_and_canceled_occurrences(
+        master_event_crossing_dst,
+        event_occurrences_crossing_dst,
+        datetime.datetime(2022, 11, 10, 23, 59, 59, tzinfo=pytz.UTC),
+    ) == ([], [])
+
+
+def test_calculate_exception_and_canceled_occurrences_with_deletion_around_dst():
+    ((), (cancellation,)) = calculate_exception_and_canceled_occurrences(
+        master_event_crossing_dst,
+        [event_occurrences_crossing_dst[0]],
+        datetime.datetime(2022, 11, 10, 23, 59, 59, tzinfo=pytz.UTC),
+    )
+
+    assert cancellation["type"] == "synthesizedCancellation"
+    assert (
+        cancellation["originalStart"]
+        == event_occurrences_crossing_dst[1]["originalStart"]
+    )
+    assert parse_msgraph_datetime_tz_as_utc(
+        cancellation["start"]
+    ) == ciso8601.parse_datetime(event_occurrences_crossing_dst[1]["originalStart"])
 
 
 master_with_exception = {

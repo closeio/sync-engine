@@ -198,7 +198,7 @@ class MsGraphEvent(TypedDict):
     showAs: MsGraphShowAs
     organizer: Optional[MsGraphRecipient]
     sensitivity: MsGraphSensitivity
-    subject: str
+    subject: Optional[str]
     isAllDay: bool
     isCancelled: bool
     isOrganizer: bool

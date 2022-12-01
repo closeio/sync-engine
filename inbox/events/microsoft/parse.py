@@ -636,7 +636,7 @@ def parse_event(
 
     uid = event["id"]
     raw_data = json.dumps(event)
-    title = event["subject"]
+    title = event["subject"] or ""
     start = parse_msgraph_datetime_tz_as_utc(event["start"])
     end = parse_msgraph_datetime_tz_as_utc(event["end"])
     all_day = event["isAllDay"]

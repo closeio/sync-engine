@@ -230,6 +230,7 @@ def instances_response():
                         "dateTime": "2022-09-19T15:00:00.0000000",
                         "timeZone": "UTC",
                     },
+                    "originalStart": "2022-09-19T15:00:00Z",
                 },
                 {
                     "type": "occurrence",
@@ -237,6 +238,7 @@ def instances_response():
                         "dateTime": "2022-09-20T15:00:00.0000000",
                         "timeZone": "UTC",
                     },
+                    "originalStart": "2022-09-20T15:00:00Z",
                 },
                 {
                     "type": "occurrence",
@@ -244,6 +246,7 @@ def instances_response():
                         "dateTime": "2022-09-21T15:00:00.0000000",
                         "timeZone": "UTC",
                     },
+                    "originalStart": "2022-09-21T15:00:00Z",
                 },
             ]
         },
@@ -262,6 +265,7 @@ def cancellation_override_response():
                         "dateTime": "2022-09-19T15:00:00.0000000",
                         "timeZone": "UTC",
                     },
+                    "originalStart": "2022-09-19T15:00:00Z",
                 },
                 {
                     "type": "occurrence",
@@ -269,6 +273,7 @@ def cancellation_override_response():
                         "dateTime": "2022-09-21T15:00:00.0000000",
                         "timeZone": "UTC",
                     },
+                    "originalStart": "2022-09-21T15:00:00Z",
                 },
             ]
         },
@@ -287,6 +292,7 @@ def exception_override_response():
                         "dateTime": "2022-09-19T15:00:00.0000000",
                         "timeZone": "UTC",
                     },
+                    "originalStart": "2022-09-19T15:00:00Z",
                 },
                 {
                     "id": "recurrence_id_exception",
@@ -312,6 +318,7 @@ def exception_override_response():
                         "dateTime": "2022-09-20T15:00:00.0000000",
                         "timeZone": "UTC",
                     },
+                    "originalStart": "2022-09-20T15:00:00Z",
                     "end": {
                         "dateTime": "2022-09-20T15:30:00.0000000",
                         "timeZone": "UTC",
@@ -352,6 +359,7 @@ def exception_override_response():
                         "dateTime": "2022-09-21T15:00:00.0000000",
                         "timeZone": "UTC",
                     },
+                    "originalStart": "2022-09-21T15:00:00Z",
                 },
             ]
         },

@@ -10,7 +10,6 @@ import dateutil.rrule
 import pytz
 import pytz.tzinfo
 
-from inbox.events import util
 from inbox.events.microsoft.graph_types import (
     ICalDayOfWeek,
     ICalFreq,
@@ -251,7 +250,9 @@ MS_GRAPH_TO_ICAL_INDEX: Dict[MsGraphWeekIndex, int] = {
 RRULE_SERIALIZATION_ORDER = ["FREQ", "INTERVAL", "WKST", "BYDAY", "UNTIL", "COUNT"]
 
 
-def convert_msgraph_patterned_recurrence_to_ical_rrule(event: MsGraphEvent,) -> str:
+def convert_msgraph_patterned_recurrence_to_ical_rrule(
+    event: MsGraphEvent, *, naive=False
+) -> str:
     """
     Convert Microsoft Graph PatternedRecurrence to iCal RRULE.
 
@@ -264,6 +265,8 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(event: MsGraphEvent,) -> 
 
     Arguments:
         event: Recurring Microsoft Graph event
+        naive: Weather until should be serialized naively in recurrence
+            timezone without Z suffix, or in UTC with Z suffix
 
     Returns:
         iCal RRULE string
@@ -322,7 +325,16 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(event: MsGraphEvent,) -> 
         raise ValueError(f"Unexpected value {range['type']!r} for range type")
 
     if until:
-        rrule["UNTIL"] = util.serialize_datetime(until)
+        assert until.tzinfo == pytz.UTC
+        if naive:
+            recurrence_timezone = get_recurrence_timezone(event)
+            assert recurrence_timezone
+            recurrence_tzinfo = get_microsoft_tzinfo(recurrence_timezone)
+            rrule["UNTIL"] = until.astimezone(recurrence_tzinfo).strftime(
+                "%Y%m%dT%H%M%S"
+            )
+        else:
+            rrule["UNTIL"] = until.strftime("%Y%m%dT%H%M%SZ")
     if count:
         rrule["COUNT"] = str(count)
 
@@ -362,6 +374,8 @@ def synthesize_canceled_occurrence(
         + start_datetime.date().isoformat()
     )
     cancellation_start = dump_datetime_as_msgraph_datetime_tz(start_datetime)
+    assert start_datetime.tzinfo == pytz.UTC
+    original_start = start_datetime.replace(tzinfo=None).isoformat() + "Z"
     duration = parse_msgraph_datetime_tz_as_utc(
         master_event["end"]
     ) - parse_msgraph_datetime_tz_as_utc(master_event["start"])
@@ -374,35 +388,11 @@ def synthesize_canceled_occurrence(
         "isCancelled": True,
         "recurrence": None,
         "start": cancellation_start,
-        "originalStart": cancellation_start,
+        "originalStart": original_start,
         "end": cancellation_end,
     }
 
     return cast(MsGraphEvent, result)
-
-
-def populate_original_start_in_exception_occurrence(
-    exception_instance: MsGraphEvent, original_start: datetime.datetime
-) -> MsGraphEvent:
-    """
-    Populate originalStart on exception occurences.
-
-    The reason we need this is to mimick how Google works i.e.
-    you can know the original time if an occurrence was rescheduled.
-
-    Arguments:
-        exception_instance: The exception instance
-        original_start: Original start time as retrieved by
-            expanding master event
-    """
-    assert exception_instance["type"] == "exception"
-    assert original_start.tzinfo == pytz.UTC
-
-    exception_instance["originalStart"] = dump_datetime_as_msgraph_datetime_tz(
-        original_start
-    )
-
-    return exception_instance
 
 
 def calculate_exception_and_canceled_occurrences(
@@ -427,14 +417,31 @@ def calculate_exception_and_canceled_occurrences(
     assert master_event["recurrence"]
     assert end.tzinfo == pytz.UTC
 
-    master_rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(master_event)
+    recurrence_timezone = get_recurrence_timezone(master_event)
+    assert recurrence_timezone
+    recurrence_tzinfo = get_microsoft_tzinfo(recurrence_timezone)
     master_start_datetime = parse_msgraph_datetime_tz_as_utc(master_event["start"])
-    master_parsed_rrule = dateutil.rrule.rrulestr(
-        master_rrule, dtstart=master_start_datetime
+
+    # Note that datetimes need to be expanded in naive datetimes
+    # to simulate the way humans normally think. If we expanded in
+    # UTC we would never see time differences around DST switches.
+    naive_master_rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(
+        master_event, naive=True
     )
+    naive_master_start_datetime = master_start_datetime.astimezone(
+        recurrence_tzinfo
+    ).replace(tzinfo=None)
+    naive_master_parsed_rrule = dateutil.rrule.rrulestr(
+        naive_master_rrule, dtstart=naive_master_start_datetime
+    )
+    naive_end = end.astimezone(recurrence_tzinfo).replace(tzinfo=None)
+    naive_master_datetimes = itertools.takewhile(
+        lambda dt: dt <= naive_end, naive_master_parsed_rrule
+    )
+
     master_datetimes = {
-        dt.date(): dt
-        for dt in itertools.takewhile(lambda dt: dt <= end, master_parsed_rrule)
+        recurrence_tzinfo.localize(dt).astimezone(pytz.UTC)
+        for dt in naive_master_datetimes
     }
 
     exception_occurrences = [
@@ -442,28 +449,15 @@ def calculate_exception_and_canceled_occurrences(
         for occurrence in event_occurrences
         if occurrence["type"] == "exception"
     ]
-    exception_datetimes = {
-        parse_msgraph_datetime_tz_as_utc(occurrence["start"])
-        for occurrence in exception_occurrences
-    }
-    original_exception_datetimes = {
-        master_datetimes[dt.date()] for dt in exception_datetimes
-    }
-    for exception_instance, original_exception_datetime in zip(
-        exception_occurrences, original_exception_datetimes
-    ):
-        populate_original_start_in_exception_occurrence(
-            exception_instance, original_exception_datetime
-        )
 
     occurrence_datetimes = {
-        parse_msgraph_datetime_tz_as_utc(instance["start"])
-        for instance in event_occurrences
+        ciso8601.parse_datetime(ocurrence["originalStart"])
+        for ocurrence in event_occurrences
     }
-    canceled_dates = set(master_datetimes) - {dt.date() for dt in occurrence_datetimes}
+
+    canceled_datetimes = master_datetimes - occurrence_datetimes
     canceled_occurrences = [
-        synthesize_canceled_occurrence(master_event, master_datetimes[date])
-        for date in canceled_dates
+        synthesize_canceled_occurrence(master_event, dt) for dt in canceled_datetimes
     ]
 
     return exception_occurrences, canceled_occurrences
@@ -675,7 +669,7 @@ def parse_event(
         start_tz = None
 
     if event["type"] in ["exception", "synthesizedCancellation"]:
-        original_start = parse_msgraph_datetime_tz_as_utc(event["originalStart"])
+        original_start = ciso8601.parse_datetime(event["originalStart"])
     else:
         original_start = None
 

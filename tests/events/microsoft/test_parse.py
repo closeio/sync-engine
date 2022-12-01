@@ -1,5 +1,6 @@
 import datetime
 
+import ciso8601
 import dateutil
 import pytest
 import pytz
@@ -18,6 +19,7 @@ from inbox.events.microsoft.parse import (
     parse_calendar,
     parse_event,
     parse_msgraph_datetime_tz_as_utc,
+    parse_msgraph_range_start_and_until,
     validate_event,
 )
 from inbox.models.event import Event, RecurringEvent
@@ -98,6 +100,57 @@ def test_combine_msgraph_recurrence_date_with_time(mode, dt):
             "2022-09-19", pytz.timezone("America/New_York"), mode
         )
         == dt
+    )
+
+
+@pytest.mark.parametrize(
+    "event",
+    [
+        {
+            "recurrence": {
+                "pattern": {
+                    "type": "daily",
+                    "interval": 1,
+                    "month": 0,
+                    "dayOfMonth": 0,
+                    "firstDayOfWeek": "sunday",
+                    "index": "first",
+                },
+                "range": {
+                    "type": "endDate",
+                    "startDate": "2022-09-22",
+                    "endDate": "2022-12-22",
+                    "recurrenceTimeZone": "Eastern Standard Time",
+                    "numberOfOccurrences": 0,
+                },
+            }
+        },
+        {
+            "recurrence": {
+                "pattern": {
+                    "type": "daily",
+                    "interval": 1,
+                    "month": 0,
+                    "dayOfMonth": 0,
+                    "firstDayOfWeek": "sunday",
+                    "index": "first",
+                },
+                "range": {
+                    "type": "endDate",
+                    "startDate": "2022-09-22",
+                    "endDate": "2022-12-22",
+                    "recurrenceTimeZone": "",
+                    "numberOfOccurrences": 0,
+                },
+            },
+            "originalStartTimeZone": "Eastern Standard Time",
+        },
+    ],
+)
+def test_parse_msgraph_range_start_and_until(event):
+    assert parse_msgraph_range_start_and_until(event) == (
+        datetime.datetime(2022, 9, 22, 4, tzinfo=pytz.UTC),
+        datetime.datetime(2022, 12, 23, 4, 59, 59, tzinfo=pytz.UTC),
     )
 
 
@@ -626,6 +679,7 @@ event_occurrences = [
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
         "start": {"dateTime": "2022-09-19T15:00:00.0000000", "timeZone": "UTC"},
+        "originalStart": "2022-09-19T15:00:00Z",
         "end": {"dateTime": "2022-09-19T15:30:00.0000000", "timeZone": "UTC"},
     },
     {
@@ -642,6 +696,7 @@ event_occurrences = [
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
         "start": {"dateTime": "2022-09-20T15:00:00.0000000", "timeZone": "UTC"},
+        "originalStart": "2022-09-20T15:00:00Z",
         "end": {"dateTime": "2022-09-20T15:30:00.0000000", "timeZone": "UTC"},
     },
     {
@@ -658,6 +713,7 @@ event_occurrences = [
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
         "start": {"dateTime": "2022-09-21T15:00:00.0000000", "timeZone": "UTC"},
+        "originalStart": "2022-09-21T15:00:00Z",
         "end": {"dateTime": "2022-09-21T15:30:00.0000000", "timeZone": "UTC"},
     },
 ]
@@ -684,8 +740,68 @@ def test_calculate_exception_and_canceled_occurrences_with_deletion():
     assert cancellation["end"] == event_occurrences[1]["end"]
     assert cancellation["recurrence"] is None
     assert cancellation["subject"] == master_event["subject"]
-    with pytest.raises(KeyError):
-        cancellation["wrong"]
+    assert cancellation["originalStart"] == event_occurrences[1]["originalStart"]
+
+
+master_event_crossing_dst = {
+    "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIzYW90AABtf4g8yY_zTZgZh6x0X-50AAI4iyJwAAA=",
+    "originalStartTimeZone": "Eastern Standard Time",
+    "originalEndTimeZone": "Eastern Standard Time",
+    "type": "seriesMaster",
+    "start": {"dateTime": "2022-11-05T12:00:00.0000000", "timeZone": "UTC"},
+    "end": {"dateTime": "2022-11-05T12:30:00.0000000", "timeZone": "UTC"},
+    "recurrence": {
+        "pattern": {
+            "type": "daily",
+            "interval": 1,
+            "month": 0,
+            "dayOfMonth": 0,
+            "firstDayOfWeek": "sunday",
+            "index": "first",
+        },
+        "range": {
+            "type": "endDate",
+            "startDate": "2022-11-05",
+            "endDate": "2022-11-06",
+            "recurrenceTimeZone": "Eastern Standard Time",
+            "numberOfOccurrences": 0,
+        },
+    },
+}
+
+
+event_occurrences_crossing_dst = [
+    {"originalStart": "2022-11-05T12:00:00Z", "type": "occurrence"},
+    {  # DST happens in New York
+        "originalStart": "2022-11-06T13:00:00Z",
+        "type": "occurrence",
+    },
+]
+
+
+def test_calculate_exception_and_canceled_occurrences_without_changes_around_dst():
+    assert calculate_exception_and_canceled_occurrences(
+        master_event_crossing_dst,
+        event_occurrences_crossing_dst,
+        datetime.datetime(2022, 11, 10, 23, 59, 59, tzinfo=pytz.UTC),
+    ) == ([], [])
+
+
+def test_calculate_exception_and_canceled_occurrences_with_deletion_around_dst():
+    ((), (cancellation,)) = calculate_exception_and_canceled_occurrences(
+        master_event_crossing_dst,
+        [event_occurrences_crossing_dst[0]],
+        datetime.datetime(2022, 11, 10, 23, 59, 59, tzinfo=pytz.UTC),
+    )
+
+    assert cancellation["type"] == "synthesizedCancellation"
+    assert (
+        cancellation["originalStart"]
+        == event_occurrences_crossing_dst[1]["originalStart"]
+    )
+    assert parse_msgraph_datetime_tz_as_utc(
+        cancellation["start"]
+    ) == ciso8601.parse_datetime(event_occurrences_crossing_dst[1]["originalStart"])
 
 
 master_with_exception = {
@@ -736,6 +852,7 @@ master_with_exception_occurrences = [
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
         "start": {"dateTime": "2022-09-27T13:30:00.0000000", "timeZone": "UTC"},
+        "originalStart": "2022-09-27T12:00:00Z",
         "end": {"dateTime": "2022-09-27T14:00:00.0000000", "timeZone": "UTC"},
     },
     {
@@ -752,6 +869,7 @@ master_with_exception_occurrences = [
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
         "start": {"dateTime": "2022-09-26T12:00:00.0000000", "timeZone": "UTC"},
+        "originalStart": "2022-09-26T12:00:00Z",
         "end": {"dateTime": "2022-09-26T12:30:00.0000000", "timeZone": "UTC"},
     },
     {
@@ -769,6 +887,7 @@ master_with_exception_occurrences = [
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
         "start": {"dateTime": "2022-09-28T12:00:00.0000000", "timeZone": "UTC"},
+        "originalStart": "2022-09-28T12:00:00Z",
         "end": {"dateTime": "2022-09-28T12:30:00.0000000", "timeZone": "UTC"},
     },
 ]
@@ -785,10 +904,7 @@ def test_calculate_exception_and_canceled_occurrences_with_exception():
         "dateTime": "2022-09-27T13:30:00.0000000",
         "timeZone": "UTC",
     }
-    assert exception["originalStart"] == {
-        "dateTime": "2022-09-27T12:00:00.0000000",
-        "timeZone": "UTC",
-    }
+    assert exception["originalStart"] == "2022-09-27T12:00:00Z"
 
 
 @pytest.mark.parametrize(

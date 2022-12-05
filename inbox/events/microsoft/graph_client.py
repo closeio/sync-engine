@@ -189,7 +189,12 @@ class MicrosoftGraphClient:
             Iterable of events.
             https://learn.microsoft.com/en-us/graph/api/resources/event
         """
-        params = {}
+        params = {
+            # The default amount of events per page is 10,
+            # as we want to do the least
+            # amount of requests possible we raise it to 500.
+            "top": "500",
+        }
 
         if modified_after:
             assert modified_after.tzinfo == pytz.UTC

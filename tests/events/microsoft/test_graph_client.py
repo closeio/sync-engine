@@ -181,7 +181,7 @@ def test_iter_events(client):
 )
 def test_iter_events_modified_after(client, modified_after, subjects):
     def request_callback(request):
-        ((_, odata_filter),) = request.params.items()
+        odata_filter = request.params["$filter"]
         _, _, modified_after = odata_filter.split()
         modified_after = ciso8601.parse_datetime(modified_after)
 

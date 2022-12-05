@@ -294,10 +294,10 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
             MS_GRAPH_TO_ICAL_DAY[day_of_week] for day_of_week in pattern["daysOfWeek"]
         )
     elif pattern["type"] in ["relativeMonthly", "relativeYearly"]:
-        (day_of_week,) = pattern["daysOfWeek"]
-        rrule["BYDAY"] = (
+        rrule["BYDAY"] = ",".join(
             str(MS_GRAPH_TO_ICAL_INDEX[pattern["index"]])
             + MS_GRAPH_TO_ICAL_DAY[day_of_week]
+            for day_of_week in pattern["daysOfWeek"]
         )
     else:
         # Should be unreachable

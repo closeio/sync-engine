@@ -324,6 +324,35 @@ def test_parse_msgraph_range_start_and_until(event):
         (
             {
                 "pattern": {
+                    "index": "first",
+                    "firstDayOfWeek": "sunday",
+                    "interval": 1,
+                    "daysOfWeek": [
+                        "monday",
+                        "tuesday",
+                        "wednesday",
+                        "thursday",
+                        "friday",
+                        "saturday",
+                        "sunday",
+                    ],
+                    "month": 0,
+                    "type": "relativeMonthly",
+                    "dayOfMonth": 0,
+                },
+                "range": {
+                    "startDate": "2019-05-01",
+                    "type": "numbered",
+                    "recurrenceTimeZone": "Eastern Standard Time",
+                    "endDate": "0001-01-01",
+                    "numberOfOccurrences": 48,
+                },
+            },
+            "RRULE:FREQ=MONTHLY;WKST=SU;BYDAY=1MO,1TU,1WE,1TH,1FR,1SA,1SU;COUNT=48",
+        ),
+        (
+            {
+                "pattern": {
                     "type": "relativeYearly",
                     "interval": 1,
                     "month": 9,

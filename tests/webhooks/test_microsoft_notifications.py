@@ -122,6 +122,24 @@ def test_calendar_update(db, test_client, outlook_account):
     assert response.status_code == 200
 
 
+def test_subscription_removed(test_client, outlook_account):
+    response = test_client.post(
+        f"/w/microsoft/calendar_list_update/{outlook_account.public_id}",
+        json={
+            "value": [
+                {
+                    "resource": "",
+                    "resourceData": None,
+                    "lifecycleEvent": "subscriptionRemoved",
+                    "clientState": "good_s3cr3t",
+                }
+            ]
+        },
+    )
+
+    assert response.status_code == 200
+
+
 def test_event_update_404(test_client):
     response = test_client.post(
         "/w/microsoft/calendar_update/does_not_exist",

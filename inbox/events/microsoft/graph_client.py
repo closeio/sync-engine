@@ -74,7 +74,7 @@ class MicrosoftGraphClient:
         params: Optional[Dict[str, str]] = None,
         json: Optional[Dict[str, str]] = None,
         max_retries=10,
-        timeout=10,
+        timeout=20,
     ) -> Dict[str, Any]:
         """
         Perform request.

@@ -78,6 +78,7 @@ def validate_webhook_payload_factory(type: MsGraphType):
             if any(
                 notification["resourceData"]["@odata.type"] != type
                 for notification in change_notifications
+                if notification.get("changeType")
             ):
                 return f"Expected '@odata.type' to be '{type}'", 400
 
@@ -141,7 +142,7 @@ def handle_event_deletions(
     deleted_event_uids = [
         change_notification["resourceData"]["id"]
         for change_notification in change_notifications
-        if change_notification["changeType"] == "deleted"
+        if change_notification.get("changeType") == "deleted"
     ]
     if not deleted_event_uids:
         return

@@ -241,7 +241,7 @@ class MsGraphChangeNotification(TypedDict):
     https://learn.microsoft.com/en-us/graph/api/resources/changenotification
     """
 
-    changeType: MsGraphChangeType
+    changeType: NotRequired[MsGraphChangeType]
     clientState: str
     resource: str
     resourceData: MsGraphResourceData

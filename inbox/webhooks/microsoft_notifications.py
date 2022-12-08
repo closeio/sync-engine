@@ -120,6 +120,7 @@ def event_update(calendar_public_id):
             calendar = (
                 db_session.query(Calendar)
                 .filter(Calendar.public_id == calendar_public_id)
+                .with_for_update()
                 .one()
             )
         except NoResultFound:

@@ -101,7 +101,7 @@ jobs:
         default: true
         description: Set to false to disable pushing image
     machine:
-      image: ubuntu-2004:202101-01
+      image: ubuntu-2204:current
     resource_class: <<parameters.resource_class>>
     working_directory: ~/sync-engine
 

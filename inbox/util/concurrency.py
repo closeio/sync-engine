@@ -3,7 +3,10 @@ import random
 import ssl
 import sys
 
-import _mysql_exceptions
+try:
+    import _mysql_exceptions
+except ImportError:
+    import MySQLdb._exceptions as _mysql_exceptions
 import gevent
 from gevent import socket
 from redis import TimeoutError

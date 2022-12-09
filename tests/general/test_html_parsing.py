@@ -1,7 +1,6 @@
 """Regression tests for HTML parsing."""
-import pytest
 
-from inbox.util.html import HTMLParseError, strip_tags
+from inbox.util.html import strip_tags
 
 
 def test_strip_tags():
@@ -17,10 +16,9 @@ def test_strip_tags():
     assert strip_tags(text).strip() == "content"
 
     # Unknown marked section
-    text = """<![FOR]>"""
+    text = """<![FOR]>asd"""
 
-    with pytest.raises(HTMLParseError):
-        strip_tags(text)
+    assert strip_tags(text) == "asd"
 
 
 def test_preserve_refs():

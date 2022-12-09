@@ -44,11 +44,12 @@ Jinja2==2.11.3
 jmespath==0.9.3
 limitlion==0.10.0
 lxml==4.9.1
---no-binary lxml
+# --no-binary lxml
 Mako==1.2.2
 MarkupSafe==1.1.1
 matplotlib-inline==0.1.3 
-mysqlclient==1.3.14
+mysqlclient==1.3.14; python_version < '3.10'
+git+https://github.com/axiros/gevent_mysqldb.git; python_version >= '3.10'
 parso==0.8.2
 pexpect==4.8.0
 pickleshare==0.7.5

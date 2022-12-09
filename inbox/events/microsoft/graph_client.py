@@ -2,7 +2,7 @@ import contextlib
 import datetime
 import enum
 import time
-from typing import Any, Callable, Dict, Iterable, Optional
+from typing import Any, Callable, Container, Dict, Iterable, Optional
 
 import pytz
 import requests
@@ -73,8 +73,9 @@ class MicrosoftGraphClient:
         *,
         params: Optional[Dict[str, str]] = None,
         json: Optional[Dict[str, str]] = None,
-        max_retries=10,
-        timeout=20,
+        retry_on: Container[int] = frozenset({429, 503}),
+        max_retries: int = 10,
+        timeout: int = 20,
     ) -> Dict[str, Any]:
         """
         Perform request.
@@ -86,6 +87,7 @@ class MicrosoftGraphClient:
             resource_url: Either full URL or part after version e.g /me/calendars
             params: GET parameters
             json: JSON to POST or PATCH
+            retry_on: List of HTTP status codes to automatically retry on
             max_retries: The number of maximum retires for 429
             timeout: HTTP request timeout in seconds
         """
@@ -105,7 +107,7 @@ class MicrosoftGraphClient:
                 json=json,
                 timeout=timeout,
             )
-            if response.status_code == 429:
+            if response.status_code in retry_on:
                 sleep_seconds = int(response.headers.get("Retry-After", 5))
                 time.sleep(sleep_seconds)
                 retry += 1

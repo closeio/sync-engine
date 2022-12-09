@@ -367,7 +367,7 @@ class SyncbackService(gevent.Greenlet):
                 account_id = namespace.account.id
             else:
                 assert (
-                    account_id is namespace.account.id
+                    account_id == namespace.account.id
                 ), "account_id and namespace.account.id do not match"
 
             if namespace.account.sync_state in ("invalid", "stopped"):

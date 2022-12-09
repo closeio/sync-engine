@@ -150,8 +150,8 @@ jobs:
                   PROJECT_SHA="$CIRCLE_SHA1"
                   docker login -u $DOCKER_USER -p $DOCKER_PASS
                   # tag and push both sync-engine:master and sync-engine:<sha1>
-                  docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}<< parameters.platform_suffix >>"
-                  docker tag "${PROJECT}_app" "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}<< parameters.platform_suffix >>"
+                  docker tag "${PROJECT}-app" "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}<< parameters.platform_suffix >>"
+                  docker tag "${PROJECT}-app" "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}<< parameters.platform_suffix >>"
                   docker push "${PROJECT_NAMESPACE}/${PROJECT}:branch-${PROJECT_VSN}<< parameters.platform_suffix >>"
                   docker push "${PROJECT_NAMESPACE}/${PROJECT}:${PROJECT_SHA}<< parameters.platform_suffix >>"
 

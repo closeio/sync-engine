@@ -78,7 +78,7 @@ class GenericAuthHandler(AuthHandler):
             elif auth_requires_app_password(exc):
                 raise AppPasswordError(exc)
             else:
-                log.error(
+                log.warning(
                     "IMAP login failed for an unknown reason. Check auth_is_invalid",
                     account_id=account.id,
                     error=exc,

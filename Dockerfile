@@ -17,6 +17,7 @@ RUN echo $BUILD_WEEK && apt-get update \
     g++ \
     git \
     python3-dev \
+    python3-pip \
     python3-distutils \
     wget \
     gettext-base \
@@ -52,9 +53,7 @@ WORKDIR /opt/app
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY --chown=sync-engine:sync-engine ./ ./
-RUN curl -O https://bootstrap.pypa.io/pip/get-pip.py && \
-  python3 get-pip.py && \
-  python3 -m pip install pip==22.1.2 virtualenv==20.15.1 && \
+RUN python3 -m pip install pip==22.3.1 virtualenv==20.17.1 && \
   python3 -m virtualenv /opt/venv && \
   /opt/venv/bin/python3 -m pip install setuptools==57.5.0 && \
   /opt/venv/bin/python3 -m pip install --no-deps -r requirements/prod.txt -r requirements/test.txt && \

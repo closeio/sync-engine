@@ -559,7 +559,7 @@ class FolderSyncEngine(Greenlet):
             return None
 
         # Check if the message is valid.
-        if raw_message.body:
+        if not raw_message.body:
             log.warning("Server returned a message with an empty body.")
             return None
 

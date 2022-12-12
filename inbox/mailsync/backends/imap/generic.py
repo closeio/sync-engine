@@ -83,7 +83,7 @@ from inbox.util.stats import statsd_client
 from inbox.util.threading import MAX_THREAD_LENGTH, fetch_corresponding_thread
 
 log = get_logger()
-from inbox.crispin import FolderMissingError, connection_pool, retry_crispin
+from inbox.crispin import FolderMissingError, RawMessage, connection_pool, retry_crispin
 from inbox.events.ical import import_attached_events
 from inbox.heartbeat.store import HeartbeatStatusProxy
 from inbox.mailsync.backends.base import (
@@ -534,35 +534,37 @@ class FolderSyncEngine(Greenlet):
             log.debug("polling for changes")
             self.poll_impl()
 
-    def create_message(self, db_session, acct, folder, msg):
-        assert acct is not None and acct.namespace is not None
+    def create_message(
+        self, db_session: Any, account: Account, folder: Folder, raw_message: RawMessage
+    ) -> Optional[ImapUid]:
+        assert account is not None and account.namespace is not None
 
         # Check if we somehow already saved the imapuid (shouldn't happen, but
         # possible due to race condition). If so, don't commit changes.
         existing_imapuid = (
             db_session.query(ImapUid)
             .filter(
-                ImapUid.account_id == acct.id,
+                ImapUid.account_id == account.id,
                 ImapUid.folder_id == folder.id,
-                ImapUid.msg_uid == msg.uid,
+                ImapUid.msg_uid == raw_message.uid,
             )
             .first()
         )
         if existing_imapuid is not None:
-            log.error(
+            log.warning(
                 "Expected to create imapuid, but existing row found",
-                remote_msg_uid=msg.uid,
+                remote_msg_uid=raw_message.uid,
                 existing_imapuid=existing_imapuid.id,
             )
             return None
 
         # Check if the message is valid.
-        if msg.body is None:
+        if not raw_message.body:
             log.warning("Server returned a message with an empty body.")
             return None
 
-        new_uid = common.create_imap_message(db_session, acct, folder, msg)
-        self.add_message_to_thread(db_session, new_uid.message, msg)
+        new_uid = common.create_imap_message(db_session, account, folder, raw_message)
+        self.add_message_to_thread(db_session, new_uid.message, raw_message)
 
         db_session.flush()
 
@@ -572,7 +574,7 @@ class FolderSyncEngine(Greenlet):
         # This is necessary because the import_attached_events does db lookups.
         if new_uid.message.has_attached_events:
             with db_session.no_autoflush:
-                import_attached_events(db_session, acct, new_uid.message)
+                import_attached_events(db_session, account, new_uid.message)
 
         # If we're in the polling state, then we want to report the metric
         # for latency when the message was received vs created

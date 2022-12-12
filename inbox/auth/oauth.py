@@ -194,7 +194,7 @@ class OAuthAuthHandler(AuthHandler):
             ):
                 raise exc from original_exc
 
-            log.error(
+            log.warning(
                 "Error during IMAP XOAUTH2 login", account_id=account.id, error=exc,
             )
             if not isinstance(exc, ImapSupportDisabledError):

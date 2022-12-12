@@ -12,12 +12,14 @@ accounts.
 
 """
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import bindparam, desc
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql.expression import func
 
 from inbox.contacts.processing import update_contacts_from_message
+from inbox.crispin import RawMessage
 from inbox.logging import get_logger
 from inbox.models import Account, ActionLog, Folder, Message, MessageCategory
 from inbox.models.backends.imap import ImapFolderInfo, ImapUid
@@ -224,7 +226,9 @@ def get_folder_info(account_id, session, folder_name):
         return None
 
 
-def create_imap_message(db_session, account, folder, msg):
+def create_imap_message(
+    db_session: Any, account: Account, folder: Folder, raw_message: RawMessage
+) -> ImapUid:
     """
     IMAP-specific message creation logic.
 
@@ -236,14 +240,17 @@ def create_imap_message(db_session, account, folder, msg):
 
     """
     log.debug(
-        "creating message", account_id=account.id, folder_name=folder.name, mid=msg.uid
+        "creating message",
+        account_id=account.id,
+        folder_name=folder.name,
+        mid=raw_message.uid,
     )
     new_message = Message.create_from_synced(
         account=account,
-        mid=msg.uid,
+        mid=raw_message.uid,
         folder_name=folder.name,
-        received_date=msg.internaldate,
-        body_string=msg.body,
+        received_date=raw_message.internaldate,
+        body_string=raw_message.body,
     )
 
     # Check to see if this is a copy of a message that was first created
@@ -253,11 +260,11 @@ def create_imap_message(db_session, account, folder, msg):
         new_message = existing_copy
 
     imapuid = ImapUid(
-        account=account, folder=folder, msg_uid=msg.uid, message=new_message
+        account=account, folder=folder, msg_uid=raw_message.uid, message=new_message
     )
-    imapuid.update_flags(msg.flags)
-    if msg.g_labels is not None:
-        imapuid.update_labels(msg.g_labels)
+    imapuid.update_flags(raw_message.flags)
+    if raw_message.g_labels is not None:
+        imapuid.update_labels(raw_message.g_labels)
 
     # Update the message's metadata
     with db_session.no_autoflush:

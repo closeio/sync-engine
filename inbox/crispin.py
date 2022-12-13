@@ -473,7 +473,7 @@ class CrispinClient:
             # being deleted, as other connection errors could occur - but we
             # want to make sure we keep track of different providers'
             # "nonexistent" messages, so log this event.
-            log.error("IMAPClient error selecting folder. May be deleted", error=str(e))
+            log.warning("IMAPClient error selecting folder", error=str(e))
             raise
 
         select_info[b"UIDVALIDITY"] = int(select_info[b"UIDVALIDITY"])

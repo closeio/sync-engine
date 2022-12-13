@@ -7,7 +7,10 @@ import responses
 from responses.matchers import json_params_matcher
 
 from inbox.config import config
-from inbox.events.microsoft.events_provider import MicrosoftEventsProvider
+from inbox.events.microsoft.events_provider import (
+    CalendarGoneException,
+    MicrosoftEventsProvider,
+)
 from inbox.events.microsoft.graph_client import BASE_URL
 from inbox.events.remote_sync import WebhookEventSync
 from inbox.models.calendar import Calendar
@@ -215,6 +218,26 @@ def subscribe_responses():
                 strict_match=False,
             )
         ],
+    )
+
+
+@pytest.fixture
+def subscribe_response_gone():
+    responses.post(
+        BASE_URL + "/subscriptions",
+        json={
+            "error": {
+                "code": "ExtensionError",
+                "message": "Operation: Create; Exception: [Status Code: BadRequest; Reason: The value of parameter 'Resource' is invalid.]",
+            }
+        },
+        match=[
+            json_params_matcher(
+                {"resource": "/me/calendars/fake_calendar_id/events"},
+                strict_match=False,
+            )
+        ],
+        status=400,
     )
 
 
@@ -476,6 +499,15 @@ def test_watch_calendar(provider, outlook_account):
 
     expiration = provider.watch_calendar(outlook_account, calendar)
     assert expiration == datetime.datetime(2022, 10, 25, 4, 22, 34, tzinfo=pytz.UTC)
+
+
+@responses.activate
+@pytest.mark.usefixtures("subscribe_response_gone")
+def test_watch_calendar_gone(provider, outlook_account):
+    calendar = Calendar(uid="fake_calendar_id", public_id="fake_public_id")
+
+    with pytest.raises(CalendarGoneException):
+        provider.watch_calendar(outlook_account, calendar)
 
 
 def test_webhook_notifications_enabled(provider, outlook_account):

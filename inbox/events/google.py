@@ -14,7 +14,7 @@ import requests
 from inbox.auth.oauth import OAuthRequestsWrapper
 from inbox.basicauth import AccessNotEnabledError, OAuthError
 from inbox.config import config
-from inbox.events.abstract import AbstractEventsProvider
+from inbox.events.abstract import AbstractEventsProvider, CalendarGoneException
 from inbox.events.util import (
     CalendarSyncResponse,
     google_to_event_time,
@@ -398,8 +398,14 @@ class GoogleEventsProvider(AbstractEventsProvider):
             # / 1000 because Google uses Unix timestamps with an ms precision.
             return datetime.datetime.fromtimestamp(int(expiration) / 1000)
         else:
-            # Handle error and return None
-            self._handle_watch_errors(r)
+            try:
+                # Handle error and return None
+                self._handle_watch_errors(r)
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 404:
+                    raise CalendarGoneException(calendar.uid) from e
+
+                raise
             return None
 
     def _handle_watch_errors(self, r: requests.Response) -> None:

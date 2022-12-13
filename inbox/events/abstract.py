@@ -109,3 +109,7 @@ class AbstractEventsProvider(abc.ABC):
             return token_manager.get_token(
                 acc, force_refresh=force_refresh, scopes=scopes
             )
+
+
+class CalendarGoneException(Exception):
+    pass

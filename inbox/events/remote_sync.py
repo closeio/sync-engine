@@ -6,7 +6,7 @@ from requests.exceptions import HTTPError
 from inbox.basicauth import AccessNotEnabledError, OAuthError
 from inbox.config import config
 from inbox.contacts.processing import update_contacts_from_event
-from inbox.events.abstract import AbstractEventsProvider
+from inbox.events.abstract import AbstractEventsProvider, CalendarGoneException
 from inbox.events.google import URL_PREFIX
 from inbox.events.recurring import link_events
 from inbox.logging import get_logger
@@ -301,33 +301,27 @@ class WebhookEventSync(EventSync):
                 if calendar_list_expiration is not None:
                     account.new_calendar_list_watch(calendar_list_expiration)
 
-            cals_to_update = (
-                cal for cal in account.namespace.calendars if cal.needs_new_watch()
+            calendars_to_watch = (
+                calendar
+                for calendar in account.namespace.calendars
+                if calendar.needs_new_watch()
             )
-            for cal in cals_to_update:
+            for calendar in calendars_to_watch:
                 try:
-                    event_list_expiration = self.provider.watch_calendar(account, cal)
+                    event_list_expiration = self.provider.watch_calendar(
+                        account, calendar
+                    )
                     if event_list_expiration is not None:
-                        cal.new_event_watch(event_list_expiration)
-                except HTTPError as exc:
-                    if exc.response.status_code == 404:
-                        self.log.warning(
-                            "Tried to subscribe to push notifications"
-                            " for a deleted or inaccessible calendar. Deleting"
-                            " local calendar",
-                            calendar_id=cal.id,
-                            calendar_uid=cal.uid,
-                        )
-                        _delete_calendar(db_session, cal)
-                    else:
-                        self.log.error(
-                            "Error while updating calendar push notification "
-                            "subscription",
-                            cal_id=cal.id,
-                            calendar_uid=cal.uid,
-                            status_code=exc.response.status_code,
-                        )
-                        raise exc
+                        calendar.new_event_watch(event_list_expiration)
+                except CalendarGoneException:
+                    self.log.warning(
+                        "Tried to subscribe to push notifications"
+                        " for a deleted or inaccessible calendar. Deleting"
+                        " local calendar",
+                        calendar_id=calendar.id,
+                        calendar_uid=calendar.uid,
+                    )
+                    _delete_calendar(db_session, calendar)
 
     def _sync_data(self) -> None:
         with session_scope(self.namespace_id) as db_session:

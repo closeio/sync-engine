@@ -5,8 +5,11 @@ import ciso8601
 import pytz
 
 from inbox.config import config
-from inbox.events.abstract import AbstractEventsProvider
-from inbox.events.microsoft.graph_client import MicrosoftGraphClient
+from inbox.events.abstract import AbstractEventsProvider, CalendarGoneException
+from inbox.events.microsoft.graph_client import (
+    MicrosoftGraphClient,
+    MicrosoftGraphClientException,
+)
 from inbox.events.microsoft.graph_types import (
     MsGraphCalendar,
     MsGraphEvent,
@@ -235,11 +238,18 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         Returns:
             The expiration of the notification channel
         """
-        response = self.client.subscribe_to_event_changes(
-            calendar.uid,
-            webhook_url=EVENTS_LIST_WEBHOOK_URL.format(calendar.public_id),
-            secret=config["MICROSOFT_SUBSCRIPTION_SECRET"],
-        )
+        try:
+            response = self.client.subscribe_to_event_changes(
+                calendar.uid,
+                webhook_url=EVENTS_LIST_WEBHOOK_URL.format(calendar.public_id),
+                secret=config["MICROSOFT_SUBSCRIPTION_SECRET"],
+            )
+        except MicrosoftGraphClientException as e:
+            error, description = e.args
+            if error == "ExtensionError" and "'Resource' is invalid" in description:
+                raise CalendarGoneException(calendar.uid) from e
+
+            raise
 
         expiration = cast(MsGraphSubscription, response)["expirationDateTime"]
 

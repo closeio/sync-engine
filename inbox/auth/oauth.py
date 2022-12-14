@@ -1,5 +1,6 @@
 import datetime
 import json
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -107,7 +108,8 @@ class OAuthAuthHandler(AuthHandler):
         username = aa_data["username"]
         account_key = aa_data["account_key"]
 
-        try:
+        max_retries = 5
+        for _ in range(max_retries):
             log.info(
                 "requesting new access token from AuthAlligator",
                 force_refresh=force_refresh,
@@ -115,37 +117,52 @@ class OAuthAuthHandler(AuthHandler):
             )
             # TODO - handle force_refresh once it's supported
             # by AuthAlligator and its client.
-            aa_response = aa_client.query_account(
-                provider=provider,
-                username=username,
-                account_key=account_key,
-                scopes=scopes,
-            )
-            aa_account = aa_response
-        except AccountError as exc:
-            log.warn(
-                "AccountError during AuthAlligator account query",
-                account_id=account.id,
-                error_code=exc.code and exc.code.value,
-                error_message=exc.message,  # noqa: B306
-                retry_in=exc.retry_in,
-            )
-            if exc.code in (
-                AccountErrorCode.AUTHORIZATION_ERROR,
-                AccountErrorCode.CONFIGURATION_ERROR,
-                AccountErrorCode.DOES_NOT_EXIST,
-            ):
-                raise OAuthError("Could not obtain access token from AuthAlligator")
-            else:
-                raise ConnectionError(
-                    "Temporary error while obtaining access token from AuthAlligator"
+            try:
+                aa_response = aa_client.query_account(
+                    provider=provider,
+                    username=username,
+                    account_key=account_key,
+                    scopes=scopes,
                 )
-        else:
-            now = datetime.datetime.now(pytz.UTC)
-            access_token = aa_account.access_token
-            expires_in = int((aa_account.access_token_expires_at - now).total_seconds())
-            assert expires_in > 0
-            return (access_token, expires_in)
+                aa_account = aa_response
+            except AccountError as exc:
+                log.warn(
+                    "AccountError during AuthAlligator account query",
+                    account_id=account.id,
+                    error_code=exc.code and exc.code.value,
+                    error_message=exc.message,  # noqa: B306
+                    retry_in=exc.retry_in,
+                )
+                if exc.code in (
+                    AccountErrorCode.AUTHORIZATION_ERROR,
+                    AccountErrorCode.CONFIGURATION_ERROR,
+                    AccountErrorCode.DOES_NOT_EXIST,
+                ):
+                    raise OAuthError(
+                        "Could not obtain access token from AuthAlligator"
+                    ) from exc
+                elif exc.code in (
+                    AccountErrorCode.LOCK_ERROR,
+                    AccountErrorCode.TRY_LATER,
+                ):
+                    time.sleep(exc.retry_in)
+                else:
+                    raise ConnectionError(
+                        "Unexpected error while obtaining access token from AuthAlligator"
+                    ) from exc
+            else:
+                now = datetime.datetime.now(pytz.UTC)
+                access_token = aa_account.access_token
+                expires_in = int(
+                    (aa_account.access_token_expires_at - now).total_seconds()
+                )
+                assert expires_in > 0
+                return (access_token, expires_in)
+
+        raise ConnectionError(
+            "Temporary error while obtaining access token from AuthAlligator. "
+            "Max retries reached"
+        )
 
     def acquire_access_token(
         self,

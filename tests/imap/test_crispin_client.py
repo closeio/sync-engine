@@ -188,6 +188,17 @@ def test_gmail_flags(gmail_client, constants):
     assert gmail_client.flags([uid]) == {uid: GmailFlags(flags, g_labels, modseq)}
 
 
+def test_gmail_bogus_integer_flags(gmail_client, constants):
+    expected_resp = (
+        "{seq} (FLAGS (123 asd) X-GM-LABELS () "
+        "UID {uid} MODSEQ ({modseq}))".format(**constants)
+    ).encode()
+    patch_imap4(gmail_client, [expected_resp])
+    uid = constants["uid"]
+    modseq = constants["modseq"]
+    assert gmail_client.flags([uid]) == {uid: GmailFlags((b"asd",), [], modseq)}
+
+
 def test_g_msgids(gmail_client, constants):
     expected_resp = (
         "{seq} (X-GM-MSGID {g_msgid} "

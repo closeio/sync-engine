@@ -3,7 +3,7 @@ from typing import Union
 
 from sqlalchemy import Column, Enum, Integer
 from sqlalchemy.orm import validates
-from sqlalchemy.types import BLOB
+from sqlalchemy.types import LargeBinary
 
 from inbox.models.base import MailSyncBase
 from inbox.models.mixins import DeletedAtMixin, UpdatedAtMixin
@@ -19,12 +19,14 @@ class SecretType(enum.Enum):
 class Secret(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     """Simple local secrets table."""
 
-    _secret = Column(BLOB, nullable=False)
+    _secret = Column(LargeBinary, nullable=False)
 
     # Type of secret
     # TODO: After SQLAlchemy upgrade, use this properly.
     # TODO: Use values_callable=lambda obj: [e.value for e in obj]
-    type = Column(Enum(*[x.value for x in SecretType]), nullable=False)
+    type = Column(
+        Enum(*[x.value for x in SecretType], name="secret_type"), nullable=False
+    )
 
     # Scheme used
     encryption_scheme = Column(Integer, server_default="0", nullable=False)

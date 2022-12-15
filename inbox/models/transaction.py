@@ -1,7 +1,6 @@
 from sqlalchemy import BigInteger, Column, Enum, Index, String, func, inspect
 from sqlalchemy.orm import relationship
 
-from inbox.config import config
 from inbox.ignition import redis_txn
 from inbox.models.base import MailSyncBase
 from inbox.models.category import EPOCH
@@ -24,7 +23,9 @@ class Transaction(MailSyncBase, HasPublicID):
     object_type = Column(String(20), nullable=False)
     record_id = Column(BigInteger, nullable=False, index=True)
     object_public_id = Column(String(191), nullable=False, index=True)
-    command = Column(Enum("insert", "update", "delete"), nullable=False)
+    command = Column(
+        Enum("insert", "update", "delete", name="transaction_command"), nullable=False
+    )
 
 
 Index("object_type_record_id", Transaction.object_type, Transaction.record_id)
@@ -47,7 +48,10 @@ class AccountTransaction(MailSyncBase, HasPublicID):
     object_type = Column(String(20), nullable=False)
     record_id = Column(BigInteger, nullable=False, index=True)
     object_public_id = Column(String(191), nullable=False, index=True)
-    command = Column(Enum("insert", "update", "delete"), nullable=False)
+    command = Column(
+        Enum("insert", "update", "delete", name="account_transaction_command"),
+        nullable=False,
+    )
 
 
 Index("ix_accounttransaction_table_name", Transaction.object_type)

@@ -12,10 +12,7 @@ from sqlalchemy import create_engine, event
 
 from inbox.config import config
 from inbox.logging import find_first_app_frame_and_name, get_logger
-from inbox.sqlalchemy_ext.util import (
-    ForceStrictModePool,
-    disabled_dubiously_many_queries_warning,
-)
+from inbox.sqlalchemy_ext.util import disabled_dubiously_many_queries_warning
 from inbox.util.stats import statsd_client
 
 filterwarnings("ignore", message="Invalid utf8mb4 character string")
@@ -42,8 +39,7 @@ def gevent_waiter(fd):
 
 def build_uri(username, password, hostname, port, database_name):
     uri_template = (
-        "mysql+mysqldb://{username}:{password}@{hostname}"
-        ":{port}/{database_name}?charset=utf8mb4"
+        "postgresql://{username}:{password}@{hostname}" ":{port}/{database_name}"
     )
     return uri_template.format(
         username=urlquote(username),
@@ -64,19 +60,19 @@ def engine(
 ):
     engine = create_engine(
         database_uri,
-        poolclass=ForceStrictModePool,
+        # poolclass=ForceStrictModePool,
         isolation_level="READ COMMITTED",
         echo=echo,
         pool_size=pool_size,
         pool_timeout=pool_timeout,
         pool_recycle=3600,
         max_overflow=max_overflow,
-        connect_args={
-            "binary_prefix": True,
-            "charset": "utf8mb4",
-            "waiter": gevent_waiter,
-            "connect_timeout": 60,
-        },
+        # connect_args={
+        #     "binary_prefix": True,
+        #     "charset": "utf8mb4",
+        #     "waiter": gevent_waiter,
+        #     "connect_timeout": 60,
+        # },
     )
 
     @event.listens_for(engine, "checkout")
@@ -194,24 +190,23 @@ def init_db(engine, key=0):
     and all subsequent changes done via migration scripts.
 
     """
-    from sqlalchemy import DDL, event
 
     from inbox.models.base import MailSyncBase
 
     # Hopefully setting auto_increment via an event listener will make it safe
     # to execute this function multiple times.
     # STOPSHIP(emfree): verify
-    increment = (key << 48) + 1
-    for table in MailSyncBase.metadata.tables.values():
-        event.listen(
-            table,
-            "after_create",
-            DDL(
-                "ALTER TABLE {tablename} AUTO_INCREMENT={increment}".format(
-                    tablename=table, increment=increment
-                )
-            ),
-        )
+    # increment = (key << 48) + 1
+    # for table in MailSyncBase.metadata.tables.values():
+    #     event.listen(
+    #         table,
+    #         "after_create",
+    #         DDL(
+    #             "ALTER TABLE {tablename} AUTO_INCREMENT={increment}".format(
+    #                 tablename=table, increment=increment
+    #             )
+    #         ),
+    #     )
     with disabled_dubiously_many_queries_warning():
         MailSyncBase.metadata.create_all(engine)
 

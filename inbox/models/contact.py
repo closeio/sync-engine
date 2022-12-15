@@ -47,7 +47,7 @@ class Contact(
 
     # A server-provided unique ID.
     # NB: We specify the collation here so that the test DB gets setup correctly.
-    uid = Column(String(64, collation="utf8mb4_bin"), nullable=False)
+    uid = Column(String(64), nullable=False)
     # A constant, unique identifier for the remote backend this contact came
     # from. E.g., 'google', 'eas', 'inbox'
     provider_name = Column(String(64))
@@ -120,7 +120,16 @@ class MessageContactAssociation(MailSyncBase):
 
     contact_id = Column(BigInteger, primary_key=True, index=True)
     message_id = Column(ForeignKey(Message.id, ondelete="CASCADE"), primary_key=True)
-    field = Column(Enum("from_addr", "to_addr", "cc_addr", "bcc_addr", "reply_to"))
+    field = Column(
+        Enum(
+            "from_addr",
+            "to_addr",
+            "cc_addr",
+            "bcc_addr",
+            "reply_to",
+            name="message_contact_association_field",
+        )
+    )
     # Note: The `cascade` properties need to be a parameter of the backref
     # here, and not of the relationship. Otherwise a sqlalchemy error is thrown
     # when you try to delete a message or a contact.
@@ -140,7 +149,15 @@ class EventContactAssociation(MailSyncBase):
 
     contact_id = Column(BigInteger, primary_key=True, index=True)
     event_id = Column(ForeignKey(Event.id, ondelete="CASCADE"), primary_key=True)
-    field = Column(Enum("participant", "title", "description", "owner"))
+    field = Column(
+        Enum(
+            "participant",
+            "title",
+            "description",
+            "owner",
+            name="event_contact_association_field",
+        )
+    )
     # Note: The `cascade` properties need to be a parameter of the backref
     # here, and not of the relationship. Otherwise a sqlalchemy error is thrown
     # when you try to delete an event or a contact.

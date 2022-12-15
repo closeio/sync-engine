@@ -38,7 +38,7 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
     default = Column(Boolean, nullable=True)  # only set for Outlook calendars
 
     # A server-provided unique ID.
-    uid = Column(String(767, collation="ascii_general_ci"), nullable=False)
+    uid = Column(String(767), nullable=False)
 
     read_only = Column(Boolean, nullable=False, default=False)
 

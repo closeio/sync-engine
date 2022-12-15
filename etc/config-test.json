@@ -1,8 +1,8 @@
 {
 "DATABASE_HOSTS": [
     {
-        "HOSTNAME": "mysql",
-        "PORT": 3306,
+        "HOSTNAME": "postgres",
+        "PORT": 5432,
         "ZONE": "testzone",
         "SHARDS": [
             {
@@ -19,9 +19,9 @@
     }
 ],
 "DATABASE_USERS": {
-    "mysql": {
-        "USER": "root",
-        "PASSWORD": "nylas_it"
+    "postgres": {
+        "USER": "postgres",
+        "PASSWORD": "postgres"
     }
 },
 

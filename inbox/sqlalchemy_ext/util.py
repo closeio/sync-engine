@@ -17,7 +17,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.sql import operators
-from sqlalchemy.types import BINARY, TypeDecorator
+from sqlalchemy.types import LargeBinary, TypeDecorator
 
 from inbox.logging import get_logger
 from inbox.util.encoding import base36decode, base36encode
@@ -148,13 +148,13 @@ class LittleJSON(JSON):
 
 class BigJSON(JSON):
     # if all characters were 4-byte, this would fit in mysql's MEDIUMTEXT
-    impl = Text(4194304)
+    impl = Text
 
 
 class Base36UID(TypeDecorator):
     cache_ok = True
 
-    impl = BINARY(16)  # 128 bit unsigned integer
+    impl = LargeBinary  # 128 bit unsigned integer
 
     def process_bind_param(self, value: Optional[str], dialect: Any) -> Optional[bytes]:
         if not value:

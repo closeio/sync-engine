@@ -139,7 +139,6 @@ def threads(
             pass
         category_query = (
             db_session.query(Message.thread_id)
-            .prefix_with("STRAIGHT_JOIN")
             .join(Message.messagecategories)
             .join(MessageCategory.category)
             .filter(Category.namespace_id == namespace_id, or_(*category_filters))
@@ -425,8 +424,7 @@ def messages_or_drafts(
         except InputError:
             pass
         query = (
-            query.prefix_with("STRAIGHT_JOIN")
-            .join(Message.messagecategories)
+            query.join(Message.messagecategories)
             .join(MessageCategory.category)
             .filter(Category.namespace_id == namespace_id, or_(*category_filters))
         )

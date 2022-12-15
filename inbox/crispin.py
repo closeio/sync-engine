@@ -71,16 +71,18 @@ __all__ = ["CrispinClient", "GmailCrispinClient"]
 
 
 # Unify flags API across IMAP and Gmail
-Flags = namedtuple("Flags", "flags modseq")
-# class Flags(NamedTuple):
-#     flags: Tuple[bytes, ...]
-#     modseq: Optional[int]
+class Flags(NamedTuple):
+    flags: Tuple[bytes, ...]
+    modseq: Optional[int]
+
+
 # Flags includes labels on Gmail because Gmail doesn't use \Draft.
-GmailFlags = namedtuple("GmailFlags", "flags labels modseq")
-# class GmailFlags(NamedTuple):
-#     flags: Tuple[bytes, ...]
-#     labels: List[str]
-#     modseq: Optional[int]
+class GmailFlags(NamedTuple):
+    flags: Tuple[bytes, ...]
+    labels: List[str]
+    modseq: Optional[int]
+
+
 GMetadata = namedtuple("GMetadata", "g_msgid g_thrid size")
 
 
@@ -1102,7 +1104,7 @@ class GmailCrispinClient(CrispinClient):
         uid_set = set(uids)
         return {
             uid: GmailFlags(
-                ret[b"FLAGS"],
+                tuple(flag for flag in ret[b"FLAGS"] if isinstance(flag, bytes)),
                 self._decode_labels(ret[b"X-GM-LABELS"]),
                 ret[b"MODSEQ"][0] if b"MODSEQ" in ret else None,
             )
@@ -1132,7 +1134,7 @@ class GmailCrispinClient(CrispinClient):
                     continue
                 ret = data_for_uid[uid]
             results[uid] = GmailFlags(
-                ret[b"FLAGS"],
+                tuple(flag for flag in ret[b"FLAGS"] if isinstance(flag, bytes)),
                 self._decode_labels(ret[b"X-GM-LABELS"]),
                 ret[b"MODSEQ"][0],
             )

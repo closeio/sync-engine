@@ -1,9 +1,6 @@
-import functools
 import json
 import logging
 import os
-import random
-import re
 import sys
 
 import rollbar
@@ -75,9 +72,6 @@ def log_uncaught_errors(logger=None, **kwargs):
 
 
 GROUP_EXCEPTION_CLASSES = [
-    "GreenletExit",
-    "LoopExit",
-    "ResourceClosedError",
     "ObjectDeletedError",
     "MailsyncError",
     "Timeout",
@@ -86,7 +80,7 @@ GROUP_EXCEPTION_CLASSES = [
 ]
 
 
-def payload_handler(message_filters, payload, **kw):
+def payload_handler(payload, **kw):
     title = payload["data"].get("title")
     exception = payload["data"].get("body", {}).get("trace", {}).get("exception", {})
     # On Python 3 exceptions are organized in chains
@@ -103,30 +97,7 @@ def payload_handler(message_filters, payload, **kw):
     if exception_class in GROUP_EXCEPTION_CLASSES:
         payload["data"]["fingerprint"] = exception_class
 
-    for regex, threshold in message_filters:
-        if regex.search(title or exception_message) and random.random() >= threshold:
-            return False
-
     return payload
-
-
-def get_message_filters():
-    try:
-        message_filters = json.loads(os.getenv("ROLLBAR_MESSAGE_FILTERS", "[]"))
-    except ValueError:
-        log.error("Could not JSON parse ROLLBAR_MESSAGE_FILTERS environment variable")
-        return []
-
-    try:
-        message_filters = [
-            (re.compile(filter_["regex"]), float(filter_["threshold"]))
-            for filter_ in message_filters
-        ]
-    except Exception:
-        log.error("Error while compiling ROLLBAR_MESSAGE_FILTERS")
-        return []
-
-    return message_filters
 
 
 def maybe_enable_rollbar():
@@ -147,9 +118,6 @@ def maybe_enable_rollbar():
     logger = logging.getLogger()
     logger.addHandler(rollbar_handler)
 
-    message_filters = get_message_filters()
-    rollbar.events.add_payload_handler(
-        functools.partial(payload_handler, message_filters)
-    )
+    rollbar.events.add_payload_handler(payload_handler)
 
     log.info("Rollbar enabled")

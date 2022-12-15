@@ -60,7 +60,6 @@ from inbox.api.validation import (
     strict_bool,
     strict_parse_args,
     timestamp,
-    valid_account,
     valid_category_type,
     valid_delta_object_types,
     valid_display_name,
@@ -128,7 +127,6 @@ with contextlib.suppress(ImportError):
     # ImportError: Only important for EAS search failures, so shouldn't trigger
     # test failure.
     from inbox.util.eas.codes import STORE_STATUS_CODES
-
 
 from inbox.logging import get_logger
 
@@ -978,9 +976,7 @@ def contact_api():
 
     if args["filter"]:
         results = results.filter(Contact.email_address == args["filter"])
-    results = results.with_hint(Contact, "USE INDEX (idx_namespace_created)").order_by(
-        asc(Contact.created_at)
-    )
+    results = results.order_by(asc(Contact.created_at))
 
     if args["view"] == "count":
         return g.encoder.jsonify({"count": results.scalar()})

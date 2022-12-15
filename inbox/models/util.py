@@ -400,12 +400,12 @@ def purge_transactions(
         offset = 0
         query = (
             "SELECT id FROM transaction where created_at < "
-            "{} - INTERVAL {} day LIMIT {}".format(start, days_ago, limit)
+            "{}::TIMESTAMP - INTERVAL '{} day' LIMIT {}".format(start, days_ago, limit)
         )
     else:
         query = (
-            "DELETE FROM transaction where created_at < {} - "
-            " INTERVAL {} day LIMIT {}".format(start, days_ago, limit)
+            "DELETE FROM transaction where created_at < {}::TIMESTAMP - "
+            " INTERVAL '{} day' LIMIT {}".format(start, days_ago, limit)
         )
     try:
         # delete from rows until there are no more rows affected

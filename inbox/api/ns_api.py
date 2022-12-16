@@ -733,7 +733,8 @@ def folders_labels_query_api():
     results = results.filter(
         Category.namespace_id == g.namespace.id, Category.deleted_at == EPOCH
     )
-    results = results.order_by(asc(Category.id))
+    if args["view"] != "count":
+        results = results.order_by(asc(Category.id))
 
     if args["view"] == "count":
         return g.encoder.jsonify({"count": results.scalar()})
@@ -976,7 +977,8 @@ def contact_api():
 
     if args["filter"]:
         results = results.filter(Contact.email_address == args["filter"])
-    results = results.order_by(asc(Contact.created_at))
+    if args["view"] != "count":
+        results = results.order_by(asc(Contact.created_at))
 
     if args["view"] == "count":
         return g.encoder.jsonify({"count": results.scalar()})
@@ -1594,9 +1596,10 @@ def calendar_api():
     else:
         query = g.db_session.query(Calendar)
 
-    results = query.filter(Calendar.namespace_id == g.namespace.id).order_by(
-        asc(Calendar.id)
-    )
+    results = query.filter(Calendar.namespace_id == g.namespace.id)
+
+    if args["view"] != "count":
+        results = results.order_by(asc(Calendar.id))
 
     if args["view"] == "count":
         return g.encoder.jsonify({"count": results.scalar()})

@@ -391,7 +391,7 @@ def exception_override_response():
 
 @pytest.fixture
 def provider(client):
-    provider = MicrosoftEventsProvider("fake_account_id", "fake_namespace_id")
+    provider = MicrosoftEventsProvider(-1, -1)
     provider.client = client
 
     return provider

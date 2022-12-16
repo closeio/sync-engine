@@ -43,7 +43,7 @@ def create_test_db():
     for name, host, user, password in schemas:
         cmd = (
             "\\set AUTOCOMMIT on\n"
-            "DROP DATABASE IF EXISTS {name};\n"
+            "DROP DATABASE IF EXISTS {name} WITH (FORCE);\n"
             "CREATE DATABASE {name}".format(name=name)
         )
 
@@ -71,6 +71,7 @@ def setup_test_db():
         for shard in host["SHARDS"]:
             key = shard["ID"]
             engine = engine_manager.engines[key]
+            engine.dispose()
             init_db(engine, key)
 
 

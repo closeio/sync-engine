@@ -119,7 +119,7 @@ jobs:
 
       - run:
           name: build sync-engine image
-          command: docker-compose build --build-arg BUILD_WEEK=$(date +"%Y-%V") app
+          command: BUILDKIT_PROGRESS=plain docker-compose build --build-arg BUILD_WEEK=$(date +"%Y-%V") app
 
       - when:
           condition: << parameters.run_tests >>

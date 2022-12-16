@@ -6,7 +6,10 @@ RUN groupadd -g 5000 sync-engine \
 ENV TZ="Etc/GMT"
 ENV DEBIAN_FRONTEND=noninteractive
 ARG BUILD_WEEK=0
-RUN echo $BUILD_WEEK && apt-get update \
+RUN echo $BUILD_WEEK \
+  && apt-get update \
+  && apt-get install -y software-properties-common \
+  && add-apt-repository ppa:deadsnakes/ppa \
   && apt-get dist-upgrade -y \
   && apt-get install -y \
     tzdata \
@@ -16,9 +19,9 @@ RUN echo $BUILD_WEEK && apt-get update \
     gcc \
     g++ \
     git \
-    python3-dev \
-    python3-pip \
-    python3-distutils \
+    python3.11-dev \
+    python3.11-venv \
+    python3.11-distutils \
     wget \
     gettext-base \
     language-pack-en \
@@ -54,12 +57,13 @@ WORKDIR /opt/app
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY --chown=sync-engine:sync-engine ./ ./
-RUN python3 -m pip install pip==22.3.1 virtualenv==20.17.1 && \
-  python3 -m virtualenv /opt/venv && \
-  /opt/venv/bin/python3 -m pip install setuptools==57.5.0 && \
-  /opt/venv/bin/python3 -m pip install --no-deps -r requirements/prod.txt -r requirements/test.txt && \
-  /opt/venv/bin/python3 -m pip install -e . && \
-  /opt/venv/bin/python3 -m pip check
+RUN python3.11 -m venv /opt/venv && \
+  /opt/venv/bin/python3.11 -m pip install setuptools==57.5.0 && \
+  /opt/venv/bin/python3.11 -m pip install pymongo==2.9.5 && \
+  /opt/venv/bin/python3.11 -m pip install pip==22.3.1 wheel==0.38.4 setuptools==65.6.3 && \
+  /opt/venv/bin/python3.11 -m pip install --no-deps -r requirements/prod.txt -r requirements/test.txt && \
+  /opt/venv/bin/python3.11 -m pip install -e . && \
+  /opt/venv/bin/python3.11 -m pip check
 
 RUN ln -s /opt/app/bin/wait-for-it.sh /opt/venv/bin/
 

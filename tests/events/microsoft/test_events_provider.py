@@ -220,6 +220,22 @@ def subscribe_responses():
         ],
     )
 
+    responses.delete(BASE_URL + "/subscriptions/f798ca9d-d630-4306-b065-af52199f5613",)
+
+
+@pytest.fixture
+def subscribe_response_unavailable():
+    responses.post(
+        BASE_URL + "/subscriptions",
+        json={
+            "error": {
+                "code": "ExtensionError",
+                "message": "Operation: Create; Exception: [Status Code: ServiceUnavailable; Reason: Target resource '00034001-1143-5852-0000-000000000000' hosted on database 'f2492f38-40a7-4de1-ae51-48a6f2c9589b' is currently on backend 'Unknown']",
+            }
+        },
+        status=403,
+    )
+
 
 @pytest.fixture
 def subscribe_response_gone():
@@ -510,8 +526,16 @@ def test_watch_calendar_gone(provider, outlook_account):
         provider.watch_calendar(outlook_account, calendar)
 
 
-def test_webhook_notifications_enabled(provider, outlook_account):
+@responses.activate
+@pytest.mark.usefixtures("subscribe_responses")
+def test_webhook_notifications_enabled_avaialble(provider, outlook_account):
     assert provider.webhook_notifications_enabled(outlook_account)
+
+
+@responses.activate
+@pytest.mark.usefixtures("subscribe_response_unavailable")
+def test_webhook_notifications_enabled_unavailable(provider, outlook_account):
+    assert not provider.webhook_notifications_enabled(outlook_account)
 
 
 @responses.activate

@@ -26,6 +26,7 @@ services:
        - MINIO_DOMAIN=minio
 
   app:
+    image: sync-engine_app
     build:
       context: .
       dockerfile: Dockerfile

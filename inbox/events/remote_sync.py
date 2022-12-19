@@ -49,7 +49,9 @@ class EventSync(BaseSyncMonitor):
     ):
         bind_context(self, "eventsync", account_id)
         self.provider = provider_class(account_id, namespace_id)
-        self.log = logger.new(account_id=account_id, component="calendar sync")
+        self.log = logger.new(
+            account_id=account_id, component="calendar sync", provider=provider_name
+        )
 
         BaseSyncMonitor.__init__(
             self,
@@ -294,6 +296,7 @@ class WebhookEventSync(EventSync):
             account = db_session.query(Account).get(self.account_id)
 
             if not self.provider.webhook_notifications_enabled(account):
+                self.log.warning("Webhook notifications disabled")
                 return
 
             if account.needs_new_calendar_list_watch():

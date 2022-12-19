@@ -203,6 +203,18 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
     def webhook_notifications_enabled(self, account: Account) -> bool:
         """
         Return True if webhook notifications are enabled for a given account.
+
+        This works by creating a dummy subscription and then immediately deleting
+        it. We found that in practice subscriptions don't work for
+        some accounts. There are some theories on the internet
+        why it does not work i.e.: Office365 administrator applying a restrictive
+        policy or some weird setup when the calendars might still be on on-premise
+        servers but everything else in Azure. Microsoft does not give a definite answer,
+        so we can only speculate.
+
+        For more context see:
+        * https://learn.microsoft.com/en-us/answers/questions/417261/error-on-adding-subscription-on-events-using-ms-gr.html
+        * https://stackoverflow.com/questions/65030751/ms-graph-adding-subscription-returns-extensionerror-and-serviceunavailable
         """
         try:
             dummy_subscription = self.client.subscribe_to_calendar_changes(

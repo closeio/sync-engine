@@ -129,7 +129,6 @@ with contextlib.suppress(ImportError):
     # test failure.
     from inbox.util.eas.codes import STORE_STATUS_CODES
 
-
 from inbox.logging import get_logger
 
 log = get_logger()
@@ -735,11 +734,11 @@ def folders_labels_query_api():
     results = results.filter(
         Category.namespace_id == g.namespace.id, Category.deleted_at == EPOCH
     )
-    results = results.order_by(asc(Category.id))
 
     if args["view"] == "count":
         return g.encoder.jsonify({"count": results.scalar()})
 
+    results = results.order_by(asc(Category.id))
     results = results.limit(args["limit"]).offset(args["offset"]).all()
     if args["view"] == "ids":
         return g.encoder.jsonify([r for r, in results])
@@ -978,9 +977,7 @@ def contact_api():
 
     if args["filter"]:
         results = results.filter(Contact.email_address == args["filter"])
-    results = results.with_hint(Contact, "USE INDEX (idx_namespace_created)").order_by(
-        asc(Contact.created_at)
-    )
+    results = results.with_hint(Contact, "USE INDEX (idx_namespace_created)")
 
     if args["view"] == "count":
         return g.encoder.jsonify({"count": results.scalar()})
@@ -991,6 +988,7 @@ def contact_api():
             joinedload(Contact.phone_numbers),
         )
 
+    results = results.order_by(asc(Contact.created_at))
     results = results.limit(args["limit"]).offset(args["offset"]).all()
     if args["view"] == "ids":
         return g.encoder.jsonify([r for r, in results])
@@ -1598,13 +1596,12 @@ def calendar_api():
     else:
         query = g.db_session.query(Calendar)
 
-    results = query.filter(Calendar.namespace_id == g.namespace.id).order_by(
-        asc(Calendar.id)
-    )
+    results = query.filter(Calendar.namespace_id == g.namespace.id)
 
     if args["view"] == "count":
         return g.encoder.jsonify({"count": results.scalar()})
 
+    results = results.order_by(asc(Calendar.id))
     results = results.limit(args["limit"]).offset(args["offset"]).all()
     if args["view"] == "ids":
         return g.encoder.jsonify([r for r, in results])

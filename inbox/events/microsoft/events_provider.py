@@ -204,6 +204,24 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         """
         Return True if webhook notifications are enabled for a given account.
         """
+        try:
+            dummy_subscription = self.client.subscribe_to_calendar_changes(
+                webhook_url=CALENDAR_LIST_WEBHOOK_URL.format(account.public_id),
+                secret=config["MICROSOFT_SUBSCRIPTION_SECRET"],
+            )
+        except MicrosoftGraphClientException as e:
+            message, description = e.args
+            if (
+                message == "ExtensionError"
+                and "is currently on backend 'Unknown'" in description
+            ):
+                return False
+
+            raise
+
+        subscription_id = cast(MsGraphSubscription, dummy_subscription)["id"]
+        self.client.unsubscribe(subscription_id)
+
         return True
 
     def watch_calendar_list(self, account: Account) -> Optional[datetime.datetime]:

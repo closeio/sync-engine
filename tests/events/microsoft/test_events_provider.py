@@ -220,6 +220,8 @@ def subscribe_responses():
         ],
     )
 
+    responses.delete(BASE_URL + "/subscriptions/f798ca9d-d630-4306-b065-af52199f5613",)
+
 
 @pytest.fixture
 def subscribe_response_gone():
@@ -510,6 +512,8 @@ def test_watch_calendar_gone(provider, outlook_account):
         provider.watch_calendar(outlook_account, calendar)
 
 
+@responses.activate
+@pytest.mark.usefixtures("subscribe_responses")
 def test_webhook_notifications_enabled(provider, outlook_account):
     assert provider.webhook_notifications_enabled(outlook_account)
 

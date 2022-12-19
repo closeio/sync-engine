@@ -19,7 +19,7 @@ from sqlalchemy import (
     String,
     bindparam,
 )
-from sqlalchemy.dialects.mysql import LONGBLOB, VARCHAR
+from sqlalchemy.dialects.mysql import VARCHAR
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import (
     backref,
@@ -32,6 +32,7 @@ from sqlalchemy.orm import (
     with_polymorphic,
 )
 from sqlalchemy.sql.expression import false
+from sqlalchemy.types import LargeBinary
 
 from inbox.config import config
 from inbox.logging import get_logger
@@ -158,6 +159,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             "sent",
             "actions_pending",
             "actions_committed",
+            name="message_state",
         )
     )
 
@@ -183,7 +185,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         else:
             self.state = "actions_committed"
 
-    _compacted_body = Column(LONGBLOB, nullable=True)
+    _compacted_body = Column(LargeBinary, nullable=True)
     snippet = Column(String(191), nullable=False)
 
     # this might be a mail-parsing bug, or just a message from a bad client

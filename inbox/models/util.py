@@ -297,10 +297,7 @@ def _batch_delete(
     if table in ("message", "block"):
         query = ""
     else:
-        query = "DELETE FROM {} WHERE {}={} LIMIT {};".format(
-            table, column, id_, CHUNK_SIZE
-        )
-
+        query = f"DELETE FROM {table} WHERE id IN (SELECT id FROM {table} WHERE {column}={id_} LIMIT {CHUNK_SIZE});"
     log.info("deleting", account_id=account_id, table=table)
 
     for _ in range(0, batches):
@@ -337,9 +334,6 @@ def _batch_delete(
                     .filter(Message.namespace_id == id_)
                     .order_by(desc(Message.received_date))
                     .limit(CHUNK_SIZE)
-                    .with_hint(
-                        Message, "use index (ix_message_namespace_id_received_date)"
-                    )
                 )
 
             message_ids = [m[0] for m in messages]
@@ -406,12 +400,12 @@ def purge_transactions(
         offset = 0
         query = (
             "SELECT id FROM transaction where created_at < "
-            "DATE_SUB({}, INTERVAL {} day) LIMIT {}".format(start, days_ago, limit)
+            "{}::TIMESTAMP - INTERVAL '{} day' LIMIT {}".format(start, days_ago, limit)
         )
     else:
         query = (
-            "DELETE FROM transaction where created_at < DATE_SUB({},"
-            " INTERVAL {} day) LIMIT {}".format(start, days_ago, limit)
+            "DELETE FROM transaction where created_at < {}::TIMESTAMP - "
+            " INTERVAL '{} day' LIMIT {}".format(start, days_ago, limit)
         )
     try:
         # delete from rows until there are no more rows affected

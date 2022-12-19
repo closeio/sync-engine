@@ -19,7 +19,6 @@ from sqlalchemy import (
     Text,
     event,
 )
-from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.orm import backref, reconstructor, relationship, validates
 from sqlalchemy.types import TypeDecorator
 
@@ -131,12 +130,14 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
     )
 
     # A server-provided unique ID.
-    uid = Column(String(UID_MAX_LEN, collation="ascii_general_ci"), nullable=False)
+    uid = Column(String(UID_MAX_LEN), nullable=False)
 
     # DEPRECATED
     # TODO(emfree): remove
     provider_name = Column(String(64), nullable=False, default="DEPRECATED")
-    source = Column("source", Enum("local", "remote"), default="local")
+    source = Column(
+        "source", Enum("local", "remote", name="event_source"), default="local"
+    )
 
     raw_data = Column(Text, nullable=False)
 
@@ -144,7 +145,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
     # The database column is named differently for legacy reasons.
     owner = Column("owner2", String(OWNER_MAX_LEN), nullable=True)
 
-    description = Column("_description", LONGTEXT, nullable=True)
+    description = Column("_description", Text, nullable=True)
     location = Column(String(LOCATION_MAX_LEN), nullable=True)
     busy = Column(Boolean, nullable=False, default=True)
     read_only = Column(Boolean, nullable=False)
@@ -155,7 +156,9 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
     all_day = Column(Boolean, nullable=False)
     is_owner = Column(Boolean, nullable=False, default=True)
     last_modified = Column(FlexibleDateTime, nullable=True)
-    status = Column("status", Enum(*EVENT_STATUSES), server_default="confirmed")
+    status = Column(
+        "status", Enum(*EVENT_STATUSES, name="event_status"), server_default="confirmed"
+    )
 
     # This column is only used for events that are synced from iCalendar
     # files.
@@ -178,7 +181,9 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
     # stores the version number of the invite.
     sequence_number = Column(Integer, nullable=True)
 
-    visibility = Column(Enum("private", "public"), nullable=True)
+    visibility = Column(
+        Enum("private", "public", name="event_visibility"), nullable=True
+    )
 
     discriminator = Column("type", String(30))
     __mapper_args__ = {"polymorphic_on": discriminator, "polymorphic_identity": "event"}
@@ -557,9 +562,7 @@ class RecurringEventOverride(Event):
     __table_args__ = None
 
     master_event_id = Column(ForeignKey("event.id", ondelete="CASCADE"))
-    master_event_uid = Column(
-        String(UID_MAX_LEN, collation="ascii_general_ci"), index=True
-    )
+    master_event_uid = Column(String(UID_MAX_LEN), index=True)
     original_start_time = Column(FlexibleDateTime)
     master = relationship(
         RecurringEvent,

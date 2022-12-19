@@ -16,6 +16,11 @@ services:
       PYTHONUNBUFFERED: 1
       PYTHONDONTWRITEBYTECODE: 1
 
+  postgres:
+    image: postgres:13.7
+    environment:
+      POSTGRES_PASSWORD: postgres
+
   minio:
     image: closeio/minio:branch-main
     hostname: sync-engine.minio
@@ -37,6 +42,7 @@ services:
     depends_on:
       - redis
       - mysql
+      - postgres
       - minio
 
   # for running code formatting, isort

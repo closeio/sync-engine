@@ -3,8 +3,8 @@ import json
 import zlib
 
 from sqlalchemy import Column, DateTime, ForeignKey
-from sqlalchemy.dialects.mysql import MEDIUMBLOB
 from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy.types import LargeBinary
 
 from inbox.models.base import MailSyncBase
 from inbox.models.mixins import DeletedAtMixin, UpdatedAtMixin
@@ -16,8 +16,8 @@ class DataProcessingCache(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     """
 
     namespace_id = Column(ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False)
-    _contact_rankings = Column("contact_rankings", MEDIUMBLOB)
-    _contact_groups = Column("contact_groups", MEDIUMBLOB)
+    _contact_rankings = Column("contact_rankings", LargeBinary)
+    _contact_groups = Column("contact_groups", LargeBinary)
     contact_rankings_last_updated = Column(DateTime)
     contact_groups_last_updated = Column(DateTime)
 

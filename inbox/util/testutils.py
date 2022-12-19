@@ -42,15 +42,16 @@ def create_test_db():
 
     for name, host, user, password in schemas:
         cmd = (
-            "DROP DATABASE IF EXISTS {name}; "
-            "CREATE DATABASE IF NOT EXISTS {name} "
-            "DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE "
-            "utf8mb4_general_ci".format(name=name)
+            "\\set AUTOCOMMIT on\n"
+            "DROP DATABASE IF EXISTS {name} WITH (FORCE);\n"
+            "CREATE DATABASE {name}".format(name=name)
         )
 
-        subprocess.check_call(
-            "mysql -h {} -u{} -p{} " '-e "{}"'.format(host, user, password, cmd),
-            shell=True,
+        subprocess.run(
+            ["psql", "-h", host, "-U", user],
+            input=cmd,
+            encoding="ascii",
+            env={"PGPASSWORD": password},
         )
 
 
@@ -70,6 +71,7 @@ def setup_test_db():
         for shard in host["SHARDS"]:
             key = shard["ID"]
             engine = engine_manager.engines[key]
+            engine.dispose()
             init_db(engine, key)
 
 

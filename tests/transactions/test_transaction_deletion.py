@@ -88,7 +88,7 @@ class TestTransactionDeletion:
         all_transactions = db.session.execute(query).scalar()
         date_query = (
             "SELECT count(id) FROM transaction WHERE created_at < "
-            "DATE_SUB({}, INTERVAL 30 day)"
+            "{}::TIMESTAMP - INTERVAL '30 day'"
         ).format(format_datetime(now))
         older_than_thirty_days = db.session.execute(date_query).scalar()
 
@@ -110,7 +110,7 @@ class TestTransactionDeletion:
 
         date_query = (
             "SELECT count(id) FROM transaction WHERE created_at < "
-            "DATE_SUB({}, INTERVAL 1 day)"
+            "{}::TIMESTAMP - INTERVAL '1 day'"
         ).format(format_datetime(now))
         older_than_one_day = db.session.execute(date_query).scalar()
         # Delete all transactions older than 1 day

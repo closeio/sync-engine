@@ -43,7 +43,7 @@ class CategoryNameString(StringWithTransform):
     """
 
     def __init__(self, *args, **kwargs):
-        super().__init__(sanitize_name, MAX_INDEXABLE_LENGTH, collation="utf8mb4_bin")
+        super().__init__(sanitize_name, MAX_INDEXABLE_LENGTH)
 
 
 class Category(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin):
@@ -71,7 +71,9 @@ class Category(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedA
     name = Column(String(MAX_INDEXABLE_LENGTH), nullable=False, default="")
     display_name = Column(CategoryNameString(), nullable=False)
 
-    type_ = Column(Enum("folder", "label"), nullable=False, default="folder")
+    type_ = Column(
+        Enum("folder", "label", name="category_type"), nullable=False, default="folder"
+    )
 
     @validates("display_name")
     def validate_display_name(self, key, display_name):

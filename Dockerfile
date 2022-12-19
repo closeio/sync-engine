@@ -28,6 +28,7 @@ RUN echo $BUILD_WEEK && apt-get update \
     libxslt-dev \
     libxslt1-dev \
     mysql-client \
+    postgresql-client \
     pkg-config \
     lsof \
     net-tools \

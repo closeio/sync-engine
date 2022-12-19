@@ -370,7 +370,14 @@ class ImapFolderSyncStatus(MailSyncBase, HasRunState, UpdatedAtMixin, DeletedAtM
 
     # see state machine in mailsync/backends/imap/imap.py
     state = Column(
-        Enum("initial", "initial uidinvalid", "poll", "poll uidinvalid", "finish"),
+        Enum(
+            "initial",
+            "initial uidinvalid",
+            "poll",
+            "poll uidinvalid",
+            "finish",
+            name="imap_folder_sync_status_state",
+        ),
         server_default="initial",
         nullable=False,
     )

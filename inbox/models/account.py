@@ -157,7 +157,7 @@ class Account(
     desired_sync_host = Column(String(255), nullable=True)
 
     # current state of this account
-    state = Column(Enum("live", "down", "invalid"), nullable=True)
+    state = Column(Enum("live", "down", "invalid", name="account_state"), nullable=True)
 
     # Based on account status, should the sync be running?
     # (Note, this is stored via a mixin.)
@@ -172,7 +172,15 @@ class Account(
         return self.sync_should_run
 
     sync_state = Column(
-        Enum("running", "stopped", "killed", "invalid", "connerror"), nullable=True
+        Enum(
+            "running",
+            "stopped",
+            "killed",
+            "invalid",
+            "connerror",
+            name="account_sync_state",
+        ),
+        nullable=True,
     )
 
     _sync_status = Column(MutableDict.as_mutable(JSON), default={}, nullable=True)

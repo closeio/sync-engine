@@ -206,8 +206,8 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         Return True if webhook notifications are enabled for a given account.
 
         This works by creating a dummy subscription and then immediately deleting
-        it. We found that in practice subscriptions don't work for
-        some accounts. There are some theories on the internet
+        it, subsequent calls use cached value. We found that in practice subscriptions
+        don't work for some accounts. There are some theories on the internet
         why it does not work i.e.: Office365 administrator applying a restrictive
         policy or some weird setup when the calendars might still be on on-premise
         servers but everything else in Azure. Microsoft does not give a definite answer,
@@ -218,6 +218,8 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         * https://stackoverflow.com/questions/65030751/ms-graph-adding-subscription-returns-extensionerror-and-serviceunavailable
         """
 
+        # First check if we already have cached value since this function is called
+        # repeatedly and there is no need to do extra HTTP request every time.
         if self._webhook_notifications_enabled is not None:
             return self._webhook_notifications_enabled
 

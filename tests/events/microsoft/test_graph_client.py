@@ -276,6 +276,55 @@ def test_iter_event_instances(client):
     }
 
 
+@responses.activate(registry=OrderedRegistry)
+def test_subscribe_connection_closed_retries(client):
+    responses.post(
+        BASE_URL + "/subscriptions",
+        json={
+            "error": {
+                "code": "InvalidRequest",
+                "message": "The underlying connection was closed: A connection that was expected to be kept alive was closed by the server.",
+            }
+        },
+        status=400,
+    )
+    responses.post(
+        BASE_URL + "/subscriptions", json={}, status=200,
+    )
+
+    with unittest.mock.patch("time.sleep"):
+        client.subscribe(
+            resource_url="/me/calendars",
+            change_types=[],
+            webhook_url="https://example.com",
+            secret="s3cret",
+        )
+
+
+@responses.activate
+def test_subscribe_connection_closed_max_retries(client):
+    responses.post(
+        BASE_URL + "/subscriptions",
+        json={
+            "error": {
+                "code": "InvalidRequest",
+                "message": "The underlying connection was closed: A connection that was expected to be kept alive was closed by the server.",
+            }
+        },
+        status=400,
+    )
+
+    with unittest.mock.patch("time.sleep"), pytest.raises(
+        MicrosoftGraphClientException, match="Max retries reached"
+    ):
+        client.subscribe(
+            resource_url="/me/calendars",
+            change_types=[],
+            webhook_url="https://example.com",
+            secret="s3cret",
+        )
+
+
 @responses.activate
 def test_subscribe_to_calendar_changes(client):
     def request_callback(request):

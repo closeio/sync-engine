@@ -348,7 +348,23 @@ class MicrosoftGraphClient:
             "clientState": secret,
         }
 
-        return self.request("POST", "/subscriptions", json=json)
+        max_retries = 5
+        for _ in range(max_retries):
+            try:
+                return self.request("POST", "/subscriptions", json=json)
+            except MicrosoftGraphClientException as e:
+                last_exception = e
+                message, description = e.args
+                if message == "InvalidRequest" and description.startswith(
+                    "The underlying connection was closed"
+                ):
+                    time.sleep(5)
+                    continue
+
+                raise
+
+        last_exception.args = (*last_exception.args, "Max retries reached")
+        raise last_exception
 
     def unsubscribe(self, subscription_id: str) -> Dict[str, Any]:
         """

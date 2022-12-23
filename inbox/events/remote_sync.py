@@ -40,8 +40,6 @@ class EventSync(BaseSyncMonitor):
 
     def __init__(
         self,
-        email_address: str,
-        provider_name: str,
         account: Account,
         provider_class: Type[AbstractEventsProvider],
         poll_frequency: int = POLL_FREQUENCY,
@@ -49,17 +47,19 @@ class EventSync(BaseSyncMonitor):
         bind_context(self, "eventsync", account.id)
         self.provider = provider_class(account)
         self.log = logger.new(
-            account_id=account.id, component="calendar sync", provider=provider_name
+            account_id=account.id,
+            component="calendar sync",
+            provider=account.verbose_provider,
         )
 
         BaseSyncMonitor.__init__(
             self,
             account.id,
             account.namespace.id,
-            email_address,
+            account.email_address,
             EVENT_SYNC_FOLDER_ID,
             EVENT_SYNC_FOLDER_NAME,
-            provider_name,
+            account.verbose_provider,
             poll_frequency=poll_frequency,
             scope="calendar",
         )
@@ -239,13 +239,9 @@ def handle_event_updates(
 
 class WebhookEventSync(EventSync):
     def __init__(
-        self,
-        email_address: str,
-        provider_name: str,
-        account: Account,
-        provider_class: Type[AbstractEventsProvider],
+        self, account: Account, provider_class: Type[AbstractEventsProvider],
     ):
-        super().__init__(email_address, provider_name, account, provider_class)
+        super().__init__(account, provider_class)
         if self.provider.webhook_notifications_enabled():
             # Run the sync loop more frequently if push notifications are
             # enabled. Note that we'll only update the calendar if a

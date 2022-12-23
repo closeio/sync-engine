@@ -547,10 +547,7 @@ def test_webhook_notifications_enabled_unavailable(provider):
 )
 def test_sync(db, provider, outlook_account):
     event_sync = WebhookEventSync(
-        outlook_account.email_address,
-        outlook_account.verbose_provider,
-        outlook_account,
-        provider_class=lambda *args, **kwargs: provider,
+        outlook_account, provider_class=lambda *args, **kwargs: provider,
     )
 
     # First sync, initially we just read without subscriptions

@@ -61,16 +61,21 @@ class OAuthAuthHandler(AuthHandler):
             "Content-type": "application/x-www-form-urlencoded",
             "Accept": "text/plain",
         }
+
+        account_logger = log.bind(account_id=account.id)
+
         try:
             response = requests.post(access_token_url, data=data, headers=headers)
         except requests.exceptions.ConnectionError as e:
-            log.error("Network error renewing access token", error=e)
+            account_logger.error("Network error renewing access token", error=e)
             raise ConnectionError()
 
         try:
             session_dict = response.json()
         except ValueError:
-            log.error("Invalid JSON renewing on renewing token", response=response.text)
+            account_logger.error(
+                "Invalid JSON renewing on renewing token", response=response.text
+            )
             raise ConnectionError("Invalid JSON response on renewing token")
 
         if "error" in session_dict:
@@ -84,7 +89,9 @@ class OAuthAuthHandler(AuthHandler):
                 raise OAuthError("deleted_client")
             else:
                 # You can also get e.g. {"error": "internal_failure"}
-                log.error("Error renewing access token", session_dict=session_dict)
+                account_logger.error(
+                    "Error renewing access token", session_dict=session_dict
+                )
                 raise ConnectionError("Server error renewing access token")
 
         return session_dict["access_token"], session_dict["expires_in"]

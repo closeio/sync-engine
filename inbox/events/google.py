@@ -21,7 +21,7 @@ from inbox.events.util import (
     parse_datetime,
     parse_google_time,
 )
-from inbox.models import Account, Calendar
+from inbox.models import Calendar
 from inbox.models.backends.oauth import token_manager
 from inbox.models.event import EVENT_STATUSES, Event
 
@@ -279,15 +279,15 @@ class GoogleEventsProvider(AbstractEventsProvider):
 
     # -------- logic for push notification subscriptions -------- #
 
-    def _get_access_token_for_push_notifications(self, account, force_refresh=False):
-        if not self.webhook_notifications_enabled(account):
+    def _get_access_token_for_push_notifications(self, force_refresh=False):
+        if not self.webhook_notifications_enabled():
             raise OAuthError("Account not enabled for push notifications.")
-        return token_manager.get_token(account, force_refresh)
+        return token_manager.get_token(self.account, force_refresh)
 
-    def webhook_notifications_enabled(self, account: Account) -> bool:
-        return account.get_client_info()[0] in WEBHOOK_ENABLED_CLIENT_IDS
+    def webhook_notifications_enabled(self) -> bool:
+        return self.account.get_client_info()[0] in WEBHOOK_ENABLED_CLIENT_IDS
 
-    def watch_calendar_list(self, account: Account) -> Optional[datetime.datetime]:
+    def watch_calendar_list(self) -> Optional[datetime.datetime]:
         """
         Subscribe to google push notifications for the calendar list.
 
@@ -300,9 +300,9 @@ class GoogleEventsProvider(AbstractEventsProvider):
         Returns:
             The expiration of the notification channel
         """
-        token = self._get_access_token_for_push_notifications(account)
+        token = self._get_access_token_for_push_notifications()
         receiving_url = CALENDAR_LIST_WEBHOOK_URL.format(
-            urllib.parse.quote(account.public_id)
+            urllib.parse.quote(self.account.public_id)
         )
 
         one_week = datetime.timedelta(weeks=1)
@@ -338,9 +338,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
             self._handle_watch_errors(r)
             return None
 
-    def watch_calendar(
-        self, account: Account, calendar: Calendar
-    ) -> Optional[datetime.datetime]:
+    def watch_calendar(self, calendar: Calendar) -> Optional[datetime.datetime]:
         """
         Subscribe to google push notifications for a calendar.
 
@@ -355,7 +353,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
         Returns:
             The expiration of the notification channel
         """
-        token = self._get_access_token_for_push_notifications(account)
+        token = self._get_access_token_for_push_notifications()
         watch_url = WATCH_EVENTS_URL.format(urllib.parse.quote(calendar.uid))
         receiving_url = EVENTS_LIST_WEBHOOK_URL.format(
             urllib.parse.quote(calendar.public_id)

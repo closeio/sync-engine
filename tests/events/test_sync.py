@@ -125,8 +125,7 @@ def test_handle_changes(db, generic_account):
     event_sync = EventSync(
         generic_account.email_address,
         "google",
-        generic_account.id,
-        namespace_id,
+        generic_account,
         provider_class=GoogleEventsProvider,
     )
 

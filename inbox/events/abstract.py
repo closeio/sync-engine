@@ -8,7 +8,6 @@ from inbox.models.account import Account
 from inbox.models.backends.oauth import token_manager
 from inbox.models.calendar import Calendar
 from inbox.models.event import Event
-from inbox.models.session import session_scope
 
 log = get_logger()
 
@@ -19,10 +18,10 @@ class AbstractEventsProvider(abc.ABC):
     specified account.
     """
 
-    def __init__(self, account_id: int, namespace_id: int):
-        self.account_id = account_id
-        self.namespace_id = namespace_id
-        self.log = log.new(account_id=account_id, component="calendar sync")
+    def __init__(self, account: Account):
+        self.account = account
+        self.namespace_id = account.namespace.id
+        self.log = log.new(account_id=account.id, component="calendar sync")
 
         # A hash to store whether a calendar is read-only or not.
         # This is a bit of a hack because this isn't exposed at the event level
@@ -54,19 +53,16 @@ class AbstractEventsProvider(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def webhook_notifications_enabled(self, account: Account) -> bool:
+    def webhook_notifications_enabled(self) -> bool:
         """
         Return True if webhook notifications are enabled for a given account.
         """
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def watch_calendar_list(self, account: Account) -> Optional[datetime.datetime]:
+    def watch_calendar_list(self) -> Optional[datetime.datetime]:
         """
         Subscribe to webhook notifications for changes to calendar list.
-
-        Arguments:
-            account: The account
 
         Returns:
             The expiration of the notification channel
@@ -74,14 +70,11 @@ class AbstractEventsProvider(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def watch_calendar(
-        self, account: Account, calendar: Calendar
-    ) -> Optional[datetime.datetime]:
+    def watch_calendar(self, calendar: Calendar) -> Optional[datetime.datetime]:
         """
         Subscribe to webhook notifications for changes to events in a calendar.
 
         Arguments:
-            account: The account
             calendar: The calendar
 
         Returns:
@@ -102,13 +95,9 @@ class AbstractEventsProvider(abc.ABC):
         Returns:
             The token
         """
-        with session_scope(self.namespace_id) as db_session:
-            acc = db_session.query(Account).get(self.account_id)
-            # This will raise OAuthError if OAuth access was revoked. The
-            # BaseSyncMonitor loop will catch this, clean up, and exit.
-            return token_manager.get_token(
-                acc, force_refresh=force_refresh, scopes=scopes
-            )
+        return token_manager.get_token(
+            self.account, force_refresh=force_refresh, scopes=scopes
+        )
 
 
 class CalendarGoneException(Exception):

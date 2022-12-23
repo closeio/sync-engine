@@ -42,21 +42,20 @@ class EventSync(BaseSyncMonitor):
         self,
         email_address: str,
         provider_name: str,
-        account_id: int,
-        namespace_id: int,
+        account: Account,
         provider_class: Type[AbstractEventsProvider],
         poll_frequency: int = POLL_FREQUENCY,
     ):
-        bind_context(self, "eventsync", account_id)
-        self.provider = provider_class(account_id, namespace_id)
+        bind_context(self, "eventsync", account.id)
+        self.provider = provider_class(account)
         self.log = logger.new(
-            account_id=account_id, component="calendar sync", provider=provider_name
+            account_id=account.id, component="calendar sync", provider=provider_name
         )
 
         BaseSyncMonitor.__init__(
             self,
-            account_id,
-            namespace_id,
+            account.id,
+            account.namespace.id,
             email_address,
             EVENT_SYNC_FOLDER_ID,
             EVENT_SYNC_FOLDER_NAME,
@@ -239,19 +238,20 @@ def handle_event_updates(
 
 
 class WebhookEventSync(EventSync):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        with session_scope(self.namespace_id) as db_session:
-            account = db_session.query(Account).get(self.account_id)
-            if (
-                self.provider.webhook_notifications_enabled(account)
-                and kwargs.get("poll_frequency") is None
-            ):
-                # Run the sync loop more frequently if push notifications are
-                # enabled. Note that we'll only update the calendar if a
-                # Webhook was receicved recently, or if we haven't synced for
-                # too long.
-                self.poll_frequency = PUSH_NOTIFICATION_POLL_FREQUENCY
+    def __init__(
+        self,
+        email_address: str,
+        provider_name: str,
+        account: Account,
+        provider_class: Type[AbstractEventsProvider],
+    ):
+        super().__init__(email_address, provider_name, account, provider_class)
+        if self.provider.webhook_notifications_enabled():
+            # Run the sync loop more frequently if push notifications are
+            # enabled. Note that we'll only update the calendar if a
+            # Webhook was receicved recently, or if we haven't synced for
+            # too long.
+            self.poll_frequency = PUSH_NOTIFICATION_POLL_FREQUENCY
 
     def sync(self) -> None:
         """Query a remote provider for updates and persist them to the
@@ -295,12 +295,12 @@ class WebhookEventSync(EventSync):
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(Account).get(self.account_id)
 
-            if not self.provider.webhook_notifications_enabled(account):
+            if not self.provider.webhook_notifications_enabled():
                 self.log.warning("Webhook notifications disabled")
                 return
 
             if account.needs_new_calendar_list_watch():
-                calendar_list_expiration = self.provider.watch_calendar_list(account)
+                calendar_list_expiration = self.provider.watch_calendar_list()
                 if calendar_list_expiration is not None:
                     account.new_calendar_list_watch(calendar_list_expiration)
 
@@ -311,9 +311,7 @@ class WebhookEventSync(EventSync):
             )
             for calendar in calendars_to_watch:
                 try:
-                    event_list_expiration = self.provider.watch_calendar(
-                        account, calendar
-                    )
+                    event_list_expiration = self.provider.watch_calendar(calendar)
                     if event_list_expiration is not None:
                         calendar.new_event_watch(event_list_expiration)
                 except CalendarGoneException:

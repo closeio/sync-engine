@@ -312,24 +312,21 @@ class SyncService:
                         event_sync = WebhookEventSync(
                             acc.email_address,
                             acc.verbose_provider,
-                            acc.id,
-                            acc.namespace.id,
+                            acc,
                             provider_class=GoogleEventsProvider,
                         )
                     elif acc.provider == "gmail":
                         event_sync = EventSync(
                             acc.email_address,
                             acc.verbose_provider,
-                            acc.id,
-                            acc.namespace.id,
+                            acc,
                             provider_class=GoogleEventsProvider,
                         )
                     elif acc.provider == "microsoft":
                         event_sync = WebhookEventSync(
                             acc.email_address,
                             acc.verbose_provider,
-                            acc.id,
-                            acc.namespace.id,
+                            acc,
                             provider_class=MicrosoftEventsProvider,
                         )
                     self.event_sync_monitors[acc.id] = event_sync

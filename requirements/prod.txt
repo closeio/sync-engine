@@ -73,7 +73,6 @@ requests-file==1.5.1
 rollbar==0.16.2
 s3transfer==0.5.0
 setproctitle==1.2.2
-setuptools==44.0.0
 six==1.16.0
 sqlalchemy==1.4.26
 statsd==3.3.0

@@ -200,7 +200,7 @@ class OAuthAccount:
                 self, force_refresh=force_refresh, scopes=scopes
             )
         except Exception as e:
-            log.error(
+            log.warning(
                 f"Error while getting access token: {e}",
                 force_refresh=force_refresh,
                 account_id=self.id,

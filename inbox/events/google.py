@@ -166,7 +166,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
                 )
                 gevent.sleep(30 + random.randrange(0, 60))
                 continue
-            except requests.HTTPError:
+            except requests.HTTPError as e:
                 self.log.warning(
                     "HTTP error making Google Calendar API request",
                     url=r.url,
@@ -200,9 +200,11 @@ class GoogleEventsProvider(AbstractEventsProvider):
                         self.log.warning("API request was rate-limited; retrying")
                         gevent.sleep(30 + random.randrange(0, 60))
                         continue
-                    elif reason == "accessNotConfigured":
-                        self.log.warning("API not enabled; returning empty result")
-                        raise AccessNotEnabledError()
+                    elif reason in ["accessNotConfigured", "notACalendarUser"]:
+                        self.log.warning(
+                            f"API not enabled with reason {reason}; returning empty result"
+                        )
+                        raise AccessNotEnabledError() from e
                 # Unexpected error; raise.
                 raise
 

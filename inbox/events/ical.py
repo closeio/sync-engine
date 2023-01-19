@@ -1,3 +1,4 @@
+import quopri
 import sys
 import traceback
 from datetime import date, datetime
@@ -269,6 +270,17 @@ def events_from_ics(namespace, calendar, ics_str):
 
             location = component.get("location")
             uid = str(component.get("uid"))
+            # It seems some ICS files don't follow common sense and
+            # use non-ASCII characters in uids. We are gonna use
+            # quoted-printable to ensure those are always ASCII.
+            # Note that quoted-printable also splits long strings
+            # into several lines with `"=\n"` and we don't want that
+            uid = (
+                quopri.encodestring(uid.encode("utf-8"))
+                .decode("ascii")
+                .replace("=\n", "")
+            )
+
             sequence_number = int(component.get("sequence", 0))
 
             # Some services (I'm looking at you, http://www.foogi.me/)

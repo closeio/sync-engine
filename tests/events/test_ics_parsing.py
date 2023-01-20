@@ -669,3 +669,15 @@ def test_event_with_organizer_list(db, default_account):
     (event,) = events["rsvps"]
 
     assert event.owner == '"Example1, Example2" <example@example.com>'
+
+
+def test_event_with_non_ascii_uid(db, default_account):
+    with open(absolute_path(FIXTURES + "event_with_non_ascii_uid.ics")) as fd:
+        data = fd.read()
+
+    events = events_from_ics(
+        default_account.namespace, default_account.emailed_events_calendar, data
+    )
+    (event,) = events["rsvps"]
+
+    assert event.uid == "Doppelg=C3=A4nger TechTalk"

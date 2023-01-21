@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 RUN groupadd -g 5000 sync-engine \
   && useradd -d /home/sync-engine -m -u 5000 -g 5000 sync-engine
@@ -23,7 +23,8 @@ RUN echo $BUILD_WEEK && apt-get update \
     gettext-base \
     language-pack-en \
     libcurl4-openssl-dev \
-    libmysqlclient-dev \
+    # libmysqlclient-dev \
+    libmariadb-dev-compat \
     libxml2-dev \
     libxslt-dev \
     libxslt1-dev \

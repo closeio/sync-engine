@@ -68,7 +68,14 @@ def strip_tags(html: str) -> str:
     You are responsible for handling it in the calling function.
     """
     s = HTMLTagStripper()
-    s.feed(html)
+
+    try:
+        s.feed(html)
+    except AssertionError as e:
+        if e.args[0].startswith("unknown status keyword"):
+            raise HTMLParseError(*e.args) from e
+        raise
+
     return s.get_data()
 
 

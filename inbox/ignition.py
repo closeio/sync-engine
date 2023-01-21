@@ -7,6 +7,7 @@ from warnings import filterwarnings
 
 import gevent
 import limitlion
+import MySQLdb
 import redis
 from sqlalchemy import create_engine, event
 
@@ -62,6 +63,15 @@ def engine(
     pool_timeout=DB_POOL_TIMEOUT,
     echo=False,
 ):
+    connect_args = {
+        "binary_prefix": True,
+        "charset": "utf8mb4",
+        "connect_timeout": 60,
+    }
+
+    if MySQLdb.version_info < (1, 4):
+        connect_args["waiter"] = gevent_waiter
+
     engine = create_engine(
         database_uri,
         poolclass=ForceStrictModePool,
@@ -71,12 +81,7 @@ def engine(
         pool_timeout=pool_timeout,
         pool_recycle=3600,
         max_overflow=max_overflow,
-        connect_args={
-            "binary_prefix": True,
-            "charset": "utf8mb4",
-            "waiter": gevent_waiter,
-            "connect_timeout": 60,
-        },
+        connect_args=connect_args,
     )
 
     @event.listens_for(engine, "checkout")

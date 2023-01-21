@@ -1,6 +1,10 @@
 import time
 
-import _mysql_exceptions
+try:
+    import _mysql_exceptions
+except ImportError:
+    import MySQLdb._exceptions as _mysql_exceptions
+
 import pytest
 from gevent import GreenletExit, socket
 from sqlalchemy.exc import StatementError

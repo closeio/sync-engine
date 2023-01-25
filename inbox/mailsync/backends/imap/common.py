@@ -12,7 +12,7 @@ accounts.
 
 """
 from datetime import datetime
-from typing import Any
+from typing import Any, Iterable, Set
 
 from sqlalchemy import bindparam, desc
 from sqlalchemy.orm.exc import NoResultFound
@@ -23,6 +23,7 @@ from inbox.crispin import RawMessage
 from inbox.logging import get_logger
 from inbox.models import Account, ActionLog, Folder, Message, MessageCategory
 from inbox.models.backends.imap import ImapFolderInfo, ImapUid
+from inbox.models.category import Category
 from inbox.models.session import session_scope
 from inbox.models.util import reconcile_message
 
@@ -52,18 +53,20 @@ def lastseenuid(account_id, session, folder_id):
     return res or 0
 
 
-def update_message_metadata(session, account, message, is_draft):
+def update_message_metadata(
+    session, account: Account, message: Message, is_draft: bool
+) -> None:
     # Update the message's metadata.
-    uids = message.imapuids
+    imapuids: Iterable[ImapUid] = message.imapuids
 
-    message.is_read = any(i.is_seen for i in uids)
-    message.is_starred = any(i.is_flagged for i in uids)
+    message.is_read = any(imapuid.is_seen for imapuid in imapuids)
+    message.is_starred = any(imapuid.is_flagged for imapuid in imapuids)
     message.is_draft = is_draft
 
-    categories = set()
+    categories: Set[Category] = set()
 
-    for i in uids:
-        categories.update(i.categories)
+    for impauid in imapuids:
+        categories.update(impauid.categories)
 
     if account.category_type == "folder":
         categories = {_select_category(categories)} if categories else set()
@@ -78,8 +81,12 @@ def update_message_metadata(session, account, message, is_draft):
     # ones and remove old ones. That way we don't re-create them, which both
     # saves on database queries and also lets use rely on the message category
     # creation timestamp to determine when the message was added to a category.
-    old_categories = [c for c in message.categories if c not in categories]
-    new_categories = [c for c in categories if c not in message.categories]
+    old_categories = [
+        category for category in message.categories if category not in categories
+    ]
+    new_categories = [
+        category for category in categories if category not in message.categories
+    ]
     for category in old_categories:
         message.categories.remove(category)
     for category in new_categories:
@@ -278,7 +285,7 @@ def create_imap_message(
     return imapuid
 
 
-def _select_category(categories):
+def _select_category(categories: Iterable[Category]) -> Category:
     # TODO[k]: Implement proper ranking function
     return list(categories)[0]
 

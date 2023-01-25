@@ -1,6 +1,7 @@
 import os
 import traceback
 from datetime import datetime
+from typing import Literal
 
 from sqlalchemy import (
     BigInteger,
@@ -44,6 +45,9 @@ log = get_logger()
 # GmailAccount
 
 
+CategoryType = Literal["folder", "label"]
+
+
 class Account(
     MailSyncBase,
     HasPublicID,
@@ -75,7 +79,7 @@ class Account(
         return self.provider
 
     @property
-    def category_type(self):
+    def category_type(self) -> CategoryType:
         """
         Whether the account is organized by folders or labels
         ('folder'/ 'label'), depending on the provider.

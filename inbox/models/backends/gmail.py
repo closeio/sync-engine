@@ -2,6 +2,7 @@ from sqlalchemy import Column, ForeignKey, String
 
 from inbox.config import config
 from inbox.logging import get_logger
+from inbox.models.account import CategoryType
 from inbox.models.backends.calendar_sync_account import CalendarSyncAccountMixin
 from inbox.models.backends.imap import ImapAccount
 from inbox.models.backends.oauth import OAuthAccount
@@ -47,7 +48,7 @@ class GmailAccount(CalendarSyncAccountMixin, OAuthAccount, ImapAccount):
         return PROVIDER
 
     @property
-    def category_type(self):
+    def category_type(self) -> CategoryType:
         return "label"
 
     @property

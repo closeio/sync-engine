@@ -12,7 +12,7 @@ accounts.
 
 """
 from datetime import datetime
-from typing import Any, Iterable, Set
+from typing import Any, List, Set
 
 from sqlalchemy import bindparam, desc
 from sqlalchemy.orm.exc import NoResultFound
@@ -56,20 +56,36 @@ def lastseenuid(account_id, session, folder_id):
 def update_message_metadata(
     session, account: Account, message: Message, is_draft: bool
 ) -> None:
-    # Update the message's metadata.
-    imapuids: Iterable[ImapUid] = message.imapuids
+    """Update the message's metadata"""
+    # Sort imapuids in a way that the ones that were added later come last
+    now = datetime.utcnow()
+    sorted_imapuids: List[ImapUid] = sorted(
+        message.imapuids, key=lambda imapuid: imapuid.updated_at or now
+    )
 
-    message.is_read = any(imapuid.is_seen for imapuid in imapuids)
-    message.is_starred = any(imapuid.is_flagged for imapuid in imapuids)
+    message.is_read = any(imapuid.is_seen for imapuid in sorted_imapuids)
+    message.is_starred = any(imapuid.is_flagged for imapuid in sorted_imapuids)
     message.is_draft = is_draft
 
-    categories: Set[Category] = set()
+    sorted_categories: List[Category] = [
+        category for imapuid in sorted_imapuids for category in imapuid.categories
+    ]
 
-    for impauid in imapuids:
-        categories.update(impauid.categories)
-
+    categories: Set[Category]
     if account.category_type == "folder":
-        categories = {_select_category(categories)} if categories else set()
+        # For generic IMAP we want to deterministically select the last category.
+        # A message will always be in a single folder but it seems that for some
+        # on-prem servers we are not able to reliably detect when a message is moved
+        # between folders and we end up with many folders in our MySQL.
+        # Such message used to undeterministically appear in one of those folders
+        # (and in turn one category) depending on the order they were returned
+        # from the database. This makes it deterministic and more-correct because a message
+        # is likely in a folder (and category) it was added to last.
+        categories = {sorted_categories[-1]} if sorted_categories else set()
+    elif account.category_type == "label":
+        categories = set(sorted_categories)
+    else:
+        raise AssertionError("Unreachable")
 
     # Use a consistent time across creating categories, message updated_at
     # and the subsequent transaction that may be created.
@@ -283,11 +299,6 @@ def create_imap_message(
     update_contacts_from_message(db_session, new_message, account.namespace.id)
 
     return imapuid
-
-
-def _select_category(categories: Iterable[Category]) -> Category:
-    # TODO[k]: Implement proper ranking function
-    return list(categories)[0]
 
 
 def _update_categories(db_session, message, synced_categories):

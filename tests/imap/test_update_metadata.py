@@ -1,3 +1,4 @@
+import datetime
 import json
 
 import pytest
@@ -5,12 +6,16 @@ import pytest
 from inbox.crispin import Flags, GmailFlags
 from inbox.mailsync.backends.imap.common import update_message_metadata, update_metadata
 from inbox.models.backends.imap import ImapUid
+from inbox.models.folder import Folder
 
 from tests.util.base import (
     add_fake_folder,
     add_fake_imapuid,
     add_fake_message,
     add_fake_thread,
+    delete_imapuids,
+    delete_messages,
+    delete_threads,
 )
 
 
@@ -65,6 +70,54 @@ def test_update_categories_when_actionlog_entry_missing(
     db.session.commit()
     update_message_metadata(db.session, imapuid.account, message, False)
     assert message.categories == {imapuid.folder.category}
+
+
+@pytest.mark.parametrize(
+    "folder_roles,categories",
+    [
+        ([], set()),
+        (["inbox"], {"inbox"}),
+        (["inbox", "archive"], {"archive"}),
+        (["inbox", "trash"], {"trash"}),
+        (["inbox", "archive", "trash"], {"trash"}),
+    ],
+)
+def test_categories_from_multiple_imap_folders(
+    db, generic_account, folder_roles, categories
+):
+    """
+    This tests that if we somehow think that a message is inside
+    many folders simultanously, we should categorize it with the one
+    it was added to last.
+
+    This should not happen in practice as with generic IMAP a message will always be
+    in a single folder but it seems that for some on-prem servers we are not
+    able to reliably detect when a message is moved between folders and we end
+    up with many folders in our MySQL. Such message used to undeterministically
+    appear in one of those folders depending on the order they were returned
+    from the database. This makes it deterministic and more-correct because a message
+    is likely in a folder it was added to last.
+    """
+    thread = add_fake_thread(db.session, generic_account.namespace.id)
+    message = add_fake_message(db.session, generic_account.namespace.id, thread)
+    for delay, folder_role in enumerate(folder_roles):
+        folder = Folder.find_or_create(
+            db.session, generic_account, folder_role, folder_role
+        )
+        imapuid = add_fake_imapuid(
+            db.session, generic_account.id, message, folder, 2222
+        )
+        # Simulate that time passed since those timestamps have second resolution
+        # and this executes fast enough that all of them would be the same otherwise
+        imapuid.updated_at = imapuid.updated_at + datetime.timedelta(seconds=delay)
+        db.session.commit()
+
+    update_message_metadata(db.session, generic_account, message, False)
+    assert {category.name for category in message.categories} == categories
+
+    delete_imapuids(db.session)
+    delete_messages(db.session)
+    delete_threads(db.session)
 
 
 def test_truncate_imapuid_extra_flags(db, default_account, message, folder):

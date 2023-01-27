@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from typing import List
+from typing import List, Set
 
 from sqlalchemy import (
     BigInteger,
@@ -22,6 +22,7 @@ from sqlalchemy.sql.expression import false
 from inbox.logging import get_logger
 from inbox.models.account import Account
 from inbox.models.base import MailSyncBase
+from inbox.models.category import Category
 from inbox.models.folder import Folder
 from inbox.models.label import Label
 from inbox.models.message import Message
@@ -209,8 +210,8 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         return self.imapaccount.namespace
 
     @property
-    def categories(self):
-        categories = {lbl.category for lbl in self.labels}
+    def categories(self) -> Set[Category]:
+        categories = {label.category for label in self.labels}
         categories.add(self.folder.category)
         return categories
 

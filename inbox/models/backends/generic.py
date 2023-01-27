@@ -3,6 +3,7 @@ from typing import Union
 from sqlalchemy import Boolean, Column, ForeignKey, String
 from sqlalchemy.orm import relationship
 
+from inbox.models.account import CategoryType
 from inbox.models.backends.imap import ImapAccount
 from inbox.models.secret import Secret
 
@@ -103,7 +104,7 @@ class GenericAccount(ImapAccount):
         self.smtp_secret.type = "password"
 
     @property
-    def category_type(self):
+    def category_type(self) -> CategoryType:
         if self.provider == "gmail":
             return "label"
         else:

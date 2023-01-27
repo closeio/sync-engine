@@ -1,6 +1,7 @@
 from sqlalchemy import Column, ForeignKey, String
 
 from inbox.config import config
+from inbox.models.account import CategoryType
 from inbox.models.backends.calendar_sync_account import CalendarSyncAccountMixin
 from inbox.models.backends.imap import ImapAccount
 from inbox.models.backends.oauth import OAuthAccount
@@ -60,7 +61,7 @@ class OutlookAccount(CalendarSyncAccountMixin, ImapAccount, OAuthAccount):
         return PROVIDER
 
     @property
-    def category_type(self):
+    def category_type(self) -> CategoryType:
         return "folder"
 
     @property

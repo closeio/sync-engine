@@ -17,6 +17,7 @@ from inbox.crispin import (
     GmailCrispinClient,
     GmailFlags,
     GMetadata,
+    RawFolder,
     RawMessage,
     localized_folder_names,
 )
@@ -783,3 +784,26 @@ def test_imap_many_folders_one_role(monkeypatch, constants):
         number_roles = 2 if (role in ["sent", "trash"]) else 1
         test_set = [x for x in raw_folders if x.role == role]
         assert len(test_set) == number_roles, f"assigned wrong number of {role}"
+
+
+def test_german_outlook(monkeypatch):
+    folders = [
+        ((b"\\Marked", b"\\HasNoChildren"), b"/", "Archiv"),
+        ((b"\\HasNoChildren", b"\\Drafts"), b"/", "Entwürfe"),
+        ((b"\\Marked", b"\\HasChildren", b"\\Trash"), b"/", "Gelöschte Elemente"),
+        ((b"\\Marked", b"\\HasNoChildren", b"\\Sent"), b"/", "Gesendete Elemente"),
+        ((b"\\Marked", b"\\HasNoChildren", b"\\Junk"), b"/", "Junk-E-Mail"),
+        ((b"\\Marked", b"\\HasNoChildren"), b"/", "INBOX"),
+    ]
+
+    client = patch_generic_client(monkeypatch, folders)
+    raw_folders = client.folders()
+
+    assert set(raw_folders) == {
+        RawFolder(display_name="Archiv", role="archive"),
+        RawFolder(display_name="Entwürfe", role="drafts"),
+        RawFolder(display_name="Gelöschte Elemente", role="trash"),
+        RawFolder(display_name="Gesendete Elemente", role="sent"),
+        RawFolder(display_name="Junk-E-Mail", role="spam"),
+        RawFolder(display_name="INBOX", role="inbox"),
+    }

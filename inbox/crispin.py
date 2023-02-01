@@ -698,6 +698,7 @@ class CrispinClient:
             "junk": "spam",
             "spam": "spam",
             "archive": "archive",
+            "archiv": "archive",
             "sent": "sent",
             "sent items": "sent",
             "trash": "trash",

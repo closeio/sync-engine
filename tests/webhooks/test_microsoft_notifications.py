@@ -34,6 +34,26 @@ def test_validate_webhook_payload_malformed(test_client):
     assert response.status_code == 400
 
 
+def test_validate_webhook_payload_missing_content_type(test_client):
+    response = test_client.post(
+        "/w/microsoft/calendar_list_update/fake_id", data='{"value": []}'
+    )
+
+    assert response.data.decode() == "Malformed JSON payload"
+    assert response.status_code == 400
+
+
+def test_validate_webhook_payload_with_content_type(test_client):
+    response = test_client.post(
+        "/w/microsoft/calendar_list_update/fake_id",
+        data='{"value": []}',
+        headers={"Content-Type": "application/json"},
+    )
+
+    assert response.data.decode() == "Couldn't find account 'fake_id'"
+    assert response.status_code == 404
+
+
 bad_client_state_payload = {
     "value": [
         {

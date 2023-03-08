@@ -51,6 +51,13 @@ def test_get_microsoft_timezone(windows_tz_id, olson_tz_id):
             },
             datetime.datetime(2022, 9, 22, 16, 30, tzinfo=pytz.UTC),
         ),
+        (
+            {
+                "dateTime": "0001-01-01T00:00:00.0000000Z",
+                "timeZone": "tzone://Microsoft/Utc",
+            },
+            datetime.datetime(1, 1, 1, tzinfo=pytz.UTC),
+        ),
     ],
 )
 def test_parse_msggraph_datetime_tz_as_utc(datetime_tz, dt):

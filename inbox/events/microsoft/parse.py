@@ -81,6 +81,14 @@ def parse_msgraph_datetime_tz_as_utc(datetime_tz: MsGraphDateTimeTimeZone):
     # so we need to use ciso8601 because Python stdlib only supports up to 6.
     dt = ciso8601.parse_datetime(datetime_tz["dateTime"])
 
+    # Microsoft sometimes returns payloads such as this one:
+    # {"dateTime": "0001-01-01T00:00:00.0000000Z", "timeZone": "tzone://Microsoft/Utc"}
+    # We're removing the timezone from the parsed datetime, otherwise
+    # `tzinfo.localize` would fail. This datetime is obviously not correct
+    # anyway.
+    if dt.tzinfo and dt == datetime.datetime(1, 1, 1, tzinfo=pytz.UTC):
+        dt = dt.replace(tzinfo=None)
+
     return tzinfo.localize(dt).astimezone(pytz.UTC)
 
 

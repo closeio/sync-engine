@@ -42,6 +42,7 @@ def format_categories(categories):
             "display_name": category.api_display_name,
         }
         for category in categories
+        if category
     ]
 
 
@@ -50,12 +51,13 @@ def format_messagecategories(messagecategories):
         return []
     return [
         {
-            "id": mc.category.public_id,
-            "name": mc.category.name or None,
-            "display_name": mc.category.api_display_name,
-            "created_timestamp": mc.created_at,
+            "id": message_category.category.public_id,
+            "name": message_category.category.name or None,
+            "display_name": message_category.category.api_display_name,
+            "created_timestamp": message_category.created_at,
         }
-        for mc in messagecategories
+        for message_category in messagecategories
+        if message_category.category
     ]
 
 

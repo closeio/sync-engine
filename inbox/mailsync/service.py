@@ -144,7 +144,7 @@ class SyncService:
             shared_sync_event_queue_for_zone(self.zone).queue_name
             == event["queue_name"]
         ):
-            self.poll_shared_queue(event)
+            self.handle_shared_queue_event(event)
             return
 
         # We're going to re-evaluate the world so we don't need any of the
@@ -158,7 +158,7 @@ class SyncService:
             if event is None:
                 break
 
-    def poll_shared_queue(self, event):
+    def handle_shared_queue_event(self, event):
         # Conservatively, stop accepting accounts if the process pending averages
         # is over PENDING_AVGS_THRESHOLD or if the total of accounts being
         # synced by a single process exceeds the threshold. Excessive

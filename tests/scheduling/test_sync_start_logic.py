@@ -17,7 +17,8 @@ host = platform.node()
 
 def patched_sync_service(db, host=host, process_number=0):
     s = SyncService(
-        process_identifier=f"{host}:{process_number}", process_number=process_number,
+        process_identifier=f"{host}:{process_number}",
+        process_number=process_number,
     )
 
     def start_sync(aid):
@@ -98,8 +99,8 @@ def test_concurrent_syncs(monkeypatch, db, default_account, config):
     s2 = patched_sync_service(db, process_number=2)
     default_account.desired_sync_host = s1.process_identifier
     db.session.commit()
-    s1.poll({"queue_name": "foo"})
-    s2.poll({"queue_name": "foo"})
+    s1.poll()
+    s2.poll()
     # Check that only one SyncService instance claims the account.
     assert s1.start_sync.call_count == 1
     assert s1.start_sync.call_args == mock.call(default_account.id)
@@ -111,8 +112,8 @@ def test_twice_queued_accounts_started_once(monkeypatch, db, default_account):
     s = patched_sync_service(db)
     default_account.desired_sync_host = s.process_identifier
     db.session.commit()
-    s.poll({"queue_name": "foo"})
-    s.poll({"queue_name": "foo"})
+    s.poll()
+    s.poll()
     assert default_account.sync_host == s.process_identifier
     assert s.start_sync.call_count == 1
 
@@ -145,13 +146,13 @@ def test_external_sync_disabling(monkeypatch, db):
     assert account.sync_state == "invalid"
     assert account._sync_status["sync_disabled_reason"] == "invalid credentials"
 
-    s.poll({"queue_name": "foo"})
+    s.poll()
     assert s.syncing_accounts == {other_account.id}
 
 
 def test_http_frontend(db, default_account, monkeypatch):
     s = patched_sync_service(db)
-    s.poll({"queue_name": "foo"})
+    s.poll()
 
     monkeypatch.setattr("pympler.muppy.get_objects", lambda *args: [])
     monkeypatch.setattr("pympler.summary.summarize", lambda *args: [])

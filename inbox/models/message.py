@@ -599,15 +599,15 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     def calculate_body(
         self, html_parts: List[bytes], plain_parts: List[bytes], store_body: bool = True
     ) -> None:
-        html_body = b"".join(html_parts).decode("utf-8").strip()
-        plain_body = b"\n".join(plain_parts).decode("utf-8").strip()
-        if html_body:
+        if any(html_parts):
+            html_body = b"".join(html_parts).decode("utf-8").strip()
             self.snippet = self.calculate_html_snippet(html_body)
             if store_body:
                 self.body = html_body
             else:
                 self.body = None
-        elif plain_body:
+        elif any(plain_parts):
+            plain_body = b"\n".join(plain_parts).decode("utf-8").strip()
             self.snippet = self.calculate_plaintext_snippet(plain_body)
             if store_body:
                 self.body = plaintext2html(plain_body, False)

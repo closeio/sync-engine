@@ -517,14 +517,16 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         if is_text:
             if data is None:
                 return
-            normalized_data: bytes = data.encode("utf-8", "strict")
-            normalized_data = normalized_data.replace(b"\r\n", b"\n").replace(
-                b"\r", b"\n"
-            )
-            if content_type == "text/html":
-                html_parts.append(normalized_data)
-            elif content_type == "text/plain":
-                plain_parts.append(normalized_data)
+
+            if content_type in ["text/html", "text/plain"]:
+                normalized_data: bytes = data.encode("utf-8", "strict")
+                normalized_data = normalized_data.replace(b"\r\n", b"\n").replace(
+                    b"\r", b"\n"
+                )
+                if content_type == "text/html":
+                    html_parts.append(normalized_data)
+                elif content_type == "text/plain":
+                    plain_parts.append(normalized_data)
             else:
                 log.info(
                     "Saving other text MIME part as attachment",

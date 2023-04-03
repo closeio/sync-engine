@@ -525,7 +525,11 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                 )
                 if content_type == "text/html":
                     html_parts.append(normalized_data)
-                elif content_type == "text/plain":
+                elif content_type == "text/plain" and not html_parts:
+                    # either html_parts or plain_parts are used to calculate
+                    # message body and snippet in calculate_body but not
+                    # both at the same time. As soon as we have at least one
+                    # html part we can stop collecting plain ones.
                     plain_parts.append(normalized_data)
             else:
                 log.info(

@@ -87,6 +87,10 @@ def _trim_filename(
     return s
 
 
+def normalize_data(data: str) -> bytes:
+    return data.encode("utf-8", "strict").replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+
+
 class MessageTooBigException(Exception):
     def __init__(self, body_length):
         super().__init__(f"message length ({body_length}) is over the parsing limit")
@@ -525,22 +529,18 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             return
 
         if is_text:
-            if mimepart.body is None:
+            if not mimepart.size:
                 return
 
-            if content_type in ["text/html", "text/plain"]:
-                normalized_data: bytes = mimepart.body.encode("utf-8", "strict")
-                normalized_data = normalized_data.replace(b"\r\n", b"\n").replace(
-                    b"\r", b"\n"
-                )
-                if content_type == "text/html":
-                    html_parts.append(normalized_data)
-                elif content_type == "text/plain" and not html_parts:
+            if content_type == "text/html":
+                html_parts.append(normalize_data(mimepart.body))
+            elif content_type == "text/plain":
+                if not html_parts:
                     # either html_parts or plain_parts are used to calculate
                     # message body and snippet in calculate_body but not
                     # both at the same time. As soon as we have at least one
                     # html part we can stop collecting plain ones.
-                    plain_parts.append(normalized_data)
+                    plain_parts.append(normalize_data(mimepart.body))
             else:
                 log.info(
                     "Saving other text MIME part as attachment",

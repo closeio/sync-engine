@@ -485,8 +485,6 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         if filename == "":
             filename = None
 
-        data: Optional[str] = mimepart.body
-
         is_text = content_type.startswith("text")
         if disposition not in (None, "inline", "attachment"):
             log.error(
@@ -499,7 +497,13 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
         if disposition == "attachment":
             self._save_attachment(
-                data, disposition, content_type, filename, content_id, namespace_id, mid
+                mimepart.body,
+                disposition,
+                content_type,
+                filename,
+                content_id,
+                namespace_id,
+                mid,
             )
             return
 
@@ -510,16 +514,22 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             # that we really want to treat as part of the text body. Don't
             # treat those as attachments.
             self._save_attachment(
-                data, disposition, content_type, filename, content_id, namespace_id, mid
+                mimepart.body,
+                disposition,
+                content_type,
+                filename,
+                content_id,
+                namespace_id,
+                mid,
             )
             return
 
         if is_text:
-            if data is None:
+            if mimepart.body is None:
                 return
 
             if content_type in ["text/html", "text/plain"]:
-                normalized_data: bytes = data.encode("utf-8", "strict")
+                normalized_data: bytes = mimepart.body.encode("utf-8", "strict")
                 normalized_data = normalized_data.replace(b"\r\n", b"\n").replace(
                     b"\r", b"\n"
                 )
@@ -538,7 +548,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                     namespace_id=namespace_id,
                 )
                 self._save_attachment(
-                    data,
+                    mimepart.body,
                     "attachment",
                     content_type,
                     filename,
@@ -551,7 +561,13 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         # Finally, if we get a non-text MIME part without Content-Disposition,
         # treat it as an attachment.
         self._save_attachment(
-            data, "attachment", content_type, filename, content_id, namespace_id, mid
+            mimepart.body,
+            "attachment",
+            content_type,
+            filename,
+            content_id,
+            namespace_id,
+            mid,
         )
 
     def _save_attachment(

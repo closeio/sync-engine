@@ -87,8 +87,8 @@ def _trim_filename(
     return s
 
 
-def normalize_data(data: str) -> bytes:
-    return data.encode("utf-8", "strict").replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+def normalize_data(data: str) -> str:
+    return data.replace("\r\n", "\n").replace("\r", "\n")
 
 
 class MessageTooBigException(Exception):
@@ -351,8 +351,8 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             msg._mark_error()
 
         if parsed is not None:
-            plain_parts: List[bytes] = []
-            html_parts: List[bytes] = []
+            plain_parts: List[str] = []
+            html_parts: List[str] = []
             for mimepart in parsed.walk(with_self=parsed.content_type.is_singlepart()):
                 try:
                     if mimepart.content_type.is_multipart():
@@ -478,8 +478,8 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         mid: int,
         mimepart: MimePart,
         namespace_id: int,
-        html_parts: List[bytes],
-        plain_parts: List[bytes],
+        html_parts: List[str],
+        plain_parts: List[str],
     ) -> None:
         disposition, _ = mimepart.content_disposition
         content_id: Optional[str] = mimepart.headers.get("Content-Id")
@@ -619,17 +619,17 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             self.snippet = ""
 
     def calculate_body(
-        self, html_parts: List[bytes], plain_parts: List[bytes], store_body: bool = True
+        self, html_parts: List[str], plain_parts: List[str], store_body: bool = True
     ) -> None:
         if any(html_parts):
-            html_body = b"".join(html_parts).decode("utf-8").strip()
+            html_body = "".join(html_parts).strip()
             self.snippet = self.calculate_html_snippet(html_body)
             if store_body:
                 self.body = html_body
             else:
                 self.body = None
         elif any(plain_parts):
-            plain_body = b"\n".join(plain_parts).decode("utf-8").strip()
+            plain_body = "\n".join(plain_parts).strip()
             self.snippet = self.calculate_plaintext_snippet(plain_body)
             if store_body:
                 self.body = plaintext2html(plain_body, False)

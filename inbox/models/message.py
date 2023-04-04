@@ -489,6 +489,12 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         if filename == "":
             filename = None
 
+        # Caution: Don't access mimepart.body unless you are sure
+        # you are gonna need it in further processing. Reading this
+        # attribute increases memory pressure siginificantly as it
+        # immediately triggers decoding behind the scenes.
+        # See: https://github.com/closeio/sync-engine/pull/480
+
         is_text = content_type.startswith("text")
         if disposition not in (None, "inline", "attachment"):
             log.error(
@@ -536,7 +542,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                 html_parts.append(normalize_data(mimepart.body))
             elif content_type == "text/plain":
                 if not html_parts:
-                    # either html_parts or plain_parts are used to calculate
+                    # Either html_parts or plain_parts are used to calculate
                     # message body and snippet in calculate_body but not
                     # both at the same time. As soon as we have at least one
                     # html part we can stop collecting plain ones.
@@ -621,6 +627,12 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     def calculate_body(
         self, html_parts: List[str], plain_parts: List[str], store_body: bool = True
     ) -> None:
+        """
+        Calculate short message snippet and optionally store the entire body.
+
+        This prefers text/html parts over text/plain parts i.e. as soon
+        as there is at least one text/html part text/plain parts are irrelevant.
+        """
         if any(html_parts):
             html_body = "".join(html_parts).strip()
             self.snippet = self.calculate_html_snippet(html_body)

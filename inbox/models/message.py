@@ -87,6 +87,10 @@ def _trim_filename(
     return s
 
 
+def normalize_data(data: str) -> str:
+    return data.replace("\r\n", "\n").replace("\r", "\n")
+
+
 class MessageTooBigException(Exception):
     def __init__(self, body_length):
         super().__init__(f"message length ({body_length}) is over the parsing limit")
@@ -347,8 +351,8 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             msg._mark_error()
 
         if parsed is not None:
-            plain_parts: List[bytes] = []
-            html_parts: List[bytes] = []
+            plain_parts: List[str] = []
+            html_parts: List[str] = []
             for mimepart in parsed.walk(with_self=parsed.content_type.is_singlepart()):
                 try:
                     if mimepart.content_type.is_multipart():
@@ -474,8 +478,8 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         mid: int,
         mimepart: MimePart,
         namespace_id: int,
-        html_parts: List[bytes],
-        plain_parts: List[bytes],
+        html_parts: List[str],
+        plain_parts: List[str],
     ) -> None:
         disposition, _ = mimepart.content_disposition
         content_id: Optional[str] = mimepart.headers.get("Content-Id")
@@ -485,7 +489,11 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         if filename == "":
             filename = None
 
-        data: Optional[str] = mimepart.body
+        # Caution: Don't access mimepart.body unless you are sure
+        # you are gonna need it in further processing. Reading this
+        # attribute increases memory pressure siginificantly as it
+        # immediately triggers decoding behind the scenes.
+        # See: https://github.com/closeio/sync-engine/pull/480
 
         is_text = content_type.startswith("text")
         if disposition not in (None, "inline", "attachment"):
@@ -499,7 +507,13 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
         if disposition == "attachment":
             self._save_attachment(
-                data, disposition, content_type, filename, content_id, namespace_id, mid
+                mimepart.body,
+                disposition,
+                content_type,
+                filename,
+                content_id,
+                namespace_id,
+                mid,
             )
             return
 
@@ -510,21 +524,29 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             # that we really want to treat as part of the text body. Don't
             # treat those as attachments.
             self._save_attachment(
-                data, disposition, content_type, filename, content_id, namespace_id, mid
+                mimepart.body,
+                disposition,
+                content_type,
+                filename,
+                content_id,
+                namespace_id,
+                mid,
             )
             return
 
         if is_text:
-            if data is None:
+            if not mimepart.size:
                 return
-            normalized_data: bytes = data.encode("utf-8", "strict")
-            normalized_data = normalized_data.replace(b"\r\n", b"\n").replace(
-                b"\r", b"\n"
-            )
+
             if content_type == "text/html":
-                html_parts.append(normalized_data)
+                html_parts.append(normalize_data(mimepart.body))
             elif content_type == "text/plain":
-                plain_parts.append(normalized_data)
+                if not html_parts:
+                    # Either html_parts or plain_parts are used to calculate
+                    # message body and snippet in calculate_body but not
+                    # both at the same time. As soon as we have at least one
+                    # html part we can stop collecting plain ones.
+                    plain_parts.append(normalize_data(mimepart.body))
             else:
                 log.info(
                     "Saving other text MIME part as attachment",
@@ -532,7 +554,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                     namespace_id=namespace_id,
                 )
                 self._save_attachment(
-                    data,
+                    mimepart.body,
                     "attachment",
                     content_type,
                     filename,
@@ -545,7 +567,13 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         # Finally, if we get a non-text MIME part without Content-Disposition,
         # treat it as an attachment.
         self._save_attachment(
-            data, "attachment", content_type, filename, content_id, namespace_id, mid
+            mimepart.body,
+            "attachment",
+            content_type,
+            filename,
+            content_id,
+            namespace_id,
+            mid,
         )
 
     def _save_attachment(
@@ -597,17 +625,23 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             self.snippet = ""
 
     def calculate_body(
-        self, html_parts: List[bytes], plain_parts: List[bytes], store_body: bool = True
+        self, html_parts: List[str], plain_parts: List[str], store_body: bool = True
     ) -> None:
-        html_body = b"".join(html_parts).decode("utf-8").strip()
-        plain_body = b"\n".join(plain_parts).decode("utf-8").strip()
-        if html_body:
+        """
+        Calculate short message snippet and optionally store the entire body.
+
+        This prefers text/html parts over text/plain parts i.e. as soon
+        as there is at least one text/html part text/plain parts are irrelevant.
+        """
+        if any(html_parts):
+            html_body = "".join(html_parts).strip()
             self.snippet = self.calculate_html_snippet(html_body)
             if store_body:
                 self.body = html_body
             else:
                 self.body = None
-        elif plain_body:
+        elif any(plain_parts):
+            plain_body = "\n".join(plain_parts).strip()
             self.snippet = self.calculate_plaintext_snippet(plain_body)
             if store_body:
                 self.body = plaintext2html(plain_body, False)

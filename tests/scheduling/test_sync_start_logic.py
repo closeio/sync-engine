@@ -60,7 +60,7 @@ def test_start_new_accounts_when_stealing_enabled(
     default_account.sync_host = None
     db.session.commit()
 
-    s.poll_shared_queue({"queue_name": "foo", "id": default_account.id})
+    s.handle_shared_queue_event({"queue_name": "foo", "id": default_account.id})
     assert s.start_sync.call_count == 1
     assert s.start_sync.call_args == mock.call(default_account.id)
 
@@ -77,7 +77,7 @@ def test_dont_start_accounts_if_over_ppa_limit(
     s._pending_avgs_provider = mock.Mock()
     s._pending_avgs_provider.get_pending_avgs = lambda *args: {15: 11}
 
-    s.poll_shared_queue({"queue_name": "foo", "id": default_account.id})
+    s.handle_shared_queue_event({"queue_name": "foo", "id": default_account.id})
     assert s.start_sync.call_count == 0
 
 
@@ -86,7 +86,7 @@ def test_dont_start_new_accounts_when_stealing_disabled(db, config, default_acco
     s = patched_sync_service(db)
     default_account.sync_host = None
     db.session.commit()
-    s.poll_shared_queue({"queue_name": "foo", "id": default_account.id})
+    s.handle_shared_queue_event({"queue_name": "foo", "id": default_account.id})
     assert s.start_sync.call_count == 0
 
 
@@ -98,8 +98,8 @@ def test_concurrent_syncs(monkeypatch, db, default_account, config):
     s2 = patched_sync_service(db, process_number=2)
     default_account.desired_sync_host = s1.process_identifier
     db.session.commit()
-    s1.poll({"queue_name": "foo"})
-    s2.poll({"queue_name": "foo"})
+    s1.poll()
+    s2.poll()
     # Check that only one SyncService instance claims the account.
     assert s1.start_sync.call_count == 1
     assert s1.start_sync.call_args == mock.call(default_account.id)
@@ -111,8 +111,8 @@ def test_twice_queued_accounts_started_once(monkeypatch, db, default_account):
     s = patched_sync_service(db)
     default_account.desired_sync_host = s.process_identifier
     db.session.commit()
-    s.poll({"queue_name": "foo"})
-    s.poll({"queue_name": "foo"})
+    s.poll()
+    s.poll()
     assert default_account.sync_host == s.process_identifier
     assert s.start_sync.call_count == 1
 
@@ -130,8 +130,8 @@ def test_external_sync_disabling(monkeypatch, db):
     db.session.commit()
     s = patched_sync_service(db)
 
-    s.poll_shared_queue({"queue_name": "foo", "id": account.id})
-    s.poll_shared_queue({"queue_name": "foo", "id": other_account.id})
+    s.handle_shared_queue_event({"queue_name": "foo", "id": account.id})
+    s.handle_shared_queue_event({"queue_name": "foo", "id": other_account.id})
     assert len(s.syncing_accounts) == 2
 
     account.mark_for_deletion()
@@ -145,13 +145,13 @@ def test_external_sync_disabling(monkeypatch, db):
     assert account.sync_state == "invalid"
     assert account._sync_status["sync_disabled_reason"] == "invalid credentials"
 
-    s.poll({"queue_name": "foo"})
+    s.poll()
     assert s.syncing_accounts == {other_account.id}
 
 
 def test_http_frontend(db, default_account, monkeypatch):
     s = patched_sync_service(db)
-    s.poll({"queue_name": "foo"})
+    s.poll()
 
     monkeypatch.setattr("pympler.muppy.get_objects", lambda *args: [])
     monkeypatch.setattr("pympler.summary.summarize", lambda *args: [])
@@ -175,7 +175,7 @@ def test_http_unassignment(db, default_account):
     default_account.desired_sync_host = None
     default_account.sync_host = None
     db.session.commit()
-    s.poll_shared_queue({"queue_name": "foo", "id": default_account.id})
+    s.handle_shared_queue_event({"queue_name": "foo", "id": default_account.id})
 
     frontend = SyncHTTPFrontend(s, 16384, False, False)
     app = frontend._create_app()
@@ -214,5 +214,5 @@ def test_start_accounts_w_sync_should_run_set(
     db.session.commit()
 
     s = patched_sync_service(db)
-    s.poll_shared_queue({"queue_name": "foo", "id": default_account.id})
+    s.handle_shared_queue_event({"queue_name": "foo", "id": default_account.id})
     assert s.start_sync.call_count == 1

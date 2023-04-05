@@ -132,7 +132,7 @@ class SyncService:
 
         """
         # When the service first starts we should check the state of the world.
-        self.poll({"queue_name": "none"})
+        self.poll()
         event = None
         while self.keep_running and event is None:
             event = self.queue_group.receive_event(timeout=self.poll_interval)
@@ -144,13 +144,13 @@ class SyncService:
             shared_sync_event_queue_for_zone(self.zone).queue_name
             == event["queue_name"]
         ):
-            self.poll_shared_queue(event)
+            self.handle_shared_queue_event(event)
             return
 
         # We're going to re-evaluate the world so we don't need any of the
         # other pending events in our private queue.
         self._flush_private_queue()
-        self.poll(event)
+        self.poll()
 
     def _flush_private_queue(self):
         while True:
@@ -158,7 +158,7 @@ class SyncService:
             if event is None:
                 break
 
-    def poll_shared_queue(self, event):
+    def handle_shared_queue_event(self, event):
         # Conservatively, stop accepting accounts if the process pending averages
         # is over PENDING_AVGS_THRESHOLD or if the total of accounts being
         # synced by a single process exceeds the threshold. Excessive
@@ -194,7 +194,7 @@ class SyncService:
         )
         shared_sync_event_queue_for_zone(self.zone).send_event(event)
 
-    def poll(self, event):
+    def poll(self):
         # Determine which accounts to sync
         start_accounts = self.account_ids_to_sync()
         statsd_client.gauge(

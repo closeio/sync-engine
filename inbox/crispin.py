@@ -321,6 +321,22 @@ retry_crispin = functools.partial(
     retry, retry_classes=CONN_RETRY_EXC_CLASSES, exc_callback=_exc_callback
 )
 
+import re
+
+simple_parse_uids = re.compile(b"^[0-9 ]+$")
+import imapclient.response_parser
+original_parse_message_list = imapclient.response_parser.parse_message_list
+
+
+def optimized_parse_message_list(data: List[bytes]) -> List[int]:
+    with contextlib.suppress(TypeError):
+        if len(data) == 1 and simple_parse_uids.match(data[0]):
+            return [int(n) for n in data[0].split(b" ") if n]
+
+    return original_parse_message_list(data)
+
+
+imapclient.response_parser.parse_message_list = optimized_parse_message_list
 
 class CrispinClient:
     """

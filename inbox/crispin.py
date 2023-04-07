@@ -10,6 +10,7 @@ from typing import (
     Callable,
     DefaultDict,
     Dict,
+    Iterable,
     List,
     NamedTuple,
     Optional,
@@ -18,6 +19,7 @@ from typing import (
     Union,
 )
 
+# import attrs
 import imapclient
 import imapclient.exceptions
 import imapclient.imap_utf7
@@ -100,6 +102,33 @@ RawFolder = namedtuple("RawFolder", "display_name role")
 # class RawFolder(NamedTuple):
 #     display_name: str
 #     role: Optional[str]
+
+
+def calculate_batch_intervals(maximum_uid: int, batch_size: int) -> Iterable[Tuple[int, int]]:
+    upper_bounds = range(maximum_uid, -batch_size + 1, -batch_size)
+    lower_bounds = range(maximum_uid - batch_size + 1, -batch_size + 1, -batch_size)
+    
+    yield from ((max(1, lower_bound), max(1, upper_bound)) for lower_bound, upper_bound in zip(lower_bounds, upper_bounds))
+
+
+# @attrs.define
+# class UidBatch:
+#     descending_uids: List[int]
+
+#     @classmethod
+#     def from_uids(cls, uids: Iterable[int]):
+#         descending_uids = sorted(uids, reverse=True)
+#         assert descending_uids
+
+#         return cls(descending_uids)
+
+#     @property
+#     def minimum_uid(self) -> int:
+#         return self.descending_uids[-1]
+    
+#     @property
+#     def maximum_uid(self) -> int:
+#         return self.descending_uids[0]
 
 # Lazily-initialized map of account ids to lock objects.
 # This prevents multiple greenlets from concurrently creating duplicate

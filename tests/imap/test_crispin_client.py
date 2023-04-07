@@ -19,6 +19,7 @@ from inbox.crispin import (
     GMetadata,
     RawFolder,
     RawMessage,
+    calculate_batch_intervals,
     localized_folder_names,
 )
 
@@ -807,3 +808,25 @@ def test_german_outlook(monkeypatch):
         RawFolder(display_name="Junk-E-Mail", role="spam"),
         RawFolder(display_name="INBOX", role="inbox"),
     }
+
+
+@pytest.mark.parametrize(
+    ("maximum_uid", "batch_size", "intervals"),
+    [
+        (10, 2, [(9, 10), (7, 8), (5, 6), (3, 4), (1, 2)]),
+        (10, 3, [(8, 10), (5, 7), (2, 4), (1, 1)]),
+        (10, 4, [(7, 10), (3, 6), (1, 2)]),
+        (10, 5, [(6, 10), (1, 5)]),
+        (10, 6, [(5, 10), (1, 4)]),
+        (10, 7, [(4, 10), (1, 3)]),
+        (10, 8, [(3, 10), (1, 2)]),
+        (10, 9, [(2, 10), (1, 1)]),
+        (10, 10, [(1, 10)]),
+        (10, 11, [(1, 10)]),
+        (10, 21, [(1, 10)]),
+        (8, 2, [(7, 8), (5, 6), (3, 4), (1, 2)]),
+        (5, 1, [(5, 5), (4, 4), (3, 3), (2, 2), (1, 1)]),
+    ]
+)
+def test_calculate_batch_intervals(maximum_uid, batch_size, intervals):
+    assert list(calculate_batch_intervals(maximum_uid, batch_size)) == intervals

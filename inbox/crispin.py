@@ -853,6 +853,26 @@ class CrispinClient:
         )
         return sorted(int(uid) for uid in fetch_result)
 
+    def batch_all_uids(self) -> Iterable[Tuple[int, int, List[int]]]:
+        remote_uidnext = self.conn.folder_status(
+            self.selected_folder_name, ["UIDNEXT"]
+        )[b"UIDNEXT"]
+
+        for lower_bound, upper_bound in calculate_batch_intervals(
+            remote_uidnext, 10_000
+        ):
+            t = time.time()
+            fetch_result = self.conn.search([f"{lower_bound}:{upper_bound}"])
+            elapsed = time.time() - t
+            log.debug(
+                "Requested batch of UIDs",
+                search_time=elapsed,
+                lower_bound=lower_bound,
+                upper_bound=upper_bound,
+                batch_uids=len(fetch_result),
+            )
+            yield lower_bound, upper_bound, sorted(int(uid) for uid in fetch_result)
+
     def uids(self, uids: List[int]) -> List[RawMessage]:
         uid_set = set(uids)
         imap_messages: Dict[int, Dict[bytes, Any]] = {}

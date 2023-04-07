@@ -30,16 +30,33 @@ from inbox.models.util import reconcile_message
 log = get_logger()
 
 
-def local_uids(account_id, session, folder_id, limit=None):
+def local_uids(
+    account_id, session, folder_id, *, limit=None, lower_bound=None, upper_bound=None
+):
+    if lower_bound or upper_bound:
+        assert lower_bound and upper_bound
+
     q = session.query(ImapUid.msg_uid)
     q = q.filter(
         ImapUid.account_id == bindparam("account_id"),
         ImapUid.folder_id == bindparam("folder_id"),
     )
+    if lower_bound and upper_bound:
+        q = q.filter(
+            ImapUid.msg_uid >= bindparam("lower_bound"),
+            ImapUid.msg_uid <= bindparam("upper_bound"),
+        )
     if limit:
         q = q.order_by(desc(ImapUid.msg_uid))
         q = q.limit(bindparam("limit"))
-    results = q.params(account_id=account_id, folder_id=folder_id, limit=limit).all()
+
+    results = q.params(
+        account_id=account_id,
+        folder_id=folder_id,
+        limit=limit,
+        lower_bound=lower_bound,
+        upper_bound=upper_bound,
+    ).all()
     return {u for u, in results}
 
 

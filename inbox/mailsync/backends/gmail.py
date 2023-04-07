@@ -241,33 +241,47 @@ class GmailFolderSyncEngine(FolderSyncEngine):
         # change_poller need to be killed when this greenlet is interrupted
         change_poller = None
         try:
-            remote_uids = sorted(crispin_client.all_uids(), key=int)
-            with self.syncmanager_lock:
-                with session_scope(self.namespace_id) as db_session:
-                    local_uids = common.local_uids(
-                        self.account_id, db_session, self.folder_id
+            for (
+                lower_bound,
+                upper_bound,
+                remote_uids,
+            ) in crispin_client.batch_all_uids():
+                remote_uids = sorted(remote_uids, key=int)
+                with self.syncmanager_lock:
+                    with session_scope(self.namespace_id) as db_session:
+                        local_uids = common.local_uids(
+                            self.account_id,
+                            db_session,
+                            self.folder_id,
+                            lower_bound=lower_bound,
+                            upper_bound=upper_bound,
+                        )
+                    common.remove_deleted_uids(
+                        self.account_id,
+                        self.folder_id,
+                        set(local_uids) - set(remote_uids),
                     )
-                common.remove_deleted_uids(
-                    self.account_id, self.folder_id, set(local_uids) - set(remote_uids)
-                )
-                unknown_uids = set(remote_uids) - local_uids
-                with session_scope(self.namespace_id) as db_session:
-                    self.update_uid_counts(
-                        db_session,
-                        remote_uid_count=len(remote_uids),
-                        download_uid_count=len(unknown_uids),
+                    unknown_uids = set(remote_uids) - local_uids
+                    # with session_scope(self.namespace_id) as db_session:
+                    #     self.update_uid_counts(
+                    #         db_session,
+                    #         remote_uid_count=len(remote_uids),
+                    #         download_uid_count=len(unknown_uids),
+                    #     )
+
+                if not change_poller:
+                    change_poller = gevent.spawn(self.poll_for_changes)
+                    bind_context(
+                        change_poller, "changepoller", self.account_id, self.folder_id
                     )
 
-            change_poller = gevent.spawn(self.poll_for_changes)
-            bind_context(change_poller, "changepoller", self.account_id, self.folder_id)
-
-            if self.is_all_mail(crispin_client):
-                # Prioritize UIDs for messages in the inbox folder.
-                if len(remote_uids) < 1e6:
-                    inbox_uids = set(
-                        crispin_client.search_uids(["X-GM-LABELS", "inbox"])
-                    )
-                else:
+                if self.is_all_mail(crispin_client):
+                    # Prioritize UIDs for messages in the inbox folder.
+                    # if len(remote_uids) < 1e6:
+                    #     inbox_uids = set(
+                    #         crispin_client.search_uids(["X-GM-LABELS", "inbox"])
+                    #     )
+                    # else:
                     # The search above is really slow (times out) on really
                     # large mailboxes, so bound the search to messages within
                     # the past month in order to get anywhere.
@@ -278,20 +292,22 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                         )
                     )
 
-                uids_to_download = sorted(unknown_uids - inbox_uids) + sorted(
-                    unknown_uids & inbox_uids
-                )
-            else:
-                uids_to_download = sorted(unknown_uids)
+                    uids_to_download = sorted(unknown_uids - inbox_uids) + sorted(
+                        unknown_uids & inbox_uids
+                    )
+                else:
+                    uids_to_download = sorted(unknown_uids)
 
-            for uids in chunk(reversed(uids_to_download), 1024):
-                g_metadata = crispin_client.g_metadata(uids)
-                # UIDs might have been expunged since sync started, in which
-                # case the g_metadata call above will return nothing.
-                # They may also have been preemptively downloaded by thread
-                # expansion. We can omit such UIDs.
-                uids = [u for u in uids if u in g_metadata and u not in self.saved_uids]
-                self.batch_download_uids(crispin_client, uids, g_metadata)
+                for uids in chunk(reversed(uids_to_download), 1024):
+                    g_metadata = crispin_client.g_metadata(uids)
+                    # UIDs might have been expunged since sync started, in which
+                    # case the g_metadata call above will return nothing.
+                    # They may also have been preemptively downloaded by thread
+                    # expansion. We can omit such UIDs.
+                    uids = [
+                        u for u in uids if u in g_metadata and u not in self.saved_uids
+                    ]
+                    self.batch_download_uids(crispin_client, uids, g_metadata)
         finally:
             if change_poller is not None:
                 # schedule change_poller to die

@@ -826,7 +826,7 @@ def test_german_outlook(monkeypatch):
         (10, 21, [(1, 10)]),
         (8, 2, [(7, 8), (5, 6), (3, 4), (1, 2)]),
         (5, 1, [(5, 5), (4, 4), (3, 3), (2, 2), (1, 1)]),
-    ]
+    ],
 )
 def test_calculate_batch_intervals(maximum_uid, batch_size, intervals):
     assert list(calculate_batch_intervals(maximum_uid, batch_size)) == intervals

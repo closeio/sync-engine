@@ -23,7 +23,6 @@ from typing import (
 import imapclient
 import imapclient.exceptions
 import imapclient.imap_utf7
-import imapclient.response_parser
 
 # Prevent "got more than 1000000 bytes" errors for servers that send more data.
 imaplib._MAXLINE = 10000000  # type: ignore
@@ -104,11 +103,16 @@ RawFolder = namedtuple("RawFolder", "display_name role")
 #     role: Optional[str]
 
 
-def calculate_batch_intervals(maximum_uid: int, batch_size: int) -> Iterable[Tuple[int, int]]:
+def calculate_batch_intervals(
+    maximum_uid: int, batch_size: int
+) -> Iterable[Tuple[int, int]]:
     upper_bounds = range(maximum_uid, -batch_size + 1, -batch_size)
     lower_bounds = range(maximum_uid - batch_size + 1, -batch_size + 1, -batch_size)
-    
-    yield from ((max(1, lower_bound), max(1, upper_bound)) for lower_bound, upper_bound in zip(lower_bounds, upper_bounds))
+
+    yield from (
+        (max(1, lower_bound), max(1, upper_bound))
+        for lower_bound, upper_bound in zip(lower_bounds, upper_bounds)
+    )
 
 
 # @attrs.define
@@ -125,7 +129,7 @@ def calculate_batch_intervals(maximum_uid: int, batch_size: int) -> Iterable[Tup
 #     @property
 #     def minimum_uid(self) -> int:
 #         return self.descending_uids[-1]
-    
+
 #     @property
 #     def maximum_uid(self) -> int:
 #         return self.descending_uids[0]
@@ -354,6 +358,7 @@ import re
 
 simple_parse_uids = re.compile(b"^[0-9 ]+$")
 import imapclient.response_parser
+
 original_parse_message_list = imapclient.response_parser.parse_message_list
 
 
@@ -366,6 +371,7 @@ def optimized_parse_message_list(data: List[bytes]) -> List[int]:
 
 
 imapclient.response_parser.parse_message_list = optimized_parse_message_list
+
 
 class CrispinClient:
     """

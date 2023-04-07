@@ -184,7 +184,12 @@ class MockIMAPClient:
         uid_dict = self._data[self.selected_folder]
         if criteria == ["ALL"]:
             return list(uid_dict)
-        if criteria == ["X-GM-LABELS", "inbox"]:
+        if len(criteria) == 1 and ":" in criteria[0]:
+            lower_bound, upper_bound = criteria[0].split(":")
+            lower_bound = int(lower_bound)
+            upper_bound = int(upper_bound)
+            return [uid for uid in uid_dict if lower_bound <= uid <= upper_bound]
+        if criteria[:2] == ["X-GM-LABELS", "inbox"]:
             return [k for k, v in uid_dict.items() if b"\\Inbox," in v[b"X-GM-LABELS"]]
         if criteria[0] == "HEADER":
             name, value = criteria[1:]

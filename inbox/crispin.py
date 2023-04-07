@@ -859,7 +859,7 @@ class CrispinClient:
         )[b"UIDNEXT"]
 
         for lower_bound, upper_bound in calculate_batch_intervals(
-            remote_uidnext, 10_000
+            remote_uidnext, 1_000_000
         ):
             t = time.time()
             fetch_result = self.conn.search([f"{lower_bound}:{upper_bound}"])

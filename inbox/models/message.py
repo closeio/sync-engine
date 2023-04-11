@@ -1,6 +1,5 @@
 import datetime
 import itertools
-import json
 import os
 import typing
 from collections import defaultdict
@@ -47,13 +46,8 @@ from inbox.models.mixins import (
     UpdatedAtMixin,
 )
 from inbox.security.blobstorage import decode_blob, encode_blob
-from inbox.sqlalchemy_ext.util import (
-    JSON,
-    MAX_MYSQL_INTEGER,
-    MAX_TEXT_BYTES,
-    json_field_too_long,
-)
-from inbox.util.addr import parse_mimepart_address_header
+from inbox.sqlalchemy_ext.util import JSON, MAX_MYSQL_INTEGER, json_field_too_long
+from inbox.util.addr import HeaderTooBigException, parse_mimepart_address_header
 from inbox.util.blockstore import save_to_blockstore
 from inbox.util.encoding import unicode_safe_truncate
 from inbox.util.html import HTMLParseError, plaintext2html, strip_tags
@@ -100,22 +94,6 @@ def normalize_data(data: str) -> str:
 class MessageTooBigException(Exception):
     def __init__(self, body_length):
         super().__init__(f"message length ({body_length}) is over the parsing limit")
-
-
-class HeaderTooBigException(Exception):
-    def __init__(self, header):
-        super().__init__(f"header {header!r} length is over the parsing limit")
-
-
-def parse_and_validate_mimepart_address_header(
-    mimepart: MimePart, header: str
-) -> List[List[str]]:
-    parsed = parse_mimepart_address_header(mimepart, header)
-
-    if len(json.dumps(parsed).encode()) > MAX_TEXT_BYTES:
-        raise HeaderTooBigException(header)
-
-    return parsed
 
 
 class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin):
@@ -449,12 +427,12 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             )
 
         self.subject: Optional[str] = parsed.subject
-        self.from_addr = parse_and_validate_mimepart_address_header(parsed, "From")
-        self.sender_addr = parse_and_validate_mimepart_address_header(parsed, "Sender")
-        self.reply_to = parse_and_validate_mimepart_address_header(parsed, "Reply-To")
-        self.to_addr = parse_and_validate_mimepart_address_header(parsed, "To")
-        self.cc_addr = parse_and_validate_mimepart_address_header(parsed, "Cc")
-        self.bcc_addr = parse_and_validate_mimepart_address_header(parsed, "Bcc")
+        self.from_addr = parse_mimepart_address_header(parsed, "From")
+        self.sender_addr = parse_mimepart_address_header(parsed, "Sender")
+        self.reply_to = parse_mimepart_address_header(parsed, "Reply-To")
+        self.to_addr = parse_mimepart_address_header(parsed, "To")
+        self.cc_addr = parse_mimepart_address_header(parsed, "Cc")
+        self.bcc_addr = parse_mimepart_address_header(parsed, "Bcc")
 
         self.in_reply_to: Optional[str] = parsed.headers.get("In-Reply-To")
 

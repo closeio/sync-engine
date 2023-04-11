@@ -20,6 +20,8 @@ from inbox.crispin import (
     RawFolder,
     RawMessage,
     localized_folder_names,
+    optimized_parse_message_list,
+    unoptimized_parse_message_list,
 )
 
 
@@ -807,3 +809,19 @@ def test_german_outlook(monkeypatch):
         RawFolder(display_name="Junk-E-Mail", role="spam"),
         RawFolder(display_name="INBOX", role="inbox"),
     }
+
+
+@pytest.mark.parametrize(
+    "callee", [optimized_parse_message_list, unoptimized_parse_message_list]
+)
+def test_parse_message_list(callee):
+    assert callee([b"1 123 124 1024"]) == [1, 123, 124, 1024]
+
+
+@pytest.mark.parametrize(
+    "callee", [optimized_parse_message_list, unoptimized_parse_message_list]
+)
+def test_parse_message_list_large_list(callee):
+    large_list = [" ".join(str(uid) for uid in range(1, 6_000_000)).encode()]
+
+    assert callee(large_list) == list(range(1, 6_000_000))

@@ -7,6 +7,7 @@ import pytest
 from flanker import mime
 
 from inbox.models import Block, Message
+from inbox.sqlalchemy_ext.util import MAX_TEXT_BYTES
 from inbox.util.addr import parse_mimepart_address_header
 from inbox.util.blockstore import get_from_blockstore
 from inbox.util.file import get_data
@@ -580,3 +581,17 @@ def test_long_message_body(db, default_account, raw_message_too_long):
         m = create_from_synced(db, default_account, raw_message_too_long)
         assert m.decode_error
         assert "over the parsing limit" in mock.warning.call_args[1]["error"].args[0]
+
+
+@pytest.mark.parametrize("header", ["From", "Sender", "Reply-To", "To", "Cc", "Bcc",])
+def test_long_address_header(db, default_account, mime_message, header):
+    with patch("inbox.models.message.log") as mock:
+        mime_message.headers[header] = "b" * MAX_TEXT_BYTES + " <mail@example.com>"
+        message = create_from_synced(
+            db, default_account, mime_message.to_string().encode()
+        )
+        assert message.decode_error
+        assert (
+            f"header {header!r} length is over the parsing limit"
+            == mock.warning.call_args[1]["error"].args[0]
+        )

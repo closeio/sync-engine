@@ -355,7 +355,7 @@ def optimized_parse_message_list(data: List[bytes]) -> List[int]:
     return unoptimized_parse_message_list(data)
 
 
-# Replace the unoptimized algorithm with optimized algoritm from above
+# Replace the unoptimized algorithm with optimized algorithm from above
 imapclient.response_parser.parse_message_list = optimized_parse_message_list
 imapclient.imapclient.parse_message_list = optimized_parse_message_list
 

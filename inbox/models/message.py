@@ -1,4 +1,3 @@
-import contextlib
 import datetime
 import itertools
 import os
@@ -9,8 +8,6 @@ from typing import Any, DefaultDict, Dict, List, Optional, Set, Tuple, Union
 
 from flanker import mime
 from flanker.mime.message.part import MimePart
-import imapclient.response_parser
-import re
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -62,39 +59,6 @@ SNIPPET_LENGTH = 191
 
 if typing.TYPE_CHECKING:
     from inbox.models.block import Part
-
-
-
-common_uid_list_format = re.compile(b"^[0-9 ]+$")
-uid_format = re.compile(b"[0-9]+")
-unoptimized_parse_message_list = imapclient.response_parser.parse_message_list
-
-
-def optimized_parse_message_list(data: List[bytes]) -> List[int]:
-    """Optimized version of imapclient.response_parser.parse_message_list
-    
-       This takes care of parsing the most common textual format that list may
-       arrive in from an IMAP server. The algorightm is shorter and much less memory
-       hungry than the generic version which becomes important when syncing
-       large mailboxes. It relies on regexes to avoid creating intermediate lists.
-       If we receive data in format that does not follow most common format
-       we still fallback to the unoptimized version.
-
-       Based off Tom's (Python 2 version):
-       https://github.com/closeio/imapclient/commit/475d02f85be308fb4ac80e66628a03c30c096c9f 
-       For generic version see:
-       https://github.com/mjs/imapclient/blob/master/imapclient/response_parser.py#L39-L79
-       Implemented in:
-       
-    """
-    with contextlib.suppress(TypeError):
-        if len(data) == 1 and common_uid_list_format.match(data[0]):
-            return [int(uid_match.group(0)) for uid_match in re.finditer(uid_format, data[0])]
-
-    return unoptimized_parse_message_list(data)
-
-# Replace the unoptimized algorithm with optimized algoritm from above
-imapclient.response_parser.parse_message_list = optimized_parse_message_list
 
 
 def _trim_filename(

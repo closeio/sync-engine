@@ -7,6 +7,14 @@ from flanker.mime.message.headers.encodedword import decode
 from flanker.mime.message.headers.parsing import normalize
 from flanker.mime.message.part import MimePart
 
+from inbox.sqlalchemy_ext.util import MAX_TEXT_BYTES
+
+
+class HeaderTooBigException(Exception):
+    def __init__(self, header):
+        super().__init__(f"header {header!r} length is over the parsing limit")
+
+
 # Note that technically `'` is also allowed in the local part, but nobody
 # uses it in practice, so we'd rather extract <a href='email@example.com'>
 # from HTML.
@@ -49,7 +57,12 @@ def parse_mimepart_address_header(
     # quoting) into two separate addresses.
     # Consult RFC822 Section 6.1 and RFC2047 section 5 for details.
     addresses: Set[Tuple[str, str]] = set()
+    total_byte_length = 0
     for section in mimepart.headers._v.getall(normalize(header_name)):
+        total_byte_length += len(section.encode())
+        if total_byte_length > MAX_TEXT_BYTES:
+            raise HeaderTooBigException(header_name)
+
         for phrase, addrspec in email.utils.getaddresses([section]):
             if not addrspec and not phrase:
                 continue

@@ -47,7 +47,7 @@ from inbox.models.mixins import (
 )
 from inbox.security.blobstorage import decode_blob, encode_blob
 from inbox.sqlalchemy_ext.util import JSON, MAX_MYSQL_INTEGER, json_field_too_long
-from inbox.util.addr import parse_mimepart_address_header
+from inbox.util.addr import HeaderTooBigException, parse_mimepart_address_header
 from inbox.util.blockstore import save_to_blockstore
 from inbox.util.encoding import unicode_safe_truncate
 from inbox.util.html import HTMLParseError, plaintext2html, strip_tags
@@ -326,7 +326,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             msg._parse_metadata(
                 parsed, body_string, received_date, account.id, folder_name, mid
             )
-        except (mime.DecodingError, MessageTooBigException) as e:
+        except (mime.DecodingError, MessageTooBigException, HeaderTooBigException) as e:
             parsed = None
             msg.parsed_body = ""
             log.warning(

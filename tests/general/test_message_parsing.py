@@ -2,6 +2,7 @@
 """Sanity-check our construction of a Message object from raw synced data."""
 import datetime
 from unittest.mock import patch
+from inbox.models.message import optimized_parse_message_list, unoptimized_parse_message_list
 
 import pytest
 from flanker import mime
@@ -580,3 +581,19 @@ def test_long_message_body(db, default_account, raw_message_too_long):
         m = create_from_synced(db, default_account, raw_message_too_long)
         assert m.decode_error
         assert "over the parsing limit" in mock.warning.call_args[1]["error"].args[0]
+
+
+def test_optimized_parse_message_list():
+    assert optimized_parse_message_list([b"123 124"]) == [123, 124]
+
+
+
+def test_optimize_large_message_large_list():
+    large_list = [" ".join(str(uid) for uid in range(1, 6_000_000)).encode()]
+
+    breakpoint()
+    test1 = optimized_parse_message_list(large_list)
+    breakpoint()
+    test2 = unoptimized_parse_message_list(large_list)
+    breakpoint()
+    assert test1 == test2

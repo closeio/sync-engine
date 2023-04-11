@@ -21,6 +21,7 @@ from typing import (
 import imapclient
 import imapclient.exceptions
 import imapclient.imap_utf7
+import imapclient.imapclient
 import imapclient.response_parser
 
 # Prevent "got more than 1000000 bytes" errors for servers that send more data.
@@ -356,6 +357,7 @@ def optimized_parse_message_list(data: List[bytes]) -> List[int]:
 
 # Replace the unoptimized algorithm with optimized algoritm from above
 imapclient.response_parser.parse_message_list = optimized_parse_message_list
+imapclient.imapclient.parse_message_list = optimized_parse_message_list
 
 
 class CrispinClient:

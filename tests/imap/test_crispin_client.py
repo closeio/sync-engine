@@ -824,6 +824,4 @@ def test_parse_message_list(callee):
 def test_parse_message_list_large_list(callee):
     large_list = [" ".join(str(uid) for uid in range(1, 6_000_000)).encode()]
 
-    breakpoint()
     assert callee(large_list) == list(range(1, 6_000_000))
-    breakpoint()

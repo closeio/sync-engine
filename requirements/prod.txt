@@ -62,7 +62,7 @@ pycparser==2.21
 pygments==2.14.0
 pyinstrument==3.2.0
 pyinstrument-cext==0.2.2
-pymongo==2.9.5  # For json_util in bson
+pymongo==3.0  # For json_util in bson
 Pympler==0.9
 PyNaCl==1.4.0
 python-dateutil==2.8.2

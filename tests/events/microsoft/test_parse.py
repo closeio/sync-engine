@@ -1380,6 +1380,16 @@ def test_parse_event_singular():
     assert event.read_only is False
 
 
+def test_parse_event_with_invalid_organizer():
+    event_with_invalid_organizer = single_instance_event.copy()
+    event_with_invalid_organizer["organizer"] = {
+        "name": "Garrett’s Bespoke Barber Shop",
+        "address": "Garrett’s Bespoke Barber Shop",
+    }
+    event = parse_event(event_with_invalid_organizer, read_only=False)
+    assert event.owner == ""
+
+
 outlook_calendar = {
     "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAAAAAEGAABtf4g8yY_zTZgZh6x0X-50AAAAADafAAA=",
     "name": "Calendar",

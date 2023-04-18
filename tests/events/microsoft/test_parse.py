@@ -1380,6 +1380,31 @@ def test_parse_event_singular():
     assert event.read_only is False
 
 
+@pytest.mark.parametrize(
+    ("organizer", "owner"),
+    [
+        (
+            {
+                "emailAddress": {
+                    "name": "Felipe González",
+                    "address": "felipe.gonzalez@gmail.com",
+                }
+            },
+            "=?utf-8?q?Felipe_Gonz=C3=A1lez?= <felipe.gonzalez@gmail.com>",
+        ),
+        (
+            {"emailAddress": {"name": "Felipe González", "address": "Felipe González"}},
+            "",
+        ),  # invalid email address
+    ],
+)
+def test_parse_event_with_organizer(organizer, owner):
+    event_with_invalid_organizer = single_instance_event.copy()
+    event_with_invalid_organizer["organizer"] = organizer
+    event = parse_event(event_with_invalid_organizer, read_only=False)
+    assert event.owner == owner
+
+
 outlook_calendar = {
     "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAAAAAEGAABtf4g8yY_zTZgZh6x0X-50AAAAADafAAA=",
     "name": "Calendar",

@@ -653,12 +653,15 @@ def parse_event(
     organizer = event["organizer"]
     if organizer:
         organizer_email_address = organizer.get("emailAddress", {})
-        owner = email.utils.formataddr(
-            (
-                organizer_email_address.get("name", ""),
-                organizer_email_address.get("address", ""),
+        try:
+            owner = email.utils.formataddr(
+                (
+                    organizer_email_address.get("name", ""),
+                    organizer_email_address.get("address", ""),
+                )
             )
-        )
+        except UnicodeEncodeError:
+            owner = ""
     else:
         owner = ""
     attendees = event.get("attendees", [])

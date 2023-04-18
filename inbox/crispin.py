@@ -13,6 +13,7 @@ from typing import (
     List,
     NamedTuple,
     Optional,
+    Set,
     Tuple,
     Type,
     Union,
@@ -325,14 +326,19 @@ retry_crispin = functools.partial(
 
 common_uid_list_format = re.compile(b"^[0-9 ]+$")
 uid_format = re.compile(b"[0-9]+")
-unoptimized_parse_message_list = imapclient.response_parser.parse_message_list
+original_parse_message_list = imapclient.response_parser.parse_message_list
 
 
-def optimized_parse_message_list(data: List[bytes]) -> List[int]:
-    """Optimized version of imapclient.response_parser.parse_message_list
+def fixed_parse_message_list(data: List[bytes]) -> List[int]:
+    """Fixed version of imapclient.response_parser.parse_message_list
 
-       This takes care of parsing the most common textual format that list may
-       arrive in from an IMAP server. The algorightm is shorter and much less memory
+       We observed in real world that some IMAP servers send many
+       elements instead of a single element. While this is a violation of IMAP
+       spec, we decided to still handle this gracefully by returning unique UIDs
+       across all the elements.
+
+       Aditionally this takes care of parsing the most common textual format that list may
+       arrive in from an IMAP server. The algorithm is shorter and much less memory
        hungry than the generic version which becomes important when syncing
        large mailboxes. It relies on regexes to avoid creating intermediate lists.
        If we receive data in format that does not follow most common format
@@ -345,6 +351,15 @@ def optimized_parse_message_list(data: List[bytes]) -> List[int]:
        Implemented in:
        https://github.com/closeio/sync-engine/pull/483
     """
+    # Handle case where we receive many elements instead of a single element
+    if len(data) > 1:
+        unique_uids: Set[int] = set()
+        for datum in data:
+            unique_uids.update(fixed_parse_message_list([datum]))
+
+        return list(unique_uids)
+
+    # Optimize most common textual format for low memory footprint
     with contextlib.suppress(TypeError):
         if len(data) == 1 and common_uid_list_format.match(data[0]):
             return [
@@ -352,12 +367,12 @@ def optimized_parse_message_list(data: List[bytes]) -> List[int]:
                 for uid_match in re.finditer(uid_format, data[0])
             ]
 
-    return unoptimized_parse_message_list(data)
+    return original_parse_message_list(data)
 
 
-# Replace the unoptimized algorithm with optimized algorithm from above
-imapclient.response_parser.parse_message_list = optimized_parse_message_list
-imapclient.imapclient.parse_message_list = optimized_parse_message_list
+# Replace the original algorithm with fixed algorithm from above
+imapclient.response_parser.parse_message_list = fixed_parse_message_list
+imapclient.imapclient.parse_message_list = fixed_parse_message_list
 
 
 class CrispinClient:

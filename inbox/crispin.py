@@ -993,7 +993,7 @@ class CrispinClient:
             headers.update(self.conn.fetch(uid_chunk, ["BODY.PEEK[HEADER]"]))
         return headers
 
-    def find_by_header(self, header_name, header_value):
+    def find_by_header(self, header_name: str, header_value: str) -> List[int]:
         """Find all uids in the selected folder with the given header value."""
         all_uids = self.all_uids()
         # It would be nice to just search by header too, but some backends
@@ -1007,7 +1007,7 @@ class CrispinClient:
         for uid, response in matching_draft_headers.items():
             headers = response[b"BODY[HEADER]"]
             parser = HeaderParser()
-            header = parser.parsestr(headers).get(header_name)
+            header = parser.parsestr(headers.decode()).get(header_name)
             if header == header_value:
                 results.append(uid)
 

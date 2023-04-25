@@ -122,6 +122,8 @@ class SMTPConnection:
         auth_token,
         smtp_endpoint,
         log,
+        *,
+        upgrade_connection=True,
     ):
         self.account_id = account_id
         self.email_address = email_address
@@ -135,7 +137,7 @@ class SMTPConnection:
             "oauth2": self.smtp_oauth2,
             "password": self.smtp_password,
         }
-        self.setup()
+        self.setup(upgrade_connection=upgrade_connection)
 
     def __enter__(self):
         return self
@@ -156,7 +158,7 @@ class SMTPConnection:
             msg = _transform_ssl_error(e.strerror)
             raise SendMailException(msg, 503)
 
-    def setup(self):
+    def setup(self, *, upgrade_connection=True):
         host, port = self.smtp_endpoint
         self.connection: smtplib.SMTP
         if port in (SMTP_OVER_SSL_PORT, SMTP_OVER_SSL_TEST_PORT):
@@ -166,7 +168,8 @@ class SMTPConnection:
             self.connection = SMTP(timeout=SMTP_TIMEOUT)
             self._connect(host, port)
             self.connection._host = host  # type: ignore
-            self._upgrade_connection()
+            if upgrade_connection:
+                self._upgrade_connection()
 
         # Auth the connection
         self.connection.ehlo()

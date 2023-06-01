@@ -124,7 +124,7 @@ class SyncService:
 
     def run(self):
         # When the service first starts we should check the state of the world.
-        self.poll()
+        retry_with_logging(self.poll)
         while self.keep_running:
             retry_with_logging(self._run_impl, self.log)
 

@@ -123,6 +123,8 @@ class SyncService:
             gevent.spawn_later(exit_after, self.stop)
 
     def run(self):
+        # When the service first starts we should check the state of the world.
+        retry_with_logging(self.poll)
         while self.keep_running:
             retry_with_logging(self._run_impl, self.log)
 
@@ -131,8 +133,6 @@ class SyncService:
         Waits for notifications about Account migrations and checks for start/stop commands.
 
         """
-        # When the service first starts we should check the state of the world.
-        self.poll()
         event = None
         while self.keep_running and event is None:
             event = self.queue_group.receive_event(timeout=self.poll_interval)

@@ -114,7 +114,7 @@ def test_calendar_parsing():
         ),
     ]
 
-    provider = GoogleEventsProvider(1, 1)
+    provider = GoogleEventsProvider(mock.Mock())
     provider._get_raw_calendars = mock.MagicMock(return_value=raw_response)
     deletes, updates = provider.sync_calendars()
     assert deletes == expected_deletes
@@ -257,7 +257,7 @@ def test_event_parsing():
         ),
     ]
 
-    provider = GoogleEventsProvider(1, 1)
+    provider = GoogleEventsProvider(mock.Mock())
     provider.calendars_table = {"uid": False}
     provider._get_raw_events = mock.MagicMock(return_value=raw_response)
     updates = provider.sync_events("uid", 1)
@@ -307,7 +307,7 @@ def test_event_parsing():
         }
     ]
 
-    provider = GoogleEventsProvider(1, 1)
+    provider = GoogleEventsProvider(mock.Mock())
 
     # This is a read-only calendar
     provider.calendars_table = {"uid": True}
@@ -368,7 +368,7 @@ def test_handle_unparseable_dates():
             "summary": "test",
         }
     ]
-    provider = GoogleEventsProvider(1, 1)
+    provider = GoogleEventsProvider(mock.Mock())
     provider._get_raw_events = mock.MagicMock(return_value=raw_response)
     updates = provider.sync_events("uid", 1)
     assert len(updates) == 0
@@ -385,7 +385,7 @@ def test_pagination():
     second_response._content = json.dumps({"items": ["D", "E"]}).encode()
 
     requests.get = mock.Mock(side_effect=[first_response, second_response])
-    provider = GoogleEventsProvider(1, 1)
+    provider = GoogleEventsProvider(mock.Mock())
     provider._get_access_token = mock.Mock(return_value="token")
     items = provider._get_resource_list("https://googleapis.com/testurl")
     assert items == ["A", "B", "C", "D", "E"]
@@ -400,7 +400,7 @@ def test_handle_http_401():
     second_response._content = json.dumps({"items": ["A", "B", "C"]}).encode()
 
     requests.get = mock.Mock(side_effect=[first_response, second_response])
-    provider = GoogleEventsProvider(1, 1)
+    provider = GoogleEventsProvider(mock.Mock())
     provider._get_access_token = mock.Mock(return_value="token")
     items = provider._get_resource_list("https://googleapis.com/testurl")
     assert items == ["A", "B", "C"]
@@ -433,7 +433,7 @@ def test_handle_quota_exceeded():
     second_response._content = json.dumps({"items": ["A", "B", "C"]}).encode()
 
     requests.get = mock.Mock(side_effect=[first_response, second_response])
-    provider = GoogleEventsProvider(1, 1)
+    provider = GoogleEventsProvider(mock.Mock())
     provider._get_access_token = mock.Mock(return_value="token")
     items = provider._get_resource_list("https://googleapis.com/testurl")
     # Check that we slept, then retried.
@@ -451,7 +451,7 @@ def test_handle_internal_server_error():
     second_response._content = json.dumps({"items": ["A", "B", "C"]}).encode()
 
     requests.get = mock.Mock(side_effect=[first_response, second_response])
-    provider = GoogleEventsProvider(1, 1)
+    provider = GoogleEventsProvider(mock.Mock())
     provider._get_access_token = mock.Mock(return_value="token")
     items = provider._get_resource_list("https://googleapis.com/testurl")
     # Check that we slept, then retried.
@@ -480,7 +480,7 @@ def test_handle_api_not_enabled():
     ).encode()
 
     requests.get = mock.Mock(return_value=response)
-    provider = GoogleEventsProvider(1, 1)
+    provider = GoogleEventsProvider(mock.Mock())
     provider._get_access_token = mock.Mock(return_value="token")
     with pytest.raises(AccessNotEnabledError):
         provider._get_resource_list("https://googleapis.com/testurl")
@@ -491,7 +491,7 @@ def test_handle_other_errors():
     response.status_code = 403
     response._content = b"This is not the JSON you're looking for"
     requests.get = mock.Mock(return_value=response)
-    provider = GoogleEventsProvider(1, 1)
+    provider = GoogleEventsProvider(mock.Mock())
     provider._get_access_token = mock.Mock(return_value="token")
     with pytest.raises(requests.exceptions.HTTPError):
         provider._get_resource_list("https://googleapis.com/testurl")
@@ -499,7 +499,7 @@ def test_handle_other_errors():
     response = requests.Response()
     response.status_code = 404
     requests.get = mock.Mock(return_value=response)
-    provider = GoogleEventsProvider(1, 1)
+    provider = GoogleEventsProvider(mock.Mock())
     provider._get_access_token = mock.Mock(return_value="token")
     with pytest.raises(requests.exceptions.HTTPError):
         provider._get_resource_list("https://googleapis.com/testurl")
@@ -714,7 +714,7 @@ def test_cancelled_override_creation():
         }
     ]
 
-    provider = GoogleEventsProvider(1, 1)
+    provider = GoogleEventsProvider(mock.Mock())
     provider._get_raw_events = mock.MagicMock(return_value=raw_response)
     updates = provider.sync_events("uid", 1)
     assert updates[0].cancelled is True

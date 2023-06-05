@@ -310,27 +310,15 @@ class SyncService:
                 if info.get("events", None) and acc.sync_events:
                     if USE_GOOGLE_PUSH_NOTIFICATIONS and acc.provider == "gmail":
                         event_sync = WebhookEventSync(
-                            acc.email_address,
-                            acc.verbose_provider,
-                            acc.id,
-                            acc.namespace.id,
-                            provider_class=GoogleEventsProvider,
+                            acc, provider_class=GoogleEventsProvider,
                         )
                     elif acc.provider == "gmail":
                         event_sync = EventSync(
-                            acc.email_address,
-                            acc.verbose_provider,
-                            acc.id,
-                            acc.namespace.id,
-                            provider_class=GoogleEventsProvider,
+                            acc, provider_class=GoogleEventsProvider,
                         )
                     elif acc.provider == "microsoft":
                         event_sync = WebhookEventSync(
-                            acc.email_address,
-                            acc.verbose_provider,
-                            acc.id,
-                            acc.namespace.id,
-                            provider_class=MicrosoftEventsProvider,
+                            acc, provider_class=MicrosoftEventsProvider,
                         )
                     self.event_sync_monitors[acc.id] = event_sync
                     event_sync.start()

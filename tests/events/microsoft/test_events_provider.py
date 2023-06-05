@@ -406,8 +406,8 @@ def exception_override_response():
 
 
 @pytest.fixture
-def provider(client):
-    provider = MicrosoftEventsProvider("fake_account_id", "fake_namespace_id")
+def provider(client, outlook_account):
+    provider = MicrosoftEventsProvider(outlook_account)
     provider.client = client
 
     return provider
@@ -436,7 +436,7 @@ def test_sync_calendars_deletion(db, client, outlook_account):
     db.session.add(deleted_calendar)
     db.session.commit()
 
-    provider = MicrosoftEventsProvider(outlook_account.id, outlook_account.namespace.id)
+    provider = MicrosoftEventsProvider(outlook_account)
     provider.client = client
 
     deleted_uids, _ = provider.sync_calendars()
@@ -503,39 +503,39 @@ def test_sync_events_exception(provider):
 
 @responses.activate
 @pytest.mark.usefixtures("subscribe_responses")
-def test_watch_calendar_list(provider, outlook_account):
-    expiration = provider.watch_calendar_list(outlook_account)
+def test_watch_calendar_list(provider):
+    expiration = provider.watch_calendar_list()
     assert expiration == datetime.datetime(2022, 11, 24, 18, 31, 12, tzinfo=pytz.UTC)
 
 
 @responses.activate
 @pytest.mark.usefixtures("subscribe_responses")
-def test_watch_calendar(provider, outlook_account):
+def test_watch_calendar(provider):
     calendar = Calendar(uid="fake_calendar_id", public_id="fake_public_id")
 
-    expiration = provider.watch_calendar(outlook_account, calendar)
+    expiration = provider.watch_calendar(calendar)
     assert expiration == datetime.datetime(2022, 10, 25, 4, 22, 34, tzinfo=pytz.UTC)
 
 
 @responses.activate
 @pytest.mark.usefixtures("subscribe_response_gone")
-def test_watch_calendar_gone(provider, outlook_account):
+def test_watch_calendar_gone(provider):
     calendar = Calendar(uid="fake_calendar_id", public_id="fake_public_id")
 
     with pytest.raises(CalendarGoneException):
-        provider.watch_calendar(outlook_account, calendar)
+        provider.watch_calendar(calendar)
 
 
 @responses.activate
 @pytest.mark.usefixtures("subscribe_responses")
-def test_webhook_notifications_enabled_avaialble(provider, outlook_account):
-    assert provider.webhook_notifications_enabled(outlook_account)
+def test_webhook_notifications_enabled_avaialble(provider):
+    assert provider.webhook_notifications_enabled()
 
 
 @responses.activate
 @pytest.mark.usefixtures("subscribe_response_unavailable")
-def test_webhook_notifications_enabled_unavailable(provider, outlook_account):
-    assert not provider.webhook_notifications_enabled(outlook_account)
+def test_webhook_notifications_enabled_unavailable(provider):
+    assert not provider.webhook_notifications_enabled()
 
 
 @responses.activate
@@ -547,11 +547,7 @@ def test_webhook_notifications_enabled_unavailable(provider, outlook_account):
 )
 def test_sync(db, provider, outlook_account):
     event_sync = WebhookEventSync(
-        outlook_account.email_address,
-        outlook_account.verbose_provider,
-        outlook_account.id,
-        outlook_account.namespace.id,
-        provider_class=lambda *args, **kwargs: provider,
+        outlook_account, provider_class=lambda *args, **kwargs: provider,
     )
 
     # First sync, initially we just read without subscriptions

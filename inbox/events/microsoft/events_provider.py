@@ -67,8 +67,8 @@ EVENT_FIELDS = [
 
 
 class MicrosoftEventsProvider(AbstractEventsProvider):
-    def __init__(self, account_id: int, namespace_id: int):
-        super().__init__(account_id, namespace_id)
+    def __init__(self, account: Account):
+        super().__init__(account)
 
         self.client = MicrosoftGraphClient(
             lambda: self._get_access_token(scopes=MICROSOFT_CALENDAR_SCOPES)
@@ -201,7 +201,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         return exceptions, cancellations
 
-    def webhook_notifications_enabled(self, account: Account) -> bool:
+    def webhook_notifications_enabled(self) -> bool:
         """
         Return True if webhook notifications are enabled for a given account.
 
@@ -225,7 +225,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         try:
             dummy_subscription = self.client.subscribe_to_calendar_changes(
-                webhook_url=CALENDAR_LIST_WEBHOOK_URL.format(account.public_id),
+                webhook_url=CALENDAR_LIST_WEBHOOK_URL.format(self.account.public_id),
                 secret=config["MICROSOFT_SUBSCRIPTION_SECRET"],
             )
         except MicrosoftGraphClientException as e:
@@ -245,18 +245,15 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         self._webhook_notifications_enabled = True
         return True
 
-    def watch_calendar_list(self, account: Account) -> Optional[datetime.datetime]:
+    def watch_calendar_list(self) -> Optional[datetime.datetime]:
         """
         Subscribe to webhook notifications for changes to calendar list.
-
-        Arguments:
-            account: The account
 
         Returns:
             The expiration of the notification channel
         """
         response = self.client.subscribe_to_calendar_changes(
-            webhook_url=CALENDAR_LIST_WEBHOOK_URL.format(account.public_id),
+            webhook_url=CALENDAR_LIST_WEBHOOK_URL.format(self.account.public_id),
             secret=config["MICROSOFT_SUBSCRIPTION_SECRET"],
         )
 
@@ -264,14 +261,11 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         return ciso8601.parse_datetime(expiration).replace(microsecond=0)
 
-    def watch_calendar(
-        self, account: Account, calendar: Calendar
-    ) -> Optional[datetime.datetime]:
+    def watch_calendar(self, calendar: Calendar) -> Optional[datetime.datetime]:
         """
         Subscribe to webhook notifications for changes to events in a calendar.
 
         Arguments:
-            account: The account
             calendar: The calendar
 
         Returns:

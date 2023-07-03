@@ -500,12 +500,12 @@ STRING_VALIDATORS = [
 
 @attrs.frozen(kw_only=True)
 class EntryPoint:
-    uri: str = attrs.field(validator=STRING_VALIDATORS)
+    uri: str = attrs.field(validator=STRING_VALIDATORS)  # type: ignore
 
 
 @attrs.frozen(kw_only=True)
 class ConferenceSolution:
-    name: str = attrs.field(validator=STRING_VALIDATORS)
+    name: str = attrs.field(validator=STRING_VALIDATORS)  # type: ignore
 
 
 @attrs.frozen(kw_only=True)

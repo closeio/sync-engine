@@ -330,6 +330,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
             "visibility": obj.visibility,
             "uid": obj.uid,
             "calendar_event_link": obj.calendar_event_link,
+            "conference_data": obj.conference_data,
         }
         if isinstance(obj, RecurringEvent):
             resp["recurrence"] = {

@@ -1212,14 +1212,11 @@ recurring_event = {
         {
             "type": "required",
             "status": {"response": "declined", "time": "2022-09-08T15:40:17Z"},
-            "emailAddress": {
-                "name": "attendee@example.com",
-                "address": "attendee@example.com",
-            },
+            "emailAddress": {"name": "Attendee", "address": "attendee@example.com",},
         }
     ],
     "organizer": {
-        "emailAddress": {"name": "Example", "address": "example@example.com",}
+        "emailAddress": {"name": "Organizer", "address": "organizer@example.com"}
     },
 }
 
@@ -1290,14 +1287,20 @@ def test_parse_event_recurrence():
     assert event.location == "Parking"
     assert event.busy is True
     assert event.status == "confirmed"
-    assert event.owner == "Example <example@example.com>"
+    assert event.owner == "Organizer <organizer@example.com>"
     assert event.participants == [
         {
+            "name": "Attendee",
             "email": "attendee@example.com",
-            "name": "attendee@example.com",
             "notes": None,
             "status": "no",
-        }
+        },
+        {
+            "name": "Organizer",
+            "email": "organizer@example.com",
+            "notes": None,
+            "status": "yes",
+        },
     ]
     assert event.is_owner is True
     assert event.rrule == "RRULE:FREQ=DAILY;UNTIL=20220922T065959Z"

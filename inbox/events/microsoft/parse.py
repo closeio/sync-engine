@@ -663,9 +663,25 @@ def parse_event(
         except UnicodeEncodeError:
             owner = ""
     else:
+        organizer_email_address = {}
         owner = ""
     attendees = event.get("attendees", [])
     participants = [get_event_participant(attendee) for attendee in attendees]
+
+    # For some events for unclear reasons the organizer is not included in
+    # participants list. We add it manually if it's not there to mimick Google.
+    participant_emails = [participant["email"] for participant in participants]
+    organizer_email = organizer_email_address.get("address")
+    if organizer_email and organizer_email not in participant_emails:
+        participants.append(
+            {
+                "email": organizer_email,
+                "name": organizer_email_address.get("name", ""),
+                "status": "yes",
+                "notes": None,
+            }
+        )
+
     is_owner = event["isOrganizer"]
     cancelled = status == "cancelled"
     visibility = MS_GRAPH_SENSITIVITY_TO_VISIBILITY_MAP[event["sensitivity"]]

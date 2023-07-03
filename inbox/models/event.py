@@ -3,9 +3,10 @@ import contextlib
 import json
 from datetime import datetime
 from email.utils import parseaddr
-from typing import Union
+from typing import List, Union
 
 import arrow
+import attr as attrs
 from dateutil.parser import parse as date_parse
 from sqlalchemy import (
     Boolean,
@@ -105,6 +106,20 @@ class FlexibleDateTime(TypeDecorator):
         return x == y
 
 
+@attrs.frozen(kw_only=True)
+class EntryPoint:
+    uri: str = attrs.field(validator=attrs.validators.instance_of(str))
+
+
+@attrs.frozen(kw_only=True)
+class ConferenceData:
+    entry_points: List[EntryPoint] = attrs.field(
+        validator=attrs.validators.deep_iterable(
+            attrs.validators.instance_of(EntryPoint)
+        )
+    )
+
+
 class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin):
     """Data for events."""
 
@@ -146,6 +161,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
 
     description = Column("_description", LONGTEXT, nullable=True)
     location = Column(String(LOCATION_MAX_LEN), nullable=True)
+    conference_data = Column(BigJSON, nullable=True)
     busy = Column(Boolean, nullable=False, default=True)
     read_only = Column(Boolean, nullable=False)
     reminders = Column(String(REMINDER_MAX_LEN), nullable=True)

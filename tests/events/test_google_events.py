@@ -370,7 +370,8 @@ def test_event_parsing():
                     {
                         "uri": "https://www.google.com/url?q=https://applications.zoom.us/addon/invitation/detail"
                     },
-                ]
+                ],
+                "conference_solution": {"name": "Zoom Meeting"},
             },
         ),
         (
@@ -408,7 +409,8 @@ def test_event_parsing():
                     {"uri": "https://meet.google.com/999999"},
                     {"uri": "https://tel.meet/999999"},
                     {"uri": "tel:+1-999999"},
-                ]
+                ],
+                "conference_solution": {"name": "Google Meet"},
             },
         ),
     ],

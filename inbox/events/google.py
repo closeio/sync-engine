@@ -8,6 +8,7 @@ import uuid
 from typing import Any, Dict, List, Optional
 
 import arrow
+import attr as attrs
 import gevent
 import requests
 
@@ -23,7 +24,7 @@ from inbox.events.util import (
 )
 from inbox.models import Account, Calendar
 from inbox.models.backends.oauth import token_manager
-from inbox.models.event import EVENT_STATUSES, Event
+from inbox.models.event import EVENT_STATUSES, ConferenceData, EntryPoint, Event
 
 CALENDARS_URL = "https://www.googleapis.com/calendar/v3/users/me/calendarList"
 STATUS_MAP = {
@@ -488,6 +489,22 @@ def parse_calendar_response(calendar: Dict[str, Any]) -> Calendar:
     return Calendar(uid=uid, name=name, read_only=read_only, description=description)
 
 
+def sanitize_conference_data(
+    conference_data: Optional[Dict[str, Any]]
+) -> Optional[ConferenceData]:
+    if not conference_data:
+        return None
+
+    raw_entry_points = conference_data.get("entryPoints", [])
+    return ConferenceData(
+        entry_points=[
+            EntryPoint(uri=entry_point["uri"])
+            for entry_point in raw_entry_points
+            if entry_point.get("uri")
+        ]
+    )
+
+
 def parse_event_response(event: Dict[str, Any], read_only_calendar: bool) -> Event:
     """
     Constructs an Event object from a Google event resource (a dictionary).
@@ -519,6 +536,7 @@ def parse_event_response(event: Dict[str, Any], read_only_calendar: bool) -> Eve
     last_modified = parse_datetime(event.get("updated"))
 
     description = event.get("description")
+    conference_data = sanitize_conference_data(event.get("conferenceData"))
     location = event.get("location")
     busy = event.get("transparency") != "transparent"
     sequence = event.get("sequence", 0)
@@ -583,6 +601,7 @@ def parse_event_response(event: Dict[str, Any], read_only_calendar: bool) -> Eve
         title=title,
         description=description,
         location=location,
+        conference_data=attrs.asdict(conference_data) if conference_data else None,
         busy=busy,
         start=event_time.start,
         end=event_time.end,

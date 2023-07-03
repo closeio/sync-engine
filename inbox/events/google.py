@@ -8,7 +8,8 @@ import uuid
 from typing import Any, Dict, List, Optional
 
 import arrow
-import attr as attrs
+import attrs
+import attrs.validators
 import gevent
 import requests
 

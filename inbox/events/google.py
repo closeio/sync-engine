@@ -24,13 +24,7 @@ from inbox.events.util import (
 )
 from inbox.models import Account, Calendar
 from inbox.models.backends.oauth import token_manager
-from inbox.models.event import (
-    EVENT_STATUSES,
-    ConferenceData,
-    ConferenceSolution,
-    EntryPoint,
-    Event,
-)
+from inbox.models.event import EVENT_STATUSES, Event
 
 CALENDARS_URL = "https://www.googleapis.com/calendar/v3/users/me/calendarList"
 STATUS_MAP = {
@@ -495,6 +489,37 @@ def parse_calendar_response(calendar: Dict[str, Any]) -> Calendar:
     return Calendar(uid=uid, name=name, read_only=read_only, description=description)
 
 
+MAX_STRING_LENGTH = 8096
+MAX_LIST_LENGTH = 10
+STRING_VALIDATORS = [
+    attrs.validators.instance_of(str),
+    attrs.validators.max_len(MAX_STRING_LENGTH),
+]
+
+
+@attrs.frozen(kw_only=True)
+class EntryPoint:
+    uri: str = attrs.field(validator=STRING_VALIDATORS)
+
+
+@attrs.frozen(kw_only=True)
+class ConferenceSolution:
+    name: str = attrs.field(validator=STRING_VALIDATORS)
+
+
+@attrs.frozen(kw_only=True)
+class ConferenceData:
+    entry_points: List[EntryPoint] = attrs.field(
+        validator=[
+            attrs.validators.deep_iterable(attrs.validators.instance_of(EntryPoint)),
+            attrs.validators.max_len(MAX_LIST_LENGTH),
+        ]
+    )
+    conference_solution: ConferenceSolution = attrs.field(
+        validator=attrs.validators.instance_of(ConferenceSolution)
+    )
+
+
 def sanitize_conference_data(
     conference_data: Optional[Dict[str, Any]]
 ) -> Optional[ConferenceData]:
@@ -506,12 +531,12 @@ def sanitize_conference_data(
 
     return ConferenceData(
         entry_points=[
-            EntryPoint(uri=entry_point["uri"])
+            EntryPoint(uri=entry_point["uri"][:MAX_STRING_LENGTH])
             for entry_point in raw_entry_points
             if entry_point.get("uri")
-        ],
+        ][:MAX_LIST_LENGTH],
         conference_solution=ConferenceSolution(
-            name=raw_conference_solution.get("name", ""),
+            name=raw_conference_solution.get("name", "")[:MAX_STRING_LENGTH],
         ),
     )
 

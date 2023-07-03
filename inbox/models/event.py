@@ -112,11 +112,19 @@ class EntryPoint:
 
 
 @attrs.frozen(kw_only=True)
+class ConferenceSolution:
+    name: str = attrs.field(validator=attrs.validators.instance_of(str))
+
+
+@attrs.frozen(kw_only=True)
 class ConferenceData:
     entry_points: List[EntryPoint] = attrs.field(
         validator=attrs.validators.deep_iterable(
             attrs.validators.instance_of(EntryPoint)
         )
+    )
+    conference_solution: ConferenceSolution = attrs.field(
+        validator=attrs.validators.instance_of(ConferenceSolution)
     )
 
 

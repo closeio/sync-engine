@@ -24,7 +24,13 @@ from inbox.events.util import (
 )
 from inbox.models import Account, Calendar
 from inbox.models.backends.oauth import token_manager
-from inbox.models.event import EVENT_STATUSES, ConferenceData, EntryPoint, Event
+from inbox.models.event import (
+    EVENT_STATUSES,
+    ConferenceData,
+    ConferenceSolution,
+    EntryPoint,
+    Event,
+)
 
 CALENDARS_URL = "https://www.googleapis.com/calendar/v3/users/me/calendarList"
 STATUS_MAP = {
@@ -496,12 +502,17 @@ def sanitize_conference_data(
         return None
 
     raw_entry_points = conference_data.get("entryPoints", [])
+    raw_conference_solution = conference_data.get("conferenceSolution", {})
+
     return ConferenceData(
         entry_points=[
             EntryPoint(uri=entry_point["uri"])
             for entry_point in raw_entry_points
             if entry_point.get("uri")
-        ]
+        ],
+        conference_solution=ConferenceSolution(
+            name=raw_conference_solution.get("name", ""),
+        ),
     )
 
 

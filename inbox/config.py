@@ -110,7 +110,9 @@ def _update_config_from_env(config, env):
 
 
 def _get_local_feature_flags(config):
-    flags = config.get("FEATURE_FLAGS", "").split()
+    flags = (
+        os.environ.get("FEATURE_FLAGS", "") or config.get("FEATURE_FLAGS", "")
+    ).split()
     config["FEATURE_FLAGS"] = flags
 
 

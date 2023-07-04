@@ -8,6 +8,8 @@ import uuid
 from typing import Any, Dict, List, Optional
 
 import arrow
+import attrs
+import attrs.validators
 import gevent
 import requests
 
@@ -488,6 +490,58 @@ def parse_calendar_response(calendar: Dict[str, Any]) -> Calendar:
     return Calendar(uid=uid, name=name, read_only=read_only, description=description)
 
 
+MAX_STRING_LENGTH = 8096
+MAX_LIST_LENGTH = 10
+STRING_VALIDATORS = [
+    attrs.validators.instance_of(str),
+    attrs.validators.max_len(MAX_STRING_LENGTH),
+]
+
+
+@attrs.frozen(kw_only=True)
+class EntryPoint:
+    uri: str = attrs.field(validator=STRING_VALIDATORS)  # type: ignore
+
+
+@attrs.frozen(kw_only=True)
+class ConferenceSolution:
+    name: str = attrs.field(validator=STRING_VALIDATORS)  # type: ignore
+
+
+@attrs.frozen(kw_only=True)
+class ConferenceData:
+    entry_points: List[EntryPoint] = attrs.field(
+        validator=[
+            attrs.validators.deep_iterable(attrs.validators.instance_of(EntryPoint)),
+            attrs.validators.max_len(MAX_LIST_LENGTH),
+        ]
+    )
+    conference_solution: ConferenceSolution = attrs.field(
+        validator=attrs.validators.instance_of(ConferenceSolution)
+    )
+
+
+def sanitize_conference_data(
+    conference_data: Optional[Dict[str, Any]]
+) -> Optional[ConferenceData]:
+    if not conference_data:
+        return None
+
+    raw_entry_points = conference_data.get("entryPoints", [])
+    raw_conference_solution = conference_data.get("conferenceSolution", {})
+
+    return ConferenceData(
+        entry_points=[
+            EntryPoint(uri=entry_point["uri"][:MAX_STRING_LENGTH])
+            for entry_point in raw_entry_points
+            if entry_point.get("uri")
+        ][:MAX_LIST_LENGTH],
+        conference_solution=ConferenceSolution(
+            name=raw_conference_solution.get("name", "")[:MAX_STRING_LENGTH],
+        ),
+    )
+
+
 def parse_event_response(event: Dict[str, Any], read_only_calendar: bool) -> Event:
     """
     Constructs an Event object from a Google event resource (a dictionary).
@@ -519,6 +573,7 @@ def parse_event_response(event: Dict[str, Any], read_only_calendar: bool) -> Eve
     last_modified = parse_datetime(event.get("updated"))
 
     description = event.get("description")
+    conference_data = sanitize_conference_data(event.get("conferenceData"))
     location = event.get("location")
     busy = event.get("transparency") != "transparent"
     sequence = event.get("sequence", 0)
@@ -583,6 +638,7 @@ def parse_event_response(event: Dict[str, Any], read_only_calendar: bool) -> Eve
         title=title,
         description=description,
         location=location,
+        conference_data=attrs.asdict(conference_data) if conference_data else None,
         busy=busy,
         start=event_time.start,
         end=event_time.end,

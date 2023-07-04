@@ -7,6 +7,7 @@ import gevent
 import pytest
 import requests
 
+from inbox.api.kellogs import _encode
 from inbox.basicauth import AccessNotEnabledError
 from inbox.events.google import GoogleEventsProvider, parse_event_response
 from inbox.models import Calendar, Event
@@ -315,6 +316,137 @@ def test_event_parsing():
     updates = provider.sync_events("uid", 1)
     assert len(updates) == 1
     assert updates[0].read_only is True
+
+
+@pytest.mark.parametrize(
+    "raw_conference_data,conference_data",
+    [
+        ({}, None),
+        (
+            {
+                "conferenceData": {
+                    "entryPoints": [
+                        {
+                            "entryPointType": "video",
+                            "meetingCode": "999999",
+                            "uri": "https://us02web.zoom.us/j/999999",
+                            "label": "us02web.zoom.us/j/999999",
+                        },
+                        {
+                            "entryPointType": "phone",
+                            "regionCode": "US",
+                            "uri": "tel:+1999999,,999999#",
+                            "label": "+1 999999",
+                        },
+                        {
+                            "entryPointType": "more",
+                            "uri": "https://www.google.com/url?q=https://applications.zoom.us/addon/invitation/detail",
+                        },
+                    ],
+                    "signature": "ADR/999999",
+                    "conferenceSolution": {
+                        "iconUri": "https://lh3.googleusercontent.com/",
+                        "name": "Zoom Meeting",
+                        "key": {"type": "addOn"},
+                    },
+                    "parameters": {
+                        "addOnParameters": {
+                            "parameters": {
+                                "meetingType": "2",
+                                "meetingUuid": "999999",
+                                "scriptId": "999999",
+                                "realMeetingId": "999999",
+                                "meetingCreatedBy": "ben.bitdiddle2222@gmail.com",
+                            }
+                        }
+                    },
+                    "conferenceId": "999999",
+                }
+            },
+            {
+                "entry_points": [
+                    {"uri": "https://us02web.zoom.us/j/999999"},
+                    {"uri": "tel:+1999999,,999999#"},
+                    {
+                        "uri": "https://www.google.com/url?q=https://applications.zoom.us/addon/invitation/detail"
+                    },
+                ],
+                "conference_solution": {"name": "Zoom Meeting"},
+            },
+        ),
+        (
+            {
+                "conferenceData": {
+                    "entryPoints": [
+                        {
+                            "uri": "https://meet.google.com/999999",
+                            "label": "meet.google.com/999999",
+                            "entryPointType": "video",
+                        },
+                        {
+                            "pin": "999999",
+                            "uri": "https://tel.meet/999999",
+                            "entryPointType": "more",
+                        },
+                        {
+                            "pin": "999999",
+                            "uri": "tel:+1-999999",
+                            "label": "+1 999999",
+                            "regionCode": "US",
+                            "entryPointType": "phone",
+                        },
+                    ],
+                    "conferenceId": "999999",
+                    "conferenceSolution": {
+                        "key": {"type": "hangoutsMeet"},
+                        "name": "Google Meet",
+                        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/",
+                    },
+                }
+            },
+            {
+                "entry_points": [
+                    {"uri": "https://meet.google.com/999999"},
+                    {"uri": "https://tel.meet/999999"},
+                    {"uri": "tel:+1-999999"},
+                ],
+                "conference_solution": {"name": "Google Meet"},
+            },
+        ),
+    ],
+)
+def test_event_with_conference_data(raw_conference_data, conference_data):
+    raw_event = {
+        "created": "2014-01-09T03:33:02.000Z",
+        "creator": {
+            "displayName": "Ben Bitdiddle",
+            "email": "ben.bitdiddle2222@gmail.com",
+            "self": True,
+        },
+        "etag": '"2778476764000000"',
+        "htmlLink": "https://www.google.com/calendar/event?eid=BAR",
+        "iCalUID": "20140615_60o30dr564o30c1g60o30dr4ck@google.com",
+        "id": "20140615_60o30dr564o30c1g60o30dr4ck",
+        "kind": "calendar#event",
+        "organizer": {
+            "displayName": "Ben Bitdiddle",
+            "email": "ben.bitdiddle2222@gmail.com",
+            "self": True,
+        },
+        "sequence": 0,
+        "start": {"date": "2014-03-15"},
+        "end": {"date": "2014-03-15"},
+        "status": "confirmed",
+        "summary": "Ides of March",
+        "transparency": "transparent",
+        "updated": "2014-01-09T03:33:02.000Z",
+        "visibility": "public",
+        **raw_conference_data,
+    }
+
+    event = parse_event_response(raw_event, True)
+    assert event.conference_data == conference_data
+    assert _encode(event, "999999")["conference_data"] == conference_data
 
 
 def test_handle_offset_all_day_events():

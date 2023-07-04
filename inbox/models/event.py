@@ -146,6 +146,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
 
     description = Column("_description", LONGTEXT, nullable=True)
     location = Column(String(LOCATION_MAX_LEN), nullable=True)
+    conference_data = Column(BigJSON, nullable=True)
     busy = Column(Boolean, nullable=False, default=True)
     read_only = Column(Boolean, nullable=False)
     reminders = Column(String(REMINDER_MAX_LEN), nullable=True)

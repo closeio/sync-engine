@@ -1,6 +1,7 @@
 import platform
 import random
 import time
+from typing import Type
 
 import gevent
 from gevent.lock import BoundedSemaphore
@@ -10,6 +11,7 @@ from sqlalchemy.exc import OperationalError
 from inbox.config import config
 from inbox.contacts.remote_sync import ContactSync
 from inbox.error_handling import log_uncaught_errors
+from inbox.events.abstract import AbstractEventsProvider
 from inbox.events.google import GoogleEventsProvider
 from inbox.events.microsoft.events_provider import MicrosoftEventsProvider
 from inbox.events.remote_sync import EventSync, WebhookEventSync
@@ -262,6 +264,7 @@ class SyncService:
         self._pending_avgs_provider = pending_avgs_provider
 
     def start_event_sync(self, account: Account) -> None:
+        provider_class: Type[AbstractEventsProvider]
         if account.provider == "gmail":
             provider_class = GoogleEventsProvider
         elif account.provider == "microsoft":
@@ -289,7 +292,7 @@ class SyncService:
         self.event_sync_monitors[account.id] = event_sync
         event_sync.start()
 
-    def start_sync(self, account_id: int) -> None:
+    def start_sync(self, account_id: int) -> bool:
         """
         Starts a sync for the account with the given account_id.
         If that account doesn't exist, does nothing.

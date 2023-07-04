@@ -109,11 +109,16 @@ def _update_config_from_env(config, env):
                 raise
 
 
-def _get_local_feature_flags(config):
+def _update_config_from_env_variables(config):
     flags = (
         os.environ.get("FEATURE_FLAGS", "") or config.get("FEATURE_FLAGS", "")
     ).split()
     config["FEATURE_FLAGS"] = flags
+    calendar_poll_frequencey = int(
+        os.environ.get("CALENDAR_POLL_FREQUENCY", "")
+        or config.get("CALENDAR_POLL_FREQUENCY", 300)
+    )
+    config["CALENDAR_POLL_FREQUENCY"] = calendar_poll_frequencey
 
 
 def _get_process_name(config):
@@ -123,5 +128,5 @@ def _get_process_name(config):
 
 config = Configuration()
 _update_config_from_env(config, env)
-_get_local_feature_flags(config)
+_update_config_from_env_variables(config)
 _get_process_name(config)

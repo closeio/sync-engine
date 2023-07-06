@@ -1,6 +1,7 @@
 import platform
 import random
 import time
+from typing import Type
 
 import gevent
 from gevent.lock import BoundedSemaphore
@@ -10,6 +11,7 @@ from sqlalchemy.exc import OperationalError
 from inbox.config import config
 from inbox.contacts.remote_sync import ContactSync
 from inbox.error_handling import log_uncaught_errors
+from inbox.events.abstract import AbstractEventsProvider
 from inbox.events.google import GoogleEventsProvider
 from inbox.events.microsoft.events_provider import MicrosoftEventsProvider
 from inbox.events.remote_sync import EventSync, WebhookEventSync
@@ -23,9 +25,9 @@ from inbox.scheduling.event_queue import EventQueue, EventQueueGroup
 from inbox.util.concurrency import retry_with_logging
 from inbox.util.stats import statsd_client
 
-USE_GOOGLE_PUSH_NOTIFICATIONS = "GOOGLE_PUSH_NOTIFICATIONS" in config.get(
+USE_WEBHOOKS = "GOOGLE_PUSH_NOTIFICATIONS" in config.get(
     "FEATURE_FLAGS", []
-)
+) or "WEBHOOKS" in config.get("FEATURE_FLAGS", [])
 
 # How much time (in minutes) should all CPUs be over 90% to consider them
 # overloaded.
@@ -261,87 +263,96 @@ class SyncService:
     def register_pending_avgs_provider(self, pending_avgs_provider):
         self._pending_avgs_provider = pending_avgs_provider
 
-    def start_sync(self, account_id):
+    def start_event_sync(self, account: Account) -> None:
+        provider_class: Type[AbstractEventsProvider]
+        if account.provider == "gmail":
+            provider_class = GoogleEventsProvider
+        elif account.provider == "microsoft":
+            provider_class = MicrosoftEventsProvider
+        else:
+            raise AssertionError(
+                "Events can be only synced for gmail and microsoft accounts"
+            )
+
+        sync_class = WebhookEventSync if USE_WEBHOOKS else EventSync
+        event_sync = sync_class(
+            account.email_address,
+            account.verbose_provider,
+            account.id,
+            account.namespace.id,
+            provider_class=provider_class,
+        )
+        self.log.info(
+            "starting event sync",
+            account_id=account.id,
+            provider_class=provider_class.__name__,
+            sync_class=sync_class.__name__,
+        )
+
+        self.event_sync_monitors[account.id] = event_sync
+        event_sync.start()
+
+    def start_sync(self, account_id: int) -> bool:
         """
         Starts a sync for the account with the given account_id.
         If that account doesn't exist, does nothing.
 
         """
         with self.semaphore, session_scope(account_id) as db_session:
-            acc = db_session.query(Account).with_for_update().get(account_id)
-            if acc is None:
+            account = db_session.query(Account).with_for_update().get(account_id)
+            if account is None:
                 self.log.error("no such account", account_id=account_id)
                 return False
-            if not acc.sync_should_run:
+            if not account.sync_should_run:
                 return False
             if (
-                acc.desired_sync_host is not None
-                and acc.desired_sync_host != self.process_identifier
+                account.desired_sync_host is not None
+                and account.desired_sync_host != self.process_identifier
             ):
                 return False
-            if acc.sync_host is not None and acc.sync_host != self.process_identifier:
+            if (
+                account.sync_host is not None
+                and account.sync_host != self.process_identifier
+            ):
                 return False
             self.log.info(
-                "starting sync", account_id=acc.id, email_address=acc.email_address
+                "starting sync",
+                account_id=account.id,
+                email_address=account.email_address,
             )
 
-            if acc.id in self.syncing_accounts:
+            if account.id in self.syncing_accounts:
                 self.log.info("sync already started", account_id=account_id)
                 return False
 
             try:
-                acc.sync_host = self.process_identifier
-                if acc.sync_email:
-                    monitor = self.monitor_cls_for[acc.provider](acc)
-                    self.email_sync_monitors[acc.id] = monitor
+                account.sync_host = self.process_identifier
+                if account.sync_email:
+                    monitor = self.monitor_cls_for[account.provider](account)
+                    self.email_sync_monitors[account.id] = monitor
                     monitor.start()
 
-                info = acc.provider_info
-                if info.get("contacts", None) and acc.sync_contacts:
+                info = account.provider_info
+                if info.get("contacts", None) and account.sync_contacts:
                     contact_sync = ContactSync(
-                        acc.email_address,
-                        acc.verbose_provider,
-                        acc.id,
-                        acc.namespace.id,
+                        account.email_address,
+                        account.verbose_provider,
+                        account.id,
+                        account.namespace.id,
                     )
-                    self.contact_sync_monitors[acc.id] = contact_sync
+                    self.contact_sync_monitors[account.id] = contact_sync
                     contact_sync.start()
 
-                if info.get("events", None) and acc.sync_events:
-                    if USE_GOOGLE_PUSH_NOTIFICATIONS and acc.provider == "gmail":
-                        event_sync = WebhookEventSync(
-                            acc.email_address,
-                            acc.verbose_provider,
-                            acc.id,
-                            acc.namespace.id,
-                            provider_class=GoogleEventsProvider,
-                        )
-                    elif acc.provider == "gmail":
-                        event_sync = EventSync(
-                            acc.email_address,
-                            acc.verbose_provider,
-                            acc.id,
-                            acc.namespace.id,
-                            provider_class=GoogleEventsProvider,
-                        )
-                    elif acc.provider == "microsoft":
-                        event_sync = WebhookEventSync(
-                            acc.email_address,
-                            acc.verbose_provider,
-                            acc.id,
-                            acc.namespace.id,
-                            provider_class=MicrosoftEventsProvider,
-                        )
-                    self.event_sync_monitors[acc.id] = event_sync
-                    event_sync.start()
+                if info.get("events", None) and account.sync_events:
+                    self.start_event_sync(account)
 
-                acc.sync_started()
-                self.syncing_accounts.add(acc.id)
+                account.sync_started()
+                self.syncing_accounts.add(account.id)
                 # TODO (mark): Uncomment this after we've transitioned to from statsd to brubeck
                 # statsd_client.gauge('mailsync.sync_hosts_counts.{}'.format(acc.id), 1, delta=True)
                 db_session.commit()
                 self.log.info(
-                    "Sync started", account_id=account_id, sync_host=acc.sync_host
+                    "Sync started", account_id=account_id, sync_host=account.sync_host
                 )
             except Exception:
                 self.log.error(

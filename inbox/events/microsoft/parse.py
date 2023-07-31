@@ -65,6 +65,9 @@ def get_microsoft_tzinfo(timezone_id: str) -> pytz.tzinfo.BaseTzInfo:
     return pytz.timezone(timezone_id)
 
 
+MAX_DATETIME = datetime.datetime(9999, 12, 31, 23, 59, 59)
+
+
 def parse_msgraph_datetime_tz_as_utc(datetime_tz: MsGraphDateTimeTimeZone):
     """
     Parse Microsoft Graph DateTimeTimeZone and return UTC datetime.
@@ -88,6 +91,13 @@ def parse_msgraph_datetime_tz_as_utc(datetime_tz: MsGraphDateTimeTimeZone):
     # anyway.
     if dt.tzinfo and dt == datetime.datetime(1, 1, 1, tzinfo=pytz.UTC):
         dt = dt.replace(tzinfo=None)
+
+    # Microsoft sometimes returns payloads such as this one:
+    # {'dateTime': '9999-12-31T23:59:59.9999999', 'timeZone': 'UTC'}
+    # This cannot be saved in MySQL as it overflows and is not valid anyway.
+    # We will truncate it to MAX_DATETIME.
+    if dt > MAX_DATETIME:
+        dt = MAX_DATETIME
 
     return tzinfo.localize(dt).astimezone(pytz.UTC)
 

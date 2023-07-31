@@ -12,7 +12,8 @@ import os
 import re
 import sys
 import traceback
-from typing import Any, Dict
+from types import TracebackType
+from typing import Any, Dict, Optional, Tuple, Type
 
 import colorlog
 import gevent
@@ -326,12 +327,19 @@ def configure_logging(log_level=None):
     sqlalchemy_pool_logger.setLevel(logging.ERROR)
 
 
-def create_error_log_context(exc_info):
+MAX_ERROR_MESSAGE_LENGTH = 1024
+
+
+def create_error_log_context(
+    exc_info: Tuple[Optional[Type], Any, Optional[TracebackType]]
+) -> Dict[str, Any]:
     exc_type, exc_value, exc_tb = exc_info
     out: Dict[str, Any] = {}
 
     if exc_type is None and exc_value is None and exc_tb is None:
         return out
+
+    assert exc_type is not None
 
     # Break down the info as much as Python gives us, for easier aggregation of
     # similar error types.
@@ -342,8 +350,18 @@ def create_error_log_context(exc_info):
         out["error_code"] = exc_value.code
 
     if hasattr(exc_value, "args") and hasattr(exc_value.args, "__getitem__"):
+        error_message = None
         with contextlib.suppress(IndexError):
-            out["error_message"] = exc_value.args[0]
+            error_message = exc_value.args[0]
+
+        if (
+            isinstance(error_message, str)
+            and len(error_message) > MAX_ERROR_MESSAGE_LENGTH
+        ):
+            error_message = error_message[:MAX_ERROR_MESSAGE_LENGTH] + "..."
+
+        if error_message:
+            out["error_message"] = error_message
 
     with contextlib.suppress(Exception):
         if exc_tb:

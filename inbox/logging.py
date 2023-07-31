@@ -339,11 +339,9 @@ def create_error_log_context(
     if exc_type is None and exc_value is None and exc_tb is None:
         return out
 
-    assert exc_type is not None
-
     # Break down the info as much as Python gives us, for easier aggregation of
     # similar error types.
-    if hasattr(exc_type, "__name__"):
+    if exc_type and hasattr(exc_type, "__name__"):
         out["error_name"] = exc_type.__name__
 
     if hasattr(exc_value, "code"):

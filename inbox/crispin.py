@@ -189,6 +189,19 @@ def writable_connection_pool(account_id, pool_size=1):
     return _get_connection_pool(account_id, pool_size, _writable_pool_map, False)
 
 
+def convert_flags(flags: Tuple[Union[bytes, int], ...]) -> Tuple[bytes, ...]:
+    """
+    Ensure flags are always treated as bytes in downstream code.
+
+    We rarely get ints, but we only compare against well known flags like
+    \\Seen, \\Answered, etc. which are always bytes. We don't care about ints
+    but to prevent exceptions dowstream, we convert everything to bytes.
+    """
+    return tuple(
+        flag if isinstance(flag, bytes) else str(flag).encode() for flag in flags
+    )
+
+
 class CrispinConnectionPool:
     """
     Connection pool for Crispin clients.
@@ -914,7 +927,7 @@ class CrispinClient:
                     # and relying on Date and Received headers. This is done in
                     # inbox.models.message.Message._parse_metadata.
                     internaldate=imap_message.get(b"INTERNALDATE"),
-                    flags=imap_message[b"FLAGS"],
+                    flags=convert_flags(imap_message[b"FLAGS"]),
                     body=imap_message[b"BODY[]"],
                     # TODO: use data structure that isn't
                     # Gmail-specific
@@ -1313,7 +1326,7 @@ class GmailCrispinClient(CrispinClient):
                 RawMessage(
                     uid=int(uid),
                     internaldate=imap_message[b"INTERNALDATE"],
-                    flags=imap_message[b"FLAGS"],
+                    flags=convert_flags(imap_message[b"FLAGS"]),
                     body=imap_message[b"BODY[]"],
                     g_thrid=int(imap_message[b"X-GM-THRID"]),
                     g_msgid=int(imap_message[b"X-GM-MSGID"]),

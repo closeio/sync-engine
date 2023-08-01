@@ -136,19 +136,19 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         """
         changed = False
         new_flags = {flag.decode() for flag in new_flags}
-        col_for_flag = {
+        columns_for_flag = {
             "\\Draft": "is_draft",
             "\\Seen": "is_seen",
             "\\Recent": "is_recent",
             "\\Answered": "is_answered",
             "\\Flagged": "is_flagged",
         }
-        for flag, col in col_for_flag.items():
-            prior_flag_value = getattr(self, col)
-            new_flag_value = flag in new_flags
-            if prior_flag_value != new_flag_value:
+        for flag, column in columns_for_flag.items():
+            prior_column_value = getattr(self, column)
+            new_column_value = flag in new_flags
+            if prior_column_value != new_column_value:
                 changed = True
-                setattr(self, col, new_flag_value)
+                setattr(self, column, new_column_value)
             new_flags.discard(flag)
 
         extra_flags = sorted(new_flags)

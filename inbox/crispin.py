@@ -1112,8 +1112,25 @@ class CrispinClient:
     def condstore_changed_flags(
         self, modseq: int
     ) -> Dict[int, Union[GmailFlags, Flags]]:
+        """
+        Fetch flags that changed since the given modseq.
+
+        Note that a well-behaved server should always return the MODSEQ
+        as part of the response as specified in
+        https://datatracker.ietf.org/doc/html/rfc4551#section-3.3.1.
+
+        > When CHANGEDSINCE FETCH modifier is specified,
+        > it implicitly adds MODSEQ FETCH message data item
+
+        However, SmarterMail does not do that, so we add it explicitely.
+        """
+        items = (
+            ["FLAGS", "MODSEQ"]
+            if self.conn.welcome.endswith(b" SmarterMail")
+            else ["FLAGS"]
+        )
         data: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
-            "1:*", ["FLAGS"], modifiers=[f"CHANGEDSINCE {modseq}"]
+            "1:*", items, modifiers=[f"CHANGEDSINCE {modseq}"]
         )
         return {
             uid: Flags(ret[b"FLAGS"], ret[b"MODSEQ"][0] if b"MODSEQ" in ret else None)

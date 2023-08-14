@@ -562,6 +562,9 @@ def get_event_description(event: MsGraphEvent) -> Optional[str]:
     Returns:
         Plain text string with all the HTML removed
     """
+    if not event["body"]:
+        return None
+
     content_type = event["body"]["contentType"]
 
     assert content_type in ["text", "html"]

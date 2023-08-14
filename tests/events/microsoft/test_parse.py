@@ -1137,6 +1137,7 @@ def test_get_event_participant(attendee, participant):
             "Test description",
         ),
         ({"body": {"contentType": "text", "content": "Text\n"}}, "Text"),
+        ({"body": None}, None),
     ],
 )
 def test_get_event_description(event, description):

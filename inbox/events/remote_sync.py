@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any, List, Tuple, Type
 
+import more_itertools
 from requests.exceptions import HTTPError
 
 from inbox.basicauth import AccessNotEnabledError, OAuthError
@@ -408,15 +409,28 @@ def _delete_calendar(db_session: Any, calendar: Calendar) -> None:
     processing (Transaction record creation) blocking the event loop.
 
     """
-    for count, event in enumerate(calendar.events, start=1):
-        db_session.delete(event)
-        if count % 100 == 0:
-            # Issue a DELETE for every 100 events.
-            # This will ensure that when the DELETE for the calendar is issued,
-            # the number of objects in the session and for which to create
-            # Transaction records is small.
-            db_session.commit()
-    db_session.commit()
+
+    # load ids first to save memory
+    event_ids = [
+        event_id
+        for event_id, in db_session.query(Event.id).filter(
+            Event.calendar_id == calendar.id
+        )
+    ]
+
+    # Note that we really need to load objects and delete using session's query
+    # delete() one by one and then commit() because sync-engine is designed to
+    # emit implicit events based on the ORM changes.
+    for event_id_chunk in more_itertools.chunked(event_ids, 100):
+        events = db_session.query(Event).filter(Event.id.in_(event_id_chunk))
+        for event in events:
+            db_session.delete(event)
+
+        # Issue a DELETE for every 100 events.
+        # This will ensure that when the DELETE for the calendar is issued,
+        # the number of objects in the session and for which to create
+        # Transaction records is small.
+        db_session.commit()
 
     # Delete the calendar
     db_session.delete(calendar)

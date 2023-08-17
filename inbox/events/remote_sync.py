@@ -408,14 +408,25 @@ def _delete_calendar(db_session: Any, calendar: Calendar) -> None:
     processing (Transaction record creation) blocking the event loop.
 
     """
-    for count, event in enumerate(calendar.events, start=1):
-        db_session.delete(event)
-        if count % 100 == 0:
-            # Issue a DELETE for every 100 events.
-            # This will ensure that when the DELETE for the calendar is issued,
-            # the number of objects in the session and for which to create
-            # Transaction records is small.
-            db_session.commit()
+
+    # Split event queries into batches of 100
+    # this ensures that we won't try to load to memory all the events at once
+    # and also won't block the greenlet for too long.
+    events = (
+        db_session.query(Event)
+        .filter(Event.calendar_id == calendar.id)
+        .execution_options(yield_per=100)
+    )
+
+    for event_partition in db_session.scalars(events).partitions():
+        for event in event_partition:
+            db_session.delete(event)
+
+        # Issue a DELETE for every 100 events.
+        # This will ensure that when the DELETE for the calendar is issued,
+        # the number of objects in the session and for which to create
+        # Transaction records is small.
+        db_session.commit()
     db_session.commit()
 
     # Delete the calendar

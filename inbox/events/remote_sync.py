@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any, List, Tuple, Type
 
+import more_itertools
 from requests.exceptions import HTTPError
 
 from inbox.basicauth import AccessNotEnabledError, OAuthError
@@ -409,17 +410,20 @@ def _delete_calendar(db_session: Any, calendar: Calendar) -> None:
 
     """
 
-    # Split event queries into batches of 100
-    # this ensures that we won't try to load to memory all the events at once
-    # and also won't block the greenlet for too long.
-    events = (
-        db_session.query(Event)
-        .filter(Event.calendar_id == calendar.id)
-        .execution_options(yield_per=100)
-    )
+    # load ids first to save memory
+    event_ids = [
+        event_id
+        for event_id, in db_session.query(Event.id).filter(
+            Event.calendar_id == calendar.id
+        )
+    ]
 
-    for event_partition in db_session.scalars(events).partitions():
-        for event in event_partition:
+    # Note that we really need to load objects and delete using session's query
+    # delete() one by one and then commit() because sync-engine is designed to
+    # emit implicit events based on the ORM changes.
+    for event_id_chunk in more_itertools.chunked(event_ids, 100):
+        events = db_session.query(Event).filter(Event.id.in_(event_id_chunk))
+        for event in events:
             db_session.delete(event)
 
         # Issue a DELETE for every 100 events.
@@ -427,7 +431,6 @@ def _delete_calendar(db_session: Any, calendar: Calendar) -> None:
         # the number of objects in the session and for which to create
         # Transaction records is small.
         db_session.commit()
-    db_session.commit()
 
     # Delete the calendar
     db_session.delete(calendar)

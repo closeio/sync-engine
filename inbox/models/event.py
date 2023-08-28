@@ -320,6 +320,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
         self.message = event.message
         self.status = event.status
         self.visibility = event.visibility
+        self.conference_data = event.conference_data
 
         if event.sequence_number is not None:
             self.sequence_number = event.sequence_number

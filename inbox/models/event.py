@@ -291,7 +291,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
 
         return list(self_hash.values())
 
-    def update(self, event):
+    def update(self, event: "Event") -> None:
         if event.namespace is not None and event.namespace.id is not None:
             self.namespace_id = event.namespace.id
 
@@ -320,6 +320,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
         self.message = event.message
         self.status = event.status
         self.visibility = event.visibility
+        self.conference_data = event.conference_data
 
         if event.sequence_number is not None:
             self.sequence_number = event.sequence_number

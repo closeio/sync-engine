@@ -28,3 +28,10 @@ def test_init_explodes(cls):
 )
 def test_create_class(kwargs, cls):
     assert isinstance(Event.create(**kwargs), cls)
+
+
+def test_update():
+    event = Event.create()
+    event.update(Event.create(conference_data={"foo": "bar"}))
+
+    assert event.conference_data == {"foo": "bar"}

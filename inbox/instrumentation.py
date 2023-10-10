@@ -269,7 +269,7 @@ class KillerGreenletTracer(GreenletTracer):
         # We can't just call activet_greenlet.kill() here because gevent will
         # throw an exception on this thread saying that we would block forever
         # (which is true).
-        self.log.warning(
+        self.log.error(
             "interrupting blocked greenlet",
             context=getattr(active_greenlet, "context", None),
             blocking_greenlet_id=id(active_greenlet),

@@ -14,7 +14,7 @@ flake8-tidy-imports==4.8.0
 mccabe==0.7.0
 mypy==1.4.1
 regex==2020.9.27
-pathspec==0.8.0
+pathspec==0.11.2
 pyflakes==2.5.0
 pycodestyle==2.9.1
 toml==0.10.1

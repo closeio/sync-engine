@@ -15,7 +15,7 @@ mccabe==0.7.0
 mypy==1.4.1
 regex==2020.9.27
 pathspec==0.8.0
-pyflakes==2.5.0
+pyflakes==3.1.0
 pycodestyle==2.9.1
 toml==0.10.1
 tomli==2.0.1

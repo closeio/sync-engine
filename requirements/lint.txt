@@ -1,7 +1,7 @@
 appdirs==1.4.4
 astor==0.8.1
 attrs==23.1.0
-black==19.10b0
+black==23.10.1
 click==7.1.2
 isort==5.4.2
 flake8==5.0.4

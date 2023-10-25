@@ -3,7 +3,7 @@ coverage==7.0.0
 exceptiongroup==1.0.4
 funcsigs==1.0.2
 freezegun==1.2.2
-hypothesis==6.30.0
+hypothesis==6.88.1
 iniconfig==1.1.1
 mockredispy==2.9.3
 more-itertools==5.0.0

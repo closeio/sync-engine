@@ -1568,14 +1568,13 @@ def file_download_api(public_id):
         return err(404, "Couldn't find data on email server.")
 
     response.headers["Content-Type"] = "application/octet-stream"  # ct
-    # Werkzeug will try to encode non-ascii header values as latin-1. Try that
-    # first; if it fails, use RFC2047/MIME encoding. See
-    # https://tools.ietf.org/html/rfc7230#section-3.2.4.
+    # Try encoding as utf-8 first; if it fails, use RFC2047/MIME encoding.
+    # See https://tools.ietf.org/html/rfc7230#section-3.2.4.
     try:
-        name = name.encode("latin-1")
+        name = name.encode("utf-8")
     except UnicodeEncodeError:
-        name = b"=?utf-8?b?" + base64.b64encode(name.encode("utf-8")) + b"?="
-    response.headers["Content-Disposition"] = b"attachment; filename=" + name
+        name = b"=?utf-8?b?" + base64.b64encode(name.encode("latin-1")) + b"?="
+    response.headers["Content-Disposition"] = "attachment; filename=" + name.decode()
 
     request.environ["log_context"]["headers"] = response.headers
     return response

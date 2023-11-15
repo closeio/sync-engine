@@ -9,6 +9,8 @@ import flanker
 from flanker import mime
 from hypothesis import strategies as s
 
+MAX_INT_VALUE = (1 << 32) - 1
+
 
 def _build_address_header(addresslist):
     return ", ".join(
@@ -68,7 +70,7 @@ mime_message = s.builds(
     basic_text,
 )
 
-randint = s.integers(min_value=0, max_value=1 << 63)
+randint = s.integers(min_value=0, max_value=MAX_INT_VALUE)
 
 uid_data = s.builds(
     build_uid_data,
@@ -82,5 +84,5 @@ uid_data = s.builds(
 
 
 uids = s.dictionaries(
-    s.integers(min_value=22, max_value=1 << 63), uid_data, min_size=5, max_size=10
+    s.integers(min_value=22, max_value=MAX_INT_VALUE), uid_data, min_size=5, max_size=10
 )

@@ -87,7 +87,7 @@ urllib3==1.26.18
 vobject==0.9.6.1
 wcwidth==0.2.6
 WebOb==1.8.7
-Werkzeug==2.3.8
+Werkzeug==2.3.0
 zipp==3.6.0
 zope.event==4.5.0
 zope.interface==5.4.0

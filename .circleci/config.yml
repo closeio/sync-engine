@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   static-code-analysis:
     docker:
-      - image: circleci/python:3.7
+      - image: cimg/python:3.8
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS

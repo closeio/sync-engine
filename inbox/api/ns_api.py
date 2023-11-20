@@ -1,4 +1,3 @@
-import base64
 import contextlib
 import itertools
 import json
@@ -9,6 +8,7 @@ import uuid
 from collections import namedtuple
 from datetime import datetime
 from hashlib import sha256
+from io import BytesIO
 
 import gevent
 from flask import (
@@ -16,8 +16,8 @@ from flask import (
     Response,
     g,
     jsonify as flask_jsonify,
-    make_response,
     request,
+    send_file,
     stream_with_context,
 )
 from flask_restful import reqparse
@@ -1528,7 +1528,12 @@ def file_download_api(public_id):
         account = g.namespace.account
         statsd_string = f"api.direct_fetching.{account.provider}.{account.id}"
 
-        response = make_response(f.data)
+        response = send_file(
+            BytesIO(f.data),
+            mimetype="application/octet-stream",
+            as_attachment=True,
+            download_name=name,
+        )
         statsd_client.incr(f"{statsd_string}.successes")
 
     except TemporaryEmailFetchException:
@@ -1566,16 +1571,6 @@ def file_download_api(public_id):
         )
 
         return err(404, "Couldn't find data on email server.")
-
-    response.headers["Content-Type"] = "application/octet-stream"  # ct
-    # Werkzeug will try to encode non-ascii header values as latin-1. Try that
-    # first; if it fails, use RFC2047/MIME encoding. See
-    # https://tools.ietf.org/html/rfc7230#section-3.2.4.
-    try:
-        name = name.encode("latin-1")
-    except UnicodeEncodeError:
-        name = b"=?utf-8?b?" + base64.b64encode(name.encode("utf-8")) + b"?="
-    response.headers["Content-Disposition"] = b"attachment; filename=" + name
 
     request.environ["log_context"]["headers"] = response.headers
     return response

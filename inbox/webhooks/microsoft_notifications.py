@@ -3,7 +3,7 @@ from typing import List, cast
 
 from flask import Blueprint, make_response, request
 from sqlalchemy.orm.exc import NoResultFound
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import UnsupportedMediaType
 
 from inbox.config import config
 from inbox.events.microsoft.graph_types import (
@@ -63,8 +63,8 @@ def validate_webhook_payload_factory(type: MsGraphType):
 
             try:
                 request.json
-            except BadRequest:
-                return ("Malformed JSON payload", 400)
+            except UnsupportedMediaType:
+                return ("Malformed JSON payload", 415)
 
             change_notifications: List[MsGraphChangeNotification] = cast(
                 MsGraphChangeNotificationCollection, request.json

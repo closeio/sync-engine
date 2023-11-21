@@ -48,7 +48,7 @@ PROVIDER = "gmail"
 SYNC_MONITOR_CLS = "GmailSyncMonitor"
 
 
-MAX_DOWNLOAD_BYTES = 2 ** 20
+MAX_DOWNLOAD_BYTES = 2**20
 # USE MAX_DOWNLOAD_COUNT = 1 instead of 30 until N1 launch herding dies.
 MAX_DOWNLOAD_COUNT = 1
 

@@ -30,7 +30,6 @@ def main():
             )
             .filter(Account.sync_state == "stopped")
         ):
-
             if acc.desired_sync_host is not None:
                 print(
                     "account {} assigned to {} but has sync_state 'stopped'"

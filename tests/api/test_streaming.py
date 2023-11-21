@@ -56,7 +56,6 @@ def test_empty_response_when_latest_cursor_given(db, api_client, default_namespa
 
 
 def test_exclude_and_include_object_types(db, api_client, thread, default_namespace):
-
     add_fake_message(
         db.session, default_namespace.id, thread, from_addr=[("Bob", "bob@foocorp.com")]
     )

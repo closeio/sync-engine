@@ -12,7 +12,7 @@ log = get_logger()
 
 
 class Label(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
-    """ Labels from the remote account backend (Gmail). """
+    """Labels from the remote account backend (Gmail)."""
 
     # TOFIX this causes an import error due to circular dependencies
     # from inbox.models.account import Account

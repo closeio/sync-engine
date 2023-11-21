@@ -35,7 +35,7 @@ import vobject
 
 
 def list_clean(string):
-    """ transforms a comma seperated string to a list, stripping whitespaces
+    """transforms a comma seperated string to a list, stripping whitespaces
     "HOME, WORK,pref" -> ['HOME', 'WORK', 'pref']
 
     string: string of comma seperated elements
@@ -176,7 +176,12 @@ def vcard_from_vobject(vcard):
         if isinstance(property_value, list):
             property_value = (",").join(property_value)
 
-        vdict[property_name].append((property_value, line.params,))
+        vdict[property_name].append(
+            (
+                property_value,
+                line.params,
+            )
+        )
     return vdict
 
 
@@ -232,7 +237,6 @@ class VCard(defaultdict):
     """
 
     def __init__(self, ddict=""):
-
         if ddict == "":
             defaultdict.__init__(self, list)
         else:

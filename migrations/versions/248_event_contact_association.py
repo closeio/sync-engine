@@ -31,8 +31,14 @@ def upgrade():
             sa.Enum("participant", "title", "description", "owner"),
             nullable=True,
         ),
-        sa.ForeignKeyConstraint(["contact_id"], ["contact.id"],),
-        sa.ForeignKeyConstraint(["event_id"], ["event.id"],),
+        sa.ForeignKeyConstraint(
+            ["contact_id"],
+            ["contact.id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["event_id"],
+            ["event.id"],
+        ),
         sa.PrimaryKeyConstraint("id", "contact_id", "event_id"),
     )
     op.create_index(

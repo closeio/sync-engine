@@ -2,10 +2,10 @@ import itertools
 
 
 def chunk(iterable, size):
-    """ Yield chunks of an iterable.
+    """Yield chunks of an iterable.
 
-        If len(iterable) is not evenly divisible by size, the last chunk will
-        be shorter than size.
+    If len(iterable) is not evenly divisible by size, the last chunk will
+    be shorter than size.
     """
     it = iter(iterable)
     while True:
@@ -16,12 +16,12 @@ def chunk(iterable, size):
 
 
 def partition(pred, iterable):
-    """ Use a predicate to partition entries into false entries and true
-        entries.
+    """Use a predicate to partition entries into false entries and true
+    entries.
 
-        e.g.:
+    e.g.:
 
-            partition(is_odd, range(10)) --> 0 2 4 6 8   and  1 3 5 7 9
+        partition(is_odd, range(10)) --> 0 2 4 6 8   and  1 3 5 7 9
     """
     t1, t2 = itertools.tee(iterable)
     return [e for e in t1 if not pred(e)], [e for e in t2 if pred(e)]

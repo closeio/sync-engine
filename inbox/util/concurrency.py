@@ -96,7 +96,6 @@ def retry_with_logging(
     provider=None,
     backoff_delay=BACKOFF_DELAY,
 ):
-
     # Sharing the network_errs counter between invocations of callback by
     # placing it inside an array:
     # http://stackoverflow.com/questions/7935966/python-overwriting-variables-in-nested-functions

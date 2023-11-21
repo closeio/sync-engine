@@ -96,7 +96,6 @@ class ICloudContactsProvider(AbstractContactsProvider):
 
         all_contacts = []
         for refprop in root.iterchildren():
-
             try:
                 cardstring = refprop[1][0][1].text
             except IndexError:

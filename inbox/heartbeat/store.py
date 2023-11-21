@@ -95,8 +95,8 @@ class HeartbeatStatusProxy:
 
 
 class HeartbeatStore:
-    """ Store that proxies requests to Redis with handlers that also
-        update indexes and handle scanning through results. """
+    """Store that proxies requests to Redis with handlers that also
+    update indexes and handle scanning through results."""
 
     _instances: Dict[Optional[str], "HeartbeatStore"] = {}
 

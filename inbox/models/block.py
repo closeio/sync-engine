@@ -37,7 +37,7 @@ COMMON_CONTENT_TYPES = [
 class Block(
     Blob, MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin
 ):
-    """ Metadata for any file that we store """
+    """Metadata for any file that we store"""
 
     API_OBJECT_NAME = "file"
 
@@ -85,8 +85,8 @@ def serialize_before_insert(mapper, connection, target):
 
 
 class Part(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
-    """ Part is a section of a specific message. This includes message bodies
-        as well as attachments.
+    """Part is a section of a specific message. This includes message bodies
+    as well as attachments.
     """
 
     block_id = Column(ForeignKey(Block.id, ondelete="CASCADE"))

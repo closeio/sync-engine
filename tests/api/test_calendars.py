@@ -9,10 +9,18 @@ __all__ = ["db", "default_namespace"]
 
 
 @pytest.mark.parametrize(
-    "uid,default", [("inboxapptest@gmail.com", True), ("other", False),],
+    "uid,default",
+    [
+        ("inboxapptest@gmail.com", True),
+        ("other", False),
+    ],
 )
 def test_get_google_calendar(db, default_namespace, api_client, uid, default):
-    cal = Calendar(namespace_id=default_namespace.id, uid=uid, name="Holidays",)
+    cal = Calendar(
+        namespace_id=default_namespace.id,
+        uid=uid,
+        name="Holidays",
+    )
     db.session.add(cal)
     db.session.commit()
     cal_id = cal.public_id
@@ -29,7 +37,10 @@ def test_get_google_calendar(db, default_namespace, api_client, uid, default):
 def test_get_outlook_calendar(db, outlook_namespace, make_api_client):
     api_client = make_api_client(db, outlook_namespace)
     cal = Calendar(
-        namespace_id=outlook_namespace.id, uid="uid", name="Holidays", default=False,
+        namespace_id=outlook_namespace.id,
+        uid="uid",
+        name="Holidays",
+        default=False,
     )
     db.session.add(cal)
     db.session.commit()
@@ -104,7 +115,6 @@ def test_add_to_read_only_calendar(db, api_client):
 
 
 def test_delete_from_readonly_calendar(db, default_namespace, api_client):
-
     add_fake_event(
         db.session,
         default_namespace.id,

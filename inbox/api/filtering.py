@@ -56,7 +56,6 @@ def threads(
     view,
     db_session,
 ):
-
     if view == "count":
         query = db_session.query(func.count(Thread.id))
     elif view == "ids":
@@ -469,7 +468,6 @@ def files(
     view,
     db_session,
 ):
-
     if view == "count":
         query = db_session.query(func.count(Block.id))
     elif view == "ids":
@@ -524,7 +522,6 @@ def filter_event_query(
     location,
     busy,
 ):
-
     query = query.filter(event_cls.namespace_id == namespace_id).filter(
         event_cls.deleted_at.is_(None)
     )
@@ -631,7 +628,6 @@ def events(
     show_cancelled,
     db_session,
 ):
-
     query = db_session.query(Event)
 
     if not expand_recurring:

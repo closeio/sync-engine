@@ -12,7 +12,7 @@ TXN_REDIS_KEY = "latest-txn-by-namespace"
 
 
 class Transaction(MailSyncBase, HasPublicID):
-    """ Transactional log to enable client syncing. """
+    """Transactional log to enable client syncing."""
 
     # Do delete transactions if their associated namespace is deleted.
     namespace_id = Column(BigInteger, nullable=False)

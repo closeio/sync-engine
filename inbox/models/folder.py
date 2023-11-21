@@ -13,7 +13,7 @@ log = get_logger()
 
 
 class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
-    """ Folders from the remote account backend (Generic IMAP/ Gmail). """
+    """Folders from the remote account backend (Generic IMAP/ Gmail)."""
 
     # TOFIX this causes an import error due to circular dependencies
     # from inbox.models.account import Account

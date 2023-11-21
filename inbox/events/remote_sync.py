@@ -88,7 +88,7 @@ class EventSync(BaseSyncMonitor):
             )
             db_session.commit()
 
-        for (uid, id_) in calendar_uids_and_ids:
+        for uid, id_ in calendar_uids_and_ids:
             # Get a timestamp before polling, so that we don't subsequently
             # miss remote updates that happen while the poll loop is executing.
             sync_timestamp = datetime.utcnow()

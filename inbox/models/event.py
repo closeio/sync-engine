@@ -447,8 +447,8 @@ Index("idx_namespace_id_started", Event.namespace_id, Event.start)
 
 
 class RecurringEvent(Event):
-    """ Represents an individual one-off instance of a recurring event,
-        including cancelled events.
+    """Represents an individual one-off instance of a recurring event,
+    including cancelled events.
     """
 
     __mapper_args__ = {"polymorphic_identity": "recurringevent"}
@@ -547,8 +547,8 @@ class RecurringEvent(Event):
 
 
 class RecurringEventOverride(Event):
-    """ Represents an individual one-off instance of a recurring event,
-        including cancelled events.
+    """Represents an individual one-off instance of a recurring event,
+    including cancelled events.
     """
 
     id = Column(ForeignKey("event.id", ondelete="CASCADE"), primary_key=True)
@@ -584,10 +584,10 @@ class RecurringEventOverride(Event):
 
 
 class InflatedEvent(Event):
-    """ This represents an individual instance of a recurring event, generated
-        on the fly when a recurring event is expanded.
-        These are transient objects that should never be committed to the
-        database.
+    """This represents an individual instance of a recurring event, generated
+    on the fly when a recurring event is expanded.
+    These are transient objects that should never be committed to the
+    database.
     """
 
     __mapper_args__ = {"polymorphic_identity": "inflatedevent"}

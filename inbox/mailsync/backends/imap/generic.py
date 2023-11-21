@@ -132,7 +132,6 @@ class FolderSyncEngine(Greenlet):
         provider_name,
         syncmanager_lock,
     ):
-
         with session_scope(namespace_id) as db_session:
             try:
                 folder = (

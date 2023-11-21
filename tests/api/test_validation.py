@@ -15,7 +15,6 @@ __all__ = ["db", "calendar"]
 
 @pytest.mark.skipif(True, reason="Need to investigate")
 def test_account_validation(api_client, db, default_namespace):
-
     draft = {"body": "<html><body><h2>Sea, birds and sand.</h2></body></html>"}
 
     r = api_client.post_data("/drafts", draft)

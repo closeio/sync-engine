@@ -33,7 +33,10 @@ def upgrade():
         sa.Column("original_start_time", sa.DateTime(), nullable=True),
         sa.Column("cancelled", sa.Boolean(), default=False),
         sa.ForeignKeyConstraint(["id"], ["event.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["master_event_id"], ["event.id"],),
+        sa.ForeignKeyConstraint(
+            ["master_event_id"],
+            ["event.id"],
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(

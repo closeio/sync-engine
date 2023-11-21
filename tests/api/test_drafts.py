@@ -57,7 +57,6 @@ def attachments(db):
 
 @pytest.fixture
 def patch_remote_save_draft(monkeypatch):
-
     saved_drafts = []
 
     def mock_save_draft(account_id, message_id, args):
@@ -183,7 +182,9 @@ def test_drafts_filter(api_client, example_draft):
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_create_draft_with_attachments(
-    api_client, attachments, example_draft,
+    api_client,
+    attachments,
+    example_draft,
 ):
     attachment_ids = []
     upload_path = "/files"

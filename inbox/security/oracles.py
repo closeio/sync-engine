@@ -92,7 +92,7 @@ class _EncryptionOracle:
             raise TypeError("plaintext should be bytes, not unicode")
         if not isinstance(encryption_scheme, enum.Enum):
             raise TypeError("encryption_scheme should be an Enum")
-        if not 0 <= encryption_scheme.value <= 2 ** 31 - 1:
+        if not 0 <= encryption_scheme.value <= 2**31 - 1:
             raise ValueError("encryption_scheme value out of range")
         if encryption_scheme != EncryptionScheme.NULL and not config.get_required(
             "ENCRYPT_SECRETS"
@@ -162,7 +162,7 @@ class _DecryptionOracle(_EncryptionOracle):
             raise TypeError("ciphertext should be bytes, not unicode")
         if not isinstance(encryption_scheme_value, int):
             raise TypeError("encryption_scheme_value should be a number")
-        if not 0 <= encryption_scheme_value <= 2 ** 31 - 1:
+        if not 0 <= encryption_scheme_value <= 2**31 - 1:
             raise ValueError("encryption_scheme_value out of range")
 
         # decrypt differently depending on the scheme

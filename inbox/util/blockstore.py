@@ -19,7 +19,13 @@ from boto.s3.key import Key
 
 def _data_file_directory(h):
     return os.path.join(
-        config.get_required("MSG_PARTS_DIRECTORY"), h[0], h[1], h[2], h[3], h[4], h[5],
+        config.get_required("MSG_PARTS_DIRECTORY"),
+        h[0],
+        h[1],
+        h[2],
+        h[3],
+        h[4],
+        h[5],
     )
 
 

@@ -116,7 +116,8 @@ def test_request_exception(client):
 @responses.activate
 def test_iter_calendars(client):
     responses.get(
-        BASE_URL + "/me/calendars", json=calendars_json,
+        BASE_URL + "/me/calendars",
+        json=calendars_json,
     )
 
     calendars = client.iter_calendars()
@@ -168,7 +169,8 @@ events_json = {
 @responses.activate
 def test_iter_events(client):
     responses.get(
-        BASE_URL + "/me/calendars/fake_calendar_id/events", json=events_json,
+        BASE_URL + "/me/calendars/fake_calendar_id/events",
+        json=events_json,
     )
 
     events = client.iter_events("fake_calendar_id")
@@ -212,7 +214,10 @@ def test_iter_events_modified_after(client, modified_after, subjects):
         content_type="application/json",
     )
 
-    events = client.iter_events("fake_calendar_id", modified_after=modified_after,)
+    events = client.iter_events(
+        "fake_calendar_id",
+        modified_after=modified_after,
+    )
 
     assert {event["subject"] for event in events} == subjects
 
@@ -289,7 +294,9 @@ def test_subscribe_connection_closed_retries(client):
         status=400,
     )
     responses.post(
-        BASE_URL + "/subscriptions", json={}, status=200,
+        BASE_URL + "/subscriptions",
+        json={},
+        status=200,
     )
 
     with unittest.mock.patch("time.sleep"):
@@ -390,7 +397,8 @@ subscriptions_json = {
 @responses.activate(registry=OrderedRegistry)
 def test_iter_subscriptions(client):
     responses.get(
-        BASE_URL + "/subscriptions", json=subscriptions_json,
+        BASE_URL + "/subscriptions",
+        json=subscriptions_json,
     )
 
     subscriptions = client.iter_subscriptions()
@@ -404,7 +412,8 @@ def test_iter_subscriptions(client):
 @responses.activate
 def test_unsubscribe(client):
     responses.delete(
-        BASE_URL + "/subscriptions/fake_subscription_id", body="",
+        BASE_URL + "/subscriptions/fake_subscription_id",
+        body="",
     )
 
     assert client.unsubscribe("fake_subscription_id") == {}

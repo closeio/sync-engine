@@ -220,7 +220,9 @@ def subscribe_responses():
         ],
     )
 
-    responses.delete(BASE_URL + "/subscriptions/f798ca9d-d630-4306-b065-af52199f5613",)
+    responses.delete(
+        BASE_URL + "/subscriptions/f798ca9d-d630-4306-b065-af52199f5613",
+    )
 
 
 @pytest.fixture

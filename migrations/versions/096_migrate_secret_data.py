@@ -59,7 +59,6 @@ def upgrade():
                 s.secret.encode("utf-8") if isinstance(s.secret, unicode) else s.secret
             )
             if config.get_required("ENCRYPT_SECRETS"):
-
                 s._secret = nacl.secret.SecretBox(
                     key=config.get_required("SECRET_ENCRYPTION_KEY"),
                     encoder=nacl.encoding.HexEncoder,

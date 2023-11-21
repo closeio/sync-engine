@@ -105,7 +105,7 @@ def delete_label(crispin_client, account_id, category_id):
 
 
 def save_draft(crispin_client, account_id, message_id, args):
-    """ Sync a new draft back to the remote backend. """
+    """Sync a new draft back to the remote backend."""
     with session_scope(account_id) as db_session:
         message = db_session.query(Message).get(message_id)
         version = args.get("version")
@@ -131,7 +131,7 @@ def save_draft(crispin_client, account_id, message_id, args):
 
 
 def update_draft(crispin_client, account_id, message_id, args):
-    """ Sync an updated draft back to the remote backend. """
+    """Sync an updated draft back to the remote backend."""
     with session_scope(account_id) as db_session:
         message = db_session.query(Message).get(message_id)
         version = args.get("version")

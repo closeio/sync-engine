@@ -51,8 +51,8 @@ def _get_participants(msg, excluded_emails=None):
 
 # Not really an algorithm, but it seemed reasonable to put this here?
 def is_stale(last_updated, lifespan=14):
-    """ last_updated is a datetime.datetime object
-        lifespan is measured in days
+    """last_updated is a datetime.datetime object
+    lifespan is measured in days
     """
     if last_updated is None:
         return True

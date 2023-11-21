@@ -121,7 +121,6 @@ def test_categories_from_multiple_imap_folders(
 
 
 def test_truncate_imapuid_extra_flags(db, default_account, message, folder):
-
     imapuid = ImapUid(
         message=message, account_id=default_account.id, msg_uid=2222, folder=folder
     )

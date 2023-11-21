@@ -110,7 +110,9 @@ def maybe_enable_rollbar():
     )
 
     rollbar.init(
-        ROLLBAR_API_KEY, application_environment, allow_logging_basic_config=False,
+        ROLLBAR_API_KEY,
+        application_environment,
+        allow_logging_basic_config=False,
     )
 
     rollbar_handler = SyncEngineRollbarHandler()

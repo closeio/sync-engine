@@ -22,7 +22,10 @@ def upgrade():
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("transaction_id", sa.Integer(), nullable=True),
-        sa.ForeignKeyConstraint(["transaction_id"], ["transaction.id"],),
+        sa.ForeignKeyConstraint(
+            ["transaction_id"],
+            ["transaction.id"],
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
 

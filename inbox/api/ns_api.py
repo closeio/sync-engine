@@ -333,7 +333,10 @@ def status():
             else:
                 account.throttled = False
     return g.encoder.jsonify(
-        {"sync_status": account.sync_status, "throttled": account.throttled,}
+        {
+            "sync_status": account.sync_status,
+            "throttled": account.throttled,
+        }
     )
 
 
@@ -498,7 +501,7 @@ def thread_api_update(public_id):
 #
 @app.route("/threads/<public_id>", methods=["DELETE"])
 def thread_api_delete(public_id):
-    """ Moves the thread to the trash """
+    """Moves the thread to the trash"""
     raise NotImplementedError
 
 
@@ -1248,7 +1251,7 @@ def event_update_api(public_id):
             notify_participants=notify_participants,
         )
 
-        if len(json.dumps(kwargs)) > 2 ** 16 - 12:
+        if len(json.dumps(kwargs)) > 2**16 - 12:
             raise InputError("Event update too big --- please break it in parts.")
 
         if event.calendar != account.emailed_events_calendar:

@@ -227,7 +227,7 @@ def generate_message_id_header(uid):
 
 
 def _rfc_transform(msg):
-    """ Create an RFC-2821 compliant SMTP message.
+    """Create an RFC-2821 compliant SMTP message.
     (Specifically, this means splitting the References header to conform to
     line length limits.)
 

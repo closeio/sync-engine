@@ -284,7 +284,7 @@ def test_body(generic_client, constants):
 
 
 def test_internaldate(generic_client, constants):
-    """ Test that our monkeypatched imaplib works through imapclient """
+    """Test that our monkeypatched imaplib works through imapclient"""
     dates_to_test = [
         ("6-Mar-2015 10:02:32 +0900", datetime(2015, 3, 6, 1, 2, 32)),
         (" 6-Mar-2015 10:02:32 +0900", datetime(2015, 3, 6, 1, 2, 32)),
@@ -333,8 +333,8 @@ def test_missing_flags(generic_client, constants):
 
 
 def test_deleted_folder_on_select(monkeypatch, generic_client, constants):
-    """ Test that a 'select failed EXAMINE' error specifying that a folder
-        doesn't exist is converted into a FolderMissingError. (Yahoo style)
+    """Test that a 'select failed EXAMINE' error specifying that a folder
+    doesn't exist is converted into a FolderMissingError. (Yahoo style)
     """
 
     def raise_invalid_folder_exc(*args, **kwargs):
@@ -351,8 +351,8 @@ def test_deleted_folder_on_select(monkeypatch, generic_client, constants):
 
 
 def test_deleted_folder_on_fetch(monkeypatch, generic_client, constants):
-    """ Test that a 'select failed EXAMINE' error specifying that a folder
-        doesn't exist is converted into a FolderMissingError. (Yahoo style)
+    """Test that a 'select failed EXAMINE' error specifying that a folder
+    doesn't exist is converted into a FolderMissingError. (Yahoo style)
     """
 
     def raise_invalid_uid_exc(*args, **kwargs):
@@ -377,7 +377,6 @@ def test_gmail_folders(monkeypatch, constants):
 
 
 def generic_folder_checks(raw_folders, role_map, client, provider):
-
     # Should not contain the `\\Noselect' folder
     assert [y for y in raw_folders if "\\Noselect" in y[0]] == []
     if provider == "gmail":

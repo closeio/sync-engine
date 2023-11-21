@@ -39,7 +39,7 @@ SMTP_TEMP_AUTH_FAIL_CODES = (421, 454)
 
 class SMTP_SSL(smtplib.SMTP_SSL):
     """
-        Derived class which correctly surfaces SMTP errors.
+    Derived class which correctly surfaces SMTP errors.
     """
 
     def rset(self):
@@ -65,7 +65,7 @@ class SMTP_SSL(smtplib.SMTP_SSL):
 
 class SMTP(smtplib.SMTP):
     """
-        Derived class which correctly surfaces SMTP errors.
+    Derived class which correctly surfaces SMTP errors.
     """
 
     def rset(self):
@@ -108,7 +108,7 @@ def _substitute_bcc(raw_message: bytes) -> bytes:
     Substitute BCC in raw message.
     """
 
-    bcc_regexp = re.compile(br"^Bcc: [^\r\n]*\r\n", re.IGNORECASE | re.MULTILINE)
+    bcc_regexp = re.compile(rb"^Bcc: [^\r\n]*\r\n", re.IGNORECASE | re.MULTILINE)
     return bcc_regexp.sub(b"", raw_message)
 
 
@@ -147,7 +147,7 @@ class SMTPConnection:
             return
 
     def _connect(self, host, port):
-        """ Connect, with error-handling """
+        """Connect, with error-handling"""
         try:
             self.connection.connect(host, port)
         except OSError as e:
@@ -187,7 +187,8 @@ class SMTPConnection:
                 self.connection.starttls()
             except ssl.SSLError as e:
                 log.warning(
-                    "STARTTLS supported but failed.", exc_info=True,
+                    "STARTTLS supported but failed.",
+                    exc_info=True,
                 )
                 msg = _transform_ssl_error(e.strerror)
                 raise SendMailException(msg, 503)
@@ -274,7 +275,7 @@ class SMTPConnection:
 
 
 class SMTPClient:
-    """ SMTPClient for Gmail and other IMAP providers. """
+    """SMTPClient for Gmail and other IMAP providers."""
 
     def __init__(self, account):
         self.account_id = account.id

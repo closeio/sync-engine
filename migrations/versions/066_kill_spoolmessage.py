@@ -66,7 +66,6 @@ def upgrade():
         __table__ = Base.metadata.tables["spoolmessage"]
 
     with session_scope(versioned=False) as db_session:
-
         for sm in db_session.query(SpoolMessage).yield_per(250):
             m = db_session.query(Message).get(sm.id)
 

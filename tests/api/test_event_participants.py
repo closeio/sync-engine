@@ -60,8 +60,12 @@ def test_api_create_multiple(db, api_client, calendar):
         "when": {"time": 1407542195},
         "calendar_id": calendar.public_id,
         "participants": [
-            {"email": "alyssa@example.com",},
-            {"email": "ben.bitdiddle@example.com",},
+            {
+                "email": "alyssa@example.com",
+            },
+            {
+                "email": "ben.bitdiddle@example.com",
+            },
         ],
     }
 
@@ -158,7 +162,11 @@ def test_api_create_no_email(db, api_client, calendar):
         "title": "Friday Office Party",
         "when": {"time": 1407542195},
         "calendar_id": calendar.public_id,
-        "participants": [{"name": "alyssa p. hacker",}],
+        "participants": [
+            {
+                "name": "alyssa p. hacker",
+            }
+        ],
     }
 
     e_resp = api_client.post_data("/events", e_data)
@@ -301,7 +309,6 @@ def test_api_update_participant_status(db, api_client, calendar):
 
 @pytest.mark.parametrize("rsvp", ["yes", "no", "maybe"])
 def test_api_participant_reply(db, api_client, rsvp, calendar):
-
     e_data = {
         "title": "Friday Office Party",
         "calendar_id": calendar.public_id,
@@ -346,7 +353,6 @@ def test_api_participant_reply_invalid_rsvp(db, api_client, calendar):
 
 
 def test_api_participant_reply_invalid_participant(db, api_client, calendar):
-
     e_data = {
         "title": "Friday Office Party",
         "when": {"time": 1407542195},

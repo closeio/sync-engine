@@ -17,7 +17,8 @@ host = platform.node()
 
 def patched_sync_service(db, host=host, process_number=0):
     s = SyncService(
-        process_identifier=f"{host}:{process_number}", process_number=process_number,
+        process_identifier=f"{host}:{process_number}",
+        process_number=process_number,
     )
 
     def start_sync(aid):

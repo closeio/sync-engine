@@ -26,7 +26,7 @@ from inbox.error_handling import maybe_enable_rollbar
 )
 @click.option("-c", "--client", is_flag=True, help="Start a repl with an APIClient")
 def console(email_address, client):
-    """ REPL for Nylas. """
+    """REPL for Nylas."""
     maybe_enable_rollbar()
 
     if client:

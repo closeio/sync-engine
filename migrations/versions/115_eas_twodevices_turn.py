@@ -50,7 +50,6 @@ def upgrade():
         __table__ = Base.metadata.tables["easdevice"]
 
     with session_scope(versioned=False) as db_session:
-
         accts = db_session.query(EASAccount).all()
 
         for a in accts:

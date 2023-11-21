@@ -45,7 +45,7 @@ def _fallback_get_mx_domains(domain):
 
 
 def get_mx_domains(domain, dns_resolver=_dns_resolver):
-    """ Retrieve and return the MX records for a domain. """
+    """Retrieve and return the MX records for a domain."""
     mx_records = []
     try:
         mx_records = dns_resolver().query(domain, "MX")

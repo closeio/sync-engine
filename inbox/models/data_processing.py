@@ -12,8 +12,7 @@ from inbox.models.namespace import Namespace
 
 
 class DataProcessingCache(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
-    """Cached data used in data processing
-    """
+    """Cached data used in data processing"""
 
     namespace_id = Column(ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False)
     _contact_rankings = Column("contact_rankings", MEDIUMBLOB)

@@ -270,7 +270,8 @@ class MicrosoftGraphClient:
             params["$select"] = ",".join(fields)
 
         yield from self._iter(
-            f"/me/events/{event_id}/instances", params=params,
+            f"/me/events/{event_id}/instances",
+            params=params,
         )
 
     def iter_subscriptions(self) -> Iterable[Dict[str, Any]]:

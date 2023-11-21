@@ -193,7 +193,7 @@ def _safe_exc_info_renderer(_, __, event_dict):
 
 def _safe_encoding_renderer(_, __, event_dict):
     """Processor that converts all strings to unicode.
-       Note that we ignore conversion errors.
+    Note that we ignore conversion errors.
     """
     for key in event_dict:
         entry = event_dict[key]
@@ -204,7 +204,7 @@ def _safe_encoding_renderer(_, __, event_dict):
 
 
 class BoundLogger(structlog.stdlib.BoundLogger):
-    """ BoundLogger which always adds greenlet_id and env to positional args """
+    """BoundLogger which always adds greenlet_id and env to positional args"""
 
     def _proxy_to_logger(self, method_name, event, *event_args, **event_kw):
         event_kw["greenlet_id"] = id(gevent.getcurrent())
@@ -271,7 +271,7 @@ class ConditionalFormatter(logging.Formatter):
 
 
 def configure_logging(log_level=None):
-    """ Idempotently configure logging.
+    """Idempotently configure logging.
 
     Infers options based on whether or not the output is a TTY.
 

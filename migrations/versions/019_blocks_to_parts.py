@@ -65,7 +65,6 @@ def upgrade():
     new_parts = []
     with session_scope() as db_session:
         for block in db_session.query(Block_).yield_per(chunk_size):
-
             # Move relevant fields
             p = Part()
             p.size = block.size

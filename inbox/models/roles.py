@@ -18,7 +18,7 @@ STORE_MESSAGE_ATTACHMENTS = config.get("STORE_MESSAGE_ATTACHMENTS", True)
 
 
 class Blob:
-    """ A blob of data that can be saved to local or remote (S3) disk. """
+    """A blob of data that can be saved to local or remote (S3) disk."""
 
     size = Column(Integer, default=0)
     data_sha256 = Column(String(64))

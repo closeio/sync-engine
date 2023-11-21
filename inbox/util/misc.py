@@ -84,7 +84,7 @@ def dt_to_timestamp(dt):
 
 
 def get_internaldate(date: Optional[str], received: Optional[str]) -> datetime:
-    """ Get the date from the headers. """
+    """Get the date from the headers."""
     if date is None:
         assert received
         _, date = received.split(";")

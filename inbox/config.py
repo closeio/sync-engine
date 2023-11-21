@@ -1,14 +1,13 @@
 import errno
 import os
 
-import requests
 import urllib3
 import yaml
 
 urllib3.disable_warnings()
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from urllib3.exceptions import InsecureRequestWarning
 
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  # type: ignore
+urllib3.disable_warnings(InsecureRequestWarning)
 
 __all__ = ["config"]
 

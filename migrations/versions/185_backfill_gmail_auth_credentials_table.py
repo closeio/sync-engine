@@ -38,7 +38,6 @@ def upgrade():
         secret = relationship(Secret)
 
     with session_scope(versioned=False) as db_session:
-
         for acc, sec in (
             db_session.query(GmailAccount, Secret)
             .filter(
@@ -48,7 +47,6 @@ def upgrade():
             )
             .all()
         ):
-
             # Create a new GmailAuthCredentials entry if
             # we don't have one already
             if (
@@ -58,7 +56,6 @@ def upgrade():
                 .count()
                 == 0
             ):
-
                 # Create a new secret
                 new_sec = Secret()
                 new_sec.created_at = now

@@ -150,7 +150,7 @@ _pool_map: Dict[int, "CrispinConnectionPool"] = {}
 
 
 def connection_pool(account_id, pool_size=None):
-    """ Per-account crispin connection pool.
+    """Per-account crispin connection pool.
 
     Use like this:
 
@@ -177,7 +177,7 @@ _writable_pool_map: Dict[int, "CrispinConnectionPool"] = {}
 
 
 def writable_connection_pool(account_id, pool_size=1):
-    """ Per-account crispin connection pool, with *read-write* connections.
+    """Per-account crispin connection pool, with *read-write* connections.
 
     Use like this:
 
@@ -244,7 +244,7 @@ class CrispinConnectionPool:
 
     @contextlib.contextmanager
     def get(self):
-        """ Get a connection from the pool, or instantiate a new one if needed.
+        """Get a connection from the pool, or instantiate a new one if needed.
         If `num_connections` connections are already in use, block until one is
         available.
         """
@@ -345,24 +345,24 @@ original_parse_message_list = imapclient.response_parser.parse_message_list
 def fixed_parse_message_list(data: List[bytes]) -> List[int]:
     """Fixed version of imapclient.response_parser.parse_message_list
 
-       We observed in real world that some IMAP servers send many
-       elements instead of a single element. While this is a violation of IMAP
-       spec, we decided to still handle this gracefully by returning unique UIDs
-       across all the elements.
+    We observed in real world that some IMAP servers send many
+    elements instead of a single element. While this is a violation of IMAP
+    spec, we decided to still handle this gracefully by returning unique UIDs
+    across all the elements.
 
-       Aditionally this takes care of parsing the most common textual format that list may
-       arrive in from an IMAP server. The algorithm is shorter and much less memory
-       hungry than the generic version which becomes important when syncing
-       large mailboxes. It relies on regexes to avoid creating intermediate lists.
-       If we receive data in format that does not follow most common format
-       we still fallback to the unoptimized version.
+    Aditionally this takes care of parsing the most common textual format that list may
+    arrive in from an IMAP server. The algorithm is shorter and much less memory
+    hungry than the generic version which becomes important when syncing
+    large mailboxes. It relies on regexes to avoid creating intermediate lists.
+    If we receive data in format that does not follow most common format
+    we still fallback to the unoptimized version.
 
-       Based off Tom's (Python 2 version):
-       https://github.com/closeio/imapclient/commit/475d02f85be308fb4ac80e66628a03c30c096c9f
-       For generic version see:
-       https://github.com/mjs/imapclient/blob/master/imapclient/response_parser.py#L39-L79
-       Implemented in:
-       https://github.com/closeio/sync-engine/pull/483
+    Based off Tom's (Python 2 version):
+    https://github.com/closeio/imapclient/commit/475d02f85be308fb4ac80e66628a03c30c096c9f
+    For generic version see:
+    https://github.com/mjs/imapclient/blob/master/imapclient/response_parser.py#L39-L79
+    Implemented in:
+    https://github.com/closeio/sync-engine/pull/483
     """
     # Handle case where we receive many elements instead of a single element
     if len(data) > 1:
@@ -445,7 +445,7 @@ class CrispinClient:
         self.readonly = readonly
 
     def _fetch_folder_list(self) -> List[Tuple[Tuple[bytes, ...], bytes, str]]:
-        r""" NOTE: XLIST is deprecated, so we just use LIST.
+        r"""NOTE: XLIST is deprecated, so we just use LIST.
 
         An example response with some other flags:
 
@@ -476,7 +476,7 @@ class CrispinClient:
         folder_name: str,
         uidvalidity_callback: Callable[[int, str, Dict[bytes, Any]], Dict[bytes, Any]],
     ) -> Dict[bytes, Any]:
-        """ Selects a given folder if it isn't already the currently selected
+        """Selects a given folder if it isn't already the currently selected
         folder.
 
         Makes sure to set the 'selected_folder' attribute to a
@@ -502,7 +502,7 @@ class CrispinClient:
         folder_name: str,
         uidvalidity_callback: Callable[[int, str, Dict[bytes, Any]], Dict[bytes, Any]],
     ) -> Dict[bytes, Any]:
-        """ Selects a given folder.
+        """Selects a given folder.
 
         Makes sure to set the 'selected_folder' attribute to a
         (folder_name, select_info) pair.
@@ -569,9 +569,9 @@ class CrispinClient:
     @property
     def folder_separator(self) -> str:
         # We use the list command because it works for most accounts.
-        folders_list: List[Tuple[Tuple[bytes, ...], bytes, str]] = (
-            self.conn.list_folders()
-        )
+        folders_list: List[
+            Tuple[Tuple[bytes, ...], bytes, str]
+        ] = self.conn.list_folders()
 
         if len(folders_list) == 0:
             return "."
@@ -663,9 +663,7 @@ class CrispinClient:
         # Folders that provide basic functionality of email
         system_role_names = ["inbox", "sent", "trash", "spam"]
 
-        folders: List[Tuple[Tuple[bytes, ...], bytes, str]] = (
-            self._fetch_folder_list()
-        )
+        folders: List[Tuple[Tuple[bytes, ...], bytes, str]] = self._fetch_folder_list()
         for flags, _, name in folders:
             if (
                 b"\\Noselect" in flags
@@ -820,7 +818,7 @@ class CrispinClient:
         return sorted(int(uid) for uid in self.conn.search(criteria))
 
     def all_uids(self) -> List[int]:
-        """ Fetch all UIDs associated with the currently selected folder.
+        """Fetch all UIDs associated with the currently selected folder.
 
         Returns
         -------
@@ -1201,7 +1199,9 @@ class GmailCrispinClient(CrispinClient):
         self, modseq: int
     ) -> Dict[int, Union[GmailFlags, Flags]]:
         data: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
-            "1:*", ["FLAGS", "X-GM-LABELS"], modifiers=[f"CHANGEDSINCE {modseq}"],
+            "1:*",
+            ["FLAGS", "X-GM-LABELS"],
+            modifiers=[f"CHANGEDSINCE {modseq}"],
         )
         results: Dict[int, Union[GmailFlags, Flags]] = {}
         for uid, ret in data.items():

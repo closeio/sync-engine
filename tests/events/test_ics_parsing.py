@@ -125,7 +125,6 @@ def test_event_update(db, default_account, message):
 # 1. we're processing invites we've sent to ourselves.
 # 2. update only update events in the "emailed events" calendar.
 def test_self_sent_update(db, default_account, message):
-
     # Create the calendars
     add_fake_calendar(
         db.session, default_account.namespace.id, name="Emailed events", read_only=True

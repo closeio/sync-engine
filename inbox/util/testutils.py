@@ -22,7 +22,7 @@ FILENAMES = [
 
 
 def create_test_db():
-    """ Creates new, empty test databases. """
+    """Creates new, empty test databases."""
     from inbox.config import config
 
     database_hosts = config.get_required("DATABASE_HOSTS")

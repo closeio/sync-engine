@@ -21,7 +21,6 @@ def example_draft(db, default_account):
 
 
 def test_send_draft(db, api_client, example_draft, default_account):
-
     r = api_client.post_data("/drafts", example_draft)
     assert r.status_code == 200
     public_id = json.loads(r.data)["id"]

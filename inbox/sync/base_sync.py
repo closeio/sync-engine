@@ -35,7 +35,6 @@ class BaseSyncMonitor(Greenlet):
         poll_frequency=1,
         scope=None,
     ):
-
         self.account_id = account_id
         self.namespace_id = namespace_id
         self.provider_name = provider_name
@@ -86,5 +85,5 @@ class BaseSyncMonitor(Greenlet):
         sleep(self.poll_frequency)
 
     def sync(self):
-        """ Subclasses should override this to do work """
+        """Subclasses should override this to do work"""
         raise NotImplementedError

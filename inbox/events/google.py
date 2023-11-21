@@ -108,7 +108,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
     def _get_raw_events(
         self, calendar_uid: str, sync_from_time: Optional[datetime.datetime] = None
     ) -> List[Dict[str, Any]]:
-        """ Gets raw event data for the given calendar.
+        """Gets raw event data for the given calendar.
 
         Parameters
         ----------
@@ -134,6 +134,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
         try:
             return self._get_resource_list(url, updatedMin=sync_from_time_str)
         except requests.exceptions.HTTPError as exc:
+            assert exc.response
             if exc.response.status_code == 410:
                 # The calendar API may return 410 if you pass a value for
                 # updatedMin that's too far in the past. In that case, refetch
@@ -213,7 +214,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
     def _make_event_request(
         self, method: str, calendar_uid: str, event_uid: Optional[str] = None, **kwargs
     ) -> requests.Response:
-        """ Makes a POST/PUT/DELETE request for a particular event. """
+        """Makes a POST/PUT/DELETE request for a particular event."""
         event_uid = event_uid or ""
         url = "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}".format(
             urllib.parse.quote(calendar_uid), urllib.parse.quote(event_uid)
@@ -406,6 +407,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
                 # Handle error and return None
                 self._handle_watch_errors(r)
             except requests.exceptions.HTTPError as e:
+                assert e.response
                 if e.response.status_code == 404:
                     raise CalendarGoneException(calendar.uid) from e
 

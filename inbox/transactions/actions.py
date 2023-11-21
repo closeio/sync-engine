@@ -438,7 +438,6 @@ class SyncbackService(gevent.Greenlet):
     def _process_log(self):
         for key in self.keys:
             with session_scope_by_shard_id(key) as db_session:
-
                 # Get the list of namespace ids with pending actions
                 namespace_ids = [
                     ns_id[0]

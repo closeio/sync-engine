@@ -34,7 +34,10 @@ MsGraphRecurrencePatternType = Literal[
 ]
 
 ICalFreq = Literal[
-    "DAILY", "WEEKLY", "MONTHLY", "YEARLY",
+    "DAILY",
+    "WEEKLY",
+    "MONTHLY",
+    "YEARLY",
 ]
 
 

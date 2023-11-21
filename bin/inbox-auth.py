@@ -41,7 +41,7 @@ configure_logging(config.get("LOGLEVEL"))
     help="Manually specify the provider instead of trying to detect it",
 )
 def main(email_address, reauth, target, provider):
-    """ Auth an email account. """
+    """Auth an email account."""
     preflight()
 
     maybe_enable_rollbar()

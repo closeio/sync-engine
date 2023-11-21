@@ -90,7 +90,8 @@ def create_imap_connection(host, port, use_timeout=True):
                 conn.starttls(context)
             except Exception:
                 log.warning(
-                    "STARTTLS supported but failed.", exc_info=True,
+                    "STARTTLS supported but failed.",
+                    exc_info=True,
                 )
                 raise
         else:

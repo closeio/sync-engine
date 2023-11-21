@@ -31,7 +31,10 @@ def upgrade():
         sa.Column("object_public_id", sa.String(191), nullable=False),
         sa.Column("command", sa.Enum("insert", "update", "delete"), nullable=False),
         sa.PrimaryKeyConstraint("id"),
-        sa.ForeignKeyConstraint(["namespace_id"], ["namespace.id"],),
+        sa.ForeignKeyConstraint(
+            ["namespace_id"],
+            ["namespace.id"],
+        ),
     )
     op.create_index(
         "ix_accounttransaction_created_at",

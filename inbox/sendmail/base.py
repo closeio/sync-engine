@@ -100,7 +100,7 @@ def create_draft_from_mime(
 
 
 def block_to_part(block, message, namespace):
-    inline_image_uri = fr"cid:{block.public_id}"
+    inline_image_uri = rf"cid:{block.public_id}"
     is_inline = re.search(inline_image_uri, message.body) is not None
     # Create a new Part object to associate to the message object.
     # (You can't just set block.message, because if block is an
@@ -115,7 +115,7 @@ def block_to_part(block, message, namespace):
 
 
 def create_message_from_json(data, namespace, db_session, is_draft):
-    """ Construct a Message instance from `data`, a dictionary representing the
+    """Construct a Message instance from `data`, a dictionary representing the
     POST body of an API request. All new objects are added to the session, but
     not committed."""
 
@@ -336,7 +336,7 @@ def update_draft(
 
 
 def delete_draft(db_session, account, draft):
-    """ Delete the given draft. """
+    """Delete the given draft."""
     thread = draft.thread
     assert draft.is_draft
 

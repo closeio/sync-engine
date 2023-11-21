@@ -31,7 +31,7 @@ def test_validate_webhook_payload_malformed(test_client):
     )
 
     assert response.data.decode() == "Malformed JSON payload"
-    assert response.status_code == 400
+    assert response.status_code == 415
 
 
 def test_validate_webhook_payload_missing_content_type(test_client):
@@ -40,7 +40,7 @@ def test_validate_webhook_payload_missing_content_type(test_client):
     )
 
     assert response.data.decode() == "Malformed JSON payload"
-    assert response.status_code == 400
+    assert response.status_code == 415
 
 
 def test_validate_webhook_payload_with_content_type(test_client):

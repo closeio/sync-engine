@@ -356,7 +356,6 @@ def test_invalid_gmail_account_search(
     sorted_gmail_messages,
     is_streaming,
 ):
-
     if is_streaming:
         response = api_client.get_raw("/messages/search/streaming?q=blah%20blah%20blah")
     else:
@@ -449,7 +448,6 @@ def test_invalid_imap_account_search(
     sorted_imap_messages,
     is_streaming,
 ):
-
     if is_streaming:
         # Because of the way streaming search work, it will return a
         # 200 response even though we can't access the account.
@@ -489,7 +487,14 @@ def test_streaming_search_results(
 
     class MultiFolderMockImapConnection(MockImapConnection):
         def __init__(self):
-            self._responses = list(reversed([[2000, 2001, 2002], [5000, 5001],]))
+            self._responses = list(
+                reversed(
+                    [
+                        [2000, 2001, 2002],
+                        [5000, 5001],
+                    ]
+                )
+            )
 
         def search(self, criteria, charset=None):
             self.search_args = (criteria, charset)

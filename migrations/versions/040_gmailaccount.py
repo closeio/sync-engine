@@ -16,7 +16,6 @@ from alembic import op
 
 
 def upgrade():
-
     print("Creating new table gmailaccount")
 
     op.create_table(

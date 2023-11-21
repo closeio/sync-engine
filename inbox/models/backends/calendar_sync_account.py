@@ -4,7 +4,6 @@ from sqlalchemy import Column, DateTime
 
 
 class CalendarSyncAccountMixin:
-
     last_calendar_list_sync = Column(DateTime)
     webhook_calendar_list_last_ping = Column(DateTime)
     webhook_calendar_list_expiration = Column(DateTime)

@@ -135,7 +135,6 @@ class AccountDeletionErrror(Exception):
 
 
 def batch_delete_namespaces(ids_to_delete, throttle=False, dry_run=False):
-
     start = time.time()
 
     for account_id, namespace_id in ids_to_delete:

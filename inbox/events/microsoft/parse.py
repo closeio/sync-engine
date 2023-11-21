@@ -620,7 +620,10 @@ def validate_event(event: MsGraphEvent) -> bool:
 
 
 def parse_event(
-    event: MsGraphEvent, *, read_only: bool, master_event_uid: Optional[str] = None,
+    event: MsGraphEvent,
+    *,
+    read_only: bool,
+    master_event_uid: Optional[str] = None,
 ) -> Event:
     """
     Parse event coming from Microsoft Graph API as ORM object.

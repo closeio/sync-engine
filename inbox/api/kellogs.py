@@ -65,7 +65,10 @@ def format_phone_numbers(phone_numbers):
     formatted_phone_numbers = []
     for number in phone_numbers:
         formatted_phone_numbers.append(
-            {"type": number.type, "number": number.number,}
+            {
+                "type": number.type,
+                "number": number.number,
+            }
         )
     return formatted_phone_numbers
 

@@ -18,7 +18,7 @@ charset-normalizer==3.1.0
 ciso8601==2.2.0
 click==8.1.7
 colorlog==6.5.0
-cryptography==41.0.4
+cryptography==41.0.5
 decorator==5.1.1
 dnspython==2.1.0
 executing==1.2.0

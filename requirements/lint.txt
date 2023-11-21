@@ -15,12 +15,12 @@ mccabe==0.7.0
 mypy==1.7.0
 regex==2020.9.27
 pathspec==0.11.2
-pyflakes==3.1.0
-pycodestyle==2.11.1
-toml==0.10.1
+pyflakes==2.5.0
+pycodestyle==2.9.1
+toml==0.10.2
 tomli==2.0.1
 typed-ast==1.4.1
-typing_extensions==4.4.0
+typing_extensions==4.8.0
 mypy_extensions==0.4.3
 types-boto==2.49.17
 types-python-dateutil==2.8.19.14

@@ -11,6 +11,7 @@ os.environ["NYLAS_ENV"] = "test"
 
 from pytest import fixture
 
+from inbox.util.testutils import dump_dns_queries  # noqa
 from inbox.util.testutils import files  # noqa
 from inbox.util.testutils import mock_dns_resolver  # noqa
 from inbox.util.testutils import mock_imapclient  # noqa
@@ -19,8 +20,6 @@ from inbox.util.testutils import uploaded_file_ids  # noqa
 
 from tests.api.base import TestAPIClient
 from tests.util.base import *  # noqa
-
-from inbox.util.testutils import dump_dns_queries  # noqa; noqa
 
 
 @fixture

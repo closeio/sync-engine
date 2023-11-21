@@ -358,6 +358,7 @@ class WebhookEventSync(EventSync):
                 try:
                     self._sync_calendar(calendar, db_session)
                 except HTTPError as exc:
+                    assert exc.response
                     if exc.response.status_code == 404:
                         self.log.warning(
                             "Tried to sync a deleted calendar."

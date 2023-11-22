@@ -19,7 +19,7 @@ pyflakes==3.1.0
 pycodestyle==2.9.1
 toml==0.10.2
 tomli==2.0.1
-typed-ast==1.4.1
+typed-ast==1.5.5
 typing_extensions==4.8.0
 mypy_extensions==0.4.3
 types-boto==2.49.17

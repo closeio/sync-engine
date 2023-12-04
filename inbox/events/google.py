@@ -407,7 +407,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
                 # Handle error and return None
                 self._handle_watch_errors(r)
             except requests.exceptions.HTTPError as e:
-                assert e.response
+                assert e.response is not None
                 if e.response.status_code == 404:
                     raise CalendarGoneException(calendar.uid) from e
 

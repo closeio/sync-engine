@@ -63,14 +63,18 @@ def calendar_update(account_public_id):
     request.environ["log_context"]["account_public_id"] = account_public_id
     try:
         valid_public_id(account_public_id)
-        with global_session_scope() as db_session:
-            account = (
-                db_session.query(GmailAccount)
-                .filter(GmailAccount.public_id == account_public_id)
-                .one()
-            )
-            account.handle_webhook_notification()
-            db_session.commit()
+        allowed, tokens, sleep = limitlion.throttle(
+            f"gcal_account:{account_public_id}", rps=0.5
+        )
+        if allowed:
+            with global_session_scope() as db_session:
+                account = (
+                    db_session.query(GmailAccount)
+                    .filter(GmailAccount.public_id == account_public_id)
+                    .one()
+                )
+                account.handle_webhook_notification()
+                db_session.commit()
         return resp(200)
     except ValueError:
         raise InputError("Invalid public ID")
@@ -84,7 +88,7 @@ def event_update(calendar_public_id):
     try:
         valid_public_id(calendar_public_id)
         allowed, tokens, sleep = limitlion.throttle(
-            f"gcal:{calendar_public_id}", rps=0.5
+            f"gcal_calendar:{calendar_public_id}", rps=0.5
         )
         if allowed:
             with global_session_scope() as db_session:

@@ -173,6 +173,7 @@ def test_receive_sync_message(db, webhooks_client, watched_account, watched_cale
 
 
 def test_calendar_update(db, webhooks_client, watched_account):
+    limitlion.throttle = mock.Mock(return_value=(True, 1, 1))
     calendar_path = CALENDAR_LIST_PATH.format(watched_account.public_id)
 
     before = datetime.utcnow() - timedelta(seconds=1)

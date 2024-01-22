@@ -134,7 +134,8 @@ class GoogleEventsProvider(AbstractEventsProvider):
         try:
             return self._get_resource_list(url, updatedMin=sync_from_time_str)
         except requests.exceptions.HTTPError as exc:
-            if exc.response and exc.response.status_code == 410:
+            assert exc.response is not None
+            if exc.response.status_code == 410:
                 # The calendar API may return 410 if you pass a value for
                 # updatedMin that's too far in the past. In that case, refetch
                 # all events.

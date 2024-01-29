@@ -25,7 +25,7 @@ import imapclient.imap_utf7
 import imapclient.imapclient
 import imapclient.response_parser
 
-from inbox.models.constants import MAX_MESSAGE_BODY_PARSE_LENGTH
+from inbox.constants import MAX_MESSAGE_BODY_PARSE_LENGTH
 
 # Prevent "got more than 1000000 bytes" errors for servers that send more data.
 imaplib._MAXLINE = 10000000  # type: ignore

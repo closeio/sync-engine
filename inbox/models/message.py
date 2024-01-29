@@ -34,11 +34,11 @@ from sqlalchemy.orm import (
 from sqlalchemy.sql.expression import false
 
 from inbox.config import config
+from inbox.constants import MAX_MESSAGE_BODY_PARSE_LENGTH
 from inbox.logging import get_logger
 from inbox.models.account import Account
 from inbox.models.base import MailSyncBase
 from inbox.models.category import Category
-from inbox.models.constants import MAX_MESSAGE_BODY_PARSE_LENGTH
 from inbox.models.mixins import (
     DeletedAtMixin,
     HasPublicID,

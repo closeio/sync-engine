@@ -874,22 +874,22 @@ class CrispinClient:
         raw_messages: List[RawMessage] = []
 
         for uid in uid_set:
-            # We already reject parsing messages bigger than MAX_MESSAGE_BODY_PARSE_LENGTH.
-            # We might as well not download them at all, save bandwidth, processing time
-            # and prevent OOMs due to fetching oversized emails.
-            fetched_size: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
-                uid, ["RFC822.SIZE"]
-            )
-            body_size = int(fetched_size.get(uid, {}).get(b"RFC822.SIZE", 0))
-            if body_size > MAX_MESSAGE_BODY_PARSE_LENGTH:
-                log.warning("Skipping fetching of oversized message", uid=uid)
-                continue
-
             try:
                 # Microsoft IMAP server returns a bunch of crap which could
                 # corrupt other UID data. Also we don't always get a message
                 # back at the first try.
                 for _ in range(3):
+                    # We already reject parsing messages bigger than MAX_MESSAGE_BODY_PARSE_LENGTH.
+                    # We might as well not download them at all, save bandwidth, processing time
+                    # and prevent OOMs due to fetching oversized emails.
+                    fetched_size: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
+                        uid, ["RFC822.SIZE"]
+                    )
+                    body_size = int(fetched_size.get(uid, {}).get(b"RFC822.SIZE", 0))
+                    if body_size > MAX_MESSAGE_BODY_PARSE_LENGTH:
+                        log.warning("Skipping fetching of oversized message", uid=uid)
+                        continue
+
                     result: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
                         uid, ["BODY.PEEK[]", "INTERNALDATE", "FLAGS"]
                     )

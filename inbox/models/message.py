@@ -34,11 +34,11 @@ from sqlalchemy.orm import (
 from sqlalchemy.sql.expression import false
 
 from inbox.config import config
+from inbox.constants import MAX_MESSAGE_BODY_LENGTH
 from inbox.logging import get_logger
 from inbox.models.account import Account
 from inbox.models.base import MailSyncBase
 from inbox.models.category import Category
-from inbox.models.constants import MAX_MESSAGE_BODY_PARSE_LENGTH
 from inbox.models.mixins import (
     DeletedAtMixin,
     HasPublicID,
@@ -318,7 +318,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
         try:
             body_length = len(body_string)
-            if body_length > MAX_MESSAGE_BODY_PARSE_LENGTH:
+            if body_length > MAX_MESSAGE_BODY_LENGTH:
                 raise MessageTooBigException(body_length)
             parsed: MimePart = mime.from_string(body_string)
             # Non-persisted instance attribute used by EAS.

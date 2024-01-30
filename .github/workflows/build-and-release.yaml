@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: '3.8'
           architecture: 'x64'
-      
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -35,13 +35,13 @@ jobs:
 
       - name: Run Black
         run: black --check .
-      
+
       - name: Run isort
         run: isort -c .
 
       - name: Run flake8
         run: flake8
-         
+
 
   build:
     runs-on: ubuntu-20.04
@@ -73,7 +73,7 @@ jobs:
           #   dockerhub_push: true
           #   python_version: "3.8"
           #   run_tests: false
-  
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -91,7 +91,7 @@ jobs:
           fi
           echo "DOCKER_IMAGE_TAG=${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ steps.vars.outputs.sha_short }}-${{ matrix.build_name}}${{ env.TAG_SUFFIX }}-${{ matrix.arch }}" >> $GITHUB_ENV
         shell: bash
-        
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 

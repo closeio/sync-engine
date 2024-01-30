@@ -44,8 +44,7 @@ itsdangerous==2.1.2
 Jinja2==3.1.2
 jmespath==0.9.3
 limitlion==0.10.0
-lxml==4.9.1
---no-binary lxml
+lxml==5.1.0
 Mako==1.2.2
 MarkupSafe==2.1.2
 matplotlib-inline==0.1.6

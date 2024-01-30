@@ -1,0 +1,140 @@
+name: Build arm64
+
+on:
+  push:
+    branches:
+      - '*'
+
+concurrency:
+  group: build-arm64-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOCKERHUB_NAMESPACE: closeio
+  PROJECT: sync-engine
+  # TODO: Remove this after migration
+  TAG_SUFFIX: "-gha"
+
+jobs:
+  build-arm64:
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        include:
+          - arch: arm64
+            build_name: py3.8
+            dockerhub_push: true
+            python_version: "3.8"
+            run_tests: false
+  
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get short sha
+        id: vars
+        run: |
+          echo ::set-output name=sha_short::${GITHUB_SHA::16}
+        shell: bash
+
+      - name: Prepare environment
+        run: |
+          if [ "$(git log -1 --pretty=%B | head -n 1 | grep '#notests')" ]; then
+            echo 'SKIP_TESTS="1"' >> $GITHUB_ENV
+          fi
+          echo "DOCKER_IMAGE_TAG=${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ steps.vars.outputs.sha_short }}-${{ matrix.build_name}}${{ env.TAG_SUFFIX }}-${{ matrix.arch }}" >> $GITHUB_ENV
+        shell: bash
+        
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker context for Buildx
+        id: buildx-context
+        run: |
+          docker context create container-builder
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
+          endpoint: container-builder
+
+      - name: Login to DockerHub
+        # if: ${{ github.ref == 'master' && github.event.pull_request.merged == true }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push sync-engine images
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/${{ matrix.arch }}
+          push: false
+          load: true
+          build-args:
+            PYTHON_VERSION=${{ matrix.python_version }}
+          tags: |
+            ${{ env.DOCKER_IMAGE_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run tests
+        if: ${{ matrix.run_tests }}
+        run: |
+          docker tag ${{ env.DOCKER_IMAGE_TAG }} ${{ env.PROJECT }}_app
+          if [[ -z $SKIP_TESTS ]]; then
+            docker-compose run app bash -ec '
+              bin/wait-for-it.sh mysql:3306 \
+              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
+              && coverage html -d pythoncov
+            '
+          else
+            echo Skipping tests
+          fi
+
+      - name: Push image
+        if: ${{ matrix.dockerhub_push }}
+        run: |
+          docker push ${{ env.DOCKER_IMAGE_TAG }}
+
+  multi-arch-manifest:
+    needs:
+      - build-arm64
+
+    runs-on: ubuntu-20.04
+    
+    strategy:
+      matrix:
+        include:
+          - build_name: py3.8
+
+    steps:
+      - name: Get short sha
+        id: vars
+        run: |
+          echo ::set-output name=sha_short::${GITHUB_SHA::16}
+        shell: bash
+
+      - name: Prepare environment
+        run: |
+          if [ "$(git log -1 --pretty=%B | head -n 1 | grep '#notests')" ]; then
+            echo 'SKIP_TESTS="1"' >> $GITHUB_ENV
+          fi
+          echo "DOCKER_IMAGE_TAG=${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ steps.vars.outputs.sha_short }}-${{ matrix.build_name}}${{ env.TAG_SUFFIX }}" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Because the arm64 builds are so much slower, we assume they will just 
+      # be appended to the existing manifest created by `build-and-release.yaml`.
+      - name: Create manifest
+        run: |
+          docker buildx imagetools create --append \
+            -t ${{ env.DOCKER_IMAGE_TAG }} \
+            ${{ env.DOCKER_IMAGE_TAG }}-arm64

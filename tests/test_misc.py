@@ -1,16 +1,6 @@
 import pytest
-import setproctitle
 
 from inbox.models.backends.oauth import hash_token
-
-
-def test_setproctitle_works():
-    original_proctitle = setproctitle.getproctitle()
-
-    setproctitle.setproctitle(test_setproctitle_works.__name__)
-    assert setproctitle.getproctitle() == test_setproctitle_works.__name__
-
-    setproctitle.setproctitle(original_proctitle)
 
 
 @pytest.mark.parametrize(

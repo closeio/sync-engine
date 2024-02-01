@@ -215,13 +215,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         categories.add(self.folder.category)
         return categories
 
-    __table_args__ = (
-        UniqueConstraint(
-            "folder_id",
-            "msg_uid",
-            "account_id",
-        ),
-    )
+    __table_args__ = (UniqueConstraint("folder_id", "msg_uid", "account_id"),)
 
 
 # make pulling up all messages in a given folder fast

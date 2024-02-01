@@ -112,10 +112,7 @@ class SyncService:
             SYNC_EVENT_QUEUE_NAME.format(self.process_identifier)
         )
         self.queue_group = EventQueueGroup(
-            [
-                shared_sync_event_queue_for_zone(self.zone),
-                self.private_queue,
-            ]
+            [shared_sync_event_queue_for_zone(self.zone), self.private_queue]
         )
 
         self.stealing_enabled = config.get("SYNC_STEAL_ACCOUNTS", True)

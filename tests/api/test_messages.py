@@ -196,8 +196,7 @@ def test_expanded_threads(stub_message, api_client, api_version):
 
     # /threads/<thread_id>
     resp = api_client.get_raw(
-        f"/threads/{stub_message.thread.public_id}?view=expanded",
-        headers=headers,
+        f"/threads/{stub_message.thread.public_id}?view=expanded", headers=headers
     )
     assert resp.status_code == 200
     resp_dict = json.loads(resp.data)

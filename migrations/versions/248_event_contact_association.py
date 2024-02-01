@@ -18,10 +18,7 @@ def upgrade():
     op.create_table(
         "eventcontactassociation",
         sa.Column(
-            "created_at",
-            sa.DateTime(),
-            nullable=False,
-            server_default=sa.text("now()"),
+            "created_at", sa.DateTime(), nullable=False, server_default=sa.text("now()")
         ),
         sa.Column("id", sa.BigInteger(), nullable=False, autoincrement=True),
         sa.Column("contact_id", sa.BigInteger(), nullable=False),
@@ -31,14 +28,8 @@ def upgrade():
             sa.Enum("participant", "title", "description", "owner"),
             nullable=True,
         ),
-        sa.ForeignKeyConstraint(
-            ["contact_id"],
-            ["contact.id"],
-        ),
-        sa.ForeignKeyConstraint(
-            ["event_id"],
-            ["event.id"],
-        ),
+        sa.ForeignKeyConstraint(["contact_id"], ["contact.id"]),
+        sa.ForeignKeyConstraint(["event_id"], ["event.id"]),
         sa.PrimaryKeyConstraint("id", "contact_id", "event_id"),
     )
     op.create_index(

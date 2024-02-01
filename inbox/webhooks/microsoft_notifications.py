@@ -142,8 +142,7 @@ def event_update(calendar_public_id):
 
 
 def handle_event_deletions(
-    calendar: Calendar,
-    change_notifications: List[MsGraphChangeNotification],
+    calendar: Calendar, change_notifications: List[MsGraphChangeNotification]
 ) -> None:
     deleted_event_uids = [
         change_notification["resourceData"]["id"]

@@ -1212,9 +1212,7 @@ class GmailCrispinClient(CrispinClient):
         self, modseq: int
     ) -> Dict[int, Union[GmailFlags, Flags]]:
         data: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
-            "1:*",
-            ["FLAGS", "X-GM-LABELS"],
-            modifiers=[f"CHANGEDSINCE {modseq}"],
+            "1:*", ["FLAGS", "X-GM-LABELS"], modifiers=[f"CHANGEDSINCE {modseq}"]
         )
         results: Dict[int, Union[GmailFlags, Flags]] = {}
         for uid, ret in data.items():

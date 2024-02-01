@@ -143,10 +143,7 @@ def test_change_labels(db, default_account, message, folder, mock_imapclient):
             crispin_client,
             default_account.id,
             [message.id],
-            {
-                "removed_labels": ["\\Inbox"],
-                "added_labels": ["motörhead", "μετάνοια"],
-            },
+            {"removed_labels": ["\\Inbox"], "added_labels": ["motörhead", "μετάνοια"]},
         )
         mock_imapclient.add_gmail_labels.assert_called_with(
             [22], [b"mot&APY-rhead", b"&A7wDtQPEA6wDvQO,A7kDsQ-"], silent=True

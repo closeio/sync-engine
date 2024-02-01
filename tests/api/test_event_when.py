@@ -129,10 +129,7 @@ def test_api_invalid_event_when_bad_params(db, api_client, calendar, default_nam
 def test_api_invalid_event_when_timespan_bad_params(
     db, api_client, calendar, default_namespace
 ):
-    e_data = {
-        "title": "Friday Office Party",
-        "when": {"object": "time", "start": 0},
-    }
+    e_data = {"title": "Friday Office Party", "when": {"object": "time", "start": 0}}
 
     with pytest.raises(CreateError):
         _verify_create(default_namespace.public_id, api_client, e_data)

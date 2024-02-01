@@ -82,10 +82,7 @@ class MockDNSResolver:
     def __init__(self):
         self._registry: Dict[
             Literal["mx", "ns"], Dict[str, Union[Dict[str, str], List[str]]]
-        ] = {
-            "mx": {},
-            "ns": {},
-        }
+        ] = {"mx": {}, "ns": {}}
 
     def _load_records(self, filename):
         self._registry = json.loads(get_data(filename))

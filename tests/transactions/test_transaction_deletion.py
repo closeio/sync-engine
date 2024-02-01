@@ -127,11 +127,7 @@ class TestTransactionDeletion:
     ):
         def _get_redis_transactions():
             return redis_txn.zrangebyscore(
-                TXN_REDIS_KEY,
-                "-inf",
-                "+inf",
-                withscores=True,
-                score_cast_func=int,
+                TXN_REDIS_KEY, "-inf", "+inf", withscores=True, score_cast_func=int
             )
 
         assert db.session.query(Transaction).count()

@@ -299,9 +299,7 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
     ]
     interval = pattern["interval"] * multiplier
 
-    rrule: Dict[str, str] = {
-        "FREQ": freq,
-    }
+    rrule: Dict[str, str] = {"FREQ": freq}
     if interval != 1:
         rrule["INTERVAL"] = str(interval)
 
@@ -620,10 +618,7 @@ def validate_event(event: MsGraphEvent) -> bool:
 
 
 def parse_event(
-    event: MsGraphEvent,
-    *,
-    read_only: bool,
-    master_event_uid: Optional[str] = None,
+    event: MsGraphEvent, *, read_only: bool, master_event_uid: Optional[str] = None
 ) -> Event:
     """
     Parse event coming from Microsoft Graph API as ORM object.

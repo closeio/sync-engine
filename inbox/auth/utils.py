@@ -89,10 +89,7 @@ def create_imap_connection(host, port, use_timeout=True):
             try:
                 conn.starttls(context)
             except Exception:
-                log.warning(
-                    "STARTTLS supported but failed.",
-                    exc_info=True,
-                )
+                log.warning("STARTTLS supported but failed.", exc_info=True)
                 raise
         else:
             raise SSLNotSupportedError("Required IMAP STARTTLS not supported.")

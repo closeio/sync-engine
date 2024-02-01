@@ -36,8 +36,7 @@ def patch_token_manager(monkeypatch):
 @pytest.fixture
 def disallow_auth(monkeypatch):
     monkeypatch.setattr(
-        "inbox.sendmail.smtp.postel.token_manager",
-        MockTokenManager(allow_auth=False),
+        "inbox.sendmail.smtp.postel.token_manager", MockTokenManager(allow_auth=False)
     )
 
 
@@ -845,11 +844,7 @@ def patch_crispin_del_sent(monkeypatch):
 
 
 def test_multisend_session(
-    api_client,
-    multisend,
-    multisend2,
-    patch_smtp,
-    patch_crispin_del_sent,
+    api_client, multisend, multisend2, patch_smtp, patch_crispin_del_sent
 ):
     r = api_client.post_data("/send-multiple/" + multisend["id"], multisend["send_req"])
     assert r.status_code == 200

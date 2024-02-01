@@ -631,9 +631,7 @@ def message_read_api(public_id):
         else:
             # Try getting the message from the email provider.
             account = g.namespace.account
-            statsd_string = "api.direct_fetching.{}.{}".format(
-                account.provider, account.id
-            )
+            statsd_string = f"api.direct_fetching.{account.provider}.{account.id}"
 
             try:
                 with statsd_client.timer(f"{statsd_string}.provider_latency"):
@@ -685,8 +683,8 @@ def message_read_api(public_id):
 
             request.environ["log_context"]["message_id"] = message.id
             raise NotFoundError(
-                "Couldn't find raw contents for message `{}`. "
-                "Please try again in a few minutes.".format(public_id)
+                f"Couldn't find raw contents for message `{public_id}`. "
+                "Please try again in a few minutes."
             )
 
     return encoder.jsonify(message)
@@ -926,9 +924,7 @@ def folder_label_delete_api(public_id):
         messages_exist = g.db_session.query(messages_with_category).scalar()
         if messages_exist:
             raise InputError(
-                "Folder {} cannot be deleted because it contains messages.".format(
-                    public_id
-                )
+                f"Folder {public_id} cannot be deleted because it contains messages."
             )
 
         if g.api_features.optimistic_updates:
@@ -1855,7 +1851,8 @@ def multi_send(draft_id):
     session. Sends a copy of the draft at draft_id to the specified address
     with the specified body, and ensures that a corresponding sent message is
     either not created in the user's Sent folder or is immediately
-    deleted from it."""
+    deleted from it.
+    """
     request_started = time.time()
     account = g.namespace.account
 
@@ -1898,8 +1895,8 @@ def multi_send(draft_id):
 @app.route("/send-multiple/<draft_id>", methods=["DELETE"])
 def multi_send_finish(draft_id):
     """Closes out a multi-send session by marking the sending draft as sent
-    and moving it to the user's Sent folder."""
-
+    and moving it to the user's Sent folder.
+    """
     account = g.namespace.account
 
     if account.discriminator == "easaccount":

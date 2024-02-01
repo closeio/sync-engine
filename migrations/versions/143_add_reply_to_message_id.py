@@ -25,7 +25,7 @@ def upgrade():
            WHERE table_name='message' AND referenced_table_name='message'
            AND constraint_schema=DATABASE()"""
     ).fetchone()[0]
-    conn.execute("ALTER TABLE message DROP FOREIGN KEY {}".format(constraint_name))
+    conn.execute(f"ALTER TABLE message DROP FOREIGN KEY {constraint_name}")
     conn.execute(
         "ALTER TABLE message CHANGE resolved_message_id reply_to_message_id INT(11)"
     )
@@ -43,7 +43,7 @@ def downgrade():
            WHERE table_name='message' AND referenced_table_name='message'
            AND constraint_schema=DATABASE()"""
     ).fetchone()[0]
-    conn.execute("ALTER TABLE message DROP FOREIGN KEY {}".format(constraint_name))
+    conn.execute(f"ALTER TABLE message DROP FOREIGN KEY {constraint_name}")
     conn.execute("ALTER TABLE message DROP FOREIGN KEY message_ibfk_3")
     conn.execute(
         "ALTER TABLE message CHANGE reply_to_message_id resolved_message_id INT(11)"

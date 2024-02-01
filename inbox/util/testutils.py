@@ -42,15 +42,14 @@ def create_test_db():
 
     for name, host, user, password in schemas:
         cmd = (
-            "DROP DATABASE IF EXISTS {name}; "
-            "CREATE DATABASE IF NOT EXISTS {name} "
+            f"DROP DATABASE IF EXISTS {name}; "
+            f"CREATE DATABASE IF NOT EXISTS {name} "
             "DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE "
-            "utf8mb4_general_ci".format(name=name)
+            "utf8mb4_general_ci"
         )
 
         subprocess.check_call(
-            "mysql -h {} -u{} -p{} " '-e "{}"'.format(host, user, password, cmd),
-            shell=True,
+            f"mysql -h {host} -u{user} -p{password} " f'-e "{cmd}"', shell=True
         )
 
 
@@ -137,7 +136,8 @@ def dump_dns_queries(monkeypatch):
 
 class MockIMAPClient:
     """A bare-bones stand-in for an IMAPClient instance, used to test sync
-    logic without requiring a real IMAP account and server."""
+    logic without requiring a real IMAP account and server.
+    """
 
     def __init__(self):
         self._data = {}

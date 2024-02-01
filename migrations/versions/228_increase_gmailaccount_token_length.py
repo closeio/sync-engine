@@ -17,10 +17,8 @@ from alembic import op
 def upgrade():
     op.alter_column("gmailaccount", "g_id_token", type_=sa.String(length=2048))
     op.alter_column("gmailauthcredentials", "g_id_token", type_=sa.String(length=2048))
-    pass
 
 
 def downgrade():
     op.alter_column("gmailaccount", "g_id_token", type_=sa.String(length=1024))
     op.alter_column("gmailauthcredentials", "g_id_token", type_=sa.String(length=1024))
-    pass

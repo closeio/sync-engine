@@ -53,12 +53,12 @@ def main(target_hostname, host_ip):
             )
 
             schema_name = shard["SCHEMA_NAME"]
-            print("Setting up database: {}".format(schema_name))
+            print(f"Setting up database: {schema_name}")
 
             # Create the database IF needed.
             base_engine.execute(
-                "CREATE DATABASE IF NOT EXISTS {} DEFAULT CHARACTER "
-                "SET utf8mb4 DEFAULT COLLATE utf8mb4_general_ci;".format(schema_name)
+                f"CREATE DATABASE IF NOT EXISTS {schema_name} DEFAULT CHARACTER "
+                "SET utf8mb4 DEFAULT COLLATE utf8mb4_general_ci;"
             )
 
             engine = engine_manager.engines[int(key)]
@@ -71,9 +71,7 @@ def main(target_hostname, host_ip):
                 assert (
                     current_revision
                 ), "Need current revision in alembic_version table."
-                print(
-                    "Already revisioned by alembic version: {}".format(current_revision)
-                )
+                print(f"Already revisioned by alembic version: {current_revision}")
             else:
                 # Initialize shards, stamp alembic revision
                 print("Initializing database.")
@@ -81,7 +79,7 @@ def main(target_hostname, host_ip):
                 alembic_ini_filename = os.environ.get("ALEMBIC_INI_PATH", "alembic.ini")
                 assert os.path.isfile(
                     alembic_ini_filename
-                ), "Must have alembic.ini file at {}".format(alembic_ini_filename)
+                ), f"Must have alembic.ini file at {alembic_ini_filename}"
                 alembic_cfg = alembic.config.Config(alembic_ini_filename)
                 # Alembic option values need to be strings.
                 alembic_cfg.set_main_option("shard_id", str(key))

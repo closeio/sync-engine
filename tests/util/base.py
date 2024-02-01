@@ -152,7 +152,7 @@ def default_account(db, config, redis_mock):
 
 @fixture(scope="function")
 def default_namespace(db, default_account):
-    yield default_account.namespace
+    return default_account.namespace
 
 
 @fixture
@@ -165,7 +165,7 @@ def outlook_account(db, config, redis_mock):
 
 @fixture
 def outlook_namespace(db, outlook_account):
-    yield outlook_account.namespace
+    return outlook_account.namespace
 
 
 @fixture(scope="function")
@@ -178,12 +178,12 @@ def default_accounts(db, config, redis_mock):
 
 @fixture(scope="function")
 def default_namespaces(db, default_accounts):
-    yield [account.namespace for account in default_accounts]
+    return [account.namespace for account in default_accounts]
 
 
 @fixture(scope="function")
 def generic_account(db):
-    yield add_generic_imap_account(db.session)
+    return add_generic_imap_account(db.session)
 
 
 @fixture(scope="function")

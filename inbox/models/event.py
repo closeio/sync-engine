@@ -247,7 +247,6 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
         It would be very wrong to call this method to merge, say, Google
         Events participants because they handle the merging themselves.
         """
-
         # We have to jump through some hoops because a participant may
         # not have an email or may not have a name, so we build a hash
         # where we can find both. Also note that we store names in the
@@ -334,7 +333,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
                     r = [r]
                 return r
             except (ValueError, SyntaxError):
-                log.warn(
+                log.warning(
                     "Invalid RRULE entry for event",
                     event_id=self.id,
                     raw_rrule=self.recurrence,
@@ -392,7 +391,7 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
         try:
             return json.loads(self.raw_data)["htmlLink"]
         except (ValueError, KeyError):
-            return
+            return None
 
     @property
     def emails_from_description(self):
@@ -426,8 +425,8 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
 
     def __init__(self, **kwargs):
         if (
-            not kwargs.pop("__event_created_sanely", None)
-            is _EVENT_CREATED_SANELY_SENTINEL
+            kwargs.pop("__event_created_sanely", None)
+            is not _EVENT_CREATED_SANELY_SENTINEL
         ):
             raise AssertionError(
                 "Use Event.create with appropriate keyword args "
@@ -629,7 +628,7 @@ class InflatedEvent(Event):
 
 
 def insert_warning(mapper, connection, target):
-    log.warn(f"InflatedEvent {target} shouldn't be committed")
+    log.warning(f"InflatedEvent {target} shouldn't be committed")
     raise Exception("InflatedEvent should not be committed")
 
 

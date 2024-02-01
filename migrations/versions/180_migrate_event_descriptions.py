@@ -21,7 +21,7 @@ def upgrade():
             "UPDATE event SET _description=description "
             "WHERE _description IS NULL AND description IS NOT NULL LIMIT 100000"
         )
-        print("Updated {} rows".format(res.rowcount))
+        print(f"Updated {res.rowcount} rows")
         if res.rowcount == 0:
             return
 

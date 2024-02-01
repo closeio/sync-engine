@@ -78,7 +78,7 @@ def main(email_address, reauth, target, provider):
         except NotSupportedError as e:
             sys.exit(str(e))
 
-    print("OK. Authenticated account for {}".format(email_address))
+    print(f"OK. Authenticated account for {email_address}")
 
 
 if __name__ == "__main__":

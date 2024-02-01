@@ -11,7 +11,8 @@ class ProfilingHTTPFrontend:
     """This is a lightweight embedded HTTP server that runs inside a mailsync
     or syncback process. It allows you to programmatically interact with the
     process: to get profile/memory/load metrics, or to schedule new account
-    syncs."""
+    syncs.
+    """
 
     def __init__(self, port, trace_greenlets, profile):
         self.port = port
@@ -108,4 +109,3 @@ class SyncHTTPFrontend(ProfilingHTTPFrontend):
 class _QuietHandler(WSGIRequestHandler):
     def log_request(self, *args, **kwargs):
         """Suppress request logging so as not to pollute application logs."""
-        pass

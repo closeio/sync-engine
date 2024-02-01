@@ -1,5 +1,6 @@
 """Utility functions for creating, reading, updating and deleting contacts.
-Called by the API."""
+Called by the API.
+"""
 import uuid
 
 from inbox.models import Contact

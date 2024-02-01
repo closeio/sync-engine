@@ -31,7 +31,7 @@ class SyncEngineRollbarHandler(RollbarHandler):
             "Uncaught error thrown by Flask/Werkzeug",
             "SyncbackWorker caught exception",
         ):
-            return
+            return None
 
         record.payload_data = {"fingerprint": event, "title": event}
 

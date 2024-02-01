@@ -224,7 +224,6 @@ class MicrosoftGraphClient:
             The event.
             https://learn.microsoft.com/en-us/graph/api/resources/event
         """
-
         params = {}
         if fields:
             params["$select"] = ",".join(fields)
@@ -324,7 +323,6 @@ class MicrosoftGraphClient:
             The subscription.
             https://learn.microsoft.com/en-us/graph/api/resources/subscription
         """
-
         if resource_url.startswith(BASE_URL):
             resource_url = resource_url[len(BASE_URL) :]
 
@@ -449,7 +447,6 @@ class MicrosoftGraphClient:
             The subscription.
             https://learn.microsoft.com/en-us/graph/api/resources/subscription
         """
-
         return self.subscribe(
             resource_url=f"/me/calendars/{calendar_id}/events",
             change_types=[ChangeType.CREATED, ChangeType.UPDATED, ChangeType.DELETED],

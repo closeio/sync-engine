@@ -35,13 +35,12 @@ import vobject
 
 
 def list_clean(string):
-    """transforms a comma seperated string to a list, stripping whitespaces
+    """Transforms a comma seperated string to a list, stripping whitespaces
     "HOME, WORK,pref" -> ['HOME', 'WORK', 'pref']
 
     string: string of comma seperated elements
     returns: list()
     """
-
     string = string.split(",")
     rstring = list()
     for element in string:
@@ -144,7 +143,7 @@ def get_names(display_name):
 
 
 def fix_vobject(vcard):
-    """trying to fix some more or less common errors in vcards
+    """Trying to fix some more or less common errors in vcards
 
     for now only missing FN properties are handled (and reconstructed from N)
     :type vcard: vobject.base.Component (vobject based vcard)
@@ -270,7 +269,7 @@ class VCard(defaultdict):
         return keylist
 
     def print_email(self):
-        """prints only name, email and type for use with mutt"""
+        """Prints only name, email and type for use with mutt"""
         collector = list()
         try:
             for one in self["EMAIL"]:
@@ -284,7 +283,7 @@ class VCard(defaultdict):
             return ""
 
     def print_tel(self):
-        """prints only name, email and type for use with mutt"""
+        """Prints only name, email and type for use with mutt"""
         collector = list()
         try:
             for one in self["TEL"]:
@@ -332,16 +331,18 @@ class VCard(defaultdict):
 
     @property
     def vcf(self):
-        """serialize to VCARD as specified in RFC2426,
+        """Serialize to VCARD as specified in RFC2426,
         if no UID is specified yet, one will be added (as a UID is mandatory
         for carddav as specified in RFC6352
-        TODO make shure this random uid is unique"""
+        TODO make shure this random uid is unique
+        """
         import random
         import string
 
         def generate_random_uid():
-            """generate a random uid, when random isn't broken, getting a
-            random UID from a pool of roughly 10^56 should be good enough"""
+            """Generate a random uid, when random isn't broken, getting a
+            random UID from a pool of roughly 10^56 should be good enough
+            """
             choice = string.ascii_uppercase + string.digits
             return "".join([random.choice(choice) for _ in range(36)])
 

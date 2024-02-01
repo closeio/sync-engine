@@ -29,9 +29,7 @@ def get_gmail_raw_contents(message):
         g_msgid = int(g_msgid)
 
     hex_id = format(g_msgid, "x")
-    url = "https://www.googleapis.com/gmail/v1/users/me/messages/{}?format=raw".format(
-        hex_id
-    )
+    url = f"https://www.googleapis.com/gmail/v1/users/me/messages/{hex_id}?format=raw"
     r = requests.get(url, auth=OAuthRequestsWrapper(auth_token))
 
     if r.status_code != 200:

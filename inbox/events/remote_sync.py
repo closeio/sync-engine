@@ -410,7 +410,6 @@ def _delete_calendar(db_session: Any, calendar: Calendar) -> None:
     processing (Transaction record creation) blocking the event loop.
 
     """
-
     # load ids first to save memory
     event_ids = [
         event_id

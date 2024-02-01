@@ -640,7 +640,6 @@ def test_gmail_folders_no_flags(monkeypatch):
     """
     Tests that system folders (trash, inbox, sent) without flags can be labeled
     """
-
     folders = [
         ((b"\\HasNoChildren",), b"/", "INBOX"),
         ((b"\\Noselect", b"\\HasChildren"), b"/", "[Gmail]"),
@@ -679,7 +678,6 @@ def test_gmail_many_folders_one_role(monkeypatch, constants):
     i.e accounts with [Imap]/Trash, Trash, and [Gmail]/Trash
     should only have one folder with the role trash
     """
-
     # some duplitace folders where one has been flagged,
     # and neither have been flagged
     # in both cases, only one should come out flagged.

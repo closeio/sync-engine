@@ -31,7 +31,6 @@ class FailingFunction:
         time.sleep(self.delay)
         if self.call_count < self.max_executions:
             raise self.exc_type
-        return
 
 
 @pytest.mark.usefixtures("mock_gevent_sleep")

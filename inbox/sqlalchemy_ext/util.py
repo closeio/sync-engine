@@ -69,7 +69,8 @@ def before_commit(conn):
 class ABCMixin:
     """Use this if you want a mixin class which is actually an abstract base
     class, for example in order to enforce that concrete subclasses define
-    particular methods or properties."""
+    particular methods or properties.
+    """
 
     __abstract__ = True
 

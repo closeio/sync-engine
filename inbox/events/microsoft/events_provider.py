@@ -217,7 +217,6 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         * https://learn.microsoft.com/en-us/answers/questions/417261/error-on-adding-subscription-on-events-using-ms-gr.html
         * https://stackoverflow.com/questions/65030751/ms-graph-adding-subscription-returns-extensionerror-and-serviceunavailable
         """
-
         # First check if we already have cached value since this function is called
         # repeatedly and there is no need to do extra HTTP request every time.
         if self._webhook_notifications_enabled is not None:

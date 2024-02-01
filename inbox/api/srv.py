@@ -70,13 +70,13 @@ def auth():
         or request.path.startswith("/w/")
         or request.path.startswith("/metrics")
     ):
-        return
+        return None
 
     if not request.authorization or not request.authorization.username:
         AUTH_ERROR_MSG = (
             "Could not verify access credential.",
             401,
-            {"WWW-Authenticate": 'Basic realm="API ' 'Access Token Required"'},
+            {"WWW-Authenticate": 'Basic realm="API Access Token Required"'},
         )
 
         auth_header = request.headers.get("Authorization", None)
@@ -108,7 +108,7 @@ def auth():
                 (
                     "Could not verify access credential.",
                     401,
-                    {"WWW-Authenticate": 'Basic realm="API ' 'Access Token Required"'},
+                    {"WWW-Authenticate": 'Basic realm="API Access Token Required"'},
                 )
             )
 
@@ -275,7 +275,6 @@ def modify_account(namespace_public_id):
 
     This stops syncing an account until it is explicitly resumed.
     """
-
     data = request.get_json(force=True)
 
     with global_session_scope() as db_session:
@@ -335,7 +334,8 @@ def home():
 @app.route("/logout")
 def logout():
     """Utility function used to force browsers to reset cached HTTP Basic Auth
-    credentials"""
+    credentials
+    """
     return make_response(
         (
             "<meta http-equiv='refresh' content='0; url=/''>.",

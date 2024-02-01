@@ -58,7 +58,7 @@ def main(type, id, public_id, account_id, namespace_id, readwrite):
     type = type.lower()
 
     if type not in cls_for_type:
-        print("Error: unknown type '{}'".format(type))
+        print(f"Error: unknown type '{type}'")
         sys.exit(-1)
 
     cls = cls_for_type[type]

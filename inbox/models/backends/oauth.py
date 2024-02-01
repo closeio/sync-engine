@@ -189,6 +189,7 @@ class OAuthAccount:
         Args:
             force_refresh (bool): Whether a token refresh should be forced when
                 requesting it from an external token service (AuthAlligator)
+
         Returns:
             A tuple with the new access token and its expiration.
 

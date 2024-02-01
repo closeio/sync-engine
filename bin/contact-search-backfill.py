@@ -23,7 +23,7 @@ def main(namespace_ids):
     maybe_enable_rollbar()
 
     for namespace_id in namespace_ids:
-        log.info("indexing namespace {namespace_id}".format(namespace_id=namespace_id))
+        log.info(f"indexing namespace {namespace_id}")
         index_namespace(namespace_id)
 
 

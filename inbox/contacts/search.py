@@ -93,8 +93,8 @@ class ContactSearchClient:
 
     def _fetch_search_page(self, **kwargs):
         """Make sure we always filter results by namespace and apply the
-        correct query options."""
-
+        correct query options.
+        """
         namespace_filter = f"(and namespace_id:{self.namespace_id})"
         if "query" not in kwargs:
             kwargs["query"] = namespace_filter

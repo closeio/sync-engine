@@ -773,9 +773,7 @@ def send_rsvp(ical_data, event, body_text, status, account):
     if status == "yes":
         msg.headers["Subject"] = f"Accepted: {event.message.subject}"
     elif status == "maybe":
-        msg.headers["Subject"] = "Tentatively accepted: {}".format(
-            event.message.subject
-        )
+        msg.headers["Subject"] = f"Tentatively accepted: {event.message.subject}"
     elif status == "no":
         msg.headers["Subject"] = f"Declined: {event.message.subject}"
 

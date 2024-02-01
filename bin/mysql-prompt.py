@@ -40,7 +40,7 @@ def main(shard_num):
 
     for key in creds.keys():
         if creds[key] is None:
-            print("Error: {key} is None".format(key=key))
+            print(f"Error: {key} is None")
             sys.exit(-1)
 
     proc = subprocess.Popen(

@@ -57,7 +57,8 @@ def test_generic_grouping(db, default_account):
 
 def test_threading_limit(db, folder_sync_engine, monkeypatch):
     """Test that custom threading doesn't produce arbitrarily long threads,
-    which eventually break things."""
+    which eventually break things.
+    """
     from inbox.models import Message, Thread
 
     # Shorten bound to make test faster

@@ -25,7 +25,7 @@ def main(host, port, account_id, folder_id, device_id):
 
     print("Clearing heartbeat status...")
     n = clear_heartbeat_status(account_id, folder_id, device_id, host, port)
-    print("{} folders cleared.".format(n))
+    print(f"{n} folders cleared.")
     exit(0)
 
 

@@ -36,7 +36,6 @@ def upgrade():
             {"server_id": sa.func.concat(EASUid.fld_uid, ":", EASUid.msg_uid)},
             synchronize_session=False,
         )
-    pass
 
 
 def downgrade():

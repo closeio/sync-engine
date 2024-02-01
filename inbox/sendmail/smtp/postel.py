@@ -107,7 +107,6 @@ def _substitute_bcc(raw_message: bytes) -> bytes:
     """
     Substitute BCC in raw message.
     """
-
     bcc_regexp = re.compile(rb"^Bcc: [^\r\n]*\r\n", re.IGNORECASE | re.MULTILINE)
     return bcc_regexp.sub(b"", raw_message)
 
@@ -201,9 +200,9 @@ class SMTPConnection:
             )
 
     def _try_xoauth2(self):
-        auth_string = "user={}\1auth=Bearer {}\1\1".format(
-            self.email_address, self.auth_token
-        ).encode()
+        auth_string = (
+            f"user={self.email_address}\1auth=Bearer {self.auth_token}\1\1".encode()
+        )
         code, resp = self.connection.docmd(
             "AUTH", f"XOAUTH2 {base64.b64encode(auth_string).decode()}"
         )

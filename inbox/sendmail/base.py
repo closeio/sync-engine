@@ -55,14 +55,10 @@ def create_draft_from_mime(
 ) -> Message:
     our_uid = generate_public_id()  # base-36 encoded string
     new_headers = (
-        (
-            "X-INBOX-ID: {0}-0\r\n"
-            "Message-Id: <{0}-0@mailer.nylas.com>\r\n"
-            "User-Agent: NylasMailer/{1}\r\n"
-        )
-        .format(our_uid, VERSION)
-        .encode()
-    )
+        f"X-INBOX-ID: {our_uid}-0\r\n"
+        f"Message-Id: <{our_uid}-0@mailer.nylas.com>\r\n"
+        f"User-Agent: NylasMailer/{VERSION}\r\n"
+    ).encode()
     new_body = new_headers + raw_mime
 
     with db_session.no_autoflush:
@@ -117,8 +113,8 @@ def block_to_part(block, message, namespace):
 def create_message_from_json(data, namespace, db_session, is_draft):
     """Construct a Message instance from `data`, a dictionary representing the
     POST body of an API request. All new objects are added to the session, but
-    not committed."""
-
+    not committed.
+    """
     # Validate the input and get referenced objects (thread, attachments)
     # as necessary.
     to_addr = get_recipients(data.get("to"), "to")
@@ -382,7 +378,8 @@ def generate_attachments(message, blocks):
 
 def _set_reply_headers(new_message, previous_message):
     """When creating a draft in reply to a thread, set the In-Reply-To and
-    References headers appropriately, if possible."""
+    References headers appropriately, if possible.
+    """
     if previous_message.message_id_header:
         new_message.in_reply_to = previous_message.message_id_header
         if previous_message.references:

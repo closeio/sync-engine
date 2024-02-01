@@ -130,12 +130,12 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
     thread = synonym("_thread", descriptor=thread)
 
-    from_addr = Column(JSON, nullable=False, default=lambda: [])
+    from_addr = Column(JSON, nullable=False, default=list)
     sender_addr = Column(JSON, nullable=True)
-    reply_to = Column(JSON, nullable=True, default=lambda: [])
-    to_addr = Column(JSON, nullable=False, default=lambda: [])
-    cc_addr = Column(JSON, nullable=False, default=lambda: [])
-    bcc_addr = Column(JSON, nullable=False, default=lambda: [])
+    reply_to = Column(JSON, nullable=True, default=list)
+    to_addr = Column(JSON, nullable=False, default=list)
+    cc_addr = Column(JSON, nullable=False, default=list)
+    bcc_addr = Column(JSON, nullable=False, default=list)
     in_reply_to = Column(JSON, nullable=True)
     # From: http://tools.ietf.org/html/rfc4130, section 5.3.3,
     # max message_id_header is 998 characters
@@ -221,8 +221,8 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         The value of nylas_uid is simply the draft public_id and version,
         concatenated. Because the nylas_uid identifies the draft on the remote
         provider, we regenerate it on each draft revision so that we can delete
-        the old draft and add the new one on the remote."""
-
+        the old draft and add the new one on the remote.
+        """
         from inbox.sendmail.message import generate_message_id_header
 
         self.nylas_uid = f"{self.public_id}-{self.version}"

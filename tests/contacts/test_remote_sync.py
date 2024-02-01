@@ -91,7 +91,8 @@ def test_deletes(contacts_provider, contact_sync, db):
 )
 def test_auth_error_handling(contact_sync, default_account, db):
     """Test that the contact sync greenlet stops if account credentials are
-    invalid."""
+    invalid.
+    """
     # Give the default test account patently invalid OAuth credentials.
     default_account.refresh_token = "foo"
     db.session.commit()

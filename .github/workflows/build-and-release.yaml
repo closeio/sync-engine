@@ -1,9 +1,7 @@
 name: Build and Release
 
 on:
-  push:
-    branches:
-      - '*'
+  push
 
 concurrency:
   group: build-${{ github.event.pull_request.number || github.ref }}
@@ -47,13 +45,12 @@ jobs:
     strategy:
       matrix:
         include:
+          # Make sure only one of the builds have dockerhub_push: true
           - arch: amd64
-            build_name: py3.8
             dockerhub_push: true
             python_version: "3.8"
             run_tests: true
           - arch: amd64
-            build_name: py3.9
             dockerhub_push: false
             python_version: "3.9"
             run_tests: true
@@ -71,18 +68,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Get short sha
-        id: vars
-        run: |
-          echo ::set-output name=sha_short::${GITHUB_SHA::16}
-        shell: bash
-
       - name: Prepare environment
         run: |
           if [ "$(git log -1 --pretty=%B | head -n 1 | grep '#notests')" ]; then
             echo 'SKIP_TESTS="1"' >> $GITHUB_ENV
           fi
-          echo "DOCKER_IMAGE_TAG=${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ steps.vars.outputs.sha_short }}-${{ matrix.build_name}}-${{ matrix.arch }}" >> $GITHUB_ENV
+          echo "DOCKER_IMAGE_TAG=${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ github.sha }}${{ matrix.dockerhub_push && '' || format('-{0}', matrix.python_version) }}-${{ matrix.arch }}" >> $GITHUB_ENV
         shell: bash
 
       - name: Set up QEMU
@@ -143,27 +134,7 @@ jobs:
       - build
 
     runs-on: ubuntu-20.04
-    
-    strategy:
-      matrix:
-        include:
-          - build_name: py3.8
-
     steps:
-      - name: Get short sha
-        id: vars
-        run: |
-          echo ::set-output name=sha_short::${GITHUB_SHA::16}
-        shell: bash
-
-      - name: Prepare environment
-        run: |
-          if [ "$(git log -1 --pretty=%B | head -n 1 | grep '#notests')" ]; then
-            echo 'SKIP_TESTS="1"' >> $GITHUB_ENV
-          fi
-          echo "DOCKER_IMAGE_TAG=${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ steps.vars.outputs.sha_short }}-${{ matrix.build_name}}" >> $GITHUB_ENV
-        shell: bash
-
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
@@ -172,6 +143,7 @@ jobs:
 
       - name: Create manifest
         run: |
+          DOCKER_IMAGE_TAG=${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ github.sha }}
           docker buildx imagetools create \
             -t ${{ env.DOCKER_IMAGE_TAG }} \
             ${{ env.DOCKER_IMAGE_TAG }}-amd64

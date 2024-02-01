@@ -11,17 +11,10 @@ os.environ["NYLAS_ENV"] = "test"
 
 from pytest import fixture
 
-from inbox.util.testutils import (
-    dump_dns_queries,  # noqa
-    files,  # noqa
-    mock_dns_resolver,  # noqa
-    mock_imapclient,  # noqa
-    mock_smtp_get_connection,  # noqa
-    uploaded_file_ids,  # noqa
-)
-
 from tests.api.base import TestAPIClient
-from tests.util.base import *  # noqa
+
+# Additional fixtures
+pytest_plugins = ["inbox.util.testutils", "tests.util.base"]
 
 
 @fixture

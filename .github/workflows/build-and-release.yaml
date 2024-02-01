@@ -48,11 +48,6 @@ jobs:
       matrix:
         include:
           - arch: amd64
-            build_name: py3.7
-            dockerhub_push: false
-            python_version: "3.7"
-            run_tests: true
-          - arch: amd64
             build_name: py3.8
             dockerhub_push: true
             python_version: "3.8"

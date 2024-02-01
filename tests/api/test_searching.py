@@ -487,14 +487,7 @@ def test_streaming_search_results(
 
     class MultiFolderMockImapConnection(MockImapConnection):
         def __init__(self):
-            self._responses = list(
-                reversed(
-                    [
-                        [2000, 2001, 2002],
-                        [5000, 5001],
-                    ]
-                )
-            )
+            self._responses = list(reversed([[2000, 2001, 2002], [5000, 5001]]))
 
         def search(self, criteria, charset=None):
             self.search_args = (criteria, charset)

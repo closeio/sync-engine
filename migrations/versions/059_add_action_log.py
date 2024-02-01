@@ -25,10 +25,7 @@ def upgrade():
         sa.Column("action", sa.Text(length=40), nullable=False),
         sa.Column("record_id", sa.Integer(), nullable=False),
         sa.Column("table_name", sa.Text(length=40), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["namespace_id"],
-            ["namespace.id"],
-        ),
+        sa.ForeignKeyConstraint(["namespace_id"], ["namespace.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(

@@ -119,8 +119,7 @@ def make_account(db, config, *, cls):
 
     ns = Namespace()
     account = cls(
-        sync_host=f"{platform.node()}:0",
-        email_address="inboxapptest@gmail.com",
+        sync_host=f"{platform.node()}:0", email_address="inboxapptest@gmail.com"
     )
     account.namespace = ns
     account.client_id = config.get_required("GOOGLE_OAUTH_CLIENT_ID")

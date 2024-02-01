@@ -37,10 +37,7 @@ def update_message(message, request_data, db_session, optimistic):
 def update_thread(thread, request_data, db_session, optimistic):
     accept_labels = thread.namespace.account.provider == "gmail"
 
-    (
-        unread,
-        starred,
-    ) = parse_flags(request_data)
+    (unread, starred) = parse_flags(request_data)
     if accept_labels:
         labels = parse_labels(request_data, db_session, thread.namespace_id)
     else:

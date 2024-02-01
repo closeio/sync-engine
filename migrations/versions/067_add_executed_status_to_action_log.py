@@ -33,10 +33,7 @@ def upgrade():
             nullable=False,
             server_default=sa.sql.expression.false(),
         ),
-        sa.ForeignKeyConstraint(
-            ["namespace_id"],
-            ["namespace.id"],
-        ),
+        sa.ForeignKeyConstraint(["namespace_id"], ["namespace.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(

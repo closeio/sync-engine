@@ -79,10 +79,7 @@ def _update_config_from_env(config, env):
     srcdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
 
     if env in ["prod", "staging"]:
-        base_cfg_path = [
-            "/etc/inboxapp/secrets.yml",
-            "/etc/inboxapp/config.json",
-        ]
+        base_cfg_path = ["/etc/inboxapp/secrets.yml", "/etc/inboxapp/config.json"]
     else:
         v = {"env": env, "srcdir": srcdir}
         base_cfg_path = [

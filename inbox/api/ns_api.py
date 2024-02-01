@@ -333,10 +333,7 @@ def status():
             else:
                 account.throttled = False
     return g.encoder.jsonify(
-        {
-            "sync_status": account.sync_status,
-            "throttled": account.throttled,
-        }
+        {"sync_status": account.sync_status, "throttled": account.throttled}
     )
 
 
@@ -2026,10 +2023,7 @@ def sync_deltas():
                 expand=expand,
             )
 
-        response = {
-            "cursor_start": cursor,
-            "deltas": deltas,
-        }
+        response = {"cursor_start": cursor, "deltas": deltas}
         if deltas:
             end_transaction = g.db_session.query(Transaction).get(end_pointer)
             response["cursor_end"] = deltas[-1]["cursor"]

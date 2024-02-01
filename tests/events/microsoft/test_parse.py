@@ -71,10 +71,7 @@ def test_parse_msggraph_datetime_tz_as_utc(datetime_tz, dt):
 def test_dump_datetime_as_msgraph_datetime_tz():
     assert dump_datetime_as_msgraph_datetime_tz(
         datetime.datetime(2022, 9, 22, 16, 31, 45, tzinfo=pytz.UTC)
-    ) == {
-        "dateTime": "2022-09-22T16:31:45.0000000",
-        "timeZone": "UTC",
-    }
+    ) == {"dateTime": "2022-09-22T16:31:45.0000000", "timeZone": "UTC"}
 
 
 @pytest.mark.parametrize(
@@ -1015,16 +1012,7 @@ def test_calculate_exception_and_canceled_occurrences_with_exception():
             },
             "Test Valley Golf Club Micheldever Road Overton, Basingstoke, Hampshire, RG25 3DS, United Kingdom",
         ),
-        (
-            {
-                "locations": [
-                    {
-                        "displayName": "Kitchen",
-                    }
-                ]
-            },
-            "Kitchen",
-        ),
+        ({"locations": [{"displayName": "Kitchen"}]}, "Kitchen"),
         (
             {
                 "onlineMeeting": {
@@ -1119,12 +1107,7 @@ def test_get_event_location(event, location):
                 },
                 "emailAddress": {"name": "Test User"},
             },
-            {
-                "email": None,
-                "name": "Test User",
-                "status": "maybe",
-                "notes": None,
-            },
+            {"email": None, "name": "Test User", "status": "maybe", "notes": None},
         ),
     ],
 )
@@ -1211,7 +1194,7 @@ recurring_event = {
             "uniqueIdType": "unknown",
             "address": {},
             "coordinates": {},
-        },
+        }
     ],
     "recurrence": {
         "pattern": {
@@ -1241,10 +1224,7 @@ recurring_event = {
         }
     ],
     "organizer": {
-        "emailAddress": {
-            "name": "Example",
-            "address": "example@example.com",
-        }
+        "emailAddress": {"name": "Example", "address": "example@example.com"}
     },
 }
 
@@ -1444,10 +1424,7 @@ outlook_calendar = {
     "defaultOnlineMeetingProvider": "teamsForBusiness",
     "isTallyingResponses": True,
     "isRemovable": True,
-    "owner": {
-        "name": "Example",
-        "address": "example@example.com",
-    },
+    "owner": {"name": "Example", "address": "example@example.com"},
 }
 
 

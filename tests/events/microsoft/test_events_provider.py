@@ -47,7 +47,7 @@ def calendars_response():
                     "canEdit": True,
                     "isDefaultCalendar": False,
                 },
-            ],
+            ]
         },
     )
 
@@ -131,7 +131,7 @@ def events_responses():
                             "uniqueIdType": "unknown",
                             "address": {},
                             "coordinates": {},
-                        },
+                        }
                     ],
                     "recurrence": {
                         "pattern": {
@@ -220,9 +220,7 @@ def subscribe_responses():
         ],
     )
 
-    responses.delete(
-        BASE_URL + "/subscriptions/f798ca9d-d630-4306-b065-af52199f5613",
-    )
+    responses.delete(BASE_URL + "/subscriptions/f798ca9d-d630-4306-b065-af52199f5613")
 
 
 @pytest.fixture
@@ -371,7 +369,7 @@ def exception_override_response():
                             "uniqueIdType": "unknown",
                             "address": {},
                             "coordinates": {},
-                        },
+                        }
                     ],
                     "recurrence": None,
                     "attendees": [

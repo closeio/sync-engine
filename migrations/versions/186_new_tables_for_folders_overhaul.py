@@ -54,10 +54,7 @@ def upgrade():
         sa.ForeignKeyConstraint(
             ["account_id"], ["account.id"], name="label_fk1", ondelete="CASCADE"
         ),
-        sa.ForeignKeyConstraint(
-            ["category_id"],
-            ["category.id"],
-        ),
+        sa.ForeignKeyConstraint(["category_id"], ["category.id"]),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("account_id", "name"),
     )

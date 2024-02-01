@@ -26,14 +26,8 @@ def upgrade():
             sa.Enum("from_addr", "to_addr", "cc_addr", "bcc_addr"),
             nullable=True,
         ),
-        sa.ForeignKeyConstraint(
-            ["contact_id"],
-            ["contact.id"],
-        ),
-        sa.ForeignKeyConstraint(
-            ["message_id"],
-            ["message.id"],
-        ),
+        sa.ForeignKeyConstraint(["contact_id"], ["contact.id"]),
+        sa.ForeignKeyConstraint(["message_id"], ["message.id"]),
         sa.PrimaryKeyConstraint("id", "contact_id", "message_id"),
     )
 

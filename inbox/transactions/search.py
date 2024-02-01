@@ -40,25 +40,19 @@ class ContactSearchIndexService(Greenlet):
         Greenlet.__init__(self)
 
     def _report_batch_upload(self):
-        metric_names = [
-            "contacts_search_index.transactions.batch_upload",
-        ]
+        metric_names = ["contacts_search_index.transactions.batch_upload"]
 
         for metric in metric_names:
             statsd_client.incr(metric)
 
     def _report_transactions_latency(self, latency):
-        metric_names = [
-            "contacts_search_index.transactions.latency",
-        ]
+        metric_names = ["contacts_search_index.transactions.latency"]
 
         for metric in metric_names:
             statsd_client.timing(metric, latency)
 
     def _publish_heartbeat(self):
-        metric_names = [
-            "contacts_search_index.heartbeat",
-        ]
+        metric_names = ["contacts_search_index.heartbeat"]
 
         for metric in metric_names:
             statsd_client.incr(metric)

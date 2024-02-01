@@ -118,11 +118,7 @@ class CardDav:
        </C:addressbook-query>
         """
 
-        response = self.session.request(
-            "REPORT",
-            url,
-            data=payload,
-        )
+        response = self.session.request("REPORT", url, data=payload)
 
         response.raise_for_status()
         return response.content

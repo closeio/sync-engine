@@ -539,7 +539,7 @@ def sanitize_conference_data(
             if entry_point.get("uri")
         ][:MAX_LIST_LENGTH],
         conference_solution=ConferenceSolution(
-            name=raw_conference_solution.get("name", "")[:MAX_STRING_LENGTH],
+            name=raw_conference_solution.get("name", "")[:MAX_STRING_LENGTH]
         ),
     )
 

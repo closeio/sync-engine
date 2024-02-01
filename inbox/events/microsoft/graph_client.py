@@ -195,7 +195,7 @@ class MicrosoftGraphClient:
             # The default amount of events per page is 10,
             # as we want to do the least
             # amount of requests possible we raise it to 500.
-            "top": "500",
+            "top": "500"
         }
 
         if modified_after:
@@ -269,10 +269,7 @@ class MicrosoftGraphClient:
         if fields:
             params["$select"] = ",".join(fields)
 
-        yield from self._iter(
-            f"/me/events/{event_id}/instances",
-            params=params,
-        )
+        yield from self._iter(f"/me/events/{event_id}/instances", params=params)
 
     def iter_subscriptions(self) -> Iterable[Dict[str, Any]]:
         """
@@ -403,9 +400,7 @@ class MicrosoftGraphClient:
             )
         assert expiration.tzinfo == pytz.UTC
 
-        json = {
-            "expirationDateTime": format_datetime(expiration),
-        }
+        json = {"expirationDateTime": format_datetime(expiration)}
 
         return self.request("PATCH", f"/subscriptions/{subscription_id}", json=json)
 

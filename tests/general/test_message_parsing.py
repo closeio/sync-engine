@@ -583,17 +583,7 @@ def test_long_message_body(db, default_account, raw_message_too_long):
         assert "over the parsing limit" in mock.warning.call_args[1]["error"].args[0]
 
 
-@pytest.mark.parametrize(
-    "header",
-    [
-        "From",
-        "Sender",
-        "Reply-To",
-        "To",
-        "Cc",
-        "Bcc",
-    ],
-)
+@pytest.mark.parametrize("header", ["From", "Sender", "Reply-To", "To", "Cc", "Bcc"])
 def test_long_address_header(db, default_account, mime_message, header):
     with patch("inbox.models.message.log") as mock:
         mime_message.headers[header] = "b" * MAX_TEXT_BYTES + " <mail@example.com>"

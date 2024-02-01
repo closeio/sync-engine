@@ -28,10 +28,7 @@ def test_imap_save_generic_folder_names(db, default_account):
 
 def test_handle_folder_deletions(db, default_account):
     monitor = ImapSyncMonitor(default_account)
-    folder_names_and_roles = {
-        ("INBOX", "inbox"),
-        ("Miscellania", None),
-    }
+    folder_names_and_roles = {("INBOX", "inbox"), ("Miscellania", None)}
     raw_folders = [RawFolder(*args) for args in folder_names_and_roles]
     monitor.save_folder_names(db.session, raw_folders)
     assert (
@@ -199,11 +196,7 @@ def test_handle_trailing_whitespace(db, default_account):
 
 def test_imap_remote_delete(db, default_account):
     monitor = ImapSyncMonitor(default_account)
-    folders = {
-        ("All", "inbox"),
-        ("Trash", "trash"),
-        ("Applications", ""),
-    }
+    folders = {("All", "inbox"), ("Trash", "trash"), ("Applications", "")}
 
     new_folders = {("All", "inbox"), ("Trash", "trash")}
     original_raw_folders = [RawFolder(*args) for args in folders]

@@ -40,7 +40,7 @@ calendars_json = {
             "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAAAAAEGAABtf4g8yY_zTZgZh6x0X-50AAIM0_ZOAAA=",
             "name": "Test",
         },
-    ],
+    ]
 }
 
 
@@ -115,10 +115,7 @@ def test_request_exception(client):
 
 @responses.activate
 def test_iter_calendars(client):
-    responses.get(
-        BASE_URL + "/me/calendars",
-        json=calendars_json,
-    )
+    responses.get(BASE_URL + "/me/calendars", json=calendars_json)
 
     calendars = client.iter_calendars()
     assert {calendar["name"] for calendar in calendars} == {
@@ -168,10 +165,7 @@ events_json = {
 
 @responses.activate
 def test_iter_events(client):
-    responses.get(
-        BASE_URL + "/me/calendars/fake_calendar_id/events",
-        json=events_json,
-    )
+    responses.get(BASE_URL + "/me/calendars/fake_calendar_id/events", json=events_json)
 
     events = client.iter_events("fake_calendar_id")
     assert {event["subject"] for event in events} == {
@@ -214,10 +208,7 @@ def test_iter_events_modified_after(client, modified_after, subjects):
         content_type="application/json",
     )
 
-    events = client.iter_events(
-        "fake_calendar_id",
-        modified_after=modified_after,
-    )
+    events = client.iter_events("fake_calendar_id", modified_after=modified_after)
 
     assert {event["subject"] for event in events} == subjects
 
@@ -260,8 +251,7 @@ event_instances_second_page = {
 @responses.activate(registry=OrderedRegistry)
 def test_iter_event_instances(client):
     responses.get(
-        BASE_URL + "/me/events/fake_event_id/instances",
-        json=event_instances_first_page,
+        BASE_URL + "/me/events/fake_event_id/instances", json=event_instances_first_page
     )
 
     responses.get(
@@ -293,11 +283,7 @@ def test_subscribe_connection_closed_retries(client):
         },
         status=400,
     )
-    responses.post(
-        BASE_URL + "/subscriptions",
-        json={},
-        status=200,
-    )
+    responses.post(BASE_URL + "/subscriptions", json={}, status=200)
 
     with unittest.mock.patch("time.sleep"):
         client.subscribe(
@@ -396,10 +382,7 @@ subscriptions_json = {
 
 @responses.activate(registry=OrderedRegistry)
 def test_iter_subscriptions(client):
-    responses.get(
-        BASE_URL + "/subscriptions",
-        json=subscriptions_json,
-    )
+    responses.get(BASE_URL + "/subscriptions", json=subscriptions_json)
 
     subscriptions = client.iter_subscriptions()
 
@@ -411,9 +394,6 @@ def test_iter_subscriptions(client):
 
 @responses.activate
 def test_unsubscribe(client):
-    responses.delete(
-        BASE_URL + "/subscriptions/fake_subscription_id",
-        body="",
-    )
+    responses.delete(BASE_URL + "/subscriptions/fake_subscription_id", body="")
 
     assert client.unsubscribe("fake_subscription_id") == {}

@@ -176,12 +176,7 @@ def vcard_from_vobject(vcard):
         if isinstance(property_value, list):
             property_value = (",").join(property_value)
 
-        vdict[property_name].append(
-            (
-                property_value,
-                line.params,
-            )
-        )
+        vdict[property_name].append((property_value, line.params))
     return vdict
 
 

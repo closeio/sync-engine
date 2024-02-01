@@ -148,10 +148,7 @@ def test_download(api_client, uploaded_file_ids, filename):
     data = api_client.get_raw("/files/{}/download".format(in_file["id"])).data
 
     path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..",
-        "data",
-        original_filename,
+        os.path.dirname(os.path.abspath(__file__)), "..", "data", original_filename
     )
     with open(path, "rb") as fp:
         local_data = fp.read()

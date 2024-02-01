@@ -186,10 +186,7 @@ class SMTPConnection:
             try:
                 self.connection.starttls()
             except ssl.SSLError as e:
-                log.warning(
-                    "STARTTLS supported but failed.",
-                    exc_info=True,
-                )
+                log.warning("STARTTLS supported but failed.", exc_info=True)
                 msg = _transform_ssl_error(e.strerror)
                 raise SendMailException(msg, 503)
         else:

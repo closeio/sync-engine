@@ -272,14 +272,7 @@ def test_gmail_initial_sync(db, default_account, all_mail_folder, mock_imapclien
     uid_dict = uids.example()
     mock_imapclient.add_folder_data(all_mail_folder.name, uid_dict)
     mock_imapclient.list_folders = lambda: [
-        (
-            (
-                b"\\All",
-                b"\\HasNoChildren",
-            ),
-            b"/",
-            "[Gmail]/All Mail",
-        )
+        ((b"\\All", b"\\HasNoChildren"), b"/", "[Gmail]/All Mail")
     ]
     mock_imapclient.idle = lambda: None
     mock_imapclient.idle_check = raise_imap_error
@@ -308,22 +301,8 @@ def test_gmail_message_deduplication(
     uid_values = uid_data.example()
 
     mock_imapclient.list_folders = lambda: [
-        (
-            (
-                b"\\All",
-                b"\\HasNoChildren",
-            ),
-            b"/",
-            "[Gmail]/All Mail",
-        ),
-        (
-            (
-                b"\\Trash",
-                b"\\HasNoChildren",
-            ),
-            b"/",
-            "[Gmail]/Trash",
-        ),
+        ((b"\\All", b"\\HasNoChildren"), b"/", "[Gmail]/All Mail"),
+        ((b"\\Trash", b"\\HasNoChildren"), b"/", "[Gmail]/Trash"),
     ]
     mock_imapclient.idle = lambda: None
     mock_imapclient.add_folder_data(all_mail_folder.name, {uid: uid_values})
@@ -377,22 +356,8 @@ def test_imap_message_deduplication(
     uid_values = uid_data.example()
 
     mock_imapclient.list_folders = lambda: [
-        (
-            (
-                b"\\All",
-                b"\\HasNoChildren",
-            ),
-            b"/",
-            "/Inbox",
-        ),
-        (
-            (
-                b"\\Trash",
-                b"\\HasNoChildren",
-            ),
-            b"/",
-            "/Trash",
-        ),
+        ((b"\\All", b"\\HasNoChildren"), b"/", "/Inbox"),
+        ((b"\\Trash", b"\\HasNoChildren"), b"/", "/Trash"),
     ]
     mock_imapclient.idle = lambda: None
     mock_imapclient.add_folder_data(inbox_folder.name, {uid: uid_values})

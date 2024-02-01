@@ -19,10 +19,7 @@ def message(db, config):
 
     account = db.session.query(ImapAccount).get(ACCOUNT_ID)
     to = [
-        {
-            "name": '"\u2605The red-haired mermaid\u2605"',
-            "email": account.email_address,
-        }
+        {"name": '"\u2605The red-haired mermaid\u2605"', "email": account.email_address}
     ]
     subject = "Draft test: " + str(uuid.uuid4().hex)
     body = "<html><body><h2>Sea, birds, yoga and sand.</h2></body></html>"

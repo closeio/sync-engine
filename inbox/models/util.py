@@ -166,7 +166,6 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False):
 
     Raises AccountDeletionErrror with message if there are problems
     """
-
     with session_scope(namespace_id) as db_session:
         try:
             account = (
@@ -296,13 +295,11 @@ def _batch_delete(
     if table in ("message", "block"):
         query = ""
     else:
-        query = "DELETE FROM {} WHERE {}={} LIMIT {};".format(
-            table, column, id_, CHUNK_SIZE
-        )
+        query = f"DELETE FROM {table} WHERE {column}={id_} LIMIT {CHUNK_SIZE};"
 
     log.info("deleting", account_id=account_id, table=table)
 
-    for _ in range(0, batches):
+    for _ in range(batches):
         if throttle:
             bulk_throttle()
 
@@ -405,12 +402,12 @@ def purge_transactions(
         offset = 0
         query = (
             "SELECT id FROM transaction where created_at < "
-            "DATE_SUB({}, INTERVAL {} day) LIMIT {}".format(start, days_ago, limit)
+            f"DATE_SUB({start}, INTERVAL {days_ago} day) LIMIT {limit}"
         )
     else:
         query = (
-            "DELETE FROM transaction where created_at < DATE_SUB({},"
-            " INTERVAL {} day) LIMIT {}".format(start, days_ago, limit)
+            f"DELETE FROM transaction where created_at < DATE_SUB({start},"
+            f" INTERVAL {days_ago} day) LIMIT {limit}"
         )
     try:
         # delete from rows until there are no more rows affected

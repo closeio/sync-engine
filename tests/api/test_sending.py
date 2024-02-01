@@ -6,8 +6,6 @@ import time
 import pytest
 from flanker import mime
 
-import inbox.api.ns_api
-import inbox.logging
 from inbox.basicauth import OAuthError
 from inbox.models import Event, Message
 from inbox.sendmail.smtp.postel import _substitute_bcc
@@ -993,9 +991,7 @@ def test_inline_html_image_send(patch_smtp, api_client, uploaded_file_ids):
         "/send",
         {
             "subject": "Inline image test",
-            "body": '<html><body><div></div><img src="cid:{}"><div></div></body></html>'.format(
-                file_id
-            ),
+            "body": f'<html><body><div></div><img src="cid:{file_id}"><div></div></body></html>',
             "file_ids": [file_id],
             "to": [{"name": "Foo Bar", "email": "foobar@nylas.com"}],
         },

@@ -58,7 +58,7 @@ from inbox.util.startup import load_overrides, preflight
 )
 def main(prod, config, process_num, syncback_id, enable_tracer, enable_profiler):
     """Launch the actions syncback service."""
-    setproctitle("syncback-{}".format(process_num))
+    setproctitle(f"syncback-{process_num}")
 
     maybe_enable_rollbar()
 

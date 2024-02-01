@@ -18,8 +18,7 @@ def main():
     # If the config contains encryption keys, don't override.
     if config.get("SECRET_ENCRYPTION_KEY"):
         raise Exception(
-            "Encryption keys already present in secrets config "
-            "file {0}".format(secrets_path)
+            "Encryption keys already present in secrets config " f"file {secrets_path}"
         )
 
     # Generate keys
@@ -37,12 +36,10 @@ def main():
     # Update it
     try:
         with open(secrets_path, "a") as f:
-            print("Writing keys to secrets config file {0}".format(secrets_path))
+            print(f"Writing keys to secrets config file {secrets_path}")
             yaml.dump(data, f, default_flow_style=False)
-    except IOError:
-        raise Exception(
-            "Check file write permissions on config file {0}".format(secrets_path)
-        )
+    except OSError:
+        raise Exception(f"Check file write permissions on config file {secrets_path}")
 
     # Update the config dict
     config.update(data)

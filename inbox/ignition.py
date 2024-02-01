@@ -206,11 +206,7 @@ def init_db(engine, key=0):
         event.listen(
             table,
             "after_create",
-            DDL(
-                "ALTER TABLE {tablename} AUTO_INCREMENT={increment}".format(
-                    tablename=table, increment=increment
-                )
-            ),
+            DDL(f"ALTER TABLE {table} AUTO_INCREMENT={increment}"),
         )
     with disabled_dubiously_many_queries_warning():
         MailSyncBase.metadata.create_all(engine)
@@ -260,9 +256,7 @@ def reset_invalid_autoincrements(engine, schema, key, dry_run=True):
         increment = engine.execute(query.format(schema, table)).scalar()
         if increment is not None and (increment >> 48) != key:
             if not dry_run:
-                reset_query = "ALTER TABLE {} AUTO_INCREMENT={}".format(
-                    table, (key << 48) + 1
-                )
+                reset_query = f"ALTER TABLE {table} AUTO_INCREMENT={(key << 48) + 1}"
                 engine.execute(reset_query)
             reset.add(str(table))
     return reset

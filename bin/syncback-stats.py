@@ -40,16 +40,10 @@ def main():
                 .group_by(ActionLog.namespace_id)
             ):
                 print(
-                    "{} (pending actions), {} (shard), {} (namespace)".format(
-                        c, key, namespace_id
-                    )
+                    f"{c} (pending actions), {key} (shard), {namespace_id} (namespace)"
                 )
                 total_pending_actions += c
-            print(
-                "total pending actions for shard {}: {}".format(
-                    key, total_pending_actions
-                )
-            )
+            print(f"total pending actions for shard {key}: {total_pending_actions}")
 
 
 if __name__ == "__main__":

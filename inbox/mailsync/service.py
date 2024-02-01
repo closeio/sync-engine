@@ -200,9 +200,7 @@ class SyncService:
         # Determine which accounts to sync
         start_accounts = self.account_ids_to_sync()
         statsd_client.gauge(
-            "mailsync.account_counts.{}.mailsync-{}.count".format(
-                self.host, self.process_number
-            ),
+            f"mailsync.account_counts.{self.host}.mailsync-{self.process_number}.count",
             len(start_accounts),
         )
 
@@ -377,7 +375,6 @@ class SyncService:
         If that account doesn't exist, does nothing.
 
         """
-
         with self.semaphore:
             self.log.info("Stopping monitors", account_id=account_id)
             if account_id in self.email_sync_monitors:

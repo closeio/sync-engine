@@ -14,18 +14,11 @@ from gevent.pool import Pool
 from sqlalchemy import true
 from sqlalchemy.sql.expression import func
 
-from inbox.crispin import connection_pool
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.logging import configure_logging, get_logger
 from inbox.models import Account, Block
-from inbox.models.backends.generic import GenericAccount
-from inbox.models.session import (
-    global_session_scope,
-    session_scope,
-    session_scope_by_shard_id,
-)
+from inbox.models.session import global_session_scope, session_scope
 from inbox.s3.base import get_raw_from_provider
-from inbox.s3.exc import EmailFetchException, TemporaryEmailFetchException
 
 configure_logging()
 log = get_logger(purpose="separator-backfix")

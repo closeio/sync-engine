@@ -1,7 +1,5 @@
 import pytest
 
-import inbox.sqlalchemy_ext.util
-
 
 def test_utf8_surrogate_fix_codec():
     assert "abc".encode("utf8-surrogate-fix") == b"abc"

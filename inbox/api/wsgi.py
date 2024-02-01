@@ -18,7 +18,8 @@ log = get_logger()
 
 class NylasWSGIHandler(WSGIHandler):
     """Custom WSGI handler class to customize request logging. Based on
-    gunicorn.workers.ggevent.PyWSGIHandler."""
+    gunicorn.workers.ggevent.PyWSGIHandler.
+    """
 
     def log_request(self):
         # gevent.pywsgi tries to call log.write(), but Python logger objects
@@ -94,7 +95,8 @@ class NylasWSGIHandler(WSGIHandler):
 
 class NylasWSGIWorker(GeventWorker):
     """Custom worker class for gunicorn. Based on
-    gunicorn.workers.ggevent.GeventPyWSGIWorker."""
+    gunicorn.workers.ggevent.GeventPyWSGIWorker.
+    """
 
     server_class = WSGIServer
     wsgi_handler = NylasWSGIHandler

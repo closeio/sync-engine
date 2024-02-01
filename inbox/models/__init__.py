@@ -12,7 +12,6 @@ the reference.
 
 from inbox.models.account import Account
 from inbox.models.action_log import ActionLog
-from inbox.models.backends import module_registry as backend_module_registry
 from inbox.models.base import MailSyncBase
 from inbox.models.block import Block, Part
 from inbox.models.calendar import Calendar

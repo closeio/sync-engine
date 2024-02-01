@@ -36,7 +36,7 @@ def upgrade():
             .options(contains_eager(ActionLog.namespace, Namespace.account))
         )
 
-        print("Updating {} action_log entries".format(q.count()))
+        print(f"Updating {q.count()} action_log entries")
 
         for a in q.all():
             a.type = "actionlog"

@@ -1,4 +1,3 @@
-import socket
 from imaplib import IMAP4
 
 from imapclient import IMAPClient
@@ -51,7 +50,9 @@ class IMAPSearchClient:
         try:
             acct_provider_info = provider_info(account.provider)
         except NotSupportedError:
-            self.log.warn("Account provider not supported", provider=account.provider)
+            self.log.warning(
+                "Account provider not supported", provider=account.provider
+            )
             raise
 
         self.crispin_client = CrispinClient(
@@ -199,7 +200,7 @@ class IMAPSearchClient:
         try:
             self.crispin_client.select_folder(folder.name, uidvalidity_cb)
         except FolderMissingError:
-            self.log.warn("Won't search missing IMAP folder", exc_info=True)
+            self.log.warning("Won't search missing IMAP folder", exc_info=True)
             return []
         except UidInvalid:
             self.log.error(
@@ -210,7 +211,7 @@ class IMAPSearchClient:
         try:
             uids = self.crispin_client.conn.search(criteria, charset=charset)
         except IMAP4.error:
-            self.log.warn("Search error", exc_info=True)
+            self.log.warning("Search error", exc_info=True)
             raise SearchBackendException(
                 ("Unknown IMAP error when performing search."), 503
             )

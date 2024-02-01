@@ -83,9 +83,7 @@ def test_draft_updates(db, default_account, mock_imapclient):
         assert len(all_uids) == 1
         data = conn.uids(all_uids)[0]
         parsed = mime.from_string(data.body)
-        expected_message_id = "<{}-{}@mailer.nylas.com>".format(
-            draft.public_id, draft.version
-        )
+        expected_message_id = f"<{draft.public_id}-{draft.version}@mailer.nylas.com>"
         assert parsed.headers.get("Message-Id") == expected_message_id
 
         # We're testing the draft deletion with Gmail here. However,

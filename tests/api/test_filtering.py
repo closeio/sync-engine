@@ -285,7 +285,8 @@ def test_strict_argument_parsing(api_client):
 
 def test_distinct_results(api_client, db, default_namespace):
     """Test that limit and offset parameters work correctly when joining on
-    multiple matching messages per thread."""
+    multiple matching messages per thread.
+    """
     # Create a thread with multiple messages on it.
     first_thread = add_fake_thread(db.session, default_namespace.id)
     add_fake_message(

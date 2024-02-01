@@ -11,12 +11,7 @@ from inbox.search.backends.gmail import GmailSearchClient
 from inbox.search.backends.imap import IMAPSearchClient
 from inbox.search.base import get_search_client
 
-from tests.util.base import (
-    add_fake_folder,
-    add_fake_imapuid,
-    add_fake_message,
-    add_fake_thread,
-)
+from tests.util.base import add_fake_imapuid, add_fake_message, add_fake_thread
 
 
 @fixture

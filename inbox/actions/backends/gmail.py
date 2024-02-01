@@ -1,4 +1,4 @@
-""" Operations for syncing back local datastore changes to Gmail. """
+"""Operations for syncing back local datastore changes to Gmail."""
 
 import contextlib
 from imaplib import IMAP4

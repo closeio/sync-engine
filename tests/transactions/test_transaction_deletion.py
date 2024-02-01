@@ -57,7 +57,6 @@ class TestTransactionDeletion:
 
         Yields the newest transaction
         """
-
         # Transactions created less than 30 days ago should not be deleted
         t0 = create_transaction(db, now, default_namespace.id)
         create_transaction(db, now - timedelta(days=29), default_namespace.id)
@@ -88,8 +87,8 @@ class TestTransactionDeletion:
         all_transactions = db.session.execute(query).scalar()
         date_query = (
             "SELECT count(id) FROM transaction WHERE created_at < "
-            "DATE_SUB({}, INTERVAL 30 day)"
-        ).format(format_datetime(now))
+            f"DATE_SUB({format_datetime(now)}, INTERVAL 30 day)"
+        )
         older_than_thirty_days = db.session.execute(date_query).scalar()
 
         # Delete all transactions older than 30 days
@@ -110,8 +109,8 @@ class TestTransactionDeletion:
 
         date_query = (
             "SELECT count(id) FROM transaction WHERE created_at < "
-            "DATE_SUB({}, INTERVAL 1 day)"
-        ).format(format_datetime(now))
+            f"DATE_SUB({format_datetime(now)}, INTERVAL 1 day)"
+        )
         older_than_one_day = db.session.execute(date_query).scalar()
         # Delete all transactions older than 1 day
         purge_transactions(shard_id, days_ago=1, dry_run=False, now=now)

@@ -21,7 +21,7 @@ def purge_accounts_and_actions():
 
 @pytest.fixture
 def patched_enginemanager(monkeypatch):
-    engines = {k: None for k in range(0, 6)}
+    engines = {k: None for k in range(6)}
     monkeypatch.setattr("inbox.ignition.engine_manager.engines", engines)
     yield
     monkeypatch.undo()

@@ -214,7 +214,6 @@ def add_nylas_headers(msg, nylas_uid):
     public_id of the message object.
 
     """
-
     # Set our own custom header for tracking in `Sent Mail` folder
     msg.headers["X-INBOX-ID"] = nylas_uid
     msg.headers["Message-Id"] = generate_message_id_header(nylas_uid)

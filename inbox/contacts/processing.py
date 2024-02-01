@@ -43,7 +43,7 @@ def _get_contact_map(db_session, namespace_id, all_addresses):
 
 def _get_contact_from_map(contact_map, name, email_address):
     if not valid_email(email_address):
-        return
+        return None
 
     canonicalized_address = canonicalize(email_address)
     contact = contact_map.get(canonicalized_address)

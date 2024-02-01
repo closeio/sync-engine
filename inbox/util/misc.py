@@ -145,7 +145,8 @@ def register_backends(base_name, base_path):
 
 def cleanup_subject(subject_str):
     """Clean-up a message subject-line, including whitespace.
-    For instance, 'Re: Re: Re: Birthday   party' becomes 'Birthday party'"""
+    For instance, 'Re: Re: Re: Birthday   party' becomes 'Birthday party'
+    """
     if subject_str is None:
         return ""
     # TODO consider expanding to all

@@ -109,7 +109,7 @@ def update_message_flags(message, db_session, optimistic, unread=None, starred=N
 def parse_folder(request_data, db_session, namespace_id):
     # TODO deprecate being able to post "folder" and not "folder_id"
     if "folder_id" not in request_data and "folder" not in request_data:
-        return
+        return None
     folder_public_id = request_data.pop("folder_id", None) or request_data.pop(
         "folder", None
     )
@@ -153,7 +153,7 @@ def update_message_folder(message, db_session, category, optimistic):
 def parse_labels(request_data, db_session, namespace_id):
     # TODO deprecate being able to post "labels" and not "label_ids"
     if "label_ids" not in request_data and "labels" not in request_data:
-        return
+        return None
 
     label_public_ids = request_data.pop("label_ids", []) or request_data.pop(
         "labels", []

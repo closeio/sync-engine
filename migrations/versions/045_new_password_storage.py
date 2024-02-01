@@ -73,12 +73,12 @@ def upgrade():
                 assert KEY_DIR
                 if create_dir:
                     mkdirp(KEY_DIR)
-                key_filename = "{0}".format(sha256(self.key).hexdigest())
+                key_filename = f"{sha256(self.key).hexdigest()}"
                 return os.path.join(KEY_DIR, key_filename)
 
             def get_old_password(self):
                 if self.password_aes is not None:
-                    with open(self._keyfile, "r") as f:
+                    with open(self._keyfile) as f:
                         key = f.read()
 
                     key = self.key + key

@@ -56,7 +56,6 @@ class GoogleEventsProvider(AbstractEventsProvider):
         """
         Fetch data for the user's calendars.
         """
-
         deletes = []
         updates = []
         items = self._get_raw_calendars()

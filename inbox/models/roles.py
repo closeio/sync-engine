@@ -48,9 +48,7 @@ class Blob:
                 message = self.parts[0].message  # only grab one
                 account = message.namespace.account
 
-                statsd_string = "api.direct_fetching.{}.{}".format(
-                    account.provider, account.id
-                )
+                statsd_string = f"api.direct_fetching.{account.provider}.{account.id}"
 
                 # Try to fetch the message from S3 first.
                 with statsd_client.timer(f"{statsd_string}.blockstore_latency"):

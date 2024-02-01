@@ -115,8 +115,8 @@ class Category(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedA
                 obj.name = name
         else:
             log.error(
-                "Duplicate category rows for namespace_id {}, "
-                "name {}, display_name: {}".format(namespace_id, name, display_name)
+                f"Duplicate category rows for namespace_id {namespace_id}, "
+                f"name {name}, display_name: {display_name}"
             )
             raise MultipleResultsFound(
                 "Duplicate category rows for namespace_id {}, name {}, "

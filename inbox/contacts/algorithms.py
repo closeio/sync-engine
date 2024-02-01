@@ -186,7 +186,7 @@ def _combine_similar_molecules(molecules_list):
         combined = [False] * len(molecules_list)
         new_guys = []
         for j in range(new_guys_start_idx, len(molecules_list)):
-            for i in range(0, j):
+            for i in range(j):
                 if combined[i]:
                     continue
                 (g1, m1), (g2, m2) = molecules_list[i], molecules_list[j]

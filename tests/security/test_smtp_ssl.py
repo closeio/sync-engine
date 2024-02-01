@@ -3,15 +3,12 @@ import asyncore
 import datetime
 import os
 import smtpd
-import socket
 import ssl
 import sys
-import time
 
 import gevent
 import pytest
 
-from tests.api.base import new_api_client
 from tests.util.base import default_account
 
 smtpd.DEBUGSTREAM = sys.stderr

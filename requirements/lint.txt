@@ -24,7 +24,7 @@ tomli==2.0.1
 typed-ast==1.5.5
 typing_extensions==4.9.0
 mypy_extensions==1.0.0
-types-boto==2.49.18.9
+types-boto==2.49.18.20240205
 types-python-dateutil==2.8.19.20240106
 types-pytz==2024.1.0.20240203
 types-PyYAML==6.0.12.12

@@ -1,4 +1,5 @@
 """Provide Google Calendar events."""
+
 import datetime
 import email.utils
 import json
@@ -131,8 +132,9 @@ class GoogleEventsProvider(AbstractEventsProvider):
         url = "https://www.googleapis.com/calendar/v3/calendars/{}/events".format(
             urllib.parse.quote(calendar_uid)
         )
+        params = {"eventTypes": "default"}
         try:
-            return self._get_resource_list(url, updatedMin=sync_from_time_str)
+            return self._get_resource_list(url, updatedMin=sync_from_time_str, **params)
         except requests.exceptions.HTTPError as exc:
             assert exc.response is not None
             if exc.response.status_code == 410:
@@ -382,6 +384,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
         try:
             r = requests.post(
                 watch_url,
+                params={"eventTypes": "default"},
                 data=json.dumps(data),
                 headers=headers,
                 auth=OAuthRequestsWrapper(token),

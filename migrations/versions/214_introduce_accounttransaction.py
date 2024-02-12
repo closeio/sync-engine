@@ -75,7 +75,7 @@ def upgrade():
 
     conn = op.get_bind()
     increment = (shard_id << 48) + 1
-    conn.execute("ALTER TABLE accounttransaction AUTO_INCREMENT={}".format(increment))
+    conn.execute(f"ALTER TABLE accounttransaction AUTO_INCREMENT={increment}")
 
 
 def downgrade():

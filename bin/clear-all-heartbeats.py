@@ -43,7 +43,7 @@ def main(host, port, database):
         count += 1
 
     batch_client.execute()
-    print("{} heartbeats deleted!".format(count))
+    print(f"{count} heartbeats deleted!")
     exit(0)
 
 

@@ -53,14 +53,16 @@ def find_first_app_frame_and_name(ignores=None):
 
 def _record_level(logger, name, event_dict):
     """Processor that records the log level ('info', 'warning', etc.) in the
-    structlog event dictionary."""
+    structlog event dictionary.
+    """
     event_dict["level"] = name
     return event_dict
 
 
 def _record_module(logger, name, event_dict):
     """Processor that records the module and line where the logging call was
-    invoked."""
+    invoked.
+    """
     f, name = find_first_app_frame_and_name(
         ignores=[
             "structlog",
@@ -78,7 +80,8 @@ def _record_module(logger, name, event_dict):
 def safe_format_exception(etype, value, tb, limit=None):
     """Similar to structlog._format_exception, but truncate the exception part.
     This is because SQLAlchemy exceptions can sometimes have ludicrously large
-    exception strings."""
+    exception strings.
+    """
     if tb:
         list = ["Traceback (most recent call last):\n"]
         list = list + traceback.format_tb(tb, limit)

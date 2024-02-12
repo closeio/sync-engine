@@ -17,7 +17,7 @@ def main():
     alembic_ini_filename = os.environ.get("ALEMBIC_INI_PATH", "alembic.ini")
     assert os.path.isfile(
         alembic_ini_filename
-    ), "Missing alembic.ini file at {}".format(alembic_ini_filename)
+    ), f"Missing alembic.ini file at {alembic_ini_filename}"
 
     database_hosts = config.get_required("DATABASE_HOSTS")
 
@@ -33,15 +33,13 @@ def main():
             key = shard["ID"]
 
             try:
-                print("Upgrading shard_id {}".format(key))
+                print(f"Upgrading shard_id {key}")
                 alembic_cfg = alembic.config.Config(alembic_ini_filename)
                 alembic_cfg.set_main_option("shard_id", str(key))
                 alembic.command.upgrade(alembic_cfg, "head")
-                print("Upgraded shard_id {}\n".format(key))
+                print(f"Upgraded shard_id {key}\n")
             except alembic.util.CommandError as e:
-                print(
-                    "FAILED to upgrade shard_id {} with error: {}".format(key, str(e))
-                )
+                print(f"FAILED to upgrade shard_id {key} with error: {str(e)}")
                 continue
 
 

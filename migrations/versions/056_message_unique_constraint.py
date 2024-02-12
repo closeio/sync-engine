@@ -1,4 +1,4 @@
-""" Remove duplicated Gmail Message objects and tighten constraints for Gmail messages.
+"""Remove duplicated Gmail Message objects and tighten constraints for Gmail messages.
 
 Revision ID: 4b4c5579c083
 Revises: 1925c535a52d
@@ -65,9 +65,7 @@ def upgrade():
 
         for message_id, thread_id, g_msgid in groups:
             print(
-                "deleting duplicates of ({}, {}), saving {}".format(
-                    thread_id, g_msgid, message_id
-                )
+                f"deleting duplicates of ({thread_id}, {g_msgid}), saving {message_id}"
             )
             db_session.query(Message).filter(
                 Message.thread_id == thread_id,

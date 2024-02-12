@@ -15,7 +15,6 @@ def drop_everything(engine, keep_tables=None, reset_columns=None):
     default value in the tables that we're keeping -
     provided as a dict of table_name: list_of_column_names.
     """
-
     keep_tables = keep_tables or []
     reset_columns = reset_columns or {}
     conn = engine.connect()

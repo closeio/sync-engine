@@ -2,7 +2,8 @@
 well as a mock IMAPClient isntance that can be used to deterministically test
 aspects of IMAP sync.
 See https://hypothesis.readthedocs.org/en/latest/data.html for more information
-about how this works."""
+about how this works.
+"""
 import string
 
 import flanker

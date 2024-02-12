@@ -79,7 +79,7 @@ def populate():
                 try:
                     raw_data = ast.literal_eval(e.raw_data)
                 except:
-                    print("Could not load raw data for event {}".format(e.id))
+                    print(f"Could not load raw data for event {e.id}")
                     continue
             e.recurrence = raw_data["recurrence"]
         db.commit()
@@ -98,7 +98,7 @@ def populate():
         try:
             db.execute(create)
         except Exception as e:
-            print("Couldn't insert RecurringEventOverrides: {}".format(e))
+            print(f"Couldn't insert RecurringEventOverrides: {e}")
             exit(2)
         print("done.")
 
@@ -113,7 +113,7 @@ def populate():
                 try:
                     raw_data = ast.literal_eval(e.raw_data)
                 except:
-                    print("Could not load raw data for event {}".format(e.id))
+                    print(f"Could not load raw data for event {e.id}")
                     continue
             rec_uid = raw_data.get("recurringEventId")
             if rec_uid:
@@ -133,7 +133,7 @@ def populate():
                     print(".", end=" ")
                     sys.stdout.flush()
         db.commit()
-        print("done. ({} modified)".format(c))
+        print(f"done. ({c} modified)")
 
         # Convert Event to RecurringEvent
         print("Updating types for RecurringEvent...", end=" ")
@@ -148,7 +148,7 @@ def populate():
         try:
             db.execute(create)
         except Exception as e:
-            print("Couldn't insert RecurringEvents: {}".format(e))
+            print(f"Couldn't insert RecurringEvents: {e}")
             exit(2)
         print("done.")
 
@@ -164,7 +164,7 @@ def populate():
                 try:
                     raw_data = ast.literal_eval(r.raw_data)
                 except:
-                    print("Could not load raw data for event {}".format(r.id))
+                    print(f"Could not load raw data for event {r.id}")
                     continue
             r.start_timezone = raw_data["start"].get("timeZone")
             # find any un-found overrides that didn't have masters earlier
@@ -175,7 +175,7 @@ def populate():
                 print(".", end=" ")
                 sys.stdout.flush()
         db.commit()
-        print("done. ({} modified)".format(c))
+        print(f"done. ({c} modified)")
 
         # Finally, convert all remaining Events to type='event'
         convert = """UPDATE event SET type='event' WHERE type IS NULL"""

@@ -50,9 +50,7 @@ def upgrade():
     for table in TABLES:
         conn.execute(
             text(
-                "ALTER TABLE `{}` MODIFY COLUMN `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP".format(
-                    table
-                )
+                f"ALTER TABLE `{table}` MODIFY COLUMN `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"
             )
         )
 
@@ -61,9 +59,5 @@ def downgrade():
     conn = op.get_bind()
     for table in TABLES:
         conn.execute(
-            text(
-                "ALTER TABLE `{}` MODIFY COLUMN `created_at` DATETIME NOT NULL".format(
-                    table
-                )
-            )
+            text(f"ALTER TABLE `{table}` MODIFY COLUMN `created_at` DATETIME NOT NULL")
         )

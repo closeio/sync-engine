@@ -105,7 +105,7 @@ class ICloudContactsProvider(AbstractContactsProvider):
                 # TODO add paging for requesting all
                 self.log.error(
                     "Error parsing CardDav response into contact: "
-                    "{}".format(ET.tostring(refprop))
+                    f"{ET.tostring(refprop)}"
                 )
                 continue
 

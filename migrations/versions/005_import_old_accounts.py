@@ -23,7 +23,7 @@ def upgrade():
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    import inbox.auth.gmail as gmail
+    from inbox.auth import gmail
     from inbox.models.backends.imap import ImapAccount
 
     # Assert we have the dump file
@@ -36,7 +36,7 @@ def upgrade():
         return
 
     # Imports to `imapaccount_old` table
-    with open(SQL_DUMP_FILENAME, "r") as f:
+    with open(SQL_DUMP_FILENAME) as f:
         print("Importing old account data..."),
         op.execute(f.read())
         print("OK!")
@@ -51,13 +51,13 @@ def upgrade():
         migrated_accounts = []
 
         for acct in db_session.query(ImapAccount_Old):
-            print("Importing {0}".format(acct.email_address))
+            print(f"Importing {acct.email_address}")
 
             existing_account = db_session.query(ImapAccount).filter_by(
                 email_address=acct.email_address
             )
             if existing_account.count() > 0:
-                print("Already have account for {0}".format(acct.email_address))
+                print(f"Already have account for {acct.email_address}")
                 continue
 
             # Create a mock OAuth response using data from the old table
@@ -86,23 +86,19 @@ def upgrade():
             db_session.commit()
             migrated_accounts.append(new_account)
 
-        print("\nDone! Imported {0} accounts.".format(len(migrated_accounts)))
+        print(f"\nDone! Imported {len(migrated_accounts)} accounts.")
         print("\nNow verifying refresh tokens...\n")
 
         verified_accounts = []
         for acct in migrated_accounts:
-            print("Verifying {0}... ".format(acct.email_address)),
+            print(f"Verifying {acct.email_address}... "),
             if gmail.verify_account(acct):
                 verified_accounts.append(acct)
                 print("OK!")
             else:
                 print("FAILED!")
 
-        print(
-            "Done! Verified {0} of {1}".format(
-                len(verified_accounts), len(migrated_accounts)
-            )
-        )
+        print(f"Done! Verified {len(verified_accounts)} of {len(migrated_accounts)}")
 
     op.drop_table("imapaccount_old")
 

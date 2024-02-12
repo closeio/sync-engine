@@ -60,7 +60,6 @@ def validate_webhook_payload_factory(type: MsGraphType):
             have two separate endpoints, one for calendar changes and one for
             event changes.
             """
-
             try:
                 request.json
             except UnsupportedMediaType:

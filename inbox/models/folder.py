@@ -99,11 +99,7 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             )
             session.add(obj)
         except MultipleResultsFound:
-            log.info(
-                "Duplicate folder rows for name {}, account_id {}".format(
-                    name, account.id
-                )
-            )
+            log.info(f"Duplicate folder rows for name {name}, account_id {account.id}")
             raise
 
         return obj

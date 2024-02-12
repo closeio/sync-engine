@@ -1,4 +1,4 @@
-""" Test that the All Mail folder is enabled for Gmail. """
+"""Test that the All Mail folder is enabled for Gmail."""
 import pytest
 
 from inbox.auth.google import GoogleAuthHandler

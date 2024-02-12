@@ -39,7 +39,7 @@ socket.setdefaulttimeout(SOCKET_TIMEOUT)
 
 esc = "\033"
 
-banner = r"""{esc}[1;95m
+banner = rf"""{esc}[1;95m
       _   _       _
      | \ | |     | |
      |  \| |_   _| | __ _ ___
@@ -53,9 +53,7 @@ banner = r"""{esc}[1;95m
 
      {esc}[0m
      Use CTRL-C to stop.
-    """.format(
-    esc=esc
-)
+    """
 
 
 @click.command()
@@ -110,7 +108,7 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
 
     total_processes = int(os.environ.get("MAILSYNC_PROCESSES", 1))
 
-    setproctitle.setproctitle("sync-engine-{}".format(process_num))
+    setproctitle.setproctitle(f"sync-engine-{process_num}")
 
     log = get_logger()
     log.info(
@@ -132,7 +130,7 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
     port = 16384 + process_num
     enable_profiler_api = inbox_config.get("DEBUG_PROFILING_ON")
 
-    process_identifier = "{}:{}".format(platform.node(), process_num)
+    process_identifier = f"{platform.node()}:{process_num}"
 
     if exit_after:
         exit_after = exit_after.split(":")

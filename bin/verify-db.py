@@ -24,7 +24,7 @@ def main():
             engine = engine_manager.engines[key]
             schema = shard["SCHEMA_NAME"]
 
-            print("Verifying database: {}".format(schema))
+            print(f"Verifying database: {schema}")
             verify_db(engine, schema, key)
 
 

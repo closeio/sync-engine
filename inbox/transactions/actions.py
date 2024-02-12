@@ -147,7 +147,7 @@ class SyncbackService(gevent.Greenlet):
                 and key % total_processes == process_number
             ]
         else:
-            self.log.warn(
+            self.log.warning(
                 "No shards assigned to syncback server", syncback_id=syncback_id
             )
             self.keys = []
@@ -307,7 +307,7 @@ class SyncbackService(gevent.Greenlet):
         valid log entries.
         """
         if not log_entries:
-            return
+            return None
         namespace = log_entries[0].namespace
         account_id = namespace.account.id
         semaphore = self.account_semaphores[account_id]
@@ -414,13 +414,13 @@ class SyncbackService(gevent.Greenlet):
                         action_log_id=log_entry.id,
                         retries=log_entry.retries,
                     )
-                    return
+                    return None
 
             valid_log_entries.append(log_entry)
 
         batch_task = self._get_batch_task(db_session, valid_log_entries, has_more)
         if not batch_task:
-            return
+            return None
         for task in batch_task.tasks:
             self.running_action_ids.update(task.action_log_ids)
             self.log.debug(

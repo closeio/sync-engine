@@ -1,4 +1,4 @@
-""" IMAPClient wrapper for the Nylas Sync Engine."""
+"""IMAPClient wrapper for the Nylas Sync Engine."""
 import contextlib
 import datetime
 import imaplib
@@ -464,7 +464,6 @@ class CrispinClient:
         IMAPClient parses this response into a list of
         (flags, delimiter, name) tuples.
         """
-
         # As discovered in the wild list_folders() can return None as name,
         # we cannot handle those folders anyway so just filter them out.
         return [
@@ -656,7 +655,7 @@ class CrispinClient:
         Fetch the list of folders for the account from the remote, return as a
         list of RawFolder objects.
 
-        NOTE:
+        Note:
         Always fetches the list of folders from the remote.
 
         """
@@ -709,7 +708,6 @@ class CrispinClient:
         Returns:
             a list of roles that did not appear as a role in folders
         """
-
         assert len(folders) > 0
         assert len(roles) > 0
 
@@ -1110,7 +1108,8 @@ class CrispinClient:
     def idle(self, timeout):
         """Idle for up to `timeout` seconds. Make sure we take the connection
         back out of idle mode so that we can reuse this connection in another
-        context."""
+        context.
+        """
         self.conn.idle()
         try:
             r = self.conn.idle_check(timeout)
@@ -1419,7 +1418,6 @@ class GmailCrispinClient(CrispinClient):
 
         Leaves the Trash folder selected at the end of the method.
         """
-
         log.info("Trying to delete gmail draft", message_id_header=message_id_header)
         drafts_folder_name = self.folder_names()["drafts"][0]
         trash_folder_name = self.folder_names()["trash"][0]

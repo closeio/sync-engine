@@ -47,7 +47,7 @@ def upgrade():
     with session_scope(versioned=False) as db_session:
         count = 0
         (num_transactions,) = db_session.query(sa.func.max(Transaction.id)).one()
-        print("Adding public ids to {} transactions".format(num_transactions))
+        print(f"Adding public ids to {num_transactions} transactions")
         for pointer in range(0, num_transactions + 1, 500):
             for entry in db_session.query(Transaction).filter(
                 Transaction.id >= pointer, Transaction.id < pointer + 500

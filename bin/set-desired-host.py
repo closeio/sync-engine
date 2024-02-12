@@ -19,9 +19,9 @@ def main(account_id, desired_host, dry_run, toggle_sync):
     with global_session_scope() as db_session:
         account = db_session.query(Account).get(int(account_id))
 
-        print("Before sync host: {}".format(account.sync_host))
-        print("Before desired sync host: {}".format(account.desired_sync_host))
-        print("Before sync should run: {}".format(account.sync_should_run))
+        print(f"Before sync host: {account.sync_host}")
+        print(f"Before desired sync host: {account.desired_sync_host}")
+        print(f"Before sync should run: {account.sync_should_run}")
 
         if dry_run:
             return
@@ -29,9 +29,9 @@ def main(account_id, desired_host, dry_run, toggle_sync):
         if toggle_sync:
             account.sync_should_run = not account.sync_should_run
 
-        print("After sync host: {}".format(account.sync_host))
-        print("After desired sync host: {}".format(account.desired_sync_host))
-        print("After sync should run: {}".format(account.sync_should_run))
+        print(f"After sync host: {account.sync_host}")
+        print(f"After desired sync host: {account.desired_sync_host}")
+        print(f"After sync should run: {account.sync_should_run}")
         db_session.commit()
 
 

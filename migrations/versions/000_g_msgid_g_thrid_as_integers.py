@@ -1,4 +1,4 @@
-""" Store g_msgid and g_thrid as integers, not strings. For more efficiency.
+"""Store g_msgid and g_thrid as integers, not strings. For more efficiency.
 
 Revision ID: 2605b23e1fe6
 Revises: None

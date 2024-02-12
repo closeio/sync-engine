@@ -1,4 +1,4 @@
-""" Tests for our mutable JSON column type. """
+"""Tests for our mutable JSON column type."""
 
 from datetime import datetime
 

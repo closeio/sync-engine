@@ -602,7 +602,8 @@ class FolderSyncEngine(Greenlet):
 
     def add_message_to_thread(self, db_session, message_obj, raw_message):
         """Associate message_obj to the right Thread object, creating a new
-        thread if necessary."""
+        thread if necessary.
+        """
         with db_session.no_autoflush:
             # Disable autoflush so we don't try to flush a message with null
             # thread_id.
@@ -988,8 +989,6 @@ class FolderSyncEngine(Greenlet):
 class UidInvalid(Exception):
     """Raised when a folder's UIDVALIDITY changes, requiring a resync."""
 
-    pass
-
 
 # This version is elsewhere in the codebase, so keep it for now
 # TODO(emfree): clean this up.
@@ -1009,9 +1008,7 @@ def uidvalidity_cb(
         )
         if not is_valid:
             raise UidInvalid(
-                "folder: {}, remote uidvalidity: {}, "
-                "cached uidvalidity: {}".format(
-                    folder_name, selected_uidvalidity, saved_uidvalidity
-                )
+                f"folder: {folder_name}, remote uidvalidity: {selected_uidvalidity}, "
+                f"cached uidvalidity: {saved_uidvalidity}"
             )
     return select_info

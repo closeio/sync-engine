@@ -142,7 +142,7 @@ def _get_from_s3_bucket(data_sha256, bucket_name):
 
     if not key:
         log.warning(f"No key with name: {data_sha256} returned!")
-        return
+        return None
 
     return key.get_contents_as_string()
 
@@ -156,13 +156,13 @@ def _get_from_disk(data_sha256):
             return f.read()
     except OSError:
         log.warning(f"No file with name: {data_sha256}!")
-        return
+        return None
 
 
 def _delete_from_s3_bucket(data_sha256_hashes, bucket_name):
     data_sha256_hashes = [hash_ for hash_ in data_sha256_hashes if hash_]
     if not data_sha256_hashes:
-        return None
+        return
 
     assert "AWS_ACCESS_KEY_ID" in config, "Need AWS key!"
     assert "AWS_SECRET_ACCESS_KEY" in config, "Need AWS secret!"
@@ -180,7 +180,7 @@ def _delete_from_s3_bucket(data_sha256_hashes, bucket_name):
 
 def _delete_from_disk(data_sha256):
     if not data_sha256:
-        return None
+        return
 
     try:
         os.remove(_data_file_path(data_sha256))

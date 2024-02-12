@@ -119,7 +119,6 @@ def configure_versioning(session):
             bump_redis_txn_id(session)
         except Exception:
             log.exception("bump_redis_txn_id exception")
-            pass
         create_revisions(session)
 
     return session
@@ -177,7 +176,7 @@ def session_scope(id_, versioned=True):
             session.rollback()
             raise
         except OperationalError:
-            log.warn(
+            log.warning(
                 "Encountered OperationalError on rollback", original_exception=type(exc)
             )
             raise exc

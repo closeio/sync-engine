@@ -28,14 +28,14 @@ def reset_db(dry_run):
             engine = engine_manager.engines[key]
             schema = shard["SCHEMA_NAME"]
 
-            print("Resetting invalid autoincrements for database: {}".format(schema))
+            print(f"Resetting invalid autoincrements for database: {schema}")
             reset_tables = reset_invalid_autoincrements(engine, schema, key, dry_run)
             if dry_run:
                 print("dry_run=True")
             if reset_tables:
                 print("Reset tables: {}".format(", ".join(reset_tables)))
             else:
-                print("Schema {} okay".format(schema))
+                print(f"Schema {schema} okay")
 
 
 if __name__ == "__main__":

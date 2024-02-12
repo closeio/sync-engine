@@ -129,7 +129,7 @@ def get_start_times(event, start=None, end=None):
 
         rrules = parse_rrule(event)
         if not rrules:
-            log.warn("Tried to expand a non-recurring event", event_id=event.id)
+            log.warning("Tried to expand a non-recurring event", event_id=event.id)
             return [event.start]
 
         excl_dates = parse_exdate(event)

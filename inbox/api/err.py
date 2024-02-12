@@ -51,7 +51,8 @@ class APIException(Exception):
 
 class InputError(APIException):
     """Raised on invalid user input (missing required parameter, value too
-    long, etc.)"""
+    long, etc.)
+    """
 
     status_code = 400
 

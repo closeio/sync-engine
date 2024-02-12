@@ -125,7 +125,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     extra_flags = Column(LittleJSON, default=[], nullable=False)
     # labels (Gmail-specific)
     # TO BE DEPRECATED
-    g_labels = Column(JSON, default=lambda: [], nullable=True)
+    g_labels = Column(JSON, default=list, nullable=True)
 
     def update_flags(self, new_flags: List[bytes]) -> None:
         """

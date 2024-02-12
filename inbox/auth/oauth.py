@@ -133,7 +133,7 @@ class OAuthAuthHandler(AuthHandler):
                 )
                 aa_account = aa_response
             except AccountError as exc:
-                log.warn(
+                log.warning(
                     "AccountError during AuthAlligator account query",
                     account_id=account.id,
                     error_code=exc.code and exc.code.value,

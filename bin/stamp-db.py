@@ -18,7 +18,7 @@ def main(revision_id):
     alembic_ini_filename = os.environ.get("ALEMBIC_INI_PATH", "alembic.ini")
     assert os.path.isfile(
         alembic_ini_filename
-    ), "Missing alembic.ini file at {}".format(alembic_ini_filename)
+    ), f"Missing alembic.ini file at {alembic_ini_filename}"
 
     database_hosts = config.get_required("DATABASE_HOSTS")
 
@@ -34,13 +34,13 @@ def main(revision_id):
             key = shard["ID"]
 
             try:
-                print("Stamping shard_id {}".format(key))
+                print(f"Stamping shard_id {key}")
                 alembic_cfg = alembic.config.Config(alembic_ini_filename)
                 alembic_cfg.set_main_option("shard_id", str(key))
                 alembic.command.stamp(alembic_cfg, revision_id)
-                print("Stamped shard_id {}\n".format(key))
+                print(f"Stamped shard_id {key}\n")
             except alembic.util.CommandError as e:
-                print("FAILED to stamp shard_id {} with error: {}".format(key, str(e)))
+                print(f"FAILED to stamp shard_id {key} with error: {str(e)}")
                 continue
 
 

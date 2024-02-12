@@ -1,5 +1,6 @@
 """Test local behavior for the drafts API. Doesn't test syncback or actual
-sending."""
+sending.
+"""
 import json
 import os
 from datetime import datetime
@@ -393,7 +394,8 @@ def test_update_to_nonexistent_draft(api_client):
 
 def test_contacts_updated(api_client):
     """Tests that draft-contact associations are properly created and
-    updated."""
+    updated.
+    """
     draft = {"to": [{"email": "alice@example.com"}, {"email": "bob@example.com"}]}
 
     r = api_client.post_data("/drafts", draft)

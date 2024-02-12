@@ -196,7 +196,6 @@ def matching_subdomains(new_value, old_value):
     2. shares the same top-level domain name.
 
     """
-
     if new_value is None and old_value is not None:
         return False
 

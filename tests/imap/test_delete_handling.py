@@ -62,7 +62,8 @@ def test_deleting_from_a_message_with_multiple_uids(
     db, default_account, message, thread
 ):
     """Check that deleting a imapuid from a message with
-    multiple uids doesn't mark the message for deletion."""
+    multiple uids doesn't mark the message for deletion.
+    """
     inbox_folder = Folder.find_or_create(db.session, default_account, "inbox", "inbox")
     sent_folder = Folder.find_or_create(db.session, default_account, "sent", "sent")
 

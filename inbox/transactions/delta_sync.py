@@ -277,6 +277,7 @@ def streaming_change_generator(
     """
     Poll the transaction log for the given `namespace_id` until `timeout`
     expires, and yield each time new entries are detected.
+
     Arguments
     ---------
     namespace_id: int

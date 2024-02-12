@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Start the contact search indexing service. """
+"""Start the contact search indexing service."""
 from gevent import monkey
 
 monkey.patch_all()

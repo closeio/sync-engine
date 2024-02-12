@@ -52,7 +52,6 @@ class CardDav:
 
     def get_principal_url(self):
         """Use PROPFIND method to find the `principal` carddav url"""
-
         payload = """
             <A:propfind xmlns:A='DAV:'>
                 <A:prop>

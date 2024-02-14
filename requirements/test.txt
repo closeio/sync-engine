@@ -14,7 +14,7 @@ pyparsing==3.1.1
 pytest==8.0.0
 pytest-cov==4.1.0
 pytest-timeout==2.2.0
-responses==0.24.1
+responses==0.25.0
 types-toml==0.10.8.7
 sortedcontainers==2.4.0
 toml==0.10.2

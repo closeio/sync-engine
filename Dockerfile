@@ -44,22 +44,37 @@ RUN mkdir /etc/inboxapp && \
   mkdir /opt/app && \
   chown sync-engine:sync-engine /opt/app && \
   mkdir /opt/venv && \
-  chown sync-engine:sync-engine /opt/venv
-
-USER sync-engine
+  chown sync-engine:sync-engine /opt/venv && \
+  mkdir -p /home/sync-engine/.cache/pip && \
+  chown sync-engine:sync-engine /home/sync-engine/.cache/pip
 
 WORKDIR /opt/app
-
-ENV PATH="/opt/venv/bin:$PATH"
-
-COPY --chown=sync-engine:sync-engine ./ ./
-RUN python3 -m pip install pip==23.3.1 virtualenv==20.17.1 && \
+COPY --chown=sync-engine:sync-engine requirements/ /opt/app/requirements
+RUN --mount=type=cache,target=/root/.cache/pip \
+  python3 -m pip install pip==23.3.1 virtualenv==20.17.1 && \
   python3 -m virtualenv /opt/venv && \
   /opt/venv/bin/python3 -m pip install setuptools==67.4.0 && \
   /opt/venv/bin/python3 -m pip install --no-deps -r requirements/prod.txt -r requirements/test.txt && \
   /opt/venv/bin/python3 -m pip check
-
 RUN ln -s /opt/app/bin/wait-for-it.sh /opt/venv/bin/
+
+
+USER sync-engine
+
+
+
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY --chown=sync-engine:sync-engine ./ ./
+# RUN --mount=type=cache,target=/home/sync-engine/.cache/pip \
+#   python3 -m pip install pip==23.3.1 virtualenv==20.17.1 && \
+#   python3 -m virtualenv /opt/venv && \
+#   /opt/venv/bin/python3 -m pip install setuptools==67.4.0 && \
+#   /opt/venv/bin/python3 -m pip install --no-deps -r requirements/prod.txt -r requirements/test.txt && \
+#   /opt/venv/bin/python3 -m pip install -e . && \
+#   /opt/venv/bin/python3 -m pip check
+# RUN /usr/bin/find ~/.cache/pip -name "*.whl"
+
 
 ENV \
   LANG="en_US.UTF-8" \

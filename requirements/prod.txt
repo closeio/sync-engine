@@ -5,6 +5,7 @@ asn1crypto==0.24.0
 asttokens==2.2.1
 attrs==23.1.0
 git+https://github.com/closeio/authalligator-client.git@e7cc8e0bc5b1f2285ab5997e2590a8eb056fc627#egg=authalligator_client
+async_timeout==4.0.3
 backcall==0.2.0
 jedi==0.18.2
 boto==2.49.0

@@ -122,6 +122,9 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Dump cache
+        run: docker system df -v --format '{{ .BuildCache | json }}' | jq '.[] | select((.CacheType=="exec.cachemount") and (.Description | contains("pip install")))'
+
       - name: Run tests
         if: ${{ matrix.run_tests }}
         run: |

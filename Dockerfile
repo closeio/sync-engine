@@ -48,7 +48,7 @@ RUN mkdir /etc/inboxapp && \
 
 WORKDIR /opt/app
 COPY --chown=sync-engine:sync-engine requirements/ /opt/app/requirements
-RUN --mount=type=cache,target=/root/.cache/pip,id=sync-engine-pip-cache \
+RUN --mount=type=cache,target=/root/.cache/pip \
   python3 -m pip install pip==23.3.1 virtualenv==20.17.1 && \
   python3 -m virtualenv /opt/venv && \
   /opt/venv/bin/python3 -m pip install setuptools==67.4.0 && \

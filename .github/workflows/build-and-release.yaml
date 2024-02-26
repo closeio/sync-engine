@@ -122,6 +122,9 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Dump buildx cache
+        run: docker buildx du --filter type=exec.cachemount
+
       - name: Dump full cache
         run: docker system df -v --format '{{ .BuildCache | json }}'
 

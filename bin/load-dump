@@ -1,2 +1,0 @@
-#!/bin/sh
-mysql -uroot -proot < $1

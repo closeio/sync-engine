@@ -55,7 +55,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
   python3 -m virtualenv /opt/venv && \
   /opt/venv/bin/python3 -m pip install setuptools==67.4.0 && \
   /opt/venv/bin/python3 -m pip install --no-deps -r requirements/prod.txt -r requirements/test.txt && \
-  /opt/venv/bin/python3 -m pip check
+  /opt/venv/bin/python3 -m pip check && \
+  /usr/bin/find ~/.cache/pip -name  "*.whl"
 RUN ln -s /opt/app/bin/wait-for-it.sh /opt/venv/bin/
 
 
@@ -73,7 +74,7 @@ COPY --chown=sync-engine:sync-engine ./ ./
 #   /opt/venv/bin/python3 -m pip install --no-deps -r requirements/prod.txt -r requirements/test.txt && \
 #   /opt/venv/bin/python3 -m pip install -e . && \
 #   /opt/venv/bin/python3 -m pip check
-# RUN /usr/bin/find ~/.cache/pip -name "*.whl"
+RUN /usr/bin/find ~/.cache/pip -name  "*.whl"
 
 
 ENV \

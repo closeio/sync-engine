@@ -88,6 +88,9 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
+      - name: Docker system info
+        run: docker info
+
       - name: Set up Docker context for Buildx
         id: buildx-context
         run: |

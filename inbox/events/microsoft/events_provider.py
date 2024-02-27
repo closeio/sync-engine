@@ -27,6 +27,7 @@ from inbox.models.backends.outlook import MICROSOFT_CALENDAR_SCOPES
 from inbox.models.calendar import Calendar
 from inbox.models.event import Event, RecurringEvent
 from inbox.models.session import session_scope
+from inbox.util.concurrency import iterate_and_periodically_switch_to_gevent
 
 URL_PREFIX = config.get("API_URL", "")
 
@@ -135,7 +136,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
             ),
         )
         read_only = self.calendars_table.get(calendar_uid, True)
-        for raw_event in raw_events:
+        for raw_event in iterate_and_periodically_switch_to_gevent(raw_events):
             if not validate_event(raw_event):
                 self.log.warning("Invalid event", raw_event=raw_event)
                 continue

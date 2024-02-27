@@ -265,7 +265,7 @@ def test_event_parsing():
     provider = GoogleEventsProvider(1, 1)
     provider.calendars_table = {"uid": False}
     provider._get_raw_events = mock.MagicMock(return_value=raw_response)
-    updates = provider.sync_events("uid", 1)
+    updates = list(provider.sync_events("uid", 1))
 
     # deleted events are actually only marked as
     # cancelled. Look for them in the updates stream.
@@ -317,7 +317,7 @@ def test_event_parsing():
     # This is a read-only calendar
     provider.calendars_table = {"uid": True}
     provider._get_raw_events = mock.MagicMock(return_value=raw_response)
-    updates = provider.sync_events("uid", 1)
+    updates = list(provider.sync_events("uid", 1))
     assert len(updates) == 1
     assert updates[0].read_only is True
 
@@ -508,7 +508,7 @@ def test_handle_unparseable_dates():
     )
     provider = GoogleEventsProvider(1, 1)
     provider._get_raw_events = mock.MagicMock(return_value=raw_response)
-    updates = provider.sync_events("uid", 1)
+    updates = list(provider.sync_events("uid", 1))
     assert len(updates) == 0
 
 
@@ -856,5 +856,5 @@ def test_cancelled_override_creation():
 
     provider = GoogleEventsProvider(1, 1)
     provider._get_raw_events = mock.MagicMock(return_value=raw_response)
-    updates = provider.sync_events("uid", 1)
+    updates = list(provider.sync_events("uid", 1))
     assert updates[0].cancelled is True

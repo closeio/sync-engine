@@ -110,7 +110,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
     def sync_events(
         self, calendar_uid: str, sync_from_time: Optional[datetime.datetime] = None
-    ) -> List[Event]:
+    ) -> Iterable[Event]:
         """
         Fetch event data for an individual calendar.
 
@@ -120,7 +120,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
                     changed since this time.
 
         Returns:
-            A list of uncommited Event instances
+            An iterator of uncommited Event instances
         """
         if sync_from_time:
             # this got here from the database, we store them as naive
@@ -128,7 +128,6 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
             # we attach timezone here.
             sync_from_time = sync_from_time.replace(tzinfo=pytz.UTC)
 
-        updates = []
         raw_events = cast(
             Iterable[MsGraphEvent],
             self.client.iter_events(
@@ -142,16 +141,14 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
                 continue
 
             event = parse_event(raw_event, read_only=read_only)
-            updates.append(event)
+            yield event
 
             if isinstance(event, RecurringEvent):
                 exceptions, cancellations = self._get_event_overrides(
                     raw_event, event, read_only=read_only
                 )
-                updates.extend(exceptions)
-                updates.extend(cancellations)
-
-        return updates
+                yield from exceptions
+                yield from cancellations
 
     def _get_event_overrides(
         self, raw_master_event: MsGraphEvent, master_event: RecurringEvent, *, read_only

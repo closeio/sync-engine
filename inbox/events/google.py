@@ -73,7 +73,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
 
     def sync_events(
         self, calendar_uid: str, sync_from_time: Optional[datetime.datetime] = None
-    ) -> List[Event]:
+    ) -> Iterable[Event]:
         """
         Fetch event data for an individual calendar.
 
@@ -88,21 +88,17 @@ class GoogleEventsProvider(AbstractEventsProvider):
                 all event data.
 
         Returns:
-            A list of uncommited Event instances
+            A generator of uncommited Event instances
         """
-        updates = []
         raw_events = self._get_raw_events(calendar_uid, sync_from_time)
         read_only_calendar = self.calendars_table.get(calendar_uid, True)
         for raw_event in iterate_and_periodically_switch_to_gevent(raw_events):
             try:
-                parsed = parse_event_response(raw_event, read_only_calendar)
-                updates.append(parsed)
+                yield parse_event_response(raw_event, read_only_calendar)
             except (arrow.parser.ParserError, ValueError):
                 self.log.warning(
                     "Skipping unparseable event", exc_info=True, raw=raw_event
                 )
-
-        return updates
 
     def _get_raw_calendars(self) -> Iterable[Dict[str, Any]]:
         """Gets raw data for the user's calendars."""

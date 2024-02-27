@@ -1,7 +1,10 @@
+import datetime
 import functools
 import random
 import ssl
 import sys
+import time
+from typing import Iterable, TypeVar
 
 import _mysql_exceptions
 import gevent
@@ -152,3 +155,30 @@ def retry_with_logging(
         fail_classes=fail_classes,
         backoff_delay=backoff_delay,
     )()
+
+
+IterableItemT = TypeVar("IterableItemT")
+
+
+DEFAULT_SWITCH_PERIOD = datetime.timedelta(seconds=1)
+
+
+def iterate_and_periodically_switch_to_gevent(
+    iterable: Iterable[IterableItemT],
+    *,
+    switch_period: datetime.timedelta = DEFAULT_SWITCH_PERIOD
+) -> Iterable[IterableItemT]:
+    """
+    Given an iterable, yield each item, and periodically switch to the gevent
+    event loop to allow other greenlets to run.
+
+    Use this with CPU-bound loops to avoid blocking the event loop for too long.
+    Otherwise the greenlet might get killed by KillerGreenletTracer.
+    """
+    last_sleep_time = time.monotonic()
+    for item in iterable:
+        if time.monotonic() - last_sleep_time >= switch_period.total_seconds():
+            gevent.sleep(0)
+            last_sleep_time = time.monotonic()
+
+        yield item

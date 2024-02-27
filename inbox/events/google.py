@@ -387,7 +387,6 @@ class GoogleEventsProvider(AbstractEventsProvider):
         try:
             r = requests.post(
                 watch_url,
-                params={"eventTypes": "default"},
                 data=json.dumps(data),
                 headers=headers,
                 auth=OAuthRequestsWrapper(token),

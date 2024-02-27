@@ -88,7 +88,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
                 all event data.
 
         Returns:
-            A generator of uncommited Event instances
+            An iterable of uncommited Event instances
         """
         raw_events = self._get_raw_events(calendar_uid, sync_from_time)
         read_only_calendar = self.calendars_table.get(calendar_uid, True)
@@ -119,7 +119,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
 
         Returns
         -------
-        generator of dictionaries representing JSON.
+        iterable of dictionaries representing JSON.
         """
         if sync_from_time is not None:
             # Note explicit offset is required by Google calendar API.

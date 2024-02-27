@@ -120,7 +120,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
                     changed since this time.
 
         Returns:
-            An iterator of uncommited Event instances
+            An iteratable of uncommited Event instances
         """
         if sync_from_time:
             # this got here from the database, we store them as naive

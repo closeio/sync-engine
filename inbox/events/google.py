@@ -6,7 +6,7 @@ import json
 import random
 import urllib.parse
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterable, List, Optional
 
 import arrow
 import attrs
@@ -104,13 +104,13 @@ class GoogleEventsProvider(AbstractEventsProvider):
 
         return updates
 
-    def _get_raw_calendars(self) -> List[Dict[str, Any]]:
+    def _get_raw_calendars(self) -> Iterable[Dict[str, Any]]:
         """Gets raw data for the user's calendars."""
         return self._get_resource_list(CALENDARS_URL)
 
     def _get_raw_events(
         self, calendar_uid: str, sync_from_time: Optional[datetime.datetime] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> Iterable[Dict[str, Any]]:
         """Gets raw event data for the given calendar.
 
         Parameters
@@ -123,7 +123,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
 
         Returns
         -------
-        list of dictionaries representing JSON.
+        generator of dictionaries representing JSON.
         """
         if sync_from_time is not None:
             # Note explicit offset is required by Google calendar API.
@@ -135,7 +135,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
             urllib.parse.quote(calendar_uid)
         )
         try:
-            return self._get_resource_list(
+            yield from self._get_resource_list(
                 url, updatedMin=sync_from_time_str, eventTypes="default"
             )
         except requests.exceptions.HTTPError as exc:
@@ -144,14 +144,13 @@ class GoogleEventsProvider(AbstractEventsProvider):
                 # The calendar API may return 410 if you pass a value for
                 # updatedMin that's too far in the past. In that case, refetch
                 # all events.
-                return self._get_resource_list(url)
+                yield from self._get_resource_list(url)
             else:
                 raise
 
-    def _get_resource_list(self, url: str, **params) -> List[Dict[str, Any]]:
+    def _get_resource_list(self, url: str, **params) -> Iterable[Dict[str, Any]]:
         """Handles response pagination."""
         token = self._get_access_token()
-        items = []
         next_page_token: Optional[str] = None
         params["showDeleted"] = True
         while True:
@@ -161,10 +160,10 @@ class GoogleEventsProvider(AbstractEventsProvider):
                 r = requests.get(url, params=params, auth=OAuthRequestsWrapper(token))
                 r.raise_for_status()
                 data = r.json()
-                items += data["items"]
+                yield from data["items"]
                 next_page_token = data.get("nextPageToken")
                 if next_page_token is None:
-                    return items
+                    return
 
             except requests.exceptions.SSLError:
                 self.log.warning(

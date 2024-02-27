@@ -54,51 +54,53 @@ def cmp_event_attrs(event1, event2):
 
 
 def test_calendar_parsing():
-    raw_response = [
-        {
-            "accessRole": "owner",
-            "backgroundColor": "#9a9cff",
-            "colorId": "17",
-            "defaultReminders": [{"method": "popup", "minutes": 30}],
-            "etag": '"1425508164135000"',
-            "foregroundColor": "#000000",
-            "id": "ben.bitdiddle2222@gmail.com",
-            "kind": "calendar#calendarListEntry",
-            "notificationSettings": {
-                "notifications": [
-                    {"method": "email", "type": "eventCreation"},
-                    {"method": "email", "type": "eventChange"},
-                    {"method": "email", "type": "eventCancellation"},
-                    {"method": "email", "type": "eventResponse"},
-                ]
+    raw_response = iter(
+        [
+            {
+                "accessRole": "owner",
+                "backgroundColor": "#9a9cff",
+                "colorId": "17",
+                "defaultReminders": [{"method": "popup", "minutes": 30}],
+                "etag": '"1425508164135000"',
+                "foregroundColor": "#000000",
+                "id": "ben.bitdiddle2222@gmail.com",
+                "kind": "calendar#calendarListEntry",
+                "notificationSettings": {
+                    "notifications": [
+                        {"method": "email", "type": "eventCreation"},
+                        {"method": "email", "type": "eventChange"},
+                        {"method": "email", "type": "eventCancellation"},
+                        {"method": "email", "type": "eventResponse"},
+                    ]
+                },
+                "primary": True,
+                "selected": True,
+                "summary": "ben.bitdiddle2222@gmail.com",
+                "timeZone": "America/Los_Angeles",
             },
-            "primary": True,
-            "selected": True,
-            "summary": "ben.bitdiddle2222@gmail.com",
-            "timeZone": "America/Los_Angeles",
-        },
-        {
-            "accessRole": "reader",
-            "backgroundColor": "#f83a22",
-            "colorId": "3",
-            "defaultReminders": [],
-            "description": "Holidays and Observances in United States",
-            "etag": '"1399416119263000"',
-            "foregroundColor": "#000000",
-            "id": "en.usa#holiday@group.v.calendar.google.com",
-            "kind": "calendar#calendarListEntry",
-            "selected": True,
-            "summary": "Holidays in United States",
-            "timeZone": "America/Los_Angeles",
-        },
-        {
-            "defaultReminders": [],
-            "deleted": True,
-            "etag": '"1425952878772000"',
-            "id": "fg0s7qel95q86log75ilhhf12g@group.calendar.google.com",
-            "kind": "calendar#calendarListEntry",
-        },
-    ]
+            {
+                "accessRole": "reader",
+                "backgroundColor": "#f83a22",
+                "colorId": "3",
+                "defaultReminders": [],
+                "description": "Holidays and Observances in United States",
+                "etag": '"1399416119263000"',
+                "foregroundColor": "#000000",
+                "id": "en.usa#holiday@group.v.calendar.google.com",
+                "kind": "calendar#calendarListEntry",
+                "selected": True,
+                "summary": "Holidays in United States",
+                "timeZone": "America/Los_Angeles",
+            },
+            {
+                "defaultReminders": [],
+                "deleted": True,
+                "etag": '"1425952878772000"',
+                "id": "fg0s7qel95q86log75ilhhf12g@group.calendar.google.com",
+                "kind": "calendar#calendarListEntry",
+            },
+        ]
+    )
     expected_deletes = ["fg0s7qel95q86log75ilhhf12g@group.calendar.google.com"]
     expected_updates = [
         Calendar(
@@ -124,98 +126,100 @@ def test_calendar_parsing():
 
 
 def test_event_parsing():
-    raw_response = [
-        {
-            "created": "2012-10-09T22:35:50.000Z",
-            "creator": {
-                "displayName": "Eben Freeman",
-                "email": "freemaneben@gmail.com",
-                "self": True,
-            },
-            "end": {"dateTime": "2012-10-15T18:00:00-07:00"},
-            "etag": '"2806773858144000"',
-            "htmlLink": "https://www.google.com/calendar/event?eid=FOO",
-            "iCalUID": "tn7krk4cekt8ag3pk6gapqqbro@google.com",
-            "id": "tn7krk4cekt8ag3pk6gapqqbro",
-            "kind": "calendar#event",
-            "organizer": {
-                "displayName": "Eben Freeman",
-                "email": "freemaneben@gmail.com",
-                "self": True,
-            },
-            "attendees": [
-                {
-                    "displayName": "MITOC BOD",
-                    "email": "mitoc-bod@mit.edu",
-                    "responseStatus": "accepted",
-                },
-                {
+    raw_response = iter(
+        [
+            {
+                "created": "2012-10-09T22:35:50.000Z",
+                "creator": {
                     "displayName": "Eben Freeman",
                     "email": "freemaneben@gmail.com",
-                    "responseStatus": "accepted",
+                    "self": True,
                 },
-            ],
-            "reminders": {"useDefault": True},
-            "recurrence": ["RRULE:FREQ=WEEKLY;UNTIL=20150209T075959Z;BYDAY=MO"],
-            "sequence": 0,
-            "start": {"dateTime": "2012-10-15T17:00:00-07:00"},
-            "status": "confirmed",
-            "summary": "BOD Meeting",
-            "updated": "2014-06-21T21:42:09.072Z",
-        },
-        {
-            "created": "2014-01-09T03:33:02.000Z",
-            "creator": {
-                "displayName": "Holidays in United States",
-                "email": "en.usa#holiday@group.v.calendar.google.com",
-                "self": True,
+                "end": {"dateTime": "2012-10-15T18:00:00-07:00"},
+                "etag": '"2806773858144000"',
+                "htmlLink": "https://www.google.com/calendar/event?eid=FOO",
+                "iCalUID": "tn7krk4cekt8ag3pk6gapqqbro@google.com",
+                "id": "tn7krk4cekt8ag3pk6gapqqbro",
+                "kind": "calendar#event",
+                "organizer": {
+                    "displayName": "Eben Freeman",
+                    "email": "freemaneben@gmail.com",
+                    "self": True,
+                },
+                "attendees": [
+                    {
+                        "displayName": "MITOC BOD",
+                        "email": "mitoc-bod@mit.edu",
+                        "responseStatus": "accepted",
+                    },
+                    {
+                        "displayName": "Eben Freeman",
+                        "email": "freemaneben@gmail.com",
+                        "responseStatus": "accepted",
+                    },
+                ],
+                "reminders": {"useDefault": True},
+                "recurrence": ["RRULE:FREQ=WEEKLY;UNTIL=20150209T075959Z;BYDAY=MO"],
+                "sequence": 0,
+                "start": {"dateTime": "2012-10-15T17:00:00-07:00"},
+                "status": "confirmed",
+                "summary": "BOD Meeting",
+                "updated": "2014-06-21T21:42:09.072Z",
             },
-            "end": {"date": "2014-06-16"},
-            "etag": '"2778476764000000"',
-            "htmlLink": "https://www.google.com/calendar/event?eid=BAR",
-            "iCalUID": "20140615_60o30dr564o30c1g60o30dr4ck@google.com",
-            "id": "20140615_60o30dr564o30c1g60o30dr4ck",
-            "kind": "calendar#event",
-            "organizer": {
-                "displayName": "Holidays in United States",
-                "email": "en.usa#holiday@group.v.calendar.google.com",
-                "self": True,
+            {
+                "created": "2014-01-09T03:33:02.000Z",
+                "creator": {
+                    "displayName": "Holidays in United States",
+                    "email": "en.usa#holiday@group.v.calendar.google.com",
+                    "self": True,
+                },
+                "end": {"date": "2014-06-16"},
+                "etag": '"2778476764000000"',
+                "htmlLink": "https://www.google.com/calendar/event?eid=BAR",
+                "iCalUID": "20140615_60o30dr564o30c1g60o30dr4ck@google.com",
+                "id": "20140615_60o30dr564o30c1g60o30dr4ck",
+                "kind": "calendar#event",
+                "organizer": {
+                    "displayName": "Holidays in United States",
+                    "email": "en.usa#holiday@group.v.calendar.google.com",
+                    "self": True,
+                },
+                "sequence": 0,
+                "start": {"date": "2014-06-15"},
+                "status": "confirmed",
+                "summary": "Fathers' Day",
+                "transparency": "transparent",
+                "updated": "2014-01-09T03:33:02.000Z",
+                "visibility": "public",
             },
-            "sequence": 0,
-            "start": {"date": "2014-06-15"},
-            "status": "confirmed",
-            "summary": "Fathers' Day",
-            "transparency": "transparent",
-            "updated": "2014-01-09T03:33:02.000Z",
-            "visibility": "public",
-        },
-        {
-            "created": "2015-03-10T01:19:59.000Z",
-            "creator": {
-                "displayName": "Ben Bitdiddle",
-                "email": "ben.bitdiddle2222@gmail.com",
-                "self": True,
+            {
+                "created": "2015-03-10T01:19:59.000Z",
+                "creator": {
+                    "displayName": "Ben Bitdiddle",
+                    "email": "ben.bitdiddle2222@gmail.com",
+                    "self": True,
+                },
+                "end": {"date": "2015-03-11"},
+                "etag": '"2851906839480000"',
+                "htmlLink": "https://www.google.com/calendar/event?eid=BAZ",
+                "iCalUID": "3uisajkmdjqo43tfc3ig1l5hek@google.com",
+                "id": "3uisajkmdjqo43tfc3ig1l5hek",
+                "kind": "calendar#event",
+                "organizer": {
+                    "displayName": "Ben Bitdiddle",
+                    "email": "ben.bitdiddle2222@gmail.com",
+                    "self": True,
+                },
+                "reminders": {"useDefault": False},
+                "sequence": 1,
+                "start": {"date": "2015-03-10"},
+                "status": "cancelled",
+                "summary": "TUESDAY",
+                "transparency": "transparent",
+                "updated": "2015-03-10T02:10:19.740Z",
             },
-            "end": {"date": "2015-03-11"},
-            "etag": '"2851906839480000"',
-            "htmlLink": "https://www.google.com/calendar/event?eid=BAZ",
-            "iCalUID": "3uisajkmdjqo43tfc3ig1l5hek@google.com",
-            "id": "3uisajkmdjqo43tfc3ig1l5hek",
-            "kind": "calendar#event",
-            "organizer": {
-                "displayName": "Ben Bitdiddle",
-                "email": "ben.bitdiddle2222@gmail.com",
-                "self": True,
-            },
-            "reminders": {"useDefault": False},
-            "sequence": 1,
-            "start": {"date": "2015-03-10"},
-            "status": "cancelled",
-            "summary": "TUESDAY",
-            "transparency": "transparent",
-            "updated": "2015-03-10T02:10:19.740Z",
-        },
-    ]
+        ]
+    )
     expected_deletes = ["3uisajkmdjqo43tfc3ig1l5hek"]
     expected_updates = [
         Event.create(
@@ -492,14 +496,16 @@ def test_handle_offset_all_day_events():
 
 
 def test_handle_unparseable_dates():
-    raw_response = [
-        {
-            "id": "20140615_60o30dr564o30c1g60o30dr4ck",
-            "start": {"date": "0000-01-01"},
-            "end": {"date": "0000-01-02"},
-            "summary": "test",
-        }
-    ]
+    raw_response = iter(
+        [
+            {
+                "id": "20140615_60o30dr564o30c1g60o30dr4ck",
+                "start": {"date": "0000-01-01"},
+                "end": {"date": "0000-01-02"},
+                "summary": "test",
+            }
+        ]
+    )
     provider = GoogleEventsProvider(1, 1)
     provider._get_raw_events = mock.MagicMock(return_value=raw_response)
     updates = provider.sync_events("uid", 1)
@@ -519,7 +525,7 @@ def test_pagination():
     requests.get = mock.Mock(side_effect=[first_response, second_response])
     provider = GoogleEventsProvider(1, 1)
     provider._get_access_token = mock.Mock(return_value="token")
-    items = provider._get_resource_list("https://googleapis.com/testurl")
+    items = list(provider._get_resource_list("https://googleapis.com/testurl"))
     assert items == ["A", "B", "C", "D", "E"]
 
 
@@ -534,7 +540,7 @@ def test_handle_http_401():
     requests.get = mock.Mock(side_effect=[first_response, second_response])
     provider = GoogleEventsProvider(1, 1)
     provider._get_access_token = mock.Mock(return_value="token")
-    items = provider._get_resource_list("https://googleapis.com/testurl")
+    items = list(provider._get_resource_list("https://googleapis.com/testurl"))
     assert items == ["A", "B", "C"]
     # Check that we actually refreshed the access token
     assert len(provider._get_access_token.mock_calls) == 2
@@ -567,7 +573,7 @@ def test_handle_quota_exceeded():
     requests.get = mock.Mock(side_effect=[first_response, second_response])
     provider = GoogleEventsProvider(1, 1)
     provider._get_access_token = mock.Mock(return_value="token")
-    items = provider._get_resource_list("https://googleapis.com/testurl")
+    items = list(provider._get_resource_list("https://googleapis.com/testurl"))
     # Check that we slept, then retried.
     assert gevent.sleep.called
     assert items == ["A", "B", "C"]
@@ -585,7 +591,7 @@ def test_handle_internal_server_error():
     requests.get = mock.Mock(side_effect=[first_response, second_response])
     provider = GoogleEventsProvider(1, 1)
     provider._get_access_token = mock.Mock(return_value="token")
-    items = provider._get_resource_list("https://googleapis.com/testurl")
+    items = list(provider._get_resource_list("https://googleapis.com/testurl"))
     # Check that we slept, then retried.
     assert gevent.sleep.called
     assert items == ["A", "B", "C"]
@@ -615,7 +621,7 @@ def test_handle_api_not_enabled():
     provider = GoogleEventsProvider(1, 1)
     provider._get_access_token = mock.Mock(return_value="token")
     with pytest.raises(AccessNotEnabledError):
-        provider._get_resource_list("https://googleapis.com/testurl")
+        next(provider._get_resource_list("https://googleapis.com/testurl"))
 
 
 def test_handle_other_errors():
@@ -626,7 +632,7 @@ def test_handle_other_errors():
     provider = GoogleEventsProvider(1, 1)
     provider._get_access_token = mock.Mock(return_value="token")
     with pytest.raises(requests.exceptions.HTTPError):
-        provider._get_resource_list("https://googleapis.com/testurl")
+        next(provider._get_resource_list("https://googleapis.com/testurl"))
 
     response = requests.Response()
     response.status_code = 404
@@ -634,7 +640,7 @@ def test_handle_other_errors():
     provider = GoogleEventsProvider(1, 1)
     provider._get_access_token = mock.Mock(return_value="token")
     with pytest.raises(requests.exceptions.HTTPError):
-        provider._get_resource_list("https://googleapis.com/testurl")
+        next(provider._get_resource_list("https://googleapis.com/testurl"))
 
 
 def test_recurrence_creation():
@@ -799,52 +805,54 @@ def test_cancelled_override_creation():
     # of recurring events) as full event objects, with status = 'cancelled'.
     # Test that we save this as a RecurringEventOverride rather than trying
     # to delete the UID.
-    raw_response = [
-        {
-            "created": "2012-10-09T22:35:50.000Z",
-            "creator": {
-                "displayName": "Eben Freeman",
-                "email": "freemaneben@gmail.com",
-                "self": True,
-            },
-            "end": {"dateTime": "2012-10-22T19:00:00-07:00"},
-            "etag": '"2806773858144000"',
-            "htmlLink": "https://www.google.com/calendar/event?eid=FOO",
-            "iCalUID": "tn7krk4cekt8ag3pk6gapqqbro@google.com",
-            "id": "tn7krk4cekt8ag3pk6gapqqbro_20121022T170000Z",
-            "kind": "calendar#event",
-            "organizer": {
-                "displayName": "Eben Freeman",
-                "email": "freemaneben@gmail.com",
-                "self": True,
-            },
-            "attendees": [
-                {
-                    "displayName": "MITOC BOD",
-                    "email": "mitoc-bod@mit.edu",
-                    "responseStatus": "accepted",
-                },
-                {
+    raw_response = iter(
+        [
+            {
+                "created": "2012-10-09T22:35:50.000Z",
+                "creator": {
                     "displayName": "Eben Freeman",
                     "email": "freemaneben@gmail.com",
-                    "responseStatus": "accepted",
+                    "self": True,
                 },
-            ],
-            "originalStartTime": {
-                "dateTime": "2012-10-22T17:00:00-07:00",
-                "timeZone": "America/Los_Angeles",
-            },
-            "recurringEventId": "tn7krk4cekt8ag3pk6gapqqbro",
-            "reminders": {"useDefault": True},
-            "sequence": 0,
-            "start": {
-                "dateTime": "2012-10-22T18:00:00-07:00",
-                "timeZone": "America/Los_Angeles",
-            },
-            "status": "cancelled",
-            "summary": "BOD Meeting",
-        }
-    ]
+                "end": {"dateTime": "2012-10-22T19:00:00-07:00"},
+                "etag": '"2806773858144000"',
+                "htmlLink": "https://www.google.com/calendar/event?eid=FOO",
+                "iCalUID": "tn7krk4cekt8ag3pk6gapqqbro@google.com",
+                "id": "tn7krk4cekt8ag3pk6gapqqbro_20121022T170000Z",
+                "kind": "calendar#event",
+                "organizer": {
+                    "displayName": "Eben Freeman",
+                    "email": "freemaneben@gmail.com",
+                    "self": True,
+                },
+                "attendees": [
+                    {
+                        "displayName": "MITOC BOD",
+                        "email": "mitoc-bod@mit.edu",
+                        "responseStatus": "accepted",
+                    },
+                    {
+                        "displayName": "Eben Freeman",
+                        "email": "freemaneben@gmail.com",
+                        "responseStatus": "accepted",
+                    },
+                ],
+                "originalStartTime": {
+                    "dateTime": "2012-10-22T17:00:00-07:00",
+                    "timeZone": "America/Los_Angeles",
+                },
+                "recurringEventId": "tn7krk4cekt8ag3pk6gapqqbro",
+                "reminders": {"useDefault": True},
+                "sequence": 0,
+                "start": {
+                    "dateTime": "2012-10-22T18:00:00-07:00",
+                    "timeZone": "America/Los_Angeles",
+                },
+                "status": "cancelled",
+                "summary": "BOD Meeting",
+            }
+        ]
+    )
 
     provider = GoogleEventsProvider(1, 1)
     provider._get_raw_events = mock.MagicMock(return_value=raw_response)

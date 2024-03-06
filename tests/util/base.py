@@ -725,7 +725,10 @@ def mock_client():
     mock_client.zscan_iter = zscan_iter_patch
 
     def zadd_patch(key, mapping):
-        return mock_client.zadd_orig(key, **mapping)
+        # as of pyredis 3.0, Redis.zadd takes a mapping of {member: score} instead of
+        # the old Redis.zadd method that takes *args of score, member, score,
+        # member or a kwarg mapping of {member: score}
+        return mock_client.zadd_orig(key, **{str(k): v for k, v in mapping.items()})
 
     mock_client.zadd_orig = mock_client.zadd
     mock_client.zadd = zadd_patch

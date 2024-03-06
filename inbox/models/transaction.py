@@ -188,4 +188,4 @@ def bump_redis_txn_id(session):
         if (obj in session.new and isinstance(obj, Transaction) and obj.id)
     }
     if mappings:
-        redis_txn.zadd(TXN_REDIS_KEY, **mappings)
+        redis_txn.zadd(TXN_REDIS_KEY, mapping=mappings)

@@ -161,7 +161,7 @@ class HeartbeatStore:
         assert isinstance(timestamp, float)
         # Update the folder timestamp index for this specific account, too
         client = heartbeat_config.get_redis_client(key.account_id)
-        client.zadd(key.account_id, timestamp, key.folder_id)
+        client.zadd(key.account_id, {key.folder_id: timestamp})
 
     def update_accounts_index(self, key):
         # Find the oldest heartbeat from the account-folder index
@@ -170,7 +170,7 @@ class HeartbeatStore:
             f, oldest_heartbeat = client.zrange(
                 key.account_id, 0, 0, withscores=True
             ).pop()
-            client.zadd("account_index", oldest_heartbeat, key.account_id)
+            client.zadd("account_index", {key.account_id: oldest_heartbeat})
         except Exception:
             # If all heartbeats were deleted at the same time as this, the pop
             # will fail -- ignore it.

@@ -723,6 +723,13 @@ def mock_client():
         return [k for k in mock_client.zrange(key, 0, -1) if k.startswith(match)]
 
     mock_client.zscan_iter = zscan_iter_patch
+
+    def zadd_patch(key, mapping):
+        return mock_client.zadd_orig(key, **mapping)
+
+    mock_client.zadd_orig = mock_client.zadd
+    mock_client.zadd = zadd_patch
+
     return mock_client
 
 

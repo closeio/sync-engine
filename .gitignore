@@ -26,6 +26,9 @@ inbox/test/.cache
 /src
 
 # virtualenv
+venv
+.venv
+virtualenv
 /include
 /local
 bin/py*

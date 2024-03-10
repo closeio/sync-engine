@@ -1,6 +1,6 @@
 from gevent import Greenlet, event, sleep
 
-from inbox.basicauth import ConnectionError, ValidationError
+from inbox.exceptions import ConnectionError, ValidationError
 from inbox.heartbeat.store import HeartbeatStatusProxy
 from inbox.logging import get_logger
 from inbox.models import Account

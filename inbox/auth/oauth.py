@@ -13,8 +13,8 @@ from authalligator_client.enums import AccountErrorCode, ProviderType
 from authalligator_client.exceptions import AccountError
 from imapclient import IMAPClient
 
-from inbox.basicauth import ConnectionError, ImapSupportDisabledError, OAuthError
 from inbox.config import config
+from inbox.exceptions import ConnectionError, ImapSupportDisabledError, OAuthError
 from inbox.logging import get_logger
 from inbox.models.backends.oauth import OAuthAccount, token_manager
 from inbox.models.secret import SecretType

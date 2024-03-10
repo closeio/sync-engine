@@ -2,8 +2,8 @@ from gevent import sleep
 from gevent.lock import BoundedSemaphore
 from gevent.pool import Group
 
-from inbox.basicauth import ValidationError
 from inbox.crispin import connection_pool, retry_crispin
+from inbox.exceptions import ValidationError
 from inbox.logging import get_logger
 from inbox.mailsync.backends.base import BaseMailSyncMonitor
 from inbox.mailsync.backends.imap.generic import FolderSyncEngine

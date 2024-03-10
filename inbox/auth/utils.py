@@ -3,7 +3,7 @@ from typing import Union
 
 from imapclient import IMAPClient
 
-from inbox.basicauth import SSLNotSupportedError
+from inbox.exceptions import SSLNotSupportedError
 from inbox.logging import get_logger
 
 log = get_logger()

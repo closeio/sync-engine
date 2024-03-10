@@ -1,7 +1,7 @@
 import attr
 
-from inbox.basicauth import OAuthError
 from inbox.config import config
+from inbox.exceptions import OAuthError
 from inbox.models import Namespace
 from inbox.models.backends.outlook import OutlookAccount
 from inbox.models.secret import SecretType

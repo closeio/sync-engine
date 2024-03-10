@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from inbox.basicauth import NotSupportedError
+from inbox.exceptions import NotSupportedError
 
 __all__ = ["provider_info", "providers"]
 

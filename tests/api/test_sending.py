@@ -8,7 +8,7 @@ from flanker import mime
 
 import inbox.api.ns_api
 import inbox.logging
-from inbox.basicauth import OAuthError
+from inbox.exceptions import OAuthError
 from inbox.models import Event, Message
 from inbox.sendmail.smtp.postel import _substitute_bcc
 

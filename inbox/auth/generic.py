@@ -5,7 +5,7 @@ import attr
 from imapclient import IMAPClient
 
 from inbox.auth.utils import auth_is_invalid, auth_requires_app_password
-from inbox.basicauth import AppPasswordError, ValidationError
+from inbox.exceptions import AppPasswordError, ValidationError
 from inbox.logging import get_logger
 from inbox.models import Namespace
 from inbox.models.backends.generic import GenericAccount

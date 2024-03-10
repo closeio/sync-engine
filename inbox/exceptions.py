@@ -1,7 +1,3 @@
-# TODO(emfree): this is now legitimately just a grab-bag of nebulous
-# exceptions.  Rename module and clean up.
-
-
 class AuthError(Exception):
     pass
 

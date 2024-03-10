@@ -56,7 +56,7 @@ from gevent.lock import BoundedSemaphore
 from gevent.queue import Queue
 from sqlalchemy.orm import joinedload
 
-from inbox.basicauth import GmailSettingError
+from inbox.exceptions import GmailSettingError
 from inbox.folder_edge_cases import localized_folder_names
 from inbox.logging import get_logger
 from inbox.models import Account

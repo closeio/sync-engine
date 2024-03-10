@@ -4,12 +4,12 @@ from typing import Any, List, Tuple, Type
 import more_itertools
 from requests.exceptions import HTTPError
 
-from inbox.basicauth import AccessNotEnabledError, OAuthError
 from inbox.config import config
 from inbox.contacts.processing import update_contacts_from_event
 from inbox.events.abstract import AbstractEventsProvider, CalendarGoneException
 from inbox.events.google import URL_PREFIX
 from inbox.events.recurring import link_events
+from inbox.exceptions import AccessNotEnabledError, OAuthError
 from inbox.logging import get_logger
 from inbox.models import Calendar, Event
 from inbox.models.account import Account

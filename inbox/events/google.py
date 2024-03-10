@@ -15,7 +15,6 @@ import gevent
 import requests
 
 from inbox.auth.oauth import OAuthRequestsWrapper
-from inbox.basicauth import AccessNotEnabledError, OAuthError
 from inbox.config import config
 from inbox.events.abstract import AbstractEventsProvider, CalendarGoneException
 from inbox.events.util import (
@@ -24,6 +23,7 @@ from inbox.events.util import (
     parse_datetime,
     parse_google_time,
 )
+from inbox.exceptions import AccessNotEnabledError, OAuthError
 from inbox.models import Account, Calendar
 from inbox.models.backends.oauth import token_manager
 from inbox.models.event import EVENT_STATUSES, Event

@@ -7,7 +7,7 @@ import ssl
 from inbox.logging import get_logger
 
 log = get_logger()
-from inbox.basicauth import OAuthError
+from inbox.exceptions import OAuthError
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.imap import ImapAccount
 from inbox.models.backends.oauth import token_manager

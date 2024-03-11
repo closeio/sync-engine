@@ -236,7 +236,7 @@ def imap_connection(monkeypatch):
 
 @fixture
 def invalid_imap_connection(monkeypatch):
-    from inbox.basicauth import ValidationError
+    from inbox.exceptions import ValidationError
 
     def raise_401(*args):
         raise ValidationError()
@@ -269,7 +269,7 @@ def patch_gmail_search_response():
 
 @fixture
 def invalid_gmail_token(monkeypatch):
-    from inbox.basicauth import OAuthError
+    from inbox.exceptions import OAuthError
 
     def raise_401(*args):
         raise OAuthError()

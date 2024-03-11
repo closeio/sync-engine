@@ -13,9 +13,9 @@ from setproctitle import setproctitle
 setproctitle("inbox-auth")
 
 from inbox.auth.base import handler_from_provider
-from inbox.basicauth import NotSupportedError
 from inbox.config import config
 from inbox.error_handling import maybe_enable_rollbar
+from inbox.exceptions import NotSupportedError
 from inbox.logging import configure_logging
 from inbox.models import Account
 from inbox.models.session import session_scope

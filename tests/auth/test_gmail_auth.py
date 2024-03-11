@@ -2,7 +2,7 @@ import attr
 import pytest
 
 from inbox.auth.google import GoogleAccountData, GoogleAuthHandler
-from inbox.basicauth import ImapSupportDisabledError
+from inbox.exceptions import ImapSupportDisabledError
 from inbox.models.account import Account
 from inbox.models.secret import SecretType
 

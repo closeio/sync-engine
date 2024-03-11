@@ -8,8 +8,8 @@ import pytest
 import requests
 
 from inbox.api.kellogs import _encode
-from inbox.basicauth import AccessNotEnabledError
 from inbox.events.google import GoogleEventsProvider, parse_event_response
+from inbox.exceptions import AccessNotEnabledError
 from inbox.models import Calendar, Event
 from inbox.models.event import RecurringEvent, RecurringEventOverride
 

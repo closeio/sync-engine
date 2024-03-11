@@ -3,7 +3,7 @@ import pytest
 from inbox.auth.base import handler_from_provider
 from inbox.auth.generic import GenericAuthHandler
 from inbox.auth.google import GoogleAuthHandler
-from inbox.basicauth import NotSupportedError
+from inbox.exceptions import NotSupportedError
 from inbox.util.url import InvalidEmailAddressError, provider_from_address
 
 

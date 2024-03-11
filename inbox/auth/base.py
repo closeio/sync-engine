@@ -2,8 +2,8 @@ import socket
 
 from imapclient import IMAPClient
 
-from inbox.basicauth import NotSupportedError, UserRecoverableConfigError
 from inbox.crispin import CrispinClient
+from inbox.exceptions import NotSupportedError, UserRecoverableConfigError
 from inbox.logging import get_logger
 from inbox.sendmail.smtp.postel import SMTPClient
 

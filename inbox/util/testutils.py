@@ -9,7 +9,7 @@ import attr
 import dns
 import pytest
 
-from inbox.basicauth import ValidationError
+from inbox.exceptions import ValidationError
 from inbox.util.file import get_data
 
 FILENAMES = [

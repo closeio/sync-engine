@@ -15,8 +15,8 @@ if sys.version_info < (3,):
 import gevent
 
 from inbox.auth.google import GoogleAuthHandler
-from inbox.basicauth import ConnectionError, OAuthError, ValidationError
 from inbox.contacts.abc import AbstractContactsProvider
+from inbox.exceptions import ConnectionError, OAuthError, ValidationError
 from inbox.logging import get_logger
 from inbox.models import Contact
 from inbox.models.backends.gmail import GmailAccount

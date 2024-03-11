@@ -1,8 +1,8 @@
 import attr
 
-from inbox.basicauth import ImapSupportDisabledError, OAuthError
 from inbox.config import config
 from inbox.crispin import GmailCrispinClient
+from inbox.exceptions import ImapSupportDisabledError, OAuthError
 from inbox.logging import get_logger
 from inbox.models import Namespace
 from inbox.models.backends.gmail import GmailAccount

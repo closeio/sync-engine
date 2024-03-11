@@ -5,8 +5,8 @@ from imapclient import IMAPClient
 from sqlalchemy import desc
 
 from inbox.api.kellogs import APIEncoder
-from inbox.basicauth import NotSupportedError, ValidationError
 from inbox.crispin import CrispinClient, FolderMissingError
+from inbox.exceptions import NotSupportedError, ValidationError
 from inbox.logging import get_logger
 from inbox.mailsync.backends.imap.generic import UidInvalid, uidvalidity_cb
 from inbox.models import Account, Folder, Message, Thread

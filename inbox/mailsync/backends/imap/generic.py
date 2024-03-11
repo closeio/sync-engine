@@ -73,7 +73,7 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
-from inbox.basicauth import ValidationError
+from inbox.exceptions import ValidationError
 from inbox.logging import get_logger
 from inbox.util.concurrency import retry_with_logging
 from inbox.util.debug import bind_context

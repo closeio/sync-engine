@@ -4,7 +4,7 @@ import attr
 import pytest
 
 from inbox.auth.generic import GenericAccountData, GenericAuthHandler
-from inbox.basicauth import SettingUpdateError, ValidationError
+from inbox.exceptions import SettingUpdateError, ValidationError
 from inbox.models.account import Account
 from inbox.util.url import parent_domain
 

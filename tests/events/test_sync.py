@@ -71,7 +71,7 @@ def calendar_response_with_delete():
 
 def event_response(calendar_uid, sync_from_time):
     if calendar_uid == "first_calendar_uid":
-        return [
+        yield from [
             Event.create(
                 uid="first_event_uid", title="Plotting Meeting", **default_params
             ),
@@ -83,7 +83,7 @@ def event_response(calendar_uid, sync_from_time):
             ),
         ]
     else:
-        return [
+        yield from [
             Event.create(
                 uid="second_event_uid", title="Plotting Meeting", **default_params
             ),
@@ -95,7 +95,7 @@ def event_response(calendar_uid, sync_from_time):
 
 def event_response_with_update(calendar_uid, sync_from_time):
     if calendar_uid == "first_calendar_uid":
-        return [
+        yield from [
             Event.create(
                 uid="first_event_uid",
                 title="Top Secret Plotting Meeting",
@@ -110,12 +110,12 @@ def event_response_with_participants_update(calendar_uid, sync_from_time):
         new_events[0].participants = [
             {"name": "Johnny Thunders", "email": "johnny@thunde.rs"}
         ]
-        return new_events
+        yield from new_events
 
 
 def event_response_with_delete(calendar_uid, sync_from_time):
     if calendar_uid == "first_calendar_uid":
-        return [
+        yield from [
             Event.create(uid="first_event_uid", status="cancelled", **default_params)
         ]
 

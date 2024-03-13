@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, List, Tuple, Type
+from typing import Any, Iterable, List, Tuple, Type
 
 import more_itertools
 from requests.exceptions import HTTPError
@@ -167,7 +167,11 @@ def handle_calendar_updates(
 
 
 def handle_event_updates(
-    namespace_id: int, calendar_id: int, events: List[Event], log: Any, db_session: Any
+    namespace_id: int,
+    calendar_id: int,
+    events: Iterable[Event],
+    log: Any,
+    db_session: Any,
 ) -> None:
     """Persists new or updated Event objects to the database."""
     added_count = 0

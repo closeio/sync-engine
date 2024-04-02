@@ -53,7 +53,7 @@ WORKDIR /opt/app
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY --chown=sync-engine:sync-engine ./ ./
-RUN python3 -m pip install pip==23.3.1 virtualenv==20.17.1 && \
+RUN python3 -m pip install pip==24.0 virtualenv==20.25.1 && \
   python3 -m virtualenv /opt/venv && \
   /opt/venv/bin/python3 -m pip install setuptools==67.4.0 && \
   /opt/venv/bin/python3 -m pip install --no-deps -r requirements/prod.txt -r requirements/test.txt && \

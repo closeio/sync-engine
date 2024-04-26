@@ -31,7 +31,7 @@ Flask-RESTful==0.3.9
 gdata==2.0.18
 gevent==23.9.1
 greenlet==3.0.0
-gunicorn==20.1.0
+gunicorn==22.0.0
 guppy3==3.1.2
 hiredis==2.3.2
 html2text==2020.1.16

@@ -1,5 +1,5 @@
 atomicwrites==1.4.1
-coverage==7.5.1
+coverage==7.5.2
 exceptiongroup==1.2.1
 funcsigs==1.0.2
 freezegun==1.5.1

@@ -6,7 +6,6 @@ Should we encounter problems with account folders in the future, add them
 below to test for them.
 """
 
-
 localized_folder_names = {
     "trash": {
         "Gel\xc3\xb6scht",

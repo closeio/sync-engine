@@ -5,7 +5,6 @@ Mostly based off http://www.structlog.org/en/16.1.0/standard-library.html.
 
 """
 
-
 import contextlib
 import logging
 import os

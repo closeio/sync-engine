@@ -200,9 +200,9 @@ class MicrosoftGraphClient:
 
         if modified_after:
             assert modified_after.tzinfo == pytz.UTC
-            params[
-                "$filter"
-            ] = f"lastModifiedDateTime gt {format_datetime(modified_after)}"
+            params["$filter"] = (
+                f"lastModifiedDateTime gt {format_datetime(modified_after)}"
+            )
         if fields:
             params["$select"] = ",".join(fields)
 

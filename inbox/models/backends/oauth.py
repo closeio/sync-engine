@@ -2,6 +2,7 @@
 Generic OAuth class that provides abstraction for access and
 refresh tokens.
 """
+
 from datetime import datetime, timedelta
 from hashlib import sha256
 from typing import Dict, List, Optional, Tuple, Union

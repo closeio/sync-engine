@@ -82,9 +82,9 @@ class ContactSync(BaseSyncMonitor):
             all_contacts = self.provider.get_items(sync_from_dt=last_sync_dt)
 
             # Do a batch insertion of every 100 contact objects
-            change_counter: typing.Counter[
-                Literal["deleted", "updated", "added"]
-            ] = Counter()
+            change_counter: typing.Counter[Literal["deleted", "updated", "added"]] = (
+                Counter()
+            )
             for new_contact in all_contacts:
                 new_contact.namespace = account.namespace
                 assert new_contact.uid is not None, "Got remote item with null uid"

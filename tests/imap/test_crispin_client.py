@@ -4,6 +4,7 @@ imapclient.IMAPClient._imap by a mock in order to test these. In particular, we
 want to test that we handle unsolicited FETCH responses, which may be returned
 by some providers (Gmail, Fastmail).
 """
+
 from datetime import datetime
 from unittest import mock
 

@@ -180,11 +180,10 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
                 )
             ),
         )
-        (
-            raw_exceptions,
-            raw_cancellations,
-        ) = calculate_exception_and_canceled_occurrences(
-            raw_master_event, raw_occurrences, end
+        (raw_exceptions, raw_cancellations) = (
+            calculate_exception_and_canceled_occurrences(
+                raw_master_event, raw_occurrences, end
+            )
         )
 
         exceptions = [

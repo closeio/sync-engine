@@ -1,6 +1,7 @@
 """Operations for syncing back local datastore changes to
 generic IMAP providers.
 """
+
 import contextlib
 from collections import defaultdict
 from imaplib import IMAP4

@@ -1,4 +1,5 @@
 """Utilities for validating user input to the API."""
+
 import contextlib
 from typing import Set
 

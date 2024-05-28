@@ -1,4 +1,5 @@
 """Regression tests for HTML parsing."""
+
 import pytest
 
 from inbox.util.html import HTMLParseError, strip_tags

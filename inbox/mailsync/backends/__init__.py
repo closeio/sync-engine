@@ -18,6 +18,7 @@ submodule of `backends`, and that top-level module must import the
 referenced class.
 
 """
+
 from inbox.util.misc import register_backends
 
 module_registry = register_backends(__name__, __path__)

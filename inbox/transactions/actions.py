@@ -7,6 +7,7 @@ TODO(emfree):
 talking to the same database backend things could go really badly.
 
 """
+
 import random
 import weakref
 from collections import defaultdict
@@ -670,10 +671,9 @@ class SyncbackTask:
         # Although the task queue is populated based on pending actions, it's
         # possible that the processing of one action involved marking other
         # actions as failed.
-        (
-            records_to_process,
-            action_ids_to_process,
-        ) = self._get_records_and_actions_to_process()
+        (records_to_process, action_ids_to_process) = (
+            self._get_records_and_actions_to_process()
+        )
         if len(action_ids_to_process) == 0:
             return True
 

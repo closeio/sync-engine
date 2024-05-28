@@ -1,6 +1,5 @@
 """Provide iCloud contacts"""
 
-
 import contextlib
 
 import lxml.etree as ET

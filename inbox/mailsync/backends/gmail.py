@@ -20,7 +20,6 @@ user always gets the full thread when they look at mail.
 
 """
 
-
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from typing import Dict, List

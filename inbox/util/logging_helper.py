@@ -1,6 +1,5 @@
 """Helper to reconfigure logging to Close.io needs."""
 
-
 import logging
 
 

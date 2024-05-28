@@ -7,6 +7,7 @@ For example, 'gmail', 'imap', 'eas', 'yahoo' etc.
 2. Live in the 'inbox.actions.backends' module tree.
 
 """
+
 from inbox.util.misc import register_backends
 
 module_registry = register_backends(__name__, __path__)

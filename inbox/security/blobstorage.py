@@ -12,6 +12,7 @@ values are 0 (no encryption) and 1 (encryption with a static key). The key
 version bytes can be used to rotate encryption keys. (Right now these are
 always just null bytes.)
 """
+
 import struct
 import zlib
 

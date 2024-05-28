@@ -502,9 +502,9 @@ def test_calculate_snippet():
 def test_sanitize_subject(default_account, mime_message):
     # Parse a raw message with encoded null bytes in subject header;
     # check that we strip the null bytes.
-    mime_message.headers[
-        "Subject"
-    ] = "=?UTF-8?B?WW91ciBVUFMgUGFja2FnZSB3YXMgZGVsaXZlcmVkAAAA?="
+    mime_message.headers["Subject"] = (
+        "=?UTF-8?B?WW91ciBVUFMgUGFja2FnZSB3YXMgZGVsaXZlcmVkAAAA?="
+    )
     m = Message.create_from_synced(
         default_account,
         22,

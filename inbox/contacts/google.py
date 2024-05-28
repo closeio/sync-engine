@@ -1,4 +1,5 @@
 """Provide Google contacts."""
+
 import posixpath
 import random
 import sys

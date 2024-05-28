@@ -1,4 +1,5 @@
 """IMAPClient wrapper for the Nylas Sync Engine."""
+
 import contextlib
 import datetime
 import imaplib
@@ -570,9 +571,9 @@ class CrispinClient:
     @property
     def folder_separator(self) -> str:
         # We use the list command because it works for most accounts.
-        folders_list: List[
-            Tuple[Tuple[bytes, ...], bytes, str]
-        ] = self.conn.list_folders()
+        folders_list: List[Tuple[Tuple[bytes, ...], bytes, str]] = (
+            self.conn.list_folders()
+        )
 
         if len(folders_list) == 0:
             return "."
@@ -1551,9 +1552,11 @@ class GmailCrispinClient(CrispinClient):
                     "about search criteria syntax..\n"
                     "https://imapclient.readthedocs.io/en/master/#imapclient.IMAPClient.search".format(
                         original_msg=m.group(1),
-                        criteria=f'"{criteria}"'
-                        if not isinstance(criteria, list)
-                        else criteria,
+                        criteria=(
+                            f'"{criteria}"'
+                            if not isinstance(criteria, list)
+                            else criteria
+                        ),
                     )
                 )
 

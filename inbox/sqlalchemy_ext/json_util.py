@@ -68,13 +68,8 @@ but it will be faster as there is less recursion.
 """
 
 import calendar
-import collections
 import datetime
 import json
-
-from bson import SON
-from bson.py3compat import iteritems, string_type, text_type
-from bson.tz_util import utc
 
 EPOCH_NAIVE = datetime.datetime.utcfromtimestamp(0)
 
@@ -105,9 +100,9 @@ def _json_convert(obj):
     """Recursive helper method that converts BSON types so they can be
     converted into json.
     """
-    if hasattr(obj, "iteritems") or hasattr(obj, "items"):  # PY3 support
-        return SON(((k, _json_convert(v)) for k, v in iteritems(obj)))
-    elif hasattr(obj, "__iter__") and not isinstance(obj, (text_type, bytes)):
+    if hasattr(obj, "items"):
+        return dict(((k, _json_convert(v)) for k, v in obj.items()))
+    elif hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes)):
         return list((_json_convert(v) for v in obj))
     try:
         return default(obj)
@@ -118,35 +113,7 @@ def _json_convert(obj):
 def object_hook(dct):
     if "$date" in dct:
         dtm = dct["$date"]
-        # mongoexport 2.6 and newer
-        if isinstance(dtm, string_type):
-            aware = datetime.datetime.strptime(
-                dtm[:23], "%Y-%m-%dT%H:%M:%S.%f"
-            ).replace(tzinfo=utc)
-            offset = dtm[23:]
-            if not offset or offset == "Z":
-                # UTC
-                return aware
-            else:
-                if len(offset) == 5:
-                    # Offset from mongoexport is in format (+|-)HHMM
-                    secs = int(offset[1:3]) * 3600 + int(offset[3:]) * 60
-                elif ":" in offset and len(offset) == 6:
-                    # RFC-3339 format (+|-)HH:MM
-                    hours, minutes = offset[1:].split(":")
-                    secs = int(hours) * 3600 + int(minutes) * 60
-                else:
-                    # Not RFC-3339 compliant or mongoexport output.
-                    raise ValueError("invalid format for offset")
-                if offset[0] == "-":
-                    secs *= -1
-                return aware - datetime.timedelta(seconds=secs)
-        # mongoexport 2.6 and newer, time before the epoch (SERVER-15275)
-        elif isinstance(dtm, collections.Mapping):
-            secs = float(dtm["$numberLong"]) / 1000.0
-        # mongoexport before 2.6
-        else:
-            secs = float(dtm) / 1000.0
+        secs = float(dtm) / 1000.0
         return EPOCH_NAIVE + datetime.timedelta(seconds=secs)
     return dct
 

@@ -67,30 +67,16 @@ but it will be faster as there is less recursion.
    :class:`~bson.code.Code`
 """
 
-import base64
 import calendar
 import collections
 import datetime
 import json
-import re
-import uuid
 
-from bson import RE_TYPE, SON
-from bson.binary import Binary
-from bson.code import Code
-from bson.dbref import DBRef
-from bson.int64 import Int64
-from bson.max_key import MaxKey
-from bson.min_key import MinKey
-from bson.objectid import ObjectId
-from bson.py3compat import PY3, iteritems, string_type, text_type
-from bson.regex import Regex
-from bson.timestamp import Timestamp
+from bson import SON
+from bson.py3compat import iteritems, string_type, text_type
 from bson.tz_util import utc
 
 EPOCH_NAIVE = datetime.datetime.utcfromtimestamp(0)
-
-_RE_OPT_TABLE = {"i": re.I, "l": re.L, "m": re.M, "s": re.S, "u": re.U, "x": re.X}
 
 
 def dumps(obj, *args, **kwargs):
@@ -130,10 +116,6 @@ def _json_convert(obj):
 
 
 def object_hook(dct):
-    if "$oid" in dct:
-        return ObjectId(str(dct["$oid"]))
-    if "$ref" in dct:
-        return DBRef(dct["$ref"], dct["$id"], dct.get("$db", None))
     if "$date" in dct:
         dtm = dct["$date"]
         # mongoexport 2.6 and newer
@@ -166,86 +148,16 @@ def object_hook(dct):
         else:
             secs = float(dtm) / 1000.0
         return EPOCH_NAIVE + datetime.timedelta(seconds=secs)
-    if "$regex" in dct:
-        flags = 0
-        # PyMongo always adds $options but some other tools may not.
-        for opt in dct.get("$options", ""):
-            flags |= _RE_OPT_TABLE.get(opt, 0)
-        return Regex(dct["$regex"], flags)
-    if "$minKey" in dct:
-        return MinKey()
-    if "$maxKey" in dct:
-        return MaxKey()
-    if "$binary" in dct:
-        if isinstance(dct["$type"], int):
-            dct["$type"] = format(dct["$type"], "02x")
-        subtype = int(dct["$type"], 16)
-        if subtype >= 0xFFFFFF80:  # Handle mongoexport values
-            subtype = int(dct["$type"][6:], 16)
-        return Binary(base64.b64decode(dct["$binary"].encode()), subtype)
-    if "$code" in dct:
-        return Code(dct["$code"], dct.get("$scope"))
-    if "$uuid" in dct:
-        return uuid.UUID(dct["$uuid"])
-    if "$undefined" in dct:
-        return None
-    if "$numberLong" in dct:
-        return Int64(dct["$numberLong"])
-    if "$timestamp" in dct:
-        tsp = dct["$timestamp"]
-        return Timestamp(tsp["t"], tsp["i"])
     return dct
 
 
 def default(obj):
     # We preserve key order when rendering SON, DBRef, etc. as JSON by
     # returning a SON for those types instead of a dict.
-    if isinstance(obj, ObjectId):
-        return {"$oid": str(obj)}
-    if isinstance(obj, DBRef):
-        return _json_convert(obj.as_doc())
     if isinstance(obj, datetime.datetime):
         # TODO share this code w/ bson.py?
         if obj.utcoffset() is not None:
             obj = obj - obj.utcoffset()
         millis = int(calendar.timegm(obj.timetuple()) * 1000 + obj.microsecond / 1000)
         return {"$date": millis}
-    if isinstance(obj, (RE_TYPE, Regex)):
-        flags = ""
-        if obj.flags & re.IGNORECASE:
-            flags += "i"
-        if obj.flags & re.LOCALE:
-            flags += "l"
-        if obj.flags & re.MULTILINE:
-            flags += "m"
-        if obj.flags & re.DOTALL:
-            flags += "s"
-        if obj.flags & re.UNICODE:
-            flags += "u"
-        if obj.flags & re.VERBOSE:
-            flags += "x"
-        if isinstance(obj.pattern, text_type):
-            pattern = obj.pattern
-        else:
-            pattern = obj.pattern.decode("utf-8")
-        return SON([("$regex", pattern), ("$options", flags)])
-    if isinstance(obj, MinKey):
-        return {"$minKey": 1}
-    if isinstance(obj, MaxKey):
-        return {"$maxKey": 1}
-    if isinstance(obj, Timestamp):
-        return {"$timestamp": SON([("t", obj.time), ("i", obj.inc)])}
-    if isinstance(obj, Code):
-        return SON([("$code", str(obj)), ("$scope", obj.scope)])
-    if isinstance(obj, Binary):
-        return SON(
-            [
-                ("$binary", base64.b64encode(obj).decode()),
-                ("$type", format(obj.subtype, "02x")),
-            ]
-        )
-    if PY3 and isinstance(obj, bytes):
-        return SON([("$binary", base64.b64encode(obj).decode()), ("$type", "00")])
-    if isinstance(obj, uuid.UUID):
-        return {"$uuid": obj.hex}
     raise TypeError(f"{obj!r} is not JSON serializable")

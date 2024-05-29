@@ -176,7 +176,7 @@ def object_hook(dct):
         return MaxKey()
     if "$binary" in dct:
         if isinstance(dct["$type"], int):
-            dct["$type"] = "%02x" % dct["$type"]
+            dct["$type"] = format(dct["$type"], "02x")
         subtype = int(dct["$type"], 16)
         if subtype >= 0xFFFFFF80:  # Handle mongoexport values
             subtype = int(dct["$type"][6:], 16)
@@ -239,11 +239,11 @@ def default(obj):
         return SON(
             [
                 ("$binary", base64.b64encode(obj).decode()),
-                ("$type", "%02x" % obj.subtype),
+                ("$type", format(obj.subtype, "02x")),
             ]
         )
     if PY3 and isinstance(obj, bytes):
         return SON([("$binary", base64.b64encode(obj).decode()), ("$type", "00")])
     if isinstance(obj, uuid.UUID):
         return {"$uuid": obj.hex}
-    raise TypeError("%r is not JSON serializable" % obj)
+    raise TypeError(f"{obj!r} is not JSON serializable")

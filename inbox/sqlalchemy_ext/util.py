@@ -6,7 +6,6 @@ import uuid
 import weakref
 from typing import Any, MutableMapping, Optional, Tuple
 
-from bson import EPOCH_NAIVE
 from sqlalchemy import String, Text, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.mutable import Mutable
@@ -17,10 +16,6 @@ from sqlalchemy.types import BINARY, TypeDecorator
 from inbox.logging import get_logger
 from inbox.sqlalchemy_ext import json_util
 from inbox.util.encoding import base36decode, base36encode
-
-# Monkeypatch to not include tz_info in decoded JSON.
-# Kind of a ridiculous solution, but works.
-json_util.EPOCH_AWARE = EPOCH_NAIVE
 
 log = get_logger()
 

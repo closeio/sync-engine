@@ -75,7 +75,7 @@ import json
 import re
 import uuid
 
-from bson import EPOCH_AWARE, RE_TYPE, SON
+from bson import RE_TYPE, SON
 from bson.binary import Binary
 from bson.code import Code
 from bson.dbref import DBRef
@@ -87,6 +87,8 @@ from bson.py3compat import PY3, iteritems, string_type, text_type
 from bson.regex import Regex
 from bson.timestamp import Timestamp
 from bson.tz_util import utc
+
+EPOCH_NAIVE = datetime.datetime.utcfromtimestamp(0)
 
 _RE_OPT_TABLE = {"i": re.I, "l": re.L, "m": re.M, "s": re.S, "u": re.U, "x": re.X}
 
@@ -163,7 +165,7 @@ def object_hook(dct):
         # mongoexport before 2.6
         else:
             secs = float(dtm) / 1000.0
-        return EPOCH_AWARE + datetime.timedelta(seconds=secs)
+        return EPOCH_NAIVE + datetime.timedelta(seconds=secs)
     if "$regex" in dct:
         flags = 0
         # PyMongo always adds $options but some other tools may not.

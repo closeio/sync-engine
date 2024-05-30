@@ -164,8 +164,8 @@ class Base36UID(TypeDecorator):
 
 
 # http://bit.ly/1LbMnqu
-# Can simply use this as is because though we use bson.json_util, loads()
-# dumps() return standard Python dicts like the json.* equivalents
+# Can simply use this as is because though we use inbox.sqlalchemy_ext.json_util,
+# loads() dumps() return standard Python dicts like the json.* equivalents
 # (because these are simply called under the hood)
 class MutableDict(Mutable, dict):
     @classmethod

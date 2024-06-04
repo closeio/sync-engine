@@ -49,13 +49,6 @@ jobs:
         include:
           - arch: amd64
             build_name: py3.8
-            dockerhub_push: true
-            python_version: "3.8"
-            run_tests: true
-          - arch: amd64
-            build_name: py3.9
-            dockerhub_push: false
-            python_version: "3.9"
             run_tests: true
           
           # The qemu arm64 builds are *very* slow so they are split out into 
@@ -63,8 +56,6 @@ jobs:
 
           # - arch: arm64
           #   build_name: py3.8
-          #   dockerhub_push: true
-          #   python_version: "3.8"
           #   run_tests: false
 
     steps:
@@ -112,15 +103,12 @@ jobs:
           platforms: linux/${{ matrix.arch }}
           push: false
           load: true
-          build-args:
-            PYTHON_VERSION=${{ matrix.python_version }}
           tags: |
             ${{ env.DOCKER_IMAGE_TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Run tests
-        if: ${{ matrix.run_tests }}
         run: |
           docker tag ${{ env.DOCKER_IMAGE_TAG }} ${{ env.PROJECT }}_app
           if [[ -z $SKIP_TESTS ]]; then
@@ -134,7 +122,6 @@ jobs:
           fi
 
       - name: Push image
-        if: ${{ matrix.dockerhub_push }}
         run: |
           docker push ${{ env.DOCKER_IMAGE_TAG }}
 

@@ -22,9 +22,6 @@ jobs:
         include:
           - arch: arm64
             build_name: py3.8
-            dockerhub_push: true
-            python_version: "3.8"
-            run_tests: false
   
     steps:
       - name: Checkout
@@ -71,29 +68,12 @@ jobs:
           platforms: linux/${{ matrix.arch }}
           push: false
           load: true
-          build-args:
-            PYTHON_VERSION=${{ matrix.python_version }}
           tags: |
             ${{ env.DOCKER_IMAGE_TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Run tests
-        if: ${{ matrix.run_tests }}
-        run: |
-          docker tag ${{ env.DOCKER_IMAGE_TAG }} ${{ env.PROJECT }}_app
-          if [[ -z $SKIP_TESTS ]]; then
-            docker-compose run app bash -ec '
-              bin/wait-for-it.sh mysql:3306 \
-              && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
-              && coverage html -d pythoncov
-            '
-          else
-            echo Skipping tests
-          fi
-
       - name: Push image
-        if: ${{ matrix.dockerhub_push }}
         run: |
           docker push ${{ env.DOCKER_IMAGE_TAG }}
 

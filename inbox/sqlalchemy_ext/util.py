@@ -6,12 +6,6 @@ import uuid
 import weakref
 from typing import Any, MutableMapping, Optional, Tuple
 
-from bson import EPOCH_NAIVE, json_util
-
-# Monkeypatch to not include tz_info in decoded JSON.
-# Kind of a ridiculous solution, but works.
-json_util.EPOCH_AWARE = EPOCH_NAIVE
-
 from sqlalchemy import String, Text, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.mutable import Mutable
@@ -20,6 +14,7 @@ from sqlalchemy.sql import operators
 from sqlalchemy.types import BINARY, TypeDecorator
 
 from inbox.logging import get_logger
+from inbox.sqlalchemy_ext import json_util
 from inbox.util.encoding import base36decode, base36encode
 
 log = get_logger()
@@ -169,8 +164,8 @@ class Base36UID(TypeDecorator):
 
 
 # http://bit.ly/1LbMnqu
-# Can simply use this as is because though we use bson.json_util, loads()
-# dumps() return standard Python dicts like the json.* equivalents
+# Can simply use this as is because though we use inbox.sqlalchemy_ext.json_util,
+# loads() dumps() return standard Python dicts like the json.* equivalents
 # (because these are simply called under the hood)
 class MutableDict(Mutable, dict):
     @classmethod

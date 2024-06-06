@@ -12,7 +12,8 @@ down_revision = "4b4c5579c083"
 
 import sqlalchemy as sa
 from alembic import op
-from bson import json_util
+
+from inbox.sqlalchemy_ext import json_util
 
 
 def upgrade():

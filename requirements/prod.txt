@@ -29,8 +29,8 @@ tld==0.12.6
 Flask==2.2.5
 Flask-RESTful==0.3.9
 gdata==2.0.18
-gevent==24.2.1
-greenlet==3.0.3
+gevent==23.9.1
+greenlet==3.0.0
 gunicorn==22.0.0
 guppy3==3.1.2
 hiredis==2.3.2

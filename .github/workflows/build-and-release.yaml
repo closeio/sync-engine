@@ -65,7 +65,7 @@ jobs:
           if [ "$(git log -1 --pretty=%B | head -n 1 | grep '#notests')" ]; then
             echo 'SKIP_TESTS="1"' >> $GITHUB_ENV
           fi
-          echo "DOCKER_IMAGE_TAG=${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ github.sha }}-${{ matrix.arch }}" >> $GITHUB_ENV
+          echo "DOCKER_IMAGE_TAG=${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ github.sha }}" >> $GITHUB_ENV
         shell: bash
 
       - name: Set up QEMU

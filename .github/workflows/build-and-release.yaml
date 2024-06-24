@@ -48,13 +48,11 @@ jobs:
       matrix:
         include:
           - arch: amd64
-            run_tests: true
           
           # The qemu arm64 builds are *very* slow so they are split out into 
           # their own workflow
 
           # - arch: arm64
-          #   run_tests: false
 
     steps:
       - name: Checkout

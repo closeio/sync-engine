@@ -60,7 +60,6 @@ from inbox.api.validation import (
     strict_bool,
     strict_parse_args,
     timestamp,
-    valid_account,
     valid_category_type,
     valid_delta_object_types,
     valid_display_name,
@@ -157,11 +156,6 @@ with open(mt_path) as f:
         assert extensions, "Must have at least one extension per mimetype"
         common_extensions[mime_type.lower()] = extensions[0]
 
-
-if config.get("DEBUG_PROFILING_ON"):
-    from inbox.util.debug import attach_pyinstrument_profiler
-
-    attach_pyinstrument_profiler()
 
 APIFeatures = namedtuple("APIFeatures", ["optimistic_updates"])
 

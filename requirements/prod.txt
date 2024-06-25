@@ -32,7 +32,6 @@ gdata==2.0.18
 gevent==24.2.1
 greenlet==3.0.3
 gunicorn==22.0.0
-guppy3==3.1.2
 hiredis==2.3.2
 html2text==2020.1.16
 icalendar==4.0.9

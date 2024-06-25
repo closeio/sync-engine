@@ -16,15 +16,6 @@ log = get_logger()
 doc = """
 This is the Nylas console - you can use it to interact with mailsync and track memory leaks.
 
-Guppy is installed. To start tracking leaks, you probably want to setup guppy like this:
->>> from guppy import hpy
->>> global hp # put this in the global space so it persists between connections
->>> hp = hpy()
->>> hp.setrelheap()
-
-and then inspect the heap, like this:
->>> hp.heap()
-
 Happy hacking!
 
 """

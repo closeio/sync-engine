@@ -29,7 +29,10 @@ tld==0.12.6
 Flask==2.2.5
 Flask-RESTful==0.3.9
 gdata==2.0.18
-gevent==24.2.1
+gevent==24.2.1; platform_machine != 'aarch64'
+# Building gevent from source is too slow on GitHub Actions emulating aarch64.
+# See local_wheels/README.md for more information.
+./local_wheels/gevent-24.2.1-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl; platform_machine == 'aarch64'
 greenlet==3.0.3
 gunicorn==22.0.0
 guppy3==3.1.2

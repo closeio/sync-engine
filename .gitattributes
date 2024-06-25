@@ -2,3 +2,4 @@
 *.png binary
 *.jpg binary
 *.ics binary
+*.whl binary

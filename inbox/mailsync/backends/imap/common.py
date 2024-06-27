@@ -271,10 +271,10 @@ def create_imap_message(
     )
     new_message = Message.create_from_synced(
         account=account,
-        mid=raw_message.uid,
+        imap_uid=raw_message.uid,
         folder_name=folder.name,
         received_date=raw_message.internaldate,
-        body_string=raw_message.body,
+        body=raw_message.body,
     )
 
     # Check to see if this is a copy of a message that was first created

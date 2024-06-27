@@ -273,10 +273,10 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     def create_from_synced(
         cls,
         account: Account,
-        mid: int,
+        imap_uid: int,
         folder_name: str,
         received_date: Optional[datetime.datetime],
-        body_string: bytes,
+        body: bytes,
     ) -> "Message":
         """
         Parses message data and writes out db metadata and MIME blocks.
@@ -288,67 +288,61 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
         Parameters
         ----------
-        mid : int
+        imap_uid : int
             The account backend-specific message identifier; it's only used for
             logging errors.
 
-        body_string : bytes
+        body : bytes
             The full message including headers (encoded).
 
         """
-        _rqd = [account, mid, folder_name, body_string]
-        if not all([v is not None for v in _rqd]):
-            raise ValueError(
-                "Required keyword arguments: account, mid, folder_name, body_string"
-            )
-
         # stop trickle-down bugs
         assert account.namespace is not None
-        assert isinstance(body_string, bytes)
+        assert isinstance(body, bytes)
 
-        msg = Message()
+        message = Message()
 
-        msg.data_sha256 = sha256(body_string).hexdigest()
+        message.data_sha256 = sha256(body).hexdigest()
 
         # Persist the raw MIME message to disk/ S3
-        save_to_blockstore(msg.data_sha256, body_string)
+        save_to_blockstore(message.data_sha256, body)
 
         # Persist the processed message to the database
-        msg.namespace_id = account.namespace.id
+        message.namespace_id = account.namespace.id
 
         try:
-            body_length = len(body_string)
+            body_length = len(body)
             if body_length > MAX_MESSAGE_BODY_LENGTH:
                 raise MessageTooBigException(body_length)
-            parsed: MimePart = mime.from_string(body_string)
+            parsed: MimePart = mime.from_string(body)
             # Non-persisted instance attribute used by EAS.
-            msg.parsed_body = parsed
-            msg._parse_metadata(
-                parsed, body_string, received_date, account.id, folder_name, mid
+            message.parsed_body = parsed
+            message._parse_metadata(
+                parsed, body, received_date, account.id, folder_name, imap_uid
             )
         except (mime.DecodingError, MessageTooBigException, HeaderTooBigException) as e:
             parsed = None
-            msg.parsed_body = ""
+            message.parsed_body = ""
             log.warning(
                 "Error parsing message metadata",
                 folder_name=folder_name,
                 account_id=account.id,
                 error=e,
-                mid=mid,
+                imap_uid=imap_uid,
             )
-            msg._mark_error()
+            message._mark_error()
         except Exception as e:
             parsed = None
             # Non-persisted instance attribute used by EAS.
-            msg.parsed_body = ""
+            message.parsed_body = ""
             log.error(
                 "Error parsing message metadata",
                 folder_name=folder_name,
                 account_id=account.id,
                 error=e,
-                mid=mid,
+                imap_uid=imap_uid,
             )
-            msg._mark_error()
+            message._mark_error()
 
         if parsed is not None:
             plain_parts: List[str] = []
@@ -357,8 +351,12 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                 try:
                     if mimepart.content_type.is_multipart():
                         continue  # TODO should we store relations?
-                    msg._parse_mimepart(
-                        mid, mimepart, account.namespace.id, html_parts, plain_parts
+                    message._parse_mimepart(
+                        imap_uid,
+                        mimepart,
+                        account.namespace.id,
+                        html_parts,
+                        plain_parts,
                     )
                 except (
                     mime.DecodingError,
@@ -382,29 +380,29 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                         folder_name=folder_name,
                         account_id=account.id,
                         error=e,
-                        mid=mid,
+                        imap_uid=imap_uid,
                     )
-                    msg._mark_error()
+                    message._mark_error()
             store_body: bool = config.get("STORE_MESSAGE_BODIES", True)
-            msg.calculate_body(html_parts, plain_parts, store_body=store_body)
+            message.calculate_body(html_parts, plain_parts, store_body=store_body)
 
             # Occasionally people try to send messages to way too many
             # recipients. In such cases, empty the field and treat as a parsing
             # error so that we don't break the entire sync.
             for field in ("to_addr", "cc_addr", "bcc_addr", "references", "reply_to"):
-                value: List[Any] = getattr(msg, field)
+                value: List[Any] = getattr(message, field)
                 if json_field_too_long(value):
                     log.warning(
                         "Recipient field too long",
                         field=field,
                         account_id=account.id,
                         folder_name=folder_name,
-                        mid=mid,
+                        imap_uid=imap_uid,
                     )
-                    setattr(msg, field, [])
-                    msg._mark_error()
+                    setattr(message, field, [])
+                    message._mark_error()
 
-        return msg
+        return message
 
     def _parse_metadata(
         self,
@@ -475,7 +473,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
     def _parse_mimepart(
         self,
-        mid: int,
+        imap_uid: int,
         mimepart: MimePart,
         namespace_id: int,
         html_parts: List[str],
@@ -499,7 +497,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         if disposition not in (None, "inline", "attachment"):
             log.error(
                 "Unknown Content-Disposition",
-                mid=mid,
+                imap_uid=imap_uid,
                 bad_content_disposition=mimepart.content_disposition,
             )
             self._mark_error()
@@ -513,7 +511,6 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                 filename,
                 content_id,
                 namespace_id,
-                mid,
             )
             return
 
@@ -530,7 +527,6 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                 filename,
                 content_id,
                 namespace_id,
-                mid,
             )
             return
 
@@ -560,7 +556,6 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                     filename,
                     content_id,
                     namespace_id,
-                    mid,
                 )
             return
 
@@ -573,7 +568,6 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             filename,
             content_id,
             namespace_id,
-            mid,
         )
 
     def _save_attachment(
@@ -584,7 +578,6 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         filename: Optional[str],
         content_id: Optional[str],
         namespace_id: int,
-        mid: int,
     ) -> None:
         from inbox.models import Block, Part
 

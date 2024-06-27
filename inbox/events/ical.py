@@ -3,7 +3,7 @@ import sys
 import traceback
 from datetime import date, datetime
 from email.utils import formataddr
-from typing import Dict, List, Literal, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Union
 
 import arrow
 import icalendar
@@ -12,6 +12,7 @@ import requests
 from flanker import mime
 from html2text import html2text
 from icalendar import Calendar as iCalendar
+from sqlalchemy.orm import Session
 
 from inbox.config import config
 from inbox.contacts.processing import update_contacts_from_event
@@ -23,6 +24,10 @@ from inbox.util.addr import canonicalize_address
 
 from .timezones import timezones_table
 from .util import serialize_datetime, valid_base36
+
+if TYPE_CHECKING:
+    from inbox.models.account import Account
+    from inbox.models.message import Message
 
 log = get_logger()
 
@@ -456,7 +461,9 @@ def process_nylas_rsvps(db_session, message, account, rsvps):
                 db_session.flush()
 
 
-def import_attached_events(db_session, account, message):
+def import_attached_events(
+    db_session: Session, account: "Account", message: "Message"
+) -> None:
     """Import events from a file into the 'Emailed events' calendar."""
     assert account is not None
 

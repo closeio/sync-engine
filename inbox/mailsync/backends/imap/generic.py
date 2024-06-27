@@ -71,6 +71,7 @@ import gevent
 from gevent import Greenlet
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.exceptions import ValidationError
@@ -534,7 +535,11 @@ class FolderSyncEngine(Greenlet):
             self.poll_impl()
 
     def create_message(
-        self, db_session: Any, account: Account, folder: Folder, raw_message: RawMessage
+        self,
+        db_session: Session,
+        account: Account,
+        folder: Folder,
+        raw_message: RawMessage,
     ) -> Optional[ImapUid]:
         assert account is not None and account.namespace is not None
 

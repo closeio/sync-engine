@@ -1,16 +1,24 @@
 import uuid
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+
+from sqlalchemy.orm import Session
 
 from inbox.contacts.crud import INBOX_PROVIDER_NAME
 from inbox.models import Contact, EventContactAssociation, MessageContactAssociation
 from inbox.util.addr import canonicalize_address as canonicalize, valid_email
 
+if TYPE_CHECKING:
+    from inbox.models.message import Message
 
-def _get_contact_map(db_session, namespace_id, all_addresses):
+
+def _get_contact_map(
+    db_session: Session, namespace_id: int, all_addresses: List[Tuple[str, str]]
+) -> Dict[str, Contact]:
     """
     Retrieves or creates contacts for the given address pairs, returning a dict
     with the canonicalized emails mapped to Contact objects.
     """
-    canonicalized_addresses = [canonicalize(addr) for _, addr in all_addresses]
+    canonicalized_addresses = [canonicalize(address) for _, address in all_addresses]
 
     if not canonicalized_addresses:
         return {}
@@ -41,12 +49,15 @@ def _get_contact_map(db_session, namespace_id, all_addresses):
     return contact_map
 
 
-def _get_contact_from_map(contact_map, name, email_address):
+def _get_contact_from_map(
+    contact_map: Dict[str, Contact], name: str, email_address: str
+) -> Optional[Contact]:
     if not valid_email(email_address):
         return None
 
     canonicalized_address = canonicalize(email_address)
     contact = contact_map.get(canonicalized_address)
+    assert contact
 
     # Hackily address the condition that you get mail from e.g.
     # "Ben Gotow (via Google Drive) <drive-shares-noreply@google.com"
@@ -59,12 +70,14 @@ def _get_contact_from_map(contact_map, name, email_address):
     return contact
 
 
-def update_contacts_from_message(db_session, message, namespace_id):
+def update_contacts_from_message(
+    db_session: Session, message: "Message", namespace_id: int
+) -> None:
     with db_session.no_autoflush:
         # First create Contact objects for any email addresses that we haven't
         # seen yet. We want to dedupe by canonicalized address, so this part is
         # a bit finicky.
-        all_addresses = []
+        all_addresses: List[Tuple[str, str]] = []
         for field in (
             message.from_addr,
             message.to_addr,

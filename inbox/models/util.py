@@ -1,9 +1,11 @@
 import math
 import time
 from collections import OrderedDict
+from typing import Optional
 
 import limitlion
 from sqlalchemy import desc, func
+from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.error_handling import log_uncaught_errors
@@ -27,7 +29,7 @@ log = get_logger()
 bulk_throttle = limitlion.throttle_wait("bulk", rps=0.75, window=5)
 
 
-def reconcile_message(new_message, session):
+def reconcile_message(new_message: Message, session: Session) -> Optional[Message]:
     """
     Check to see if the (synced) Message instance new_message was originally
     created/sent via the Nylas API (based on the X-Inbox-Uid header. If so,
@@ -80,8 +82,6 @@ def reconcile_message(new_message, session):
     if version is None or int(version) == existing_message.version:
         existing_message.message_id_header = new_message.message_id_header
         existing_message.references = new_message.references
-        # Non-persisted instance attribute used by EAS.
-        existing_message.parsed_body = new_message.parsed_body
 
     return existing_message
 

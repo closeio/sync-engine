@@ -164,7 +164,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         self.extra_flags = extra_flags
         return changed
 
-    def update_labels(self, new_labels):
+    def update_labels(self, new_labels: List[str]) -> None:
         # TODO(emfree): This is all mad complicated. Simplify if possible?
 
         # Gmail IMAP doesn't use the normal IMAP \\Draft flag. Silly Gmail

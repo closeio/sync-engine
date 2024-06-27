@@ -13,9 +13,10 @@ accounts.
 """
 
 from datetime import datetime
-from typing import Any, List, Set
+from typing import List, Set
 
 from sqlalchemy import bindparam, desc
+from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql.expression import func
 
@@ -55,7 +56,7 @@ def lastseenuid(account_id, session, folder_id):
 
 
 def update_message_metadata(
-    session, account: Account, message: Message, is_draft: bool
+    session: Session, account: Account, message: Message, is_draft: bool
 ) -> None:
     """Update the message's metadata"""
     # Sort imapuids in a way that the ones that were added later come last
@@ -251,7 +252,7 @@ def get_folder_info(account_id, session, folder_name):
 
 
 def create_imap_message(
-    db_session: Any, account: Account, folder: Folder, raw_message: RawMessage
+    db_session: Session, account: Account, folder: Folder, raw_message: RawMessage
 ) -> ImapUid:
     """
     IMAP-specific message creation logic.

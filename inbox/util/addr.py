@@ -1,6 +1,6 @@
 import email.utils
 import re
-from typing import List, Set, Tuple
+from typing import List, Optional, Set, Tuple
 
 from flanker.addresslib import address
 from flanker.mime.message.headers.encodedword import decode
@@ -28,7 +28,7 @@ def valid_email(email_address):
     return False
 
 
-def canonicalize_address(addr):
+def canonicalize_address(addr: Optional[str]) -> Optional[str]:
     """Gmail addresses with and without periods are the same."""
     parsed_address = address.parse(addr, addr_spec_only=True)
     if not isinstance(parsed_address, address.EmailAddress):

@@ -315,14 +315,11 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             if body_length > MAX_MESSAGE_BODY_LENGTH:
                 raise MessageTooBigException(body_length)
             parsed: MimePart = mime.from_string(body)
-            # Non-persisted instance attribute used by EAS.
-            message.parsed_body = parsed
             message._parse_metadata(
                 parsed, body, received_date, account.id, folder_name, imap_uid
             )
         except (mime.DecodingError, MessageTooBigException, HeaderTooBigException) as e:
             parsed = None
-            message.parsed_body = ""
             log.warning(
                 "Error parsing message metadata",
                 folder_name=folder_name,
@@ -333,8 +330,6 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             message._mark_error()
         except Exception as e:
             parsed = None
-            # Non-persisted instance attribute used by EAS.
-            message.parsed_body = ""
             log.error(
                 "Error parsing message metadata",
                 folder_name=folder_name,
@@ -612,8 +607,6 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         self.size = 0
         if self.received_date is None:
             self.received_date = datetime.datetime.utcnow()
-        if self.body is None:
-            self.body = None
         if self.snippet is None:
             self.snippet = ""
 
@@ -749,12 +742,6 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     @property
     def account(self) -> Account:
         return self.namespace.account
-
-    def get_header(self, header: str, mid: int) -> Optional[str]:
-        if self.decode_error:
-            log.warning("Error getting message header", mid=mid)
-            return None
-        return self.parsed_body.headers.get(header)
 
     @classmethod
     def from_public_id(

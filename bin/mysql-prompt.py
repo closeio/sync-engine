@@ -3,6 +3,7 @@
 
 import subprocess
 import sys
+from typing import Optional
 
 import click
 
@@ -12,7 +13,15 @@ from inbox.error_handling import maybe_enable_rollbar
 
 @click.command()
 @click.option("--shard-num", type=int)
-def main(shard_num):
+@click.option("-e", "--execute", type=str, help="Execute the statement and quit")
+@click.option(
+    "-B",
+    "--batch",
+    is_flag=True,
+    default=False,
+    help="Print results using tab as the column separator",
+)
+def main(shard_num: Optional[int], execute: Optional[str], batch: bool) -> None:
     maybe_enable_rollbar()
 
     users = config.get_required("DATABASE_USERS")
@@ -43,17 +52,22 @@ def main(shard_num):
             print(f"Error: {key} is None")
             sys.exit(-1)
 
-    proc = subprocess.Popen(
-        [
-            "mysql",
-            "-h" + creds["hostname"],
-            "-u" + creds["username"],
-            "-D" + creds["db_name"],
-            "-p" + creds["password"],
-            "--safe-updates",
-        ]
-    )
-    proc.wait()
+    process_arguments = [
+        "mysql",
+        "-h" + creds["hostname"],
+        "-u" + creds["username"],
+        "-D" + creds["db_name"],
+        "-p" + creds["password"],
+        "--safe-updates",
+    ]
+    if batch:
+        process_arguments.append("--batch")
+    if execute is not None:
+        process_arguments.append("--execute")
+        process_arguments.append(execute)
+
+    process = subprocess.Popen(process_arguments)
+    process.wait()
 
 
 if __name__ == "__main__":

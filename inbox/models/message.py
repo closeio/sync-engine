@@ -363,10 +363,9 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                     if isinstance(e, ValueError) and not isinstance(
                         e, UnicodeEncodeError
                     ):
-                        message = e.args[0] if e.args else ""
-                        if (
-                            message
-                            != "string argument should contain only ASCII characters"
+                        error_msg = e.args[0] if e.args else ""
+                        if error_msg != (
+                            "string argument should contain only ASCII characters"
                         ):
                             raise
 

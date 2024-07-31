@@ -50,9 +50,9 @@ import functools
 import threading
 from collections import defaultdict, namedtuple
 from email.parser import HeaderParser
+from threading import BoundedSemaphore
 
 from gevent import socket
-from gevent.lock import BoundedSemaphore
 from gevent.queue import Queue
 from sqlalchemy.orm import joinedload
 

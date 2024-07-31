@@ -1,10 +1,10 @@
 import platform
 import random
 import time
+from threading import BoundedSemaphore
 from typing import Type
 
 import gevent
-from gevent.lock import BoundedSemaphore
 from sqlalchemy import and_, or_
 from sqlalchemy.exc import OperationalError
 

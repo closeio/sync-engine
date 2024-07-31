@@ -1,4 +1,6 @@
-from gevent import Greenlet, event, sleep
+import time
+
+from gevent import Greenlet, event
 
 from inbox.exceptions import ConnectionError, ValidationError
 from inbox.heartbeat.store import HeartbeatStatusProxy
@@ -81,8 +83,8 @@ class BaseSyncMonitor(Greenlet):
         # 2x poll frequency.
         except ConnectionError:
             self.log.error("Error while polling", exc_info=True)
-            sleep(self.poll_frequency)
-        sleep(self.poll_frequency)
+            time.sleep(self.poll_frequency)
+        time.sleep(self.poll_frequency)
 
     def sync(self):
         """Subclasses should override this to do work"""

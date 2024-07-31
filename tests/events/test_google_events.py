@@ -1,9 +1,9 @@
 import email
 import json
+import time
 from unittest import mock
 
 import arrow
-import gevent
 import pytest
 import requests
 
@@ -540,7 +540,7 @@ def test_handle_http_401():
     assert len(provider._get_access_token.mock_calls) == 2
 
 
-@pytest.mark.usefixtures("mock_gevent_sleep")
+@pytest.mark.usefixtures("mock_time_sleep")
 def test_handle_quota_exceeded():
     first_response = requests.Response()
     first_response.status_code = 403
@@ -569,11 +569,11 @@ def test_handle_quota_exceeded():
     provider._get_access_token = mock.Mock(return_value="token")
     items = provider._get_resource_list("https://googleapis.com/testurl")
     # Check that we slept, then retried.
-    assert gevent.sleep.called
+    assert time.sleep.called
     assert items == ["A", "B", "C"]
 
 
-@pytest.mark.usefixtures("mock_gevent_sleep")
+@pytest.mark.usefixtures("mock_time_sleep")
 def test_handle_internal_server_error():
     first_response = requests.Response()
     first_response.status_code = 503
@@ -587,7 +587,7 @@ def test_handle_internal_server_error():
     provider._get_access_token = mock.Mock(return_value="token")
     items = provider._get_resource_list("https://googleapis.com/testurl")
     # Check that we slept, then retried.
-    assert gevent.sleep.called
+    assert time.sleep.called
     assert items == ["A", "B", "C"]
 
 

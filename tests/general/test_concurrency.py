@@ -33,7 +33,7 @@ class FailingFunction:
             raise self.exc_type
 
 
-@pytest.mark.usefixtures("mock_gevent_sleep")
+@pytest.mark.usefixtures("mock_time_sleep")
 def test_retry_with_logging():
     logger = MockLogger()
     failing_function = FailingFunction(ValueError)
@@ -60,7 +60,7 @@ def test_selective_retry():
     assert failing_function.call_count == 1
 
 
-@pytest.mark.usefixtures("mock_gevent_sleep")
+@pytest.mark.usefixtures("mock_time_sleep")
 def test_no_logging_until_many_transient_error():
     transient = [
         socket.timeout,
@@ -111,7 +111,7 @@ def test_no_logging_until_many_transient_error():
         failing_function = FailingFunction(socket.error, max_executions=2)
 
 
-@pytest.mark.usefixtures("mock_gevent_sleep")
+@pytest.mark.usefixtures("mock_time_sleep")
 def test_logging_on_critical_error():
     critical = [
         TypeError("Example TypeError"),

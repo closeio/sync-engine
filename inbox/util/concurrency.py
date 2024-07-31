@@ -85,7 +85,7 @@ def retry(
 
             # Sleep a bit so that we don't poll too quickly and re-encounter
             # the error. Also add a random delay to prevent herding effects.
-            gevent.sleep(backoff_delay + int(random.uniform(1, 10)))
+            time.sleep(backoff_delay + int(random.uniform(1, 10)))
 
     return wrapped
 
@@ -178,7 +178,7 @@ def iterate_and_periodically_switch_to_gevent(
     last_sleep_time = time.monotonic()
     for item in iterable:
         if time.monotonic() - last_sleep_time >= switch_period.total_seconds():
-            gevent.sleep(0)
+            time.sleep(0)
             last_sleep_time = time.monotonic()
 
         yield item

@@ -4,6 +4,7 @@ import datetime
 import email.utils
 import json
 import random
+import time
 import urllib.parse
 import uuid
 from typing import Any, Dict, List, Optional
@@ -11,7 +12,6 @@ from typing import Any, Dict, List, Optional
 import arrow
 import attrs
 import attrs.validators
-import gevent
 import requests
 
 from inbox.auth.oauth import OAuthRequestsWrapper
@@ -172,7 +172,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
                     url=url,
                     exc_info=True,
                 )
-                gevent.sleep(30 + random.randrange(0, 60))
+                time.sleep(30 + random.randrange(0, 60))
                 continue
             except requests.HTTPError as e:
                 self.log.warning(
@@ -192,7 +192,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
                     continue
                 elif r.status_code in (500, 503):
                     self.log.warning("Backend error in calendar API; retrying")
-                    gevent.sleep(30 + random.randrange(0, 60))
+                    time.sleep(30 + random.randrange(0, 60))
                     continue
                 elif r.status_code == 403:
                     try:
@@ -206,7 +206,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
                         r.raise_for_status()
                     if reason == "userRateLimitExceeded":
                         self.log.warning("API request was rate-limited; retrying")
-                        gevent.sleep(30 + random.randrange(0, 60))
+                        time.sleep(30 + random.randrange(0, 60))
                         continue
                     elif reason in ["accessNotConfigured", "notACalendarUser"]:
                         self.log.warning(
@@ -452,7 +452,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
                 )
             if reason == "userRateLimitExceeded":
                 # Sleep before proceeding (naive backoff)
-                gevent.sleep(30 + random.randrange(0, 60))
+                time.sleep(30 + random.randrange(0, 60))
                 self.log.warning("API request was rate-limited")
             elif reason == "accessNotConfigured":
                 self.log.warning("API not enabled.")

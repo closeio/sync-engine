@@ -455,7 +455,7 @@ class FolderSyncEngine(Greenlet):
                     # messages per folder are synced.
                     # Note this is an approx. limit since we use the #(uids),
                     # not the #(messages).
-                    gevent.sleep(THROTTLE_WAIT)
+                    time.sleep(THROTTLE_WAIT)
         finally:
             if change_poller is not None:
                 # schedule change_poller to die
@@ -497,7 +497,7 @@ class FolderSyncEngine(Greenlet):
                 idling = False
         # Close IMAP connection before sleeping
         if not idling:
-            gevent.sleep(self.poll_frequency)
+            time.sleep(self.poll_frequency)
 
     def resync_uids_impl(self):
         # First, let's check if the UIVDALIDITY change was spurious, if

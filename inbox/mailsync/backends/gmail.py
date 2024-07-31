@@ -295,7 +295,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
         finally:
             if change_poller is not None:
                 # schedule change_poller to die
-                change_poller.kill()
+                gevent.kill(change_poller)
 
     def resync_uids_impl(self):
         with session_scope(self.namespace_id) as db_session:

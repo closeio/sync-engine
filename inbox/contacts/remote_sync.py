@@ -54,8 +54,7 @@ class ContactSync(BaseSyncMonitor):
         provider_cls = CONTACT_SYNC_PROVIDER_MAP[self.provider_name]
         self.provider: AbstractContactsProvider = provider_cls(account_id, namespace_id)
 
-        BaseSyncMonitor.__init__(
-            self,
+        super().__init__(
             account_id,
             namespace_id,
             email_address,

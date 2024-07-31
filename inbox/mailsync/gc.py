@@ -68,7 +68,7 @@ class DeleteHandler(gevent.Greenlet):
         self.log = log.new(account_id=account_id)
         self.message_ttl = datetime.timedelta(seconds=message_ttl)
         self.thread_ttl = datetime.timedelta(seconds=thread_ttl)
-        gevent.Greenlet.__init__(self)
+        super().__init__()
 
     def _run(self):
         while True:
@@ -211,7 +211,7 @@ class LabelRenameHandler(gevent.Greenlet):
         self.label_name = label_name
         self.log = log.new(account_id=account_id)
         self.semaphore = semaphore
-        gevent.Greenlet.__init__(self)
+        super().__init__()
 
     def _run(self):
         return retry_with_logging(self._run_impl, account_id=self.account_id)

@@ -54,7 +54,7 @@ MAX_DOWNLOAD_COUNT = 1
 
 class GmailSyncMonitor(ImapSyncMonitor):
     def __init__(self, *args, **kwargs):
-        ImapSyncMonitor.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.sync_engine_class = GmailFolderSyncEngine
 
         # We start a label refresh whenever we find a new labels

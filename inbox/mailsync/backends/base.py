@@ -47,7 +47,7 @@ class BaseMailSyncMonitor(Greenlet):
         self.email_address = account.email_address
         self.provider_name = account.verbose_provider
 
-        Greenlet.__init__(self)
+        super().__init__()
 
     def _run(self):
         try:

@@ -459,7 +459,7 @@ class FolderSyncEngine(Greenlet):
         finally:
             if change_poller is not None:
                 # schedule change_poller to die
-                gevent.kill(change_poller)
+                change_poller.kill()
 
     def should_idle(self, crispin_client):
         if not hasattr(self, "_should_idle"):

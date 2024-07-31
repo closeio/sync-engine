@@ -359,14 +359,14 @@ class SyncService:
                 return False
         return True
 
-    def stop(self, *args):
+    def stop(self) -> None:
         self.log.info("stopping mail sync process")
         for _, v in self.email_sync_monitors.items():
-            gevent.kill(v)
+            v.kill()
         for _, v in self.contact_sync_monitors.items():
-            gevent.kill(v)
+            v.kill()
         for _, v in self.event_sync_monitors.items():
-            gevent.kill(v)
+            v.kill()
         self.keep_running = False
 
     def stop_sync(self, account_id):

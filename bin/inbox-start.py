@@ -10,6 +10,7 @@ import platform
 import signal
 import socket
 import sys
+import types
 
 import click
 import setproctitle
@@ -149,8 +150,12 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
         exit_after_min=exit_after_min,
         exit_after_max=exit_after_max,
     )
-    signal.signal(signal.SIGTERM, sync_service.stop)
-    signal.signal(signal.SIGINT, sync_service.stop)
+
+    def signal_handler(signum: int, frame: types.FrameType) -> None:
+        sync_service.stop()
+
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
     http_frontend = SyncHTTPFrontend(
         sync_service, port, enable_tracer, enable_profiler_api
     )

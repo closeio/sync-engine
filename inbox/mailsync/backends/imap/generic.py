@@ -179,7 +179,7 @@ class FolderSyncEngine(Greenlet):
         }
 
         self.setup_heartbeats()
-        Greenlet.__init__(self)
+        super().__init__()
 
         # Some generic IMAP servers are throwing UIDVALIDITY
         # errors forever. Instead of resyncing those servers

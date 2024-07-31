@@ -54,8 +54,7 @@ class EventSync(BaseSyncMonitor):
             account_id=account_id, component="calendar sync", provider=provider_name
         )
 
-        BaseSyncMonitor.__init__(
-            self,
+        super().__init__(
             account_id,
             namespace_id,
             email_address,

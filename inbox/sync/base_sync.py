@@ -47,7 +47,7 @@ class BaseSyncMonitor(Greenlet):
         self.heartbeat_status = HeartbeatStatusProxy(
             self.account_id, folder_id, folder_name, email_address, provider_name
         )
-        Greenlet.__init__(self)
+        super().__init__()
 
     def _run(self):
         # Bind greenlet-local logging context.

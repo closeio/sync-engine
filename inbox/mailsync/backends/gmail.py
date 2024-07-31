@@ -20,6 +20,7 @@ user always gets the full thread when they look at mail.
 
 """
 
+import time
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from typing import Dict, List
@@ -526,7 +527,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 # messages for this batch are synced.
                 # Note this is an approx. limit since we use the #(uids),
                 # not the #(messages).
-                gevent.sleep(THROTTLE_WAIT)
+                time.sleep(THROTTLE_WAIT)
 
     @property
     def throttled(self):

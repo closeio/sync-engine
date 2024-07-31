@@ -1,4 +1,5 @@
 import datetime
+import time
 
 import gevent
 from sqlalchemy import func
@@ -81,7 +82,7 @@ class DeleteHandler(gevent.Greenlet):
         self.check(current_time)
         self.gc_deleted_categories()
         self.gc_deleted_threads(current_time)
-        gevent.sleep(self.message_ttl.total_seconds())
+        time.sleep(self.message_ttl.total_seconds())
 
     def check(self, current_time):
         with session_scope(self.namespace_id) as db_session:

@@ -1,4 +1,5 @@
-from gevent import sleep
+import time
+
 from gevent.lock import BoundedSemaphore
 from gevent.pool import Group
 
@@ -141,7 +142,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                 self.folder_monitors.start(thread)
 
             while thread.state != "poll" and not thread.ready():
-                sleep(self.heartbeat)
+                time.sleep(self.heartbeat)
 
             if thread.ready():
                 log.info(
@@ -166,7 +167,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
             self.start_delete_handler()
             self.start_new_folder_sync_engines()
             while True:
-                sleep(self.refresh_frequency)
+                time.sleep(self.refresh_frequency)
                 self.start_new_folder_sync_engines()
         except ValidationError as exc:
             log.error(

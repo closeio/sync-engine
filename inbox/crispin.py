@@ -51,7 +51,6 @@ import threading
 from collections import defaultdict, namedtuple
 from email.parser import HeaderParser
 
-import gevent
 from gevent import socket
 from gevent.lock import BoundedSemaphore
 from gevent.queue import Queue
@@ -332,7 +331,7 @@ def _exc_callback(exc):
     log.info(
         "Connection broken with error; retrying with new connection", exc_info=True
     )
-    gevent.sleep(5)
+    time.sleep(5)
 
 
 retry_crispin = functools.partial(

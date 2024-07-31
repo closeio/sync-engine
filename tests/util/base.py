@@ -701,8 +701,8 @@ def add_fake_msg_with_calendar_part(db_session, account, ics_str, thread=None):
 
 
 @fixture
-def mock_gevent_sleep(monkeypatch):
-    monkeypatch.setattr("gevent.sleep", mock.Mock())
+def mock_time_sleep(monkeypatch):
+    monkeypatch.setattr("time.sleep", mock.Mock())
     yield
     monkeypatch.undo()
 

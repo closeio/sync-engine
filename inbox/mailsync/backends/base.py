@@ -91,4 +91,5 @@ class BaseMailSyncMonitor(Greenlet):
         with session_scope(self.namespace_id) as mailsync_db_session:
             for x in self.folder_monitors:
                 x.set_stopped(mailsync_db_session)
-        self.folder_monitors.kill()
+        for monitor in self.folder_monitors:
+            monitor.kill()

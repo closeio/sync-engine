@@ -138,8 +138,8 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                     self.provider_name,
                     self.syncmanager_lock,
                 )
-                thread.start()
                 self.folder_monitors.append(thread)
+                thread.start()
 
             while thread.state != "poll" and not thread.ready():
                 time.sleep(self.heartbeat)

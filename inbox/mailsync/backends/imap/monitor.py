@@ -1,7 +1,6 @@
 import time
 from threading import BoundedSemaphore
-
-from gevent.pool import Group
+from typing import List
 
 from inbox.crispin import connection_pool, retry_crispin
 from inbox.exceptions import ValidationError
@@ -35,7 +34,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
         self.saved_remote_folders = None
         self.sync_engine_class = FolderSyncEngine
 
-        self.folder_monitors = Group()
+        self.folder_monitors: List[FolderSyncEngine] = []
         self.delete_handler = None
 
         BaseMailSyncMonitor.__init__(self, account, heartbeat)
@@ -139,7 +138,8 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                     self.provider_name,
                     self.syncmanager_lock,
                 )
-                self.folder_monitors.start(thread)
+                thread.start()
+                self.folder_monitors.append(thread)
 
             while thread.state != "poll" and not thread.ready():
                 time.sleep(self.heartbeat)
@@ -151,6 +151,11 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                     folder_name=folder_name,
                     error=thread.exception,
                 )
+
+                # discard monitors that exited to prevent
+                # self.folder_monitors from growing inifinitely
+                # if a folder keeps exiting constantly
+                self.folder_monitors.remove(thread)
 
     def start_delete_handler(self):
         if self.delete_handler is None:

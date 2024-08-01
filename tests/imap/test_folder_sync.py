@@ -1,8 +1,8 @@
 # flake8: noqa: F401, F811
 from hashlib import sha256
+from threading import BoundedSemaphore
 
 import pytest
-from gevent.lock import BoundedSemaphore
 from sqlalchemy.orm.exc import ObjectDeletedError
 
 from inbox.mailsync.backends.base import MailsyncDone

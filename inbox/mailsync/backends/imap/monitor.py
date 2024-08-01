@@ -1,6 +1,6 @@
 import time
+from threading import BoundedSemaphore
 
-from gevent.lock import BoundedSemaphore
 from gevent.pool import Group
 
 from inbox.crispin import connection_pool, retry_crispin

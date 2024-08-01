@@ -23,10 +23,10 @@ user always gets the full thread when they look at mail.
 import time
 from collections import OrderedDict
 from datetime import datetime, timedelta
+from threading import Semaphore
 from typing import Dict, List
 
 import gevent
-from gevent.lock import Semaphore
 from sqlalchemy.orm import joinedload, load_only
 
 from inbox.logging import get_logger

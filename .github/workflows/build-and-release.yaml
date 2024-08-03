@@ -102,7 +102,7 @@ jobs:
         run: |
           docker tag ${{ env.DOCKER_IMAGE_TAG }} ${{ env.PROJECT }}_app
           if [[ -z $SKIP_TESTS ]]; then
-            docker-compose run app bash -ec '
+            docker compose run app bash -ec '
               bin/wait-for-it.sh mysql:3306 \
               && NYLAS_ENV=test pytest --cov-report= --cov=inbox tests/ \
               && coverage html -d pythoncov

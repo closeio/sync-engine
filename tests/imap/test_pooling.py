@@ -1,6 +1,8 @@
 import imaplib
+import queue
 import socket
 import ssl
+from typing import Any, List
 from unittest import mock
 
 import gevent
@@ -17,12 +19,19 @@ class TestableConnectionPool(CrispinConnectionPool):
         return mock.Mock()
 
 
+def get_all(queue: "queue.Queue[Any]") -> List[Any]:
+    items = []
+    while not queue.empty():
+        items.append(queue.get())
+    return items
+
+
 def test_pool():
     pool = TestableConnectionPool(1, num_connections=3, readonly=True)
     with pool.get() as conn:
         pass
     assert pool._queue.full()
-    assert conn in pool._queue
+    assert conn in get_all(pool._queue)
 
 
 @pytest.mark.skipif(True, reason="randomly blocks forever")
@@ -60,5 +69,5 @@ def test_connection_retained_on_other_errors():
     pool = TestableConnectionPool(1, num_connections=3, readonly=True)
     with pytest.raises(ValueError), pool.get() as conn:
         raise ValueError
-    assert conn in pool._queue
+    assert conn in get_all(pool._queue)
     assert not conn.logout.called

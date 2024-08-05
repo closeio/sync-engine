@@ -47,13 +47,13 @@ imaplib.InternalDate = re.compile(  # type: ignore
 )
 
 import functools
+import queue
 import threading
 from collections import defaultdict, namedtuple
 from email.parser import HeaderParser
 from threading import BoundedSemaphore
 
 from gevent import socket
-from gevent.queue import Queue
 from sqlalchemy.orm import joinedload
 
 from inbox.exceptions import GmailSettingError
@@ -228,7 +228,9 @@ class CrispinConnectionPool:
         )
         self.account_id = account_id
         self.readonly = readonly
-        self._queue = Queue(num_connections, items=num_connections * [None])
+        self._queue: "queue.Queue[CrispinClient | None]" = queue.Queue(num_connections)
+        for _ in range(num_connections):
+            self._queue.put(None)
         self._sem = BoundedSemaphore(num_connections)
         self._set_account_info()
 

@@ -18,6 +18,7 @@ from typing import DefaultDict, Optional, Set
 
 from sqlalchemy import desc
 
+from inbox import greenlet_like
 from inbox.actions.base import (
     can_handle_multiple_records,
     change_labels,
@@ -507,7 +508,7 @@ class SyncbackService(GreenletLikeThread):
             keys=self.keys,
         )
         while self.keep_running:
-            self.check_killed()
+            greenlet_like.check_killed()
             retry_with_logging(self._run_impl, self.log)
 
     def notify_worker_active(self):

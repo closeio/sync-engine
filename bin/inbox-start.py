@@ -71,7 +71,7 @@ banner = rf"""{esc}[1;95m
 )
 @click.option(
     "--enable-tracer/--disable-tracer",
-    default=True,
+    default=False,
     help="Disables the stuck greenlet tracer",
 )
 @click.option(

@@ -5,6 +5,11 @@ from gevent import monkey
 
 monkey.patch_all()
 
+<<<<<<< HEAD
+||||||| parent of ba25a16e (Use gevent)
+=======
+
+>>>>>>> ba25a16e (Use gevent)
 import os
 import platform
 import signal
@@ -25,6 +30,8 @@ except ImportError:
         "Maybe the Vagrant box provisioning didn't succeed?\n"
         "Try running sudo ./setup.sh"
     )
+
+inbox_config["USE_GEVENT"] = True
 
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.logging import configure_logging, get_logger

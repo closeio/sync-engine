@@ -1,6 +1,7 @@
 import dataclasses
 import queue
 import threading
+import time
 from typing import Any, Callable, Dict, Optional, Tuple, TypeVar
 
 
@@ -71,3 +72,25 @@ class GreenletLikeThread(threading.Thread):
                 return queue.get(timeout=CHECK_KILLED_TIMEOUT)
             except queue.Empty:
                 self.check_killed()
+
+    def sleep(self, seconds: float) -> None:
+        start = time.monotonic()
+        while time.monotonic() - start < seconds:
+            self.check_killed()
+            time.sleep(CHECK_KILLED_TIMEOUT)
+
+
+def sleep(seconds: float) -> None:
+    current_thread = threading.current_thread()
+    if not isinstance(current_thread, GreenletLikeThread):
+        return time.sleep(seconds)
+
+    return current_thread.sleep(seconds)
+
+
+def check_killed() -> None:
+    current_thread = threading.current_thread()
+    if not isinstance(current_thread, GreenletLikeThread):
+        return
+
+    return current_thread.check_killed()

@@ -65,15 +65,16 @@ import contextlib
 import imaplib
 import time
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any, Dict, NoReturn, Optional
 
-from gevent import Greenlet
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 
+from inbox import greenlet_like
 from inbox.exceptions import ValidationError
+from inbox.greenlet_like import GreenletLikeThread
 from inbox.logging import get_logger
 from inbox.util.concurrency import retry_with_logging
 from inbox.util.debug import bind_context
@@ -127,7 +128,7 @@ MAX_UIDINVALID_RESYNCS = 5
 CONDSTORE_FLAGS_REFRESH_BATCH_SIZE = 200
 
 
-class ChangePoller(Greenlet):
+class ChangePoller(GreenletLikeThread):
     def __init__(self, engine: "FolderSyncEngine") -> None:
         self.engine = engine
 
@@ -139,9 +140,10 @@ class ChangePoller(Greenlet):
         )
 
     @retry_crispin
-    def _run(self) -> None:
+    def _run(self) -> NoReturn:
         log.new(account_id=self.engine.account_id, folder=self.engine.folder_name)
         while True:
+            greenlet_like.check_killed()
             log.debug("polling for changes")
             self.engine.poll_impl()
 
@@ -149,7 +151,7 @@ class ChangePoller(Greenlet):
         return f"<{self.name}>"
 
 
-class FolderSyncEngine(Greenlet):
+class FolderSyncEngine(GreenletLikeThread):
     """Base class for a per-folder IMAP sync engine."""
 
     def __init__(
@@ -277,6 +279,7 @@ class FolderSyncEngine(Greenlet):
         # time if it receives a shutdown command. The shutdown command is
         # equivalent to ctrl-c.
         while self.state != "finish":
+            greenlet_like.check_killed()
             retry_with_logging(
                 self._run_impl,
                 account_id=self.account_id,
@@ -399,6 +402,7 @@ class FolderSyncEngine(Greenlet):
             self._report_initial_sync_start()
             self.is_first_sync = False
 
+        # MARK: blocking
         with self.conn_pool.get() as crispin_client:
             crispin_client.select_folder(self.folder_name, uidvalidity_cb)
             # Ensure we have an ImapFolderInfo row created prior to sync start.
@@ -490,7 +494,7 @@ class FolderSyncEngine(Greenlet):
                     # messages per folder are synced.
                     # Note this is an approx. limit since we use the #(uids),
                     # not the #(messages).
-                    time.sleep(THROTTLE_WAIT)
+                    greenlet_like.sleep(THROTTLE_WAIT)
 
             del new_uids  # free up memory as soon as possible
         finally:
@@ -507,12 +511,14 @@ class FolderSyncEngine(Greenlet):
         return self._should_idle
 
     def poll_impl(self):
+        # MARK: blocking
         with self.conn_pool.get() as crispin_client:
             self.check_uid_changes(crispin_client)
             if self.should_idle(crispin_client):
                 crispin_client.select_folder(self.folder_name, self.uidvalidity_cb)
                 idling = True
                 try:
+                    # MARK: blocking
                     crispin_client.idle(IDLE_WAIT)
                 except Exception as exc:
                     # With some servers we get e.g.
@@ -534,11 +540,12 @@ class FolderSyncEngine(Greenlet):
                 idling = False
         # Close IMAP connection before sleeping
         if not idling:
-            time.sleep(self.poll_frequency)
+            greenlet_like.sleep(self.poll_frequency)
 
     def resync_uids_impl(self):
         # First, let's check if the UIVDALIDITY change was spurious, if
         # it is, just discard it and go on.
+        # MARK: blocking
         with self.conn_pool.get() as crispin_client:
             crispin_client.select_folder(self.folder_name, lambda *args: True)
             remote_uidvalidity = crispin_client.selected_uidvalidity

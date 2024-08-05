@@ -1,6 +1,7 @@
+import threading
 import time
 
-from gevent import Greenlet, event
+from gevent import Greenlet
 
 from inbox.exceptions import ConnectionError, ValidationError
 from inbox.heartbeat.store import HeartbeatStatusProxy
@@ -45,7 +46,7 @@ class BaseSyncMonitor(Greenlet):
 
         self.log = logger.new(account_id=account_id)
 
-        self.shutdown = event.Event()
+        self.shutdown = threading.Event()
         self.heartbeat_status = HeartbeatStatusProxy(
             self.account_id, folder_id, folder_name, email_address, provider_name
         )

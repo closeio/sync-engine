@@ -1,12 +1,12 @@
 import datetime
-import time
 
-import gevent
 from sqlalchemy import func
 from sqlalchemy.orm import load_only
 from sqlalchemy.orm.exc import ObjectDeletedError
 
+from inbox import interruptible_threading
 from inbox.crispin import connection_pool
+from inbox.interruptible_threading import InterruptibleThread
 from inbox.logging import get_logger
 from inbox.mailsync.backends.imap import common
 from inbox.mailsync.backends.imap.generic import uidvalidity_cb
@@ -26,7 +26,7 @@ DEFAULT_THREAD_TTL = 60 * 60 * 24 * 7  # 7 days
 MAX_FETCH = 1000
 
 
-class DeleteHandler(gevent.Greenlet):
+class DeleteHandler(InterruptibleThread):
     """
     We don't outright delete message objects when all their associated
     uids are deleted. Instead, we mark them by setting a deleted_at
@@ -77,6 +77,7 @@ class DeleteHandler(gevent.Greenlet):
 
     def _run(self):
         while True:
+            interruptible_threading.check_interrupted()
             retry_with_logging(
                 self._run_impl, account_id=self.account_id, provider=self.provider_name
             )
@@ -86,7 +87,7 @@ class DeleteHandler(gevent.Greenlet):
         self.check(current_time)
         self.gc_deleted_categories()
         self.gc_deleted_threads(current_time)
-        time.sleep(self.message_ttl.total_seconds())
+        interruptible_threading.sleep(self.message_ttl.total_seconds())
 
     def check(self, current_time):
         with session_scope(self.namespace_id) as db_session:
@@ -207,7 +208,7 @@ class DeleteHandler(gevent.Greenlet):
         return f"<{self.name}>"
 
 
-class LabelRenameHandler(gevent.Greenlet):
+class LabelRenameHandler(InterruptibleThread):
     """
     Gmail has a long-standing bug where it won't notify us
     of a label rename (https://stackoverflow.com/questions/19571456/how-imap-client-can-detact-gmail-label-rename-programmatically).
@@ -233,6 +234,7 @@ class LabelRenameHandler(gevent.Greenlet):
         self.name = f"{self.__class__.__name__}(account_id={account_id!r}, label_name={label_name!r})"
 
     def _run(self):
+        interruptible_threading.check_interrupted()
         return retry_with_logging(self._run_impl, account_id=self.account_id)
 
     def _run_impl(self):

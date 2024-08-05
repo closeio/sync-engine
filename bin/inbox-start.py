@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-from gevent import monkey
-
-monkey.patch_all()
 
 import os
 import platform
@@ -134,7 +131,8 @@ def main(prod, enable_tracer, enable_profiler, config, process_num):
     http_frontend = SyncHTTPFrontend(
         sync_service, port, enable_tracer, enable_profiler_api
     )
-    sync_service.register_pending_avgs_provider(http_frontend)
+    if enable_tracer:
+        sync_service.register_pending_avgs_provider(http_frontend)
     http_frontend.start()
 
     sync_service.run()

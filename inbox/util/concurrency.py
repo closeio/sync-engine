@@ -163,7 +163,7 @@ IterableItemT = TypeVar("IterableItemT")
 DEFAULT_SWITCH_PERIOD = datetime.timedelta(seconds=1)
 
 
-def iterate_and_periodically_switch_to_gevent(
+def iterate_and_periodically_switch(
     iterable: Iterable[IterableItemT],
     *,
     switch_period: datetime.timedelta = DEFAULT_SWITCH_PERIOD

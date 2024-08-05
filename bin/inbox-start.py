@@ -36,7 +36,7 @@ except ImportError:
         "Try running sudo ./setup.sh"
     )
 
-inbox_config["USE_GEVENT"] = True
+inbox_config["USE_GEVENT"] = False
 
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.logging import configure_logging, get_logger

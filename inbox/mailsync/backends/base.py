@@ -1,4 +1,6 @@
-from gevent import Greenlet, GreenletExit, event
+import threading
+
+from gevent import Greenlet, GreenletExit
 
 from inbox.config import config
 from inbox.logging import get_logger
@@ -38,7 +40,7 @@ class BaseMailSyncMonitor(Greenlet):
 
     def __init__(self, account, heartbeat=1):
         bind_context(self, "mailsyncmonitor", account.id)
-        self.shutdown = event.Event()
+        self.shutdown = threading.Event()
         # how often to check inbox, in seconds
         self.heartbeat = heartbeat
         self.log = log.new(component="mail sync", account_id=account.id)

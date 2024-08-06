@@ -32,7 +32,7 @@ from inbox.models.util import reconcile_message
 log = get_logger()
 
 
-def local_uids(account_id, session, folder_id, limit=None):
+def local_uids(account_id, session, folder_id, limit=None) -> Set[int]:
     q = session.query(ImapUid.msg_uid)
     q = q.filter(
         ImapUid.account_id == bindparam("account_id"),

@@ -47,7 +47,7 @@ def local_uids(account_id, session, folder_id, limit=None):
     return {u for u, in results}
 
 
-def lastseenuid(account_id, session, folder_id):
+def lastseenuid(account_id, session, folder_id) -> int:
     q = session.query(func.max(ImapUid.msg_uid)).with_hint(
         ImapUid, "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)"
     )

@@ -725,7 +725,7 @@ class FolderSyncEngine(Greenlet):
             metrics.update(kwargs)
             saved_status.update_metrics(metrics)
 
-    def get_new_uids(self, crispin_client):
+    def get_new_uids(self, crispin_client, lastseenuid: Optional[int] = None):
         try:
             remote_uidnext = crispin_client.conn.folder_status(
                 self.folder_name, ["UIDNEXT"]
@@ -755,10 +755,11 @@ class FolderSyncEngine(Greenlet):
         )
 
         crispin_client.select_folder(self.folder_name, self.uidvalidity_cb)
-        with session_scope(self.namespace_id) as db_session:
-            lastseenuid = common.lastseenuid(
-                self.account_id, db_session, self.folder_id
-            )
+        if not lastseenuid:
+            with session_scope(self.namespace_id) as db_session:
+                lastseenuid = common.lastseenuid(
+                    self.account_id, db_session, self.folder_id
+                )
         latest_uids = crispin_client.conn.fetch(f"{lastseenuid + 1}:*", ["UID"]).keys()
         new_uids = set(latest_uids) - {lastseenuid}
         if new_uids:
@@ -839,7 +840,7 @@ class FolderSyncEngine(Greenlet):
                 )
             if remote_uids and lastseenuid < max(remote_uids):
                 log.info("Downloading new UIDs before expunging")
-                self.get_new_uids(crispin_client)
+                self.get_new_uids(crispin_client, lastseenuid)
             with self.syncmanager_lock:
                 common.remove_deleted_uids(
                     self.account_id, self.folder_id, expunged_uids

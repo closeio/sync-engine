@@ -65,7 +65,7 @@ import contextlib
 import imaplib
 import time
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Literal, Optional, Set, Tuple
 
 import gevent
 from gevent import Greenlet
@@ -121,6 +121,8 @@ MAX_UIDINVALID_RESYNCS = 5
 
 CONDSTORE_FLAGS_REFRESH_BATCH_SIZE = 200
 
+State = Literal["initial", "initial uidinvalid", "poll", "poll uidinvalid", "finish"]
+
 
 class FolderSyncEngine(Greenlet):
     """Base class for a per-folder IMAP sync engine."""
@@ -164,12 +166,14 @@ class FolderSyncEngine(Greenlet):
         else:
             self.poll_frequency = DEFAULT_POLL_FREQUENCY
         self.syncmanager_lock = syncmanager_lock
-        self.state: Optional[str] = None
+        self.state: Optional[State] = None
         self.provider_name = provider_name
         self.last_fast_refresh = None
         self.flags_fetch_results = {}
         self.conn_pool = connection_pool(self.account_id)
         self.polling_logged_at: float = 0
+        self._cached_lastseenuid: Optional[int] = None
+        self._cached_local_uids: Optional[Set[int]] = None
 
         self.state_handlers = {
             "initial": self.initial_sync,
@@ -259,8 +263,8 @@ class FolderSyncEngine(Greenlet):
             self.state = self.state_handlers[old_state]()
             self.heartbeat_status.publish(state=self.state)
         except UidInvalid:
-            assert self.state
-            self.state = self.state + " uidinvalid"
+            assert self.state in ["initial", "poll"]
+            self.state = self.state + " uidinvalid"  # type: ignore[assignment]
             self.uidinvalid_count += 1
             self.heartbeat_status.publish(state=self.state)
 
@@ -725,7 +729,9 @@ class FolderSyncEngine(Greenlet):
             metrics.update(kwargs)
             saved_status.update_metrics(metrics)
 
-    def get_new_uids(self, crispin_client, lastseenuid: Optional[int] = None):
+    def get_new_uids(
+        self, crispin_client, cached_lastseenuid: Optional[int] = None
+    ) -> Optional[Set[int]]:
         try:
             remote_uidnext = crispin_client.conn.folder_status(
                 self.folder_name, ["UIDNEXT"]
@@ -747,7 +753,7 @@ class FolderSyncEngine(Greenlet):
             else:
                 raise e
         if remote_uidnext is not None and remote_uidnext == self.uidnext:
-            return
+            return None
         log.debug(
             "UIDNEXT changed, checking for new UIDs",
             remote_uidnext=remote_uidnext,
@@ -755,7 +761,9 @@ class FolderSyncEngine(Greenlet):
         )
 
         crispin_client.select_folder(self.folder_name, self.uidvalidity_cb)
-        if not lastseenuid:
+        if cached_lastseenuid is not None:
+            lastseenuid = cached_lastseenuid
+        else:
             with session_scope(self.namespace_id) as db_session:
                 lastseenuid = common.lastseenuid(
                     self.account_id, db_session, self.folder_id
@@ -767,7 +775,11 @@ class FolderSyncEngine(Greenlet):
                 self.download_and_commit_uids(crispin_client, [uid])
         self.uidnext = remote_uidnext
 
-    def condstore_refresh_flags(self, crispin_client):
+        return new_uids
+
+    def condstore_refresh_flags(
+        self, crispin_client, cached_local_uids: Optional[Set[int]] = None
+    ) -> Optional[Tuple[Set[int], Set[int]]]:
         new_highestmodseq: int = crispin_client.conn.folder_status(
             self.folder_name, ["HIGHESTMODSEQ"]
         )[b"HIGHESTMODSEQ"]
@@ -779,7 +791,7 @@ class FolderSyncEngine(Greenlet):
         if new_highestmodseq == self.highestmodseq:
             # Don't need to do anything if the highestmodseq hasn't
             # changed.
-            return
+            return None
         elif new_highestmodseq < self.highestmodseq:
             # This should really never happen, but if it does, handle it.
             log.warning(
@@ -787,7 +799,7 @@ class FolderSyncEngine(Greenlet):
                 new_highestmodseq=new_highestmodseq,
                 saved_highestmodseq=self.highestmodseq,
             )
-            return
+            return None
 
         log.debug(
             "HIGHESTMODSEQ has changed, getting changed UIDs",
@@ -825,10 +837,17 @@ class FolderSyncEngine(Greenlet):
                 interim_highestmodseq = max(v.modseq for k, v in flag_batch)
                 self.highestmodseq = interim_highestmodseq
 
-        with session_scope(self.namespace_id) as db_session:
-            local_uids = common.local_uids(self.account_id, db_session, self.folder_id)
-            expunged_uids = set(local_uids).difference(remote_uids)
+        if cached_local_uids is not None:
+            local_uids = cached_local_uids
+        else:
+            with session_scope(self.namespace_id) as db_session:
+                local_uids = common.local_uids(
+                    self.account_id, db_session, self.folder_id
+                )
 
+        expunged_uids = set(local_uids).difference(remote_uids)
+
+        new_uids: Set[int] = set()
         if expunged_uids:
             # If new UIDs have appeared since we last checked in
             # get_new_uids, save them first. We want to always have the
@@ -840,14 +859,19 @@ class FolderSyncEngine(Greenlet):
                 )
             if remote_uids and lastseenuid < max(remote_uids):
                 log.info("Downloading new UIDs before expunging")
-                self.get_new_uids(crispin_client, lastseenuid)
+                # FIXME: is or set() correct
+                new_uids = self.get_new_uids(crispin_client, lastseenuid) or set()
             with self.syncmanager_lock:
                 common.remove_deleted_uids(
                     self.account_id, self.folder_id, expunged_uids
                 )
         self.highestmodseq = new_highestmodseq
 
-    def generic_refresh_flags(self, crispin_client):
+        return new_uids, expunged_uids
+
+    def generic_refresh_flags(
+        self, crispin_client, cached_local_uids: Optional[Set[int]] = None
+    ) -> Optional[Tuple[Set[int], Set[int]]]:
         now = datetime.utcnow()
         slow_refresh_due = (
             self.last_slow_refresh is None
@@ -857,21 +881,38 @@ class FolderSyncEngine(Greenlet):
             self.last_fast_refresh is None
             or now > self.last_fast_refresh + FAST_REFRESH_INTERVAL
         )
+        refresh_result: Optional[Tuple[Set[int], Set[int]]] = set(), set()
         if slow_refresh_due:
-            self.refresh_flags_impl(crispin_client, SLOW_FLAGS_REFRESH_LIMIT)
+            refresh_result = self.refresh_flags_impl(
+                crispin_client, SLOW_FLAGS_REFRESH_LIMIT, cached_local_uids
+            )
             self.last_slow_refresh = datetime.utcnow()
         elif fast_refresh_due:
-            self.refresh_flags_impl(crispin_client, FAST_FLAGS_REFRESH_LIMIT)
+            refresh_result = self.refresh_flags_impl(
+                crispin_client, FAST_FLAGS_REFRESH_LIMIT, cached_local_uids
+            )
             self.last_fast_refresh = datetime.utcnow()
 
-    def refresh_flags_impl(self, crispin_client, max_uids):
+        return refresh_result
+
+    def refresh_flags_impl(
+        self, crispin_client, max_uids, cached_local_uids: Optional[Set[int]] = None
+    ) -> Optional[Tuple[Set[int], Set[int]]]:
         crispin_client.select_folder(self.folder_name, self.uidvalidity_cb)
 
         # Check for any deleted messages.
         remote_uids = crispin_client.all_uids()
-        with session_scope(self.namespace_id) as db_session:
-            local_uids = common.local_uids(self.account_id, db_session, self.folder_id)
-            expunged_uids = set(local_uids).difference(remote_uids)
+
+        if cached_local_uids is not None:
+            local_uids = cached_local_uids
+        else:
+            with session_scope(self.namespace_id) as db_session:
+                local_uids = common.local_uids(
+                    self.account_id, db_session, self.folder_id
+                )
+
+        expunged_uids = set(local_uids).difference(remote_uids)
+
         if expunged_uids:
             with self.syncmanager_lock:
                 common.remove_deleted_uids(
@@ -897,10 +938,11 @@ class FolderSyncEngine(Greenlet):
             # Stopped logging this to reduce overall logging volume
             # log.debug('Unchanged flags refresh response, '
             #          'not persisting changes', max_uids=max_uids)
-            return
+            return None
         log.debug(
             "Changed flags refresh response, persisting changes", max_uids=max_uids
         )
+        # TODO: expunged twice
         expunged_uids = set(local_uids).difference(flags.keys())
         with self.syncmanager_lock:
             common.remove_deleted_uids(self.account_id, self.folder_id, expunged_uids)
@@ -910,12 +952,53 @@ class FolderSyncEngine(Greenlet):
             )
         self.flags_fetch_results[max_uids] = (local_uids, flags)
 
+        return set(), expunged_uids
+
     def check_uid_changes(self, crispin_client):
-        self.get_new_uids(crispin_client)
-        if crispin_client.condstore_supported():
-            self.condstore_refresh_flags(crispin_client)
+        if self.state == "poll":
+            if self._cached_local_uids is None:
+                with session_scope(self.namespace_id) as db_session:
+                    cached_local_uids = common.local_uids(
+                        self.account_id, db_session, self.folder_id
+                    )
+            else:
+                cached_local_uids = self._cached_local_uids
+
+            if self._cached_lastseenuid is None:
+                with session_scope(self.namespace_id) as db_session:
+                    cached_lastseenuid = common.lastseenuid(
+                        self.account_id, db_session, self.folder_id
+                    )
+            else:
+                cached_lastseenuid = self._cached_lastseenuid
         else:
-            self.generic_refresh_flags(crispin_client)
+            cached_local_uids = None
+            cached_lastseenuid = None
+
+        new_uids = self.get_new_uids(crispin_client, cached_lastseenuid)
+
+        if crispin_client.condstore_supported():
+            refresh_result = self.condstore_refresh_flags(
+                crispin_client, cached_local_uids
+            )
+        else:
+            refresh_result = self.generic_refresh_flags(
+                crispin_client, cached_local_uids
+            )
+
+        if self.state == "poll" and cached_local_uids and new_uids and refresh_result:
+            refresh_new_uids, refresh_expunged_uids = refresh_result
+            new_local_uids = (
+                cached_local_uids | new_uids | refresh_new_uids
+            ) - refresh_expunged_uids
+
+            self._cached_local_uids = (
+                new_local_uids if len(new_local_uids) < 10_000 else None
+            )
+            self._cached_lastseenuid = max(new_local_uids) if new_local_uids else 0
+        else:
+            self._cached_local_uids = None
+            self._cached_lastseenuid = None
 
     @property
     def uidvalidity(self):

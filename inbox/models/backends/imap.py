@@ -13,6 +13,7 @@ from sqlalchemy import (
     Integer,
     String,
     desc,
+    text,
 )
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref, object_session, relationship
@@ -215,7 +216,10 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         categories.add(self.folder.category)
         return categories
 
-    __table_args__ = (UniqueConstraint("folder_id", "msg_uid", "account_id"),)
+    __table_args__ = (
+        UniqueConstraint("folder_id", "msg_uid", "account_id"),
+        Index("pawel_test", "account_id", "folder_id", text("msg_uid DESC")),
+    )
 
 
 # make pulling up all messages in a given folder fast

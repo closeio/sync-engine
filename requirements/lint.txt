@@ -1,6 +1,6 @@
 appdirs==1.4.4
 astor==0.8.1
-attrs==24.1.0
+attrs==24.2.0
 black==24.8.0
 click==8.1.7
 isort==5.13.2

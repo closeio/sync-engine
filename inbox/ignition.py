@@ -61,7 +61,13 @@ def engine(
     max_overflow=DB_POOL_MAX_OVERFLOW,
     pool_timeout=DB_POOL_TIMEOUT,
     echo=False,
+    use_gevent=True,
 ):
+    connect_args = {"binary_prefix": True, "charset": "utf8mb4", "connect_timeout": 60}
+
+    if use_gevent:
+        connect_args["waiter"] = gevent_waiter
+
     engine = create_engine(
         database_uri,
         poolclass=ForceStrictModePool,
@@ -71,12 +77,7 @@ def engine(
         pool_timeout=pool_timeout,
         pool_recycle=3600,
         max_overflow=max_overflow,
-        connect_args={
-            "binary_prefix": True,
-            "charset": "utf8mb4",
-            "waiter": gevent_waiter,
-            "connect_timeout": 60,
-        },
+        connect_args=connect_args,
     )
 
     @event.listens_for(engine, "checkout")
@@ -121,7 +122,7 @@ def engine(
 
 
 class EngineManager:
-    def __init__(self, databases, users, include_disabled=False):
+    def __init__(self, databases, users, include_disabled=False, use_gevent=True):
         self.engines = {}
         self._engine_zones = {}
         keys = set()
@@ -162,8 +163,10 @@ class EngineManager:
                     hostname=hostname,
                     port=port,
                 )
-                self.engines[key] = engine(schema_name, uri)
+                self.engines[key] = engine(schema_name, uri, use_gevent=use_gevent)
                 self._engine_zones[key] = zone
+
+        log.info("EngineManager initialized", use_gevent=use_gevent)
 
     def shard_key_for_id(self, id_):
         return 0
@@ -179,7 +182,9 @@ class EngineManager:
 
 
 engine_manager = EngineManager(
-    config.get_required("DATABASE_HOSTS"), config.get_required("DATABASE_USERS")
+    config.get_required("DATABASE_HOSTS"),
+    config.get_required("DATABASE_USERS"),
+    use_gevent=config.get("USE_GEVENT", True),
 )
 
 

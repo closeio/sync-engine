@@ -23,7 +23,7 @@ RUN echo $BUILD_WEEK && apt-get update \
     dirmngr \
     gcc \
     git \
-    python3-dev \
+    python3.9-dev \
     python3-pip \
     gettext-base \
     libmysqlclient-dev \
@@ -46,9 +46,9 @@ USER sync-engine
 WORKDIR /opt/app
 
 COPY --chown=sync-engine:sync-engine ./ ./
-RUN python3 -m pip install pip==24.0 virtualenv==20.25.1 && \
-  python3 -m virtualenv /opt/venv && \
-  /opt/venv/bin/python3 -m pip install --no-cache --no-deps -r requirements/prod.txt -r requirements/test.txt && \
-  /opt/venv/bin/python3 -m pip check
+RUN python3.9 -m pip install pip==24.2 virtualenv==20.26.3 && \
+    python3.9 -m virtualenv /opt/venv && \
+   /opt/venv/bin/python3.9 -m pip install --no-cache --no-deps -r requirements/prod.txt -r requirements/test.txt && \
+   /opt/venv/bin/python3.9 -m pip check
 
 RUN ln -s /opt/app/bin/wait-for-it.sh /opt/venv/bin/

@@ -42,17 +42,15 @@ jobs:
 
 
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.runs-on }}
 
     strategy:
       matrix:
         include:
           - arch: amd64
-          
-          # The qemu arm64 builds are *very* slow so they are split out into 
-          # their own workflow
-
-          # - arch: arm64
+            runs-on: ubuntu-20.04
+          - arch: arm64
+            runs-on: gh-arm64-runners
 
     steps:
       - name: Checkout
@@ -63,11 +61,12 @@ jobs:
           if [ "$(git log -1 --pretty=%B | head -n 1 | grep '#notests')" ]; then
             echo 'SKIP_TESTS="1"' >> $GITHUB_ENV
           fi
-          echo "DOCKER_IMAGE_TAG=${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ github.sha }}" >> $GITHUB_ENV
+          DOCKER_IMAGE_TAG=${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ github.sha }}
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            DOCKER_IMAGE_TAG="${DOCKER_IMAGE_TAG}-arm64"
+          fi
+          echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}" >> $GITHUB_ENV
         shell: bash
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker context for Buildx
         id: buildx-context
@@ -110,6 +109,7 @@ jobs:
           else
             echo Skipping tests
           fi
+        if: ${{ matrix.arch == 'amd64' }}
 
       - name: Push image
         run: |

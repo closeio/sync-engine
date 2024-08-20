@@ -31,28 +31,33 @@ def run(limit: int, after: str) -> None:
                     Block.size > 0,
                     Block.updated_at >= datetime.datetime.fromisoformat(after),
                 )
-                .order_by(Block.updated_at.desc())
+                .order_by(Block.updated_at)
             )
             .limit(limit)
             .all()
         )
 
-    total_objects = 0
-    total_size = 0
+    valid_blocks = {}
     for block in blocks:
+        if block.data_sha256 in valid_blocks:
+            continue
+
         data = blockstore.get_from_blockstore(block.data_sha256)
         print(
             block.id,
+            block.data_sha256,
             block.filename or "no-filename",
             block.size if data else None,
             [(part.content_disposition, part.message_id) for part in block.parts],
         )
 
         if data:
-            total_objects += 1
-            total_size += block.size
+            valid_blocks[block.data_sha256] = len(data)
 
-    print(f"Total objects: {total_objects}, total size: {total_size}")
+    print(f"Total blocks: {len(blocks)}")
+    print(
+        f"Blocks with objects: {len(valid_blocks)}, size: {sum(valid_blocks.values())}"
+    )
 
 
 if __name__ == "__main__":

@@ -42,8 +42,8 @@ def run(limit: int, after: str) -> None:
     for block in blocks:
         data = blockstore.get_from_blockstore(block.data_sha256)
         print(
-            block.data_sha256,
-            block.filename,
+            block.id,
+            block.filename or "no-filename",
             block.size if data else None,
             [(part.content_disposition, part.message_id) for part in block.parts],
         )

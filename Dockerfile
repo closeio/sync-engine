@@ -18,7 +18,6 @@ RUN echo $BUILD_WEEK && apt-get update \
     git \
     python3-dev \
     python3-pip \
-    python3-distutils \
     wget \
     gettext-base \
     language-pack-en \
@@ -55,7 +54,6 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY --chown=sync-engine:sync-engine ./ ./
 RUN python3 -m pip install pip==24.0 virtualenv==20.25.1 && \
   python3 -m virtualenv /opt/venv && \
-  /opt/venv/bin/python3 -m pip install setuptools==67.4.0 && \
   /opt/venv/bin/python3 -m pip install --no-deps -r requirements/prod.txt -r requirements/test.txt && \
   /opt/venv/bin/python3 -m pip check
 

@@ -47,8 +47,8 @@ WORKDIR /opt/app
 
 COPY --chown=sync-engine:sync-engine ./ ./
 RUN python3.9 -m pip install pip==24.2 virtualenv==20.26.3 && \
-    python3.9 -m virtualenv /opt/venv && \
-   /opt/venv/bin/python3.9 -m pip install --no-cache --no-deps -r requirements/prod.txt -r requirements/test.txt && \
-   /opt/venv/bin/python3.9 -m pip check
+  python3.9 -m virtualenv /opt/venv && \
+  /opt/venv/bin/python3.9 -m pip install --no-cache --no-deps -r requirements/prod.txt -r requirements/test.txt && \
+  /opt/venv/bin/python3.9 -m pip check
 
 RUN ln -s /opt/app/bin/wait-for-it.sh /opt/venv/bin/

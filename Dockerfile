@@ -23,6 +23,7 @@ RUN echo $BUILD_WEEK && apt-get update \
     python3.9 \
     gettext-base \
     libmysqlclient21 \
+    mysql-client \
     vim \
   && locale-gen en_US.UTF-8 \
   && rm -rf /var/lib/apt/lists/*

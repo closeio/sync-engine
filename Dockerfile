@@ -16,6 +16,7 @@ RUN echo $BUILD_WEEK && apt-get update \
   && apt-get install --no-install-recommends -y \
     tzdata \
     locales \
+    ca-certificates \
     curl \
     gpg \
     gpg-agent \

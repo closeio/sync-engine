@@ -1,3 +1,6 @@
+# --- Stage 0 --- #
+# This first stage is responsible for installing any dependencies the app needs
+# to run, and updating any base dependencies.
 FROM ubuntu:20.04 AS stage_0
 
 RUN groupadd -g 5000 sync-engine \
@@ -39,6 +42,10 @@ RUN mkdir /etc/inboxapp && \
   chown sync-engine:sync-engine /opt/venv
 
 
+# --- Stage 1 --- #
+# This stage is responsible for installing the build time dependencies for
+# Python packages, building those packages, and then installing them
+# into the virtual environment.
 FROM stage_0 AS stage_1
 
 RUN apt-get update \
@@ -58,6 +65,9 @@ RUN python3.9 -m pip install pip==24.0 virtualenv==20.25.1 && \
   /opt/venv/bin/python3.9 -m pip check
 
 
+# --- Stage 2 --- #
+# This stage is responsible for copying the virtual environment from the
+# previous stage, and then copying the application code into the image.
 FROM stage_0
 
 USER sync-engine

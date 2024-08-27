@@ -13,7 +13,6 @@ from sqlalchemy import (
     Integer,
     String,
     desc,
-    text,
 )
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref, object_session, relationship
@@ -225,9 +224,9 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         # by 15% - 20%.
         Index(
             "ix_imapuid_account_id_folder_id_msg_uid_desc",
-            "account_id",
-            "folder_id",
-            text("msg_uid DESC"),
+            account_id,
+            folder_id,
+            msg_uid.desc(),
             unique=True,
         ),
     )

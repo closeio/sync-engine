@@ -33,7 +33,9 @@ log = get_logger()
 
 
 def local_uids(account_id, session, folder_id, limit=None):
-    q = session.query(ImapUid.msg_uid).with_hint(ImapUid, "FORCE INDEX (pawel_test)")
+    q = session.query(ImapUid.msg_uid).with_hint(
+        ImapUid, "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)"
+    )
     q = q.filter(
         ImapUid.account_id == bindparam("account_id"),
         ImapUid.folder_id == bindparam("folder_id"),
@@ -47,7 +49,7 @@ def local_uids(account_id, session, folder_id, limit=None):
 
 def lastseenuid(account_id, session, folder_id):
     q = session.query(func.max(ImapUid.msg_uid)).with_hint(
-        ImapUid, "FORCE INDEX (pawel_test)"
+        ImapUid, "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)"
     )
     q = q.filter(
         ImapUid.account_id == bindparam("account_id"),

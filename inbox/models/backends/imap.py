@@ -218,7 +218,18 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
     __table_args__ = (
         UniqueConstraint("folder_id", "msg_uid", "account_id"),
-        Index("pawel_test", "account_id", "folder_id", text("msg_uid DESC")),
+        # This index is used to quickly retrieve IMAP uids
+        # in local_uids and lastseenuid functions.
+        # Those queries consistently stay in top 5 most busy SELECTs
+        # and having dedicated index helps to reduce the load on the database
+        # by 15% - 20%.
+        Index(
+            "ix_imapuid_account_id_folder_id_msg_uid_desc",
+            "account_id",
+            "folder_id",
+            text("msg_uid DESC"),
+            unique=True,
+        ),
     )
 
 

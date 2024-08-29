@@ -518,7 +518,7 @@ class FolderSyncEngine(Greenlet):
             invalid_uids = {
                 uid
                 for uid, in db_session.query(ImapUid.msg_uid)
-                .filter_by(
+                .filter(
                     ImapUid.account_id == self.account_id,
                     ImapUid.folder_id == self.folder_id,
                 )

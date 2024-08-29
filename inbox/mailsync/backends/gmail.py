@@ -325,7 +325,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 .options(
                     load_only("msg_uid"), joinedload("message").load_only("g_msgid")
                 )
-                .filter_by(
+                .filter(
                     ImapUid.account_id == self.account_id,
                     ImapUid.folder_id == self.folder_id,
                 )

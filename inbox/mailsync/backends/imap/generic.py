@@ -545,20 +545,24 @@ class FolderSyncEngine(Greenlet):
 
         # Check if we somehow already saved the imapuid (shouldn't happen, but
         # possible due to race condition). If so, don't commit changes.
-        existing_imapuid = (
+        imapuid_exists = db_session.query(
             db_session.query(ImapUid)
             .filter(
                 ImapUid.account_id == account.id,
                 ImapUid.folder_id == folder.id,
                 ImapUid.msg_uid == raw_message.uid,
             )
-            .first()
-        )
-        if existing_imapuid is not None:
+            .with_hint(
+                ImapUid, "FORCE INDEX(ix_imapuid_account_id_folder_id_msg_uid_desc)"
+            )
+            .exists()
+        ).scalar()
+        if imapuid_exists:
             log.warning(
                 "Expected to create imapuid, but existing row found",
-                remote_msg_uid=raw_message.uid,
-                existing_imapuid=existing_imapuid.id,
+                account_id=account.id,
+                folder_id=folder.id,
+                msg_uid=raw_message.uid,
             )
             return None
 

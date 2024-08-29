@@ -517,9 +517,12 @@ class FolderSyncEngine(Greenlet):
         with session_scope(self.namespace_id) as db_session:
             invalid_uids = {
                 uid
-                for uid, in db_session.query(ImapUid.msg_uid).filter_by(
-                    account_id=self.account_id, folder_id=self.folder_id
+                for uid, in db_session.query(ImapUid.msg_uid)
+                .filter_by(
+                    ImapUid.account_id == self.account_id,
+                    ImapUid.folder_id == self.folder_id,
                 )
+                .with_hint("FORCE INDEX(ix_imapuid_account_id_folder_id_msg_uid_desc)")
             }
         with self.syncmanager_lock:
             common.remove_deleted_uids(self.account_id, self.folder_id, invalid_uids)

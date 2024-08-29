@@ -163,7 +163,9 @@ def update_metadata(account_id, folder_id, folder_role, new_flags, session):
             ImapUid.folder_id == folder_id,
             ImapUid.msg_uid.in_(new_flags),
         )
-        .with_hint("FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)")
+        .with_hint(
+            ImapUid, "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)"
+        )
     ):
         flags = new_flags[item.msg_uid].flags
         labels = getattr(new_flags[item.msg_uid], "labels", None)
@@ -208,7 +210,10 @@ def remove_deleted_uids(account_id, folder_id, uids):
                     ImapUid.folder_id == folder_id,
                     ImapUid.msg_uid == uid,
                 )
-                .with_hint("FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)")
+                .with_hint(
+                    ImapUid,
+                    "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)",
+                )
                 .first()
             )
             if imapuid is None:

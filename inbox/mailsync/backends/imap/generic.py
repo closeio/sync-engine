@@ -522,7 +522,9 @@ class FolderSyncEngine(Greenlet):
                     ImapUid.account_id == self.account_id,
                     ImapUid.folder_id == self.folder_id,
                 )
-                .with_hint("FORCE INDEX(ix_imapuid_account_id_folder_id_msg_uid_desc)")
+                .with_hint(
+                    ImapUid, "FORCE INDEX(ix_imapuid_account_id_folder_id_msg_uid_desc)"
+                )
             }
         with self.syncmanager_lock:
             common.remove_deleted_uids(self.account_id, self.folder_id, invalid_uids)

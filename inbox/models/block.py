@@ -201,6 +201,14 @@ class Block(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
         store_message_attachments = (
             STORE_MESSAGE_ATTACHMENTS and self.namespace_id != 37203
         )
+
+        log.warning(
+            "In data",
+            namespace_id=self.namespace_id,
+            data_sha256=self.data_sha256,
+            store_message_attachments=store_message_attachments,
+        )
+
         if store_message_attachments:
             blockstore.save_to_blockstore(self.data_sha256, value)
         else:

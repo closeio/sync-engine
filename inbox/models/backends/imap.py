@@ -100,7 +100,9 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     message = relationship(Message, backref=backref("imapuids", passive_deletes=True))
     msg_uid = Column(BigInteger, nullable=False, index=True)
 
-    folder_id = Column(ForeignKey(Folder.id, ondelete="CASCADE"), nullable=False)
+    folder_id = Column(
+        ForeignKey(Folder.id, ondelete="CASCADE"), nullable=False, index=True
+    )
     # We almost always need the folder name too, so eager load by default.
     folder = relationship(
         Folder, lazy="joined", backref=backref("imapuids", passive_deletes=True)

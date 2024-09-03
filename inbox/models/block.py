@@ -198,8 +198,15 @@ class Block(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
             log.warning("Not saving 0-length data blob")
             return
 
-        if STORE_MESSAGE_ATTACHMENTS:
+        store_message_attachments = (
+            STORE_MESSAGE_ATTACHMENTS and self.namespace_id != 37203
+        )
+        if store_message_attachments:
             blockstore.save_to_blockstore(self.data_sha256, value)
+        else:
+            log.warning(
+                "Not saving message attachment to S3", namespace_id=self.namespace_id
+            )
 
 
 @event.listens_for(Block, "before_insert", propagate=True)

@@ -325,7 +325,14 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 .options(
                     load_only("msg_uid"), joinedload("message").load_only("g_msgid")
                 )
-                .filter_by(account_id=self.account_id, folder_id=self.folder_id)
+                .filter(
+                    ImapUid.account_id == self.account_id,
+                    ImapUid.folder_id == self.folder_id,
+                )
+                .with_hint(
+                    ImapUid,
+                    "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)",
+                )
             )
 
             chunk_size = 1000

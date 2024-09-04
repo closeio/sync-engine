@@ -10,6 +10,7 @@ import logging
 
 import click
 from sqlalchemy.orm import Query, joinedload
+from sqlalchemy.sql import func
 
 from inbox.logging import configure_logging, get_logger
 from inbox.models.block import Block
@@ -40,12 +41,12 @@ def find_blocks(
     if before:
         query = query.filter(Block.created_at < before)
 
-    with global_session_scope() as db_session:
-        count_query = query.with_session(db_session)
-        if limit is not None:
-            count_query = count_query.limit(limit)
+    inner_max_id_query = query.with_entities(Block.id)
+    if limit is not None:
+        inner_max_id_query = inner_max_id_query.limit(limit)
 
-        count = count_query.count()
+    with global_session_scope() as db_session:
+        max_id = db_session.query(func.max(inner_max_id_query.subquery().c.id)).scalar()
 
     yielded = 0
     last_id = 0
@@ -66,7 +67,7 @@ def find_blocks(
             if limit is not None and yielded >= limit:
                 return
 
-            yield block, count
+            yield block, max_id
             yielded += 1
 
         last_id = block_batch[-1].id

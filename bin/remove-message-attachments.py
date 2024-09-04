@@ -1,13 +1,12 @@
 #!/usr/bin/env python
-import enum
-from collections.abc import Iterable
-
 from gevent import monkey
 
 monkey.patch_all()
 
 import datetime
+import enum
 import logging
+from collections.abc import Iterable
 
 import click
 from sqlalchemy.orm import Query, joinedload
@@ -39,7 +38,7 @@ def find_blocks(
     query = (
         Query([Block])
         .options(joinedload(Block.parts))
-        .filter(Block.size > 0)
+        .filter(Block.size > 0)  # empty blocks are not stored in S3
         .order_by(Block.id)
     )
 

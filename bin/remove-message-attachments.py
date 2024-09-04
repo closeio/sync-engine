@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import enum
 from collections.abc import Iterable
 
 from gevent import monkey
@@ -22,6 +23,12 @@ log = get_logger()
 
 
 BATCH_SIZE = 1000
+
+
+class Resolution(enum.Enum):
+    NOT_PRESENT = "not-present"
+    DELETE = "delete"
+    WOULD_DELETE = "would-delete"
 
 
 def find_blocks(
@@ -87,24 +94,24 @@ def run(
         datetime.datetime.fromisoformat(before) if before else None,
     )
 
-    for block, count in blocks:
+    for block, max_id in blocks:
         data = blockstore.get_from_blockstore(block.data_sha256)
         if data is None:
-            action = "not-present"
+            resolution = Resolution.NOT_PRESENT
         else:
-            action = "delete" if not dry_run else "would-delete"
+            resolution = Resolution.DELETE if not dry_run else Resolution.WOULD_DELETE
 
         print(
-            f"{block.id}/{count}",
+            f"{block.id}/{max_id}",
             block.created_at.date(),
-            action,
+            resolution.value,
             block.data_sha256,
             block.size if data else None,
             len(block.parts),
         )
 
-        if action == "delete":
-            blockstore.delete_from_blockstore([block.data_sha256])
+        if resolution is Resolution.DELETE:
+            blockstore.delete_from_blockstore(block.data_sha256)
 
 
 if __name__ == "__main__":

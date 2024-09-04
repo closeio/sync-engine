@@ -203,6 +203,9 @@ def session_scope_by_shard_id(shard_id, versioned=True):
 
 
 def shard_chooser(mapper, instance, clause=None):
+    if not instance:
+        return "0"
+
     return str(engine_manager.shard_key_for_id(instance.id))
 
 

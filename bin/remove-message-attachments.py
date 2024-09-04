@@ -85,8 +85,13 @@ def find_blocks(
 @click.option("--after", type=str, default=None)
 @click.option("--before", type=str, default=None)
 @click.option("--dry-run/--no-dry-run", default=True)
+@click.option("--check-existence/--no-check-existence", default=False)
 def run(
-    limit: "int | None", after: "str | None", before: "str | None", dry_run: bool
+    limit: "int | None",
+    after: "str | None",
+    before: "str | None",
+    dry_run: bool,
+    check_existence: bool,
 ) -> None:
     blocks = find_blocks(
         limit,
@@ -95,7 +100,11 @@ def run(
     )
 
     for block, max_id in blocks:
-        data = blockstore.get_from_blockstore(block.data_sha256)
+        if check_existence:
+            data = blockstore.get_from_blockstore(block.data_sha256)
+        else:
+            data = ...  # assume it exists, it's OK to delete non-existent data
+
         if data is None:
             resolution = Resolution.NOT_PRESENT
         else:

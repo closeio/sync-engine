@@ -36,9 +36,9 @@ def find_blocks(
     )
 
     if after:
-        query = query.filter(Block.updated_at >= after)
+        query = query.filter(Block.created_at >= after)
     if before:
-        query = query.filter(Block.updated_at < before)
+        query = query.filter(Block.created_at < before)
 
     with global_session_scope() as db_session:
         count_query = query.with_session(db_session)
@@ -95,6 +95,7 @@ def run(
 
         print(
             f"{block.id}/{count}",
+            block.created_at.date(),
             action,
             block.data_sha256,
             block.size if data else None,

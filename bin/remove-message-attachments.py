@@ -30,6 +30,8 @@ def find_blocks(
     limit: "int | None",
     after: "datetime.datetime | None",
     before: "datetime.datetime | None",
+    after_id: "int | None",
+    before_id: "int | None",
 ) -> "Iterable[tuple[Block, int]]":
     query = (
         Query([Block])
@@ -42,6 +44,10 @@ def find_blocks(
         query = query.filter(Block.created_at >= after)
     if before:
         query = query.filter(Block.created_at < before)
+    if after_id:
+        query = query.filter(Block.id >= after_id)
+    if before_id:
+        query = query.filter(Block.id < before_id)
 
     inner_max_id_query = query.with_entities(Block.id)
     if limit is not None:
@@ -51,12 +57,12 @@ def find_blocks(
         max_id = db_session.query(func.max(inner_max_id_query.subquery().c.id)).scalar()
 
     yielded = 0
-    last_id = 0
+    start_id = 1 if after_id is None else after_id
 
     while True:
         with global_session_scope() as db_session:
             block_batch = (
-                query.filter(Block.id > last_id)
+                query.filter(Block.id >= start_id)
                 .limit(min(limit, BATCH_SIZE) if limit is not None else BATCH_SIZE)
                 .with_session(db_session)
                 .all()
@@ -72,19 +78,23 @@ def find_blocks(
             yield block, max_id
             yielded += 1  # noqa: SIM113
 
-        last_id = block_batch[-1].id
+        start_id = block_batch[-1].id + 1
 
 
 @click.command()
 @click.option("--limit", type=int, default=None)
 @click.option("--after", type=str, default=None)
 @click.option("--before", type=str, default=None)
+@click.option("--after-id", type=int, default=None)
+@click.option("--before-id", type=int, default=None)
 @click.option("--dry-run/--no-dry-run", default=True)
 @click.option("--check-existence/--no-check-existence", default=False)
 def run(
     limit: "int | None",
     after: "str | None",
     before: "str | None",
+    after_id: "int | None",
+    before_id: "int | None",
     dry_run: bool,
     check_existence: bool,
 ) -> None:
@@ -92,6 +102,8 @@ def run(
         limit,
         datetime.datetime.fromisoformat(after) if after else None,
         datetime.datetime.fromisoformat(before) if before else None,
+        after_id,
+        before_id,
     )
 
     for block, max_id in blocks:

@@ -24,7 +24,6 @@ DEFAULT_BATCH_SIZE = 1000
 class Resolution(enum.Enum):
     NOT_PRESENT = "not-present"
     DELETE = "delete"
-    WOULD_DELETE = "would-delete"
 
 
 def find_blocks(
@@ -83,6 +82,17 @@ def find_blocks(
         start_id = block_batch[-1].id + 1
 
 
+def delete_batch(delete_sha256s: "set[str]", dry_run: bool) -> None:
+    if not delete_sha256s:
+        return
+
+    if not dry_run:
+        blockstore.delete_from_blockstore(*delete_sha256s)
+        print("deleted", len(delete_sha256s), "blobs")
+    else:
+        print("would-delete", len(delete_sha256s), "blobs")
+
+
 @click.command()
 @click.option("--limit", type=int, default=None)
 @click.option("--after", type=str, default=None)
@@ -127,7 +137,7 @@ def run(
         if data is None:
             resolution = Resolution.NOT_PRESENT
         else:
-            resolution = Resolution.DELETE if not dry_run else Resolution.WOULD_DELETE
+            resolution = Resolution.DELETE
 
         print(
             f"{block.id}/{max_id}",
@@ -142,9 +152,10 @@ def run(
             delete_sha256s.add(block.data_sha256)
 
         if len(delete_sha256s) >= delete_batch_size:
-            blockstore.delete_from_blockstore(*delete_sha256s)
+            delete_batch(delete_sha256s, dry_run)
             delete_sha256s.clear()
-            print("Deleted batch")
+
+    delete_batch(delete_sha256s, dry_run)
 
 
 if __name__ == "__main__":

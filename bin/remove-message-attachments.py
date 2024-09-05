@@ -57,7 +57,7 @@ def find_blocks(
     with global_session_scope() as db_session:
         max_id = db_session.query(func.max(inner_max_id_query.subquery().c.id)).scalar()
 
-    yielded = 0
+    offset = 0
     start_id = 1 if after_id is None else after_id
 
     while True:
@@ -72,12 +72,16 @@ def find_blocks(
         if not block_batch:
             return
 
+        seen_sha256s = set()
         for block in block_batch:
-            if limit is not None and yielded >= limit:
+            if limit is not None and offset >= limit:
                 return
 
-            yield block, max_id
-            yielded += 1  # noqa: SIM113
+            if block.data_sha256 not in seen_sha256s:
+                yield block, max_id
+                seen_sha256s.add(block.data_sha256)
+
+            offset += 1  # noqa: SIM113
 
         start_id = block_batch[-1].id + 1
 

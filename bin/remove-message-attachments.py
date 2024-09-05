@@ -17,7 +17,8 @@ configure_logging(logging.ERROR)
 log = get_logger()
 
 
-BATCH_SIZE = 1000
+DEFAULT_DELETE_BATCH_SIZE = 100
+DEFAULT_BATCH_SIZE = 1000
 
 
 class Resolution(enum.Enum):
@@ -32,6 +33,7 @@ def find_blocks(
     before: "datetime.datetime | None",
     after_id: "int | None",
     before_id: "int | None",
+    batch_size: int,
 ) -> "Iterable[tuple[Block, int]]":
     query = (
         Query([Block])
@@ -63,7 +65,7 @@ def find_blocks(
         with global_session_scope() as db_session:
             block_batch = (
                 query.filter(Block.id >= start_id)
-                .limit(min(limit, BATCH_SIZE) if limit is not None else BATCH_SIZE)
+                .limit(min(limit, batch_size) if limit is not None else batch_size)
                 .with_session(db_session)
                 .all()
             )
@@ -87,6 +89,8 @@ def find_blocks(
 @click.option("--before", type=str, default=None)
 @click.option("--after-id", type=int, default=None)
 @click.option("--before-id", type=int, default=None)
+@click.option("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
+@click.option("--delete-batch-size", type=int, default=DEFAULT_DELETE_BATCH_SIZE)
 @click.option("--dry-run/--no-dry-run", default=True)
 @click.option("--check-existence/--no-check-existence", default=False)
 def run(
@@ -95,16 +99,24 @@ def run(
     before: "str | None",
     after_id: "int | None",
     before_id: "int | None",
+    batch_size: int,
+    delete_batch_size: int,
     dry_run: bool,
     check_existence: bool,
 ) -> None:
+    assert batch_size > 0
+    assert delete_batch_size > 0
+
     blocks = find_blocks(
         limit,
         datetime.datetime.fromisoformat(after) if after else None,
         datetime.datetime.fromisoformat(before) if before else None,
         after_id,
         before_id,
+        batch_size,
     )
+
+    delete_sha256s = set()
 
     for block, max_id in blocks:
         if check_existence:
@@ -127,7 +139,12 @@ def run(
         )
 
         if resolution is Resolution.DELETE:
-            blockstore.delete_from_blockstore(block.data_sha256)
+            delete_sha256s.add(block.data_sha256)
+
+        if len(delete_sha256s) >= delete_batch_size:
+            blockstore.delete_from_blockstore(*delete_sha256s)
+            delete_sha256s.clear()
+            print("Deleted batch")
 
 
 if __name__ == "__main__":

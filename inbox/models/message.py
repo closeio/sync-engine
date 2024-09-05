@@ -48,7 +48,7 @@ from inbox.models.mixins import (
 from inbox.security.blobstorage import decode_blob, encode_blob
 from inbox.sqlalchemy_ext.util import JSON, MAX_MYSQL_INTEGER, json_field_too_long
 from inbox.util.addr import HeaderTooBigException, parse_mimepart_address_header
-from inbox.util.blockstore import save_to_blockstore
+from inbox.util.blockstore import save_raw_mime
 from inbox.util.encoding import unicode_safe_truncate
 from inbox.util.html import HTMLParseError, plaintext2html, strip_tags
 from inbox.util.misc import get_internaldate, parse_references
@@ -305,7 +305,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         message.data_sha256 = sha256(body).hexdigest()
 
         # Persist the raw MIME message to disk/ S3
-        save_to_blockstore(message.data_sha256, body)
+        save_raw_mime(message.data_sha256, body)
 
         # Persist the processed message to the database
         message.namespace_id = account.namespace.id

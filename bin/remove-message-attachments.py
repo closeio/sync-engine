@@ -5,7 +5,7 @@ import logging
 from collections.abc import Iterable
 
 import click
-from sqlalchemy.orm import Query, joinedload
+from sqlalchemy.orm import Query
 from sqlalchemy.sql import func
 
 from inbox.logging import configure_logging, get_logger
@@ -36,7 +36,6 @@ def find_blocks(
 ) -> "Iterable[tuple[Block, int]]":
     query = (
         Query([Block])
-        .options(joinedload(Block.parts))
         .filter(Block.size > 0)  # empty blocks are not stored in S3
         .order_by(Block.id)
     )
@@ -105,6 +104,7 @@ def delete_batch(delete_sha256s: "set[str]", dry_run: bool) -> None:
 @click.option("--before-id", type=int, default=None)
 @click.option("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
 @click.option("--delete-batch-size", type=int, default=DEFAULT_DELETE_BATCH_SIZE)
+@click.option("--repeat", type=int, default=1)
 @click.option("--dry-run/--no-dry-run", default=True)
 @click.option("--check-existence/--no-check-existence", default=False)
 def run(
@@ -115,51 +115,63 @@ def run(
     before_id: "int | None",
     batch_size: int,
     delete_batch_size: int,
+    repeat: int,
     dry_run: bool,
     check_existence: bool,
-) -> None:
+) -> int:
     assert batch_size > 0
     assert delete_batch_size > 0
 
-    blocks = find_blocks(
-        limit,
-        datetime.datetime.fromisoformat(after) if after else None,
-        datetime.datetime.fromisoformat(before) if before else None,
-        after_id,
-        before_id,
-        batch_size,
-    )
-
-    delete_sha256s = set()
-
-    for block, max_id in blocks:
-        if check_existence:
-            data = blockstore.get_from_blockstore(block.data_sha256)
-        else:
-            data = ...  # assume it exists, it's OK to delete non-existent data
-
-        if data is None:
-            resolution = Resolution.NOT_PRESENT
-        else:
-            resolution = Resolution.DELETE
-
-        print(
-            f"{block.id}/{max_id}",
-            block.created_at.date(),
-            resolution.value,
-            block.data_sha256,
-            block.size if data else None,
-            len(block.parts),
+    for repetition in range(repeat):
+        blocks = find_blocks(
+            limit,
+            datetime.datetime.fromisoformat(after) if after else None,
+            datetime.datetime.fromisoformat(before) if before else None,
+            after_id,
+            before_id,
+            batch_size,
         )
 
-        if resolution is Resolution.DELETE:
-            delete_sha256s.add(block.data_sha256)
+        delete_sha256s = set()
 
-        if len(delete_sha256s) >= delete_batch_size:
-            delete_batch(delete_sha256s, dry_run)
-            delete_sha256s.clear()
+        max_id = None
+        for block, max_id in blocks:
+            if check_existence:
+                data = blockstore.get_from_blockstore(block.data_sha256)
+            else:
+                data = ...  # assume it exists, it's OK to delete non-existent data
 
-    delete_batch(delete_sha256s, dry_run)
+            if data is None:
+                resolution = Resolution.NOT_PRESENT
+            else:
+                resolution = Resolution.DELETE
+
+            print_arguments = [
+                f"{block.id}/{max_id}",
+                block.created_at.date(),
+                resolution.value,
+                block.data_sha256,
+                block.size if data else None,
+            ]
+
+            if repeat != 1:
+                print_arguments.insert(0, repetition)
+
+            print(*print_arguments)
+
+            if resolution is Resolution.DELETE:
+                delete_sha256s.add(block.data_sha256)
+
+            if len(delete_sha256s) >= delete_batch_size:
+                delete_batch(delete_sha256s, dry_run)
+                delete_sha256s.clear()
+
+        delete_batch(delete_sha256s, dry_run)
+
+        if max_id is None:
+            return
+
+        after_id = max_id + 1
 
 
 if __name__ == "__main__":

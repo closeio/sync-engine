@@ -3,6 +3,7 @@ import datetime
 import enum
 import logging
 from collections.abc import Iterable
+from concurrent.futures import ThreadPoolExecutor
 
 import click
 from sqlalchemy.orm import Query
@@ -126,6 +127,8 @@ def run(
     assert batch_size > 0
     assert delete_batch_size > 0
 
+    delete_executor = ThreadPoolExecutor(max_workers=10)
+
     for repetition in range(repeat):
         blocks = find_blocks(
             limit,
@@ -167,7 +170,7 @@ def run(
                 delete_sha256s.add(block.data_sha256)
 
             if len(delete_sha256s) >= delete_batch_size:
-                delete_batch(delete_sha256s, dry_run)
+                delete_executor.submit(delete_batch, delete_sha256s.copy(), dry_run)
                 delete_sha256s.clear()
 
         delete_batch(delete_sha256s, dry_run)
@@ -176,6 +179,8 @@ def run(
             return
 
         after_id = max_id + 1
+
+    delete_executor.shutdown(wait=True)
 
 
 if __name__ == "__main__":

@@ -304,8 +304,16 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
         message.data_sha256 = sha256(body).hexdigest()
 
+        compress = account.id == 37203
+        log.warning(
+            "In create_from_synced",
+            account_id=account.id,
+            data_sha256=message.data_sha256,
+            compress=compress,
+        )
+
         # Persist the raw MIME message to disk/ S3
-        save_raw_mime(message.data_sha256, body)
+        save_raw_mime(message.data_sha256, body, compress=compress)
 
         # Persist the processed message to the database
         message.namespace_id = account.namespace.id

@@ -1,4 +1,6 @@
 * text eol=lf
+*.eml eol=crlf
 *.png binary
 *.jpg binary
 *.ics binary
+

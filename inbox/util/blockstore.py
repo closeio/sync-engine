@@ -19,6 +19,10 @@ from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 
 # https://github.com/facebook/zstd/blob/dev/doc/zstd_compression_format.md#zstandard-frames
+# > This value was selected to be less probable to find at the beginning of some random file.
+# > It avoids trivial patterns (0x00, 0xFF, repeated bytes, increasing bytes, etc.),
+# > contains byte values outside of ASCII range, and doesn't map into UTF8 space.
+# > It reduces the chances that a text file represent this value by accident.
 ZSTD_MAGIC_NUMBER_PREFIX = 0xFD2FB528.to_bytes(4, "little")
 
 
@@ -35,10 +39,28 @@ def _data_file_path(h):
 def save_raw_mime(
     data_sha256: str, decompressed_raw_mime: bytes, *, compress: "bool | None" = None
 ) -> int:
+    """
+    Save the raw MIME data to the blockstore, optionally compressing it.
+
+    Args:
+        data_sha256: The SHA256 hash of the *uncompressed* data.
+        decompressed_raw_mime: The raw MIME data.
+        compress:
+            Whether to compress the data before storing it.
+            If None, the value of `config["COMPRESS_RAW_MIME"]` is used
+            which defaults to False.
+
+    Returns:
+        The length of the data in the datastore.
+    """
     if compress is None:
         compress = config.get("COMPRESS_RAW_MIME", False)
 
     if compress:
+        # Raw MIME data will never start with the ZSTD magic number,
+        # because email messages always start with headers in 7-bit ASCII.
+        # ZSTD magic number contains bytes with the highest bit set to 1,
+        # so we can use it as a marker to check if the data is compressed.
         assert not decompressed_raw_mime.startswith(ZSTD_MAGIC_NUMBER_PREFIX)
 
         compressed_raw_mime = zstandard.compress(decompressed_raw_mime)
@@ -46,6 +68,9 @@ def save_raw_mime(
         assert compressed_raw_mime.startswith(ZSTD_MAGIC_NUMBER_PREFIX)
 
         if len(compressed_raw_mime) > len(decompressed_raw_mime):
+            # This will not happen in practice, since even the most trivial email
+            # these days will have a lot of headers that can be compressed.
+            # But if it does, we should always store the smallest possible representation.
             compressed_raw_mime = decompressed_raw_mime
     else:
         compressed_raw_mime = decompressed_raw_mime
@@ -134,10 +159,25 @@ def get_from_blockstore(data_sha256, *, check_sha=True) -> Optional[bytes]:
 
 
 def get_raw_mime(data_sha256: str) -> "bytes | None":
+    """
+    Get the raw MIME data from the blockstore.
+
+    The data may be compressed, so this function will decompress it if necessary.
+
+    Args:
+        data_sha256: The SHA256 hash of the *uncompressed* data.
+
+    Returns:
+        The raw MIME data, or None if it wasn't found.
+    """
     compressed_raw_mime = get_from_blockstore(data_sha256, check_sha=False)
     if compressed_raw_mime is None:
         return None
 
+    # Raw MIME data will never start with the ZSTD magic number,
+    # because email messages always start with headers in 7-bit ASCII.
+    # ZSTD magic number contains bytes with the highest bit set to 1,
+    # so we can use it as a marker to check if the data is compressed.
     if compressed_raw_mime.startswith(ZSTD_MAGIC_NUMBER_PREFIX):
         decompressed_raw_mime = zstandard.decompress(compressed_raw_mime)
     else:

@@ -33,7 +33,7 @@ def _data_file_path(h):
 
 
 def save_raw_mime(
-    data_sha256: str, decompressed_raw_mime: bytes, *, compress: bool | None = None
+    data_sha256: str, decompressed_raw_mime: bytes, *, compress: "bool | None" = None
 ) -> int:
     if compress is None:
         compress = config.get("COMPRESS_RAW_MIME", False)
@@ -45,7 +45,7 @@ def save_raw_mime(
 
         assert compressed_raw_mime.startswith(ZSTD_MAGIC_NUMBER_PREFIX)
 
-        if len(compressed_raw_mime) > decompressed_raw_mime:
+        if len(compressed_raw_mime) > len(decompressed_raw_mime):
             compressed_raw_mime = decompressed_raw_mime
     else:
         compressed_raw_mime = decompressed_raw_mime
@@ -133,7 +133,7 @@ def get_from_blockstore(data_sha256, *, check_sha=True) -> Optional[bytes]:
     return value
 
 
-def get_raw_mime(data_sha256: str) -> Optional[bytes]:
+def get_raw_mime(data_sha256: str) -> "bytes | None":
     compressed_raw_mime = get_from_blockstore(data_sha256, check_sha=False)
     if compressed_raw_mime is None:
         return None

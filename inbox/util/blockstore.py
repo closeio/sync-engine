@@ -184,7 +184,7 @@ def _save_to_s3_bucket(
     bucket = get_s3_bucket(bucket_name)
 
     # See if it already exists; if so, don't recreate.
-    if _s3_key_exists(bucket, data_sha256) and not overwrite:
+    if not overwrite and _s3_key_exists(bucket, data_sha256):
         return
 
     file_object = io.BytesIO(data)

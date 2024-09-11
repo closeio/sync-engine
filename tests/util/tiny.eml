@@ -1,0 +1,60 @@
+Return-Path: <example@gmail.com>
+Received: from [192.168.0.12] ([47.61.146.222])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4279b1220f5sm6734315e9.14.2024.07.11.00.09.45
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 11 Jul 2024 00:09:45 -0700 (PDT)
+Content-Type: multipart/mixed; boundary="------------PkQVzddmc0xE3KbbCmLoAoLd"
+Message-ID: <085e74fe-aac3-4f61-a735-98bdb223f0ec@gmail.com>
+Date: Thu, 11 Jul 2024 09:09:44 +0200
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+From: Example <example@gmail.com>
+Subject: Tiny Thunderbird
+To: example@gmail.com
+Content-Language: en-US
+
+This is a multi-part message in MIME format.
+--------------PkQVzddmc0xE3KbbCmLoAoLd
+Content-Type: multipart/alternative;
+ boundary="------------KIrHVhqjoMvCNpHdNK2emQ8B"
+--------------KIrHVhqjoMvCNpHdNK2emQ8B
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Text
+Tiny png
+--------------KIrHVhqjoMvCNpHdNK2emQ8B
+Content-Type: multipart/related;
+ boundary="------------Uxc0eFahzcbfaq5vs0NlRK0z"
+--------------Uxc0eFahzcbfaq5vs0NlRK0z
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  </head>
+  <body>
+    <p>Text</p>
+    <img moz-do-not-send="false"
+      src="cid:part1.5cIgJBp4.8aHylIhm@gmail.com" alt="Tiny png"
+      class="" width="1" height="1">
+  </body>
+</html>
+--------------Uxc0eFahzcbfaq5vs0NlRK0z
+Content-Type: image/png; name="tiny.png"
+Content-Disposition: inline; filename="tiny.png"
+Content-Id: <part1.5cIgJBp4.8aHylIhm@gmail.com>
+Content-Transfer-Encoding: base64
+iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQAAAAA3bvkkAAAACklEQVR4AWNgAAAAAgABc3UB
+GAAAAABJRU5ErkJggg==
+--------------Uxc0eFahzcbfaq5vs0NlRK0z--
+
+
+--------------KIrHVhqjoMvCNpHdNK2emQ8B--
+--------------PkQVzddmc0xE3KbbCmLoAoLd
+Content-Type: image/gif; name="tiny.gif"
+Content-Disposition: attachment; filename="tiny.gif"
+Content-Transfer-Encoding: base64
+R0lGODlhAQABAIABAP///wAAACwAAAAAAQABAAACAkQBADs=
+--------------PkQVzddmc0xE3KbbCmLoAoLd--

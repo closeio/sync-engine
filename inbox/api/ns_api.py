@@ -619,7 +619,7 @@ def message_read_api(public_id):
         raise NotFoundError(f"Couldn't find message {public_id}")
 
     if request.headers.get("Accept", None) == "message/rfc822":
-        raw_message = blockstore.get_from_blockstore(message.data_sha256)
+        raw_message = blockstore.get_raw_mime(message.data_sha256)
         if raw_message is not None:
             return Response(raw_message, mimetype="message/rfc822")
         else:

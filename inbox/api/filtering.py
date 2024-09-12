@@ -19,7 +19,7 @@ from inbox.models import (
 from inbox.models.event import RecurringEvent
 
 
-def contact_subquery(db_session, namespace_id, email_address, field):
+def contact_query(db_session, namespace_id, email_address, field):
     return (
         db_session.query(Message.thread_id)
         .join(MessageContactAssociation)
@@ -29,7 +29,6 @@ def contact_subquery(db_session, namespace_id, email_address, field):
             Contact.namespace_id == namespace_id,
             MessageContactAssociation.field == field,
         )
-        .subquery()
     )
 
 
@@ -85,19 +84,19 @@ def threads(
     query = query.filter(*filters)
 
     if from_addr is not None:
-        from_query = contact_subquery(db_session, namespace_id, from_addr, "from_addr")
+        from_query = contact_query(db_session, namespace_id, from_addr, "from_addr")
         query = query.filter(Thread.id.in_(from_query))
 
     if to_addr is not None:
-        to_query = contact_subquery(db_session, namespace_id, to_addr, "to_addr")
+        to_query = contact_query(db_session, namespace_id, to_addr, "to_addr")
         query = query.filter(Thread.id.in_(to_query))
 
     if cc_addr is not None:
-        cc_query = contact_subquery(db_session, namespace_id, cc_addr, "cc_addr")
+        cc_query = contact_query(db_session, namespace_id, cc_addr, "cc_addr")
         query = query.filter(Thread.id.in_(cc_query))
 
     if bcc_addr is not None:
-        bcc_query = contact_subquery(db_session, namespace_id, bcc_addr, "bcc_addr")
+        bcc_query = contact_query(db_session, namespace_id, bcc_addr, "bcc_addr")
         query = query.filter(Thread.id.in_(bcc_query))
 
     if any_email is not None:
@@ -109,7 +108,6 @@ def threads(
                 Contact.email_address.in_(any_email),
                 Contact.namespace_id == namespace_id,
             )
-            .subquery()
         )
         query = query.filter(Thread.id.in_(any_contact_query))
 
@@ -125,7 +123,6 @@ def threads(
             .join(Part)
             .join(Block)
             .filter(Block.filename == filename, Block.namespace_id == namespace_id)
-            .subquery()
         )
         query = query.filter(Thread.id.in_(files_query))
 
@@ -142,24 +139,19 @@ def threads(
             .join(Message.messagecategories)
             .join(MessageCategory.category)
             .filter(Category.namespace_id == namespace_id, or_(*category_filters))
-            .subquery()
         )
         query = query.filter(Thread.id.in_(category_query))
 
     if unread is not None:
         read = not unread
-        unread_query = (
-            db_session.query(Message.thread_id)
-            .filter(Message.namespace_id == namespace_id, Message.is_read == read)
-            .subquery()
+        unread_query = db_session.query(Message.thread_id).filter(
+            Message.namespace_id == namespace_id, Message.is_read == read
         )
         query = query.filter(Thread.id.in_(unread_query))
 
     if starred is not None:
-        starred_query = (
-            db_session.query(Message.thread_id)
-            .filter(Message.namespace_id == namespace_id, Message.is_starred == starred)
-            .subquery()
+        starred_query = db_session.query(Message.thread_id).filter(
+            Message.namespace_id == namespace_id, Message.is_starred == starred
         )
         query = query.filter(Thread.id.in_(starred_query))
 
@@ -340,7 +332,6 @@ def messages_or_drafts(
                 Contact.email_address == to_addr,
                 Contact.namespace_id == bindparam("namespace_id"),
             )
-            .subquery()
         )
         query = query.filter(Message.id.in_(to_query))
 
@@ -353,7 +344,6 @@ def messages_or_drafts(
                 Contact.email_address == from_addr,
                 Contact.namespace_id == bindparam("namespace_id"),
             )
-            .subquery()
         )
         query = query.filter(Message.id.in_(from_query))
 
@@ -366,7 +356,6 @@ def messages_or_drafts(
                 Contact.email_address == cc_addr,
                 Contact.namespace_id == bindparam("namespace_id"),
             )
-            .subquery()
         )
         query = query.filter(Message.id.in_(cc_query))
 
@@ -379,7 +368,6 @@ def messages_or_drafts(
                 Contact.email_address == bcc_addr,
                 Contact.namespace_id == bindparam("namespace_id"),
             )
-            .subquery()
         )
         query = query.filter(Message.id.in_(bcc_query))
 
@@ -391,7 +379,6 @@ def messages_or_drafts(
                 Contact.email_address.in_(any_email),
                 Contact.namespace_id == bindparam("namespace_id"),
             )
-            .subquery()
         )
         query = query.filter(Message.id.in_(any_email_query))
 
@@ -577,7 +564,7 @@ def recurring_events(
     if ends_before:
         # start < end, so event start < ends_before
         before_criteria.append(RecurringEvent.start < ends_before)
-    recur_query = recur_query.filter(and_(*before_criteria))
+    recur_query = recur_query.filter(*before_criteria)
     after_criteria = []
     if starts_after:
         after_criteria.append(
@@ -588,7 +575,7 @@ def recurring_events(
             or_(RecurringEvent.until > ends_after, RecurringEvent.until.is_(None))
         )
 
-    recur_query = recur_query.filter(and_(*after_criteria))
+    recur_query = recur_query.filter(*after_criteria)
 
     recur_instances = []
 
@@ -687,7 +674,6 @@ def events(
                 Contact.namespace_id == namespace_id,
                 EventContactAssociation.field == "title",
             )
-            .subquery()
         )
         event_criteria.append(Event.id.in_(title_email_query))
 
@@ -700,7 +686,6 @@ def events(
                 Contact.namespace_id == namespace_id,
                 EventContactAssociation.field == "description",
             )
-            .subquery()
         )
         event_criteria.append(Event.id.in_(description_email_query))
 
@@ -713,7 +698,6 @@ def events(
                 Contact.namespace_id == namespace_id,
                 EventContactAssociation.field == "owner",
             )
-            .subquery()
         )
         event_criteria.append(Event.id.in_(owner_email_query))
 
@@ -726,7 +710,6 @@ def events(
                 Contact.namespace_id == namespace_id,
                 EventContactAssociation.field == "participant",
             )
-            .subquery()
         )
         event_criteria.append(Event.id.in_(participant_email_query))
 
@@ -737,7 +720,6 @@ def events(
             .filter(
                 Contact.email_address == any_email, Contact.namespace_id == namespace_id
             )
-            .subquery()
         )
         event_criteria.append(Event.id.in_(any_email_query))
 

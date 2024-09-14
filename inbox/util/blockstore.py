@@ -1,5 +1,6 @@
 import os
 import time
+from collections.abc import Callable
 from hashlib import sha256
 from typing import Optional
 
@@ -36,6 +37,59 @@ def _data_file_path(h):
     return os.path.join(_data_file_directory(h), h)
 
 
+def maybe_compress_raw_mime(
+    decompressed_raw_mime: bytes,
+    *,
+    compress: "bool | Callable[[bytes], bytes] | None" = None,
+) -> bytes:
+    """
+    Optionally compress the raw MIME data.
+
+    Args:
+        decompressed_raw_mime: The raw MIME data, always *decompressed*.
+        compress:
+            Whether to compress the data.
+            If None, the value of `config["COMPRESS_RAW_MIME"]` is used
+            which defaults to False. If True, the data is compressed using
+            default compression level which is 3.
+            You can also pass in a custom compression function i.e.
+            `ZstdCompressor(level=level).compress` if you want to control
+            the compression level or other options.
+
+
+    Returns:
+        The optionally compressed raw MIME data.
+    """
+    if compress is None:
+        compress = config.get("COMPRESS_RAW_MIME", False)
+
+    if compress is True:
+        compress = zstandard.compress
+
+    assert compress is False or callable(compress)
+
+    if compress:
+        # Raw MIME data will never start with the ZSTD magic number,
+        # because email messages always start with headers in 7-bit ASCII.
+        # ZSTD magic number contains bytes with the highest bit set to 1,
+        # so we can use it as a marker to check if the data is compressed.
+        assert not decompressed_raw_mime.startswith(ZSTD_MAGIC_NUMBER_PREFIX)
+
+        compressed_raw_mime = compress(decompressed_raw_mime)
+
+        assert compressed_raw_mime.startswith(ZSTD_MAGIC_NUMBER_PREFIX)
+
+        if len(compressed_raw_mime) > len(decompressed_raw_mime):
+            # This will not happen in practice, since even the most trivial email
+            # these days will have a lot of headers that can be compressed.
+            # But if it does, we should always store the smallest possible representation.
+            compressed_raw_mime = decompressed_raw_mime
+    else:
+        compressed_raw_mime = decompressed_raw_mime
+
+    return compressed_raw_mime
+
+
 def save_raw_mime(
     data_sha256: str, decompressed_raw_mime: bytes, *, compress: "bool | None" = None
 ) -> int:
@@ -53,34 +107,18 @@ def save_raw_mime(
     Returns:
         The length of the data in the datastore.
     """
-    if compress is None:
-        compress = config.get("COMPRESS_RAW_MIME", False)
-
-    if compress:
-        # Raw MIME data will never start with the ZSTD magic number,
-        # because email messages always start with headers in 7-bit ASCII.
-        # ZSTD magic number contains bytes with the highest bit set to 1,
-        # so we can use it as a marker to check if the data is compressed.
-        assert not decompressed_raw_mime.startswith(ZSTD_MAGIC_NUMBER_PREFIX)
-
-        compressed_raw_mime = zstandard.compress(decompressed_raw_mime)
-
-        assert compressed_raw_mime.startswith(ZSTD_MAGIC_NUMBER_PREFIX)
-
-        if len(compressed_raw_mime) > len(decompressed_raw_mime):
-            # This will not happen in practice, since even the most trivial email
-            # these days will have a lot of headers that can be compressed.
-            # But if it does, we should always store the smallest possible representation.
-            compressed_raw_mime = decompressed_raw_mime
-    else:
-        compressed_raw_mime = decompressed_raw_mime
+    compressed_raw_mime = maybe_compress_raw_mime(
+        decompressed_raw_mime, compress=compress
+    )
 
     save_to_blockstore(data_sha256, compressed_raw_mime)
 
     return len(compressed_raw_mime)
 
 
-def save_to_blockstore(data_sha256: str, data: bytes) -> None:
+def save_to_blockstore(
+    data_sha256: str, data: bytes, *, overwrite: bool = False
+) -> None:
     assert data is not None
     assert isinstance(data, bytes)
 
@@ -89,7 +127,7 @@ def save_to_blockstore(data_sha256: str, data: bytes) -> None:
         return
 
     if STORE_MSG_ON_S3:
-        _save_to_s3(data_sha256, data)
+        _save_to_s3(data_sha256, data, overwrite=overwrite)
     else:
         directory = _data_file_directory(data_sha256)
         os.makedirs(directory, exist_ok=True)
@@ -98,12 +136,14 @@ def save_to_blockstore(data_sha256: str, data: bytes) -> None:
             f.write(data)
 
 
-def _save_to_s3(data_sha256: str, data: bytes) -> None:
+def _save_to_s3(data_sha256: str, data: bytes, *, overwrite: bool = False) -> None:
     assert (
         "TEMP_MESSAGE_STORE_BUCKET_NAME" in config
     ), "Need temp bucket name to store message data!"
 
-    _save_to_s3_bucket(data_sha256, config["TEMP_MESSAGE_STORE_BUCKET_NAME"], data)
+    _save_to_s3_bucket(
+        data_sha256, config["TEMP_MESSAGE_STORE_BUCKET_NAME"], data, overwrite=overwrite
+    )
 
 
 def get_s3_bucket(bucket_name):
@@ -117,7 +157,9 @@ def get_s3_bucket(bucket_name):
     return conn.get_bucket(bucket_name, validate=False)
 
 
-def _save_to_s3_bucket(data_sha256: str, bucket_name: str, data: bytes) -> None:
+def _save_to_s3_bucket(
+    data_sha256: str, bucket_name: str, data: bytes, *, overwrite: bool = False
+) -> None:
     assert "AWS_ACCESS_KEY_ID" in config, "Need AWS key!"
     assert "AWS_SECRET_ACCESS_KEY" in config, "Need AWS secret!"
     start = time.time()
@@ -127,7 +169,7 @@ def _save_to_s3_bucket(data_sha256: str, bucket_name: str, data: bytes) -> None:
 
     # See if it already exists; if so, don't recreate.
     key = bucket.get_key(data_sha256)
-    if key:
+    if key and not overwrite:
         return
 
     key = Key(bucket)
@@ -158,6 +200,26 @@ def get_from_blockstore(data_sha256, *, check_sha=True) -> Optional[bytes]:
     return value
 
 
+def maybe_decompress_raw_mime(compressed_raw_mime: bytes) -> bytes:
+    """
+    Decompress the raw MIME data if it's compressed.
+
+    Args:
+        compressed_raw_mime: The raw MIME data, either compressed or not.
+
+    Returns:
+        The decompressed raw MIME data.
+    """
+    # Raw MIME data will never start with the ZSTD magic number,
+    # because email messages always start with headers in 7-bit ASCII.
+    # ZSTD magic number contains bytes with the highest bit set to 1,
+    # so we can use it as a marker to check if the data is compressed.
+    if compressed_raw_mime.startswith(ZSTD_MAGIC_NUMBER_PREFIX):
+        return zstandard.decompress(compressed_raw_mime)
+    else:
+        return compressed_raw_mime
+
+
 def get_raw_mime(data_sha256: str) -> "bytes | None":
     """
     Get the raw MIME data from the blockstore.
@@ -174,14 +236,7 @@ def get_raw_mime(data_sha256: str) -> "bytes | None":
     if compressed_raw_mime is None:
         return None
 
-    # Raw MIME data will never start with the ZSTD magic number,
-    # because email messages always start with headers in 7-bit ASCII.
-    # ZSTD magic number contains bytes with the highest bit set to 1,
-    # so we can use it as a marker to check if the data is compressed.
-    if compressed_raw_mime.startswith(ZSTD_MAGIC_NUMBER_PREFIX):
-        decompressed_raw_mime = zstandard.decompress(compressed_raw_mime)
-    else:
-        decompressed_raw_mime = compressed_raw_mime
+    decompressed_raw_mime = maybe_decompress_raw_mime(compressed_raw_mime)
 
     assert (
         sha256(decompressed_raw_mime).hexdigest() == data_sha256

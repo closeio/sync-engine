@@ -88,6 +88,7 @@ def find_messages(
     before_id: "int | None",
     namespace_id: "int | None",
     batch_size: int,
+    max_size: "int | None",
 ) -> "Iterable[tuple[Message, int]]":
     query = Query([Message]).order_by(Message.id)
 
@@ -101,6 +102,8 @@ def find_messages(
         query = query.filter(Message.id < before_id)
     if namespace_id:
         query = query.filter(Message.namespace_id == namespace_id)
+    if max_size:
+        query = query.filter(Message.size <= max_size)
 
     inner_max_id_query = query.with_entities(Message.id)
     if limit is not None:
@@ -256,6 +259,7 @@ def recompress_batch(
 @click.option("--dry-run/--no-dry-run", default=True)
 @click.option("--check-existence/--no-check-existence", default=False)
 @click.option("--compression-level", type=int, default=3)
+@click.option("--max-size", type=int, default=None)
 def run(
     limit: "int | None",
     after: "str | None",
@@ -270,6 +274,7 @@ def run(
     dry_run: bool,
     check_existence: bool,
     compression_level: int,
+    max_size: "int | None",
 ) -> int:
     shutting_down = False
 
@@ -298,6 +303,7 @@ def run(
             before_id,
             namespace_id,
             batch_size,
+            max_size,
         )
 
         recompress_sha256s = set()

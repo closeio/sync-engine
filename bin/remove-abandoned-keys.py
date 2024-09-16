@@ -4,6 +4,7 @@ from gevent import monkey
 monkey.patch_all()
 
 from collections.abc import Iterable
+from concurrent.futures import ThreadPoolExecutor
 
 import click
 
@@ -24,7 +25,7 @@ def find_keys(limit: "int | None", marker: "str | None") -> "Iterable[str]":
         all_keys = bucket.get_all_keys(marker=marker)
         for key in all_keys:
             yield key.name
-            yielded += 1
+            yielded += 1  # noqa: SIM113
 
             if limit is not None and yielded >= limit:
                 return
@@ -35,7 +36,7 @@ def find_keys(limit: "int | None", marker: "str | None") -> "Iterable[str]":
         marker = all_keys[-1].name
 
 
-def get_abandoned_keys(sha256s: "set[str]") -> "str[str]":
+def get_abandoned_keys(sha256s: "set[str]") -> "set[str]":
     with global_session_scope() as db_session:
         referenched_sha256s = {
             sha256
@@ -45,6 +46,20 @@ def get_abandoned_keys(sha256s: "set[str]") -> "str[str]":
         }
 
     return sha256s - referenched_sha256s
+
+
+DELETE_BATCH_SIZE = 100
+
+
+def do_delete_batch(delete_sha256s: "set[str]", dry_run: bool) -> None:
+    if not delete_sha256s:
+        return
+
+    if not dry_run:
+        blockstore.delete_from_blockstore(*delete_sha256s)
+        print("deleted", len(delete_sha256s), "blobs")
+    else:
+        print("would-delete", len(delete_sha256s), "blobs")
 
 
 @click.command()
@@ -57,7 +72,10 @@ def run(
 ) -> None:
     assert limit is None or limit > 0
 
+    delete_executor = ThreadPoolExecutor(max_workers=10)
+
     get_abandoned_batch = set()
+    delete_batch = set()
 
     for offset, sha256 in enumerate(find_keys(limit, marker)):
         print_arguments = [offset]
@@ -71,9 +89,20 @@ def run(
 
         if len(get_abandoned_batch) >= batch_size:
             for abandoned_sha256 in get_abandoned_keys(get_abandoned_batch):
-                print("Abandoned", abandoned_sha256)
+                delete_batch.add(abandoned_sha256)
+
+                if len(delete_batch) >= DELETE_BATCH_SIZE:
+                    delete_executor.submit(
+                        do_delete_batch, delete_batch.copy(), dry_run
+                    )
+                    delete_batch.clear()
 
             get_abandoned_batch.clear()
+
+    delete_batch = get_abandoned_keys(get_abandoned_batch)
+    delete_executor.submit(do_delete_batch, delete_batch.copy(), dry_run)
+
+    delete_executor.shutdown(wait=True)
 
 
 if __name__ == "__main__":

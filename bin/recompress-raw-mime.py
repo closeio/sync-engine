@@ -29,6 +29,7 @@ log = get_logger()
 
 DEFAULT_RECOMPRESS_BATCH_SIZE = 100
 DEFAULT_BATCH_SIZE = 1000
+MAX_RECOMPRESS_BATCH_BYTES = 100 * 1024 * 1024  # 100 MB
 
 
 class Resolution(enum.Enum):
@@ -260,6 +261,9 @@ def recompress_batch(
 @click.option("--check-existence/--no-check-existence", default=False)
 @click.option("--compression-level", type=int, default=3)
 @click.option("--max-size", type=int, default=None)
+@click.option(
+    "--max-recompress-batch-bytes", type=int, default=MAX_RECOMPRESS_BATCH_BYTES
+)
 def run(
     limit: "int | None",
     after: "str | None",
@@ -275,6 +279,7 @@ def run(
     check_existence: bool,
     compression_level: int,
     max_size: "int | None",
+    max_recompress_batch_bytes: int,
 ) -> int:
     shutting_down = False
 
@@ -307,6 +312,7 @@ def run(
         )
 
         recompress_sha256s = set()
+        recompress_bytes = 0
 
         max_id = None
         for message, max_id in messages:
@@ -336,8 +342,12 @@ def run(
 
             if resolution is Resolution.RECOMPRESS:
                 recompress_sha256s.add(message.data_sha256)
+                recompress_bytes += message.size
 
-            if len(recompress_sha256s) >= recompress_batch_size:
+            if (
+                len(recompress_sha256s) >= recompress_batch_size
+                or recompress_bytes > max_recompress_batch_bytes
+            ):
                 recompress_executor.wait_for_available_worker()
                 recompress_executor.submit(
                     recompress_batch,
@@ -346,6 +356,7 @@ def run(
                     compression_level=compression_level,
                 )
                 recompress_sha256s.clear()
+                recompress_bytes = 0
 
                 if shutting_down:
                     break

@@ -35,6 +35,7 @@ MAX_RECOMPRESS_BATCH_BYTES = 100 * 1024 * 1024  # 100 MB
 class Resolution(enum.Enum):
     NOT_PRESENT = "not-present"
     RECOMPRESS = "recompress"
+    SKIP = "skip"
 
 
 # https://stackoverflow.com/questions/73395864/how-do-i-wait-when-all-threadpoolexecutor-threads-are-busy
@@ -264,6 +265,7 @@ def recompress_batch(
 @click.option(
     "--max-recompress-batch-bytes", type=int, default=MAX_RECOMPRESS_BATCH_BYTES
 )
+@click.option("--fraction", type=str, default=None)
 def run(
     limit: "int | None",
     after: "str | None",
@@ -280,6 +282,7 @@ def run(
     compression_level: int,
     max_size: "int | None",
     max_recompress_batch_bytes: int,
+    fraction: "str | None",
 ) -> int:
     shutting_down = False
 
@@ -291,6 +294,14 @@ def run(
 
     signal.signal(signal.SIGINT, shutdown)
     signal.signal(signal.SIGTERM, shutdown)
+
+    fraction_tuple = None
+    if fraction is not None:
+        fraction_tuple = tuple(map(int, fraction.split("/")))
+        assert len(fraction_tuple) == 2
+        assert fraction_tuple[0] >= 0
+        assert fraction_tuple[1] > 1
+        assert fraction_tuple[0] < fraction_tuple[1]
 
     assert batch_size > 0
     assert recompress_batch_size > 0
@@ -327,6 +338,12 @@ def run(
                 resolution = Resolution.NOT_PRESENT
             else:
                 resolution = Resolution.RECOMPRESS
+
+            if (
+                fraction_tuple is not None
+                and message.id % fraction_tuple[1] != fraction_tuple[0]
+            ):
+                resolution = Resolution.SKIP
 
             print_arguments = [
                 f"{message.id}/{max_id}",

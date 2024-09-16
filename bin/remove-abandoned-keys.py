@@ -3,6 +3,7 @@ from gevent import monkey
 
 monkey.patch_all()
 
+import signal
 from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor
 
@@ -72,18 +73,27 @@ def run(
 ) -> None:
     assert limit is None or limit > 0
 
+    shutting_down = False
+
+    def shutdown(signum, frame):
+        nonlocal shutting_down
+        shutting_down = True
+
+        print("Shutting down...")
+
+    signal.signal(signal.SIGINT, shutdown)
+    signal.signal(signal.SIGTERM, shutdown)
+
     delete_executor = ThreadPoolExecutor(max_workers=10)
 
     get_abandoned_batch = set()
     delete_batch = set()
 
-    for offset, sha256 in enumerate(find_keys(limit, marker)):
-        print_arguments = [offset]
-        if limit is not None:
-            print_arguments.append(limit)
-        print_arguments.append(sha256)
+    for sha256 in find_keys(limit, marker):
+        if shutting_down:
+            break
 
-        print(*print_arguments)
+        print(sha256)
 
         get_abandoned_batch.add(sha256)
 

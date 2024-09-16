@@ -68,8 +68,13 @@ def do_delete_batch(delete_sha256s: "set[str]", dry_run: bool) -> None:
 @click.option("--marker", type=str, default=None)
 @click.option("--batch-size", type=int, default=10000)
 @click.option("--dry-run/--no-dry-run", default=True)
+@click.option("--delete-executor-workers", type=int, default=40)
 def run(
-    limit: "int | None", marker: "str | None", batch_size: int, dry_run: bool
+    limit: "int | None",
+    marker: "str | None",
+    batch_size: int,
+    dry_run: bool,
+    delete_executor_workers: int,
 ) -> None:
     assert limit is None or limit > 0
 
@@ -84,7 +89,7 @@ def run(
     signal.signal(signal.SIGINT, shutdown)
     signal.signal(signal.SIGTERM, shutdown)
 
-    delete_executor = ThreadPoolExecutor(max_workers=10)
+    delete_executor = ThreadPoolExecutor(max_workers=delete_executor_workers)
 
     get_abandoned_batch = set()
     delete_batch = set()

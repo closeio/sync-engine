@@ -16,7 +16,7 @@ mypy==1.11.2
 regex==2024.9.11
 packaging==24.1
 pathspec==0.12.1
-platformdirs==4.3.3
+platformdirs==4.3.6
 pyflakes==3.2.0
 pycodestyle==2.9.1
 toml==0.10.2

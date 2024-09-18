@@ -18,9 +18,6 @@ from concurrent.futures import ThreadPoolExecutor
 import click
 
 from inbox.config import config
-
-config["USE_GEVENT"] = False
-
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.logging import configure_logging, get_logger
 from inbox.models.util import batch_delete_namespaces, get_accounts_to_delete

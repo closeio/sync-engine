@@ -6,15 +6,12 @@ the created_at column)
 """
 
 
-from gevent import monkey
-
-monkey.patch_all()
-
 import logging
 import sys
+import time
+from concurrent.futures import ThreadPoolExecutor
 
 import click
-import gevent
 
 from inbox.config import config
 from inbox.error_handling import maybe_enable_rollbar
@@ -35,16 +32,11 @@ def run(days_ago, limit, throttle, dry_run):
 
     print("Python", sys.version, file=sys.stderr)
 
-    pool = []
-
-    for host in config["DATABASE_HOSTS"]:
-        pool.append(
-            gevent.spawn(
+    with ThreadPoolExecutor(max_workers=len(config["DATABASE_HOSTS"])) as executor:
+        for host in config["DATABASE_HOSTS"]:
+            executor.submit(
                 purge_old_transactions, host, days_ago, limit, throttle, dry_run
             )
-        )
-
-    gevent.joinall(pool)
 
 
 def purge_old_transactions(host, days_ago, limit, throttle, dry_run):
@@ -60,7 +52,7 @@ def purge_old_transactions(host, days_ago, limit, throttle, dry_run):
                 log.info(
                     "Will not spawn process for disabled shard", shard_id=shard["ID"]
                 )
-        gevent.sleep(600)
+        time.sleep(600)
 
 
 if __name__ == "__main__":

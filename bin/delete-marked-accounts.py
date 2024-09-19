@@ -10,15 +10,12 @@ Includes:
 """
 
 
-from gevent import monkey
-
-monkey.patch_all()
-
 import logging
 import sys
+import time
+from concurrent.futures import ThreadPoolExecutor
 
 import click
-import gevent
 
 from inbox.config import config
 from inbox.error_handling import maybe_enable_rollbar
@@ -37,13 +34,10 @@ def run(throttle, dry_run):
 
     print("Python", sys.version, file=sys.stderr)
 
-    pool = []
-
-    for host in config["DATABASE_HOSTS"]:
-        log.info("Spawning delete process for host", host=host["HOSTNAME"])
-        pool.append(gevent.spawn(delete_account_data, host, throttle, dry_run))
-
-    gevent.joinall(pool)
+    with ThreadPoolExecutor(max_workers=len(config["DATABASE_HOSTS"])) as executor:
+        for host in config["DATABASE_HOSTS"]:
+            log.info("Spawning delete process for host", host=host["HOSTNAME"])
+            executor.submit(delete_account_data, host, throttle, dry_run)
 
 
 def delete_account_data(host, throttle, dry_run):
@@ -53,7 +47,7 @@ def delete_account_data(host, throttle, dry_run):
             if "DISABLED" in shard and not shard["DISABLED"]:
                 namespace_ids = get_accounts_to_delete(shard["ID"])
                 batch_delete_namespaces(namespace_ids, throttle, dry_run)
-        gevent.sleep(600)
+        time.sleep(600)
 
 
 if __name__ == "__main__":

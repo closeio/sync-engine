@@ -4,6 +4,7 @@ import time
 import gevent
 from sqlalchemy import func
 from sqlalchemy.orm import load_only
+from sqlalchemy.orm.exc import ObjectDeletedError
 
 from inbox.crispin import connection_pool
 from inbox.logging import get_logger
@@ -97,7 +98,15 @@ class DeleteHandler(gevent.Greenlet):
             for message in dangling_messages:
                 # If the message isn't *actually* dangling (i.e., it has
                 # imapuids associated with it), undelete it.
-                if self.uids_for_message(message):
+                try:
+                    uids_for_message = self.uids_for_message(message)
+                except ObjectDeletedError:
+                    # It looks like we are expiring the session potentially when one message is deleted,
+                    # and then when accessing the IMAP uids, there is a lazy load trying to get the data.
+                    # If that object has also been deleted (how?) it raises this exception.
+                    continue
+
+                if uids_for_message:
                     message.deleted_at = None
                     continue
 

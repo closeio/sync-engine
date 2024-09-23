@@ -84,6 +84,7 @@ from inbox.util.stats import statsd_client
 from inbox.util.threading import MAX_THREAD_LENGTH, fetch_corresponding_thread
 
 log = get_logger()
+from inbox.config import config
 from inbox.crispin import FolderMissingError, RawMessage, connection_pool, retry_crispin
 from inbox.events.ical import import_attached_events
 from inbox.heartbeat.store import HeartbeatStatusProxy
@@ -585,7 +586,10 @@ class FolderSyncEngine(Greenlet):
         # obvious place (like Message.create_from_synced) because the function
         # requires new_uid.message to have been flushed.
         # This is necessary because the import_attached_events does db lookups.
-        if new_uid.message.has_attached_events:
+        if (
+            config.get("IMPORT_ATTACHED_EVENTS", True)
+            and new_uid.message.has_attached_events
+        ):
             with db_session.no_autoflush:
                 import_attached_events(db_session, account, new_uid.message)
 

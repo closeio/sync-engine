@@ -117,7 +117,7 @@ class Block(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
 
                 # Try to fetch the message from S3 first.
                 with statsd_client.timer(f"{statsd_string}.blockstore_latency"):
-                    raw_mime = blockstore.get_from_blockstore(message.data_sha256)
+                    raw_mime = blockstore.get_raw_mime(message.data_sha256)
 
                 # If it's not there, get it from the provider.
                 if raw_mime is None:

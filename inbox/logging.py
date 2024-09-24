@@ -10,6 +10,7 @@ import logging
 import os
 import re
 import sys
+import threading
 import traceback
 from types import TracebackType
 from typing import Any, Dict, Optional, Tuple, Type
@@ -209,7 +210,12 @@ class BoundLogger(structlog.stdlib.BoundLogger):
     """BoundLogger which always adds greenlet_id and env to positional args"""
 
     def _proxy_to_logger(self, method_name, event, *event_args, **event_kw):
-        event_kw["greenlet_id"] = id(gevent.getcurrent())
+        from inbox.config import config
+
+        if config.get("USE_GEVENT", True):
+            event_kw["greenlet_id"] = id(gevent.getcurrent())
+        else:
+            event_kw["thread_id"] = threading.get_ident()
 
         # 'prod', 'staging', 'dev' ...
         env = os.environ.get("NYLAS_ENV")

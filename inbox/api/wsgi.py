@@ -1,12 +1,8 @@
-import gevent.monkey
-
-gevent.monkey.patch_all()
-
 import logging
 import sys
 
 import json_log_formatter
-from gunicorn.workers.ggevent import GeventWorker
+from gunicorn.workers.gthread import ThreadWorker
 
 from inbox.instrumentation import Tracer
 from inbox.logging import configure_logging, get_logger
@@ -14,7 +10,7 @@ from inbox.logging import configure_logging, get_logger
 log = get_logger()
 
 
-class NylasWSGIWorker(GeventWorker):
+class NylasWSGIWorker(ThreadWorker):
     """Custom worker class for gunicorn. Based on
     gunicorn.workers.ggevent.GeventPyWSGIWorker.
     """
@@ -26,7 +22,7 @@ class NylasWSGIWorker(GeventWorker):
 
         configure_logging(log_level=LOGLEVEL)
 
-        if MAX_BLOCKING_TIME:
+        if config.get("USE_GEVENT", True) and MAX_BLOCKING_TIME:
             self.tracer = Tracer(max_blocking_time=MAX_BLOCKING_TIME)
             self.tracer.start()
         super().init_process()

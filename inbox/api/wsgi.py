@@ -4,16 +4,13 @@ import sys
 import json_log_formatter
 from gunicorn.workers.gthread import ThreadWorker
 
-from inbox.instrumentation import Tracer
 from inbox.logging import configure_logging, get_logger
 
 log = get_logger()
 
 
 class NylasWSGIWorker(ThreadWorker):
-    """Custom worker class for gunicorn. Based on
-    gunicorn.workers.ggevent.GeventPyWSGIWorker.
-    """
+    """Custom worker class for gunicorn."""
 
     def init_process(self):
         print("Python", sys.version, file=sys.stderr)
@@ -22,16 +19,14 @@ class NylasWSGIWorker(ThreadWorker):
 
         configure_logging(log_level=LOGLEVEL)
 
-        if config.get("USE_GEVENT", True) and MAX_BLOCKING_TIME:
-            self.tracer = Tracer(max_blocking_time=MAX_BLOCKING_TIME)
-            self.tracer.start()
+        assert not config.get("USE_GEVENT", True), "USE_GEVENT must be False"
+
         super().init_process()
 
 
 from inbox.config import config
 from inbox.error_handling import maybe_enable_rollbar
 
-MAX_BLOCKING_TIME = config.get("MAX_BLOCKING_TIME", 1.0)
 LOGLEVEL = config.get("LOGLEVEL", 10)
 
 

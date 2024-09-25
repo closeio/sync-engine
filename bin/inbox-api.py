@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-from gevent import monkey
-
-monkey.patch_all()
 
 import os
 import sys

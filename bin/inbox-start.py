@@ -124,7 +124,7 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
     print(file=sys.stderr)
     print("Python", sys.version, file=sys.stderr)
 
-    if enable_tracer and not config.get("USE_GEVENT", True):
+    if enable_tracer and not inbox_config.get("USE_GEVENT", True):
         enable_tracer = False
 
         log.warning("Disabling the stuck greenlet tracer because USE_GEVENT is False")

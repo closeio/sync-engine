@@ -122,7 +122,7 @@ class SyncbackService(gevent.Greenlet):
         self.batch_size = batch_size
 
         self.keep_running = True
-        self.workers = gevent.pool.Group()
+        self.workers = []
         # Dictionary account_id -> semaphore to serialize action syncback for
         # any particular account.
         # TODO(emfree): We really only need to serialize actions that operate
@@ -480,7 +480,7 @@ class SyncbackService(gevent.Greenlet):
     def _restart_workers(self):
         while len(self.workers) < self.num_workers:
             worker = SyncbackWorker(self)
-            self.workers.add(worker)
+            self.workers.append(worker)
             self.num_idle_workers += 1
             worker.start()
 
@@ -497,7 +497,8 @@ class SyncbackService(gevent.Greenlet):
 
     def stop(self):
         self.keep_running = False
-        self.workers.kill()
+        for worker in self.workers:
+            worker.kill()
 
     def _run(self):
         self.log.info(

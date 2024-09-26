@@ -8,16 +8,15 @@ talking to the same database backend things could go really badly.
 
 """
 
+import queue
 import random
+import threading
 import weakref
 from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import DefaultDict, Optional, Set
 
 import gevent
-import gevent.event
-from gevent.lock import BoundedSemaphore
-from gevent.queue import Queue
 from sqlalchemy import desc
 
 from inbox.actions.base import (
@@ -130,8 +129,8 @@ class SyncbackService(gevent.Greenlet):
         # on any given object. But IMAP actions are already effectively
         # serialized by using an IMAP connection pool of size 1, so it doesn't
         # matter too much.
-        self.account_semaphores: DefaultDict[int, BoundedSemaphore] = defaultdict(
-            lambda: BoundedSemaphore(1)
+        self.account_semaphores: DefaultDict[int, threading.BoundedSemaphore] = (
+            defaultdict(lambda: threading.BoundedSemaphore(1))
         )
         # This SyncbackService performs syncback for only and all the accounts
         # on shards it is reponsible for; shards are divided up between
@@ -156,11 +155,11 @@ class SyncbackService(gevent.Greenlet):
         self.log = logger.new(component="syncback")
         self.num_workers = num_workers
         self.num_idle_workers = 0
-        self.worker_did_finish = gevent.event.Event()
+        self.worker_did_finish = threading.Event()
         self.worker_did_finish.clear()
-        self.task_queue = Queue()
+        self.task_queue = queue.Queue()
         self.running_action_ids = set()
-        gevent.Greenlet.__init__(self)
+        super().__init__()
 
     def _has_recent_move_action(self, db_session, log_entries):
         """
@@ -818,7 +817,7 @@ class SyncbackWorker(gevent.Greenlet):
         self.parent_service = weakref.ref(parent_service)
         self.task_timeout = task_timeout
         self.log = logger.new(component="syncback-worker")
-        gevent.Greenlet.__init__(self)
+        super().__init__()
 
     def _run(self):
         while self.parent_service().keep_running:

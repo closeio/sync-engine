@@ -14,6 +14,7 @@ from sqlalchemy import (
     Column,
     DateTime,
     Enum,
+    ForeignKey,
     Index,
     Integer,
     String,
@@ -838,7 +839,9 @@ Index(
 class MessageCategory(MailSyncBase):
     """Mapping between messages and categories."""
 
-    message_id = Column(BigInteger, nullable=False)
+    message_id = Column(
+        BigInteger, ForeignKey(Message.id, ondelete="CASCADE"), nullable=False
+    )
     message = relationship(
         "Message",
         primaryjoin="foreign(MessageCategory.message_id) == remote(Message.id)",
@@ -847,7 +850,12 @@ class MessageCategory(MailSyncBase):
         ),
     )
 
-    category_id = Column(BigInteger, nullable=False, index=True)
+    category_id = Column(
+        BigInteger,
+        ForeignKey(Category.id, ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     category = relationship(
         Category,
         primaryjoin="foreign(MessageCategory.category_id) == remote(Category.id)",

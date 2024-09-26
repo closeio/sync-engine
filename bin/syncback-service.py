@@ -71,7 +71,7 @@ def main(prod, config, process_num, syncback_id, enable_tracer, enable_profiler)
     configure_logging(log_level=level)
     reconfigure_logging()
 
-    if enable_tracer and not config.get("USE_GEVENT", True):
+    if enable_tracer and not inbox_config.get("USE_GEVENT", True):
         enable_tracer = False
 
         log = get_logger()

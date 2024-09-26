@@ -654,8 +654,8 @@ class FolderSyncEngine(Greenlet):
 
         new_uids = set()
         with self.syncmanager_lock, session_scope(self.namespace_id) as db_session:
-            account = Account.get(self.account_id, db_session)
-            folder = Folder.get(self.folder_id, db_session)
+            account = db_session.query(Account).filter_by(id=self.account_id).one()
+            folder = db_session.query(Folder).filter_by(id=self.folder_id).one()
             for msg in raw_messages:
                 uid = self.create_message(db_session, account, folder, msg)
                 if uid is not None:

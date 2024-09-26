@@ -19,7 +19,7 @@ from setproctitle import setproctitle
 
 from inbox.config import config as inbox_config
 from inbox.error_handling import maybe_enable_rollbar
-from inbox.logging import configure_logging
+from inbox.logging import configure_logging, get_logger
 from inbox.mailsync.frontend import SyncbackHTTPFrontend
 from inbox.transactions.actions import SyncbackService
 from inbox.util.logging_helper import reconfigure_logging
@@ -70,6 +70,12 @@ def main(prod, config, process_num, syncback_id, enable_tracer, enable_profiler)
     level = os.environ.get("LOGLEVEL", inbox_config.get("LOGLEVEL"))
     configure_logging(log_level=level)
     reconfigure_logging()
+
+    if enable_tracer and not config.get("USE_GEVENT", True):
+        enable_tracer = False
+
+        log = get_logger()
+        log.warning("Disabling the stuck greenlet tracer because USE_GEVENT is False")
 
     total_processes = int(os.environ.get("SYNCBACK_PROCESSES", 1))
 

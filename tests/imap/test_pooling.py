@@ -34,11 +34,10 @@ def test_pool():
     assert conn in get_all(pool._queue)
 
 
-@pytest.mark.skipif(True, reason="randomly blocks forever")
 def test_block_on_depleted_pool():
     pool = TestableConnectionPool(1, num_connections=1, readonly=True)
     # Test that getting a connection when the pool is empty blocks
-    with pytest.raises(gevent.hub.LoopExit), pool.get(), pool.get():
+    with pytest.raises(gevent.hub.LoopExit), pool.get(), pool.get(0.1):
         pass
 
 

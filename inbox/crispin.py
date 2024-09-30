@@ -247,7 +247,7 @@ class CrispinConnectionPool:
             log.info("Error on IMAP logout", exc_info=True)
 
     @contextlib.contextmanager
-    def get(self):
+    def get(self, timeout: "float | None" = None):
         """Get a connection from the pool, or instantiate a new one if needed.
         If `num_connections` connections are already in use, block until one is
         available.
@@ -258,7 +258,8 @@ class CrispinConnectionPool:
         # The queue implementation does not have that property; having
         # greenlets simply block on self._queue.get(block=True) could cause
         # individual greenlets to block for arbitrarily long.
-        self._sem.acquire()
+
+        self._sem.acquire(timeout=timeout)
         client = self._queue.get()
         try:
             if client is None:

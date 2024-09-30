@@ -67,13 +67,13 @@ import time
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
-from gevent import Greenlet
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.exceptions import ValidationError
+from inbox.greenlet_like import GreenletLikeThread
 from inbox.logging import get_logger
 from inbox.util.concurrency import retry_with_logging
 from inbox.util.debug import bind_context
@@ -121,7 +121,7 @@ MAX_UIDINVALID_RESYNCS = 5
 CONDSTORE_FLAGS_REFRESH_BATCH_SIZE = 200
 
 
-class ChangePoller(Greenlet):
+class ChangePoller(GreenletLikeThread):
     def __init__(self, engine: "FolderSyncEngine") -> None:
         self.engine = engine
         super().__init__()
@@ -134,7 +134,7 @@ class ChangePoller(Greenlet):
             self.engine.poll_impl()
 
 
-class FolderSyncEngine(Greenlet):
+class FolderSyncEngine(GreenletLikeThread):
     """Base class for a per-folder IMAP sync engine."""
 
     def __init__(

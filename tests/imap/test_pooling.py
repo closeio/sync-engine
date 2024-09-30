@@ -5,10 +5,9 @@ import ssl
 from typing import Any, List
 from unittest import mock
 
-import gevent
 import pytest
 
-from inbox.crispin import CrispinConnectionPool
+from inbox.crispin import ConnectionPoolTimeoutError, CrispinConnectionPool
 
 
 class TestableConnectionPool(CrispinConnectionPool):
@@ -34,10 +33,10 @@ def test_pool():
     assert conn in get_all(pool._queue)
 
 
-def test_block_on_depleted_pool():
+def test_timeout_on_depleted_pool():
     pool = TestableConnectionPool(1, num_connections=1, readonly=True)
-    # Test that getting a connection when the pool is empty blocks
-    with pytest.raises(gevent.hub.LoopExit), pool.get(), pool.get(0.1):
+    # Test that getting a connection when the pool is empty times out
+    with pytest.raises(ConnectionPoolTimeoutError), pool.get(), pool.get(timeout=0.1):
         pass
 
 

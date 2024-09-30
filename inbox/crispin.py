@@ -204,6 +204,10 @@ def convert_flags(flags: Tuple[Union[bytes, int], ...]) -> Tuple[bytes, ...]:
     )
 
 
+class ConnectionPoolTimeoutError(Exception):
+    pass
+
+
 class CrispinConnectionPool:
     """
     Connection pool for Crispin clients.
@@ -247,7 +251,7 @@ class CrispinConnectionPool:
             log.info("Error on IMAP logout", exc_info=True)
 
     @contextlib.contextmanager
-    def get(self, timeout: "float | None" = None):
+    def get(self, *, timeout: "float | None" = None):
         """Get a connection from the pool, or instantiate a new one if needed.
         If `num_connections` connections are already in use, block until one is
         available.
@@ -259,7 +263,10 @@ class CrispinConnectionPool:
         # greenlets simply block on self._queue.get(block=True) could cause
         # individual greenlets to block for arbitrarily long.
 
-        self._sem.acquire(timeout=timeout)
+        succeeded = self._sem.acquire(timeout=timeout)
+        if not succeeded:
+            raise ConnectionPoolTimeoutError()
+
         client = self._queue.get()
         try:
             if client is None:

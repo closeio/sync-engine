@@ -253,8 +253,15 @@ class CrispinConnectionPool:
     @contextlib.contextmanager
     def get(self, *, timeout: "float | None" = None):
         """Get a connection from the pool, or instantiate a new one if needed.
-        If `num_connections` connections are already in use, block until one is
-        available.
+
+        If `num_connections` connections are already in use and timeout is `None`,
+        block until one is available. If timeout is a `float`, raise a
+        `ConnectionPoolTimeoutError` if a connection is not available within
+        that time.
+
+        Args:
+            timeout: The maximum time in seconds to wait for a connection to
+                become available. If `None`, block until a connection is available.
         """
         # A gevent semaphore is granted in the order that greenlets tried to
         # acquire it, so we use a semaphore here to prevent potential

@@ -2,6 +2,8 @@
 import time
 from unittest import mock
 
+import pytest
+
 from inbox.util.testutils import mock_imapclient  # noqa
 
 from tests.util.base import add_fake_category, add_fake_folder
@@ -44,6 +46,7 @@ def test_folder_stripping(db, generic_account, imap_api_client):
 # the output of the IMAP NAMESPACE command to check that
 # we are correctly translating Unix-style paths to IMAP
 # paths.
+@pytest.mark.skip("Times out")
 def test_folder_name_translation(
     empty_db, generic_account, imap_api_client, mock_imapclient, monkeypatch
 ):

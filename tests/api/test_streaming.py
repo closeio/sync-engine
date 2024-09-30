@@ -1,8 +1,8 @@
 import json
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 import pytest
-from gevent import Greenlet
 
 from inbox.util.url import url_concat
 
@@ -130,16 +130,21 @@ def test_longpoll_delta_newitem(db, api_client, default_namespace, thread):
     cursor = get_cursor(api_client, int(time.time() + 22), default_namespace)
     url = url_concat("/delta/longpoll", {"cursor": cursor})
     start_time = time.time()
-    # Spawn the request in background greenlet
-    longpoll_greenlet = Greenlet.spawn(api_client.get_raw, url)
-    # This should make it return immediately
-    add_fake_message(
-        db.session, default_namespace.id, thread, from_addr=[("Bob", "bob@foocorp.com")]
-    )
-    longpoll_greenlet.join()  # now block and wait
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        # Spawn the request in background thread
+        longpoll_future = executor.submit(api_client.get_raw, url)
+        # This should make it return immediately
+        add_fake_message(
+            db.session,
+            default_namespace.id,
+            thread,
+            from_addr=[("Bob", "bob@foocorp.com")],
+        )
+        # context manager blocks and waits for
+        # longpoll_future to finish when it exists
     end_time = time.time()
     assert end_time - start_time < LONGPOLL_EPSILON
-    parsed_responses = json.loads(longpoll_greenlet.value.data)
+    parsed_responses = json.loads(longpoll_future.result().data)
     assert len(parsed_responses["deltas"]) == 3
     assert {k["object"] for k in parsed_responses["deltas"]} == {
         "message",

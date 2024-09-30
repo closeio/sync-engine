@@ -1,11 +1,10 @@
 # flake8: noqa: F401, F811
+import time
 from unittest import mock
 
-import gevent
 import pytest
 from flanker import mime
 
-from inbox.actions.backends.generic import _create_email
 from inbox.actions.base import (
     change_labels,
     create_folder,
@@ -21,10 +20,8 @@ from inbox.actions.base import (
     update_label,
 )
 from inbox.crispin import writable_connection_pool
-from inbox.events.actions.backends.gmail import remote_create_event
 from inbox.models import ActionLog, Category
 from inbox.models.action_log import schedule_action
-from inbox.models.session import new_session
 from inbox.sendmail.base import (
     create_message_from_json,
     update_draft as sendmail_update_draft,
@@ -230,13 +227,13 @@ def test_failed_event_creation(db, patched_syncback_task, default_account, event
     service._process_log()
 
     while not service.task_queue.empty():
-        gevent.sleep(0.1)
+        time.sleep(0.1)
 
     # This has to be a separate while-loop because there's a brief moment where
     # the task queue is empty, but num_idle_workers hasn't been updated yet.
     # On slower systems, we might need to sleep a bit between the while-loops.
     while service.num_idle_workers != NUM_WORKERS:
-        gevent.sleep(0.1)
+        time.sleep(0.1)
 
     q = db.session.query(ActionLog).filter_by(record_id=event.id).all()
     assert all(a.status == "failed" for a in q)

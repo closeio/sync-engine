@@ -1,10 +1,11 @@
+import socket
 import time
 
 import _mysql_exceptions
 import pytest
-from gevent import GreenletExit, socket
 from sqlalchemy.exc import StatementError
 
+from inbox.greenlet_like import GreenletLikeThreadExit
 from inbox.util.concurrency import retry_with_logging
 
 
@@ -44,8 +45,8 @@ def test_retry_with_logging():
 
 def test_no_logging_on_greenlet_exit():
     logger = MockLogger()
-    failing_function = FailingFunction(GreenletExit)
-    with pytest.raises(GreenletExit):
+    failing_function = FailingFunction(GreenletLikeThreadExit)
+    with pytest.raises(GreenletLikeThreadExit):
         retry_with_logging(failing_function, logger=logger)
     assert logger.call_count == 0
     assert failing_function.call_count == 1

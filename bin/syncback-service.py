@@ -7,10 +7,6 @@ also starts up the syncback service.)
 """
 
 
-from gevent import monkey
-
-monkey.patch_all()
-
 import os
 import sys
 

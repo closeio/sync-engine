@@ -1,12 +1,12 @@
 import datetime
 import time
 
-import gevent
 from sqlalchemy import func
 from sqlalchemy.orm import load_only
 from sqlalchemy.orm.exc import ObjectDeletedError
 
 from inbox.crispin import connection_pool
+from inbox.greenlet_like import GreenletLikeThread
 from inbox.logging import get_logger
 from inbox.mailsync.backends.imap import common
 from inbox.mailsync.backends.imap.generic import uidvalidity_cb
@@ -26,7 +26,7 @@ DEFAULT_THREAD_TTL = 60 * 60 * 24 * 7  # 7 days
 MAX_FETCH = 1000
 
 
-class DeleteHandler(gevent.Greenlet):
+class DeleteHandler(GreenletLikeThread):
     """
     We don't outright delete message objects when all their associated
     uids are deleted. Instead, we mark them by setting a deleted_at
@@ -204,7 +204,7 @@ class DeleteHandler(gevent.Greenlet):
         return f"<{self.__class__.__name__}(account_id={self.account_id!r})>"
 
 
-class LabelRenameHandler(gevent.Greenlet):
+class LabelRenameHandler(GreenletLikeThread):
     """
     Gmail has a long-standing bug where it won't notify us
     of a label rename (https://stackoverflow.com/questions/19571456/how-imap-client-can-detact-gmail-label-rename-programmatically).

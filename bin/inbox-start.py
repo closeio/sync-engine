@@ -10,11 +10,6 @@ from gevent import monkey
 
 monkey.patch_all()
 
-<<<<<<< HEAD
-||||||| parent of ba25a16e (Use gevent)
-=======
-
->>>>>>> ba25a16e (Use gevent)
 import os
 import platform
 import signal

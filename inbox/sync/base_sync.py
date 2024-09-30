@@ -1,9 +1,8 @@
 import threading
 import time
 
-from gevent import Greenlet
-
 from inbox.exceptions import ConnectionError, ValidationError
+from inbox.greenlet_like import GreenletLikeThread
 from inbox.heartbeat.store import HeartbeatStatusProxy
 from inbox.logging import get_logger
 from inbox.models import Account
@@ -13,7 +12,7 @@ from inbox.util.concurrency import retry_with_logging
 logger = get_logger()
 
 
-class BaseSyncMonitor(Greenlet):
+class BaseSyncMonitor(GreenletLikeThread):
     """
     Abstracted sync monitor, based on BaseMailSyncMonitor but not mail-specific
 

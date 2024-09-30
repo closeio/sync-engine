@@ -1,10 +1,10 @@
 import platform
 import random
+import threading
 import time
 from threading import BoundedSemaphore
 from typing import Type
 
-import gevent
 from sqlalchemy import and_, or_
 from sqlalchemy.exc import OperationalError
 
@@ -47,6 +47,15 @@ def shared_sync_event_queue_for_zone(zone):
     if queue_name not in SHARED_SYNC_EVENT_QUEUE_ZONE_MAP:
         SHARED_SYNC_EVENT_QUEUE_ZONE_MAP[queue_name] = EventQueue(queue_name)
     return SHARED_SYNC_EVENT_QUEUE_ZONE_MAP[queue_name]
+
+
+def spawn_later(seconds, func):
+    def target():
+        time.sleep(seconds)
+        func()
+
+    thread = threading.Thread(target=target, daemon=True)
+    thread.start()
 
 
 class SyncService:
@@ -349,14 +358,14 @@ class SyncService:
                 return False
         return True
 
-    def stop(self, *args):
+    def stop(self):
         self.log.info("stopping mail sync process")
         for _, v in self.email_sync_monitors.items():
-            gevent.kill(v)
+            v.kill()
         for _, v in self.contact_sync_monitors.items():
-            gevent.kill(v)
+            v.kill()
         for _, v in self.event_sync_monitors.items():
-            gevent.kill(v)
+            v.kill()
         self.keep_running = False
 
     def stop_sync(self, account_id):

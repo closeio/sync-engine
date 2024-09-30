@@ -16,7 +16,6 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import DefaultDict, Optional, Set
 
-import gevent
 from sqlalchemy import desc
 
 from inbox.actions.base import (
@@ -41,6 +40,7 @@ from inbox.config import config
 from inbox.crispin import writable_connection_pool
 from inbox.error_handling import log_uncaught_errors
 from inbox.events.actions.base import create_event, delete_event, update_event
+from inbox.greenlet_like import GreenletLikeThread
 from inbox.ignition import engine_manager
 from inbox.logging import get_logger
 from inbox.models import ActionLog, Event
@@ -95,7 +95,7 @@ INVALID_ACCOUNT_GRACE_PERIOD = 60 * 60 * 2  # 2 hours
 MAX_DEDUPLICATION_BATCH_SIZE = 5000
 
 
-class SyncbackService(gevent.Greenlet):
+class SyncbackService(GreenletLikeThread):
     """Asynchronously consumes the action log and executes syncback actions."""
 
     def __init__(
@@ -508,6 +508,7 @@ class SyncbackService(gevent.Greenlet):
             keys=self.keys,
         )
         while self.keep_running:
+            self.check_killed()
             retry_with_logging(self._run_impl, self.log)
 
     def notify_worker_active(self):
@@ -813,7 +814,7 @@ class SyncbackTask:
             self.execute_with_lock()
 
 
-class SyncbackWorker(gevent.Greenlet):
+class SyncbackWorker(GreenletLikeThread):
     def __init__(self, parent_service, task_timeout=60):
         self.parent_service = weakref.ref(parent_service)
         self.task_timeout = task_timeout
@@ -822,11 +823,14 @@ class SyncbackWorker(gevent.Greenlet):
 
     def _run(self):
         while self.parent_service().keep_running:
+            self.check_killed()
             task = self.parent_service().task_queue.get()
 
             try:
                 self.parent_service().notify_worker_active()
-                gevent.with_timeout(task.timeout(self.task_timeout), task.execute)
+                # TODO: restore this
+                # gevent.with_timeout(task.timeout(self.task_timeout), task.execute)
+                task.execute()
             except Exception:
                 self.log.error(
                     "SyncbackWorker caught exception",

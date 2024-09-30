@@ -73,7 +73,7 @@ def retry(
         while True:
             try:
                 return func(*args, **kwargs)
-            # Note that GreenletExit isn't actually a subclass of Exception
+            # Note that InterruptibleThreadExit isn't actually a subclass of Exception
             # (It's a subclass of BaseException) so it won't be caught here.
             # This is also considered to be a successful execution
             # (somebody intentionally killed the greenlet).

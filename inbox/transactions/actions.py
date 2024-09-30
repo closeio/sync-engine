@@ -16,9 +16,9 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import DefaultDict, Optional, Set
 
-import gevent
 from sqlalchemy import desc
 
+from inbox import interruptible_threading
 from inbox.actions.base import (
     can_handle_multiple_records,
     change_labels,
@@ -42,6 +42,7 @@ from inbox.crispin import writable_connection_pool
 from inbox.error_handling import log_uncaught_errors
 from inbox.events.actions.base import create_event, delete_event, update_event
 from inbox.ignition import engine_manager
+from inbox.interruptible_threading import InterruptibleThread
 from inbox.logging import get_logger
 from inbox.models import ActionLog, Event
 from inbox.models.session import session_scope, session_scope_by_shard_id
@@ -95,7 +96,7 @@ INVALID_ACCOUNT_GRACE_PERIOD = 60 * 60 * 2  # 2 hours
 MAX_DEDUPLICATION_BATCH_SIZE = 5000
 
 
-class SyncbackService(gevent.Greenlet):
+class SyncbackService(InterruptibleThread):
     """Asynchronously consumes the action log and executes syncback actions."""
 
     def __init__(
@@ -507,6 +508,7 @@ class SyncbackService(gevent.Greenlet):
             keys=self.keys,
         )
         while self.keep_running:
+            interruptible_threading.check_interrupted()
             retry_with_logging(self._run_impl, self.log)
 
     def notify_worker_active(self):
@@ -544,6 +546,7 @@ class SyncbackBatchTask:
                 account_id=self.account_id,
             )
             for task in self.tasks:
+                interruptible_threading.check_interrupted()
                 task.crispin_client = crispin_client
                 if not task.execute_with_lock():
                     log.info(
@@ -657,6 +660,8 @@ class SyncbackTask:
         """
         Process a task and return whether it executed successfully.
         """
+        interruptible_threading.check_interrupted()
+
         self.log = logger.new(
             record_ids=list(set(self.record_ids)),
             action_log_ids=self.action_log_ids[:100],
@@ -812,7 +817,7 @@ class SyncbackTask:
             self.execute_with_lock()
 
 
-class SyncbackWorker(gevent.Greenlet):
+class SyncbackWorker(InterruptibleThread):
     def __init__(self, parent_service, task_timeout=60):
         self.parent_service = weakref.ref(parent_service)
         self.task_timeout = task_timeout
@@ -821,11 +826,12 @@ class SyncbackWorker(gevent.Greenlet):
 
     def _run(self):
         while self.parent_service().keep_running:
-            task = self.parent_service().task_queue.get()
+            task = interruptible_threading.queue_get(self.parent_service().task_queue)
 
             try:
                 self.parent_service().notify_worker_active()
-                gevent.with_timeout(task.timeout(self.task_timeout), task.execute)
+                with interruptible_threading.timeout(task.timeout(self.task_timeout)):
+                    task.execute()
             except Exception:
                 self.log.error(
                     "SyncbackWorker caught exception",

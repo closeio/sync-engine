@@ -65,16 +65,15 @@ import contextlib
 import imaplib
 import time
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any, Dict, NoReturn, Optional
 
-import gevent
-from gevent import Greenlet
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.exceptions import ValidationError
+from inbox.greenlet_like import GreenletLikeThread
 from inbox.logging import get_logger
 from inbox.util.concurrency import retry_with_logging
 from inbox.util.debug import bind_context
@@ -122,7 +121,21 @@ MAX_UIDINVALID_RESYNCS = 5
 CONDSTORE_FLAGS_REFRESH_BATCH_SIZE = 200
 
 
-class FolderSyncEngine(Greenlet):
+class ChangePoller(GreenletLikeThread):
+    def __init__(self, engine: "FolderSyncEngine") -> None:
+        self.engine = engine
+        super().__init__()
+
+    @retry_crispin
+    def _run(self) -> NoReturn:
+        log.new(account_id=self.account_id, folder=self.folder_name)
+        while True:
+            self.check_killed()
+            log.debug("polling for changes")
+            self.engine.poll_impl()
+
+
+class FolderSyncEngine(GreenletLikeThread):
     """Base class for a per-folder IMAP sync engine."""
 
     def __init__(
@@ -442,7 +455,8 @@ class FolderSyncEngine(Greenlet):
                     download_uid_count=len(new_uids),
                 )
 
-            change_poller = gevent.spawn(self.poll_for_changes)
+            change_poller = ChangePoller(self)
+            change_poller.start()
             bind_context(change_poller, "changepoller", self.account_id, self.folder_id)
             uids = sorted(new_uids, reverse=True)
             for count, uid in enumerate(uids, start=1):
@@ -460,7 +474,7 @@ class FolderSyncEngine(Greenlet):
         finally:
             if change_poller is not None:
                 # schedule change_poller to die
-                gevent.kill(change_poller)
+                change_poller.kill()
 
     def should_idle(self, crispin_client):
         if not hasattr(self, "_should_idle"):
@@ -532,13 +546,6 @@ class FolderSyncEngine(Greenlet):
         self.uidvalidity = remote_uidvalidity
         self.highestmodseq = None
         self.uidnext = remote_uidnext
-
-    @retry_crispin
-    def poll_for_changes(self):
-        log.new(account_id=self.account_id, folder=self.folder_name)
-        while True:
-            log.debug("polling for changes")
-            self.poll_impl()
 
     def create_message(
         self,

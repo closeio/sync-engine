@@ -26,13 +26,12 @@ from datetime import datetime, timedelta
 from threading import Semaphore
 from typing import Dict, List
 
-import gevent
 from sqlalchemy.orm import joinedload, load_only
 
 from inbox.logging import get_logger
 from inbox.mailsync.backends.base import THROTTLE_COUNT, THROTTLE_WAIT
 from inbox.mailsync.backends.imap import common
-from inbox.mailsync.backends.imap.generic import FolderSyncEngine
+from inbox.mailsync.backends.imap.generic import ChangePoller, FolderSyncEngine
 from inbox.mailsync.backends.imap.monitor import ImapSyncMonitor
 from inbox.mailsync.gc import LabelRenameHandler
 from inbox.models import Account, Category, Folder, Label, Message, Namespace
@@ -258,7 +257,8 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                         download_uid_count=len(unknown_uids),
                     )
 
-            change_poller = gevent.spawn(self.poll_for_changes)
+            change_poller = ChangePoller(self)
+            change_poller.start()
             bind_context(change_poller, "changepoller", self.account_id, self.folder_id)
 
             if self.is_all_mail(crispin_client):
@@ -295,7 +295,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
         finally:
             if change_poller is not None:
                 # schedule change_poller to die
-                gevent.kill(change_poller)
+                change_poller.kill()
 
     def resync_uids_impl(self):
         with session_scope(self.namespace_id) as db_session:

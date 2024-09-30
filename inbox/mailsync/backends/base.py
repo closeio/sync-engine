@@ -1,8 +1,7 @@
 import threading
 
-from gevent import Greenlet, GreenletExit
-
 from inbox.config import config
+from inbox.greenlet_like import GreenletLikeThread, GreenletLikeThreadExit
 from inbox.logging import get_logger
 from inbox.models.session import session_scope
 from inbox.util.concurrency import retry_with_logging
@@ -18,11 +17,11 @@ class MailsyncError(Exception):
     pass
 
 
-class MailsyncDone(GreenletExit):
+class MailsyncDone(GreenletLikeThreadExit):
     pass
 
 
-class BaseMailSyncMonitor(Greenlet):
+class BaseMailSyncMonitor(GreenletLikeThread):
     """
     The SYNC_MONITOR_CLS for all mail sync providers should subclass this.
 
@@ -59,12 +58,12 @@ class BaseMailSyncMonitor(Greenlet):
                 provider=self.provider_name,
                 logger=self.log,
             )
-        except GreenletExit:
+        except GreenletLikeThreadExit:
             self._cleanup()
             raise
 
     def _run_impl(self):
-        self.sync_greenlet = Greenlet(
+        self.sync_greenlet = GreenletLikeThread(
             retry_with_logging,
             self.sync,
             account_id=self.account_id,

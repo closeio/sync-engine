@@ -122,6 +122,8 @@ def test_actions_are_claimed(purge_accounts_and_actions, patched_task):
         assert q.count() == 1
         assert all(a.status != "pending" for a in q)
 
+    service.stop()
+
 
 @pytest.mark.skipif(True, reason="Need to investigate")
 def test_actions_claimed_by_a_single_service(purge_accounts_and_actions, patched_task):

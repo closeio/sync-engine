@@ -258,6 +258,7 @@ class FolderSyncEngine(GreenletLikeThread):
         # time if it receives a shutdown command. The shutdown command is
         # equivalent to ctrl-c.
         while self.state != "finish":
+            self.check_killed()
             retry_with_logging(
                 self._run_impl,
                 account_id=self.account_id,
@@ -380,6 +381,7 @@ class FolderSyncEngine(GreenletLikeThread):
             self._report_initial_sync_start()
             self.is_first_sync = False
 
+        # MARK: blocking
         with self.conn_pool.get() as crispin_client:
             crispin_client.select_folder(self.folder_name, uidvalidity_cb)
             # Ensure we have an ImapFolderInfo row created prior to sync start.
@@ -470,7 +472,7 @@ class FolderSyncEngine(GreenletLikeThread):
                     # messages per folder are synced.
                     # Note this is an approx. limit since we use the #(uids),
                     # not the #(messages).
-                    time.sleep(THROTTLE_WAIT)
+                    self.sleep(THROTTLE_WAIT)
         finally:
             if change_poller is not None:
                 # schedule change_poller to die
@@ -485,12 +487,14 @@ class FolderSyncEngine(GreenletLikeThread):
         return self._should_idle
 
     def poll_impl(self):
+        # MARK: blocking
         with self.conn_pool.get() as crispin_client:
             self.check_uid_changes(crispin_client)
             if self.should_idle(crispin_client):
                 crispin_client.select_folder(self.folder_name, self.uidvalidity_cb)
                 idling = True
                 try:
+                    # MARK: blocking
                     crispin_client.idle(IDLE_WAIT)
                 except Exception as exc:
                     # With some servers we get e.g.
@@ -512,11 +516,12 @@ class FolderSyncEngine(GreenletLikeThread):
                 idling = False
         # Close IMAP connection before sleeping
         if not idling:
-            time.sleep(self.poll_frequency)
+            self.sleep(self.poll_frequency)
 
     def resync_uids_impl(self):
         # First, let's check if the UIVDALIDITY change was spurious, if
         # it is, just discard it and go on.
+        # MARK: blocking
         with self.conn_pool.get() as crispin_client:
             crispin_client.select_folder(self.folder_name, lambda *args: True)
             remote_uidvalidity = crispin_client.selected_uidvalidity

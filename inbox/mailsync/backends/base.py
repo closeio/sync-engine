@@ -71,6 +71,7 @@ class BaseMailSyncMonitor(GreenletLikeThread):
             logger=self.log,
         )
         self.sync_greenlet.start()
+        # MARK: child spawn
         self.sync_greenlet.join()
 
         if self.sync_greenlet.successful():

@@ -1,5 +1,4 @@
 import datetime
-import time
 
 from sqlalchemy import func
 from sqlalchemy.orm import load_only
@@ -74,6 +73,7 @@ class DeleteHandler(GreenletLikeThread):
 
     def _run(self):
         while True:
+            self.check_killed()
             retry_with_logging(
                 self._run_impl, account_id=self.account_id, provider=self.provider_name
             )
@@ -83,7 +83,7 @@ class DeleteHandler(GreenletLikeThread):
         self.check(current_time)
         self.gc_deleted_categories()
         self.gc_deleted_threads(current_time)
-        time.sleep(self.message_ttl.total_seconds())
+        self.sleep(self.message_ttl.total_seconds())
 
     def check(self, current_time):
         with session_scope(self.namespace_id) as db_session:

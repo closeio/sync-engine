@@ -48,12 +48,12 @@ imaplib.InternalDate = re.compile(  # type: ignore
 
 import functools
 import queue
+import socket
 import threading
 from collections import defaultdict, namedtuple
 from email.parser import HeaderParser
 from threading import BoundedSemaphore
 
-from gevent import socket
 from sqlalchemy.orm import joinedload
 
 from inbox.exceptions import GmailSettingError

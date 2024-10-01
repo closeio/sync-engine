@@ -3,6 +3,7 @@
 import posixpath
 import random
 import sys
+import time
 from datetime import datetime
 
 if sys.version_info < (3,):
@@ -13,11 +14,7 @@ if sys.version_info < (3,):
     import gdata.client
     import gdata.contacts.client
 
-import gevent
-
-from inbox.auth.google import GoogleAuthHandler
 from inbox.contacts.abc import AbstractContactsProvider
-from inbox.exceptions import ConnectionError, OAuthError, ValidationError
 from inbox.logging import get_logger
 from inbox.models import Contact
 from inbox.models.backends.gmail import GmailAccount
@@ -171,10 +168,10 @@ class GoogleContactsProvider(AbstractContactsProvider):
             except gdata.client.RequestError as e:
                 if e.status == 503:
                     self.log.info("Ran into Google bot detection. Sleeping.", message=e)
-                    gevent.sleep(5 * 60 + random.randrange(0, 60))
+                    time.sleep(5 * 60 + random.randrange(0, 60))
                 else:
                     self.log.info("contact sync request failure; retrying", message=e)
-                    gevent.sleep(30 + random.randrange(0, 60))
+                    time.sleep(30 + random.randrange(0, 60))
             except gdata.client.Unauthorized:
                 self.log.warning("Invalid access token; refreshing and retrying")
                 # Raises an OAuth error if no valid token exists

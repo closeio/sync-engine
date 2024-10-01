@@ -2,7 +2,6 @@ import collections
 import time
 from datetime import datetime
 
-import gevent
 from sqlalchemy import asc, bindparam, desc
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -315,4 +314,4 @@ def streaming_change_generator(
                 yield encoder.cereal(delta) + "\n"
         else:
             yield "\n"
-            gevent.sleep(poll_interval)
+            time.sleep(poll_interval)

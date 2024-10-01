@@ -4,7 +4,7 @@ import threading
 from typing import Any, Callable, Dict, Optional, Tuple, TypeVar
 
 
-class GreenletLikeThreadExit(Exception):
+class GreenletLikeThreadExit(BaseException):
     pass
 
 

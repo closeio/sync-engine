@@ -157,7 +157,8 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
     http_frontend = SyncHTTPFrontend(
         sync_service, port, enable_tracer, enable_profiler_api
     )
-    sync_service.register_pending_avgs_provider(http_frontend)
+    # TODO: Disabling this for now since enable_tracer is False
+    # sync_service.register_pending_avgs_provider(http_frontend)
     http_frontend.start()
 
     sync_service.run()

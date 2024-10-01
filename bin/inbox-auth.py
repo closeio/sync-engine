@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 
 
-from gevent import monkey
-
-monkey.patch_all()
-
 import sys
 
 import click
@@ -14,6 +10,9 @@ setproctitle("inbox-auth")
 
 from inbox.auth.base import handler_from_provider
 from inbox.config import config
+
+config["USE_GEVENT"] = False
+
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.exceptions import NotSupportedError
 from inbox.logging import configure_logging
@@ -60,7 +59,7 @@ def main(email_address, reauth, target, provider):
 
             # Resolve unknown providers into either custom IMAP or EAS.
             if provider == "unknown":
-                is_imap = raw_input("IMAP account? [Y/n] ").strip().lower() != "n"
+                is_imap = input("IMAP account? [Y/n] ").strip().lower() != "n"
                 provider = "custom" if is_imap else "eas"
 
         auth_handler = handler_from_provider(provider)

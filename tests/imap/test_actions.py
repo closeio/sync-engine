@@ -237,3 +237,5 @@ def test_failed_event_creation(db, patched_syncback_task, default_account, event
 
     q = db.session.query(ActionLog).filter_by(record_id=event.id).all()
     assert all(a.status == "failed" for a in q)
+
+    service.stop()

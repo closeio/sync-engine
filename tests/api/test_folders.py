@@ -76,3 +76,5 @@ def test_folder_name_translation(
         time.sleep(1)
     time.sleep(1)
     mock_imapclient.create_folder.assert_called_with("INBOX.Taxes.Accounting")
+
+    syncback.stop()

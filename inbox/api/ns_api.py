@@ -10,7 +10,6 @@ from datetime import datetime
 from hashlib import sha256
 from io import BytesIO
 
-import gevent
 from flask import (
     Blueprint,
     Response,
@@ -2023,7 +2022,7 @@ def sync_deltas():
 
         # No changes. perhaps wait
         elif "/delta/longpoll" in request.url_rule.rule:
-            gevent.sleep(poll_interval)
+            time.sleep(poll_interval)
         else:  # Return immediately
             response["cursor_end"] = cursor
             response["timestamp"] = datetime.utcnow()

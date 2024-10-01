@@ -1,6 +1,7 @@
 import dataclasses
+import queue
 import threading
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple, TypeVar
 
 
 class GreenletLikeThreadExit(Exception):
@@ -15,6 +16,11 @@ class GreenletLikeTarget:
 
     def __call__(self) -> Any:
         return self.target(*self.args, **self.kwargs)
+
+
+CHECK_KILLED_TIMEOUT = 0.2
+
+QueueElementT = TypeVar("QueueElementT")
 
 
 class GreenletLikeThread(threading.Thread):
@@ -58,6 +64,13 @@ class GreenletLikeThread(threading.Thread):
     def check_killed(self) -> None:
         if self.__should_be_killed:
             raise GreenletLikeThreadExit()
+
+    def queue_get(self, queue: "queue.Queue[QueueElementT]") -> QueueElementT:
+        while True:
+            try:
+                return queue.get(timeout=CHECK_KILLED_TIMEOUT)
+            except queue.Empty:
+                self.check_killed()
 
 
 def spawn(

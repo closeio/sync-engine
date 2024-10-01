@@ -209,7 +209,6 @@ def patched_syncback_task(monkeypatch):
 
 # Test that failing to create a remote copy of an event marks all pending actions
 # for that event as failed.
-@pytest.mark.skip("Timeouts without gevent, needs investigation")
 def test_failed_event_creation(db, patched_syncback_task, default_account, event):
     schedule_action("create_event", event, default_account.namespace.id, db.session)
     schedule_action("update_event", event, default_account.namespace.id, db.session)

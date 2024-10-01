@@ -823,8 +823,7 @@ class SyncbackWorker(GreenletLikeThread):
 
     def _run(self):
         while self.parent_service().keep_running:
-            self.check_killed()
-            task = self.parent_service().task_queue.get()
+            task = self.queue_get(self.parent_service().task_queue)
 
             try:
                 self.parent_service().notify_worker_active()

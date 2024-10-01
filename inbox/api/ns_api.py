@@ -76,7 +76,6 @@ from inbox.contacts.algorithms import (
     calculate_group_scores,
     is_stale,
 )
-from inbox.contacts.search import ContactSearchClient
 from inbox.crispin import writable_connection_pool
 from inbox.events.ical import generate_rsvp, send_rsvp
 from inbox.events.util import removed_participants
@@ -983,21 +982,6 @@ def contact_api():
     if args["view"] == "ids":
         return g.encoder.jsonify([r for r, in results])
 
-    return g.encoder.jsonify(results)
-
-
-@app.route("/contacts/search", methods=["GET"])
-def contact_search_api():
-    g.parser.add_argument("q", type=bounded_str, location="args")
-    args = strict_parse_args(g.parser, request.args)
-    if not args["q"]:
-        err_string = "GET HTTP method must include query url parameter"
-        raise InputError(err_string)
-
-    search_client = ContactSearchClient(g.namespace.id)
-    results = search_client.search_contacts(
-        g.db_session, args["q"], offset=args["offset"], limit=args["limit"]
-    )
     return g.encoder.jsonify(results)
 
 

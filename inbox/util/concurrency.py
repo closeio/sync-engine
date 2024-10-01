@@ -1,14 +1,13 @@
 import datetime
 import functools
 import random
+import socket
 import ssl
 import sys
 import time
 from typing import Iterable, TypeVar
 
 import _mysql_exceptions
-import gevent
-from gevent import socket
 from redis import TimeoutError
 from sqlalchemy.exc import StatementError
 
@@ -72,11 +71,10 @@ def retry(
         while True:
             try:
                 return func(*args, **kwargs)
-            except gevent.GreenletExit:
-                # GreenletExit isn't actually a subclass of Exception.
-                # This is also considered to be a successful execution
-                # (somebody intentionally killed the greenlet).
-                raise
+            # Note that GreenletExit isn't actually a subclass of Exception
+            # (It's a subclass of BaseException) so it won't be caught here.
+            # This is also considered to be a successful execution
+            # (somebody intentionally killed the greenlet).
             except Exception as e:
                 if not should_retry_on(e):
                     raise

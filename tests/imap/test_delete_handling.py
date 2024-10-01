@@ -1,9 +1,9 @@
 # flake8: noqa: F401, F811
+import time
 from datetime import datetime, timedelta
+from threading import Semaphore
 
-import gevent
 import pytest
-from gevent.lock import Semaphore
 from sqlalchemy import desc
 from sqlalchemy.orm.exc import ObjectDeletedError
 
@@ -321,7 +321,7 @@ def test_renamed_label_refresh(
     semaphore.acquire()
     rename_handler.start()
 
-    gevent.sleep(0)  # yield to the handler
+    time.sleep(0)  # yield to the handler
 
     labels = list(imapuid.labels)
     assert len(labels) == 1

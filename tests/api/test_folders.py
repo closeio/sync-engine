@@ -1,7 +1,6 @@
 # flake8: noqa: F401, F811
+import time
 from unittest import mock
-
-import gevent
 
 from inbox.util.testutils import mock_imapclient  # noqa
 
@@ -72,8 +71,8 @@ def test_folder_name_translation(
 
     syncback._process_log()
     syncback._restart_workers()
-    gevent.sleep(1)
+    time.sleep(1)
     while not syncback.task_queue.empty():
-        gevent.sleep(1)
-    gevent.sleep(1)
+        time.sleep(1)
+    time.sleep(1)
     mock_imapclient.create_folder.assert_called_with("INBOX.Taxes.Accounting")

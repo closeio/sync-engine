@@ -204,6 +204,10 @@ def convert_flags(flags: Tuple[Union[bytes, int], ...]) -> Tuple[bytes, ...]:
     )
 
 
+class ConnectionPoolTimeoutError(Exception):
+    pass
+
+
 class CrispinConnectionPool:
     """
     Connection pool for Crispin clients.
@@ -247,10 +251,17 @@ class CrispinConnectionPool:
             log.info("Error on IMAP logout", exc_info=True)
 
     @contextlib.contextmanager
-    def get(self):
+    def get(self, *, timeout: "float | None" = None):
         """Get a connection from the pool, or instantiate a new one if needed.
-        If `num_connections` connections are already in use, block until one is
-        available.
+
+        If `num_connections` connections are already in use and timeout is `None`,
+        block until one is available. If timeout is a `float`, raise a
+        `ConnectionPoolTimeoutError` if a connection is not available within
+        that time.
+
+        Args:
+            timeout: The maximum time in seconds to wait for a connection to
+                become available. If `None`, block until a connection is available.
         """
         # A gevent semaphore is granted in the order that greenlets tried to
         # acquire it, so we use a semaphore here to prevent potential
@@ -258,7 +269,11 @@ class CrispinConnectionPool:
         # The queue implementation does not have that property; having
         # greenlets simply block on self._queue.get(block=True) could cause
         # individual greenlets to block for arbitrarily long.
-        self._sem.acquire()
+
+        succeeded = self._sem.acquire(timeout=timeout)
+        if not succeeded:
+            raise ConnectionPoolTimeoutError()
+
         client = self._queue.get()
         try:
             if client is None:

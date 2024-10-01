@@ -1,6 +1,5 @@
 import random
 
-import gevent
 import pytest
 from freezegun import freeze_time
 from pytest import fixture
@@ -189,8 +188,7 @@ def test_deletion_no_throttle(db, patch_requests_no_throttle):
     db.session.commit()
 
     to_delete = get_accounts_to_delete(0)
-    greenlet = gevent.spawn(batch_delete_namespaces, to_delete, throttle=True)
-    greenlet.join()
+    batch_delete_namespaces(to_delete, throttle=True)
 
     alive_accounts = db.session.query(Account.id).all()
 
@@ -214,8 +212,7 @@ def test_deletion_metric_throttle(db, patch_requests_throttle):
     db.session.commit()
 
     to_delete = get_accounts_to_delete(0)
-    greenlet = gevent.spawn(batch_delete_namespaces, to_delete, throttle=True)
-    greenlet.join()
+    batch_delete_namespaces(to_delete, throttle=True)
 
     alive_accounts = [acc.id for acc in db.session.query(Account).all()]
 
@@ -240,8 +237,7 @@ def test_deletion_time_throttle(db, patch_requests_no_throttle):
     db.session.commit()
 
     to_delete = get_accounts_to_delete(0)
-    greenlet = gevent.spawn(batch_delete_namespaces, to_delete, throttle=True)
-    greenlet.join()
+    batch_delete_namespaces(to_delete, throttle=True)
 
     alive_accounts = [acc.id for acc in db.session.query(Account).all()]
 

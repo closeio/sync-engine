@@ -1,9 +1,9 @@
+import time
 from datetime import datetime, timedelta
 from unittest import mock
 
 import limitlion
 import pytest
-from gevent import sleep
 
 from inbox.models.calendar import Calendar
 
@@ -216,7 +216,7 @@ def test_event_update(db, webhooks_client, watched_calendar):
     webhook_last_ping = watched_calendar.webhook_last_ping
     assert webhook_last_ping > before
 
-    sleep(1)
+    time.sleep(1)
 
     # Test that webhook_last_ping *is* updated if last updated too long ago
     watched_calendar.webhook_last_ping = webhook_last_ping - timedelta(seconds=22)

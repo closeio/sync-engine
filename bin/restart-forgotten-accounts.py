@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-import gevent
-import gevent.monkey
+import time
 
-gevent.monkey.patch_all()
+from inbox.config import config
+
+config["USE_GEVENT"] = False
 
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.ignition import engine_manager
@@ -64,7 +65,7 @@ def check_accounts():
 
         accounts_without_sync_host = not_syncing_accounts
 
-    gevent.sleep(poll_interval)
+    time.sleep(poll_interval)
 
 
 def main():

@@ -31,6 +31,7 @@ except ImportError:
         "Try running sudo ./setup.sh"
     )
 
+# TODO: set this with environment variables
 inbox_config["USE_GEVENT"] = False
 
 from inbox.error_handling import maybe_enable_rollbar
@@ -71,7 +72,7 @@ banner = rf"""{esc}[1;95m
 )
 @click.option(
     "--enable-tracer/--disable-tracer",
-    default=False,
+    default=True,
     help="Disables the stuck greenlet tracer",
 )
 @click.option(

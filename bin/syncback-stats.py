@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
-
-from gevent import monkey
-
-monkey.patch_all()
-
 import click
 from sqlalchemy import func
+
+from inbox.config import config
+
+config["USE_GEVENT"] = False
 
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.ignition import engine_manager

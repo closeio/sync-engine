@@ -1,6 +1,7 @@
 import datetime
 import functools
 import random
+import socket
 import ssl
 import sys
 import time
@@ -8,7 +9,7 @@ from typing import Iterable, TypeVar
 
 import _mysql_exceptions
 import gevent
-from gevent import socket
+import gevent.socket
 from redis import TimeoutError
 from sqlalchemy.exc import StatementError
 
@@ -21,7 +22,14 @@ log = get_logger()
 
 BACKOFF_DELAY = 30  # seconds to wait before retrying after a failure
 
-TRANSIENT_NETWORK_ERRS = (socket.timeout, TimeoutError, socket.error, ssl.SSLError)
+TRANSIENT_NETWORK_ERRS = (
+    socket.timeout,
+    gevent.socket.timeout,
+    TimeoutError,
+    socket.error,
+    gevent.socket.error,
+    ssl.SSLError,
+)
 
 TRANSIENT_MYSQL_MESSAGES = (
     "try restarting transaction",

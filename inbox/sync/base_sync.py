@@ -1,5 +1,4 @@
 import threading
-import time
 
 from inbox.exceptions import ConnectionError, ValidationError
 from inbox.greenlet_like import GreenletLikeThread
@@ -56,6 +55,7 @@ class BaseSyncMonitor(GreenletLikeThread):
         self.log = self.log.new(account_id=self.account_id)
         try:
             while True:
+                self.check_killed()
                 retry_with_logging(
                     self._run_impl,
                     account_id=self.account_id,
@@ -83,8 +83,8 @@ class BaseSyncMonitor(GreenletLikeThread):
         # 2x poll frequency.
         except ConnectionError:
             self.log.error("Error while polling", exc_info=True)
-            time.sleep(self.poll_frequency)
-        time.sleep(self.poll_frequency)
+            self.sleep(self.poll_frequency)
+        self.sleep(self.poll_frequency)
 
     def sync(self):
         """Subclasses should override this to do work"""

@@ -1,6 +1,8 @@
+import contextlib
 import dataclasses
 import queue
 import threading
+import time
 from typing import Any, Callable, Dict, Optional, Tuple, TypeVar
 
 
@@ -67,10 +69,15 @@ class GreenletLikeThread(threading.Thread):
 
     def queue_get(self, queue: "queue.Queue[QueueElementT]") -> QueueElementT:
         while True:
-            try:
+            self.check_killed()
+            with contextlib.supress(queue.Empty):
                 return queue.get(timeout=CHECK_KILLED_TIMEOUT)
-            except queue.Empty:
-                self.check_killed()
+
+    def sleep(self, seconds: float) -> None:
+        start = time.monotonic()
+        while time.monotonic() - start < seconds:
+            self.check_killed()
+            time.sleep(CHECK_KILLED_TIMEOUT)
 
 
 def spawn(

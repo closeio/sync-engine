@@ -127,6 +127,22 @@ class SyncService:
         while self.keep_running:
             retry_with_logging(self._run_impl, self.log)
 
+        for email_sync_monitor in self.email_sync_monitors.values():
+            email_sync_monitor.sync_greenlet.kill()
+        self.log.info(
+            "stopped email sync monitors", count=len(self.email_sync_monitors)
+        )
+        for contact_sync_monitor in self.contact_sync_monitors.values():
+            contact_sync_monitor.kill()
+        self.log.info(
+            "stopped contact sync monitors", count=len(self.contact_sync_monitors)
+        )
+        for event_sync_monitor in self.event_sync_monitors.values():
+            event_sync_monitor.kill()
+        self.log.info(
+            "stopped event sync monitors", count=len(self.event_sync_monitors)
+        )
+
     def _run_impl(self):
         """
         Waits for notifications about Account migrations and checks for start/stop commands.
@@ -358,14 +374,8 @@ class SyncService:
                 return False
         return True
 
-    def stop(self):
-        self.log.info("stopping mail sync process")
-        for _, v in self.email_sync_monitors.items():
-            v.kill()
-        for _, v in self.contact_sync_monitors.items():
-            v.kill()
-        for _, v in self.event_sync_monitors.items():
-            v.kill()
+    def stop(self) -> None:
+        self.log.info("stopping sync process")
         self.keep_running = False
 
     def stop_sync(self, account_id):
@@ -377,7 +387,7 @@ class SyncService:
         with self.semaphore:
             self.log.info("Stopping monitors", account_id=account_id)
             if account_id in self.email_sync_monitors:
-                self.email_sync_monitors[account_id].kill()
+                self.email_sync_monitors[account_id].sync_greenlet.kill()
                 del self.email_sync_monitors[account_id]
 
             # Stop contacts sync if necessary

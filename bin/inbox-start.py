@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 
 
+import random
+import threading
+import time
+
+import structlog
 from gevent import monkey
 
 monkey.patch_all()
@@ -137,20 +142,12 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
 
     process_identifier = f"{platform.node()}:{process_num}"
 
-    if exit_after:
-        exit_after = exit_after.split(":")
-        exit_after_min, exit_after_max = int(exit_after[0]), int(exit_after[1])
-    else:
-        exit_after_min, exit_after_max = None, None
+    sync_service = SyncService(process_identifier, process_num)
 
-    sync_service = SyncService(
-        process_identifier,
-        process_num,
-        exit_after_min=exit_after_min,
-        exit_after_max=exit_after_max,
-    )
     signal.signal(signal.SIGTERM, sync_service.stop)
     signal.signal(signal.SIGINT, sync_service.stop)
+    prepare_exit_after(log, sync_service, exit_after)
+
     http_frontend = SyncHTTPFrontend(
         sync_service, port, enable_tracer, enable_profiler_api
     )
@@ -160,6 +157,34 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
     sync_service.run()
 
     print("\033[94mNylas Sync Engine exiting...\033[0m", file=sys.stderr)
+
+
+def prepare_exit_after(
+    log: structlog.BoundLogger, sync_service: SyncService, exit_after: "str | None"
+) -> None:
+    """
+    Prepare to exit after a random time within the given range.
+
+    Starts a daemon thread that will sleep for a random time within the given range
+    and then call `sync_service.stop()` to gracefully finish the process.
+    """
+    if not exit_after:
+        return
+
+    exit_after = exit_after.split(":")
+    exit_after_min, exit_after_max = int(exit_after[0]), int(exit_after[1])
+    exit_after_seconds = random.randint(exit_after_min * 60, exit_after_max * 60)
+    log.info("exit after", seconds=exit_after_seconds)
+
+    exit_after_thread = threading.Thread(
+        target=perform_exit_after, args=(sync_service, exit_after_seconds), daemon=True
+    )
+    exit_after_thread.start()
+
+
+def perform_exit_after(sync_service: SyncService, seconds: int) -> None:
+    time.sleep(seconds)
+    sync_service.stop()
 
 
 if __name__ == "__main__":

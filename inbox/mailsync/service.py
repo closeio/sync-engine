@@ -64,12 +64,7 @@ class SyncService:
     """
 
     def __init__(
-        self,
-        process_identifier,
-        process_number,
-        poll_interval=SYNC_POLL_INTERVAL,
-        exit_after_min=None,
-        exit_after_max=None,
+        self, process_identifier, process_number, poll_interval=SYNC_POLL_INTERVAL
     ):
         self.keep_running = True
         self.host = platform.node()
@@ -118,11 +113,6 @@ class SyncService:
         self.stealing_enabled = config.get("SYNC_STEAL_ACCOUNTS", True)
         self._pending_avgs_provider = None
         self.last_unloaded_account = time.time()
-
-        if exit_after_min and exit_after_max:
-            exit_after = random.randint(exit_after_min * 60, exit_after_max * 60)
-            self.log.info("exit after", seconds=exit_after)
-            gevent.spawn_later(exit_after, self.stop)
 
     def run(self):
         while self.keep_running:

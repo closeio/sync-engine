@@ -119,7 +119,10 @@ class SyncService:
             retry_with_logging(self._run_impl, self.log)
 
         for email_sync_monitor in self.email_sync_monitors.values():
-            email_sync_monitor.sync_greenlet.kill()
+            if email_sync_monitor.delete_handler:
+                email_sync_monitor.delete_handler.kill()
+            email_sync_monitor.sync_greenlet.kill(block=False)
+            email_sync_monitor.join()
         self.log.info(
             "stopped email sync monitors", count=len(self.email_sync_monitors)
         )
@@ -378,7 +381,11 @@ class SyncService:
         with self.semaphore:
             self.log.info("Stopping monitors", account_id=account_id)
             if account_id in self.email_sync_monitors:
-                self.email_sync_monitors[account_id].sync_greenlet.kill()
+                email_sync_monitor = self.email_sync_monitors[account_id]
+                if email_sync_monitor.delete_handler:
+                    email_sync_monitor.delete_handler.kill()
+                email_sync_monitor.sync_greenlet.kill(block=False)
+                email_sync_monitor.join()
                 del self.email_sync_monitors[account_id]
 
             # Stop contacts sync if necessary

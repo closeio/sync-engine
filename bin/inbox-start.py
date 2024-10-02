@@ -1,23 +1,18 @@
 #!/usr/bin/env python
 
 
-import random
-import threading
-import time
-
-import structlog
-from gevent import monkey
-
-monkey.patch_all()
-
 import os
 import platform
+import random
 import signal
 import socket
 import sys
+import time
+import threading
 
 import click
 import setproctitle
+import structlog
 
 # Check that the inbox package is installed. It seems Vagrant may sometimes
 # fail to provision the box appropriately; this check is a reasonable

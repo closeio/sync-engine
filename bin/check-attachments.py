@@ -1,31 +1,22 @@
 #!/usr/bin/env python
 # Check that we can fetch attachments for 99.9% of our syncing accounts.
-
-
-from gevent import monkey
-
-monkey.patch_all()
-
+import concurrent.futures
 import datetime
 from collections import defaultdict
 
 import click
-from gevent.pool import Pool
 from sqlalchemy import true
 from sqlalchemy.sql.expression import func
 
-from inbox.crispin import connection_pool
+from inbox.config import config
+
+config["USE_GEVENT"] = False
+
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.logging import configure_logging, get_logger
 from inbox.models import Account, Block
-from inbox.models.backends.generic import GenericAccount
-from inbox.models.session import (
-    global_session_scope,
-    session_scope,
-    session_scope_by_shard_id,
-)
+from inbox.models.session import global_session_scope, session_scope
 from inbox.s3.base import get_raw_from_provider
-from inbox.s3.exc import EmailFetchException, TemporaryEmailFetchException
 
 configure_logging()
 log = get_logger(purpose="separator-backfix")
@@ -93,8 +84,8 @@ def main(num_accounts):
         accounts = [acc.id for acc in accounts][:num_accounts]
         db_session.expunge_all()
 
-    pool = Pool(size=100)
-    results = pool.map(process_account, accounts)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+        results = executor.map(process_account, accounts)
 
     global_results = dict()
     for ret in results:

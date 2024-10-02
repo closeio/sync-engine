@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-from gevent import monkey
-
-monkey.patch_all()
-
 import datetime
 import enum
 import logging
@@ -11,6 +7,10 @@ from collections.abc import Iterable
 import click
 from sqlalchemy.orm import Query, joinedload
 from sqlalchemy.sql import func
+
+from inbox.config import config
+
+config["USE_GEVENT"] = False
 
 from inbox.logging import configure_logging, get_logger
 from inbox.models.block import Block

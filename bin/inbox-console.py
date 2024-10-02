@@ -1,13 +1,15 @@
 #!/usr/bin/env python
-from gevent import monkey
 
-monkey.patch_all()
 
 from setproctitle import setproctitle
 
 setproctitle("inbox-console")
 
 import click
+
+from inbox.config import config
+
+config["USE_GEVENT"] = False
 
 from inbox.logging import get_logger
 

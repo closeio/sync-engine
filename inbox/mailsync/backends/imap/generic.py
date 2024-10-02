@@ -67,7 +67,6 @@ import time
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
-import gevent
 from gevent import Greenlet
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
@@ -120,6 +119,19 @@ FAST_REFRESH_INTERVAL = timedelta(seconds=30)
 MAX_UIDINVALID_RESYNCS = 5
 
 CONDSTORE_FLAGS_REFRESH_BATCH_SIZE = 200
+
+
+class ChangePoller(Greenlet):
+    def __init__(self, engine: "FolderSyncEngine") -> None:
+        self.engine = engine
+        super().__init__()
+
+    @retry_crispin
+    def _run(self) -> None:
+        log.new(account_id=self.engine.account_id, folder=self.engine.folder_name)
+        while True:
+            log.debug("polling for changes")
+            self.engine.poll_impl()
 
 
 class FolderSyncEngine(Greenlet):
@@ -442,7 +454,8 @@ class FolderSyncEngine(Greenlet):
                     download_uid_count=len(new_uids),
                 )
 
-            change_poller = gevent.spawn(self.poll_for_changes)
+            change_poller = ChangePoller(self)
+            change_poller.start()
             bind_context(change_poller, "changepoller", self.account_id, self.folder_id)
             uids = sorted(new_uids, reverse=True)
             for count, uid in enumerate(uids, start=1):
@@ -460,7 +473,7 @@ class FolderSyncEngine(Greenlet):
         finally:
             if change_poller is not None:
                 # schedule change_poller to die
-                gevent.kill(change_poller)
+                change_poller.kill()
 
     def should_idle(self, crispin_client):
         if not hasattr(self, "_should_idle"):
@@ -532,13 +545,6 @@ class FolderSyncEngine(Greenlet):
         self.uidvalidity = remote_uidvalidity
         self.highestmodseq = None
         self.uidnext = remote_uidnext
-
-    @retry_crispin
-    def poll_for_changes(self):
-        log.new(account_id=self.account_id, folder=self.folder_name)
-        while True:
-            log.debug("polling for changes")
-            self.poll_impl()
 
     def create_message(
         self,

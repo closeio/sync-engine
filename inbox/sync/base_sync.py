@@ -1,5 +1,6 @@
 import threading
 
+from inbox import greenlet_like
 from inbox.exceptions import ConnectionError, ValidationError
 from inbox.greenlet_like import GreenletLikeThread
 from inbox.heartbeat.store import HeartbeatStatusProxy
@@ -83,8 +84,8 @@ class BaseSyncMonitor(GreenletLikeThread):
         # 2x poll frequency.
         except ConnectionError:
             self.log.error("Error while polling", exc_info=True)
-            self.sleep(self.poll_frequency)
-        self.sleep(self.poll_frequency)
+            greenlet_like.sleep(self.poll_frequency)
+        greenlet_like.sleep(self.poll_frequency)
 
     def sync(self):
         """Subclasses should override this to do work"""

@@ -473,7 +473,7 @@ class FolderSyncEngine(GreenletLikeThread):
                     # messages per folder are synced.
                     # Note this is an approx. limit since we use the #(uids),
                     # not the #(messages).
-                    self.sleep(THROTTLE_WAIT)
+                    greenlet_like.sleep(THROTTLE_WAIT)
         finally:
             if change_poller is not None:
                 # schedule change_poller to die

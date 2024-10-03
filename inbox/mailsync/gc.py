@@ -4,6 +4,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import load_only
 from sqlalchemy.orm.exc import ObjectDeletedError
 
+from inbox import greenlet_like
 from inbox.crispin import connection_pool
 from inbox.greenlet_like import GreenletLikeThread
 from inbox.logging import get_logger
@@ -83,7 +84,7 @@ class DeleteHandler(GreenletLikeThread):
         self.check(current_time)
         self.gc_deleted_categories()
         self.gc_deleted_threads(current_time)
-        self.sleep(self.message_ttl.total_seconds())
+        greenlet_like.sleep(self.message_ttl.total_seconds())
 
     def check(self, current_time):
         with session_scope(self.namespace_id) as db_session:

@@ -128,7 +128,7 @@ class ChangePoller(GreenletLikeThread):
 
     @retry_crispin
     def _run(self) -> NoReturn:
-        log.new(account_id=self.account_id, folder=self.folder_name)
+        log.new(account_id=self.engine.account_id, folder=self.engine.folder_name)
         while True:
             self.check_killed()
             log.debug("polling for changes")

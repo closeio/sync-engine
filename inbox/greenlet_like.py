@@ -78,12 +78,3 @@ class GreenletLikeThread(threading.Thread):
         while time.monotonic() - start < seconds:
             self.check_killed()
             time.sleep(CHECK_KILLED_TIMEOUT)
-
-
-def spawn(
-    target: Optional[Callable[..., Any]] = None, *args: Any, **kwargs: Any
-) -> GreenletLikeThread:
-    thread = GreenletLikeThread(target, *args, **kwargs)
-    thread.start()
-
-    return thread

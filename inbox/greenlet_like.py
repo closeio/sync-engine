@@ -78,3 +78,11 @@ class GreenletLikeThread(threading.Thread):
         while time.monotonic() - start < seconds:
             self.check_killed()
             time.sleep(CHECK_KILLED_TIMEOUT)
+
+
+def sleep(seconds: float) -> None:
+    current_thread = threading.current_thread()
+    if not isinstance(current_thread, GreenletLikeThread):
+        return time.sleep(seconds)
+
+    return current_thread.sleep(seconds)

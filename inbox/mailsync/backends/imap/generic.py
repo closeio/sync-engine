@@ -72,6 +72,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 
+from inbox import greenlet_like
 from inbox.exceptions import ValidationError
 from inbox.greenlet_like import GreenletLikeThread
 from inbox.logging import get_logger
@@ -516,7 +517,7 @@ class FolderSyncEngine(GreenletLikeThread):
                 idling = False
         # Close IMAP connection before sleeping
         if not idling:
-            self.sleep(self.poll_frequency)
+            greenlet_like.sleep(self.poll_frequency)
 
     def resync_uids_impl(self):
         # First, let's check if the UIVDALIDITY change was spurious, if

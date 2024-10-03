@@ -90,3 +90,6 @@ class BaseSyncMonitor(Greenlet):
     def sync(self):
         """Subclasses should override this to do work"""
         raise NotImplementedError
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}(account_id={self.account_id!r})>"

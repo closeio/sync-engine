@@ -1016,6 +1016,9 @@ class FolderSyncEngine(GreenletLikeThread):
             )
         return select_info
 
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}(account_id={self.account_id!r}, folder_id={self.folder_id!r}, folder_name={self.folder_name!r})>"
+
 
 class UidInvalid(Exception):
     """Raised when a folder's UIDVALIDITY changes, requiring a resync."""

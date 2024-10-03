@@ -201,6 +201,9 @@ class DeleteHandler(GreenletLikeThread):
                 db_session.delete(thread)
                 db_session.commit()
 
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}(account_id={self.account_id!r})>"
+
 
 class LabelRenameHandler(GreenletLikeThread):
     """
@@ -278,3 +281,6 @@ class LabelRenameHandler(GreenletLikeThread):
                             db_session.commit()
         finally:
             self.semaphore.release()
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}(account_id={self.account_id!r}, label_name={self.label_name!r})>"

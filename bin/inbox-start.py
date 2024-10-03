@@ -152,8 +152,8 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
         exit_after_min=exit_after_min,
         exit_after_max=exit_after_max,
     )
-    signal.signal(signal.SIGTERM, sync_service.stop)
-    signal.signal(signal.SIGINT, sync_service.stop)
+    signal.signal(signal.SIGTERM, lambda *_: sync_service.stop())
+    signal.signal(signal.SIGINT, lambda *_: sync_service.stop())
     http_frontend = SyncHTTPFrontend(
         sync_service, port, enable_tracer, enable_profiler_api
     )

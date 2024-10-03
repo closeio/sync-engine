@@ -56,7 +56,7 @@ class BaseSyncMonitor(GreenletLikeThread):
         self.log = self.log.new(account_id=self.account_id)
         try:
             while True:
-                self.check_killed()
+                greenlet_like.check_killed()
                 retry_with_logging(
                     self._run_impl,
                     account_id=self.account_id,

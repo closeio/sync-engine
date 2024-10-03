@@ -86,3 +86,11 @@ def sleep(seconds: float) -> None:
         return time.sleep(seconds)
 
     return current_thread.sleep(seconds)
+
+
+def check_killed() -> None:
+    current_thread = threading.current_thread()
+    if not isinstance(current_thread, GreenletLikeThread):
+        return
+
+    return current_thread.check_killed()

@@ -74,7 +74,7 @@ class DeleteHandler(GreenletLikeThread):
 
     def _run(self):
         while True:
-            self.check_killed()
+            greenlet_like.check_killed()
             retry_with_logging(
                 self._run_impl, account_id=self.account_id, provider=self.provider_name
             )

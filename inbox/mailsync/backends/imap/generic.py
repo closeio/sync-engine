@@ -131,7 +131,7 @@ class ChangePoller(GreenletLikeThread):
     def _run(self) -> NoReturn:
         log.new(account_id=self.engine.account_id, folder=self.engine.folder_name)
         while True:
-            self.check_killed()
+            greenlet_like.check_killed()
             log.debug("polling for changes")
             self.engine.poll_impl()
 
@@ -259,7 +259,7 @@ class FolderSyncEngine(GreenletLikeThread):
         # time if it receives a shutdown command. The shutdown command is
         # equivalent to ctrl-c.
         while self.state != "finish":
-            self.check_killed()
+            greenlet_like.check_killed()
             retry_with_logging(
                 self._run_impl,
                 account_id=self.account_id,

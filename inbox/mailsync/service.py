@@ -1,6 +1,5 @@
 import platform
 import random
-import threading
 import time
 from threading import BoundedSemaphore
 from typing import Type
@@ -47,15 +46,6 @@ def shared_sync_event_queue_for_zone(zone):
     if queue_name not in SHARED_SYNC_EVENT_QUEUE_ZONE_MAP:
         SHARED_SYNC_EVENT_QUEUE_ZONE_MAP[queue_name] = EventQueue(queue_name)
     return SHARED_SYNC_EVENT_QUEUE_ZONE_MAP[queue_name]
-
-
-def spawn_later(seconds, func):
-    def target():
-        time.sleep(seconds)
-        func()
-
-    thread = threading.Thread(target=target, daemon=True)
-    thread.start()
 
 
 class SyncService:

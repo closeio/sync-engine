@@ -1,3 +1,4 @@
+import concurrent.futures
 import threading
 
 from inbox.config import config
@@ -96,8 +97,12 @@ class BaseMailSyncMonitor(GreenletLikeThread):
         with session_scope(self.namespace_id) as mailsync_db_session:
             for x in self.folder_monitors:
                 x.set_stopped(mailsync_db_session)
-        for monitor in self.folder_monitors:
-            monitor.kill()
+        with concurrent.futures.ThreadPoolExecutor(
+            len(self.folder_monitors) or 1
+        ) as executor:
+            executor.map(
+                lambda folder_monitor: folder_monitor.kill(), self.folder_monitors
+            )
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}(account_id={self.account_id!r})>"

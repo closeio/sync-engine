@@ -1,3 +1,4 @@
+import concurrent.futures
 import platform
 import random
 import time
@@ -117,21 +118,32 @@ class SyncService:
         while self.keep_running:
             retry_with_logging(self._run_impl, self.log)
 
-        for email_sync_monitor in self.email_sync_monitors.values():
-            if email_sync_monitor.delete_handler:
-                email_sync_monitor.delete_handler.kill()
-            email_sync_monitor.sync_greenlet.kill(block=False)
-            email_sync_monitor.join()
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=len(self.email_sync_monitors) or 1
+        ) as executor:
+            executor.map(stop_email_sync_monitor, self.email_sync_monitors.values())
         self.log.info(
             "stopped email sync monitors", count=len(self.email_sync_monitors)
         )
-        for contact_sync_monitor in self.contact_sync_monitors.values():
-            contact_sync_monitor.kill()
+
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=len(self.contact_sync_monitors) or 1
+        ) as executor:
+            executor.map(
+                lambda contact_sync_monitor: contact_sync_monitor.kill(),
+                self.contact_sync_monitors.values(),
+            )
         self.log.info(
             "stopped contact sync monitors", count=len(self.contact_sync_monitors)
         )
-        for event_sync_monitor in self.event_sync_monitors.values():
-            event_sync_monitor.kill()
+
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=len(self.event_sync_monitors) or 1
+        ) as executor:
+            executor.map(
+                lambda event_sync_monitor: event_sync_monitor.kill(),
+                self.event_sync_monitors.values(),
+            )
         self.log.info(
             "stopped event sync monitors", count=len(self.event_sync_monitors)
         )
@@ -411,3 +423,10 @@ class SyncService:
                 db_session.commit()
                 self.syncing_accounts.discard(account_id)
             return True
+
+
+def stop_email_sync_monitor(email_sync_monitor):
+    if email_sync_monitor.delete_handler:
+        email_sync_monitor.delete_handler.kill()
+    email_sync_monitor.sync_greenlet.kill(block=False)
+    email_sync_monitor.join()

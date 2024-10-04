@@ -46,6 +46,10 @@ class ProfilingHTTPFrontend:
         )
 
     def _create_app_impl(self, app):
+        @app.route("/healthcheck")
+        def healthcheck():
+            return "Healthy"
+
         @app.route("/profile")
         def profile():
             if self.profiler is None:

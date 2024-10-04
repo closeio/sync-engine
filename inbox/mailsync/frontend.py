@@ -46,6 +46,10 @@ class ProfilingHTTPFrontend:
         )
 
     def _create_app_impl(self, app):
+        from pympler import tracker
+
+        tracker = tracker.SummaryTracker()
+
         @app.route("/healthcheck")
         def healthcheck():
             return "Healthy"
@@ -73,6 +77,10 @@ class ProfilingHTTPFrontend:
             objs = muppy.get_objects()
             summ = summary.summarize(objs)
             return "\n".join(summary.format_(summ)) + "\n"
+
+        @app.route("/mem-diff")
+        def mem_diff():
+            return "\n".join(tracker.format_diff()) + "\n"
 
 
 class SyncbackHTTPFrontend(ProfilingHTTPFrontend):

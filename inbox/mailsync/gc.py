@@ -234,6 +234,7 @@ class LabelRenameHandler(GreenletLikeThread):
         self.name = f"{self.__class__.__name__}(account_id={account_id!r}, label_name={label_name!r})"
 
     def _run(self):
+        greenlet_like.check_killed()
         return retry_with_logging(self._run_impl, account_id=self.account_id)
 
     def _run_impl(self):

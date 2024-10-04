@@ -487,6 +487,12 @@ class FolderSyncEngine(GreenletLikeThread):
             )
         return self._should_idle
 
+    def idle(self, crispin_client):
+        start = time.monotonic()
+        while time.monotonic() - start < IDLE_WAIT:
+            greenlet_like.check_killed()
+            crispin_client.idle(1)
+
     def poll_impl(self):
         # MARK: blocking
         with self.conn_pool.get() as crispin_client:
@@ -495,8 +501,7 @@ class FolderSyncEngine(GreenletLikeThread):
                 crispin_client.select_folder(self.folder_name, self.uidvalidity_cb)
                 idling = True
                 try:
-                    # MARK: blocking
-                    crispin_client.idle(IDLE_WAIT)
+                    self.idle(crispin_client)
                 except Exception as exc:
                     # With some servers we get e.g.
                     # 'Unexpected IDLE response: * FLAGS  (...)'

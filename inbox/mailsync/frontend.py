@@ -62,7 +62,7 @@ class ProfilingHTTPFrontend:
         @app.route("/load")
         def load():
             if self.tracer is None:
-                return "Load tracing disabled\n", 404
+                return "{}"
             resp = jsonify(self.tracer.stats())
             if request.args.get("reset ") in (1, "true"):
                 self.tracer.reset()

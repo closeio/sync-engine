@@ -54,7 +54,6 @@ textual==0.82.0
 markdown-it-py==3.0.0
 mdurl==0.1.2
 platformdirs==4.3.6
-mysqlclient==1.3.14
 parso==0.8.3
 pexpect==4.8.0
 pickleshare==0.7.5

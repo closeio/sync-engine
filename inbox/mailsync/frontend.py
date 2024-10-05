@@ -4,6 +4,7 @@ from flask import Flask, jsonify, request
 from pympler import muppy, summary
 from werkzeug.serving import WSGIRequestHandler, run_simple
 
+import inbox.thread_inspector
 from inbox.instrumentation import GreenletTracer, KillerGreenletTracer, ProfileCollector
 
 
@@ -69,6 +70,16 @@ class ProfilingHTTPFrontend:
             objs = muppy.get_objects()
             summ = summary.summarize(objs)
             return "\n".join(summary.format_(summ)) + "\n"
+
+        @app.route("/dump-threads")
+        def dump_threads():
+            return (
+                "\n".join(
+                    f"{t!r}, {hex(t.native_id)}"
+                    for t in inbox.thread_inspector.enumerate()
+                )
+                + "\n"
+            )
 
 
 class SyncbackHTTPFrontend(ProfilingHTTPFrontend):

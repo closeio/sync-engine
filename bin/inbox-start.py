@@ -6,9 +6,17 @@ import platform
 import signal
 import socket
 import sys
+import threading
+import time
 
 import click
+import memray
 import setproctitle
+
+from inbox.glibc_malloc import (
+    maybe_start_malloc_stats_thread,
+    maybe_start_malloc_trim_thread,
+)
 
 # Check that the inbox package is installed. It seems Vagrant may sometimes
 # fail to provision the box appropriately; this check is a reasonable
@@ -22,6 +30,7 @@ except ImportError:
         "Try running sudo ./setup.sh"
     )
 
+import inbox.thread_inspector
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.logging import configure_logging, get_logger
 from inbox.mailsync.frontend import SyncHTTPFrontend
@@ -72,6 +81,8 @@ banner = rf"""{esc}[1;95m
 )
 def main(prod, enable_profiler, config, process_num):
     """Launch the Nylas sync service."""
+    threading.stack_size(524288)
+
     level = os.environ.get("LOGLEVEL", inbox_config.get("LOGLEVEL"))
     configure_logging(log_level=level)
     reconfigure_logging()
@@ -117,6 +128,11 @@ def main(prod, enable_profiler, config, process_num):
 
     signal.signal(signal.SIGTERM, lambda *_: sync_service.stop())
     signal.signal(signal.SIGINT, lambda *_: sync_service.stop())
+    signal.signal(signal.SIGUSR1, lambda *_: track_memory())
+    signal.signal(signal.SIGUSR2, lambda *_: dump_threads())
+
+    maybe_start_malloc_stats_thread()
+    maybe_start_malloc_trim_thread()
 
     http_frontend = SyncHTTPFrontend(sync_service, port, enable_profiler_api)
     http_frontend.start()
@@ -124,6 +140,27 @@ def main(prod, enable_profiler, config, process_num):
     sync_service.run()
 
     print("\033[94mNylas Sync Engine exiting...\033[0m", file=sys.stderr)
+
+
+tracker = None
+
+
+def track_memory():
+    global tracker
+
+    if not tracker:
+        tracker = memray.Tracker(
+            f"bin/inbox-start-{int(time.time())}.bin", trace_python_allocators=True
+        )
+        tracker.__enter__()
+    else:
+        tracker.__exit__(None, None, None)
+        tracker = None
+
+
+def dump_threads():
+    for thread in inbox.thread_inspector.enumerate():
+        print("-->", thread, hex(thread.native_id))
 
 
 if __name__ == "__main__":

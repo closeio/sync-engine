@@ -11,6 +11,7 @@ import threading
 import time
 
 import click
+import memray
 import setproctitle
 import structlog
 
@@ -153,7 +154,8 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
     # sync_service.register_pending_avgs_provider(http_frontend)
     http_frontend.start()
 
-    sync_service.run()
+    with memray.Tracker("bin/inbox-start.bin"):
+        sync_service.run()
 
     print("\033[94mNylas Sync Engine exiting...\033[0m", file=sys.stderr)
 

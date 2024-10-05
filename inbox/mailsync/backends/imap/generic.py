@@ -827,7 +827,6 @@ class FolderSyncEngine(GreenletLikeThread):
         )
         crispin_client.select_folder(self.folder_name, self.uidvalidity_cb)
         changed_flags = crispin_client.condstore_changed_flags(self.highestmodseq)
-        remote_uids = crispin_client.all_uids()
 
         # In order to be able to sync changes to tens of thousands of flags at
         # once, we commit updates in batches. We do this in ascending order by
@@ -856,9 +855,15 @@ class FolderSyncEngine(GreenletLikeThread):
                 interim_highestmodseq = max(v.modseq for k, v in flag_batch)
                 self.highestmodseq = interim_highestmodseq
 
+        remote_uids = crispin_client.all_uids()
+
         with session_scope(self.namespace_id) as db_session:
             local_uids = common.local_uids(self.account_id, db_session, self.folder_id)
-            expunged_uids = set(local_uids).difference(remote_uids)
+
+        expunged_uids = local_uids.difference(remote_uids)
+        del local_uids
+        max_remote_uid = max(remote_uids) if remote_uids else 0
+        del remote_uids
 
         if expunged_uids:
             # If new UIDs have appeared since we last checked in
@@ -869,7 +874,7 @@ class FolderSyncEngine(GreenletLikeThread):
                 lastseenuid = common.lastseenuid(
                     self.account_id, db_session, self.folder_id
                 )
-            if remote_uids and lastseenuid < max(remote_uids):
+            if lastseenuid < max_remote_uid:
                 log.info("Downloading new UIDs before expunging")
                 self.get_new_uids(crispin_client)
             with self.syncmanager_lock:
@@ -900,14 +905,21 @@ class FolderSyncEngine(GreenletLikeThread):
 
         # Check for any deleted messages.
         remote_uids = crispin_client.all_uids()
+
         with session_scope(self.namespace_id) as db_session:
             local_uids = common.local_uids(self.account_id, db_session, self.folder_id)
-            expunged_uids = set(local_uids).difference(remote_uids)
+
+        expunged_uids = local_uids.difference(remote_uids)
+        del local_uids
+        del remote_uids
+
         if expunged_uids:
             with self.syncmanager_lock:
                 common.remove_deleted_uids(
                     self.account_id, self.folder_id, expunged_uids
                 )
+
+        del expunged_uids
 
         # Get recent UIDs to monitor for flag changes.
         with session_scope(self.namespace_id) as db_session:
@@ -932,13 +944,17 @@ class FolderSyncEngine(GreenletLikeThread):
         log.debug(
             "Changed flags refresh response, persisting changes", max_uids=max_uids
         )
-        expunged_uids = set(local_uids).difference(flags.keys())
+        expunged_uids = local_uids.difference(flags.keys())
         with self.syncmanager_lock:
             common.remove_deleted_uids(self.account_id, self.folder_id, expunged_uids)
+
+        del expunged_uids
+
         with self.syncmanager_lock, session_scope(self.namespace_id) as db_session:
             common.update_metadata(
                 self.account_id, self.folder_id, self.folder_role, flags, db_session
             )
+        # MARK: could use a lot of memory
         self.flags_fetch_results[max_uids] = (local_uids, flags)
 
     def check_uid_changes(self, crispin_client):

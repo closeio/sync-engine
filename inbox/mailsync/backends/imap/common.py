@@ -45,7 +45,9 @@ def local_uids(
     if limit:
         q = q.order_by(desc(ImapUid.msg_uid))
         q = q.limit(bindparam("limit"))
-    q = q.params(account_id=account_id, folder_id=folder_id, limit=limit)
+    q = q.params(account_id=account_id, folder_id=folder_id, limit=limit).yield_per(
+        1000
+    )
     return {uid for uid, in q}
 
 

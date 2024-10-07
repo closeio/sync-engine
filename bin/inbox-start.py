@@ -154,7 +154,7 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
     # sync_service.register_pending_avgs_provider(http_frontend)
     http_frontend.start()
 
-    with memray.Tracker("bin/inbox-start.bin"):
+    with memray.Tracker("bin/inbox-start.bin", trace_python_allocators=True):
         sync_service.run()
 
     print("\033[94mNylas Sync Engine exiting...\033[0m", file=sys.stderr)

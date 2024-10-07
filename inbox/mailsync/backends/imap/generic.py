@@ -65,7 +65,7 @@ import contextlib
 import imaplib
 import time
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from gevent import Greenlet
 from sqlalchemy import func
@@ -102,6 +102,9 @@ from inbox.models.backends.imap import (
     ImapUid,
 )
 from inbox.models.session import session_scope
+
+if TYPE_CHECKING:
+    from inbox.crispin import CrispinClient
 
 # Idle doesn't necessarily pick up flag changes, so we don't want to
 # idle for very long, or we won't detect things like messages being
@@ -772,7 +775,7 @@ class FolderSyncEngine(Greenlet):
                 self.download_and_commit_uids(crispin_client, [uid])
         self.uidnext = remote_uidnext
 
-    def condstore_refresh_flags(self, crispin_client):
+    def condstore_refresh_flags(self, crispin_client: "CrispinClient") -> None:
         new_highestmodseq: int = crispin_client.conn.folder_status(
             self.folder_name, ["HIGHESTMODSEQ"]
         )[b"HIGHESTMODSEQ"]
@@ -829,15 +832,17 @@ class FolderSyncEngine(Greenlet):
                 interim_highestmodseq = max(v.modseq for k, v in flag_batch)
                 self.highestmodseq = interim_highestmodseq
 
+        del changed_flags  # free memory as soon as possible
+
         remote_uids = crispin_client.all_uids()
 
         with session_scope(self.namespace_id) as db_session:
             local_uids = common.local_uids(self.account_id, db_session, self.folder_id)
 
         expunged_uids = local_uids.difference(remote_uids)
-        del local_uids
+        del local_uids  # free memory as soon as possible
         max_remote_uid = max(remote_uids) if remote_uids else 0
-        del remote_uids
+        del remote_uids  # free memory as soon as possible
 
         if expunged_uids:
             # If new UIDs have appeared since we last checked in
@@ -874,7 +879,9 @@ class FolderSyncEngine(Greenlet):
             self.refresh_flags_impl(crispin_client, FAST_FLAGS_REFRESH_LIMIT)
             self.last_fast_refresh = datetime.utcnow()
 
-    def refresh_flags_impl(self, crispin_client, max_uids):
+    def refresh_flags_impl(
+        self, crispin_client: "CrispinClient", max_uids: int
+    ) -> None:
         crispin_client.select_folder(self.folder_name, self.uidvalidity_cb)
 
         # Check for any deleted messages.
@@ -884,8 +891,8 @@ class FolderSyncEngine(Greenlet):
             local_uids = common.local_uids(self.account_id, db_session, self.folder_id)
 
         expunged_uids = local_uids.difference(remote_uids)
-        del local_uids
-        del remote_uids
+        del local_uids  # free memory as soon as possible
+        del remote_uids  # free memory as soon as possible
 
         if expunged_uids:
             with self.syncmanager_lock:
@@ -893,7 +900,7 @@ class FolderSyncEngine(Greenlet):
                     self.account_id, self.folder_id, expunged_uids
                 )
 
-        del expunged_uids
+        del expunged_uids  # free memory as soon as possible
 
         # Get recent UIDs to monitor for flag changes.
         with session_scope(self.namespace_id) as db_session:
@@ -918,20 +925,19 @@ class FolderSyncEngine(Greenlet):
         log.debug(
             "Changed flags refresh response, persisting changes", max_uids=max_uids
         )
-        expunged_uids = local_uids.difference(flags.keys())
+        expunged_uids = local_uids.difference(flags)
         with self.syncmanager_lock:
             common.remove_deleted_uids(self.account_id, self.folder_id, expunged_uids)
 
-        del expunged_uids
+        del expunged_uids  # free memory as soon as possible
 
         with self.syncmanager_lock, session_scope(self.namespace_id) as db_session:
             common.update_metadata(
                 self.account_id, self.folder_id, self.folder_role, flags, db_session
             )
-        # MARK: could use a lot of memory
         self.flags_fetch_results[max_uids] = (local_uids, flags)
 
-    def check_uid_changes(self, crispin_client):
+    def check_uid_changes(self, crispin_client: "CrispinClient") -> None:
         self.get_new_uids(crispin_client)
         if crispin_client.condstore_supported():
             self.condstore_refresh_flags(crispin_client)

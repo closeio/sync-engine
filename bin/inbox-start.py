@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 
-import contextlib
 import os
 import platform
 import random
@@ -195,14 +194,22 @@ def prepare_trace():
     trace_thread.start()
 
 
+tracker = None
+
+
 def trace():
+    global tracker
+
     time.sleep(1)
 
-    with contextlib.suppress(FileNotFoundError):
-        os.unlink("bin/inbox-start.bin")
-
-    with memray.Tracker("bin/inbox-start.bin", trace_python_allocators=True):
-        time.sleep(120)
+    if not tracker:
+        tracker = memray.Tracker(
+            f"bin/inbox-start-{int(time.time())}.bin", trace_python_allocators=True
+        )
+        tracker.__enter__()
+    else:
+        tracker.__exit__(None, None, None)
+        tracker = None
 
 
 def dump_threads():

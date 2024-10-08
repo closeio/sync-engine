@@ -4,6 +4,7 @@ from flask import Flask, jsonify, request
 from pympler import muppy, summary
 from werkzeug.serving import WSGIRequestHandler, run_simple
 
+import inbox.thread_inspector
 from inbox.instrumentation import GreenletTracer, KillerGreenletTracer, ProfileCollector
 
 
@@ -81,6 +82,16 @@ class ProfilingHTTPFrontend:
         @app.route("/mem-diff")
         def mem_diff():
             return "\n".join(tracker.format_diff()) + "\n"
+
+        @app.route("/dump-threads")
+        def dump_threads():
+            return (
+                "\n".join(
+                    f"{t!r}, {hex(t.native_id)}"
+                    for t in inbox.thread_inspector.enumerate()
+                )
+                + "\n"
+            )
 
 
 class SyncbackHTTPFrontend(ProfilingHTTPFrontend):

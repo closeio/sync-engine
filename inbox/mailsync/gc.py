@@ -70,7 +70,10 @@ class DeleteHandler(gevent.Greenlet):
         self.log = log.new(account_id=account_id)
         self.message_ttl = datetime.timedelta(seconds=message_ttl)
         self.thread_ttl = datetime.timedelta(seconds=thread_ttl)
+
         super().__init__()
+
+        self.name = f"{self.__class__.__name__}(account_id={account_id!r})"
 
     def _run(self):
         while True:
@@ -201,7 +204,7 @@ class DeleteHandler(gevent.Greenlet):
                 db_session.commit()
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(account_id={self.account_id!r})>"
+        return f"<{self.name}>"
 
 
 class LabelRenameHandler(gevent.Greenlet):
@@ -224,7 +227,10 @@ class LabelRenameHandler(gevent.Greenlet):
         self.label_name = label_name
         self.log = log.new(account_id=account_id)
         self.semaphore = semaphore
+
         super().__init__()
+
+        self.name = f"{self.__class__.__name__}(account_id={account_id!r}, label_name={label_name!r})"
 
     def _run(self):
         return retry_with_logging(self._run_impl, account_id=self.account_id)
@@ -282,4 +288,4 @@ class LabelRenameHandler(gevent.Greenlet):
             self.semaphore.release()
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(account_id={self.account_id!r}, label_name={self.label_name!r})>"
+        return f"<{self.name}>"

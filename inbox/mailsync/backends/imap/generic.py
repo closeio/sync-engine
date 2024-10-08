@@ -124,7 +124,13 @@ CONDSTORE_FLAGS_REFRESH_BATCH_SIZE = 200
 class ChangePoller(Greenlet):
     def __init__(self, engine: "FolderSyncEngine") -> None:
         self.engine = engine
+
         super().__init__()
+
+        self.name = (
+            f"{self.__class__.__name__}(account_id={engine.account_id!r}, "
+            f"folder_id={engine.folder_id!r}, folder_name={engine.folder_name!r})"
+        )
 
     @retry_crispin
     def _run(self) -> None:
@@ -132,6 +138,9 @@ class ChangePoller(Greenlet):
         while True:
             log.debug("polling for changes")
             self.engine.poll_impl()
+
+    def __repr__(self) -> str:
+        return f"<{self.name}>"
 
 
 class FolderSyncEngine(Greenlet):
@@ -200,6 +209,11 @@ class FolderSyncEngine(Greenlet):
         # times we got such an error and bail out if it's higher than
         # MAX_UIDINVALID_RESYNCS.
         self.uidinvalid_count = 0
+
+        self.name = (
+            f"{self.__class__.__name__}(account_id={account_id!r}, "
+            f"folder_id={self.folder_id!r}, folder_name={folder_name!r})"
+        )
 
     def setup_heartbeats(self):
         self.heartbeat_status = HeartbeatStatusProxy(
@@ -1010,10 +1024,7 @@ class FolderSyncEngine(Greenlet):
         return select_info
 
     def __repr__(self) -> str:
-        return (
-            f"<{self.__class__.__name__}(account_id={self.account_id!r}, "
-            f"folder_id={self.folder_id!r}, folder_name={self.folder_name!r})>"
-        )
+        return f"<{self.name}>"
 
 
 class UidInvalid(Exception):

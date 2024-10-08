@@ -30,6 +30,7 @@ except ImportError:
 # TODO: set this with environment variables
 inbox_config["USE_GEVENT"] = False
 
+import inbox.thread_inspector
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.logging import configure_logging, get_logger
 from inbox.mailsync.frontend import SyncHTTPFrontend
@@ -213,11 +214,8 @@ def trace():
 
 
 def dump_threads():
-    for thread in threading.enumerate():
-        if thread is threading.main_thread() or thread.daemon:
-            continue
-
-        print(thread)
+    for thread in inbox.thread_inspector.enumerate():
+        print("-->", thread, hex(thread.native_id))
 
 
 if __name__ == "__main__":

@@ -147,6 +147,7 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
     signal.signal(signal.SIGTERM, lambda *_: sync_service.stop())
     signal.signal(signal.SIGINT, lambda *_: sync_service.stop())
     signal.signal(signal.SIGUSR1, lambda *_: prepare_trace())
+    signal.signal(signal.SIGUSR2, lambda *_: dump_threads())
     prepare_exit_after(log, sync_service, exit_after)
 
     http_frontend = SyncHTTPFrontend(
@@ -202,6 +203,14 @@ def trace():
 
     with memray.Tracker("bin/inbox-start.bin", trace_python_allocators=True):
         time.sleep(120)
+
+
+def dump_threads():
+    for thread in threading.enumerate():
+        if thread is threading.main_thread() or thread.daemon:
+            continue
+
+        print(thread)
 
 
 if __name__ == "__main__":

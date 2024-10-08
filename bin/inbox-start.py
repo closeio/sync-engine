@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 
+import contextlib
 import os
 import platform
 import random
@@ -11,6 +12,7 @@ import threading
 import time
 
 import click
+import memray
 import setproctitle
 import structlog
 
@@ -144,6 +146,7 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
 
     signal.signal(signal.SIGTERM, lambda *_: sync_service.stop())
     signal.signal(signal.SIGINT, lambda *_: sync_service.stop())
+    signal.signal(signal.SIGUSR1, lambda *_: prepare_trace())
     prepare_exit_after(log, sync_service, exit_after)
 
     http_frontend = SyncHTTPFrontend(
@@ -153,7 +156,6 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
     # sync_service.register_pending_avgs_provider(http_frontend)
     http_frontend.start()
 
-    # with memray.Tracker("bin/inbox-start.bin", trace_python_allocators=True):
     sync_service.run()
 
     print("\033[94mNylas Sync Engine exiting...\033[0m", file=sys.stderr)
@@ -185,6 +187,21 @@ def prepare_exit_after(
 def perform_exit_after(sync_service: SyncService, seconds: int) -> None:
     time.sleep(seconds)
     sync_service.stop()
+
+
+def prepare_trace():
+    trace_thread = threading.Thread(target=trace, daemon=True)
+    trace_thread.start()
+
+
+def trace():
+    time.sleep(1)
+
+    with contextlib.suppress(FileNotFoundError):
+        os.unlink("bin/inbox-start.bin")
+
+    with memray.Tracker("bin/inbox-start.bin", trace_python_allocators=True):
+        time.sleep(120)
 
 
 if __name__ == "__main__":

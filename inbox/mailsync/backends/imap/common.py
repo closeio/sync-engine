@@ -32,7 +32,9 @@ from inbox.models.util import reconcile_message
 log = get_logger()
 
 
-def local_uids(account_id, session, folder_id, limit=None):
+def local_uids(
+    account_id: int, session, folder_id: int, limit: "int | None" = None
+) -> "set[int]":
     q = session.query(ImapUid.msg_uid).with_hint(
         ImapUid, "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)"
     )
@@ -43,8 +45,10 @@ def local_uids(account_id, session, folder_id, limit=None):
     if limit:
         q = q.order_by(desc(ImapUid.msg_uid))
         q = q.limit(bindparam("limit"))
-    results = q.params(account_id=account_id, folder_id=folder_id, limit=limit).all()
-    return {u for u, in results}
+    q = q.params(account_id=account_id, folder_id=folder_id, limit=limit).yield_per(
+        1000
+    )
+    return {uid for uid, in q}
 
 
 def lastseenuid(account_id, session, folder_id):

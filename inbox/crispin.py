@@ -832,7 +832,10 @@ class CrispinClient:
         criteria.
 
         """
-        return sorted(int(uid) for uid in self.conn.search(criteria))
+        return sorted(
+            int(uid) if not isinstance(uid, int) else uid
+            for uid in self.conn.search(criteria)
+        )
 
     def all_uids(self) -> List[int]:
         """Fetch all UIDs associated with the currently selected folder.
@@ -881,7 +884,9 @@ class CrispinClient:
         log.debug(
             "Requested all UIDs", search_time=elapsed, total_uids=len(fetch_result)
         )
-        return sorted(int(uid) for uid in fetch_result)
+        return sorted(
+            int(uid) if not isinstance(uid, int) else uid for uid in fetch_result
+        )
 
     def uids(self, uids: List[int]) -> List[RawMessage]:
         uid_set = set(uids)
@@ -1580,4 +1585,4 @@ class GmailCrispinClient(CrispinClient):
             raise
 
         response = imapclient.response_parser.parse_message_list(data)
-        return sorted(int(uid) for uid in response)
+        return sorted(int(uid) if not isinstance(uid, int) else uid for uid in response)

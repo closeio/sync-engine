@@ -24,7 +24,7 @@ import time
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from threading import Semaphore
-from typing import Dict, List
+from typing import TYPE_CHECKING, Dict, List
 
 from sqlalchemy.orm import joinedload, load_only
 
@@ -40,6 +40,9 @@ from inbox.models.category import EPOCH
 from inbox.models.session import session_scope
 from inbox.util.debug import bind_context
 from inbox.util.itert import chunk
+
+if TYPE_CHECKING:
+    from inbox.crispin import CrispinClient
 
 log = get_logger()
 
@@ -235,19 +238,23 @@ class GmailFolderSyncEngine(FolderSyncEngine):
     def should_idle(self, crispin_client):
         return self.is_all_mail(crispin_client)
 
-    def initial_sync_impl(self, crispin_client):
+    def initial_sync_impl(self, crispin_client: "CrispinClient") -> None:
         # We wrap the block in a try/finally because the greenlets like
         # change_poller need to be killed when this greenlet is interrupted
+        from inbox.crispin import GmailCrispinClient
+
+        assert isinstance(crispin_client, GmailCrispinClient)
+
         change_poller = None
         try:
-            remote_uids = sorted(crispin_client.all_uids(), key=int)
+            remote_uids = crispin_client.all_uids()
             with self.syncmanager_lock:
                 with session_scope(self.namespace_id) as db_session:
                     local_uids = common.local_uids(
                         self.account_id, db_session, self.folder_id
                     )
                 common.remove_deleted_uids(
-                    self.account_id, self.folder_id, set(local_uids) - set(remote_uids)
+                    self.account_id, self.folder_id, local_uids - set(remote_uids)
                 )
                 unknown_uids = set(remote_uids) - local_uids
                 with session_scope(self.namespace_id) as db_session:
@@ -257,13 +264,17 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                         download_uid_count=len(unknown_uids),
                     )
 
+            del local_uids  # free up memory as soon as possible
+            len_remote_uids = len(remote_uids)
+            del remote_uids  # free up memory as soon as possible
+
             change_poller = ChangePoller(self)
             change_poller.start()
             bind_context(change_poller, "changepoller", self.account_id, self.folder_id)
 
             if self.is_all_mail(crispin_client):
                 # Prioritize UIDs for messages in the inbox folder.
-                if len(remote_uids) < 1e6:
+                if len_remote_uids < 1e6:
                     inbox_uids = set(
                         crispin_client.search_uids(["X-GM-LABELS", "inbox"])
                     )
@@ -284,6 +295,9 @@ class GmailFolderSyncEngine(FolderSyncEngine):
             else:
                 uids_to_download = sorted(unknown_uids)
 
+            del unknown_uids  # free up memory as soon as possible
+            del inbox_uids  # free up memory as soon as possible
+
             for uids in chunk(reversed(uids_to_download), 1024):
                 g_metadata = crispin_client.g_metadata(uids)
                 # UIDs might have been expunged since sync started, in which
@@ -292,6 +306,8 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 # expansion. We can omit such UIDs.
                 uids = [u for u in uids if u in g_metadata and u not in self.saved_uids]
                 self.batch_download_uids(crispin_client, uids, g_metadata)
+
+            del uids_to_download  # free up memory as soon as possible
         finally:
             if change_poller is not None:
                 # schedule change_poller to die
@@ -320,6 +336,8 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                     g_msgid: msg_uid
                     for msg_uid, g_msgid in crispin_client.g_msgids(msg_uids).items()
                 }
+
+                del msg_uids  # free up memory as soon as possible
             imap_uid_entries = (
                 db_session.query(ImapUid)
                 .options(

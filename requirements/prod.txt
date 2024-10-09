@@ -72,7 +72,7 @@ rollbar==0.16.2
 s3transfer==0.5.0
 setproctitle==1.2.2
 six==1.16.0
-sqlalchemy==1.4.26
+sqlalchemy==1.4.54
 statsd==3.3.0
 stack-data==0.6.2
 tldextract==3.1.2

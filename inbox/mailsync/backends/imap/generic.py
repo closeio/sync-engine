@@ -68,6 +68,7 @@ import time
 from datetime import datetime, timedelta
 from typing import Any, Dict, NoReturn, Optional
 
+import intset
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -458,19 +459,17 @@ class FolderSyncEngine(InterruptibleThread):
         assert crispin_client.selected_folder_name == self.folder_name
         try:
             with self.global_lock:
-                remote_uids = set(crispin_client.all_uids())
+                remote_uids = intset.IntSet(crispin_client.all_uids())
                 with self.syncmanager_lock:
                     with session_scope(self.namespace_id) as db_session:
                         local_uids = common.local_uids(
                             self.account_id, db_session, self.folder_id
                         )
-                    common.remove_deleted_uids(
-                        self.account_id,
-                        self.folder_id,
-                        local_uids.difference(remote_uids),
-                    )
+                common.remove_deleted_uids(
+                    self.account_id, self.folder_id, local_uids - remote_uids
+                )
 
-                new_uids = sorted(remote_uids.difference(local_uids), reverse=True)
+                new_uids = sorted(remote_uids - local_uids, reverse=True)
 
                 len_remote_uids = len(remote_uids)
                 del remote_uids  # free up memory as soon as possible
@@ -870,14 +869,14 @@ class FolderSyncEngine(InterruptibleThread):
         del changed_flags  # free memory as soon as possible
 
         with self.global_lock:
-            remote_uids = set(crispin_client.all_uids())
+            remote_uids = intset.IntSet(crispin_client.all_uids())
 
             with session_scope(self.namespace_id) as db_session:
                 local_uids = common.local_uids(
                     self.account_id, db_session, self.folder_id
                 )
 
-            expunged_uids = local_uids.difference(remote_uids)
+            expunged_uids = local_uids - remote_uids
             del local_uids  # free memory as soon as possible
             max_remote_uid = max(remote_uids) if remote_uids else 0
             del remote_uids  # free memory as soon as possible
@@ -922,14 +921,14 @@ class FolderSyncEngine(InterruptibleThread):
 
         with self.global_lock:
             # Check for any deleted messages.
-            remote_uids = crispin_client.all_uids()
+            remote_uids = intset.IntSet(crispin_client.all_uids())
 
             with session_scope(self.namespace_id) as db_session:
                 local_uids = common.local_uids(
                     self.account_id, db_session, self.folder_id
                 )
 
-            expunged_uids = local_uids.difference(remote_uids)
+            expunged_uids = local_uids - remote_uids
             del local_uids  # free memory as soon as possible
             del remote_uids  # free memory as soon as possible
 
@@ -964,7 +963,7 @@ class FolderSyncEngine(InterruptibleThread):
         log.debug(
             "Changed flags refresh response, persisting changes", max_uids=max_uids
         )
-        expunged_uids = local_uids.difference(flags)
+        expunged_uids = local_uids - intset.IntSet(flags)
         with self.syncmanager_lock:
             common.remove_deleted_uids(self.account_id, self.folder_id, expunged_uids)
 

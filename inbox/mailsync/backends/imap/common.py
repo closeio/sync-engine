@@ -15,6 +15,7 @@ accounts.
 from datetime import datetime
 from typing import List, Set
 
+import intset
 from sqlalchemy import bindparam, desc
 from sqlalchemy.orm import Query, Session
 from sqlalchemy.orm.exc import NoResultFound
@@ -58,7 +59,7 @@ def local_uids(
     # We're using a raw DB-API cursor here to avoid the overhead of the ORM.
     db_api_cursor = get_db_api_cursor_with_query(session, q)
 
-    return {uid for uid, in db_api_cursor.fetchall()}
+    return intset.IntSet(uid for uid, in db_api_cursor.fetchall())
 
 
 def lastseenuid(account_id, session, folder_id):

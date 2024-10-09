@@ -362,7 +362,7 @@ uid_format = re.compile(b"[0-9]+")
 original_parse_message_list = imapclient.response_parser.parse_message_list
 
 
-def fixed_parse_message_list(data: List[bytes]) -> List[int]:
+def fixed_parse_message_list(data: List[bytes]) -> Iterable[int]:
     """Fixed version of imapclient.response_parser.parse_message_list
 
     We observed in real world that some IMAP servers send many
@@ -395,10 +395,10 @@ def fixed_parse_message_list(data: List[bytes]) -> List[int]:
     # Optimize most common textual format for low memory footprint
     with contextlib.suppress(TypeError):
         if len(data) == 1 and common_uid_list_format.match(data[0]):
-            return [
+            return (
                 int(uid_match.group(0))
                 for uid_match in re.finditer(uid_format, data[0])
-            ]
+            )
 
     return original_parse_message_list(data)
 
@@ -882,9 +882,7 @@ class CrispinClient:
                 raise
 
         elapsed = time.time() - t
-        log.debug(
-            "Requested all UIDs", search_time=elapsed, total_uids=len(fetch_result)
-        )
+        log.debug("Requested all UIDs", search_time=elapsed)
         return (int(uid) if not isinstance(uid, int) else uid for uid in fetch_result)
 
     def uids(self, uids: List[int]) -> List[RawMessage]:

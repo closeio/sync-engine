@@ -77,12 +77,15 @@ class BaseMailSyncMonitor(Greenlet):
         self.sync_greenlet.join()
 
         if self.sync_greenlet.successful():
-            return self._cleanup()
+            self._cleanup()
+            self.log.info(
+                "mail sync finished successfully", provider=self.provider_name
+            )
+            return
 
         self.log.error(
-            "mail sync should run forever",
+            "mail sync raised an exception",
             provider=self.provider_name,
-            account_id=self.account_id,
             exc=self.sync_greenlet.exception,
         )
         raise self.sync_greenlet.exception

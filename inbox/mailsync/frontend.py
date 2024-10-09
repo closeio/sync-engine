@@ -46,6 +46,14 @@ class ProfilingHTTPFrontend:
         )
 
     def _create_app_impl(self, app):
+        from pympler import tracker
+
+        tracker = tracker.SummaryTracker()
+
+        @app.route("/healthcheck")
+        def healthcheck():
+            return "Healthy"
+
         @app.route("/profile")
         def profile():
             if self.profiler is None:
@@ -58,7 +66,7 @@ class ProfilingHTTPFrontend:
         @app.route("/load")
         def load():
             if self.tracer is None:
-                return "Load tracing disabled\n", 404
+                return "{}"
             resp = jsonify(self.tracer.stats())
             if request.args.get("reset ") in (1, "true"):
                 self.tracer.reset()
@@ -69,6 +77,10 @@ class ProfilingHTTPFrontend:
             objs = muppy.get_objects()
             summ = summary.summarize(objs)
             return "\n".join(summary.format_(summ)) + "\n"
+
+        @app.route("/mem-diff")
+        def mem_diff():
+            return "\n".join(tracker.format_diff()) + "\n"
 
 
 class SyncbackHTTPFrontend(ProfilingHTTPFrontend):

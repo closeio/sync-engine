@@ -1,10 +1,10 @@
+import concurrent.futures
 import platform
 import random
 import time
 from threading import BoundedSemaphore
 from typing import Type
 
-import gevent
 from sqlalchemy import and_, or_
 from sqlalchemy.exc import OperationalError
 
@@ -117,6 +117,36 @@ class SyncService:
     def run(self):
         while self.keep_running:
             retry_with_logging(self._run_impl, self.log)
+
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=len(self.email_sync_monitors) or 1
+        ) as executor:
+            executor.map(stop_email_sync_monitor, self.email_sync_monitors.values())
+        self.log.info(
+            "stopped email sync monitors", count=len(self.email_sync_monitors)
+        )
+
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=len(self.contact_sync_monitors) or 1
+        ) as executor:
+            executor.map(
+                lambda contact_sync_monitor: contact_sync_monitor.kill(),
+                self.contact_sync_monitors.values(),
+            )
+        self.log.info(
+            "stopped contact sync monitors", count=len(self.contact_sync_monitors)
+        )
+
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=len(self.event_sync_monitors) or 1
+        ) as executor:
+            executor.map(
+                lambda event_sync_monitor: event_sync_monitor.kill(),
+                self.event_sync_monitors.values(),
+            )
+        self.log.info(
+            "stopped event sync monitors", count=len(self.event_sync_monitors)
+        )
 
     def _run_impl(self):
         """
@@ -349,14 +379,8 @@ class SyncService:
                 return False
         return True
 
-    def stop(self, *args):
-        self.log.info("stopping mail sync process")
-        for _, v in self.email_sync_monitors.items():
-            gevent.kill(v)
-        for _, v in self.contact_sync_monitors.items():
-            gevent.kill(v)
-        for _, v in self.event_sync_monitors.items():
-            gevent.kill(v)
+    def stop(self) -> None:
+        self.log.info("stopping sync process")
         self.keep_running = False
 
     def stop_sync(self, account_id):
@@ -368,7 +392,11 @@ class SyncService:
         with self.semaphore:
             self.log.info("Stopping monitors", account_id=account_id)
             if account_id in self.email_sync_monitors:
-                self.email_sync_monitors[account_id].kill()
+                email_sync_monitor = self.email_sync_monitors[account_id]
+                if email_sync_monitor.delete_handler:
+                    email_sync_monitor.delete_handler.kill()
+                email_sync_monitor.sync_greenlet.kill(block=False)
+                email_sync_monitor.join()
                 del self.email_sync_monitors[account_id]
 
             # Stop contacts sync if necessary
@@ -395,3 +423,10 @@ class SyncService:
                 db_session.commit()
                 self.syncing_accounts.discard(account_id)
             return True
+
+
+def stop_email_sync_monitor(email_sync_monitor):
+    if email_sync_monitor.delete_handler:
+        email_sync_monitor.delete_handler.kill()
+    email_sync_monitor.sync_greenlet.kill(block=False)
+    email_sync_monitor.join()

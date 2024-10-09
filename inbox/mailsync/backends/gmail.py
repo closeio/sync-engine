@@ -20,7 +20,6 @@ user always gets the full thread when they look at mail.
 
 """
 
-import time
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from threading import Semaphore
@@ -28,6 +27,7 @@ from typing import Dict, List
 
 from sqlalchemy.orm import joinedload, load_only
 
+from inbox import greenlet_like
 from inbox.logging import get_logger
 from inbox.mailsync.backends.base import THROTTLE_COUNT, THROTTLE_WAIT
 from inbox.mailsync.backends.imap import common
@@ -534,7 +534,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 # messages for this batch are synced.
                 # Note this is an approx. limit since we use the #(uids),
                 # not the #(messages).
-                time.sleep(THROTTLE_WAIT)
+                greenlet_like.sleep(THROTTLE_WAIT)
 
     @property
     def throttled(self):

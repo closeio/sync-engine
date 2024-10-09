@@ -1,8 +1,8 @@
+import concurrent.futures
 import threading
 
-from gevent import Greenlet, GreenletExit
-
 from inbox.config import config
+from inbox.greenlet_like import GreenletLikeThread, GreenletLikeThreadExit
 from inbox.logging import get_logger
 from inbox.models.session import session_scope
 from inbox.util.concurrency import retry_with_logging
@@ -18,11 +18,11 @@ class MailsyncError(Exception):
     pass
 
 
-class MailsyncDone(GreenletExit):
+class MailsyncDone(GreenletLikeThreadExit):
     pass
 
 
-class BaseMailSyncMonitor(Greenlet):
+class BaseMailSyncMonitor(GreenletLikeThread):
     """
     The SYNC_MONITOR_CLS for all mail sync providers should subclass this.
 
@@ -61,12 +61,12 @@ class BaseMailSyncMonitor(Greenlet):
                 provider=self.provider_name,
                 logger=self.log,
             )
-        except GreenletExit:
+        except GreenletLikeThreadExit:
             self._cleanup()
             raise
 
     def _run_impl(self):
-        self.sync_greenlet = Greenlet(
+        self.sync_greenlet = GreenletLikeThread(
             retry_with_logging,
             self.sync,
             account_id=self.account_id,
@@ -74,15 +74,19 @@ class BaseMailSyncMonitor(Greenlet):
             logger=self.log,
         )
         self.sync_greenlet.start()
+        # MARK: child spawn
         self.sync_greenlet.join()
 
         if self.sync_greenlet.successful():
-            return self._cleanup()
+            self._cleanup()
+            self.log.info(
+                "mail sync finished successfully", provider=self.provider_name
+            )
+            return
 
         self.log.error(
-            "mail sync should run forever",
+            "mail sync raised an exception",
             provider=self.provider_name,
-            account_id=self.account_id,
             exc=self.sync_greenlet.exception,
         )
         raise self.sync_greenlet.exception
@@ -95,8 +99,12 @@ class BaseMailSyncMonitor(Greenlet):
         with session_scope(self.namespace_id) as mailsync_db_session:
             for x in self.folder_monitors:
                 x.set_stopped(mailsync_db_session)
-        for monitor in self.folder_monitors:
-            monitor.kill()
+        with concurrent.futures.ThreadPoolExecutor(
+            len(self.folder_monitors) or 1
+        ) as executor:
+            executor.map(
+                lambda folder_monitor: folder_monitor.kill(), self.folder_monitors
+            )
 
     def __repr__(self) -> str:
         return f"<{self.name}>"

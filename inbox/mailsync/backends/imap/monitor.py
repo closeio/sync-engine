@@ -1,7 +1,7 @@
-import time
 from threading import BoundedSemaphore
 from typing import List
 
+from inbox import greenlet_like
 from inbox.crispin import connection_pool, retry_crispin
 from inbox.exceptions import ValidationError
 from inbox.logging import get_logger
@@ -118,7 +118,9 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
 
     def start_new_folder_sync_engines(self):
         running_monitors = {
-            monitor.folder_name: monitor for monitor in self.folder_monitors
+            monitor.folder_name: monitor
+            for monitor in self.folder_monitors
+            if monitor.is_alive()
         }
 
         for folder_name in self.prepare_sync():
@@ -139,10 +141,11 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                     self.syncmanager_lock,
                 )
                 self.folder_monitors.append(thread)
+                # MARK: child spawn
                 thread.start()
 
             while thread.state != "poll" and not thread.ready():
-                time.sleep(self.heartbeat)
+                greenlet_like.sleep(self.heartbeat)
 
             if thread.ready():
                 log.info(
@@ -165,6 +168,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                 provider_name=self.provider_name,
                 uid_accessor=lambda m: m.imapuids,
             )
+            # MARK: child spawn
             self.delete_handler.start()
 
     def sync(self):
@@ -172,7 +176,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
             self.start_delete_handler()
             self.start_new_folder_sync_engines()
             while True:
-                time.sleep(self.refresh_frequency)
+                greenlet_like.sleep(self.refresh_frequency)
                 self.start_new_folder_sync_engines()
         except ValidationError as exc:
             log.error(

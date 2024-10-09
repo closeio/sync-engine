@@ -455,7 +455,7 @@ class FolderSyncEngine(GreenletLikeThread):
         change_poller = None
         try:
             assert crispin_client.selected_folder_name == self.folder_name
-            remote_uids = crispin_client.all_uids()
+            remote_uids = set(crispin_client.all_uids())
             with self.syncmanager_lock:
                 with session_scope(self.namespace_id) as db_session:
                     local_uids = common.local_uids(
@@ -465,7 +465,7 @@ class FolderSyncEngine(GreenletLikeThread):
                     self.account_id, self.folder_id, local_uids.difference(remote_uids)
                 )
 
-            new_uids = sorted(set(remote_uids).difference(local_uids), reverse=True)
+            new_uids = sorted(remote_uids.difference(local_uids), reverse=True)
 
             len_remote_uids = len(remote_uids)
             del remote_uids  # free up memory as soon as possible
@@ -864,7 +864,7 @@ class FolderSyncEngine(GreenletLikeThread):
                 interim_highestmodseq = max(v.modseq for k, v in flag_batch)
                 self.highestmodseq = interim_highestmodseq
 
-        remote_uids = crispin_client.all_uids()
+        remote_uids = set(crispin_client.all_uids())
 
         with session_scope(self.namespace_id) as db_session:
             local_uids = common.local_uids(self.account_id, db_session, self.folder_id)

@@ -6,6 +6,7 @@ import imaplib
 import re
 import ssl
 import time
+from collections.abc import Iterable
 from typing import (
     Any,
     Callable,
@@ -831,7 +832,7 @@ class CrispinClient:
 
         return b"IDLE" in self.conn.capabilities()
 
-    def search_uids(self, criteria: List[str]) -> List[int]:
+    def search_uids(self, criteria: List[str]) -> Iterable[int]:
         """
         Find UIDs in this folder matching the criteria. See
         http://tools.ietf.org/html/rfc3501.html#section-6.4.4 for valid
@@ -839,12 +840,12 @@ class CrispinClient:
 
         """
         greenlet_like.check_killed()
-        return sorted(
+        return (
             int(uid) if not isinstance(uid, int) else uid
             for uid in self.conn.search(criteria)
         )
 
-    def all_uids(self) -> List[int]:
+    def all_uids(self) -> Iterable[int]:
         """Fetch all UIDs associated with the currently selected folder.
 
         Returns
@@ -897,9 +898,7 @@ class CrispinClient:
         log.debug(
             "Requested all UIDs", search_time=elapsed, total_uids=len(fetch_result)
         )
-        return sorted(
-            int(uid) if not isinstance(uid, int) else uid for uid in fetch_result
-        )
+        return (int(uid) if not isinstance(uid, int) else uid for uid in fetch_result)
 
     def uids(self, uids: List[int]) -> List[RawMessage]:
         uid_set = set(uids)
@@ -1051,7 +1050,7 @@ class CrispinClient:
         greenlet_like.check_killed()
         return self.conn.append(self.selected_folder_name, message, ["\\Seen"], date)
 
-    def fetch_headers(self, uids: List[int]) -> Dict[int, Dict[bytes, Any]]:
+    def fetch_headers(self, uids: Iterable[int]) -> Dict[int, Dict[bytes, Any]]:
         """
         Fetch headers for the given uids. Chunked because certain providers
         fail with 'Command line too large' if you feed them too many uids at
@@ -1592,7 +1591,7 @@ class GmailCrispinClient(CrispinClient):
         self._delete_message(message_id_header, delete_multiple)
         return True
 
-    def search_uids(self, criteria: List[str]) -> List[int]:
+    def search_uids(self, criteria: List[str]) -> Iterable[int]:
         """
         Handle Gmail label search oddities.
         https://developers.google.com/gmail/imap/imap-extensions#access_to_gmail_labels_x-gm-labels.
@@ -1655,4 +1654,4 @@ class GmailCrispinClient(CrispinClient):
             raise
 
         response = imapclient.response_parser.parse_message_list(data)
-        return sorted(int(uid) if not isinstance(uid, int) else uid for uid in response)
+        return (int(uid) if not isinstance(uid, int) else uid for uid in response)

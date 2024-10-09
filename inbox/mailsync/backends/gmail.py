@@ -25,6 +25,7 @@ from datetime import datetime, timedelta
 from threading import Semaphore
 from typing import TYPE_CHECKING, Dict, List
 
+import intset
 from sqlalchemy.orm import joinedload, load_only
 
 from inbox import interruptible_threading
@@ -248,7 +249,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
 
         change_poller = None
         try:
-            remote_uids = set(crispin_client.all_uids())
+            remote_uids = intset.IntSet(crispin_client.all_uids())
             with self.syncmanager_lock:
                 with session_scope(self.namespace_id) as db_session:
                     local_uids = common.local_uids(
@@ -276,7 +277,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
             if self.is_all_mail(crispin_client):
                 # Prioritize UIDs for messages in the inbox folder.
                 if len_remote_uids < 1e6:
-                    inbox_uids = set(
+                    inbox_uids = intset.IntSet(
                         crispin_client.search_uids(["X-GM-LABELS", "inbox"])
                     )
                 else:
@@ -284,7 +285,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                     # large mailboxes, so bound the search to messages within
                     # the past month in order to get anywhere.
                     since = datetime.utcnow() - timedelta(days=30)
-                    inbox_uids = set(
+                    inbox_uids = intset.IntSet(
                         crispin_client.search_uids(
                             ["X-GM-LABELS", "inbox", "SINCE", since]
                         )

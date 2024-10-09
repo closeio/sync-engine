@@ -50,7 +50,10 @@ class BaseSyncMonitor(Greenlet):
         self.heartbeat_status = HeartbeatStatusProxy(
             self.account_id, folder_id, folder_name, email_address, provider_name
         )
+
         super().__init__()
+
+        self.name = f"{self.__class__.__name__}(account_id={account_id!r})"
 
     def _run(self):
         # Bind greenlet-local logging context.
@@ -92,4 +95,4 @@ class BaseSyncMonitor(Greenlet):
         raise NotImplementedError
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(account_id={self.account_id!r})>"
+        return f"<{self.name}>"

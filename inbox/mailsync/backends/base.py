@@ -51,6 +51,8 @@ class BaseMailSyncMonitor(Greenlet):
 
         super().__init__()
 
+        self.name = f"{self.__class__.__name__}(account_id={account.id!r})"
+
     def _run(self):
         try:
             return retry_with_logging(
@@ -97,4 +99,4 @@ class BaseMailSyncMonitor(Greenlet):
             monitor.kill()
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(account_id={self.account_id!r})>"
+        return f"<{self.name}>"

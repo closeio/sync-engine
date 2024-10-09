@@ -7,10 +7,6 @@ also starts up the syncback service.)
 """
 
 
-from gevent import monkey
-
-monkey.patch_all()
-
 import os
 import sys
 
@@ -18,6 +14,10 @@ import click
 from setproctitle import setproctitle
 
 from inbox.config import config as inbox_config
+
+# TODO: set this with environment variables
+inbox_config["USE_GEVENT"] = False
+
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.logging import configure_logging, get_logger
 from inbox.mailsync.frontend import SyncbackHTTPFrontend

@@ -1,13 +1,8 @@
 """Fixtures don't go here; see util/base.py and friends."""
 
-# Monkeypatch first, to prevent "AttributeError: 'module' object has no
-# attribute 'poll'" errors when tests import socket, then monkeypatch.
-from gevent import monkey
-
-monkey.patch_all(aggressive=False)
-
 import os
 
+os.environ["USE_GEVENT"] = "0"
 os.environ["NYLAS_ENV"] = "test"
 
 from pytest import fixture

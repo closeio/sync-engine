@@ -813,7 +813,7 @@ def test_german_outlook(monkeypatch):
     "callee", [fixed_parse_message_list, original_parse_message_list]
 )
 def test_parse_message_list(callee):
-    assert callee([b"1 123 124 1024"]) == [1, 123, 124, 1024]
+    assert list(callee([b"1 123 124 1024"])) == [1, 123, 124, 1024]
 
 
 @pytest.mark.parametrize(
@@ -822,7 +822,7 @@ def test_parse_message_list(callee):
 def test_parse_message_list_large_list(callee):
     large_list = [" ".join(str(uid) for uid in range(1, 6_000_000)).encode()]
 
-    assert callee(large_list) == list(range(1, 6_000_000))
+    assert list(callee(large_list)) == list(range(1, 6_000_000))
 
 
 def test_fixed_parse_message_list_multiple_elements():

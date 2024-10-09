@@ -13,21 +13,3 @@ def chunk(iterable, size):
         if not group:
             break
         yield group
-
-
-def partition(pred, iterable):
-    """Use a predicate to partition entries into false entries and true
-    entries.
-
-    e.g.:
-
-        partition(is_odd, range(10)) --> 0 2 4 6 8   and  1 3 5 7 9
-    """
-    t1, t2 = itertools.tee(iterable)
-    return [e for e in t1 if not pred(e)], [e for e in t2 if pred(e)]
-
-
-def flatten(iterable):
-    # Flatten a list of lists.
-    # http://stackoverflow.com/a/953097
-    return list(itertools.chain(*iterable))

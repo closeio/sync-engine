@@ -85,7 +85,13 @@ from inbox.util.threading import MAX_THREAD_LENGTH, fetch_corresponding_thread
 
 log = get_logger()
 from inbox.config import config
-from inbox.crispin import FolderMissingError, RawMessage, connection_pool, retry_crispin
+from inbox.crispin import (
+    CrispinClient,
+    FolderMissingError,
+    RawMessage,
+    connection_pool,
+    retry_crispin,
+)
 from inbox.events.ical import import_attached_events
 from inbox.heartbeat.store import HeartbeatStatusProxy
 from inbox.mailsync.backends.base import (
@@ -443,7 +449,7 @@ class FolderSyncEngine(GreenletLikeThread):
         self.resync_uids_impl()
         return "initial"
 
-    def initial_sync_impl(self, crispin_client):
+    def initial_sync_impl(self, crispin_client: CrispinClient):
         # We wrap the block in a try/finally because the change_poller greenlet
         # needs to be killed when this greenlet is interrupted
         change_poller = None
@@ -456,18 +462,20 @@ class FolderSyncEngine(GreenletLikeThread):
                         self.account_id, db_session, self.folder_id
                     )
                 common.remove_deleted_uids(
-                    self.account_id,
-                    self.folder_id,
-                    set(local_uids).difference(remote_uids),
+                    self.account_id, self.folder_id, local_uids.difference(remote_uids)
                 )
 
-            new_uids = set(remote_uids).difference(local_uids)
+            new_uids = sorted(set(remote_uids).difference(local_uids), reverse=True)
+
+            len_remote_uids = len(remote_uids)
+            del remote_uids  # free up memory as soon as possible
+
             with session_scope(self.namespace_id) as db_session:
                 account = db_session.query(Account).get(self.account_id)
                 throttled = account.throttled
                 self.update_uid_counts(
                     db_session,
-                    remote_uid_count=len(remote_uids),
+                    remote_uid_count=len_remote_uids,
                     # This is the initial size of our download_queue
                     download_uid_count=len(new_uids),
                 )
@@ -475,8 +483,7 @@ class FolderSyncEngine(GreenletLikeThread):
             change_poller = ChangePoller(self)
             change_poller.start()
             bind_context(change_poller, "changepoller", self.account_id, self.folder_id)
-            uids = sorted(new_uids, reverse=True)
-            for count, uid in enumerate(uids, start=1):
+            for count, uid in enumerate(new_uids, start=1):
                 # The speedup from batching appears to be less clear for
                 # non-Gmail accounts, so for now just download one-at-a-time.
                 self.download_and_commit_uids(crispin_client, [uid])
@@ -488,6 +495,8 @@ class FolderSyncEngine(GreenletLikeThread):
                     # Note this is an approx. limit since we use the #(uids),
                     # not the #(messages).
                     greenlet_like.sleep(THROTTLE_WAIT)
+
+            del new_uids  # free up memory as soon as possible
         finally:
             if change_poller is not None:
                 # schedule change_poller to die
@@ -798,7 +807,7 @@ class FolderSyncEngine(GreenletLikeThread):
                 self.download_and_commit_uids(crispin_client, [uid])
         self.uidnext = remote_uidnext
 
-    def condstore_refresh_flags(self, crispin_client):
+    def condstore_refresh_flags(self, crispin_client: CrispinClient) -> None:
         new_highestmodseq: int = crispin_client.conn.folder_status(
             self.folder_name, ["HIGHESTMODSEQ"]
         )[b"HIGHESTMODSEQ"]
@@ -900,7 +909,7 @@ class FolderSyncEngine(GreenletLikeThread):
             self.refresh_flags_impl(crispin_client, FAST_FLAGS_REFRESH_LIMIT)
             self.last_fast_refresh = datetime.utcnow()
 
-    def refresh_flags_impl(self, crispin_client, max_uids):
+    def refresh_flags_impl(self, crispin_client: CrispinClient, max_uids: int) -> None:
         crispin_client.select_folder(self.folder_name, self.uidvalidity_cb)
 
         # Check for any deleted messages.

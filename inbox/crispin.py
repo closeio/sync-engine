@@ -26,6 +26,7 @@ import imapclient.exceptions
 import imapclient.imap_utf7
 import imapclient.imapclient
 import imapclient.response_parser
+import intset
 
 from inbox import interruptible_threading
 from inbox.constants import MAX_MESSAGE_BODY_LENGTH
@@ -1064,7 +1065,7 @@ class CrispinClient:
 
     def find_by_header(self, header_name, header_value):
         """Find all uids in the selected folder with the given header value."""
-        all_uids = self.all_uids()
+        all_uids = intset.IntSet(self.all_uids())
         # It would be nice to just search by header too, but some backends
         # don't support that, at least not if you want to search by X-INBOX-ID
         # header. So fetch the header for each draft and see if we

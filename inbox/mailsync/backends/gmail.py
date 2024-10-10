@@ -20,7 +20,9 @@ user always gets the full thread when they look at mail.
 
 """
 
+import itertools
 from collections import OrderedDict
+from collections.abc import Iterable
 from datetime import datetime, timedelta
 from threading import Semaphore
 from typing import TYPE_CHECKING, Dict, List
@@ -273,6 +275,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
             change_poller.start()
             bind_context(change_poller, "changepoller", self.account_id, self.folder_id)
 
+            uids_to_download: Iterable[int]
             if self.is_all_mail(crispin_client):
                 # Prioritize UIDs for messages in the inbox folder.
                 if len_remote_uids < 1e6:
@@ -290,16 +293,17 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                         )
                     )
 
-                uids_to_download = sorted(unknown_uids - inbox_uids) + sorted(
-                    unknown_uids & inbox_uids
+                uids_to_download = itertools.chain(
+                    reversed(unknown_uids & inbox_uids),
+                    reversed(unknown_uids - inbox_uids),
                 )
             else:
-                uids_to_download = sorted(unknown_uids)
+                uids_to_download = reversed(unknown_uids)
 
             del unknown_uids  # free up memory as soon as possible
             del inbox_uids  # free up memory as soon as possible
 
-            for uids in chunk(reversed(uids_to_download), 1024):
+            for uids in chunk(uids_to_download, 1024):
                 g_metadata = crispin_client.g_metadata(uids)
                 # UIDs might have been expunged since sync started, in which
                 # case the g_metadata call above will return nothing.

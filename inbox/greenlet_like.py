@@ -28,7 +28,7 @@ class GreenletLikeThread(threading.Thread):
     def __init__(
         self, target: Optional[Callable[..., Any]] = None, *args: Any, **kwargs: Any
     ) -> None:
-        self.__should_be_killed = False
+        self.__should_be_killed = threading.Event()
         self.__ready = False
         self.__run_target = GreenletLikeTarget(target, args, kwargs) if target else None
         self.exception: Optional[Exception] = None
@@ -58,12 +58,12 @@ class GreenletLikeThread(threading.Thread):
             raise NotImplementedError()
 
     def kill(self, block: bool = True) -> None:
-        self.__should_be_killed = True
+        self.__should_be_killed.set()
         if block:
             self.join()
 
     def check_killed(self) -> None:
-        if self.__should_be_killed:
+        if self.__should_be_killed.is_set():
             raise GreenletLikeThreadExit()
 
     def queue_get(self, queue: "queue.Queue[QueueElementT]") -> QueueElementT:
@@ -74,10 +74,8 @@ class GreenletLikeThread(threading.Thread):
                 self.check_killed()
 
     def sleep(self, seconds: float) -> None:
-        start = time.monotonic()
-        while time.monotonic() - start < seconds:
-            self.check_killed()
-            time.sleep(CHECK_KILLED_TIMEOUT)
+        self.__should_be_killed.wait(seconds)
+        self.check_killed()
 
 
 def sleep(seconds: float) -> None:
@@ -86,6 +84,14 @@ def sleep(seconds: float) -> None:
         return time.sleep(seconds)
 
     return current_thread.sleep(seconds)
+
+
+def queue_get(queue: "queue.Queue[QueueElementT]") -> QueueElementT:
+    current_thread = threading.current_thread()
+    if not isinstance(current_thread, GreenletLikeThread):
+        return queue.get()
+
+    return current_thread.queue_get(queue)
 
 
 def check_killed() -> None:

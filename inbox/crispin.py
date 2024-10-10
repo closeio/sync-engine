@@ -276,9 +276,10 @@ class CrispinConnectionPool:
         if not succeeded:
             raise ConnectionPoolTimeoutError()
 
-        client = self._queue.get()
+        client = greenlet_like.queue_get(self._queue)
         try:
             if client is None:
+                greenlet_like.check_killed()
                 client = self._new_connection()
             yield client
 

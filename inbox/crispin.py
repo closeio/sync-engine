@@ -6,6 +6,7 @@ import imaplib
 import re
 import ssl
 import time
+from collections.abc import Iterable
 from typing import (
     Any,
     Callable,
@@ -25,6 +26,7 @@ import imapclient.exceptions
 import imapclient.imap_utf7
 import imapclient.imapclient
 import imapclient.response_parser
+import intset
 
 from inbox import greenlet_like
 from inbox.constants import MAX_MESSAGE_BODY_LENGTH
@@ -275,9 +277,10 @@ class CrispinConnectionPool:
         if not succeeded:
             raise ConnectionPoolTimeoutError()
 
-        client = self._queue.get()
+        client = greenlet_like.queue_get(self._queue)
         try:
             if client is None:
+                greenlet_like.check_killed()
                 client = self._new_connection()
             yield client
 
@@ -362,7 +365,7 @@ uid_format = re.compile(b"[0-9]+")
 original_parse_message_list = imapclient.response_parser.parse_message_list
 
 
-def fixed_parse_message_list(data: List[bytes]) -> List[int]:
+def fixed_parse_message_list(data: List[bytes]) -> Iterable[int]:
     """Fixed version of imapclient.response_parser.parse_message_list
 
     We observed in real world that some IMAP servers send many
@@ -395,10 +398,10 @@ def fixed_parse_message_list(data: List[bytes]) -> List[int]:
     # Optimize most common textual format for low memory footprint
     with contextlib.suppress(TypeError):
         if len(data) == 1 and common_uid_list_format.match(data[0]):
-            return [
+            return (
                 int(uid_match.group(0))
                 for uid_match in re.finditer(uid_format, data[0])
-            ]
+            )
 
     return original_parse_message_list(data)
 
@@ -831,7 +834,7 @@ class CrispinClient:
 
         return b"IDLE" in self.conn.capabilities()
 
-    def search_uids(self, criteria: List[str]) -> List[int]:
+    def search_uids(self, criteria: List[str]) -> Iterable[int]:
         """
         Find UIDs in this folder matching the criteria. See
         http://tools.ietf.org/html/rfc3501.html#section-6.4.4 for valid
@@ -839,9 +842,12 @@ class CrispinClient:
 
         """
         greenlet_like.check_killed()
-        return sorted(int(uid) for uid in self.conn.search(criteria))
+        return (
+            int(uid) if not isinstance(uid, int) else uid
+            for uid in self.conn.search(criteria)
+        )
 
-    def all_uids(self) -> List[int]:
+    def all_uids(self) -> Iterable[int]:
         """Fetch all UIDs associated with the currently selected folder.
 
         Returns
@@ -891,10 +897,8 @@ class CrispinClient:
                 raise
 
         elapsed = time.time() - t
-        log.debug(
-            "Requested all UIDs", search_time=elapsed, total_uids=len(fetch_result)
-        )
-        return sorted(int(uid) for uid in fetch_result)
+        log.debug("Requested all UIDs", search_time=elapsed)
+        return (int(uid) if not isinstance(uid, int) else uid for uid in fetch_result)
 
     def uids(self, uids: List[int]) -> List[RawMessage]:
         uid_set = set(uids)
@@ -1046,7 +1050,7 @@ class CrispinClient:
         greenlet_like.check_killed()
         return self.conn.append(self.selected_folder_name, message, ["\\Seen"], date)
 
-    def fetch_headers(self, uids: List[int]) -> Dict[int, Dict[bytes, Any]]:
+    def fetch_headers(self, uids: Iterable[int]) -> Dict[int, Dict[bytes, Any]]:
         """
         Fetch headers for the given uids. Chunked because certain providers
         fail with 'Command line too large' if you feed them too many uids at
@@ -1061,7 +1065,7 @@ class CrispinClient:
 
     def find_by_header(self, header_name, header_value):
         """Find all uids in the selected folder with the given header value."""
-        all_uids = self.all_uids()
+        all_uids = intset.IntSet(self.all_uids())
         # It would be nice to just search by header too, but some backends
         # don't support that, at least not if you want to search by X-INBOX-ID
         # header. So fetch the header for each draft and see if we
@@ -1587,7 +1591,7 @@ class GmailCrispinClient(CrispinClient):
         self._delete_message(message_id_header, delete_multiple)
         return True
 
-    def search_uids(self, criteria: List[str]) -> List[int]:
+    def search_uids(self, criteria: List[str]) -> Iterable[int]:
         """
         Handle Gmail label search oddities.
         https://developers.google.com/gmail/imap/imap-extensions#access_to_gmail_labels_x-gm-labels.
@@ -1650,4 +1654,4 @@ class GmailCrispinClient(CrispinClient):
             raise
 
         response = imapclient.response_parser.parse_message_list(data)
-        return sorted(int(uid) for uid in response)
+        return (int(uid) if not isinstance(uid, int) else uid for uid in response)

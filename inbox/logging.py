@@ -215,7 +215,7 @@ class BoundLogger(structlog.stdlib.BoundLogger):
         if config.get("USE_GEVENT", True):
             event_kw["greenlet_id"] = id(gevent.getcurrent())
         else:
-            event_kw["thread_id"] = threading.get_ident()
+            event_kw["thread_id"] = hex(threading.get_native_id())
 
         # 'prod', 'staging', 'dev' ...
         env = os.environ.get("NYLAS_ENV")

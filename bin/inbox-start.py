@@ -11,6 +11,7 @@ import threading
 import time
 
 import click
+import memray
 import setproctitle
 import structlog
 
@@ -29,6 +30,7 @@ except ImportError:
 # TODO: set this with environment variables
 inbox_config["USE_GEVENT"] = False
 
+import inbox.thread_inspector
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.logging import configure_logging, get_logger
 from inbox.mailsync.frontend import SyncHTTPFrontend
@@ -144,6 +146,8 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
 
     signal.signal(signal.SIGTERM, lambda *_: sync_service.stop())
     signal.signal(signal.SIGINT, lambda *_: sync_service.stop())
+    signal.signal(signal.SIGUSR1, lambda *_: prepare_trace())
+    signal.signal(signal.SIGUSR2, lambda *_: dump_threads())
     prepare_exit_after(log, sync_service, exit_after)
 
     http_frontend = SyncHTTPFrontend(
@@ -153,6 +157,7 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
     # sync_service.register_pending_avgs_provider(http_frontend)
     http_frontend.start()
 
+    # trace()
     sync_service.run()
 
     print("\033[94mNylas Sync Engine exiting...\033[0m", file=sys.stderr)
@@ -184,6 +189,34 @@ def prepare_exit_after(
 def perform_exit_after(sync_service: SyncService, seconds: int) -> None:
     time.sleep(seconds)
     sync_service.stop()
+
+
+def prepare_trace():
+    trace_thread = threading.Thread(target=trace, daemon=True)
+    trace_thread.start()
+
+
+tracker = None
+
+
+def trace():
+    global tracker
+
+    time.sleep(1)
+
+    if not tracker:
+        tracker = memray.Tracker(
+            f"bin/inbox-start-{int(time.time())}.bin", trace_python_allocators=True
+        )
+        tracker.__enter__()
+    else:
+        tracker.__exit__(None, None, None)
+        tracker = None
+
+
+def dump_threads():
+    for thread in inbox.thread_inspector.enumerate():
+        print("-->", thread, hex(thread.native_id))
 
 
 if __name__ == "__main__":

@@ -54,12 +54,12 @@ def test_draft_updates(db, default_account, mock_imapclient):
     with pool.get() as conn:
         save_draft(conn, default_account.id, draft.id, {"version": 0})
         conn.select_folder("Drafts", lambda *args: True)
-        assert len(conn.all_uids()) == 1
+        assert len(list(conn.all_uids())) == 1
 
         # Check that draft is not resaved if already synced.
         update_draft(conn, default_account.id, draft.id, {"version": 0})
         conn.select_folder("Drafts", lambda *args: True)
-        assert len(conn.all_uids()) == 1
+        assert len(list(conn.all_uids())) == 1
 
         # Check that an older version is deleted
         draft.version = 4
@@ -76,7 +76,7 @@ def test_draft_updates(db, default_account, mock_imapclient):
         update_draft(conn, default_account.id, draft.id, {"version": 5})
 
         conn.select_folder("Drafts", lambda *args: True)
-        all_uids = conn.all_uids()
+        all_uids = list(conn.all_uids())
         assert len(all_uids) == 1
         data = conn.uids(all_uids)[0]
         parsed = mime.from_string(data.body)
@@ -102,7 +102,7 @@ def test_draft_updates(db, default_account, mock_imapclient):
         )
 
         conn.select_folder("Drafts", lambda *args: True)
-        all_uids = conn.all_uids()
+        all_uids = list(conn.all_uids())
         assert len(all_uids) == 0
 
 

@@ -247,16 +247,16 @@ class GmailFolderSyncEngine(FolderSyncEngine):
 
         change_poller = None
         try:
-            remote_uids = crispin_client.all_uids()
+            remote_uids = set(crispin_client.all_uids())
             with self.syncmanager_lock:
                 with session_scope(self.namespace_id) as db_session:
                     local_uids = common.local_uids(
                         self.account_id, db_session, self.folder_id
                     )
                 common.remove_deleted_uids(
-                    self.account_id, self.folder_id, local_uids - set(remote_uids)
+                    self.account_id, self.folder_id, local_uids - remote_uids
                 )
-                unknown_uids = set(remote_uids) - local_uids
+                unknown_uids = remote_uids - local_uids
                 with session_scope(self.namespace_id) as db_session:
                     self.update_uid_counts(
                         db_session,

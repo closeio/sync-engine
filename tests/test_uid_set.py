@@ -1,8 +1,8 @@
 import pytest
 
 from inbox.uid_set import (
+    CompressRanges,
     UidSet,
-    compress_ranges,
     decode_compressed_ranges,
     decompress_ranges,
     encode_compressed_ranges,
@@ -25,7 +25,9 @@ from inbox.uid_set import (
     ),
 )
 def test_compress_decompress_ranges(example, expected):
-    assert list(compress_ranges(example)) == expected
+    compress_ranges = CompressRanges(example)
+    assert list(compress_ranges) == expected
+    assert compress_ranges.length == len(example)
     assert list(decompress_ranges(expected)) == sorted(example)
 
 
@@ -54,6 +56,8 @@ def test_encode_compressed_ranges(compressed_ranges, encoded_ranges):
         [1, 2],
         [1, 2, 3],
         [3, 1, 2],
+        [1, 1, 1],
+        [1, 2, 2, 5],
         [1, 2, 4],
         [1, 3, 4],
         [1, 2, 4, 5],
@@ -62,4 +66,6 @@ def test_encode_compressed_ranges(compressed_ranges, encoded_ranges):
     ),
 )
 def test_uid_set(iterable):
-    assert set(UidSet(iterable)) == set(iterable)
+    uid_set = UidSet(iterable)
+    assert set(uid_set) == set(iterable)
+    assert len(uid_set) == len(set(iterable))

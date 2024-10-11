@@ -248,8 +248,8 @@ class GmailFolderSyncEngine(FolderSyncEngine):
 
         change_poller = None
         try:
-            remote_uids = set(crispin_client.all_uids())
             with self.syncmanager_lock:
+                remote_uids = set(crispin_client.all_uids())
                 with session_scope(self.namespace_id) as db_session:
                     local_uids = common.local_uids(
                         self.account_id, db_session, self.folder_id
@@ -265,39 +265,42 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                         download_uid_count=len(unknown_uids),
                     )
 
-            del local_uids  # free up memory as soon as possible
-            len_remote_uids = len(remote_uids)
-            del remote_uids  # free up memory as soon as possible
+                del local_uids  # free up memory as soon as possible
+                len_remote_uids = len(remote_uids)
+                del remote_uids  # free up memory as soon as possible
 
-            change_poller = ChangePoller(self)
-            change_poller.start()
-            bind_context(change_poller, "changepoller", self.account_id, self.folder_id)
-
-            if self.is_all_mail(crispin_client):
-                # Prioritize UIDs for messages in the inbox folder.
-                if len_remote_uids < 1e6:
-                    inbox_uids = set(
-                        crispin_client.search_uids(["X-GM-LABELS", "inbox"])
-                    )
-                else:
-                    # The search above is really slow (times out) on really
-                    # large mailboxes, so bound the search to messages within
-                    # the past month in order to get anywhere.
-                    since = datetime.utcnow() - timedelta(days=30)
-                    inbox_uids = set(
-                        crispin_client.search_uids(
-                            ["X-GM-LABELS", "inbox", "SINCE", since]
-                        )
-                    )
-
-                uids_to_download = sorted(unknown_uids - inbox_uids) + sorted(
-                    unknown_uids & inbox_uids
+                change_poller = ChangePoller(self)
+                change_poller.start()
+                bind_context(
+                    change_poller, "changepoller", self.account_id, self.folder_id
                 )
-                del inbox_uids  # free up memory as soon as possible
-            else:
-                uids_to_download = sorted(unknown_uids)
 
-            del unknown_uids  # free up memory as soon as possible
+                if self.is_all_mail(crispin_client):
+                    # Prioritize UIDs for messages in the inbox folder.
+                    if len_remote_uids < 1e6:
+                        inbox_uids = set(
+                            crispin_client.search_uids(["X-GM-LABELS", "inbox"])
+                        )
+                    else:
+                        # The search above is really slow (times out) on really
+                        # large mailboxes, so bound the search to messages within
+                        # the past month in order to get anywhere.
+                        since = datetime.utcnow() - timedelta(days=30)
+                        inbox_uids = set(
+                            crispin_client.search_uids(
+                                ["X-GM-LABELS", "inbox", "SINCE", since]
+                            )
+                        )
+
+                    uids_to_download = sorted(unknown_uids - inbox_uids) + sorted(
+                        unknown_uids & inbox_uids
+                    )
+
+                    del inbox_uids  # free up memory as soon as possible
+                else:
+                    uids_to_download = sorted(unknown_uids)
+
+                del unknown_uids  # free up memory as soon as possible
 
             for uids in chunk(reversed(uids_to_download), 1024):
                 g_metadata = crispin_client.g_metadata(uids)

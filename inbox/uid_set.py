@@ -7,42 +7,65 @@ import zstandard
 MAX_UINT32 = 2**32 - 1
 
 
-def compress_ranges(iterable: "Iterable[int]") -> "Iterable[int | tuple[int, int]]":
-    sorted_iterable = sorted(iterable)
+class CompressRanges:
+    def __init__(self, iterable: "Iterable[int]"):
+        self.iterable = iterable
+        self.__length: "int | None" = None
 
-    if not sorted_iterable:
-        return
+    def __iter__(self) -> "Iterator[int | tuple[int, int]]":
+        sorted_iterable = sorted(self.iterable)
 
-    cache: "int | tuple[int, int] | None" = None
+        if not sorted_iterable:
+            self.__length = 0
+            return
 
-    for element in sorted_iterable:
-        assert 0 < element <= MAX_UINT32
+        length = 0
+        cache: "int | tuple[int, int] | None" = None
 
-        if cache is None:
+        for element in sorted_iterable:
+            assert 0 < element <= MAX_UINT32
+
+            if cache is None:
+                cache = element
+                length += 1
+                continue
+
+            if isinstance(cache, int):
+                if element == cache:
+                    continue
+
+                if element - cache == 1:
+                    cache = (cache, element)
+                    length += 1
+                    continue
+
+            if isinstance(cache, tuple):
+                if element == cache[1]:
+                    continue
+
+                if element - cache[1] == 1:
+                    cache = (cache[0], element)
+                    length += 1
+                    continue
+
+            yield cache
             cache = element
-            continue
+            length += 1
 
-        if isinstance(cache, int):
-            if element == cache:
-                continue
+        if cache is not None:
+            yield cache
 
-            if element - cache == 1:
-                cache = (cache, element)
-                continue
+        self.__length = length
 
-        if isinstance(cache, tuple):
-            if element == cache[1]:
-                continue
+    @property
+    def length(self) -> int:
+        if self.__length is None:
+            raise TypeError("Length is not available until the iterator is exhausted")
+        return self.__length
 
-            if element - cache[1] == 1:
-                cache = (cache[0], element)
-                continue
 
-        yield cache
-        cache = element
-
-    if cache is not None:
-        yield cache
+def compress_ranges(iterable: "Iterable[int]") -> "Iterable[int | tuple[int, int]]":
+    return CompressRanges(iterable)
 
 
 def decompress_ranges(
@@ -125,7 +148,9 @@ def tokenize_backwards(stream: bytes) -> "Iterable[bytes]":
 
 class UidSet(Iterable[int]):
     def __init__(self, iterable: "Iterable[int]", *, compress=True):
-        _data = b"".join(encode_compressed_ranges(compress_ranges(iterable)))
+        compress_ranges_iterator = CompressRanges(iterable)
+        _data = b"".join(encode_compressed_ranges(compress_ranges_iterator))
+        self.__length = compress_ranges_iterator.length
 
         # TODO: use a generator here
 
@@ -161,6 +186,9 @@ class UidSet(Iterable[int]):
             )
         )
 
+    def __len__(self) -> int:
+        return self.__length
+
 
 def make_data(length: int, ratio: float) -> list[int]:
     return [i for i in range(1, int(length * 1 / ratio) + 1) if random.random() < ratio]
@@ -176,6 +204,7 @@ def main():
         start = time.monotonic()
         ten_uid_set = UidSet(ten_list, compress=False)
         end = time.monotonic()
+        assert len(ten_uid_set) == len(ten_list)
         print(f"Time to create: {end - start:.2f}")
         print("Uid set length:", asizeof(ten_uid_set))
         print(f"Proportion: {asizeof(ten_uid_set) / asizeof(ten_list):.2f}")

@@ -76,6 +76,7 @@ from inbox import interruptible_threading
 from inbox.exceptions import ValidationError
 from inbox.interruptible_threading import InterruptibleThread
 from inbox.logging import get_logger
+from inbox.uid_set import UidSet
 from inbox.util.concurrency import retry_with_logging
 from inbox.util.debug import bind_context
 from inbox.util.itert import chunk
@@ -464,9 +465,10 @@ class FolderSyncEngine(InterruptibleThread):
                     self.account_id, self.folder_id, local_uids.difference(remote_uids)
                 )
 
-                new_uids = sorted(remote_uids.difference(local_uids), reverse=True)
+                new_uids = UidSet(remote_uids.difference(local_uids))
 
                 len_remote_uids = len(remote_uids)
+                del local_uids  # free up memory as soon as possible
                 del remote_uids  # free up memory as soon as possible
                 del local_uids  # free up memory as soon as possible
 
@@ -483,7 +485,7 @@ class FolderSyncEngine(InterruptibleThread):
             change_poller = ChangePoller(self)
             change_poller.start()
             bind_context(change_poller, "changepoller", self.account_id, self.folder_id)
-            for count, uid in enumerate(new_uids, start=1):
+            for count, uid in enumerate(reversed(new_uids), start=1):
                 # The speedup from batching appears to be less clear for
                 # non-Gmail accounts, so for now just download one-at-a-time.
                 self.download_and_commit_uids(crispin_client, [uid])
@@ -793,9 +795,12 @@ class FolderSyncEngine(InterruptibleThread):
                 self.account_id, db_session, self.folder_id
             )
         latest_uids = crispin_client.conn.fetch(f"{lastseenuid + 1}:*", ["UID"]).keys()
-        new_uids = set(latest_uids) - {lastseenuid}
+        new_uids = UidSet(set(latest_uids) - {lastseenuid})
+
+        del latest_uids  # free up memory as soon as possible
+
         if new_uids:
-            for uid in sorted(new_uids):
+            for uid in new_uids:
                 self.download_and_commit_uids(crispin_client, [uid])
         self.uidnext = remote_uidnext
 

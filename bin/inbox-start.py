@@ -162,7 +162,9 @@ def trace():
 
     if not tracker:
         tracker = memray.Tracker(
-            f"bin/inbox-start-{int(time.time())}.bin", trace_python_allocators=True
+            f"bin/inbox-start-{int(time.time())}.bin",
+            trace_python_allocators=True,
+            file_format=memray.FileFormat.AGGREGATED_ALLOCATIONS,
         )
         tracker.__enter__()
     else:

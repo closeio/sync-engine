@@ -180,3 +180,14 @@ def iterate_and_periodically_switch_to_gevent(
             last_sleep_time = time.monotonic()
 
         yield item
+
+
+def kill_all(greenlets, *, block: bool = True) -> None:
+    if not greenlets:
+        return
+
+    for greenlet in greenlets:
+        greenlet.kill(block=False)
+
+    while block and not all(greenlet.ready() for greenlet in greenlets):
+        time.sleep(0.2)

@@ -381,10 +381,7 @@ class SyncService:
             self.log.info("Stopping monitors", account_id=account_id)
             if account_id in self.email_sync_monitors:
                 email_sync_monitor = self.email_sync_monitors[account_id]
-                if email_sync_monitor.delete_handler:
-                    email_sync_monitor.delete_handler.kill()
-                email_sync_monitor.sync_greenlet.kill(block=False)
-                email_sync_monitor.join()
+                email_sync_monitor.stop()
                 del self.email_sync_monitors[account_id]
 
             # Stop contacts sync if necessary

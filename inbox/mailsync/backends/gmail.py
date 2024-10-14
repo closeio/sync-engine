@@ -74,6 +74,7 @@ class GmailSyncMonitor(ImapSyncMonitor):
         # This is unlikely but worth getting right.
         # - karim
         self.label_rename_semaphore = Semaphore(value=1)
+        self.label_rename_handlers: "dict[str, LabelRenameHandler]" = {}
 
     def handle_raw_folder_change(self, db_session, account, raw_folder):
         folder = (
@@ -205,14 +206,14 @@ class GmailSyncMonitor(ImapSyncMonitor):
                 db_session.refresh(label)
                 db_session.expunge(label)
 
-                rename_handler = LabelRenameHandler(
+                label_rename_handler = LabelRenameHandler(
                     account_id=self.account_id,
                     namespace_id=self.namespace_id,
                     label_name=label.name,
                     semaphore=self.label_rename_semaphore,
                 )
-
-                rename_handler.start()
+                self.label_rename_handlers[label.name] = label_rename_handler
+                label_rename_handler.start()
 
         self.set_sync_should_run_bit(account)
 

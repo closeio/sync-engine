@@ -11,6 +11,7 @@ from inbox.mailsync.gc import DeleteHandler
 from inbox.models import Account, Folder
 from inbox.models.category import Category, sanitize_name
 from inbox.models.session import session_scope
+from inbox.util.concurrency import kill_all
 
 log = get_logger()
 
@@ -185,3 +186,14 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                 account = db_session.query(Account).get(self.account_id)
                 account.mark_invalid()
                 account.update_sync_error(exc)
+
+    def stop(self) -> None:
+        from inbox.mailsync.backends.gmail import GmailSyncMonitor
+
+        if self.delete_handler:
+            self.delete_handler.kill()
+        kill_all(self.folder_monitors, block=False)
+        if isinstance(self, GmailSyncMonitor):
+            kill_all(self.label_rename_handlers.values(), block=False)
+        self.sync_greenlet.kill(block=False)
+        self.join()

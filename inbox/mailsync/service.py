@@ -17,12 +17,11 @@ from inbox.events.remote_sync import EventSync, WebhookEventSync
 from inbox.heartbeat.status import clear_heartbeat_status
 from inbox.logging import get_logger
 from inbox.mailsync.backends import module_registry
-from inbox.mailsync.backends.gmail import GmailSyncMonitor
 from inbox.models import Account
 from inbox.models.session import global_session_scope, session_scope
 from inbox.providers import providers
 from inbox.scheduling.event_queue import EventQueue, EventQueueGroup
-from inbox.util.concurrency import kill_all, retry_with_logging
+from inbox.util.concurrency import kill_all, retry_with_logging, run_in_parallel
 from inbox.util.stats import statsd_client
 
 USE_WEBHOOKS = "GOOGLE_PUSH_NOTIFICATIONS" in config.get(
@@ -127,14 +126,12 @@ class SyncService:
             "stopped event sync monitors", count=len(self.event_sync_monitors)
         )
 
-        for email_sync_monitor in self.email_sync_monitors.values():
-            if email_sync_monitor.delete_handler:
-                email_sync_monitor.delete_handler.kill()
-            kill_all(email_sync_monitor.folder_monitors, block=False)
-            if isinstance(email_sync_monitor, GmailSyncMonitor):
-                kill_all(email_sync_monitor.label_rename_handlers.values(), block=False)
-            email_sync_monitor.sync_greenlet.kill(block=False)
-            email_sync_monitor.join()
+        run_in_parallel(
+            [
+                email_sync_monitor.stop
+                for email_sync_monitor in self.email_sync_monitors.values()
+            ]
+        )
         self.log.info(
             "stopped email sync monitors", count=len(self.email_sync_monitors)
         )
@@ -384,10 +381,7 @@ class SyncService:
             self.log.info("Stopping monitors", account_id=account_id)
             if account_id in self.email_sync_monitors:
                 email_sync_monitor = self.email_sync_monitors[account_id]
-                if email_sync_monitor.delete_handler:
-                    email_sync_monitor.delete_handler.kill()
-                email_sync_monitor.sync_greenlet.kill(block=False)
-                email_sync_monitor.join()
+                email_sync_monitor.stop()
                 del self.email_sync_monitors[account_id]
 
             # Stop contacts sync if necessary

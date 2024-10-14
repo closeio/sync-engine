@@ -1,3 +1,4 @@
+import concurrent.futures
 import datetime
 import functools
 import random
@@ -5,7 +6,8 @@ import socket
 import ssl
 import sys
 import time
-from typing import Iterable, TypeVar
+from collections.abc import Callable
+from typing import Any, Iterable, TypeVar
 
 import _mysql_exceptions
 from redis import TimeoutError
@@ -191,3 +193,12 @@ def kill_all(greenlets, *, block: bool = True) -> None:
 
     while block and not all(greenlet.ready() for greenlet in greenlets):
         time.sleep(0.2)
+
+
+def run_in_parallel(functions: "list[Callable[[], Any]]") -> None:
+    if not functions:
+        return
+
+    with concurrent.futures.ThreadPoolExecutor(len(functions)) as executor:
+        for function in functions:
+            executor.submit(function)

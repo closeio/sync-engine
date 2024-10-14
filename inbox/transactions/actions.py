@@ -45,7 +45,7 @@ from inbox.ignition import engine_manager
 from inbox.logging import get_logger
 from inbox.models import ActionLog, Event
 from inbox.models.session import session_scope, session_scope_by_shard_id
-from inbox.util.concurrency import retry_with_logging
+from inbox.util.concurrency import kill_all, retry_with_logging
 from inbox.util.misc import DummyContextManager
 from inbox.util.stats import statsd_client
 
@@ -497,8 +497,7 @@ class SyncbackService(gevent.Greenlet):
 
     def stop(self):
         self.keep_running = False
-        for worker in self.workers:
-            worker.kill()
+        kill_all(self.workers)
 
     def _run(self):
         self.log.info(

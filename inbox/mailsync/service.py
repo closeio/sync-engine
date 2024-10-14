@@ -4,7 +4,6 @@ import time
 from threading import BoundedSemaphore
 from typing import Type
 
-import gevent
 from sqlalchemy import and_, or_
 from sqlalchemy.exc import OperationalError
 
@@ -22,7 +21,7 @@ from inbox.models import Account
 from inbox.models.session import global_session_scope, session_scope
 from inbox.providers import providers
 from inbox.scheduling.event_queue import EventQueue, EventQueueGroup
-from inbox.util.concurrency import retry_with_logging
+from inbox.util.concurrency import kill_all, retry_with_logging
 from inbox.util.stats import statsd_client
 
 USE_WEBHOOKS = "GOOGLE_PUSH_NOTIFICATIONS" in config.get(
@@ -118,23 +117,23 @@ class SyncService:
         while self.keep_running:
             retry_with_logging(self._run_impl, self.log)
 
+        kill_all(self.contact_sync_monitors.values())
+        self.log.info(
+            "stopped contact sync monitors", count=len(self.contact_sync_monitors)
+        )
+        kill_all(self.event_sync_monitors.values())
+        self.log.info(
+            "stopped event sync monitors", count=len(self.event_sync_monitors)
+        )
+
         for email_sync_monitor in self.email_sync_monitors.values():
             if email_sync_monitor.delete_handler:
                 email_sync_monitor.delete_handler.kill()
+            kill_all(email_sync_monitor.folder_monitors, block=False)
             email_sync_monitor.sync_greenlet.kill(block=False)
             email_sync_monitor.join()
         self.log.info(
             "stopped email sync monitors", count=len(self.email_sync_monitors)
-        )
-        for contact_sync_monitor in self.contact_sync_monitors.values():
-            contact_sync_monitor.kill()
-        self.log.info(
-            "stopped contact sync monitors", count=len(self.contact_sync_monitors)
-        )
-        for event_sync_monitor in self.event_sync_monitors.values():
-            event_sync_monitor.kill()
-        self.log.info(
-            "stopped event sync monitors", count=len(self.event_sync_monitors)
         )
 
     def _run_impl(self):

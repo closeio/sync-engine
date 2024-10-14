@@ -5,7 +5,7 @@ from gevent import Greenlet, GreenletExit
 from inbox.config import config
 from inbox.logging import get_logger
 from inbox.models.session import session_scope
-from inbox.util.concurrency import retry_with_logging
+from inbox.util.concurrency import kill_all, retry_with_logging
 from inbox.util.debug import bind_context
 
 log = get_logger()
@@ -98,8 +98,7 @@ class BaseMailSyncMonitor(Greenlet):
         with session_scope(self.namespace_id) as mailsync_db_session:
             for x in self.folder_monitors:
                 x.set_stopped(mailsync_db_session)
-        for monitor in self.folder_monitors:
-            monitor.kill()
+        kill_all(self.folder_monitors)
 
     def __repr__(self) -> str:
         return f"<{self.name}>"

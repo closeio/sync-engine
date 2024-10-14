@@ -465,6 +465,7 @@ class FolderSyncEngine(Greenlet):
 
             len_remote_uids = len(remote_uids)
             del remote_uids  # free up memory as soon as possible
+            del local_uids  # free up memory as soon as possible
 
             with session_scope(self.namespace_id) as db_session:
                 account = db_session.query(Account).get(self.account_id)

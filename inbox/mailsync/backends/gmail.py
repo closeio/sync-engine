@@ -293,11 +293,11 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 uids_to_download = sorted(unknown_uids - inbox_uids) + sorted(
                     unknown_uids & inbox_uids
                 )
+                del inbox_uids  # free up memory as soon as possible
             else:
                 uids_to_download = sorted(unknown_uids)
 
             del unknown_uids  # free up memory as soon as possible
-            del inbox_uids  # free up memory as soon as possible
 
             for uids in chunk(reversed(uids_to_download), 1024):
                 g_metadata = crispin_client.g_metadata(uids)

@@ -13,6 +13,7 @@ import _mysql_exceptions
 from redis import TimeoutError
 from sqlalchemy.exc import StatementError
 
+from inbox import greenlet_like
 from inbox.error_handling import log_uncaught_errors
 from inbox.logging import create_error_log_context, get_logger
 from inbox.models import Account
@@ -85,7 +86,7 @@ def retry(
 
             # Sleep a bit so that we don't poll too quickly and re-encounter
             # the error. Also add a random delay to prevent herding effects.
-            time.sleep(backoff_delay + int(random.uniform(1, 10)))
+            greenlet_like.sleep(backoff_delay + int(random.uniform(1, 10)))
 
     return wrapped
 

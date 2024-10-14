@@ -17,6 +17,7 @@ from inbox.events.remote_sync import EventSync, WebhookEventSync
 from inbox.heartbeat.status import clear_heartbeat_status
 from inbox.logging import get_logger
 from inbox.mailsync.backends import module_registry
+from inbox.mailsync.backends.gmail import GmailSyncMonitor
 from inbox.models import Account
 from inbox.models.session import global_session_scope, session_scope
 from inbox.providers import providers
@@ -130,6 +131,8 @@ class SyncService:
             if email_sync_monitor.delete_handler:
                 email_sync_monitor.delete_handler.kill()
             kill_all(email_sync_monitor.folder_monitors, block=False)
+            if isinstance(email_sync_monitor, GmailSyncMonitor):
+                kill_all(email_sync_monitor.label_rename_handlers.values(), block=False)
             email_sync_monitor.sync_greenlet.kill(block=False)
             email_sync_monitor.join()
         self.log.info(

@@ -238,54 +238,48 @@ class LabelRenameHandler(gevent.Greenlet):
     def _run_impl(self):
         self.log.info("Starting LabelRenameHandler", label_name=self.label_name)
 
-        self.semaphore.acquire(blocking=True)
+        with self.semaphore, connection_pool(self.account_id).get() as crispin_client:
+            folder_names = []
+            with session_scope(self.account_id) as db_session:
+                folders = db_session.query(Folder).filter(
+                    Folder.account_id == self.account_id
+                )
 
-        try:
-            with connection_pool(self.account_id).get() as crispin_client:
-                folder_names = []
-                with session_scope(self.account_id) as db_session:
-                    folders = db_session.query(Folder).filter(
-                        Folder.account_id == self.account_id
+                folder_names = [folder.name for folder in folders]
+                db_session.expunge_all()
+
+            for folder_name in folder_names:
+                crispin_client.select_folder(folder_name, uidvalidity_cb)
+
+                found_uids = crispin_client.search_uids(
+                    ["X-GM-LABELS", self.label_name]
+                )
+
+                for chnk in chunk(found_uids, 200):
+                    flags = crispin_client.flags(chnk)
+
+                    self.log.info(
+                        "Running metadata update for folder", folder_name=folder_name
                     )
-
-                    folder_names = [folder.name for folder in folders]
-                    db_session.expunge_all()
-
-                for folder_name in folder_names:
-                    crispin_client.select_folder(folder_name, uidvalidity_cb)
-
-                    found_uids = crispin_client.search_uids(
-                        ["X-GM-LABELS", self.label_name]
-                    )
-
-                    for chnk in chunk(found_uids, 200):
-                        flags = crispin_client.flags(chnk)
-
-                        self.log.info(
-                            "Running metadata update for folder",
-                            folder_name=folder_name,
+                    with session_scope(self.account_id) as db_session:
+                        fld = (
+                            db_session.query(Folder)
+                            .options(load_only("id"))
+                            .filter(
+                                Folder.account_id == self.account_id,
+                                Folder.name == folder_name,
+                            )
+                            .one()
                         )
-                        with session_scope(self.account_id) as db_session:
-                            fld = (
-                                db_session.query(Folder)
-                                .options(load_only("id"))
-                                .filter(
-                                    Folder.account_id == self.account_id,
-                                    Folder.name == folder_name,
-                                )
-                                .one()
-                            )
 
-                            common.update_metadata(
-                                self.account_id,
-                                fld.id,
-                                fld.canonical_name,
-                                flags,
-                                db_session,
-                            )
-                            db_session.commit()
-        finally:
-            self.semaphore.release()
+                        common.update_metadata(
+                            self.account_id,
+                            fld.id,
+                            fld.canonical_name,
+                            flags,
+                            db_session,
+                        )
+                        db_session.commit()
 
     def __repr__(self) -> str:
         return f"<{self.name}>"

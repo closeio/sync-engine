@@ -3,6 +3,7 @@ from inbox.mailsync.backends.gmail import GmailSyncMonitor
 from inbox.mailsync.backends.imap.monitor import ImapSyncMonitor
 from inbox.models import Category, Folder, Label
 from inbox.models.category import EPOCH
+from inbox.util.concurrency import kill_all
 
 
 def test_imap_save_generic_folder_names(db, default_account):
@@ -264,3 +265,5 @@ def test_not_deleting_canonical_folders(empty_db, default_account):
     label = empty_db.session.query(Label).get(label.id)
     assert label.deleted_at is None
     assert label.category.deleted_at == EPOCH
+
+    kill_all(monitor.label_rename_handlers.values())

@@ -66,7 +66,7 @@ class ProfilingHTTPFrontend:
         @app.route("/load")
         def load():
             if self.tracer is None:
-                return "{}"
+                return "Load tracing disabled\n"
             resp = jsonify(self.tracer.stats())
             if request.args.get("reset ") in (1, "true"):
                 self.tracer.reset()
@@ -77,10 +77,6 @@ class ProfilingHTTPFrontend:
             objs = muppy.get_objects()
             summ = summary.summarize(objs)
             return "\n".join(summary.format_(summ)) + "\n"
-
-        @app.route("/mem-diff")
-        def mem_diff():
-            return "\n".join(tracker.format_diff()) + "\n"
 
 
 class SyncbackHTTPFrontend(ProfilingHTTPFrontend):

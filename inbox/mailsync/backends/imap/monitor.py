@@ -142,7 +142,6 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                     self.syncmanager_lock,
                 )
                 self.folder_monitors.append(thread)
-                # MARK: child spawn
                 thread.start()
 
             while thread.state != "poll" and not thread.ready():
@@ -169,7 +168,6 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                 provider_name=self.provider_name,
                 uid_accessor=lambda m: m.imapuids,
             )
-            # MARK: child spawn
             self.delete_handler.start()
 
     def sync(self):

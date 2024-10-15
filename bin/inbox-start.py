@@ -26,8 +26,6 @@ except ImportError:
         "Try running sudo ./setup.sh"
     )
 
-# TODO: set this with environment variables
-inbox_config["USE_GEVENT"] = False
 
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.logging import configure_logging, get_logger
@@ -149,8 +147,8 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
     http_frontend = SyncHTTPFrontend(
         sync_service, port, enable_tracer, enable_profiler_api
     )
-    # TODO: Disabling this for now since enable_tracer is False
-    # sync_service.register_pending_avgs_provider(http_frontend)
+    if enable_tracer:
+        sync_service.register_pending_avgs_provider(http_frontend)
     http_frontend.start()
 
     sync_service.run()

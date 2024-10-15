@@ -402,7 +402,6 @@ class FolderSyncEngine(InterruptibleThread):
             self._report_initial_sync_start()
             self.is_first_sync = False
 
-        # MARK: blocking
         with self.conn_pool.get() as crispin_client:
             crispin_client.select_folder(self.folder_name, uidvalidity_cb)
             # Ensure we have an ImapFolderInfo row created prior to sync start.
@@ -518,7 +517,6 @@ class FolderSyncEngine(InterruptibleThread):
             crispin_client.idle(1)
 
     def poll_impl(self):
-        # MARK: blocking
         with self.conn_pool.get() as crispin_client:
             self.check_uid_changes(crispin_client)
             if self.should_idle(crispin_client):
@@ -551,7 +549,6 @@ class FolderSyncEngine(InterruptibleThread):
     def resync_uids_impl(self):
         # First, let's check if the UIVDALIDITY change was spurious, if
         # it is, just discard it and go on.
-        # MARK: blocking
         with self.conn_pool.get() as crispin_client:
             crispin_client.select_folder(self.folder_name, lambda *args: True)
             remote_uidvalidity = crispin_client.selected_uidvalidity

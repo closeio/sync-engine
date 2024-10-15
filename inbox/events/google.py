@@ -27,7 +27,7 @@ from inbox.exceptions import AccessNotEnabledError, OAuthError
 from inbox.models import Account, Calendar
 from inbox.models.backends.oauth import token_manager
 from inbox.models.event import EVENT_STATUSES, Event
-from inbox.util.concurrency import iterate_and_periodically_switch
+from inbox.util.concurrency import iterate_and_periodically_check_interrupted
 
 CALENDARS_URL = "https://www.googleapis.com/calendar/v3/users/me/calendarList"
 STATUS_MAP = {
@@ -93,7 +93,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
         updates = []
         raw_events = self._get_raw_events(calendar_uid, sync_from_time)
         read_only_calendar = self.calendars_table.get(calendar_uid, True)
-        for raw_event in iterate_and_periodically_switch(raw_events):
+        for raw_event in iterate_and_periodically_check_interrupted(raw_events):
             try:
                 parsed = parse_event_response(raw_event, read_only_calendar)
                 updates.append(parsed)

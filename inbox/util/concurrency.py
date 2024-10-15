@@ -164,22 +164,22 @@ IterableItemT = TypeVar("IterableItemT")
 DEFAULT_SWITCH_PERIOD = datetime.timedelta(seconds=1)
 
 
-def iterate_and_periodically_switch(
+def iterate_and_periodically_check_interrupted(
     iterable: Iterable[IterableItemT],
     *,
     switch_period: datetime.timedelta = DEFAULT_SWITCH_PERIOD
 ) -> Iterable[IterableItemT]:
     """
-    Given an iterable, yield each item, and periodically switch to the gevent
-    event loop to allow other greenlets to run.
+    Given an iterable, yield each item, and periodically check if the
+    thread has been interrupted.
 
-    Use this with CPU-bound loops to avoid blocking the event loop for too long.
-    Otherwise the greenlet might get killed by KillerGreenletTracer.
+    Use this with CPU-bound loops to make sure that the thread can be interrupted.
+    Otherwise the thread might not get killed in sensible time.
     """
     last_sleep_time = time.monotonic()
     for item in iterable:
         if time.monotonic() - last_sleep_time >= switch_period.total_seconds():
-            time.sleep(0)
+            interruptible_threading.check_interrupted()
             last_sleep_time = time.monotonic()
 
         yield item

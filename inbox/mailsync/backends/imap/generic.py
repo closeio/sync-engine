@@ -72,9 +72,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 
-from inbox import greenlet_like
+from inbox import interruptible_threading
 from inbox.exceptions import ValidationError
-from inbox.greenlet_like import GreenletLikeThread
+from inbox.interruptible_threading import InterruptibleThread
 from inbox.logging import get_logger
 from inbox.util.concurrency import retry_with_logging
 from inbox.util.debug import bind_context
@@ -128,7 +128,7 @@ MAX_UIDINVALID_RESYNCS = 5
 CONDSTORE_FLAGS_REFRESH_BATCH_SIZE = 200
 
 
-class ChangePoller(GreenletLikeThread):
+class ChangePoller(InterruptibleThread):
     def __init__(self, engine: "FolderSyncEngine") -> None:
         self.engine = engine
 
@@ -143,7 +143,7 @@ class ChangePoller(GreenletLikeThread):
     def _run(self) -> NoReturn:
         log.new(account_id=self.engine.account_id, folder=self.engine.folder_name)
         while True:
-            greenlet_like.check_killed()
+            interruptible_threading.check_interrupted()
             log.debug("polling for changes")
             self.engine.poll_impl()
 
@@ -151,7 +151,7 @@ class ChangePoller(GreenletLikeThread):
         return f"<{self.name}>"
 
 
-class FolderSyncEngine(GreenletLikeThread):
+class FolderSyncEngine(InterruptibleThread):
     """Base class for a per-folder IMAP sync engine."""
 
     def __init__(
@@ -279,7 +279,7 @@ class FolderSyncEngine(GreenletLikeThread):
         # time if it receives a shutdown command. The shutdown command is
         # equivalent to ctrl-c.
         while self.state != "finish":
-            greenlet_like.check_killed()
+            interruptible_threading.check_interrupted()
             retry_with_logging(
                 self._run_impl,
                 account_id=self.account_id,
@@ -495,7 +495,7 @@ class FolderSyncEngine(GreenletLikeThread):
                     # messages per folder are synced.
                     # Note this is an approx. limit since we use the #(uids),
                     # not the #(messages).
-                    greenlet_like.sleep(THROTTLE_WAIT)
+                    interruptible_threading.sleep(THROTTLE_WAIT)
 
             del new_uids  # free up memory as soon as possible
         finally:
@@ -514,7 +514,7 @@ class FolderSyncEngine(GreenletLikeThread):
     def idle(self, crispin_client):
         start = time.monotonic()
         while time.monotonic() - start < IDLE_WAIT:
-            greenlet_like.check_killed()
+            interruptible_threading.check_interrupted()
             crispin_client.idle(1)
 
     def poll_impl(self):
@@ -546,7 +546,7 @@ class FolderSyncEngine(GreenletLikeThread):
                 idling = False
         # Close IMAP connection before sleeping
         if not idling:
-            greenlet_like.sleep(self.poll_frequency)
+            interruptible_threading.sleep(self.poll_frequency)
 
     def resync_uids_impl(self):
         # First, let's check if the UIVDALIDITY change was spurious, if

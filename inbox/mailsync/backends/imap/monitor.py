@@ -1,7 +1,7 @@
 from threading import BoundedSemaphore
 from typing import List
 
-from inbox import greenlet_like
+from inbox import interruptible_threading
 from inbox.crispin import connection_pool, retry_crispin
 from inbox.exceptions import ValidationError
 from inbox.logging import get_logger
@@ -146,7 +146,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                 thread.start()
 
             while thread.state != "poll" and not thread.ready():
-                greenlet_like.sleep(self.heartbeat)
+                interruptible_threading.sleep(self.heartbeat)
 
             if thread.ready():
                 log.info(
@@ -177,7 +177,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
             self.start_delete_handler()
             self.start_new_folder_sync_engines()
             while True:
-                greenlet_like.sleep(self.refresh_frequency)
+                interruptible_threading.sleep(self.refresh_frequency)
                 self.start_new_folder_sync_engines()
         except ValidationError as exc:
             log.error(

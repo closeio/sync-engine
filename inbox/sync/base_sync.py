@@ -1,9 +1,9 @@
 import threading
 
-from inbox import greenlet_like
+from inbox import interruptible_threading
 from inbox.exceptions import ConnectionError, ValidationError
-from inbox.greenlet_like import GreenletLikeThread
 from inbox.heartbeat.store import HeartbeatStatusProxy
+from inbox.interruptible_threading import InterruptibleThread
 from inbox.logging import get_logger
 from inbox.models import Account
 from inbox.models.session import session_scope
@@ -12,7 +12,7 @@ from inbox.util.concurrency import retry_with_logging
 logger = get_logger()
 
 
-class BaseSyncMonitor(GreenletLikeThread):
+class BaseSyncMonitor(InterruptibleThread):
     """
     Abstracted sync monitor, based on BaseMailSyncMonitor but not mail-specific
 
@@ -59,7 +59,7 @@ class BaseSyncMonitor(GreenletLikeThread):
         self.log = self.log.new(account_id=self.account_id)
         try:
             while True:
-                greenlet_like.check_killed()
+                interruptible_threading.check_interrupted()
                 retry_with_logging(
                     self._run_impl,
                     account_id=self.account_id,
@@ -87,8 +87,8 @@ class BaseSyncMonitor(GreenletLikeThread):
         # 2x poll frequency.
         except ConnectionError:
             self.log.error("Error while polling", exc_info=True)
-            greenlet_like.sleep(self.poll_frequency)
-        greenlet_like.sleep(self.poll_frequency)
+            interruptible_threading.sleep(self.poll_frequency)
+        interruptible_threading.sleep(self.poll_frequency)
 
     def sync(self):
         """Subclasses should override this to do work"""

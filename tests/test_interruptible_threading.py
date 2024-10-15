@@ -120,3 +120,30 @@ def test_timeout_interrupts_sleep():
     assert thread.ready() is True
     assert thread.successful() is True
     assert thread.exception is None
+
+
+class SeveralTimeoutsThread(InterruptibleThread):
+    def __init__(self):
+        self.executed_to_end = False
+
+        super().__init__()
+
+    def _run(self):
+        with interruptible_threading.timeout(1):
+            interruptible_threading.sleep(1000)
+
+        with interruptible_threading.timeout(1):
+            interruptible_threading.sleep(1000)
+
+        self.executed_to_end = True
+
+
+def test_several_timeouts_interrupts_sleep():
+    thread = SeveralTimeoutsThread()
+    thread.start()
+    thread.join()
+
+    assert thread.executed_to_end is True
+    assert thread.ready() is True
+    assert thread.successful() is True
+    assert thread.exception is None

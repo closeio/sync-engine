@@ -70,7 +70,7 @@ class InterruptibleThread(threading.Thread):
         thread is started. Otherwise, the subclass must implement the `_run`
         method.
         """
-        self.__should_be_killed = False
+        self.__should_be_killed = threading.Event()
         self.__ready = False
         self.__run_target = (
             _InterruptibleThreadTarget(target, args, kwargs) if target else None
@@ -130,7 +130,7 @@ class InterruptibleThread(threading.Thread):
 
         If block is True, wait until the thread is ready.
         """
-        self.__should_be_killed = True
+        self.__should_be_killed.set()
         if block:
             self.join()
 
@@ -141,7 +141,7 @@ class InterruptibleThread(threading.Thread):
         Don't use this directly instead use the public
         `check_interrupted` function below.
         """
-        if self.__should_be_killed:
+        if self.__should_be_killed.wait(0.01):
             raise InterruptibleThreadExit()
 
         if (
@@ -259,3 +259,5 @@ def timeout(timeout: float):
         yield
     except InterruptibleThreadTimeout:
         pass
+    finally:
+        current_thread._timeout_deadline = None

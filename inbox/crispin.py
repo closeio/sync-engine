@@ -1165,19 +1165,27 @@ class CrispinClient:
         interruptible_threading.check_interrupted()
         self.conn.logout()
 
-    def idle(self, timeout):
+    def idle(self, timeout: int):
         """Idle for up to `timeout` seconds. Make sure we take the connection
         back out of idle mode so that we can reuse this connection in another
         context.
         """
-        self.conn.idle()
-        try:
-            r = self.conn.idle_check(timeout)
-        except Exception:
+        interruptible_threading.check_interrupted()
+
+        start = time.monotonic()
+        while time.monotonic() - start < timeout:
+            self.conn.idle()
+            try:
+                responses = self.conn.idle_check(1)
+            except Exception:
+                self.conn.idle_done()
+                raise
             self.conn.idle_done()
-            raise
-        self.conn.idle_done()
-        return r
+            interruptible_threading.check_interrupted()
+            if responses:
+                break
+
+        return responses
 
     def condstore_changed_flags(
         self, modseq: int

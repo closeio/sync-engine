@@ -510,12 +510,6 @@ class FolderSyncEngine(InterruptibleThread):
             )
         return self._should_idle
 
-    def idle(self, crispin_client):
-        start = time.monotonic()
-        while time.monotonic() - start < IDLE_WAIT:
-            interruptible_threading.check_interrupted()
-            crispin_client.idle(1)
-
     def poll_impl(self):
         with self.conn_pool.get() as crispin_client:
             self.check_uid_changes(crispin_client)
@@ -523,7 +517,7 @@ class FolderSyncEngine(InterruptibleThread):
                 crispin_client.select_folder(self.folder_name, self.uidvalidity_cb)
                 idling = True
                 try:
-                    self.idle(crispin_client)
+                    crispin_client.idle(IDLE_WAIT)
                 except Exception as exc:
                     # With some servers we get e.g.
                     # 'Unexpected IDLE response: * FLAGS  (...)'

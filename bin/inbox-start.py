@@ -6,16 +6,12 @@ monkey.patch_all()
 
 import os
 import platform
-import random
 import signal
 import socket
 import sys
-import threading
-import time
 
 import click
 import setproctitle
-import structlog
 
 # Check that the inbox package is installed. It seems Vagrant may sometimes
 # fail to provision the box appropriately; this check is a reasonable
@@ -82,17 +78,7 @@ banner = rf"""{esc}[1;95m
     help="This process's number in the process group: a unique "
     "number satisfying 0 <= process_num < total_processes.",
 )
-@click.option(
-    "--exit-after",
-    default=None,
-    help="A colon-separated range in minutes within which the "
-    "process will exit. For example, if 30:60 is given, a "
-    "random time between 30 and 60 minutes is picked after "
-    "which the process will exit. Combined with supervisor, "
-    "which automatically restarts terminated processes, this "
-    "can be used to avoid memory leaks.",
-)
-def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
+def main(prod, enable_tracer, enable_profiler, config, process_num):
     """Launch the Nylas sync service."""
     level = os.environ.get("LOGLEVEL", inbox_config.get("LOGLEVEL"))
     configure_logging(log_level=level)
@@ -144,7 +130,6 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
 
     signal.signal(signal.SIGTERM, lambda *_: sync_service.stop())
     signal.signal(signal.SIGINT, lambda *_: sync_service.stop())
-    prepare_exit_after(log, sync_service, exit_after)
 
     http_frontend = SyncHTTPFrontend(
         sync_service, port, enable_tracer, enable_profiler_api
@@ -155,34 +140,6 @@ def main(prod, enable_tracer, enable_profiler, config, process_num, exit_after):
     sync_service.run()
 
     print("\033[94mNylas Sync Engine exiting...\033[0m", file=sys.stderr)
-
-
-def prepare_exit_after(
-    log: structlog.BoundLogger, sync_service: SyncService, exit_after: "str | None"
-) -> None:
-    """
-    Prepare to exit after a random time within the given range.
-
-    Starts a daemon thread that will sleep for a random time within the given range
-    and then call `sync_service.stop()` to gracefully finish the process.
-    """
-    if not exit_after:
-        return
-
-    exit_after = exit_after.split(":")
-    exit_after_min, exit_after_max = int(exit_after[0]), int(exit_after[1])
-    exit_after_seconds = random.randint(exit_after_min * 60, exit_after_max * 60)
-    log.info("exit after", seconds=exit_after_seconds)
-
-    exit_after_thread = threading.Thread(
-        target=perform_exit_after, args=(sync_service, exit_after_seconds), daemon=True
-    )
-    exit_after_thread.start()
-
-
-def perform_exit_after(sync_service: SyncService, seconds: int) -> None:
-    time.sleep(seconds)
-    sync_service.stop()
 
 
 if __name__ == "__main__":

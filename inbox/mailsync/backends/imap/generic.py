@@ -814,7 +814,7 @@ class FolderSyncEngine(Greenlet):
             # servers do decrement the HIGHESTMODSEQ without changing
             # UIDVALIDITY. We need to adjust the HIGHESTMODSEQ counterpart
             # stored on our end, or else refreshing the flags will stop
-            # working.
+            # working. We've seen this happen with Dovecot.
             log.warning(
                 "got server highestmodseq less than saved highestmodseq",
                 new_highestmodseq=new_highestmodseq,

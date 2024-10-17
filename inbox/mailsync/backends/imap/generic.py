@@ -962,6 +962,7 @@ class FolderSyncEngine(InterruptibleThread):
             common.update_metadata(
                 self.account_id, self.folder_id, self.folder_role, flags, db_session
             )
+        # MARK: could use a lot of memory
         self.flags_fetch_results[max_uids] = (local_uids, flags)
 
     def check_uid_changes(self, crispin_client: "CrispinClient") -> None:

@@ -72,7 +72,12 @@ class RemoteFolder:
 
 
 def fetch_remote_folders(crispin_client: CrispinClient) -> Iterable[RemoteFolder]:
-    for role, folders in crispin_client.folder_names().items():
+    try:
+        folder_names = crispin_client.folder_names()
+    except Exception:
+        return
+
+    for role, folders in folder_names.items():
         for folder in folders:
             try:
                 result = crispin_client.select_folder(

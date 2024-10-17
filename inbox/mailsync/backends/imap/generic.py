@@ -813,12 +813,17 @@ class FolderSyncEngine(InterruptibleThread):
             # changed.
             return
         elif new_highestmodseq < self.highestmodseq:
-            # This should really never happen, but if it does, handle it.
+            # This should never happen in theory, but unfortunately some
+            # servers do decrement the HIGHESTMODSEQ without changing
+            # UIDVALIDITY. We need to adjust the HIGHESTMODSEQ counterpart
+            # stored on our end, or else refreshing the flags will stop
+            # working. We've seen this happen with Dovecot.
             log.warning(
                 "got server highestmodseq less than saved highestmodseq",
                 new_highestmodseq=new_highestmodseq,
                 saved_highestmodseq=self.highestmodseq,
             )
+            self.highestmodseq = new_highestmodseq
             return
 
         log.debug(

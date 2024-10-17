@@ -9,6 +9,8 @@ from sqlalchemy import and_, or_
 from inbox.config import config
 from inbox.crispin import CrispinClient, writable_connection_pool
 from inbox.models.account import Account
+from inbox.models.backends.imap import ImapUid
+from inbox.models.folder import Folder
 from inbox.models.session import global_session_scope
 
 config["USE_GEVENT"] = False
@@ -94,11 +96,28 @@ def fetch_remote_folders(crispin_client: CrispinClient) -> Iterable[RemoteFolder
             )
 
 
+@dataclasses.dataclass
+class LocalFolder:
+    name: str
+    exists: int
+
+
+def fetch_local_folders(account: LocalAccount) -> Iterable[LocalFolder]:
+    with global_session_scope() as db_session:
+        for folder in db_session.query(Folder).filter(Folder.account_id == account.id):
+            exists = (
+                db_session.query(ImapUid).filter(ImapUid.folder_id == folder.id).count()
+            )
+            yield LocalFolder(name=folder.name, exists=exists)
+
+
 @click.command()
 @click.option("--host", required=True)
 @click.option("--include-server-info", is_flag=True)
 def main(host: str, include_server_info: bool):
     accounts = fetch_accounts_for_host(host)
+    total_remote_exists = 0
+    total_local_exists = 0
     for account in accounts:
         print(account)
 
@@ -108,12 +127,24 @@ def main(host: str, include_server_info: bool):
                 print("\t", server_info)
                 print()
 
-            total_exists = 0
+            total_folder_remote_exists = 0
             for remote_folder in fetch_remote_folders(crispin_client):
                 print("\t", remote_folder)
-                total_exists += remote_folder.exists
-            print("\tTotal EXISTS:", total_exists)
+                total_folder_remote_exists += remote_folder.exists
+                total_remote_exists += remote_folder.exists
+            print("\t Total remote EXISTS:", total_folder_remote_exists)
             print()
+
+            total_folder_local_exists = 0
+            for local_folder in fetch_local_folders(account):
+                print("\t", local_folder)
+                total_folder_local_exists += local_folder.exists
+                total_local_exists += local_folder.exists
+            print("\t Total local EXISTS:", total_folder_local_exists)
+            print()
+
+    print("Total remote EXISTS:", total_remote_exists)
+    print("Total local EXISTS:", total_local_exists)
 
 
 if __name__ == "__main__":

@@ -20,6 +20,7 @@ config["USE_GEVENT"] = False
 class LocalAccount:
     id: int
     email: str
+    provider: str
 
 
 def fetch_accounts_for_host(host: str):
@@ -45,7 +46,9 @@ def fetch_accounts_for_host(host: str):
         )
 
         return [
-            LocalAccount(id=account.id, email=account.email_address)
+            LocalAccount(
+                id=account.id, email=account.email_address, provider=account.provider
+            )
             for account in accounts
         ]
 
@@ -73,13 +76,18 @@ class RemoteFolder:
     exists: int
 
 
-def fetch_remote_folders(crispin_client: CrispinClient) -> Iterable[RemoteFolder]:
+def fetch_remote_folders(
+    provider: str, crispin_client: CrispinClient
+) -> Iterable[RemoteFolder]:
     try:
         folder_names = crispin_client.folder_names()
     except Exception:
         return
 
     for role, folders in folder_names.items():
+        if provider == "gmail" and role not in ["all", "spam", "trash"]:
+            continue
+
         for folder in folders:
             try:
                 result = crispin_client.select_folder(
@@ -128,7 +136,7 @@ def main(host: str, include_server_info: bool):
                 print()
 
             total_folder_remote_exists = 0
-            for remote_folder in fetch_remote_folders(crispin_client):
+            for remote_folder in fetch_remote_folders(account.provider, crispin_client):
                 print("\t", remote_folder)
                 total_folder_remote_exists += remote_folder.exists
                 total_remote_exists += remote_folder.exists

@@ -100,7 +100,9 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     message = relationship(Message, backref=backref("imapuids", passive_deletes=True))
     msg_uid = Column(BigInteger, nullable=False, index=True)
 
-    folder_id = Column(ForeignKey(Folder.id, ondelete="CASCADE"), nullable=False)
+    folder_id = Column(
+        ForeignKey(Folder.id, ondelete="CASCADE"), nullable=False, index=True
+    )
     # We almost always need the folder name too, so eager load by default.
     folder = relationship(
         Folder, lazy="joined", backref=backref("imapuids", passive_deletes=True)
@@ -216,7 +218,6 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         return categories
 
     __table_args__ = (
-        UniqueConstraint("folder_id", "msg_uid", "account_id"),
         # This index is used to quickly retrieve IMAP uids
         # in local_uids and lastseenuid functions.
         # Those queries consistently stay in top 5 most busy SELECTs

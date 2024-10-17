@@ -168,8 +168,7 @@ def _save_to_s3_bucket(
     bucket = get_s3_bucket(bucket_name)
 
     # See if it already exists; if so, don't recreate.
-    key = bucket.get_key(data_sha256)
-    if key and not overwrite:
+    if not overwrite and bucket.get_key(data_sha256):
         return
 
     key = Key(bucket)

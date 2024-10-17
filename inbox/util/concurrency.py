@@ -13,6 +13,7 @@ import _mysql_exceptions
 from redis import TimeoutError
 from sqlalchemy.exc import StatementError
 
+from inbox import interruptible_threading
 from inbox.error_handling import log_uncaught_errors
 from inbox.logging import create_error_log_context, get_logger
 from inbox.models import Account
@@ -85,7 +86,7 @@ def retry(
 
             # Sleep a bit so that we don't poll too quickly and re-encounter
             # the error. Also add a random delay to prevent herding effects.
-            time.sleep(backoff_delay + int(random.uniform(1, 10)))
+            interruptible_threading.sleep(backoff_delay + int(random.uniform(1, 10)))
 
     return wrapped
 
@@ -163,22 +164,22 @@ IterableItemT = TypeVar("IterableItemT")
 DEFAULT_SWITCH_PERIOD = datetime.timedelta(seconds=1)
 
 
-def iterate_and_periodically_switch_to_gevent(
+def iterate_and_periodically_check_interrupted(
     iterable: Iterable[IterableItemT],
     *,
     switch_period: datetime.timedelta = DEFAULT_SWITCH_PERIOD
 ) -> Iterable[IterableItemT]:
     """
-    Given an iterable, yield each item, and periodically switch to the gevent
-    event loop to allow other greenlets to run.
+    Given an iterable, yield each item, and periodically check if the
+    thread has been interrupted.
 
-    Use this with CPU-bound loops to avoid blocking the event loop for too long.
-    Otherwise the greenlet might get killed by KillerGreenletTracer.
+    Use this with CPU-bound loops to make sure that the thread can be interrupted.
+    Otherwise the thread might not get killed in sensible time.
     """
     last_sleep_time = time.monotonic()
     for item in iterable:
         if time.monotonic() - last_sleep_time >= switch_period.total_seconds():
-            time.sleep(0)
+            interruptible_threading.check_interrupted()
             last_sleep_time = time.monotonic()
 
         yield item

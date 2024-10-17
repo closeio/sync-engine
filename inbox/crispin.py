@@ -27,6 +27,7 @@ import imapclient.imap_utf7
 import imapclient.imapclient
 import imapclient.response_parser
 
+from inbox import interruptible_threading
 from inbox.constants import MAX_MESSAGE_BODY_LENGTH
 
 # Prevent "got more than 1000000 bytes" errors for servers that send more data.
@@ -275,9 +276,10 @@ class CrispinConnectionPool:
         if not succeeded:
             raise ConnectionPoolTimeoutError()
 
-        client = self._queue.get()
+        client = interruptible_threading.queue_get(self._queue)
         try:
             if client is None:
+                interruptible_threading.check_interrupted()
                 client = self._new_connection()
             yield client
 
@@ -484,6 +486,7 @@ class CrispinClient:
         """
         # As discovered in the wild list_folders() can return None as name,
         # we cannot handle those folders anyway so just filter them out.
+        interruptible_threading.check_interrupted()
         return [
             (flags, delimiter, name)
             for flags, delimiter, name in self.conn.list_folders()
@@ -535,6 +538,7 @@ class CrispinClient:
         cached/out-of-date values for HIGHESTMODSEQ from the IMAP server.
         """
         try:
+            interruptible_threading.check_interrupted()
             select_info: Dict[bytes, Any] = self.conn.select_folder(
                 folder_name, readonly=self.readonly
             )
@@ -815,6 +819,7 @@ class CrispinClient:
         return RawFolder(display_name=display_name, role=role)
 
     def create_folder(self, name):
+        interruptible_threading.check_interrupted()
         self.conn.create_folder(name)
 
     def condstore_supported(self) -> bool:
@@ -824,6 +829,8 @@ class CrispinClient:
         return b"CONDSTORE" in capabilities or b"QRESYNC" in capabilities
 
     def idle_supported(self) -> bool:
+        interruptible_threading.check_interrupted()
+
         return b"IDLE" in self.conn.capabilities()
 
     def search_uids(self, criteria: List[str]) -> Iterable[int]:
@@ -833,6 +840,7 @@ class CrispinClient:
         criteria.
 
         """
+        interruptible_threading.check_interrupted()
         return (
             int(uid) if not isinstance(uid, int) else uid
             for uid in self.conn.search(criteria)
@@ -855,6 +863,8 @@ class CrispinClient:
 
         try:
             t = time.time()
+
+            interruptible_threading.check_interrupted()
             fetch_result: List[int] = self.conn.search(["ALL"])
         except imaplib.IMAP4.error as e:
             message = e.args[0] if e.args else ""
@@ -867,6 +877,8 @@ class CrispinClient:
                     exception=e,
                 )
                 t = time.time()
+
+                interruptible_threading.check_interrupted()
                 fetch_result = self.conn._search(["ALL"], None)
             elif message.find("UID SEARCH failed: Internal error") >= 0:
                 # Oracle Beehive fails for some folders
@@ -877,6 +889,8 @@ class CrispinClient:
                     exception=e,
                 )
                 t = time.time()
+
+                interruptible_threading.check_interrupted()
                 fetch_result = self.conn.search(["1:*"])
             else:
                 raise
@@ -899,6 +913,7 @@ class CrispinClient:
                     # We already reject parsing messages bigger than MAX_MESSAGE_BODY_PARSE_LENGTH.
                     # We might as well not download them at all, save bandwidth, processing time
                     # and prevent OOMs due to fetching oversized emails.
+                    interruptible_threading.check_interrupted()
                     fetched_size: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
                         uid, ["RFC822.SIZE"]
                     )
@@ -907,6 +922,7 @@ class CrispinClient:
                         log.warning("Skipping fetching of oversized message", uid=uid)
                         continue
 
+                    interruptible_threading.check_interrupted()
                     result: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
                         uid, ["BODY.PEEK[]", "INTERNALDATE", "FLAGS"]
                     )
@@ -975,6 +991,8 @@ class CrispinClient:
             seqset = f"{min(uids)}:*"
         else:
             seqset = uids
+
+        interruptible_threading.check_interrupted()
         data: Dict[int, Dict[bytes, Any]] = self.conn.fetch(seqset, ["FLAGS"])
         uid_set = set(uids)
         return {
@@ -985,10 +1003,15 @@ class CrispinClient:
 
     def delete_uids(self, uids):
         uids = [str(u) for u in uids]
+
+        interruptible_threading.check_interrupted()
         self.conn.delete_messages(uids, silent=True)
+
+        interruptible_threading.check_interrupted()
         self.conn.expunge()
 
     def set_starred(self, uids, starred):
+        interruptible_threading.check_interrupted()
         if starred:
             self.conn.add_flags(uids, ["\\Flagged"], silent=True)
         else:
@@ -996,6 +1019,8 @@ class CrispinClient:
 
     def set_unread(self, uids, unread):
         uids = [str(u) for u in uids]
+
+        interruptible_threading.check_interrupted()
         if unread:
             self.conn.remove_flags(uids, ["\\Seen"], silent=True)
         else:
@@ -1006,6 +1031,7 @@ class CrispinClient:
             self.selected_folder_name in self.folder_names()["drafts"]
         ), f"Must select a drafts folder first ({self.selected_folder_name})"
 
+        interruptible_threading.check_interrupted()
         self.conn.append(
             self.selected_folder_name, message, ["\\Draft", "\\Seen"], date
         )
@@ -1020,6 +1046,7 @@ class CrispinClient:
             self.selected_folder_name in self.folder_names()["sent"]
         ), f"Must select sent folder first ({self.selected_folder_name})"
 
+        interruptible_threading.check_interrupted()
         return self.conn.append(self.selected_folder_name, message, ["\\Seen"], date)
 
     def fetch_headers(self, uids: Iterable[int]) -> Dict[int, Dict[bytes, Any]]:
@@ -1031,6 +1058,7 @@ class CrispinClient:
         """
         headers: Dict[int, Dict[bytes, Any]] = {}
         for uid_chunk in chunk(uids, 100):
+            interruptible_threading.check_interrupted()
             headers.update(self.conn.fetch(uid_chunk, ["BODY.PEEK[HEADER]"]))
         return headers
 
@@ -1065,10 +1093,14 @@ class CrispinClient:
         """
         log.info("Trying to delete sent message", message_id_header=message_id_header)
         sent_folder_name = self.folder_names()["sent"][0]
+
+        interruptible_threading.check_interrupted()
         self.conn.select_folder(sent_folder_name)
         msg_deleted = self._delete_message(message_id_header, delete_multiple)
         if msg_deleted:
             trash_folder_name = self.folder_names()["trash"][0]
+
+            interruptible_threading.check_interrupted()
             self.conn.select_folder(trash_folder_name)
             self._delete_message(message_id_header, delete_multiple)
         return msg_deleted
@@ -1088,10 +1120,14 @@ class CrispinClient:
             message_id_header=message_id_header,
             folder=drafts_folder_name,
         )
+
+        interruptible_threading.check_interrupted()
         self.conn.select_folder(drafts_folder_name)
         draft_deleted = self._delete_message(message_id_header)
         if draft_deleted:
             trash_folder_name = self.folder_names()["trash"][0]
+
+            interruptible_threading.check_interrupted()
             self.conn.select_folder(trash_folder_name)
             self._delete_message(message_id_header)
         return draft_deleted
@@ -1117,26 +1153,39 @@ class CrispinClient:
                 uids=matching_uids,
             )
             return False
+
+        interruptible_threading.check_interrupted()
         self.conn.delete_messages(matching_uids, silent=True)
+
+        interruptible_threading.check_interrupted()
         self.conn.expunge()
         return True
 
     def logout(self):
+        interruptible_threading.check_interrupted()
         self.conn.logout()
 
-    def idle(self, timeout):
+    def idle(self, timeout: int):
         """Idle for up to `timeout` seconds. Make sure we take the connection
         back out of idle mode so that we can reuse this connection in another
         context.
         """
-        self.conn.idle()
-        try:
-            r = self.conn.idle_check(timeout)
-        except Exception:
+        interruptible_threading.check_interrupted()
+
+        start = time.monotonic()
+        while time.monotonic() - start < timeout:
+            self.conn.idle()
+            try:
+                responses = self.conn.idle_check(1)
+            except Exception:
+                self.conn.idle_done()
+                raise
             self.conn.idle_done()
-            raise
-        self.conn.idle_done()
-        return r
+            interruptible_threading.check_interrupted()
+            if responses:
+                break
+
+        return responses
 
     def condstore_changed_flags(
         self, modseq: int
@@ -1158,6 +1207,8 @@ class CrispinClient:
             if self.conn.welcome.endswith(b" SmarterMail")
             else ["FLAGS"]
         )
+
+        interruptible_threading.check_interrupted()
         data: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
             "1:*", items, modifiers=[f"CHANGEDSINCE {modseq}"]
         )
@@ -1212,6 +1263,8 @@ class GmailCrispinClient(CrispinClient):
             Mapping of `uid` : GmailFlags.
 
         """
+
+        interruptible_threading.check_interrupted()
         data: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
             uids, ["FLAGS", "X-GM-LABELS"]
         )
@@ -1229,6 +1282,7 @@ class GmailCrispinClient(CrispinClient):
     def condstore_changed_flags(
         self, modseq: int
     ) -> Dict[int, Union[GmailFlags, Flags]]:
+        interruptible_threading.check_interrupted()
         data: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
             "1:*", ["FLAGS", "X-GM-LABELS"], modifiers=[f"CHANGEDSINCE {modseq}"]
         )
@@ -1241,6 +1295,8 @@ class GmailCrispinClient(CrispinClient):
                 log.info(
                     "Got incomplete response in flags fetch", uid=uid, ret=str(ret)
                 )
+
+                interruptible_threading.check_interrupted()
                 data_for_uid: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
                     uid, ["FLAGS", "X-GM-LABELS"]
                 )
@@ -1264,6 +1320,7 @@ class GmailCrispinClient(CrispinClient):
             Mapping of `uid` (int) : `g_msgid` (int)
 
         """
+        interruptible_threading.check_interrupted()
         data: Dict[int, Dict[bytes, Any]] = self.conn.fetch(uids, ["X-GM-MSGID"])
         uid_set = set(uids)
         return {uid: ret[b"X-GM-MSGID"] for uid, ret in data.items() if uid in uid_set}
@@ -1277,6 +1334,7 @@ class GmailCrispinClient(CrispinClient):
         -------
         list
         """
+        interruptible_threading.check_interrupted()
         uids = [int(uid) for uid in self.conn.search(["X-GM-MSGID", g_msgid])]
         # UIDs ascend over time; return in order most-recent first
         return sorted(uids, reverse=True)
@@ -1349,6 +1407,7 @@ class GmailCrispinClient(CrispinClient):
         return RawFolder(display_name=display_name, role=role)
 
     def uids(self, uids: List[int]) -> List[RawMessage]:
+        interruptible_threading.check_interrupted()
         imap_messages: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
             uids,
             [
@@ -1398,6 +1457,8 @@ class GmailCrispinClient(CrispinClient):
         # Super long sets of uids may fail with BAD ['Could not parse command']
         # In that case, just fetch metadata for /all/ uids.
         seqset = uids if len(uids) < 1e6 else "1:*"
+
+        interruptible_threading.check_interrupted()
         data = self.conn.fetch(seqset, ["X-GM-MSGID", "X-GM-THRID", "RFC822.SIZE"])
         uid_set = set(uids)
         return {
@@ -1415,11 +1476,13 @@ class GmailCrispinClient(CrispinClient):
         -------
         list
         """
+        interruptible_threading.check_interrupted()
         uids = [int(uid) for uid in self.conn.search(["X-GM-THRID", g_thrid])]
         # UIDs ascend over time; return in order most-recent first
         return sorted(uids, reverse=True)
 
     def find_by_header(self, header_name, header_value):
+        interruptible_threading.check_interrupted()
         return self.conn.search(["HEADER", header_name, header_value])
 
     def _decode_labels(self, labels):
@@ -1450,6 +1513,7 @@ class GmailCrispinClient(CrispinClient):
         # values.
 
         # First find the message in the sent folder
+        interruptible_threading.check_interrupted()
         self.conn.select_folder(sent_folder_name)
         matching_uids = self.find_by_header("Message-Id", message_id_header)
 
@@ -1461,6 +1525,7 @@ class GmailCrispinClient(CrispinClient):
             raise DraftDeletionException("Only one message should have this msgid")
 
         # Then find the draft in the draft folder
+        interruptible_threading.check_interrupted()
         self.conn.select_folder(drafts_folder_name)
         matching_uids = self.find_by_header("Message-Id", message_id_header)
         if not matching_uids:
@@ -1479,13 +1544,19 @@ class GmailCrispinClient(CrispinClient):
                     "different messages."
                 )
 
+        interruptible_threading.check_interrupted()
         self.conn.copy(matching_uids, trash_folder_name)
+
+        interruptible_threading.check_interrupted()
         self.conn.select_folder(trash_folder_name)
 
         for msgid in gm_msgids.values():
             uids = self.g_msgid_to_uids(msgid)
+
+            interruptible_threading.check_interrupted()
             self.conn.delete_messages(uids, silent=True)
 
+        interruptible_threading.check_interrupted()
         self.conn.expunge()
         return True
 
@@ -1506,6 +1577,8 @@ class GmailCrispinClient(CrispinClient):
         sent_folder_name = self.folder_names()["sent"][0]
         trash_folder_name = self.folder_names()["trash"][0]
         # First find the message in Sent
+        interruptible_threading.check_interrupted()
+
         self.conn.select_folder(sent_folder_name)
         matching_uids = self.find_by_header("Message-Id", message_id_header)
         if not matching_uids:
@@ -1513,10 +1586,14 @@ class GmailCrispinClient(CrispinClient):
 
         # To delete, first copy the message to trash (sufficient to move from
         # gmail's All Mail folder to Trash folder)
+        interruptible_threading.check_interrupted()
+
         self.conn.copy(matching_uids, trash_folder_name)
 
         # Next, select delete the message from trash (in the normal way) to
         # permanently delete it.
+        interruptible_threading.check_interrupted()
+
         self.conn.select_folder(trash_folder_name)
         self._delete_message(message_id_header, delete_multiple)
         return True
@@ -1556,6 +1633,8 @@ class GmailCrispinClient(CrispinClient):
         # Now actually perform the search skipping imapclient's public API which does quoting differently
         # based off: https://github.com/mjs/imapclient/blob/master/imapclient/imapclient.py#L1123-L1145
         try:
+            interruptible_threading.check_interrupted()
+
             data = self.conn._raw_command_untagged(
                 b"SEARCH", [b"X-GM-LABELS", encoded_label_name]
             )

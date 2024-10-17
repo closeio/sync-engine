@@ -74,9 +74,12 @@ class RemoteFolder:
 def fetch_remote_folders(crispin_client: CrispinClient) -> Iterable[RemoteFolder]:
     for role, folders in crispin_client.folder_names().items():
         for folder in folders:
-            result = crispin_client.select_folder(
-                folder, lambda _account_id, _folder_name, select_info: select_info
-            )
+            try:
+                result = crispin_client.select_folder(
+                    folder, lambda _account_id, _folder_name, select_info: select_info
+                )
+            except Exception:
+                continue
 
             yield RemoteFolder(
                 name=folder,
@@ -100,8 +103,11 @@ def main(host: str, include_server_info: bool):
                 print("\t", server_info)
                 print()
 
+            total_exists = 0
             for remote_folder in fetch_remote_folders(crispin_client):
                 print("\t", remote_folder)
+                total_exists += remote_folder.exists
+            print("\tTotal EXISTS:", total_exists)
             print()
 
 

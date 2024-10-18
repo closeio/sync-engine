@@ -106,6 +106,7 @@ def fetch_remote_folders(
 
 @dataclasses.dataclass
 class LocalFolder:
+    id: int
     name: str
     exists: int
 
@@ -116,7 +117,7 @@ def fetch_local_folders(account: LocalAccount) -> Iterable[LocalFolder]:
             exists = (
                 db_session.query(ImapUid).filter(ImapUid.folder_id == folder.id).count()
             )
-            yield LocalFolder(name=folder.name, exists=exists)
+            yield LocalFolder(id=folder.id, name=folder.name, exists=exists)
 
 
 @click.command()

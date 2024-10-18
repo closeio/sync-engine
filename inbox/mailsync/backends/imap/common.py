@@ -16,7 +16,7 @@ from datetime import datetime
 from typing import List, Set
 
 from sqlalchemy import bindparam, desc
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql.expression import func
 
@@ -29,6 +29,7 @@ from inbox.models.category import Category
 from inbox.models.session import session_scope
 from inbox.models.util import reconcile_message
 from inbox.sqlalchemy_ext.util import get_db_api_cursor_with_query
+from inbox.util.itert import chunk
 
 log = get_logger()
 
@@ -208,60 +209,55 @@ def remove_deleted_uids(account_id, folder_id, uids):
     if not uids:
         return
     deleted_uid_count = 0
-    for uid in uids:
-        # We do this one-uid-at-a-time because issuing many deletes within a
-        # single database transaction is problematic. But loading many
-        # objects into a session and then frequently calling commit() is also
-        # bad, because expiring objects and checking for revisions is O(number
-        # of objects in session), resulting in quadratic runtimes.
-        # Performance could perhaps be additionally improved by choosing a
-        # sane balance, e.g., operating on 10 or 100 uids or something at once.
+    for uid_batch in chunk(uids, 100):
         with session_scope(account_id) as db_session:
-            imapuid = (
+            account = Account.get(account_id, db_session)
+            imapuids = (
                 db_session.query(ImapUid)
                 .filter(
                     ImapUid.account_id == account_id,
                     ImapUid.folder_id == folder_id,
-                    ImapUid.msg_uid == uid,
+                    ImapUid.msg_uid.in_(uid_batch),
                 )
                 .with_hint(
                     ImapUid,
                     "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)",
                 )
-                .first()
+                .options(joinedload(ImapUid.message).joinedload(Message.imapuids))
+                .all()
             )
-            if imapuid is None:
-                continue
-            deleted_uid_count += 1
-            message = imapuid.message
+            for imapuid in imapuids:
+                deleted_uid_count += 1
+                message = imapuid.message
 
-            db_session.delete(imapuid)
+                db_session.delete(imapuid)
 
-            if message is not None:
-                if not message.imapuids and message.is_draft:
-                    # Synchronously delete drafts.
-                    thread = message.thread
-                    if thread is not None:
-                        thread.messages.remove(message)
-                        # Thread.messages relationship is versioned i.e. extra
-                        # logic gets executed on remove call.
-                        # This early flush is needed so the configure_versioning logic
-                        # in inbox.model.sessions can work reliably on newer versions of
-                        # SQLAlchemy.
-                        db_session.flush()
-                    db_session.delete(message)
-                    if thread is not None and not thread.messages:
-                        db_session.delete(thread)
-                else:
-                    account = Account.get(account_id, db_session)
-                    update_message_metadata(
-                        db_session, account, message, message.is_draft
-                    )
-                    if not message.imapuids:
-                        # But don't outright delete messages. Just mark them as
-                        # 'deleted' and wait for the asynchronous
-                        # dangling-message-collector to delete them.
-                        message.mark_for_deletion()
+                if message is not None:
+                    message.imapuids.remove(imapuid)
+
+                    if not message.imapuids and message.is_draft:
+                        # Synchronously delete drafts.
+                        thread = message.thread
+                        if thread is not None:
+                            thread.messages.remove(message)
+                            # Thread.messages relationship is versioned i.e. extra
+                            # logic gets executed on remove call.
+                            # This early flush is needed so the configure_versioning logic
+                            # in inbox.model.sessions can work reliably on newer versions of
+                            # SQLAlchemy.
+                            db_session.flush()
+                        db_session.delete(message)
+                        if thread is not None and not thread.messages:
+                            db_session.delete(thread)
+                    else:
+                        update_message_metadata(
+                            db_session, account, message, message.is_draft
+                        )
+                        if not message.imapuids:
+                            # But don't outright delete messages. Just mark them as
+                            # 'deleted' and wait for the asynchronous
+                            # dangling-message-collector to delete them.
+                            message.mark_for_deletion()
             db_session.commit()
     log.info("Deleted expunged UIDs", count=deleted_uid_count)
 

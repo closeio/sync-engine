@@ -21,33 +21,42 @@ class LocalAccount:
     id: int
     email: str
     provider: str
+    sync_state: str
 
 
-def fetch_accounts_for_host(host: str):
+def fetch_accounts(
+    *, host: "str | None", account_id: "str | None"
+) -> "list[LocalAccount]":
     with global_session_scope() as db_session:
-        process_identifier = f"{host}:0"
-
-        accounts = db_session.query(Account).filter(
-            Account.sync_should_run,
-            or_(
-                and_(
-                    Account.desired_sync_host == process_identifier,
-                    Account.sync_host.is_(None),
+        accounts = db_session.query(Account).filter(Account.sync_state == "running")
+        if host:
+            process_identifier = f"{host}:0"
+            accounts = accounts.filter(
+                Account.sync_should_run,
+                or_(
+                    and_(
+                        Account.desired_sync_host == process_identifier,
+                        Account.sync_host.is_(None),
+                    ),
+                    and_(
+                        Account.desired_sync_host.is_(None),
+                        Account.sync_host == process_identifier,
+                    ),
+                    and_(
+                        Account.desired_sync_host == process_identifier,
+                        Account.sync_host == process_identifier,
+                    ),
                 ),
-                and_(
-                    Account.desired_sync_host.is_(None),
-                    Account.sync_host == process_identifier,
-                ),
-                and_(
-                    Account.desired_sync_host == process_identifier,
-                    Account.sync_host == process_identifier,
-                ),
-            ),
-        )
+            )
+        if account_id:
+            accounts = accounts.filter(Account.id == account_id)
 
         return [
             LocalAccount(
-                id=account.id, email=account.email_address, provider=account.provider
+                id=account.id,
+                email=account.email_address,
+                provider=account.provider,
+                sync_state=account.sync_state,
             )
             for account in accounts
         ]
@@ -109,6 +118,7 @@ class LocalFolder:
     id: int
     name: str
     exists: int
+    state: str
 
 
 def fetch_local_folders(account: LocalAccount) -> Iterable[LocalFolder]:
@@ -117,14 +127,20 @@ def fetch_local_folders(account: LocalAccount) -> Iterable[LocalFolder]:
             exists = (
                 db_session.query(ImapUid).filter(ImapUid.folder_id == folder.id).count()
             )
-            yield LocalFolder(id=folder.id, name=folder.name, exists=exists)
+            yield LocalFolder(
+                id=folder.id,
+                name=folder.name,
+                exists=exists,
+                state=folder.imapsyncstatus.state,
+            )
 
 
 @click.command()
-@click.option("--host", required=True)
+@click.option("--host", default=None)
+@click.option("--account-id", default=None)
 @click.option("--include-server-info", is_flag=True)
-def main(host: str, include_server_info: bool):
-    accounts = fetch_accounts_for_host(host)
+def main(host: "str | None", account_id: "str | None", include_server_info: bool):
+    accounts = fetch_accounts(host=host, account_id=account_id)
     total_remote_exists = 0
     total_local_exists = 0
     for account in accounts:

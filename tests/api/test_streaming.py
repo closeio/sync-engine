@@ -8,8 +8,8 @@ from inbox.util.url import url_concat
 
 from tests.util.base import add_fake_message
 
-GEVENT_EPSILON = 0.5  # Greenlet switching time. VMs on Macs suck :()
-LONGPOLL_EPSILON = 2 + GEVENT_EPSILON  # API implementation polls every second
+EPSILON = 0.5  # Switching time. VMs on Macs suck :()
+LONGPOLL_EPSILON = 2 + EPSILON  # API implementation polls every second
 
 
 @pytest.fixture
@@ -162,7 +162,7 @@ def test_longpoll_delta_timeout(db, api_client, default_namespace):
     end_time = time.time()
     assert resp.status_code == 200
 
-    assert end_time - start_time - test_timeout < GEVENT_EPSILON
+    assert end_time - start_time - test_timeout < EPSILON
     parsed_responses = json.loads(resp.data)
     assert len(parsed_responses["deltas"]) == 0
     assert type(parsed_responses["deltas"]) == list

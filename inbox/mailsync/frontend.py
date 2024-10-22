@@ -1,5 +1,4 @@
-import gevent
-import gevent._threading  # This is a clone of the *real* threading module
+import _threading
 from flask import Flask, jsonify, request
 from pympler import muppy, summary
 from werkzeug.serving import WSGIRequestHandler, run_simple
@@ -41,7 +40,7 @@ class ProfilingHTTPFrontend:
         app = self._create_app()
         # We need to spawn an OS-level thread because we don't want a stuck
         # greenlet to prevent us to access the web API.
-        gevent._threading.start_new_thread(
+        _threading.start_new_thread(
             run_simple, ("0.0.0.0", self.port, app), {"request_handler": _QuietHandler}
         )
 

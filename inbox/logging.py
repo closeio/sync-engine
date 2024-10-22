@@ -260,7 +260,6 @@ class ConditionalFormatter(logging.Formatter):
             or record.name.startswith("inbox.")
             or record.name == "gunicorn"
             or record.name.startswith("gunicorn.")
-            or record.name == "gevent.pywsgi"
             or record.name == "werkzeug"
         ):
             style = "%(message)s"

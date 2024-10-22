@@ -90,7 +90,7 @@ def test_deletes(contacts_provider, contact_sync, db):
     sys.version_info >= (3,), reason="gdata library does not work on Python 3"
 )
 def test_auth_error_handling(contact_sync, default_account, db):
-    """Test that the contact sync greenlet stops if account credentials are
+    """Test that the contact sync thread stops if account credentials are
     invalid.
     """
     # Give the default test account patently invalid OAuth credentials.
@@ -102,4 +102,4 @@ def test_auth_error_handling(contact_sync, default_account, db):
     success = contact_sync.successful()
     if not success:
         contact_sync.kill()
-    assert success, "contact sync greenlet didn't terminate."
+    assert success, "contact sync thread didn't terminate."

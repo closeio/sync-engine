@@ -77,7 +77,7 @@ def retry(
             # Note that InterruptibleThreadExit isn't actually a subclass of Exception
             # (It's a subclass of BaseException) so it won't be caught here.
             # This is also considered to be a successful execution
-            # (somebody intentionally killed the greenlet).
+            # (somebody intentionally killed the thread).
             except Exception as e:
                 if not should_retry_on(e):
                     raise
@@ -185,14 +185,18 @@ def iterate_and_periodically_check_interrupted(
         yield item
 
 
-def kill_all(greenlets, *, block: bool = True) -> None:
-    if not greenlets:
+def kill_all(
+    interruptible_threads: "Iterable[interruptible_threading.InterruptibleThread]",
+    *,
+    block: bool = True
+) -> None:
+    if not interruptible_threads:
         return
 
-    for greenlet in greenlets:
-        greenlet.kill(block=False)
+    for thread in interruptible_threads:
+        thread.kill(block=False)
 
-    while block and not all(greenlet.ready() for greenlet in greenlets):
+    while block and not all(thread.ready() for thread in interruptible_threads):
         time.sleep(0.2)
 
 

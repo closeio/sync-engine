@@ -206,7 +206,7 @@ def _safe_encoding_renderer(_, __, event_dict):
 
 
 class BoundLogger(structlog.stdlib.BoundLogger):
-    """BoundLogger which always adds greenlet_id and env to positional args"""
+    """BoundLogger which always adds thread_id and env to positional args"""
 
     def _proxy_to_logger(self, method_name, event, *event_args, **event_kw):
         event_kw["thread_id"] = hex(threading.get_native_id())

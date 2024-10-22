@@ -19,7 +19,7 @@ log = get_logger()
 class ImapSyncMonitor(BaseMailSyncMonitor):
     """
     Top-level controller for an account's mail sync. Spawns individual
-    FolderSync greenlets for each folder.
+    FolderSync threads for each folder.
 
     Parameters
     ----------

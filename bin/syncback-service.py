@@ -15,7 +15,7 @@ from setproctitle import setproctitle
 
 from inbox.config import config as inbox_config
 from inbox.error_handling import maybe_enable_rollbar
-from inbox.logging import configure_logging, get_logger
+from inbox.logging import configure_logging
 from inbox.mailsync.frontend import SyncbackHTTPFrontend
 from inbox.transactions.actions import SyncbackService
 from inbox.util.logging_helper import reconfigure_logging
@@ -43,16 +43,11 @@ from inbox.util.startup import load_overrides, preflight
     "each syncback instance.",
 )
 @click.option(
-    "--enable-tracer/--disable-tracer",
-    default=True,
-    help="Disables the stuck greenlet tracer",
-)
-@click.option(
     "--enable-profiler/--disable-profiler",
     default=False,
     help="Enables the CPU profiler web API",
 )
-def main(prod, config, process_num, syncback_id, enable_tracer, enable_profiler):
+def main(prod, config, process_num, syncback_id, enable_profiler):
     """Launch the actions syncback service."""
     setproctitle(f"syncback-{process_num}")
 
@@ -67,12 +62,6 @@ def main(prod, config, process_num, syncback_id, enable_tracer, enable_profiler)
     configure_logging(log_level=level)
     reconfigure_logging()
 
-    if enable_tracer and not inbox_config.get("USE_GEVENT", True):
-        enable_tracer = False
-
-        log = get_logger()
-        log.warning("Disabling the stuck greenlet tracer because USE_GEVENT is False")
-
     total_processes = int(os.environ.get("SYNCBACK_PROCESSES", 1))
 
     def start():
@@ -84,7 +73,7 @@ def main(prod, config, process_num, syncback_id, enable_tracer, enable_profiler)
 
         port = 16384 + process_num
         enable_profiler_api = inbox_config.get("DEBUG_PROFILING_ON")
-        frontend = SyncbackHTTPFrontend(port, enable_tracer, enable_profiler_api)
+        frontend = SyncbackHTTPFrontend(port, False, enable_profiler_api)
         frontend.start()
 
         syncback.start()

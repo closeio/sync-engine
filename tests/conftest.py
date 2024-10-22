@@ -2,7 +2,6 @@
 
 import os
 
-os.environ["USE_GEVENT"] = "0"
 os.environ["NYLAS_ENV"] = "test"
 
 from pytest import fixture

@@ -2,10 +2,6 @@
 
 import time
 
-from inbox.config import config
-
-config["USE_GEVENT"] = False
-
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.ignition import engine_manager
 from inbox.logging import configure_logging, get_logger

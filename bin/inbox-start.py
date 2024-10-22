@@ -59,11 +59,6 @@ banner = rf"""{esc}[1;95m
     help="Disables the autoreloader and potentially other non-production features.",
 )
 @click.option(
-    "--enable-tracer/--disable-tracer",
-    default=True,
-    help="Disables the stuck greenlet tracer",
-)
-@click.option(
     "--enable-profiler/--disable-profiler",
     default=False,
     help="Enables the CPU profiler web API",
@@ -75,7 +70,7 @@ banner = rf"""{esc}[1;95m
     help="This process's number in the process group: a unique "
     "number satisfying 0 <= process_num < total_processes.",
 )
-def main(prod, enable_tracer, enable_profiler, config, process_num):
+def main(prod, enable_profiler, config, process_num):
     """Launch the Nylas sync service."""
     level = os.environ.get("LOGLEVEL", inbox_config.get("LOGLEVEL"))
     configure_logging(log_level=level)
@@ -109,11 +104,6 @@ def main(prod, enable_tracer, enable_profiler, config, process_num):
     print(banner, file=sys.stderr)
     print(file=sys.stderr)
     print("Python", sys.version, file=sys.stderr)
-
-    if enable_tracer and not inbox_config.get("USE_GEVENT", True):
-        enable_tracer = False
-
-        log.warning("Disabling the stuck greenlet tracer because USE_GEVENT is False")
 
     if enable_profiler:
         inbox_config["DEBUG_PROFILING_ON"] = True

@@ -115,7 +115,6 @@ def _update_config_from_env_variables(config):
         or config.get("CALENDAR_POLL_FREQUENCY", 300)
     )
     config["CALENDAR_POLL_FREQUENCY"] = calendar_poll_frequencey
-    config["USE_GEVENT"] = bool(int(os.environ.get("USE_GEVENT", "1")))
 
 
 def _get_process_name(config):

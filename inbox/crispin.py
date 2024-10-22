@@ -265,7 +265,7 @@ class CrispinConnectionPool:
             timeout: The maximum time in seconds to wait for a connection to
                 become available. If `None`, block until a connection is available.
         """
-        # A gevent semaphore is granted in the order that greenlets tried to
+        # A semaphore is granted in the order that greenlets tried to
         # acquire it, so we use a semaphore here to prevent potential
         # starvation of greenlets if there is high contention for the pool.
         # The queue implementation does not have that property; having

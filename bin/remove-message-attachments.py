@@ -8,10 +8,6 @@ import click
 from sqlalchemy.orm import Query, joinedload
 from sqlalchemy.sql import func
 
-from inbox.config import config
-
-config["USE_GEVENT"] = False
-
 from inbox.logging import configure_logging, get_logger
 from inbox.models.block import Block
 from inbox.models.session import global_session_scope

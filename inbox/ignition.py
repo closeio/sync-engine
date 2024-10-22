@@ -5,7 +5,6 @@ from typing import Any, Dict, MutableMapping
 from urllib.parse import quote_plus as urlquote
 from warnings import filterwarnings
 
-import gevent
 import limitlion
 import redis
 from sqlalchemy import create_engine, event
@@ -31,15 +30,6 @@ DB_POOL_TIMEOUT = config.get("DB_POOL_TIMEOUT") or 60
 pool_tracker: MutableMapping[Any, Dict[str, Any]] = weakref.WeakKeyDictionary()
 
 
-hub = gevent.hub.get_hub()
-
-
-# See
-# https://github.com/PyMySQL/mysqlclient-python/blob/master/samples/waiter_gevent.py
-def gevent_waiter(fd):
-    hub.wait(hub.loop.io(fd, 1))
-
-
 def build_uri(username, password, hostname, port, database_name):
     uri_template = (
         "mysql+mysqldb://{username}:{password}@{hostname}"
@@ -61,12 +51,8 @@ def engine(
     max_overflow=DB_POOL_MAX_OVERFLOW,
     pool_timeout=DB_POOL_TIMEOUT,
     echo=False,
-    use_gevent=True,
 ):
     connect_args = {"binary_prefix": True, "charset": "utf8mb4", "connect_timeout": 60}
-
-    if use_gevent:
-        connect_args["waiter"] = gevent_waiter
 
     engine = create_engine(
         database_uri,
@@ -122,7 +108,7 @@ def engine(
 
 
 class EngineManager:
-    def __init__(self, databases, users, include_disabled=False, use_gevent=True):
+    def __init__(self, databases, users, include_disabled=False):
         self.engines = {}
         self._engine_zones = {}
         keys = set()
@@ -163,10 +149,8 @@ class EngineManager:
                     hostname=hostname,
                     port=port,
                 )
-                self.engines[key] = engine(schema_name, uri, use_gevent=use_gevent)
+                self.engines[key] = engine(schema_name, uri)
                 self._engine_zones[key] = zone
-
-        log.info("EngineManager initialized", use_gevent=use_gevent)
 
     def shard_key_for_id(self, id_):
         return 0
@@ -182,9 +166,7 @@ class EngineManager:
 
 
 engine_manager = EngineManager(
-    config.get_required("DATABASE_HOSTS"),
-    config.get_required("DATABASE_USERS"),
-    use_gevent=config.get("USE_GEVENT", True),
+    config.get_required("DATABASE_HOSTS"), config.get_required("DATABASE_USERS")
 )
 
 

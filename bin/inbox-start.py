@@ -118,11 +118,7 @@ def main(prod, enable_profiler, config, process_num):
     signal.signal(signal.SIGTERM, lambda *_: sync_service.stop())
     signal.signal(signal.SIGINT, lambda *_: sync_service.stop())
 
-    http_frontend = SyncHTTPFrontend(
-        sync_service, port, enable_tracer, enable_profiler_api
-    )
-    if enable_tracer:
-        sync_service.register_pending_avgs_provider(http_frontend)
+    http_frontend = SyncHTTPFrontend(sync_service, port, False, enable_profiler_api)
     http_frontend.start()
 
     sync_service.run()

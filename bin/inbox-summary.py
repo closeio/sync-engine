@@ -146,26 +146,36 @@ def main(host: "str | None", account_id: "str | None", include_server_info: bool
     for account in accounts:
         print(account)
 
-        with writable_connection_pool(account.id).get() as crispin_client:
-            if include_server_info:
-                server_info = get_server_info(crispin_client, account)
-                print("\t", server_info)
+        try:
+            with writable_connection_pool(account.id).get() as crispin_client:
+                if include_server_info:
+                    server_info = get_server_info(crispin_client, account)
+                    print("\t", server_info)
+                    print()
+
+                total_folder_remote_exists = 0
+                for remote_folder in fetch_remote_folders(
+                    account.provider, crispin_client
+                ):
+                    print("\t", remote_folder)
+                    total_folder_remote_exists += remote_folder.exists
+                    total_remote_exists += remote_folder.exists
+                print("\t Total remote EXISTS:", total_folder_remote_exists)
                 print()
 
-            total_folder_remote_exists = 0
-            for remote_folder in fetch_remote_folders(account.provider, crispin_client):
-                print("\t", remote_folder)
-                total_folder_remote_exists += remote_folder.exists
-                total_remote_exists += remote_folder.exists
-            print("\t Total remote EXISTS:", total_folder_remote_exists)
-            print()
-
-            total_folder_local_exists = 0
-            for local_folder in fetch_local_folders(account):
-                print("\t", local_folder)
-                total_folder_local_exists += local_folder.exists
-                total_local_exists += local_folder.exists
-            print("\t Total local EXISTS:", total_folder_local_exists)
+                total_folder_local_exists = 0
+                for local_folder in fetch_local_folders(account):
+                    print("\t", local_folder)
+                    total_folder_local_exists += local_folder.exists
+                    total_local_exists += local_folder.exists
+                print("\t Total local EXISTS:", total_folder_local_exists)
+                print(
+                    "\t Total difference:",
+                    total_folder_remote_exists - total_folder_local_exists,
+                )
+                print()
+        except Exception as e:
+            print("\t Exception opening the connection", e)
             print()
 
     print("Total remote EXISTS:", total_remote_exists)

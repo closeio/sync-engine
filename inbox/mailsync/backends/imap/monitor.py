@@ -195,5 +195,5 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
         kill_all(self.folder_monitors, block=False)
         if isinstance(self, GmailSyncMonitor):
             kill_all(self.label_rename_handlers.values(), block=False)
-        self.sync_greenlet.kill(block=False)
+        self.sync_thread.kill(block=False)
         self.join()

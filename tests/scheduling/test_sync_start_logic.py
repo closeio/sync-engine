@@ -156,7 +156,7 @@ def test_http_frontend(db, default_account, monkeypatch):
     monkeypatch.setattr("pympler.muppy.get_objects", lambda *args: [])
     monkeypatch.setattr("pympler.summary.summarize", lambda *args: [])
 
-    frontend = SyncHTTPFrontend(s, 16384, trace_greenlets=True, profile=True)
+    frontend = SyncHTTPFrontend(s, 16384, profile=True)
     app = frontend._create_app()
     app.config["TESTING"] = True
     with app.test_client() as c:
@@ -177,7 +177,7 @@ def test_http_unassignment(db, default_account):
     db.session.commit()
     s.handle_shared_queue_event({"queue_name": "foo", "id": default_account.id})
 
-    frontend = SyncHTTPFrontend(s, 16384, False, False)
+    frontend = SyncHTTPFrontend(s, 16384, False)
     app = frontend._create_app()
     app.config["TESTING"] = True
     with app.test_client() as c:

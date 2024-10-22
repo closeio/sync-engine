@@ -73,7 +73,7 @@ def main(prod, config, process_num, syncback_id, enable_profiler):
 
         port = 16384 + process_num
         enable_profiler_api = inbox_config.get("DEBUG_PROFILING_ON")
-        frontend = SyncbackHTTPFrontend(port, False, enable_profiler_api)
+        frontend = SyncbackHTTPFrontend(port, enable_profiler_api)
         frontend.start()
 
         syncback.start()

@@ -14,10 +14,10 @@ class ProfilingHTTPFrontend:
     syncs.
     """
 
-    def __init__(self, port, trace_greenlets, profile):
+    def __init__(self, port, profile):
         self.port = port
         self.profiler = ProfileCollector() if profile else None
-        self.tracer = self.greenlet_tracer_cls()() if trace_greenlets else None
+        self.tracer = None
 
     def _create_app(self):
         app = Flask(__name__)
@@ -77,9 +77,9 @@ class SyncbackHTTPFrontend(ProfilingHTTPFrontend):
 
 
 class SyncHTTPFrontend(ProfilingHTTPFrontend):
-    def __init__(self, sync_service, port, trace_greenlets, profile):
+    def __init__(self, sync_service, port, profile):
         self.sync_service = sync_service
-        super().__init__(port, trace_greenlets, profile)
+        super().__init__(port, profile)
 
     def greenlet_tracer_cls(self):
         return KillerGreenletTracer

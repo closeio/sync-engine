@@ -388,8 +388,14 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                             imap_uid=imap_uid,
                         )
                         message._mark_error()
+
+                del parsed  # free up memory as soon as possible
+
                 store_body: bool = config.get("STORE_MESSAGE_BODIES", True)
                 message.calculate_body(html_parts, plain_parts, store_body=store_body)
+
+                del html_parts  # free up memory as soon as possible
+                del plain_parts  # free up memory as soon as possible
 
             # Occasionally people try to send messages to way too many
             # recipients. In such cases, empty the field and treat as a parsing

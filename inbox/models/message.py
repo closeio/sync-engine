@@ -1,6 +1,7 @@
 import datetime
 import itertools
 import os
+import threading
 import typing
 from collections import defaultdict
 from hashlib import sha256
@@ -59,6 +60,9 @@ SNIPPET_LENGTH = 191
 
 if typing.TYPE_CHECKING:
     from inbox.models.block import Part
+
+
+email_parsing_lock = threading.BoundedSemaphore(value=1)
 
 
 def _trim_filename(
@@ -310,75 +314,82 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         # Persist the processed message to the database
         message.namespace_id = account.namespace.id
 
-        try:
-            body_length = len(body)
-            if body_length > MAX_MESSAGE_BODY_LENGTH:
-                raise MessageTooBigException(body_length)
-            parsed: MimePart = mime.from_string(body)
-            message._parse_metadata(
-                parsed, body, received_date, account.id, folder_name, imap_uid
-            )
-        except (mime.DecodingError, MessageTooBigException, HeaderTooBigException) as e:
-            parsed = None
-            log.warning(
-                "Error parsing message metadata",
-                folder_name=folder_name,
-                account_id=account.id,
-                error=e,
-                imap_uid=imap_uid,
-            )
-            message._mark_error()
-        except Exception as e:
-            parsed = None
-            log.error(
-                "Error parsing message metadata",
-                folder_name=folder_name,
-                account_id=account.id,
-                error=e,
-                imap_uid=imap_uid,
-            )
-            message._mark_error()
+        with email_parsing_lock:
+            try:
+                body_length = len(body)
+                if body_length > MAX_MESSAGE_BODY_LENGTH:
+                    raise MessageTooBigException(body_length)
+                parsed: MimePart = mime.from_string(body)
+                message._parse_metadata(
+                    parsed, body, received_date, account.id, folder_name, imap_uid
+                )
+            except (
+                mime.DecodingError,
+                MessageTooBigException,
+                HeaderTooBigException,
+            ) as e:
+                parsed = None
+                log.warning(
+                    "Error parsing message metadata",
+                    folder_name=folder_name,
+                    account_id=account.id,
+                    error=e,
+                    imap_uid=imap_uid,
+                )
+                message._mark_error()
+            except Exception as e:
+                parsed = None
+                log.error(
+                    "Error parsing message metadata",
+                    folder_name=folder_name,
+                    account_id=account.id,
+                    error=e,
+                    imap_uid=imap_uid,
+                )
+                message._mark_error()
 
-        if parsed is not None:
-            plain_parts: List[str] = []
-            html_parts: List[str] = []
-            for mimepart in parsed.walk(with_self=parsed.content_type.is_singlepart()):
-                try:
-                    if mimepart.content_type.is_multipart():
-                        continue  # TODO should we store relations?
-                    message._parse_mimepart(
-                        imap_uid,
-                        mimepart,
-                        account.namespace.id,
-                        html_parts,
-                        plain_parts,
-                    )
-                except (
-                    mime.DecodingError,
-                    AttributeError,
-                    RuntimeError,
-                    TypeError,
-                    ValueError,
-                ) as e:
-                    if isinstance(e, ValueError) and not isinstance(
-                        e, UnicodeEncodeError
-                    ):
-                        error_msg = e.args[0] if e.args else ""
-                        if error_msg != (
-                            "string argument should contain only ASCII characters"
+            if parsed is not None:
+                plain_parts: List[str] = []
+                html_parts: List[str] = []
+                for mimepart in parsed.walk(
+                    with_self=parsed.content_type.is_singlepart()
+                ):
+                    try:
+                        if mimepart.content_type.is_multipart():
+                            continue  # TODO should we store relations?
+                        message._parse_mimepart(
+                            imap_uid,
+                            mimepart,
+                            account.namespace.id,
+                            html_parts,
+                            plain_parts,
+                        )
+                    except (
+                        mime.DecodingError,
+                        AttributeError,
+                        RuntimeError,
+                        TypeError,
+                        ValueError,
+                    ) as e:
+                        if isinstance(e, ValueError) and not isinstance(
+                            e, UnicodeEncodeError
                         ):
-                            raise
+                            error_msg = e.args[0] if e.args else ""
+                            if error_msg != (
+                                "string argument should contain only ASCII characters"
+                            ):
+                                raise
 
-                    log.error(
-                        "Error parsing message MIME parts",
-                        folder_name=folder_name,
-                        account_id=account.id,
-                        error=e,
-                        imap_uid=imap_uid,
-                    )
-                    message._mark_error()
-            store_body: bool = config.get("STORE_MESSAGE_BODIES", True)
-            message.calculate_body(html_parts, plain_parts, store_body=store_body)
+                        log.error(
+                            "Error parsing message MIME parts",
+                            folder_name=folder_name,
+                            account_id=account.id,
+                            error=e,
+                            imap_uid=imap_uid,
+                        )
+                        message._mark_error()
+                store_body: bool = config.get("STORE_MESSAGE_BODIES", True)
+                message.calculate_body(html_parts, plain_parts, store_body=store_body)
 
             # Occasionally people try to send messages to way too many
             # recipients. In such cases, empty the field and treat as a parsing

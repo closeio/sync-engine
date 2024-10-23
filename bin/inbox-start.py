@@ -134,7 +134,7 @@ def main(prod, enable_tracer, enable_profiler, config, process_num):
     signal.signal(signal.SIGINT, lambda *_: sync_service.stop())
     signal.signal(signal.SIGUSR1, lambda *_: prepare_trace())
     signal.signal(signal.SIGUSR2, lambda *_: dump_threads())
-    signal.signal(signal.SIGHUP, lambda *_: prepare_profile())
+    signal.signal(signal.SIGHUP, lambda *_: profile())
 
     http_frontend = SyncHTTPFrontend(
         sync_service, port, enable_tracer, enable_profiler_api
@@ -172,11 +172,6 @@ def track_memory():
         tracker = None
 
 
-def prepare_profile():
-    profile_thread = threading.Thread(target=profile, daemon=True)
-    profile_thread.start()
-
-
 profiler = None
 
 
@@ -190,7 +185,7 @@ def profile():
         profiler.start()
     else:
         profiler.stop()
-        profiler.output_html(f"bin/inbox-start-{int(time.time())}.html")
+        profiler.write_html(f"bin/inbox-start-{int(time.time())}.html")
         profiler = None
 
 

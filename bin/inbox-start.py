@@ -181,7 +181,7 @@ def profile():
     time.sleep(1)
 
     if not profiler:
-        profiler = pyinstrument.Profiler()
+        profiler = pyinstrument.Profiler(0.000001)
         profiler.start()
     else:
         profiler.stop()

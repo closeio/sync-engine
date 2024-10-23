@@ -199,7 +199,7 @@ def update_metadata(account_id, folder_id, folder_role, new_flags, session):
     log.info("Updated UID metadata", changed=change_count, out_of=len(new_flags))
 
 
-def remove_deleted_uids(account_id, folder_id, uids):
+def remove_deleted_uids(account_id: int, folder_id: int, uids: "set[int]") -> None:
     """
     Make sure you're holding a db write lock on the account. (We don't try
     to grab the lock in here in case the caller needs to put higher-level

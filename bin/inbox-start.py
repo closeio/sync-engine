@@ -11,6 +11,7 @@ import time
 
 import click
 import memray
+import pyinstrument
 import setproctitle
 
 # Check that the inbox package is installed. It seems Vagrant may sometimes
@@ -133,6 +134,7 @@ def main(prod, enable_tracer, enable_profiler, config, process_num):
     signal.signal(signal.SIGINT, lambda *_: sync_service.stop())
     signal.signal(signal.SIGUSR1, lambda *_: prepare_trace())
     signal.signal(signal.SIGUSR2, lambda *_: dump_threads())
+    signal.signal(signal.SIGHUP, lambda *_: prepare_profile())
 
     http_frontend = SyncHTTPFrontend(
         sync_service, port, enable_tracer, enable_profiler_api
@@ -148,14 +150,14 @@ def main(prod, enable_tracer, enable_profiler, config, process_num):
 
 
 def prepare_trace():
-    trace_thread = threading.Thread(target=trace, daemon=True)
+    trace_thread = threading.Thread(target=track_memory, daemon=True)
     trace_thread.start()
 
 
 tracker = None
 
 
-def trace():
+def track_memory():
     global tracker
 
     time.sleep(1)
@@ -168,6 +170,28 @@ def trace():
     else:
         tracker.__exit__(None, None, None)
         tracker = None
+
+
+def prepare_profile():
+    profile_thread = threading.Thread(target=profile, daemon=True)
+    profile_thread.start()
+
+
+profiler = None
+
+
+def profile():
+    global profiler
+
+    time.sleep(1)
+
+    if not profiler:
+        profiler = pyinstrument.Profiler()
+        profiler.start()
+    else:
+        profiler.stop()
+        profiler.output_html(f"bin/inbox-start-{int(time.time())}.html")
+        profiler = None
 
 
 def dump_threads():

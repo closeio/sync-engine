@@ -28,6 +28,7 @@ from inbox.models.backends.imap import ImapFolderInfo, ImapUid
 from inbox.models.category import Category
 from inbox.models.session import session_scope
 from inbox.models.util import reconcile_message
+from inbox.util.itert import chunk
 
 log = get_logger()
 
@@ -197,6 +198,21 @@ def remove_deleted_uids(account_id, folder_id, uids):
     """
     if not uids:
         return
+
+    if len(uids) >= 500:
+        for uid_batch in chunk(uids, 1000):
+            with session_scope(account_id) as db_session:
+                db_session.query(ImapUid).filter(
+                    ImapUid.account_id == account_id,
+                    ImapUid.folder_id == folder_id,
+                    ImapUid.msg_uid.in_(uid_batch),
+                ).with_hint(
+                    ImapUid,
+                    "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)",
+                ).delete()
+
+        return
+
     deleted_uid_count = 0
     for uid in uids:
         # We do this one-uid-at-a-time because issuing many deletes within a

@@ -4,6 +4,7 @@ import sys
 import json_log_formatter
 from gunicorn.workers.gthread import ThreadWorker
 
+from inbox.error_handling import maybe_enable_rollbar
 from inbox.logging import configure_logging, get_logger
 
 log = get_logger()
@@ -19,13 +20,10 @@ class NylasWSGIWorker(ThreadWorker):
 
         configure_logging(log_level=LOGLEVEL)
 
-        assert not config.get("USE_GEVENT", True), "USE_GEVENT must be False"
-
         super().init_process()
 
 
 from inbox.config import config
-from inbox.error_handling import maybe_enable_rollbar
 
 LOGLEVEL = config.get("LOGLEVEL", 10)
 

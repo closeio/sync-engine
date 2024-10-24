@@ -19,7 +19,7 @@ log = get_logger()
 class ImapSyncMonitor(BaseMailSyncMonitor):
     """
     Top-level controller for an account's mail sync. Spawns individual
-    FolderSync greenlets for each folder.
+    FolderSync threads for each folder.
 
     Parameters
     ----------
@@ -195,5 +195,5 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
         kill_all(self.folder_monitors, block=False)
         if isinstance(self, GmailSyncMonitor):
             kill_all(self.label_rename_handlers.values(), block=False)
-        self.sync_greenlet.kill(block=False)
+        self.sync_thread.kill(block=False)
         self.join()

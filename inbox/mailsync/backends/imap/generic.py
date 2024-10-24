@@ -47,8 +47,8 @@ Here's the state machine:
             |  ∧
             ----
 
-We encapsulate sync engine instances in greenlets for cooperative coroutine
-scheduling around network I/O.
+We encapsulate sync engine instances in threads to run them concurrently
+around I/O.
 
 --------------
 SESSION SCOPES
@@ -236,7 +236,7 @@ class FolderSyncEngine(InterruptibleThread):
         )
 
     def _run(self):
-        # Bind greenlet-local logging context.
+        # Bind thread-local logging context.
         self.log = log.new(
             account_id=self.account_id,
             folder=self.folder_name,
@@ -452,8 +452,8 @@ class FolderSyncEngine(InterruptibleThread):
         return "initial"
 
     def initial_sync_impl(self, crispin_client: CrispinClient):
-        # We wrap the block in a try/finally because the change_poller greenlet
-        # needs to be killed when this greenlet is interrupted
+        # We wrap the block in a try/finally because the change_poller thread
+        # needs to be killed when this thread is interrupted
         change_poller = None
         assert crispin_client.selected_folder_name == self.folder_name
         try:

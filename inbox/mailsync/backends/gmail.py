@@ -240,8 +240,8 @@ class GmailFolderSyncEngine(FolderSyncEngine):
         return self.is_all_mail(crispin_client)
 
     def initial_sync_impl(self, crispin_client: "CrispinClient") -> None:
-        # We wrap the block in a try/finally because the greenlets like
-        # change_poller need to be killed when this greenlet is interrupted
+        # We wrap the block in a try/finally because the threads like
+        # change_poller need to be killed when this thread is interrupted
         from inbox.crispin import GmailCrispinClient
 
         assert isinstance(crispin_client, GmailCrispinClient)

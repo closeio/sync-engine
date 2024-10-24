@@ -55,7 +55,7 @@ class BaseSyncMonitor(InterruptibleThread):
         self.name = f"{self.__class__.__name__}(account_id={account_id!r})"
 
     def _run(self):
-        # Bind greenlet-local logging context.
+        # Bind thread-local logging context.
         self.log = self.log.new(account_id=self.account_id)
         try:
             while True:

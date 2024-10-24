@@ -1,10 +1,10 @@
-import gevent
-import gevent._threading  # This is a clone of the *real* threading module
+import threading
+
 from flask import Flask, jsonify, request
 from pympler import muppy, summary
 from werkzeug.serving import WSGIRequestHandler, run_simple
 
-from inbox.instrumentation import GreenletTracer, KillerGreenletTracer, ProfileCollector
+from inbox.instrumentation import ProfileCollector
 
 
 class ProfilingHTTPFrontend:
@@ -14,10 +14,9 @@ class ProfilingHTTPFrontend:
     syncs.
     """
 
-    def __init__(self, port, trace_greenlets, profile):
+    def __init__(self, port, profile):
         self.port = port
         self.profiler = ProfileCollector() if profile else None
-        self.tracer = self.greenlet_tracer_cls()() if trace_greenlets else None
 
     def _create_app(self):
         app = Flask(__name__)
@@ -25,23 +24,12 @@ class ProfilingHTTPFrontend:
         self._create_app_impl(app)
         return app
 
-    def greenlet_tracer_cls(self):
-        return GreenletTracer
-
-    def get_pending_avgs(self):
-        assert self.tracer is not None
-        return self.tracer.pending_avgs
-
     def start(self):
-        if self.tracer is not None:
-            self.tracer.start()
         if self.profiler is not None:
             self.profiler.start()
 
         app = self._create_app()
-        # We need to spawn an OS-level thread because we don't want a stuck
-        # greenlet to prevent us to access the web API.
-        gevent._threading.start_new_thread(
+        threading._start_new_thread(
             run_simple, ("0.0.0.0", self.port, app), {"request_handler": _QuietHandler}
         )
 
@@ -57,12 +45,7 @@ class ProfilingHTTPFrontend:
 
         @app.route("/load")
         def load():
-            if self.tracer is None:
-                return "Load tracing disabled\n"
-            resp = jsonify(self.tracer.stats())
-            if request.args.get("reset ") in (1, "true"):
-                self.tracer.reset()
-            return resp
+            return "Load tracing disabled\n"
 
         @app.route("/mem")
         def mem():
@@ -72,17 +55,13 @@ class ProfilingHTTPFrontend:
 
 
 class SyncbackHTTPFrontend(ProfilingHTTPFrontend):
-    def greenlet_tracer_cls(self):
-        return KillerGreenletTracer
+    pass
 
 
 class SyncHTTPFrontend(ProfilingHTTPFrontend):
-    def __init__(self, sync_service, port, trace_greenlets, profile):
+    def __init__(self, sync_service, port, profile):
         self.sync_service = sync_service
-        super().__init__(port, trace_greenlets, profile)
-
-    def greenlet_tracer_cls(self):
-        return KillerGreenletTracer
+        super().__init__(port, profile)
 
     def _create_app_impl(self, app):
         super()._create_app_impl(app)

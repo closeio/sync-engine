@@ -43,7 +43,7 @@ def test_retry_with_logging():
     assert failing_function.call_count == failing_function.max_executions
 
 
-def test_no_logging_on_greenlet_exit():
+def test_no_logging_on_interruptible_thread_exit():
     logger = MockLogger()
     failing_function = FailingFunction(InterruptibleThreadExit)
     with pytest.raises(InterruptibleThreadExit):

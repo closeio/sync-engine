@@ -8,10 +8,6 @@ import click
 from sqlalchemy import true
 from sqlalchemy.sql.expression import func
 
-from inbox.config import config
-
-config["USE_GEVENT"] = False
-
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.logging import configure_logging, get_logger
 from inbox.models import Account, Block

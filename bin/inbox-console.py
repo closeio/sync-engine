@@ -7,10 +7,6 @@ setproctitle("inbox-console")
 
 import click
 
-from inbox.config import config
-
-config["USE_GEVENT"] = False
-
 from inbox.logging import get_logger
 
 log = get_logger()

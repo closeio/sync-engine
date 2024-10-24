@@ -108,7 +108,7 @@ RawFolder = namedtuple("RawFolder", "display_name role")
 #     role: Optional[str]
 
 # Lazily-initialized map of account ids to lock objects.
-# This prevents multiple greenlets from concurrently creating duplicate
+# This prevents multiple threads from concurrently creating duplicate
 # connection pools for a given account.
 _lock_map: DefaultDict[int, threading.Lock] = defaultdict(threading.Lock)
 
@@ -265,12 +265,12 @@ class CrispinConnectionPool:
             timeout: The maximum time in seconds to wait for a connection to
                 become available. If `None`, block until a connection is available.
         """
-        # A gevent semaphore is granted in the order that greenlets tried to
+        # A semaphore is granted in the order that threads tried to
         # acquire it, so we use a semaphore here to prevent potential
-        # starvation of greenlets if there is high contention for the pool.
+        # starvation of threads if there is high contention for the pool.
         # The queue implementation does not have that property; having
-        # greenlets simply block on self._queue.get(block=True) could cause
-        # individual greenlets to block for arbitrarily long.
+        # threads simply block on self._queue.get(block=True) could cause
+        # individual threads to block for arbitrarily long.
 
         succeeded = self._sem.acquire(timeout=timeout)
         if not succeeded:

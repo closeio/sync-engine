@@ -16,7 +16,6 @@ from types import TracebackType
 from typing import Any, Dict, Optional, Tuple, Type
 
 import colorlog
-import gevent
 import structlog
 from structlog.threadlocal import wrap_dict
 
@@ -207,15 +206,10 @@ def _safe_encoding_renderer(_, __, event_dict):
 
 
 class BoundLogger(structlog.stdlib.BoundLogger):
-    """BoundLogger which always adds greenlet_id and env to positional args"""
+    """BoundLogger which always adds thread_id and env to positional args"""
 
     def _proxy_to_logger(self, method_name, event, *event_args, **event_kw):
-        from inbox.config import config
-
-        if config.get("USE_GEVENT", True):
-            event_kw["greenlet_id"] = id(gevent.getcurrent())
-        else:
-            event_kw["thread_id"] = threading.get_ident()
+        event_kw["thread_id"] = hex(threading.get_native_id())
 
         # 'prod', 'staging', 'dev' ...
         env = os.environ.get("NYLAS_ENV")
@@ -266,7 +260,6 @@ class ConditionalFormatter(logging.Formatter):
             or record.name.startswith("inbox.")
             or record.name == "gunicorn"
             or record.name.startswith("gunicorn.")
-            or record.name == "gevent.pywsgi"
             or record.name == "werkzeug"
         ):
             style = "%(message)s"

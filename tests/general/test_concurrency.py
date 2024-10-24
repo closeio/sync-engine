@@ -2,7 +2,7 @@ import socket
 import time
 
 import pytest
-from MySQLdb import _mysql_exceptions
+from MySQLdb import _exceptions as _mysql_exceptions
 from sqlalchemy.exc import StatementError
 
 from inbox.interruptible_threading import InterruptibleThreadExit

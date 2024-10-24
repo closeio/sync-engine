@@ -9,7 +9,7 @@ import time
 from collections.abc import Callable
 from typing import Any, Iterable, TypeVar
 
-from MySQLdb import _mysql_exceptions
+from MySQLdb import _exceptions as _mysql_exceptions
 from redis import TimeoutError
 from sqlalchemy.exc import StatementError
 

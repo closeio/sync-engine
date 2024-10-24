@@ -368,6 +368,15 @@ mysql_dialect = mysql.dialect()
 
 
 def get_db_api_cursor_with_query(session, query):
+    """
+    Return a DB-API cursor with the given SQLAlchemy query executed.
+
+    This is useful when you want to optimize and skip the machinery of
+    SQLAlchemy ORM, particularly when you want to execute
+    a query that returns a large number of rows with a couple of columns.
+    SQLAlchemy ORM has to instantiate several Python objects for each row
+    returned by the query, which can be a performance bottleneck.
+    """
     compiled_query = query.statement.compile(dialect=mysql_dialect)
 
     db_api_cursor = session.connection().connection.cursor()

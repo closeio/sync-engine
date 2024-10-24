@@ -7,7 +7,7 @@ from inbox.interruptible_threading import InterruptibleThread
 from inbox.logging import get_logger
 from inbox.models import Account
 from inbox.models.session import session_scope
-from inbox.util.concurrency import retry_with_logging
+from inbox.util.concurrency import introduce_jitter, retry_with_logging
 
 logger = get_logger()
 
@@ -87,8 +87,8 @@ class BaseSyncMonitor(InterruptibleThread):
         # 2x poll frequency.
         except ConnectionError:
             self.log.error("Error while polling", exc_info=True)
-            interruptible_threading.sleep(self.poll_frequency)
-        interruptible_threading.sleep(self.poll_frequency)
+            interruptible_threading.sleep(introduce_jitter(self.poll_frequency))
+        interruptible_threading.sleep(introduce_jitter(self.poll_frequency))
 
     def sync(self):
         """Subclasses should override this to do work"""

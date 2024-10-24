@@ -203,3 +203,7 @@ def run_in_parallel(functions: "list[Callable[[], Any]]") -> None:
     with concurrent.futures.ThreadPoolExecutor(len(functions)) as executor:
         for function in functions:
             executor.submit(function)
+
+
+def introduce_jitter(value: float, ratio: float = 0.3) -> float:
+    return value + value * ratio * random.uniform(-1, 1)

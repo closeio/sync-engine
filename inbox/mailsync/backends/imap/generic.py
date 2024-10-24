@@ -77,7 +77,7 @@ from inbox import interruptible_threading
 from inbox.exceptions import ValidationError
 from inbox.interruptible_threading import InterruptibleThread
 from inbox.logging import get_logger
-from inbox.util.concurrency import retry_with_logging
+from inbox.util.concurrency import introduce_jitter, retry_with_logging
 from inbox.util.debug import bind_context
 from inbox.util.itert import chunk
 from inbox.util.misc import or_none
@@ -114,7 +114,7 @@ from inbox.models.session import session_scope
 # Idle doesn't necessarily pick up flag changes, so we don't want to
 # idle for very long, or we won't detect things like messages being
 # marked as read.
-IDLE_WAIT = 30
+IDLE_WAIT = 60
 DEFAULT_POLL_FREQUENCY = 30
 # Poll on the Inbox folder more often.
 INBOX_POLL_FREQUENCY = 10
@@ -523,7 +523,7 @@ class FolderSyncEngine(InterruptibleThread):
                 crispin_client.select_folder(self.folder_name, self.uidvalidity_cb)
                 idling = True
                 try:
-                    crispin_client.idle(IDLE_WAIT)
+                    crispin_client.idle(int(introduce_jitter(IDLE_WAIT)))
                 except Exception as exc:
                     # With some servers we get e.g.
                     # 'Unexpected IDLE response: * FLAGS  (...)'
@@ -544,7 +544,7 @@ class FolderSyncEngine(InterruptibleThread):
                 idling = False
         # Close IMAP connection before sleeping
         if not idling:
-            interruptible_threading.sleep(self.poll_frequency)
+            interruptible_threading.sleep(introduce_jitter(self.poll_frequency))
 
     def resync_uids_impl(self):
         # First, let's check if the UIVDALIDITY change was spurious, if

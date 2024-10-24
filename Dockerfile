@@ -53,6 +53,7 @@ RUN apt-get update \
     make \
     gcc \
     git \
+    pkg-config \
     python3.9-dev \
     python3-pip \
     libmysqlclient-dev \

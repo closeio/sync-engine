@@ -7,6 +7,7 @@ import weakref
 from typing import Any, MutableMapping, Optional, Tuple
 
 from sqlalchemy import String, Text, event
+from sqlalchemy.dialects import mysql
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.pool import QueuePool
@@ -361,3 +362,15 @@ def safer_yield_per(query, id_field, start_id, count):
         results = query.filter(id_field >= cur_id).order_by(id_field).limit(count).all()
         yield from results
         cur_id = results[-1].id + 1
+
+
+mysql_dialect = mysql.dialect()
+
+
+def get_db_api_cursor_with_query(session, query):
+    compiled_query = query.statement.compile(dialect=mysql_dialect)
+
+    db_api_cursor = session.connection().connection.cursor()
+    db_api_cursor.execute(compiled_query.string, compiled_query.params.values())
+
+    return db_api_cursor

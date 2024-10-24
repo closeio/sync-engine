@@ -70,6 +70,7 @@ class InterruptibleThread(threading.Thread):
         thread is started. Otherwise, the subclass must implement the `_run`
         method.
         """
+        self._should_be_interrupted = threading.Event()
         self.__should_be_killed = False
         self.__ready = False
         self.__run_target = (
@@ -131,6 +132,7 @@ class InterruptibleThread(threading.Thread):
         If block is True, wait until the thread is ready.
         """
         self.__should_be_killed = True
+        self._should_be_interrupted.set()
         if block:
             self.join()
 
@@ -188,10 +190,13 @@ def sleep(current_thread: InterruptibleThread, /, seconds: float) -> None:
     """
     Interruptible version of time.sleep.
     """
-    start = time.monotonic()
-    while time.monotonic() - start < seconds:
-        time.sleep(CHECK_INTERRUPTED_TIMEOUT)
-        current_thread._check_interrupted()
+    if current_thread._timeout_deadline is not None:
+        timeout = max(current_thread._timeout_deadline - time.monotonic(), 0)
+        seconds = min(seconds, timeout)
+
+    current_thread._should_be_interrupted.wait(seconds)
+
+    current_thread._check_interrupted()
 
 
 @_interruptible(queue.Queue.get)

@@ -36,6 +36,13 @@ log = get_logger()
 def local_uids(
     account_id: int, session, folder_id: int, limit: "int | None" = None
 ) -> "set[int]":
+    """
+    Get the local UIDs of all messages in a folder.
+
+    Note that these days a lot email inboxes can have millions of messages in it,
+    and we prefer to skip SQLAlchemy's ORM layer when fetching these UIDs
+    from the database as it's a lot faster.
+    """
     q = session.query(ImapUid.msg_uid).with_hint(
         ImapUid, "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)"
     )
@@ -48,6 +55,7 @@ def local_uids(
         q = q.limit(bindparam("limit"))
     q = q.params(account_id=account_id, folder_id=folder_id, limit=limit)
 
+    # We're using a raw DB-API cursor here to avoid the overhead of the ORM.
     db_api_cursor = get_db_api_cursor_with_query(session, q)
 
     return {uid for uid, in db_api_cursor.fetchall()}

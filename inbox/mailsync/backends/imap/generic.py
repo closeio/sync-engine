@@ -764,7 +764,7 @@ class FolderSyncEngine(InterruptibleThread):
             metrics.update(kwargs)
             saved_status.update_metrics(metrics)
 
-    def get_remote_uidnext(self, crispin_client: CrispinClient) -> int | None:
+    def get_remote_uidnext(self, crispin_client: CrispinClient) -> "int | None":
         try:
             remote_uidnext = crispin_client.conn.folder_status(
                 self.folder_name, ["UIDNEXT"]
@@ -874,6 +874,7 @@ class FolderSyncEngine(InterruptibleThread):
 
         del changed_flags  # free memory as soon as possible
 
+        # TODO handle None
         remote_uidnext = self.get_remote_uidnext(crispin_client)
         local_uidnext = (
             common.lastseenuid(self.account_id, db_session, self.folder_id) + 1
@@ -887,9 +888,11 @@ class FolderSyncEngine(InterruptibleThread):
             )
             self.get_new_uids(crispin_client)
 
+        # TODO handle overlapping
         for end in range(max(local_uidnext, remote_uidnext) - 1, 0, -10000):
-            start = min(end - 10000, 1)
+            start = max(end - 10000, 1)
             with self.global_lock:
+                # TODO compare with exists and stop querying if we reached exists
                 remote_uids = set(crispin_client.uids_between(start, end))
 
                 with session_scope(self.namespace_id) as db_session:

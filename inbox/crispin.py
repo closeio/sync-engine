@@ -899,6 +899,11 @@ class CrispinClient:
         log.debug("Requested all UIDs", search_time=elapsed)
         return (int(uid) if not isinstance(uid, int) else uid for uid in fetch_result)
 
+    def uids_between(self, start: int, end: int) -> Iterable[int]:
+        interruptible_threading.check_interrupted()
+        fetch_result: List[int] = self.conn.search([f"{start}:{end}"])
+        return (int(uid) if not isinstance(uid, int) else uid for uid in fetch_result)
+
     def uids(self, uids: List[int]) -> List[RawMessage]:
         uid_set = set(uids)
         imap_messages: Dict[int, Dict[bytes, Any]] = {}

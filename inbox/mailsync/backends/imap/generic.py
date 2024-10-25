@@ -764,7 +764,7 @@ class FolderSyncEngine(InterruptibleThread):
             metrics.update(kwargs)
             saved_status.update_metrics(metrics)
 
-    def get_new_uids(self, crispin_client):
+    def get_remote_uidnext(self, crispin_client: CrispinClient) -> int | None:
         try:
             remote_uidnext = crispin_client.conn.folder_status(
                 self.folder_name, ["UIDNEXT"]
@@ -785,6 +785,11 @@ class FolderSyncEngine(InterruptibleThread):
                 raise FolderMissingError()
             else:
                 raise e
+
+        return remote_uidnext
+
+    def get_new_uids(self, crispin_client):
+        remote_uidnext = self.get_remote_uidnext(crispin_client)
         if remote_uidnext is not None and remote_uidnext == self.uidnext:
             return
         log.debug(
@@ -869,31 +874,40 @@ class FolderSyncEngine(InterruptibleThread):
 
         del changed_flags  # free memory as soon as possible
 
-        with self.global_lock:
-            remote_uids = set(crispin_client.all_uids())
+        remote_uidnext = self.get_remote_uidnext(crispin_client)
+        local_uidnext = (
+            common.lastseenuid(self.account_id, db_session, self.folder_id) + 1
+        )
 
-            with session_scope(self.namespace_id) as db_session:
-                local_uids = common.local_uids(
-                    self.account_id, db_session, self.folder_id
-                )
+        if local_uidnext < remote_uidnext:
+            log.debug(
+                "Downloading new UIDs before expunging",
+                local_nextuid=local_uidnext,
+                remote_nextuid=remote_uidnext,
+            )
+            self.get_new_uids(crispin_client)
 
-            expunged_uids = local_uids.difference(remote_uids)
-            del local_uids  # free memory as soon as possible
-            max_remote_uid = max(remote_uids) if remote_uids else 0
-            del remote_uids  # free memory as soon as possible
+        for end in range(max(local_uidnext, remote_uidnext) - 1, 0, -10000):
+            start = min(end - 10000, 1)
+            with self.global_lock:
+                remote_uids = set(crispin_client.uids_between(start, end))
 
-        if expunged_uids:
-            # If new UIDs have appeared since we last checked in
-            # get_new_uids, save them first. We want to always have the
-            # latest UIDs before expunging anything, in order to properly
-            # capture draft revisions.
-            with session_scope(self.namespace_id) as db_session:
-                lastseenuid = common.lastseenuid(
-                    self.account_id, db_session, self.folder_id
-                )
-            if lastseenuid < max_remote_uid:
-                log.info("Downloading new UIDs before expunging")
-                self.get_new_uids(crispin_client)
+                with session_scope(self.namespace_id) as db_session:
+                    local_uids = common.local_uids(
+                        self.account_id,
+                        db_session,
+                        self.folder_id,
+                        start=start,
+                        end=end,
+                    )
+
+                expunged_uids = local_uids.difference(remote_uids)
+                del local_uids  # free memory as soon as possible
+                del remote_uids  # free memory as soon as possible
+
+            if not expunged_uids:
+                continue
+
             with self.syncmanager_lock:
                 common.remove_deleted_uids(
                     self.account_id, self.folder_id, expunged_uids

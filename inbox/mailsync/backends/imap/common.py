@@ -34,7 +34,12 @@ log = get_logger()
 
 
 def local_uids(
-    account_id: int, session, folder_id: int, limit: "int | None" = None
+    account_id: int,
+    session,
+    folder_id: int,
+    limit: "int | None" = None,
+    start: "int | None" = None,
+    end: "int | None" = None,
 ) -> "set[int]":
     """
     Get the local UIDs of all messages in a folder.
@@ -53,7 +58,13 @@ def local_uids(
     if limit:
         q = q.order_by(desc(ImapUid.msg_uid))
         q = q.limit(bindparam("limit"))
-    q = q.params(account_id=account_id, folder_id=folder_id, limit=limit)
+    if start:
+        q = q.filter(ImapUid.msg_uid >= bindparam("start"))
+    if end:
+        q = q.filter(ImapUid.msg_uid <= bindparam("end"))
+    q = q.params(
+        account_id=account_id, folder_id=folder_id, limit=limit, start=start, end=end
+    )
 
     # We're using a raw DB-API cursor here to avoid the overhead of the ORM.
     db_api_cursor = get_db_api_cursor_with_query(session, q)

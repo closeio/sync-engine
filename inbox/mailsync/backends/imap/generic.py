@@ -876,9 +876,10 @@ class FolderSyncEngine(InterruptibleThread):
 
         # TODO handle None
         remote_uidnext = self.get_remote_uidnext(crispin_client)
-        local_uidnext = (
-            common.lastseenuid(self.account_id, db_session, self.folder_id) + 1
-        )
+        with session_scope(self.namespace_id) as db_session:
+            local_uidnext = (
+                common.lastseenuid(self.account_id, db_session, self.folder_id) + 1
+            )
 
         if local_uidnext < remote_uidnext:
             log.debug(

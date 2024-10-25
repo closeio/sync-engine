@@ -102,6 +102,7 @@ def test_new_uids_synced_when_polling(
     assert {u.msg_uid for u in saved_uids} == set(uid_dict)
 
 
+@pytest.mark.timeout(120)
 def test_condstore_flags_refresh(
     db, default_account, all_mail_folder, mock_imapclient, monkeypatch
 ):

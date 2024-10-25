@@ -889,10 +889,12 @@ class FolderSyncEngine(InterruptibleThread):
             )
             self.get_new_uids(crispin_client)
 
+        BATCH_SIZE = 100000
+
         # TODO check exists / count to see if batching makes sense
         # TODO handle overlapping
-        for end in range(max(local_uidnext, remote_uidnext) - 1, 0, -100000):
-            start = max(end - 10000, 1)
+        for end in range(max(local_uidnext, remote_uidnext) - 1, 0, -BATCH_SIZE):
+            start = max(end - BATCH_SIZE + 1, 1)
             with self.global_lock:
                 # TODO compare with exists and stop querying if we reached exists
                 remote_uids = set(crispin_client.uids_between(start, end))

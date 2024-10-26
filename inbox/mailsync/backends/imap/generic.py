@@ -128,6 +128,8 @@ MAX_UIDINVALID_RESYNCS = 5
 
 CONDSTORE_FLAGS_REFRESH_BATCH_SIZE = 200
 
+UID_BATCH_SIZE = 10_000
+
 
 class ChangePoller(InterruptibleThread):
     def __init__(self, engine: "FolderSyncEngine") -> None:
@@ -889,11 +891,9 @@ class FolderSyncEngine(InterruptibleThread):
             )
             self.get_new_uids(crispin_client)
 
-        BATCH_SIZE = 10_000
-
         # TODO check exists / count to see if batching makes sense
-        for end in range(max(local_uidnext, remote_uidnext) - 1, 0, -BATCH_SIZE):
-            start = max(end - BATCH_SIZE + 1, 1)
+        for end in range(max(local_uidnext, remote_uidnext) - 1, 0, -UID_BATCH_SIZE):
+            start = max(end - UID_BATCH_SIZE + 1, 1)
             with self.global_lock:
                 # TODO compare with exists and stop querying if we reached exists
                 remote_uids = set(crispin_client.uids_between(start, end))

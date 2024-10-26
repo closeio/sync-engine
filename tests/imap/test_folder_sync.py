@@ -9,6 +9,7 @@ from inbox.mailsync.backends.base import MailsyncDone
 from inbox.mailsync.backends.gmail import GmailFolderSyncEngine
 from inbox.mailsync.backends.imap.generic import (
     MAX_UIDINVALID_RESYNCS,
+    UID_BATCH_SIZE,
     FolderSyncEngine,
     UidInvalid,
 )
@@ -16,7 +17,7 @@ from inbox.models import Folder, Message
 from inbox.models.backends.imap import ImapFolderInfo, ImapFolderSyncStatus, ImapUid
 from inbox.util.testutils import mock_imapclient  # noqa
 
-from tests.imap.data import uid_data, uids  # noqa
+from tests.imap.data import get_uids, uid_data, uids  # noqa
 
 
 def create_folder_with_syncstatus(account, name, canonical_name, db_session):
@@ -102,14 +103,13 @@ def test_new_uids_synced_when_polling(
     assert {u.msg_uid for u in saved_uids} == set(uid_dict)
 
 
-@pytest.mark.timeout(120)
 def test_condstore_flags_refresh(
     db, default_account, all_mail_folder, mock_imapclient, monkeypatch
 ):
     monkeypatch.setattr(
         "inbox.mailsync.backends.imap.generic.CONDSTORE_FLAGS_REFRESH_BATCH_SIZE", 10
     )
-    uid_dict = uids.example()
+    uid_dict = get_uids(10 * UID_BATCH_SIZE).example()
     mock_imapclient.add_folder_data(all_mail_folder.name, uid_dict)
     mock_imapclient.capabilities = lambda: [b"CONDSTORE"]
 

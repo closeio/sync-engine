@@ -85,6 +85,10 @@ uid_data = s.builds(
 )
 
 
-uids = s.dictionaries(
-    s.integers(min_value=22, max_value=MAX_INT_VALUE), uid_data, min_size=5, max_size=10
-)
+def get_uids(max_value):
+    return s.dictionaries(
+        s.integers(min_value=22, max_value=max_value), uid_data, min_size=5, max_size=10
+    )
+
+
+uids = get_uids(MAX_INT_VALUE)

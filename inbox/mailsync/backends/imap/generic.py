@@ -889,7 +889,7 @@ class FolderSyncEngine(InterruptibleThread):
             )
             self.get_new_uids(crispin_client)
 
-        BATCH_SIZE = 100000
+        BATCH_SIZE = 10_000
 
         # TODO check exists / count to see if batching makes sense
         for end in range(max(local_uidnext, remote_uidnext) - 1, 0, -BATCH_SIZE):

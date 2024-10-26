@@ -183,8 +183,8 @@ class MockIMAPClient:
             return list(uid_dict)
         if criteria == ["X-GM-LABELS", "inbox"]:
             return [k for k, v in uid_dict.items() if b"\\Inbox," in v[b"X-GM-LABELS"]]
-        if ":" in criteria[0]:
-            start, end = map(int, criteria[0].split(":"))
+        if criteria[0] == "UID" and ":" in criteria[1]:
+            start, end = map(int, criteria[1].split(":"))
             return [u for u in uid_dict if start <= u <= end]
         if criteria[0] == "HEADER":
             name, value = criteria[1:]

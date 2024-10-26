@@ -892,7 +892,6 @@ class FolderSyncEngine(InterruptibleThread):
         BATCH_SIZE = 100000
 
         # TODO check exists / count to see if batching makes sense
-        # TODO handle overlapping
         for end in range(max(local_uidnext, remote_uidnext) - 1, 0, -BATCH_SIZE):
             start = max(end - BATCH_SIZE + 1, 1)
             with self.global_lock:

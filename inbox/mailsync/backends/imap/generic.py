@@ -65,6 +65,7 @@ import contextlib
 import imaplib
 import threading
 import time
+from collections.abc import Iterable
 from datetime import datetime, timedelta
 from typing import Any, Dict, NoReturn, Optional
 
@@ -812,6 +813,43 @@ class FolderSyncEngine(InterruptibleThread):
                 self.download_and_commit_uids(crispin_client, [uid])
         self.uidnext = remote_uidnext
 
+    def batch_remote_and_local_uids(
+        self,
+        crispin_client: CrispinClient,
+        remote_uidnext: int,
+        local_uidnext: int,
+        *,
+        batch_size: int = UID_BATCH_SIZE,
+    ) -> "Iterable[tuple[set[int], set[int]]]":
+        for end in range(max(remote_uidnext, local_uidnext) - 1, 0, -batch_size):
+            start = max(end - batch_size + 1, 1)
+            with self.global_lock:
+                # TODO compare with exists and stop querying if we reached exists
+                remote_uids = set(crispin_client.uids_between(start, end))
+
+                with session_scope(self.namespace_id) as db_session:
+                    local_uids = common.local_uids(
+                        self.account_id,
+                        db_session,
+                        self.folder_id,
+                        start=start,
+                        end=end,
+                    )
+
+            yield remote_uids, local_uids
+
+    def get_remote_and_local_uidnext(
+        self, crispin_client: CrispinClient
+    ) -> "tuple[int | None, int]":
+        # TODO handle None
+        remote_uidnext = self.get_remote_uidnext(crispin_client)
+        with session_scope(self.namespace_id) as db_session:
+            local_uidnext = (
+                common.lastseenuid(self.account_id, db_session, self.folder_id) + 1
+            )
+
+        return remote_uidnext, local_uidnext
+
     def condstore_refresh_flags(self, crispin_client: CrispinClient) -> None:
         new_highestmodseq: int = crispin_client.conn.folder_status(
             self.folder_name, ["HIGHESTMODSEQ"]
@@ -876,12 +914,9 @@ class FolderSyncEngine(InterruptibleThread):
 
         del changed_flags  # free memory as soon as possible
 
-        # TODO handle None
-        remote_uidnext = self.get_remote_uidnext(crispin_client)
-        with session_scope(self.namespace_id) as db_session:
-            local_uidnext = (
-                common.lastseenuid(self.account_id, db_session, self.folder_id) + 1
-            )
+        remote_uidnext, local_uidnext = self.get_remote_and_local_uidnext(
+            crispin_client
+        )
 
         if local_uidnext < remote_uidnext:
             log.debug(
@@ -891,26 +926,11 @@ class FolderSyncEngine(InterruptibleThread):
             )
             self.get_new_uids(crispin_client)
 
-        # TODO check exists / count to see if batching makes sense
-        for end in range(max(local_uidnext, remote_uidnext) - 1, 0, -UID_BATCH_SIZE):
-            start = max(end - UID_BATCH_SIZE + 1, 1)
-            with self.global_lock:
-                # TODO compare with exists and stop querying if we reached exists
-                remote_uids = set(crispin_client.uids_between(start, end))
+        for remote_uids, local_uids in self.batch_remote_and_local_uids(
+            crispin_client, remote_uidnext, local_uidnext
+        ):
 
-                with session_scope(self.namespace_id) as db_session:
-                    local_uids = common.local_uids(
-                        self.account_id,
-                        db_session,
-                        self.folder_id,
-                        start=start,
-                        end=end,
-                    )
-
-                expunged_uids = local_uids.difference(remote_uids)
-                del local_uids  # free memory as soon as possible
-                del remote_uids  # free memory as soon as possible
-
+            expunged_uids = local_uids.difference(remote_uids)
             if not expunged_uids:
                 continue
 
@@ -940,26 +960,20 @@ class FolderSyncEngine(InterruptibleThread):
     def refresh_flags_impl(self, crispin_client: CrispinClient, max_uids: int) -> None:
         crispin_client.select_folder(self.folder_name, self.uidvalidity_cb)
 
-        with self.global_lock:
-            # Check for any deleted messages.
-            remote_uids = crispin_client.all_uids()
-
-            with session_scope(self.namespace_id) as db_session:
-                local_uids = common.local_uids(
-                    self.account_id, db_session, self.folder_id
-                )
-
+        remote_uidnext, local_uidnext = self.get_remote_and_local_uidnext(
+            crispin_client
+        )
+        for remote_uids, local_uids in self.batch_remote_and_local_uids(
+            crispin_client, remote_uidnext, local_uidnext
+        ):
             expunged_uids = local_uids.difference(remote_uids)
-            del local_uids  # free memory as soon as possible
-            del remote_uids  # free memory as soon as possible
+            if not expunged_uids:
+                continue
 
-        if expunged_uids:
             with self.syncmanager_lock:
                 common.remove_deleted_uids(
                     self.account_id, self.folder_id, expunged_uids
                 )
-
-        del expunged_uids  # free memory as soon as possible
 
         # Get recent UIDs to monitor for flag changes.
         with session_scope(self.namespace_id) as db_session:

@@ -81,7 +81,7 @@ def test_initial_sync(db, generic_account, inbox_folder, mock_imapclient):
 def test_new_uids_synced_when_polling(
     db, generic_account, inbox_folder, mock_imapclient
 ):
-    uid_dict = uids.example()
+    uid_dict = get_uids(10 * UID_BATCH_SIZE).example()
     mock_imapclient.add_folder_data(inbox_folder.name, uid_dict)
     inbox_folder.imapfolderinfo = ImapFolderInfo(
         account=generic_account, uidvalidity=1, uidnext=1
@@ -152,7 +152,7 @@ def test_generic_flags_refresh_expunges_transient_uids(
 ):
     # Check that we delete UIDs which are synced but quickly deleted, so never
     # show up in flags refresh.
-    uid_dict = uids.example()
+    uid_dict = get_uids(10 * UID_BATCH_SIZE).example()
     mock_imapclient.add_folder_data(inbox_folder.name, uid_dict)
     inbox_folder.imapfolderinfo = ImapFolderInfo(
         account=generic_account, uidvalidity=1, uidnext=1

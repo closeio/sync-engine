@@ -821,6 +821,9 @@ class FolderSyncEngine(InterruptibleThread):
         *,
         batch_size: int = UID_BATCH_SIZE,
     ) -> "Iterable[tuple[set[int], set[int]]]":
+        yield set(), set()
+        return
+
         for end in range(max(remote_uidnext, local_uidnext) - 1, 0, -batch_size):
             start = max(end - batch_size + 1, 1)
             with self.global_lock:

@@ -225,6 +225,8 @@ def malloc_stats():
         print("Malloc info:")
         for name, value in fields:
             print(f"- {name}: {value}")
+        print("sys._debugmallocstats()")
+        sys._debugmallocstats()
         time.sleep(60)
 
 

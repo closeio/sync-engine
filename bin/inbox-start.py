@@ -78,6 +78,8 @@ banner = rf"""{esc}[1;95m
 )
 def main(prod, enable_profiler, config, process_num):
     """Launch the Nylas sync service."""
+    threading.stack_size(524288)
+
     level = os.environ.get("LOGLEVEL", inbox_config.get("LOGLEVEL"))
     configure_logging(log_level=level)
     reconfigure_logging()

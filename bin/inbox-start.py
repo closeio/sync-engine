@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 
+import ctypes
 import os
 import platform
 import signal
@@ -125,6 +126,7 @@ def main(prod, enable_profiler, config, process_num):
     signal.signal(signal.SIGUSR1, lambda *_: prepare_trace())
     signal.signal(signal.SIGUSR2, lambda *_: dump_threads())
     signal.signal(signal.SIGHUP, lambda *_: profile())
+    prepare_malloc_stats()
 
     http_frontend = SyncHTTPFrontend(sync_service, port, enable_profiler_api)
     http_frontend.start()
@@ -178,6 +180,50 @@ def profile():
 def dump_threads():
     for thread in inbox.thread_inspector.enumerate():
         print("-->", thread, hex(thread.native_id))
+
+
+def prepare_malloc_stats() -> None:
+    malloc_stats_thread = threading.Thread(target=malloc_stats, daemon=True)
+    malloc_stats_thread.start()
+
+
+libc = ctypes.CDLL("libc.so.6")
+libc.malloc_stats.restype = None
+
+
+class MallInfo(ctypes.Structure):
+    _fields_ = [
+        (name, ctypes.c_int)
+        for name in (
+            "arena",
+            "ordblks",
+            "smblks",
+            "hblks",
+            "hblkhd",
+            "usmblks",
+            "fsmblks",
+            "uordblks",
+            "fordblks",
+            "keepcost",
+        )
+    ]
+
+
+libc = ctypes.CDLL("libc.so.6")
+mallinfo = libc.mallinfo
+mallinfo.argtypes = []
+mallinfo.restype = MallInfo
+
+
+def malloc_stats():
+    while True:
+        libc.malloc_stats()
+        info = mallinfo()
+        fields = [(name, getattr(info, name)) for name, _ in info._fields_]
+        print("Malloc info:")
+        for name, value in fields:
+            print(f"- {name}: {value}")
+        time.sleep(60)
 
 
 if __name__ == "__main__":

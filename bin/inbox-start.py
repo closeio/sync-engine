@@ -125,7 +125,7 @@ def main(prod, enable_profiler, config, process_num):
 
     signal.signal(signal.SIGTERM, lambda *_: sync_service.stop())
     signal.signal(signal.SIGINT, lambda *_: sync_service.stop())
-    signal.signal(signal.SIGUSR1, lambda *_: prepare_trace())
+    signal.signal(signal.SIGUSR1, lambda *_: track_memory())
     signal.signal(signal.SIGUSR2, lambda *_: dump_threads())
     signal.signal(signal.SIGHUP, lambda *_: profile())
     prepare_malloc_stats()
@@ -139,18 +139,11 @@ def main(prod, enable_profiler, config, process_num):
     print("\033[94mNylas Sync Engine exiting...\033[0m", file=sys.stderr)
 
 
-def prepare_trace():
-    trace_thread = threading.Thread(target=track_memory, daemon=True)
-    trace_thread.start()
-
-
 tracker = None
 
 
 def track_memory():
     global tracker
-
-    time.sleep(1)
 
     if not tracker:
         tracker = memray.Tracker(
@@ -231,4 +224,5 @@ def malloc_stats():
 
 
 if __name__ == "__main__":
+    track_memory()
     main()

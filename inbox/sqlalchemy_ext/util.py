@@ -7,7 +7,6 @@ import weakref
 from typing import Any, MutableMapping, Optional, Tuple
 
 from sqlalchemy import String, Text, event
-from sqlalchemy.dialects import mysql
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.pool import QueuePool
@@ -364,9 +363,6 @@ def safer_yield_per(query, id_field, start_id, count):
         cur_id = results[-1].id + 1
 
 
-mysql_dialect = mysql.dialect()
-
-
 def get_db_api_cursor_with_query(session, query):
     """
     Return a DB-API cursor with the given SQLAlchemy query executed.
@@ -377,7 +373,8 @@ def get_db_api_cursor_with_query(session, query):
     SQLAlchemy ORM has to instantiate several Python objects for each row
     returned by the query, which can be a performance bottleneck.
     """
-    compiled_query = query.statement.compile(dialect=mysql_dialect)
+    dialect = session.get_bind().dialect
+    compiled_query = query.statement.compile(dialect=dialect)
 
     db_api_cursor = session.connection().connection.cursor()
     db_api_cursor.execute(compiled_query.string, compiled_query.params.values())

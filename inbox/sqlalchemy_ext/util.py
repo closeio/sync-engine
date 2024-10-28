@@ -361,3 +361,22 @@ def safer_yield_per(query, id_field, start_id, count):
         results = query.filter(id_field >= cur_id).order_by(id_field).limit(count).all()
         yield from results
         cur_id = results[-1].id + 1
+
+
+def get_db_api_cursor_with_query(session, query):
+    """
+    Return a DB-API cursor with the given SQLAlchemy query executed.
+
+    This is useful when you want to optimize and skip the machinery of
+    SQLAlchemy ORM, particularly when you want to execute
+    a query that returns a large number of rows with a couple of columns.
+    SQLAlchemy ORM has to instantiate several Python objects for each row
+    returned by the query, which can be a performance bottleneck.
+    """
+    dialect = session.get_bind().dialect
+    compiled_query = query.statement.compile(dialect=dialect)
+
+    db_api_cursor = session.connection().connection.cursor()
+    db_api_cursor.execute(compiled_query.string, compiled_query.params.values())
+
+    return db_api_cursor

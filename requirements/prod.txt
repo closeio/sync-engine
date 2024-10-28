@@ -47,7 +47,7 @@ lxml==5.1.0
 Mako==1.2.2
 MarkupSafe==2.1.2
 matplotlib-inline==0.1.6
-mysqlclient==1.3.14
+mysqlclient==2.2.5
 parso==0.8.3
 pexpect==4.8.0
 pickleshare==0.7.5

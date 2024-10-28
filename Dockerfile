@@ -1,7 +1,7 @@
 # --- Stage 0 --- #
 # This first stage is responsible for installing any dependencies the app needs
 # to run, and updating any base dependencies.
-FROM ubuntu:20.04 AS stage_0
+FROM ubuntu:22.04 AS stage_0
 
 RUN groupadd -g 5000 sync-engine \
   && useradd -d /home/sync-engine -m -u 5000 -g 5000 sync-engine
@@ -24,7 +24,7 @@ RUN echo $BUILD_WEEK && apt-get update \
     gpg \
     gpg-agent \
     dirmngr \
-    python3.9 \
+    python3.10 \
     gettext-base \
     libmysqlclient21 \
     mysql-client \
@@ -54,16 +54,16 @@ RUN apt-get update \
     gcc \
     git \
     pkg-config \
-    python3.9-dev \
+    python3.10-dev \
     python3-pip \
     libmysqlclient-dev \
   && rm -rf /var/lib/apt/lists/*
 
 COPY /requirements/ /requirements/
-RUN python3.9 -m pip install pip==24.0 virtualenv==20.25.1 && \
-  python3.9 -m virtualenv /opt/venv && \
-  /opt/venv/bin/python3.9 -m pip install --no-cache --no-deps -r /requirements/prod.txt -r /requirements/test.txt && \
-  /opt/venv/bin/python3.9 -m pip check
+RUN python3.10 -m pip install pip==24.3.1 virtualenv==20.27.0 && \
+  python3.10 -m virtualenv /opt/venv && \
+  /opt/venv/bin/python3.10 -m pip install --no-cache --no-deps -r /requirements/prod.txt -r /requirements/test.txt && \
+  /opt/venv/bin/python3.10 -m pip check
 
 
 # --- Stage 2 --- #

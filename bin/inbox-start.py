@@ -15,6 +15,8 @@ import memray
 import pyinstrument
 import setproctitle
 
+from inbox.malloc_trim import maybe_start_malloc_trim_thread
+
 # Check that the inbox package is installed. It seems Vagrant may sometimes
 # fail to provision the box appropriately; this check is a reasonable
 # approximation of "Did the setup script run?"
@@ -129,6 +131,8 @@ def main(prod, enable_profiler, config, process_num):
     signal.signal(signal.SIGUSR2, lambda *_: dump_threads())
     signal.signal(signal.SIGHUP, lambda *_: profile())
     prepare_malloc_stats()
+
+    maybe_start_malloc_trim_thread()
 
     http_frontend = SyncHTTPFrontend(sync_service, port, enable_profiler_api)
     http_frontend.start()

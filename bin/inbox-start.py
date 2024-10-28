@@ -204,14 +204,18 @@ class MallInfo(ctypes.Structure):
     ]
 
 
-libc = ctypes.CDLL("libc.so.6")
 mallinfo = libc.mallinfo
 mallinfo.argtypes = []
 mallinfo.restype = MallInfo
 
+malloc_trim = libc.malloc_trim
+malloc_trim.argtypes = [ctypes.c_size_t]
+malloc_trim.restype = ctypes.c_int
+
 
 def malloc_stats():
     while True:
+        libc.malloc_trim(0)
         libc.malloc_stats()
         info = mallinfo()
         fields = [(name, getattr(info, name)) for name, _ in info._fields_]

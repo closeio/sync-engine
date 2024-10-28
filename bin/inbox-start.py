@@ -224,5 +224,4 @@ def malloc_stats():
 
 
 if __name__ == "__main__":
-    track_memory()
     main()

@@ -1,8 +1,9 @@
+import io
 import os
 import time
 from collections.abc import Callable
 from hashlib import sha256
-from typing import Optional
+from typing import Iterable, Optional
 
 import zstandard
 
@@ -15,9 +16,8 @@ log = get_logger()
 # TODO: store AWS credentials in a better way.
 STORE_MSG_ON_S3 = config.get("STORE_MESSAGES_ON_S3", None)
 
-
-from boto.s3.connection import S3Connection
-from boto.s3.key import Key
+import boto3
+import botocore.exceptions
 
 # https://github.com/facebook/zstd/blob/dev/doc/zstd_compression_format.md#zstandard-frames
 # > This value was selected to be less probable to find at the beginning of some random file.
@@ -147,14 +147,29 @@ def _save_to_s3(data_sha256: str, data: bytes, *, overwrite: bool = False) -> No
 
 
 def get_s3_bucket(bucket_name):
-    conn = S3Connection(
-        config.get("AWS_ACCESS_KEY_ID"),
-        config.get("AWS_SECRET_ACCESS_KEY"),
-        host=config.get("AWS_S3_HOST", S3Connection.DefaultHost),
-        port=config.get("AWS_S3_PORT"),
-        is_secure=config.get("AWS_S3_IS_SECURE", True),
+    resource = boto3.resource(
+        "s3",
+        aws_access_key_id=config.get("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=config.get("AWS_SECRET_ACCESS_KEY"),
+        endpoint_url=config.get("AWS_S3_ENDPOINT_URL"),
     )
-    return conn.get_bucket(bucket_name, validate=False)
+
+    return resource.Bucket(bucket_name)
+
+
+def _s3_key_exists(bucket, key) -> bool:
+    """
+    Check if a key exists in an S3 bucket by doing a HEAD request.
+    """
+    try:
+        bucket.Object(key).load()
+    except botocore.exceptions.ClientError as e:
+        if e.response["Error"]["Code"] == "404":
+            return False
+        else:
+            raise
+
+    return True
 
 
 def _save_to_s3_bucket(
@@ -168,13 +183,11 @@ def _save_to_s3_bucket(
     bucket = get_s3_bucket(bucket_name)
 
     # See if it already exists; if so, don't recreate.
-    key = bucket.get_key(data_sha256)
-    if key and not overwrite:
+    if _s3_key_exists(bucket, data_sha256) and not overwrite:
         return
 
-    key = Key(bucket)
-    key.key = data_sha256
-    key.set_contents_from_string(data)
+    file_object = io.BytesIO(data)
+    bucket.upload_fileobj(file_object, data_sha256)
 
     end = time.time()
     latency_millis = (end - start) * 1000
@@ -274,19 +287,23 @@ def _get_from_s3(data_sha256):
     return None
 
 
-def _get_from_s3_bucket(data_sha256, bucket_name):
+def _get_from_s3_bucket(data_sha256: str, bucket_name: str) -> "bytes | None":
     if not data_sha256:
         return None
 
     bucket = get_s3_bucket(bucket_name)
 
-    key = bucket.get_key(data_sha256)
+    file_object = io.BytesIO()
+    try:
+        bucket.download_fileobj(data_sha256, file_object)
+    except botocore.exceptions.ClientError as e:
+        if e.response["Error"]["Code"] == "404":
+            log.warning(f"No key with name: {data_sha256} returned!")
+            return None
+        else:
+            raise
 
-    if not key:
-        log.warning(f"No key with name: {data_sha256} returned!")
-        return None
-
-    return key.get_contents_as_string()
+    return file_object.getvalue()
 
 
 def _get_from_disk(data_sha256):
@@ -301,7 +318,9 @@ def _get_from_disk(data_sha256):
         return None
 
 
-def _delete_from_s3_bucket(data_sha256_hashes, bucket_name):
+def _delete_from_s3_bucket(
+    data_sha256_hashes: "Iterable[str]", bucket_name: str
+) -> None:
     data_sha256_hashes = [hash_ for hash_ in data_sha256_hashes if hash_]
     if not data_sha256_hashes:
         return
@@ -313,7 +332,9 @@ def _delete_from_s3_bucket(data_sha256_hashes, bucket_name):
     # Boto pools connections at the class level
     bucket = get_s3_bucket(bucket_name)
 
-    bucket.delete_keys([key for key in data_sha256_hashes], quiet=True)
+    bucket.delete_objects(
+        Delete={"Objects": [{"Key": key} for key in data_sha256_hashes], "Quiet": True}
+    )
 
     end = time.time()
     latency_millis = (end - start) * 1000

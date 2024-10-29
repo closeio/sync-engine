@@ -9,7 +9,7 @@ else:
     from html import escape as html_escape
 
 
-class HTMLParseError(Exception):
+class HTMLParseError(ValueError):
     pass
 
 
@@ -42,11 +42,6 @@ class HTMLTagStripper(HTMLParser):
         if not self.strip_tag_contents_mode:
             self.fed.append(d)
 
-    if (3,) <= sys.version_info < (3, 10):
-
-        def error(self, message):
-            raise HTMLParseError(message)
-
     def handle_entityref(self, d):
         try:
             val = chr(name2codepoint[d])
@@ -68,7 +63,19 @@ def strip_tags(html: str) -> str:
     You are responsible for handling it in the calling function.
     """
     s = HTMLTagStripper()
-    s.feed(html)
+
+    # `HTMLParser.feed()` raises `AssertionError` if fed invalid HTML.
+    # See the source at https://github.com/python/cpython/blob/main/Lib/html/parser.py
+    # and https://github.com/python/cpython/blob/main/Lib/_markupbase.py#L30.
+    # We want to catch this exception and raise a more informative exception to
+    # tell it apart from general `AssertionError`s that normally mean a programmer error.
+    # Those are later caught in `Message.calculate_html_snippet` so it can recover from
+    # invalid HTML.
+    try:
+        s.feed(html)
+    except AssertionError as e:
+        raise HTMLParseError(*e.args) from e
+
     return s.get_data()
 
 

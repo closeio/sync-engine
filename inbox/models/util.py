@@ -1,6 +1,7 @@
 import math
 import time
 from collections import OrderedDict
+from collections.abc import Iterable
 from typing import Optional
 
 import limitlion
@@ -341,18 +342,7 @@ def _batch_delete(
             message_ids = [m[0] for m in messages]
             message_hashes = [m[1] for m in messages]
 
-            with session_scope(account_id) as db_session:
-                existing_hashes = list(
-                    db_session.query(Message.data_sha256)
-                    .filter(Message.data_sha256.in_(message_hashes))
-                    .filter(Message.namespace_id != id_)
-                    .distinct()
-                )
-            existing_hashes = [h[0] for h in existing_hashes]
-
-            remove_hashes = set(message_hashes) - set(existing_hashes)
-            if dry_run is False:
-                delete_from_blockstore(*list(remove_hashes))
+            delete_message_hashes(id_, account_id, message_hashes, dry_run=dry_run)
 
             with session_scope(account_id) as db_session:
                 message_query = db_session.query(Message).filter(
@@ -454,3 +444,37 @@ def purge_transactions(
         )
     except Exception as e:
         log.critical("Exception encountered during deletion", exception=e)
+
+
+def delete_message_hashes(
+    namespace_id: int,
+    account_id: int,
+    message_hashes: Iterable[str],
+    dry_run: bool = False,
+) -> None:
+    """
+    Delete messages from the blockstore.
+
+    Args:
+        namespace_id: The namespace_id of the messages.
+        account_id: The account_id of the messages.
+        message_hashes: The data_sha256 hashes of the messages.
+        dry_run: If True, don't actually delete the data.
+    """
+    if not message_hashes:
+        return
+
+    # First check if the messagea still exists in another namespace
+    # If they do, we don't want to delete the data.
+    with session_scope(account_id) as db_session:
+        existing_hashes = [
+            data_sha256
+            for data_sha256, in db_session.query(Message.data_sha256)
+            .filter(Message.data_sha256.in_(message_hashes))
+            .filter(Message.namespace_id != namespace_id)
+            .distinct()
+        ]
+
+    remove_hashes = set(message_hashes) - set(existing_hashes)
+    if dry_run is False:
+        delete_from_blockstore(*remove_hashes)

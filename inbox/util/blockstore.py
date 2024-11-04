@@ -9,6 +9,7 @@ import zstandard
 
 from inbox.config import config
 from inbox.logging import get_logger
+from inbox.util.itert import chunk
 from inbox.util.stats import statsd_client
 
 log = get_logger()
@@ -332,9 +333,15 @@ def _delete_from_s3_bucket(
     # Boto pools connections at the class level
     bucket = get_s3_bucket(bucket_name)
 
-    bucket.delete_objects(
-        Delete={"Objects": [{"Key": key} for key in data_sha256_hashes], "Quiet": True}
-    )
+    # As per https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/delete_objects.html
+    # we can only delete 1000 objects at a time.
+    for data_sha256_hashes_chunk in chunk(data_sha256_hashes, 1000):
+        bucket.delete_objects(
+            Delete={
+                "Objects": [{"Key": key} for key in data_sha256_hashes_chunk],
+                "Quiet": True,
+            }
+        )
 
     end = time.time()
     latency_millis = (end - start) * 1000

@@ -15,6 +15,7 @@ from inbox.models.category import EPOCH, Category
 from inbox.models.folder import Folder
 from inbox.models.message import MessageCategory
 from inbox.models.session import session_scope
+from inbox.models.util import delete_message_hashes
 from inbox.util.concurrency import retry_with_logging
 from inbox.util.debug import bind_context
 from inbox.util.itert import chunk
@@ -90,6 +91,8 @@ class DeleteHandler(InterruptibleThread):
         interruptible_threading.sleep(self.message_ttl.total_seconds())
 
     def check(self, current_time):
+        dangling_sha256s = set()
+
         with session_scope(self.namespace_id) as db_session:
             dangling_messages = (
                 db_session.query(Message)
@@ -138,6 +141,9 @@ class DeleteHandler(InterruptibleThread):
                 # Also need to explicitly delete, so that message shows up in
                 # db_session.deleted.
                 db_session.delete(message)
+
+                dangling_sha256s.add(message.data_sha256)
+
                 if not thread.messages:
                     # We don't eagerly delete empty Threads because there's a
                     # race condition between deleting a Thread and creating a
@@ -163,6 +169,8 @@ class DeleteHandler(InterruptibleThread):
                 # delete scenarios from creating a long-running, blocking
                 # transaction.
                 db_session.commit()
+
+        delete_message_hashes(self.namespace_id, self.account_id, dangling_sha256s)
 
     def gc_deleted_categories(self):
         # Delete categories which have been deleted on the backend.

@@ -1,6 +1,7 @@
 import platform
 import random
 import time
+from functools import cache
 from threading import BoundedSemaphore
 from typing import Type
 
@@ -17,6 +18,7 @@ from inbox.events.remote_sync import EventSync, WebhookEventSync
 from inbox.heartbeat.status import clear_heartbeat_status
 from inbox.logging import get_logger
 from inbox.mailsync.backends import module_registry
+from inbox.mailsync.backends.base import BaseMailSyncMonitor
 from inbox.models import Account
 from inbox.models.session import global_session_scope, session_scope
 from inbox.providers import providers
@@ -48,6 +50,24 @@ def shared_sync_event_queue_for_zone(zone):
     return SHARED_SYNC_EVENT_QUEUE_ZONE_MAP[queue_name]
 
 
+@cache
+def get_monitor_classes() -> dict[str, Type[BaseMailSyncMonitor]]:
+    """
+    Return a dictionary mapping provider names to their respective monitor
+    """
+    monitor_classes = {
+        module.PROVIDER: getattr(module, module.SYNC_MONITOR_CLS)
+        for module in module_registry.values()
+        if hasattr(module, "SYNC_MONITOR_CLS")
+    }
+
+    for provider_name, _ in providers.items():
+        if provider_name not in monitor_classes:
+            monitor_classes[provider_name] = monitor_classes["generic"]
+
+    return monitor_classes
+
+
 class SyncService:
     """
     Parameters
@@ -69,15 +89,6 @@ class SyncService:
         self.host = platform.node()
         self.process_number = process_number
         self.process_identifier = process_identifier
-        self.monitor_cls_for = {
-            mod.PROVIDER: getattr(mod, mod.SYNC_MONITOR_CLS)
-            for mod in module_registry.values()
-            if hasattr(mod, "SYNC_MONITOR_CLS")
-        }
-
-        for p_name, _ in providers.items():
-            if p_name not in self.monitor_cls_for:
-                self.monitor_cls_for[p_name] = self.monitor_cls_for["generic"]
 
         self.log = get_logger()
         self.log.bind(process_number=process_number)
@@ -334,7 +345,7 @@ class SyncService:
             try:
                 account.sync_host = self.process_identifier
                 if account.sync_email:
-                    monitor = self.monitor_cls_for[account.provider](account)
+                    monitor = get_monitor_classes()[account.provider](account)
                     self.email_sync_monitors[account.id] = monitor
                     monitor.start()
 

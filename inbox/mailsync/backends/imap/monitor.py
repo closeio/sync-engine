@@ -1,5 +1,5 @@
 from threading import BoundedSemaphore
-from typing import List
+from typing import ClassVar, List
 
 from inbox import interruptible_threading
 from inbox.crispin import connection_pool, retry_crispin
@@ -29,11 +29,12 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
         Seconds to wait between checking for new folders to sync.
     """
 
+    sync_engine_class: ClassVar[type[FolderSyncEngine]] = FolderSyncEngine
+
     def __init__(self, account, heartbeat=1, refresh_frequency=30):
         self.refresh_frequency = refresh_frequency
         self.syncmanager_lock = BoundedSemaphore(1)
         self.saved_remote_folders = None
-        self.sync_engine_class = FolderSyncEngine
 
         self.folder_monitors: List[FolderSyncEngine] = []
         self.delete_handler = None

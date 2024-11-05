@@ -1,4 +1,5 @@
 import threading
+from typing import TYPE_CHECKING, ClassVar
 
 from inbox.config import config
 from inbox.interruptible_threading import InterruptibleThread, InterruptibleThreadExit
@@ -6,6 +7,9 @@ from inbox.logging import get_logger
 from inbox.models.session import session_scope
 from inbox.util.concurrency import kill_all, retry_with_logging
 from inbox.util.debug import bind_context
+
+if TYPE_CHECKING:
+    from inbox.mailsync.backends.imap.generic import FolderSyncEngine
 
 log = get_logger()
 
@@ -22,6 +26,8 @@ class MailsyncDone(InterruptibleThreadExit):
 
 
 class BaseMailSyncMonitor(InterruptibleThread):
+    sync_engine_class: ClassVar[type["FolderSyncEngine"]]
+
     """
     The SYNC_MONITOR_CLS for all mail sync providers should subclass this.
 

@@ -1,0 +1,7 @@
+austin-dist==3.7.0
+memray==1.14.0
+rich==13.9.2
+textual==0.82.0
+markdown-it-py==3.0.0
+mdurl==0.1.2
+platformdirs==4.3.6

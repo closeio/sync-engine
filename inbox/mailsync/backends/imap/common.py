@@ -12,11 +12,12 @@ accounts.
 
 """
 
+from collections import defaultdict
 from datetime import datetime
-from typing import List, Set
+from typing import List, Set, assert_never
 
 from sqlalchemy import bindparam, desc
-from sqlalchemy.orm import Query, Session
+from sqlalchemy.orm import Query, Session, joinedload
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql.expression import func
 
@@ -24,11 +25,14 @@ from inbox.contacts.processing import update_contacts_from_message
 from inbox.crispin import RawMessage
 from inbox.logging import get_logger
 from inbox.models import Account, ActionLog, Folder, Message, MessageCategory
-from inbox.models.backends.imap import ImapFolderInfo, ImapUid
+from inbox.models.account import CategoryType
+from inbox.models.backends.imap import ImapFolderInfo, ImapUid, LabelItem
 from inbox.models.category import Category
+from inbox.models.label import Label
 from inbox.models.session import session_scope
 from inbox.models.util import reconcile_message
 from inbox.sqlalchemy_ext.util import get_db_api_cursor_with_query
+from inbox.util.itert import chunk
 
 log = get_logger()
 
@@ -77,20 +81,35 @@ IMAPUID_PER_MESSAGE_SANITY_LIMIT = 100
 
 
 def update_message_metadata(
-    session: Session, account: Account, message: Message, is_draft: bool
+    session: Session,
+    account_id: int,
+    category_type: CategoryType,
+    message: Message,
+    is_draft: bool,
 ) -> None:
     """Update the message's metadata"""
+    # We call get_categories on each ImapUid to get the categories for the message.
+    # To avoid N+1 queries, we use joinedload to eagerly load the categories.
+    options = [joinedload(ImapUid.folder).joinedload(Folder.category)]
+    if category_type == "label":
+        options.append(
+            joinedload("labelitems")
+            .joinedload(LabelItem.label)
+            .joinedload(Label.category)
+        )
+
     # Sort imapuids in a way that the ones that were added later come first.
     # There are non-conforming IMAP servers that can list the same message thousands of times
     # in the same folder. This is a workaround to limit the memory pressure caused by such
     # servers. The metadata is meaningless for such messages anyway.
     latest_imapuids = (
         imapuids_for_message_query(
-            account_id=account.id,
+            account_id=account_id,
             message_id=message.id,
             only_latest=IMAPUID_PER_MESSAGE_SANITY_LIMIT,
         )
         .with_session(session)
+        .options(options)
         .all()
     )
 
@@ -99,11 +118,13 @@ def update_message_metadata(
     message.is_draft = is_draft
 
     latest_categories: List[Category] = [
-        category for imapuid in latest_imapuids for category in imapuid.categories
+        category
+        for imapuid in latest_imapuids
+        for category in imapuid.get_categories(category_type)
     ]
 
     categories: Set[Category]
-    if account.category_type == "folder":
+    if category_type == "folder":
         # For generic IMAP we want to deterministically select the last category.
         # A message will always be in a single folder but it seems that for some
         # on-prem servers we are not able to reliably detect when a message is moved
@@ -113,10 +134,10 @@ def update_message_metadata(
         # from the database. This makes it deterministic and more-correct because a message
         # is likely in a folder (and category) it was added to last.
         categories = {latest_categories[0]} if latest_categories else set()
-    elif account.category_type == "label":
+    elif category_type == "label":
         categories = set(latest_categories)
     else:
-        raise AssertionError("Unreachable")
+        assert_never(category_type)
 
     # Use a consistent time across creating categories, message updated_at
     # and the subsequent transaction that may be created.
@@ -204,7 +225,9 @@ def update_metadata(account_id, folder_id, folder_role, new_flags, session):
         if changed:
             change_count += 1
             is_draft = item.is_draft and folder_role in ["drafts", "all"]
-            update_message_metadata(session, account, item.message, is_draft)
+            update_message_metadata(
+                session, account.id, account.category_type, item.message, is_draft
+            )
             session.commit()
     log.info("Updated UID metadata", changed=change_count, out_of=len(new_flags))
 
@@ -221,7 +244,7 @@ def imapuids_for_message_query(
     return query
 
 
-def remove_deleted_uids(account_id, folder_id, uids):
+def remove_deleted_uids(account_id: int, folder_id: int, uids: set[int]) -> None:
     """
     Make sure you're holding a db write lock on the account. (We don't try
     to grab the lock in here in case the caller needs to put higher-level
@@ -230,69 +253,109 @@ def remove_deleted_uids(account_id, folder_id, uids):
     """
     if not uids:
         return
-    deleted_uid_count = 0
-    for uid in uids:
-        # We do this one-uid-at-a-time because issuing many deletes within a
-        # single database transaction is problematic. But loading many
-        # objects into a session and then frequently calling commit() is also
-        # bad, because expiring objects and checking for revisions is O(number
-        # of objects in session), resulting in quadratic runtimes.
-        # Performance could perhaps be additionally improved by choosing a
-        # sane balance, e.g., operating on 10 or 100 uids or something at once.
-        with session_scope(account_id) as db_session:
-            imapuid = (
-                db_session.query(ImapUid)
-                .filter(
+
+    # First, get the category type i.e. folder or label for the account
+    # and message_id corresponding to the uids.
+    with session_scope(account_id) as db_session:
+        category_type = Account.get(account_id, db_session).category_type
+
+        message_ids_and_uid = (
+            db_session.query(ImapUid.message_id, ImapUid.msg_uid)
+            .filter(
+                ImapUid.account_id == account_id,
+                ImapUid.folder_id == folder_id,
+                ImapUid.msg_uid.in_(uids),
+            )
+            .with_hint(
+                ImapUid, "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)"
+            )
+            .all()
+        )
+
+    # Group uids by message_id.
+    uids_by_message_id = defaultdict(list)
+    for message_id, message_uid in message_ids_and_uid:
+        uids_by_message_id[message_id].append(message_uid)
+
+    for message_id, message_uids in uids_by_message_id.items():
+        # Delete the uids in batches of 1000.
+        # This eases the load on MySQL if we are processing a large number of uids.
+        # Some non-conforming IMAP servers can list the same message thousands of times.
+        for message_uid_batch in chunk(message_uids, 1000):
+            with session_scope(account_id) as db_session:
+                db_session.query(ImapUid).filter(
                     ImapUid.account_id == account_id,
                     ImapUid.folder_id == folder_id,
-                    ImapUid.msg_uid == uid,
-                )
-                .with_hint(
+                    ImapUid.msg_uid.in_(message_uid_batch),
+                ).with_hint(
                     ImapUid,
                     "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)",
+                ).delete(
+                    synchronize_session=False
                 )
-                .first()
+                db_session.commit()
+
+        update_message_after_uid_deletion(
+            account_id=account_id, message_id=message_id, category_type=category_type
+        )
+
+    log.info(
+        "Deleted expunged UIDs",
+        uid_count=len(uids),
+        message_count=len(uids_by_message_id),
+    )
+
+
+def update_message_after_uid_deletion(
+    *, account_id: int, message_id: int, category_type: CategoryType
+) -> None:
+    """
+    Update the message after deleting UIDs.
+
+    If the message has no more UIDs, and it's a draft, delete it immediately.
+    If the message has no more UIDs, and it's not a draft, mark it for deletion.
+
+    Args:
+        account_id: The account ID.
+        message_id: The message ID.
+        category_type: The category type for the account i.e. folder or label.
+    """
+    with session_scope(account_id) as db_session:
+        message = db_session.query(Message).get(message_id)
+        if message is None:
+            return
+
+        message_imapuids_exist = db_session.query(
+            imapuids_for_message_query(
+                account_id=account_id, message_id=message.id
+            ).exists()
+        ).scalar()
+
+        if not message_imapuids_exist and message.is_draft:
+            # Synchronously delete drafts.
+            thread = message.thread
+            if thread is not None:
+                thread.messages.remove(message)
+                # Thread.messages relationship is versioned i.e. extra
+                # logic gets executed on remove call.
+                # This early flush is needed so the configure_versioning logic
+                # in inbox.model.sessions can work reliably on newer versions of
+                # SQLAlchemy.
+                db_session.flush()
+            db_session.delete(message)
+            if thread is not None and not thread.messages:
+                db_session.delete(thread)
+        else:
+            update_message_metadata(
+                db_session, account_id, category_type, message, message.is_draft
             )
-            if imapuid is None:
-                continue
-            deleted_uid_count += 1
-            message = imapuid.message
+            if not message_imapuids_exist:
+                # But don't outright delete messages. Just mark them as
+                # 'deleted' and wait for the asynchronous
+                # dangling-message-collector to delete them.
+                message.mark_for_deletion()
 
-            db_session.delete(imapuid)
-
-            if message is not None:
-                message_imapuids_exist = db_session.query(
-                    imapuids_for_message_query(
-                        account_id=account_id, message_id=message.id
-                    ).exists()
-                ).scalar()
-
-                if not message_imapuids_exist and message.is_draft:
-                    # Synchronously delete drafts.
-                    thread = message.thread
-                    if thread is not None:
-                        thread.messages.remove(message)
-                        # Thread.messages relationship is versioned i.e. extra
-                        # logic gets executed on remove call.
-                        # This early flush is needed so the configure_versioning logic
-                        # in inbox.model.sessions can work reliably on newer versions of
-                        # SQLAlchemy.
-                        db_session.flush()
-                    db_session.delete(message)
-                    if thread is not None and not thread.messages:
-                        db_session.delete(thread)
-                else:
-                    account = Account.get(account_id, db_session)
-                    update_message_metadata(
-                        db_session, account, message, message.is_draft
-                    )
-                    if not message_imapuids_exist:
-                        # But don't outright delete messages. Just mark them as
-                        # 'deleted' and wait for the asynchronous
-                        # dangling-message-collector to delete them.
-                        message.mark_for_deletion()
-            db_session.commit()
-    log.info("Deleted expunged UIDs", count=deleted_uid_count)
+        db_session.commit()
 
 
 def get_folder_info(account_id, session, folder_name):
@@ -353,7 +416,9 @@ def create_imap_message(
         is_draft = imapuid.is_draft and (
             folder.canonical_name == "drafts" or folder.canonical_name == "all"
         )
-        update_message_metadata(db_session, account, new_message, is_draft)
+        update_message_metadata(
+            db_session, account.id, account.category_type, new_message, is_draft
+        )
 
     update_contacts_from_message(db_session, new_message, account.namespace.id)
 

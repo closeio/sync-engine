@@ -98,7 +98,7 @@ def update_message_metadata(
     message.is_starred = any(imapuid.is_flagged for imapuid in latest_imapuids)
     message.is_draft = is_draft
 
-    sorted_categories: List[Category] = [
+    latest_categories: List[Category] = [
         category for imapuid in latest_imapuids for category in imapuid.categories
     ]
 
@@ -112,9 +112,9 @@ def update_message_metadata(
         # (and in turn one category) depending on the order they were returned
         # from the database. This makes it deterministic and more-correct because a message
         # is likely in a folder (and category) it was added to last.
-        categories = {sorted_categories[0]} if sorted_categories else set()
+        categories = {latest_categories[0]} if latest_categories else set()
     elif account.category_type == "label":
-        categories = set(sorted_categories)
+        categories = set(latest_categories)
     else:
         raise AssertionError("Unreachable")
 

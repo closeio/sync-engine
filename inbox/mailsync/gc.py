@@ -11,7 +11,6 @@ from inbox.logging import get_logger
 from inbox.mailsync.backends.imap import common
 from inbox.mailsync.backends.imap.generic import uidvalidity_cb
 from inbox.models import Message, Thread
-from inbox.models.backends.imap import ImapUid
 from inbox.models.category import EPOCH, Category
 from inbox.models.folder import Folder
 from inbox.models.message import MessageCategory
@@ -103,7 +102,7 @@ class DeleteHandler(InterruptibleThread):
                 try:
                     message_imapuids_exist = db_session.query(
                         common.imapuids_for_message_query(
-                            ImapUid, account_id=self.account_id, message_id=message.id
+                            account_id=self.account_id, message_id=message.id
                         ).exists()
                     ).scalar()
                 except ObjectDeletedError:

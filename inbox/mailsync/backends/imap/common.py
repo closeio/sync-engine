@@ -86,7 +86,6 @@ def update_message_metadata(
     # servers. The metadata is meaningless for such messages anyway.
     latest_imapuids = (
         imapuids_for_message_query(
-            ImapUid,
             account_id=account.id,
             message_id=message.id,
             only_latest=IMAPUID_PER_MESSAGE_SANITY_LIMIT,
@@ -211,9 +210,9 @@ def update_metadata(account_id, folder_id, folder_role, new_flags, session):
 
 
 def imapuids_for_message_query(
-    entity, *, account_id: int, message_id: int, only_latest: int | None = None
+    *, account_id: int, message_id: int, only_latest: int | None = None
 ) -> Query:
-    query = Query([entity]).filter(
+    query = Query([ImapUid]).filter(
         ImapUid.account_id == account_id, ImapUid.message_id == message_id
     )
     if only_latest is not None:
@@ -264,7 +263,7 @@ def remove_deleted_uids(account_id, folder_id, uids):
             if message is not None:
                 message_imapuids_exist = db_session.query(
                     imapuids_for_message_query(
-                        ImapUid, account_id=account_id, message_id=message.id
+                        account_id=account_id, message_id=message.id
                     ).exists()
                 ).scalar()
 

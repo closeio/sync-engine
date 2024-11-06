@@ -44,10 +44,6 @@ class DeleteHandler(InterruptibleThread):
     ----------
     account_id, namespace_id: int
         IDs for the namespace to check.
-    uid_accessor: function
-        Function that takes a message and returns a list of associated uid
-        objects. For IMAP sync, this would just be
-        `uid_accessor=lambda m: m.imapuids`
     message_ttl: int
         Number of seconds to wait after a message is marked for deletion before
         deleting it for good.
@@ -59,7 +55,6 @@ class DeleteHandler(InterruptibleThread):
         account_id,
         namespace_id,
         provider_name,
-        uid_accessor,
         message_ttl=DEFAULT_MESSAGE_TTL,
         thread_ttl=DEFAULT_THREAD_TTL,
     ):
@@ -67,7 +62,6 @@ class DeleteHandler(InterruptibleThread):
         self.account_id = account_id
         self.namespace_id = namespace_id
         self.provider_name = provider_name
-        self.uids_for_message = uid_accessor
         self.log = log.new(account_id=account_id)
         self.message_ttl = datetime.timedelta(seconds=message_ttl)
         self.thread_ttl = datetime.timedelta(seconds=thread_ttl)
@@ -106,14 +100,18 @@ class DeleteHandler(InterruptibleThread):
                 # If the message isn't *actually* dangling (i.e., it has
                 # imapuids associated with it), undelete it.
                 try:
-                    uids_for_message = self.uids_for_message(message)
+                    message_imapuids_exist = db_session.query(
+                        common.imapuids_for_message_query(
+                            account_id=self.account_id, message_id=message.id
+                        ).exists()
+                    ).scalar()
                 except ObjectDeletedError:
                     # It looks like we are expiring the session potentially when one message is deleted,
                     # and then when accessing the IMAP uids, there is a lazy load trying to get the data.
                     # If that object has also been deleted (how?) it raises this exception.
                     continue
 
-                if uids_for_message:
+                if message_imapuids_exist:
                     message.deleted_at = None
                     continue
 

@@ -16,7 +16,7 @@ from datetime import datetime
 from typing import List, Set
 
 from sqlalchemy import bindparam, desc
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Query, Session
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql.expression import func
 
@@ -73,22 +73,33 @@ def lastseenuid(account_id, session, folder_id):
     return res or 0
 
 
+IMAPUID_PER_MESSAGE_SANITY_LIMIT = 100
+
+
 def update_message_metadata(
     session: Session, account: Account, message: Message, is_draft: bool
 ) -> None:
     """Update the message's metadata"""
-    # Sort imapuids in a way that the ones that were added later come last
-    now = datetime.utcnow()
-    sorted_imapuids: List[ImapUid] = sorted(
-        message.imapuids, key=lambda imapuid: imapuid.updated_at or now
+    # Sort imapuids in a way that the ones that were added later come first.
+    # There are non-conforming IMAP servers that can list the same message thousands of times
+    # in the same folder. This is a workaround to limit the memory pressure caused by such
+    # servers. The metadata is meaningless for such messages anyway.
+    latest_imapuids = (
+        imapuids_for_message_query(
+            account_id=account.id,
+            message_id=message.id,
+            only_latest=IMAPUID_PER_MESSAGE_SANITY_LIMIT,
+        )
+        .with_session(session)
+        .all()
     )
 
-    message.is_read = any(imapuid.is_seen for imapuid in sorted_imapuids)
-    message.is_starred = any(imapuid.is_flagged for imapuid in sorted_imapuids)
+    message.is_read = any(imapuid.is_seen for imapuid in latest_imapuids)
+    message.is_starred = any(imapuid.is_flagged for imapuid in latest_imapuids)
     message.is_draft = is_draft
 
-    sorted_categories: List[Category] = [
-        category for imapuid in sorted_imapuids for category in imapuid.categories
+    latest_categories: List[Category] = [
+        category for imapuid in latest_imapuids for category in imapuid.categories
     ]
 
     categories: Set[Category]
@@ -101,9 +112,9 @@ def update_message_metadata(
         # (and in turn one category) depending on the order they were returned
         # from the database. This makes it deterministic and more-correct because a message
         # is likely in a folder (and category) it was added to last.
-        categories = {sorted_categories[-1]} if sorted_categories else set()
+        categories = {latest_categories[0]} if latest_categories else set()
     elif account.category_type == "label":
-        categories = set(sorted_categories)
+        categories = set(latest_categories)
     else:
         raise AssertionError("Unreachable")
 
@@ -198,6 +209,18 @@ def update_metadata(account_id, folder_id, folder_role, new_flags, session):
     log.info("Updated UID metadata", changed=change_count, out_of=len(new_flags))
 
 
+def imapuids_for_message_query(
+    *, account_id: int, message_id: int, only_latest: int | None = None
+) -> Query:
+    query = Query([ImapUid]).filter(
+        ImapUid.account_id == account_id, ImapUid.message_id == message_id
+    )
+    if only_latest is not None:
+        query = query.order_by(ImapUid.updated_at.desc()).limit(only_latest)
+
+    return query
+
+
 def remove_deleted_uids(account_id, folder_id, uids):
     """
     Make sure you're holding a db write lock on the account. (We don't try
@@ -238,7 +261,13 @@ def remove_deleted_uids(account_id, folder_id, uids):
             db_session.delete(imapuid)
 
             if message is not None:
-                if not message.imapuids and message.is_draft:
+                message_imapuids_exist = db_session.query(
+                    imapuids_for_message_query(
+                        account_id=account_id, message_id=message.id
+                    ).exists()
+                ).scalar()
+
+                if not message_imapuids_exist and message.is_draft:
                     # Synchronously delete drafts.
                     thread = message.thread
                     if thread is not None:
@@ -257,7 +286,7 @@ def remove_deleted_uids(account_id, folder_id, uids):
                     update_message_metadata(
                         db_session, account, message, message.is_draft
                     )
-                    if not message.imapuids:
+                    if not message_imapuids_exist:
                         # But don't outright delete messages. Just mark them as
                         # 'deleted' and wait for the asynchronous
                         # dangling-message-collector to delete them.

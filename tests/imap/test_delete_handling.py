@@ -89,7 +89,6 @@ def test_deletion_with_short_ttl(
         account_id=default_account.id,
         namespace_id=default_namespace.id,
         provider_name=default_account.provider,
-        uid_accessor=lambda m: m.imapuids,
         message_ttl=0,
         thread_ttl=0,
     )
@@ -110,7 +109,6 @@ def test_thread_deletion_with_short_ttl(
         account_id=default_account.id,
         namespace_id=default_namespace.id,
         provider_name=default_account.provider,
-        uid_accessor=lambda m: m.imapuids,
         message_ttl=0,
         thread_ttl=120,
     )
@@ -148,7 +146,6 @@ def test_non_orphaned_messages_get_unmarked(
         account_id=default_account.id,
         namespace_id=default_namespace.id,
         provider_name=default_account.provider,
-        uid_accessor=lambda m: m.imapuids,
         message_ttl=0,
     )
     handler.check(marked_deleted_message.deleted_at + timedelta(seconds=1))
@@ -165,7 +162,6 @@ def test_threads_only_deleted_when_no_messages_left(
         account_id=default_account.id,
         namespace_id=default_namespace.id,
         provider_name=default_account.provider,
-        uid_accessor=lambda m: m.imapuids,
         message_ttl=0,
     )
     # Add another message onto the thread
@@ -187,7 +183,6 @@ def test_deletion_deferred_with_longer_ttl(
         account_id=default_account.id,
         namespace_id=default_namespace.id,
         provider_name=default_account.provider,
-        uid_accessor=lambda m: m.imapuids,
         message_ttl=5,
     )
     db.session.commit()
@@ -207,7 +202,6 @@ def test_deletion_creates_revision(
         account_id=default_account.id,
         namespace_id=default_namespace.id,
         provider_name=default_account.provider,
-        uid_accessor=lambda m: m.imapuids,
         message_ttl=0,
     )
     handler.check(marked_deleted_message.deleted_at + timedelta(seconds=1))
@@ -270,7 +264,6 @@ def test_deleted_labels_get_gced(
         account_id=default_account.id,
         namespace_id=default_namespace.id,
         provider_name=default_account.provider,
-        uid_accessor=lambda m: m.imapuids,
         message_ttl=0,
     )
     handler.gc_deleted_categories()

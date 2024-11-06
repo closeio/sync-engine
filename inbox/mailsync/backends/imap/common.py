@@ -262,15 +262,13 @@ def remove_deleted_uids(account_id, folder_id, uids):
             db_session.delete(imapuid)
 
             if message is not None:
-                message_imapuids_count = (
+                message_imapuids_exist = db_session.query(
                     imapuids_for_message_query(
                         ImapUid, account_id=account_id, message_id=message.id
-                    )
-                    .with_session(db_session)
-                    .count()
-                )
+                    ).exists()
+                ).scalar()
 
-                if not message_imapuids_count and message.is_draft:
+                if not message_imapuids_exist and message.is_draft:
                     # Synchronously delete drafts.
                     thread = message.thread
                     if thread is not None:
@@ -289,7 +287,7 @@ def remove_deleted_uids(account_id, folder_id, uids):
                     update_message_metadata(
                         db_session, account, message, message.is_draft
                     )
-                    if not message_imapuids_count:
+                    if not message_imapuids_exist:
                         # But don't outright delete messages. Just mark them as
                         # 'deleted' and wait for the asynchronous
                         # dangling-message-collector to delete them.

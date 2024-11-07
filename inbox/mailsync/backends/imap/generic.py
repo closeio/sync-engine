@@ -801,8 +801,8 @@ class FolderSyncEngine(InterruptibleThread):
         latest_uids = crispin_client.conn.fetch(f"{lastseenuid + 1}:*", ["UID"]).keys()
         new_uids = set(latest_uids) - {lastseenuid}
         if new_uids:
-            for uid in sorted(new_uids):
-                self.download_and_commit_uids(crispin_client, [uid])
+            for new_uid_chunk in chunk(sorted(new_uids, reverse=True), 100):
+                self.download_and_commit_uids(crispin_client, new_uid_chunk)
         self.uidnext = remote_uidnext
 
     def condstore_refresh_flags(self, crispin_client: CrispinClient) -> None:

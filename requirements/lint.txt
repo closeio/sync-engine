@@ -13,7 +13,7 @@ flake8-sfs==1.0.0
 flake8-tidy-imports==4.10.0
 mccabe==0.7.0
 mypy==1.13.0
-regex==2024.9.11
+regex==2024.11.6
 packaging==24.1
 pathspec==0.12.1
 platformdirs==4.3.6

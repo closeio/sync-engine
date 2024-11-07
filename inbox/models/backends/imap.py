@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from typing import List, Set
+from typing import List, assert_never
 
 from sqlalchemy import (
     BigInteger,
@@ -20,7 +20,7 @@ from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.sql.expression import false
 
 from inbox.logging import get_logger
-from inbox.models.account import Account
+from inbox.models.account import Account, CategoryType
 from inbox.models.base import MailSyncBase
 from inbox.models.category import Category
 from inbox.models.folder import Folder
@@ -209,11 +209,19 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     def namespace(self):
         return self.imapaccount.namespace
 
-    @property
-    def categories(self) -> Set[Category]:
-        categories = {label.category for label in self.labels}
-        categories.add(self.folder.category)
-        return categories
+    def get_categories(self, category_type: CategoryType) -> set[Category]:
+        """
+        Returns the categories this uid belongs to.
+
+        Args:
+            category_type: The category type for the account this uid belongs to.
+        """
+        if category_type == "label":
+            return {label.category for label in self.labels} | {self.folder.category}
+        elif category_type == "folder":
+            return {self.folder.category}
+        else:
+            assert_never(category_type)
 
     __table_args__ = (
         UniqueConstraint("folder_id", "msg_uid", "account_id"),

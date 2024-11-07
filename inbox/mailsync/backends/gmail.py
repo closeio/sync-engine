@@ -281,7 +281,11 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 uid.update_flags(raw_message.flags)
                 uid.update_labels(raw_message.g_labels)
                 common.update_message_metadata(
-                    db_session, account, message_obj, uid.is_draft
+                    db_session,
+                    account.id,
+                    account.category_type,
+                    message_obj,
+                    uid.is_draft,
                 )
                 db_session.commit()
 

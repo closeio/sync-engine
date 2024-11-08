@@ -877,7 +877,9 @@ class FolderSyncEngine(InterruptibleThread):
                     self.account_id, db_session, self.folder_id
                 )
 
-            new_uids = remote_uids.difference(local_uids)
+            new_uids = (
+                remote_uids.difference(local_uids) if self.state != "initial" else None
+            )
             expunged_uids = local_uids.difference(remote_uids)
             del local_uids  # free memory as soon as possible
             max_remote_uid = max(remote_uids) if remote_uids else 0
@@ -933,7 +935,9 @@ class FolderSyncEngine(InterruptibleThread):
                     self.account_id, db_session, self.folder_id
                 )
 
-            new_uids = remote_uids.difference(local_uids)
+            new_uids = (
+                remote_uids.difference(local_uids) if self.state != "initial" else None
+            )
             expunged_uids = local_uids.difference(remote_uids)
             del local_uids  # free memory as soon as possible
             del remote_uids  # free memory as soon as possible

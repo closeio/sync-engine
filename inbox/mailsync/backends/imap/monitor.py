@@ -165,6 +165,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                 account_id=self.account_id,
                 namespace_id=self.namespace_id,
                 provider_name=self.provider_name,
+                uid_accessor=lambda m: m.imapuids,
             )
             self.delete_handler.start()
 

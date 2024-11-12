@@ -37,7 +37,7 @@ def test_messages_deleted_asynchronously(
         db.session,
     )
     assert "label" in [cat.display_name for cat in message.categories]
-    remove_deleted_uids(default_account.id, folder.id, {msg_uid})
+    remove_deleted_uids(default_account.id, folder.id, [msg_uid])
     db.session.expire_all()
     assert abs((message.deleted_at - datetime.utcnow()).total_seconds()) < 2
     # Check that message categories do get updated synchronously.
@@ -50,7 +50,7 @@ def test_drafts_deleted_synchronously(
     message.is_draft = True
     db.session.commit()
     msg_uid = imapuid.msg_uid
-    remove_deleted_uids(default_account.id, folder.id, {msg_uid})
+    remove_deleted_uids(default_account.id, folder.id, [msg_uid])
     db.session.expire_all()
     with pytest.raises(ObjectDeletedError):
         message.id
@@ -72,7 +72,7 @@ def test_deleting_from_a_message_with_multiple_uids(
 
     assert len(message.imapuids) == 2
 
-    remove_deleted_uids(default_account.id, inbox_folder.id, {2222})
+    remove_deleted_uids(default_account.id, inbox_folder.id, [2222])
     db.session.expire_all()
 
     assert (

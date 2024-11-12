@@ -32,13 +32,7 @@ def folder_and_message_maps(db, default_account):
         # Create a message in the folder
         message = add_fake_message(db.session, default_account.namespace.id, thread)
         add_fake_imapuid(db.session, default_account.id, message, folder, 13)
-        update_message_metadata(
-            db.session,
-            default_account.id,
-            default_account.category_type,
-            message,
-            False,
-        )
+        update_message_metadata(db.session, default_account, message, False)
         db.session.commit()
         folder_map[name] = folder
         message_map[name] = message
@@ -48,18 +42,11 @@ def folder_and_message_maps(db, default_account):
 def add_inbox_label(db, default_account, message):
     assert len(message.imapuids) == 1
     imapuid = message.imapuids[0]
-    assert {c.name for c in imapuid.get_categories(default_account.category_type)} == {
-        "all"
-    }
+    assert {c.name for c in imapuid.categories} == {"all"}
     imapuid.update_labels(["\\Inbox"])
     db.session.commit()
-    assert {c.name for c in imapuid.get_categories(default_account.category_type)} == {
-        "all",
-        "inbox",
-    }
-    update_message_metadata(
-        db.session, default_account.id, default_account.category_type, message, False
-    )
+    assert {c.name for c in imapuid.categories} == {"all", "inbox"}
+    update_message_metadata(db.session, default_account, message, False)
     db.session.commit()
     return message
 
@@ -67,18 +54,11 @@ def add_inbox_label(db, default_account, message):
 def add_custom_label(db, default_account, message):
     assert len(message.imapuids) == 1
     imapuid = message.imapuids[0]
-    existing = [c.name for c in imapuid.get_categories(default_account.category_type)][
-        0
-    ]
+    existing = [c.name for c in imapuid.categories][0]
     imapuid.update_labels(["<3"])
     db.session.commit()
-    assert {c.name for c in imapuid.get_categories(default_account.category_type)} == {
-        existing,
-        "",
-    }
-    update_message_metadata(
-        db.session, default_account.id, default_account.category_type, message, False
-    )
+    assert {c.name for c in imapuid.categories} == {existing, ""}
+    update_message_metadata(db.session, default_account, message, False)
     db.session.commit()
     return message
 

@@ -68,9 +68,7 @@ def test_update_categories_when_actionlog_entry_missing(
 ):
     message.categories_changes = True
     db.session.commit()
-    update_message_metadata(
-        db.session, imapuid.account.id, imapuid.account.category_type, message, False
-    )
+    update_message_metadata(db.session, imapuid.account, message, False)
     assert message.categories == {imapuid.folder.category}
 
 
@@ -114,9 +112,7 @@ def test_categories_from_multiple_imap_folders(
         imapuid.updated_at = imapuid.updated_at + datetime.timedelta(seconds=delay)
         db.session.commit()
 
-    update_message_metadata(
-        db.session, generic_account.id, generic_account.category_type, message, False
-    )
+    update_message_metadata(db.session, generic_account, message, False)
     assert {category.name for category in message.categories} == categories
 
     delete_imapuids(db.session)

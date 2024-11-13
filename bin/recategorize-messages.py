@@ -2,11 +2,13 @@
 
 import datetime
 from collections.abc import Iterable
+from typing import Literal
 
 import click
 from sqlalchemy.orm import Query
 
 from inbox.mailsync.backends.imap.common import update_message_metadata
+from inbox.models.account import Account
 from inbox.models.backends.imap import ImapUid
 from inbox.models.folder import Folder
 from inbox.models.message import Message
@@ -25,14 +27,24 @@ def get_total_namespace_count(*, only_account_id: int | None) -> int:
         return namespace_query.with_session(session).count()
 
 
+AccountType = Literal["gmail", "generic", "outlook"]
+ALL_ACCOUNT_TYPES = frozenset({"gmail", "generic", "outlook"})
+
+
 def yield_account_id_and_message_ids(
     *,
     only_account_id: int | None,
     date_start: datetime.date | None,
     date_end: datetime.date | None,
     only_inbox: bool,
+    only_types: set[AccountType] = ALL_ACCOUNT_TYPES,
 ) -> Iterable[int, list[int]]:
-    namespace_query = Query([Namespace.account_id, Namespace.id])
+    discriminators = {account_type + "account" for account_type in only_types}
+    namespace_query = (
+        Query([Namespace.account_id, Namespace.id])
+        .join(Namespace.account)
+        .filter(Account.discriminator.in_(discriminators))
+    )
     if only_account_id:
         namespace_query = namespace_query.filter(
             Namespace.account_id == only_account_id
@@ -66,10 +78,12 @@ def yield_account_id_and_message_ids(
 @click.option("--date-end", type=click.DateTime(formats=["%Y-%m-%d"]), default=None)
 @click.option("--only-account-id", type=int, default=None)
 @click.option("--only-inbox", is_flag=True, default=False)
+@click.option("--only-types", default=",".join(ALL_ACCOUNT_TYPES))
 @click.option("--dry-run/--no-dry-run", default=True)
 def main(
     only_account_id: int | None,
     only_inbox: bool,
+    only_types: str,
     date_start: datetime.date | None,
     date_end: datetime.date | None,
     dry_run: bool,
@@ -90,6 +104,7 @@ def main(
             date_start=date_start,
             date_end=date_end,
             only_inbox=only_inbox,
+            only_types=only_types.split(","),
         ),
         start=1,
     ):

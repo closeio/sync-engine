@@ -99,11 +99,15 @@ def main(
         for message_id in message_ids:
             with session_factory() as session:
                 message = session.query(Message).get(message_id)
-                old_categories = set(category.name for category in message.categories)
+                old_categories = set(
+                    category.name for category in message.categories if category.name
+                )
                 update_message_metadata(
                     session, message.account, message, message.is_draft
                 )
-                new_categories = set(category.name for category in message.categories)
+                new_categories = set(
+                    category.name for category in message.categories if category.name
+                )
                 if old_categories != new_categories:
                     changed_counter += 1
                     print(

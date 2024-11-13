@@ -15,9 +15,19 @@ from inbox.models.message import Message
 from inbox.models.namespace import Namespace
 from inbox.models.session import global_session_scope, session_scope
 
+AccountType = Literal["gmail", "generic", "outlook"]
+ALL_ACCOUNT_TYPES = frozenset({"gmail", "generic", "outlook"})
 
-def get_total_namespace_count(*, only_account_id: int | None) -> int:
-    namespace_query = Query([Namespace.id])
+
+def get_total_namespace_count(
+    *, only_account_id: int | None, only_types: set[AccountType] = ALL_ACCOUNT_TYPES
+) -> int:
+    discriminators = {account_type + "account" for account_type in only_types}
+    namespace_query = (
+        Query([Namespace])
+        .join(Namespace.account)
+        .filter(Account.discriminator.in_(discriminators))
+    )
     if only_account_id:
         namespace_query = namespace_query.filter(
             Namespace.account_id == only_account_id
@@ -25,10 +35,6 @@ def get_total_namespace_count(*, only_account_id: int | None) -> int:
 
     with global_session_scope() as session:
         return namespace_query.with_session(session).count()
-
-
-AccountType = Literal["gmail", "generic", "outlook"]
-ALL_ACCOUNT_TYPES = frozenset({"gmail", "generic", "outlook"})
 
 
 def yield_account_id_and_message_ids(
@@ -92,7 +98,9 @@ def main(
         f"Settings: {only_account_id=}, {only_inbox=}, {date_start=}, {date_end=}, {dry_run=}\n"
     )
 
-    total_namespace_count = get_total_namespace_count(only_account_id=only_account_id)
+    total_namespace_count = get_total_namespace_count(
+        only_account_id=only_account_id, only_types=set(only_types.split(","))
+    )
     print(f"{total_namespace_count=}\n")
 
     def session_factory():

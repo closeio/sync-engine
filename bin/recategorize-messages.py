@@ -14,6 +14,17 @@ from inbox.models.namespace import Namespace
 from inbox.models.session import global_session_scope, session_scope
 
 
+def get_total_namespace_count(*, only_account_id: int | None) -> int:
+    namespace_query = Query([Namespace.id])
+    if only_account_id:
+        namespace_query = namespace_query.filter(
+            Namespace.account_id == only_account_id
+        )
+
+    with global_session_scope() as session:
+        return namespace_query.with_session(session).count()
+
+
 def yield_account_id_and_message_ids(
     *,
     only_account_id: int | None,
@@ -67,14 +78,20 @@ def main(
         f"Settings: {only_account_id=}, {only_inbox=}, {date_start=}, {date_end=}, {dry_run=}\n"
     )
 
+    total_namespace_count = get_total_namespace_count(only_account_id=only_account_id)
+    print(f"{total_namespace_count=}\n")
+
     def session_factory():
         return global_session_scope() if dry_run else session_scope(None)
 
-    for account_id, message_ids in yield_account_id_and_message_ids(
-        only_account_id=only_account_id,
-        date_start=date_start,
-        date_end=date_end,
-        only_inbox=only_inbox,
+    for progress, (account_id, message_ids) in enumerate(
+        yield_account_id_and_message_ids(
+            only_account_id=only_account_id,
+            date_start=date_start,
+            date_end=date_end,
+            only_inbox=only_inbox,
+        ),
+        start=1,
     ):
         print(f"{account_id=}, {len(message_ids)=}")
 
@@ -82,20 +99,19 @@ def main(
         for message_id in message_ids:
             with session_factory() as session:
                 message = session.query(Message).get(message_id)
-                old_categories = set(
-                    category.display_name for category in message.categories
-                )
+                old_categories = set(category.name for category in message.categories)
                 update_message_metadata(
                     session, message.account, message, message.is_draft
                 )
-                new_categories = set(
-                    category.display_name for category in message.categories
-                )
+                new_categories = set(category.name for category in message.categories)
                 if old_categories != new_categories:
                     changed_counter += 1
-                    print(f"\t{message_id=}, {old_categories=} to {new_categories}=")
+                    print(
+                        f"\t{message.id=}, {message.message_id_header=}, {old_categories=} to {new_categories=}"
+                    )
 
-        print(f"{account_id=}, {changed_counter=}\n")
+        print(f"{account_id=}, {changed_counter=}")
+        print(f"{progress=}, {total_namespace_count=}\n")
 
 
 if __name__ == "__main__":

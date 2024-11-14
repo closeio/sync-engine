@@ -19,12 +19,12 @@ AccountType = Literal["gmail", "generic", "outlook"]
 ALL_ACCOUNT_TYPES = frozenset({"gmail", "generic", "outlook"})
 
 
-def get_total_namespace_count(
-    *, only_account_id: int | None, only_types: set[AccountType] = ALL_ACCOUNT_TYPES
-) -> int:
+def get_namespace_query(
+    entities: list, *, only_account_id: int | None, only_types: set[AccountType]
+) -> Query:
     discriminators = {account_type + "account" for account_type in only_types}
     namespace_query = (
-        Query([Namespace])
+        Query(entities)
         .join(Namespace.account)
         .filter(Account.discriminator.in_(discriminators))
     )
@@ -32,6 +32,16 @@ def get_total_namespace_count(
         namespace_query = namespace_query.filter(
             Namespace.account_id == only_account_id
         )
+
+    return namespace_query
+
+
+def get_total_namespace_count(
+    *, only_account_id: int | None, only_types: set[AccountType] = ALL_ACCOUNT_TYPES
+) -> int:
+    namespace_query = get_namespace_query(
+        [Namespace], only_account_id=only_account_id, only_types=only_types
+    )
 
     with global_session_scope() as session:
         return namespace_query.with_session(session).count()
@@ -45,16 +55,11 @@ def yield_account_id_and_message_ids(
     only_inbox: bool,
     only_types: set[AccountType] = ALL_ACCOUNT_TYPES,
 ) -> Iterable[int, list[int]]:
-    discriminators = {account_type + "account" for account_type in only_types}
-    namespace_query = (
-        Query([Namespace.account_id, Namespace.id])
-        .join(Namespace.account)
-        .filter(Account.discriminator.in_(discriminators))
+    namespace_query = get_namespace_query(
+        [Namespace.account_id, Namespace.id],
+        only_account_id=only_account_id,
+        only_types=only_types,
     )
-    if only_account_id:
-        namespace_query = namespace_query.filter(
-            Namespace.account_id == only_account_id
-        )
 
     with global_session_scope() as session:
         account_id_to_namespace_id = {

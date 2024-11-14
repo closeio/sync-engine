@@ -90,11 +90,13 @@ def yield_account_id_and_message_ids(
 @click.option("--only-account-id", type=int, default=None)
 @click.option("--only-inbox", is_flag=True, default=False)
 @click.option("--only-types", default=",".join(ALL_ACCOUNT_TYPES))
+@click.option("--only-categories", default=None)
 @click.option("--dry-run/--no-dry-run", default=True)
 def main(
     only_account_id: int | None,
     only_inbox: bool,
     only_types: str,
+    only_categories: str | None,
     date_start: datetime.date | None,
     date_end: datetime.date | None,
     dry_run: bool,
@@ -137,6 +139,12 @@ def main(
                     category.name for category in message.categories if category.name
                 )
                 if old_categories != new_categories:
+                    if only_categories and not new_categories & only_categories.split(
+                        ","
+                    ):
+                        session.rollback()
+                        continue
+
                     changed_counter += 1
                     print(
                         f"\t{message.id=}, {message.message_id_header=}, {old_categories=} to {new_categories=}"

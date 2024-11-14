@@ -76,7 +76,7 @@ def yield_account_id_and_message_ids(
         if date_start:
             query = query.filter(Message.created_at >= date_start)
         if date_end:
-            query = query.filter(Message.created_at < date_end)
+            query = query.filter(Message.created_at <= date_end)
 
         with global_session_scope() as session:
             message_ids = [message_id for message_id, in query.with_session(session)]

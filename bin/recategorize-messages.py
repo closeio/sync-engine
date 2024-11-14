@@ -156,8 +156,8 @@ def main(
                     category.name for category in message.categories if category.name
                 )
                 if old_categories != new_categories:
-                    if only_categories and not new_categories & only_categories.split(
-                        ","
+                    if only_categories and not new_categories & set(
+                        only_categories.split(",")
                     ):
                         session.rollback()
                         continue

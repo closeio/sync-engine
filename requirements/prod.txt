@@ -82,6 +82,6 @@ urllib3==1.26.20
 vobject==0.9.6.1
 wcwidth==0.2.6
 WebOb==1.8.8
-Werkzeug==3.0.3
+Werkzeug==3.0.6
 zipp==3.20.2
 zstandard==0.23.0

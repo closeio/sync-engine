@@ -25,6 +25,9 @@ services:
        - MINIO_BUCKET_NAME=sync-engine
        - MINIO_DOMAIN=minio
 
+  greenmail:
+    image: greenmail/standalone:1.6.14
+
   app:
     image: sync-engine_app
     build:
@@ -38,6 +41,7 @@ services:
       - redis
       - mysql
       - minio
+      - greenmail
 
   # for running code formatting, isort
   devtools:

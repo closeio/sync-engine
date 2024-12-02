@@ -18,7 +18,7 @@ packaging==24.2
 pathspec==0.12.1
 platformdirs==4.3.6
 pyflakes==3.2.0
-pycodestyle==2.9.1
+pycodestyle==2.12.1
 toml==0.10.2
 tomli==2.2.1
 typed-ast==1.5.5

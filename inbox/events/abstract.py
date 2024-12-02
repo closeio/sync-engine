@@ -1,6 +1,6 @@
 import abc
 import datetime
-from typing import Dict, List, Optional
+from typing import Dict, Iterable, List, Optional
 
 from inbox.events.util import CalendarSyncResponse
 from inbox.logging import get_logger
@@ -39,7 +39,7 @@ class AbstractEventsProvider(abc.ABC):
     @abc.abstractmethod
     def sync_events(
         self, calendar_uid: str, sync_from_time: Optional[datetime.datetime] = None
-    ) -> List[Event]:
+    ) -> Iterable[Event]:
         """
         Fetch event data for an individual calendar.
 
@@ -49,7 +49,7 @@ class AbstractEventsProvider(abc.ABC):
                     changed since this time.
 
         Returns:
-            A list of uncommited Event instances
+            An iterable of uncommited Event instances
         """
         raise NotImplementedError()
 

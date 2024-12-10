@@ -62,7 +62,7 @@ RUN apt-get update \
 
 COPY /requirements/ /requirements/
 RUN python3.12 -m venv /opt/venv && \
-  /opt/venv/bin/python3.12 -m pip install --no-cache --no-deps -r /requirements/prod.txt -r /requirements/test.txt && \
+  /opt/venv/bin/python3.12 -m pip install --no-cache --no-deps -r /requirements/requirements-prod.txt -r /requirements/requirements-test.txt && \
   /opt/venv/bin/python3.12 -m pip check
 
 

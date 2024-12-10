@@ -31,14 +31,11 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --no-deps -r requirements/lint.txt
 
-      - name: Run Black
+      - name: Black
         run: black --check .
 
-      - name: Run isort
-        run: isort -c .
-
-      - name: Run flake8
-        run: flake8
+      - name: Ruff
+        run: ruff check --no-cache --output-format github .
 
 
   build:

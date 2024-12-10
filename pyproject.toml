@@ -1,15 +1,155 @@
-[tool.isort]
-skip = ['venv']
-known_first_party = 'inbox'
-known_tests = 'tests'
-sections = ['FUTURE', 'STDLIB', 'THIRDPARTY', 'FIRSTPARTY', 'TESTS', 'LOCALFOLDER']
-default_section = 'THIRDPARTY'
-use_parentheses = true
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-combine_as_imports = true
-line_length = 88
-
 [tool.black]
 skip-magic-trailing-comma = true
+target-version = ["py312"]
+line-length = 79
+
+[tool.ruff]
+target-version = "py312"
+line-length = 79
+preview = true
+force-exclude = true
+
+[tool.ruff.lint]
+explicit-preview-rules = true
+ignore = [
+    # Missing docstrings
+    "D1",
+    # One-line docstring should fit on one line with quotes.
+    # We ignore this because it's OK to buy yourself a few extra characters
+    # for the summary line even if the summary line is *the only* line.
+    "D200",
+    # 1 blank line required between summary line and description. We ignore
+    # this because we have quite a few docstrings where the summary is
+    # multi-line.
+    "D205",
+    # Multi-line docstring summary should start at the first line.
+    # We ignore this because we agreed in #20553 that we we want to put the
+    # summary line below """ for multi-line docstrings.
+    "D212",
+    # First line should end with a period. We ignore this because we have
+    # multi-line summaries.
+    "D400",
+    # First line should end with a period, question mark, or exclamation point.
+    # We ignore this because we have multi-line summaries.
+    "D415",
+    "E501",
+    "E741",
+    # Exceptions named with Error
+    "N818",
+    # Return `bool(x)` instead of `if x: return True else return False`
+    # This can result in awkward style inconsistency in functions with
+    # multiple `if ...: return True/False` statements.
+    "SIM103",
+    # Use `x in dict` instead of `x in dict.keys()`
+    # we like explicit .keys()
+    "SIM118",
+    # Ternary instead of assignment in if-else
+    # Long ternary lines can be really ugly with black
+    "SIM108",
+    # Magic values, too draconian rule
+    "PLR2004",
+    # Too many branches
+    "PLR0912",
+    # Too many arguments to function call
+    "PLR0913",
+    # Too many statements
+    "PLR0915",
+    # Too many returns
+    "PLR0911",
+    # Consider using `elif` instead of `else` then `if` to remove one indentation level
+    # This is an explicit style choice
+    "PLR5501",
+    # `x == ""` can be simplified to `not x` as an empty string is falsey
+    # This is an unsafe transformation, if x is None then the result is different
+    "PLC1901",
+    "B905",
+    "B026",
+    # No explicit `stacklevel` keyword argument found for warnings
+    "B028",
+    "G004",
+    "PIE796",
+    # Outer for loop variable `query` overwritten by inner assignment target
+    "PLW2901",
+    # Using the global statement to update `x` is discouraged
+    "PLW0603",
+    # Redefining argument with the local name
+    "PLR1704",
+    # TODO fix these
+    # Fixture `x` does not return anything, add leading underscore
+    "PT004",
+    # Fixture `x` returns a value, remove leading underscore
+    "PT005",
+    # Fixture `x` without value is injected as parameter, use `@pytest.mark.usefixtures` instead
+    "PT019",
+    # `pytest.raises(ValueError)` is too broad
+    # ValueError is too specific to report on
+    "PT011",
+    # Splitext is used in S3 code
+    "PTH122",
+    # Enforce f-strings instead of .format
+    # We want to allow .format calls too.
+    "UP032",
+    # Not ready for __future__ annotations
+    "UP037",
+]
+select = [
+    "A001",
+    "ASYNC",
+    "B",
+    "D",
+    "E",
+    "F",
+    "N",
+    "SIM",
+    "S110", # Exceptions must be logged in try-except-pass
+    "S112", # Exceptions must be logged in try-except-continue
+    "TID25",
+    "TCH005",
+    "W",
+    "UP",
+    "ISC",
+    "ICN",
+    "G",
+    "PIE",
+    "PTH",
+    "PT",
+    "PL",
+    "I",
+    "INP",
+    # noqa management
+    "PGH004",
+    # Static key in dict comprehension
+    "RUF100",
+    # f-string conversion flags
+    "RUF010",
+    # Quadratic list summation
+    "RUF017",
+    # prints and pdb import
+    "T",
+    # Unnecessarily verbose raise
+    "TRY201",
+    # Useless try-except-raise
+    "TRY302",
+    # Annotations
+    "ANN201",
+    "ANN204",
+    "ANN205",
+    "ANN206",
+    # Executable files vs shebangs
+    "EXE",
+    # Explicit `None` returns
+    "RET501",
+    "RET502",
+    "RET503",
+    "S608",
+]
+unfixable = [
+    # Variable assigned but never used - automatically removing the assignment
+    # is annoying when running autofix on work-in-progress code.
+    "F841",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"bin/**.py" = ["T201", "E402"]
+"migrations/**.py" = ["T201", "E402"]
+"tests/**.py" = ["ANN"]

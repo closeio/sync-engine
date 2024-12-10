@@ -37,6 +37,34 @@ jobs:
       - name: Ruff
         run: ruff check --no-cache --output-format github .
 
+  check-compiled-requirements:
+    runs-on: arc-amd64-runners
+    if: ${{ !contains(github.event.head_commit.message, '#notests') }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.3'
+
+      - name: Prepare environment
+        run: |
+          pip install --no-deps -r requirements/requirements-pip.txt
+          pip install $(grep -rwoh requirements -e 'pip-tools==.*[^\]' | head -n 1)
+
+      - name: Compile Requirements Files
+        run: |
+          ./scripts/pip-compile-all.sh
+
+      - name: Check If Output Matches Committed
+        run: |
+          DIFF="$(git diff)"
+          if [ "$DIFF" ]; then
+            echo "Compiled requirements differ from committed requirements!"
+            echo "$DIFF"
+            exit 1
+          fi
 
   build:
     runs-on: ${{ matrix.runs-on }}

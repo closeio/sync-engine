@@ -6,7 +6,7 @@ from inbox.error_handling import maybe_enable_rollbar
 from inbox.ignition import EngineManager, verify_db
 
 
-def main():
+def main() -> None:
     maybe_enable_rollbar()
 
     database_hosts = config.get_required("DATABASE_HOSTS")

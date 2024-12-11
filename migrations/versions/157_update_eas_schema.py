@@ -11,10 +11,12 @@ Create Date: 2015-04-06 22:15:51.908303
 revision = "18064f5205dd"
 down_revision = "3c7f059a68ba"
 
+from typing import Never
+
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -100,5 +102,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception()

@@ -8,7 +8,7 @@ from inbox.models import Account
 from inbox.models.session import global_session_scope
 
 
-def user_console(user_email_address):
+def user_console(user_email_address) -> None:
     with global_session_scope() as db_session:
         result = (
             db_session.query(Account)
@@ -62,7 +62,7 @@ def user_console(user_email_address):
                 IPython.embed(banner1=banner)
 
 
-def start_console(user_email_address=None):
+def start_console(user_email_address=None) -> None:
     # You can also do this with
     # $ python -m imapclient.interact -H <host> -u <user> ...
     # but we want to use our session and crispin so we're not.
@@ -72,7 +72,7 @@ def start_console(user_email_address=None):
         IPython.embed()
 
 
-def start_client_console(user_email_address=None):
+def start_client_console(user_email_address=None) -> None:
     try:
         from tests.system.client import NylasTestClient
     except ImportError:

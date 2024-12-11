@@ -14,7 +14,7 @@ down_revision = "281b07fa75bb"
 import sqlalchemy as sa
 
 
-def upgrade():
+def upgrade() -> None:
     from sqlalchemy.ext.declarative import declarative_base
 
     from inbox.ignition import main_engine
@@ -58,5 +58,5 @@ def upgrade():
             db_session.commit()
 
 
-def downgrade():
+def downgrade() -> None:
     pass

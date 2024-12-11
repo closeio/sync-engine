@@ -23,12 +23,12 @@ def safe_failure(f):
 
 
 class HeartbeatStatusKey:
-    def __init__(self, account_id, folder_id):
+    def __init__(self, account_id, folder_id) -> None:
         self.account_id = account_id
         self.folder_id = folder_id
         self.key = f"{self.account_id}:{self.folder_id}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.key
 
     def __lt__(self, other):
@@ -69,7 +69,7 @@ class HeartbeatStatusProxy:
         email_address=None,
         provider_name=None,
         device_id=0,
-    ):
+    ) -> None:
         self.key = HeartbeatStatusKey(account_id, folder_id)
         self.account_id = account_id
         self.folder_id = folder_id
@@ -77,7 +77,7 @@ class HeartbeatStatusProxy:
         self.store = HeartbeatStore.store()
 
     @safe_failure
-    def publish(self, **kwargs):
+    def publish(self, **kwargs) -> None:
         try:
             self.heartbeat_at = time.time()
             self.store.publish(self.key, self.heartbeat_at)
@@ -92,7 +92,7 @@ class HeartbeatStatusProxy:
             )
 
     @safe_failure
-    def clear(self):
+    def clear(self) -> None:
         self.store.remove_folders(
             self.account_id, self.folder_id, self.device_id
         )
@@ -106,7 +106,7 @@ class HeartbeatStore:
 
     _instances: dict[str | None, "HeartbeatStore"] = {}
 
-    def __init__(self, host=None, port=6379):
+    def __init__(self, host=None, port=6379) -> None:
         self.host = host
         self.port = port
 
@@ -118,11 +118,11 @@ class HeartbeatStore:
         return cls._instances.get(host)
 
     @safe_failure
-    def publish(self, key, timestamp):
+    def publish(self, key, timestamp) -> None:
         # Update indexes
         self.update_folder_index(key, float(timestamp))
 
-    def remove(self, key, device_id=None, client=None):
+    def remove(self, key, device_id=None, client=None) -> None:
         # Remove a key from the store, or device entry from a key.
         if not client:
             client = heartbeat_config.get_redis_client(key.account_id)
@@ -162,13 +162,13 @@ class HeartbeatStore:
             pipeline.reset()
             return n
 
-    def update_folder_index(self, key, timestamp):
+    def update_folder_index(self, key, timestamp) -> None:
         assert isinstance(timestamp, float)
         # Update the folder timestamp index for this specific account, too
         client = heartbeat_config.get_redis_client(key.account_id)
         client.zadd(key.account_id, {key.folder_id: timestamp})
 
-    def update_accounts_index(self, key):
+    def update_accounts_index(self, key) -> None:
         # Find the oldest heartbeat from the account-folder index
         try:
             client = heartbeat_config.get_redis_client(key.account_id)
@@ -181,13 +181,13 @@ class HeartbeatStore:
             # will fail -- ignore it.
             pass
 
-    def remove_from_folder_index(self, key, client):
+    def remove_from_folder_index(self, key, client) -> None:
         client.zrem("folder_index", key)
         if isinstance(key, str):
             key = HeartbeatStatusKey.from_string(key)
         client.zrem(key.account_id, key.folder_id)
 
-    def remove_from_account_index(self, account_id, client):
+    def remove_from_account_index(self, account_id, client) -> None:
         client.delete(account_id)
         client.zrem("account_index", account_id)
 

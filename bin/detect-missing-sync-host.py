@@ -10,7 +10,7 @@ from inbox.models.session import global_session_scope
 
 
 @click.command()
-def main():
+def main() -> None:
     """
     Detects accounts with sync_state and sync_host inconsistent with
     sync_should_run bit. (At one point, this could happen if, say, an account

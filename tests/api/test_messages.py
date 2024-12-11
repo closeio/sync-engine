@@ -271,13 +271,15 @@ def test_message_folders(db, generic_account):
 
     assert resp_data["id"] == generic_thread.public_id
     assert resp_data["object"] == "thread"
-    assert "folders" in resp_data and "labels" not in resp_data
+    assert "folders" in resp_data
+    assert "labels" not in resp_data
 
     resp_data = api_client.get_data(f"/messages/{generic_message.public_id}")
 
     assert resp_data["id"] == generic_message.public_id
     assert resp_data["object"] == "message"
-    assert "folder" in resp_data and "labels" not in resp_data
+    assert "folder" in resp_data
+    assert "labels" not in resp_data
 
 
 def test_message_labels(db, gmail_account):
@@ -294,13 +296,15 @@ def test_message_labels(db, gmail_account):
 
     assert resp_data["id"] == gmail_thread.public_id
     assert resp_data["object"] == "thread"
-    assert "labels" in resp_data and "folders" not in resp_data
+    assert "labels" in resp_data
+    assert "folders" not in resp_data
 
     resp_data = api_client.get_data(f"/messages/{gmail_message.public_id}")
 
     assert resp_data["id"] == gmail_message.public_id
     assert resp_data["object"] == "message"
-    assert "labels" in resp_data and "folders" not in resp_data
+    assert "labels" in resp_data
+    assert "folders" not in resp_data
 
 
 @pytest.mark.skipif(True, reason="Need to investigate")

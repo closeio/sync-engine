@@ -40,7 +40,7 @@ class HasRevisions(ABCMixin):
         return []
 
     @property
-    def should_suppress_transaction_creation(self):
+    def should_suppress_transaction_creation(self) -> bool:
         """
         May be overridden by subclasses. We don't want to version certain
         specific objects - for example, Block instances that are just raw
@@ -55,7 +55,7 @@ class HasRevisions(ABCMixin):
     # Must be defined by subclasses
     API_OBJECT_NAME = abc.abstractproperty()
 
-    def has_versioned_changes(self):
+    def has_versioned_changes(self) -> bool:
         """
         Return True if the object has changes on any of its column properties
         or any relationship attributes named in self.versioned_relationships,

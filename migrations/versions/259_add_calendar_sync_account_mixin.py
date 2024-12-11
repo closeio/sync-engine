@@ -16,7 +16,7 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "outlookaccount",
         sa.Column("last_calendar_list_sync", mysql.DATETIME(), nullable=True),
@@ -35,7 +35,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("outlookaccount", "webhook_calendar_list_expiration")
     op.drop_column("outlookaccount", "webhook_calendar_list_last_ping")
     op.drop_column("outlookaccount", "last_calendar_list_sync")

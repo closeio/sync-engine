@@ -34,7 +34,7 @@ def populate_url_prefix():
 
 
 @pytest.fixture
-def calendars_response():
+def calendars_response() -> None:
     responses.get(
         BASE_URL + "/me/calendars",
         json={
@@ -57,7 +57,7 @@ def calendars_response():
 
 
 @pytest.fixture
-def events_responses():
+def events_responses() -> None:
     responses.get(
         BASE_URL + "/me/calendars/fake_calendar_id/events",
         json={
@@ -190,7 +190,7 @@ def events_responses():
 
 
 @pytest.fixture
-def subscribe_responses():
+def subscribe_responses() -> None:
     responses.post(
         BASE_URL + "/subscriptions",
         json={
@@ -241,7 +241,7 @@ def subscribe_responses():
 
 
 @pytest.fixture
-def subscribe_response_unavailable():
+def subscribe_response_unavailable() -> None:
     responses.post(
         BASE_URL + "/subscriptions",
         json={
@@ -255,7 +255,7 @@ def subscribe_response_unavailable():
 
 
 @pytest.fixture
-def subscribe_response_gone():
+def subscribe_response_gone() -> None:
     responses.post(
         BASE_URL + "/subscriptions",
         json={
@@ -275,7 +275,7 @@ def subscribe_response_gone():
 
 
 @pytest.fixture
-def instances_response():
+def instances_response() -> None:
     responses.get(
         BASE_URL + "/me/events/recurrence_id/instances",
         json={
@@ -310,7 +310,7 @@ def instances_response():
 
 
 @pytest.fixture
-def cancellation_override_response():
+def cancellation_override_response() -> None:
     responses.get(
         BASE_URL + "/me/events/recurrence_id/instances",
         json={
@@ -337,7 +337,7 @@ def cancellation_override_response():
 
 
 @pytest.fixture
-def exception_override_response():
+def exception_override_response() -> None:
     responses.get(
         BASE_URL + "/me/events/recurrence_id/instances",
         json={
@@ -435,7 +435,7 @@ def provider(client):
 
 @responses.activate
 @pytest.mark.usefixtures("calendars_response")
-def test_sync_calendars(provider):
+def test_sync_calendars(provider) -> None:
     _, calendars = provider.sync_calendars()
     calendars_by_name = {calendar.name: calendar for calendar in calendars}
 
@@ -447,7 +447,7 @@ def test_sync_calendars(provider):
 
 @responses.activate
 @pytest.mark.usefixtures("calendars_response")
-def test_sync_calendars_deletion(db, client, outlook_account):
+def test_sync_calendars_deletion(db, client, outlook_account) -> None:
     deleted_calendar = Calendar(
         uid="deleted_calendar_id",
         public_id="fake_deleted_public_id",
@@ -468,7 +468,7 @@ def test_sync_calendars_deletion(db, client, outlook_account):
 
 @responses.activate
 @pytest.mark.usefixtures("events_responses", "instances_response")
-def test_sync_events(provider):
+def test_sync_events(provider) -> None:
     events = provider.sync_events("fake_calendar_id")
     events_by_title = {event.title: event for event in events}
 
@@ -480,7 +480,7 @@ def test_sync_events(provider):
 
 @responses.activate
 @pytest.mark.usefixtures("events_responses", "cancellation_override_response")
-def test_sync_events_cancellation(provider):
+def test_sync_events_cancellation(provider) -> None:
     events = provider.sync_events("fake_calendar_id")
     events_by_title_and_status = {
         (event.title, event.status): event for event in events
@@ -511,7 +511,7 @@ def test_sync_events_cancellation(provider):
 
 @responses.activate
 @pytest.mark.usefixtures("events_responses", "exception_override_response")
-def test_sync_events_exception(provider):
+def test_sync_events_exception(provider) -> None:
     events = provider.sync_events("fake_calendar_id")
     events_by_title = {event.title: event for event in events}
 
@@ -533,7 +533,7 @@ def test_sync_events_exception(provider):
 
 @responses.activate
 @pytest.mark.usefixtures("subscribe_responses")
-def test_watch_calendar_list(provider, outlook_account):
+def test_watch_calendar_list(provider, outlook_account) -> None:
     expiration = provider.watch_calendar_list(outlook_account)
     assert expiration == datetime.datetime(
         2022, 11, 24, 18, 31, 12, tzinfo=pytz.UTC
@@ -542,7 +542,7 @@ def test_watch_calendar_list(provider, outlook_account):
 
 @responses.activate
 @pytest.mark.usefixtures("subscribe_responses")
-def test_watch_calendar(provider, outlook_account):
+def test_watch_calendar(provider, outlook_account) -> None:
     calendar = Calendar(uid="fake_calendar_id", public_id="fake_public_id")
 
     expiration = provider.watch_calendar(outlook_account, calendar)
@@ -553,7 +553,7 @@ def test_watch_calendar(provider, outlook_account):
 
 @responses.activate
 @pytest.mark.usefixtures("subscribe_response_gone")
-def test_watch_calendar_gone(provider, outlook_account):
+def test_watch_calendar_gone(provider, outlook_account) -> None:
     calendar = Calendar(uid="fake_calendar_id", public_id="fake_public_id")
 
     with pytest.raises(CalendarGoneException):
@@ -562,13 +562,17 @@ def test_watch_calendar_gone(provider, outlook_account):
 
 @responses.activate
 @pytest.mark.usefixtures("subscribe_responses")
-def test_webhook_notifications_enabled_avaialble(provider, outlook_account):
+def test_webhook_notifications_enabled_avaialble(
+    provider, outlook_account
+) -> None:
     assert provider.webhook_notifications_enabled(outlook_account)
 
 
 @responses.activate
 @pytest.mark.usefixtures("subscribe_response_unavailable")
-def test_webhook_notifications_enabled_unavailable(provider, outlook_account):
+def test_webhook_notifications_enabled_unavailable(
+    provider, outlook_account
+) -> None:
     assert not provider.webhook_notifications_enabled(outlook_account)
 
 
@@ -579,7 +583,7 @@ def test_webhook_notifications_enabled_unavailable(provider, outlook_account):
     "subscribe_responses",
     "instances_response",
 )
-def test_sync(db, provider, outlook_account):
+def test_sync(db, provider, outlook_account) -> None:
     event_sync = WebhookEventSync(
         outlook_account.email_address,
         outlook_account.verbose_provider,

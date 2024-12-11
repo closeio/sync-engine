@@ -19,7 +19,7 @@ configure_logging()
 log = get_logger(purpose="create-event-contact-associations")
 
 
-def process_shard(shard_id, dry_run, id_start=0):
+def process_shard(shard_id, dry_run, id_start=0) -> None:
     # At 500K events, we need to process 6 events per second to finish within a day.
     batch_size = 100
     rps = 6 / batch_size
@@ -95,7 +95,7 @@ def process_shard(shard_id, dry_run, id_start=0):
 @click.option("--shard-id", type=int, default=None)
 @click.option("--id-start", type=int, default=0)
 @click.option("--dry-run", is_flag=True)
-def main(shard_id, id_start, dry_run):
+def main(shard_id, id_start, dry_run) -> None:
     maybe_enable_rollbar()
 
     if shard_id is not None:

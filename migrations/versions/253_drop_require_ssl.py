@@ -16,11 +16,11 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("genericaccount", "ssl_required")
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         "genericaccount",
         sa.Column(

@@ -14,11 +14,11 @@ down_revision = "1d93c9f9f506"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_unique_constraint(
         "unique_account_address", "account", ["_canonicalized_address"]
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_constraint("unique_account_address", "account", type_="unique")

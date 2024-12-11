@@ -39,7 +39,7 @@ configure_logging(config.get("LOGLEVEL"))
     is_flag=False,
     help="Manually specify the provider instead of trying to detect it",
 )
-def main(email_address, reauth, target, provider):
+def main(email_address, reauth, target, provider) -> None:
     """Auth an email account."""
     preflight()
 

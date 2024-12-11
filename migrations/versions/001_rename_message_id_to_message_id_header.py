@@ -14,13 +14,13 @@ down_revision = "2605b23e1fe6"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.execute(
         "ALTER TABLE message CHANGE message_id message_id_header VARCHAR(255) NULL"
     )
 
 
-def downgrade():
+def downgrade() -> None:
     # First make all current NULL values actually 0. This isn't a great solution, but it works.
     print(
         "WARNING: This removes data about messages that do not contain a Message-Id header!"

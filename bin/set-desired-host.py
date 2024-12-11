@@ -13,7 +13,7 @@ from inbox.models.session import global_session_scope
 @click.option("--desired-host")
 @click.option("--dry-run", is_flag=True)
 @click.option("--toggle-sync", is_flag=True)
-def main(account_id, desired_host, dry_run, toggle_sync):
+def main(account_id, desired_host, dry_run, toggle_sync) -> None:
     maybe_enable_rollbar()
 
     with global_session_scope() as db_session:

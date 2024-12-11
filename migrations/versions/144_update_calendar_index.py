@@ -14,7 +14,7 @@ down_revision = "1d7a72222b7c"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_constraint("calendar_ibfk_1", "calendar", type_="foreignkey")
     op.drop_constraint("uuid", "calendar", type_="unique")
     op.create_index(
@@ -28,7 +28,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_constraint("calendar_ibfk_1", "calendar", type_="foreignkey")
     op.drop_constraint("uuid", "calendar", type_="unique")
     op.create_index(

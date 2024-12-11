@@ -12,7 +12,7 @@ revision = "3fee2f161614"
 down_revision = "563d405d1f99"
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.models import Message
     from inbox.models.session import session_scope
 
@@ -24,7 +24,7 @@ def upgrade():
         db_session.commit()
 
 
-def downgrade():
+def downgrade() -> None:
     from inbox.models import Message
     from inbox.models.session import session_scope
 

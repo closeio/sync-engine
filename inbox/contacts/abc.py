@@ -1,5 +1,6 @@
 import abc
 import datetime
+from typing import Never
 
 
 class AbstractContactsProvider(abc.ABC):
@@ -10,5 +11,5 @@ class AbstractContactsProvider(abc.ABC):
         self,
         sync_from_dt: datetime.datetime | None = None,
         max_results: int = 100000,
-    ):
+    ) -> Never:
         raise NotImplementedError()

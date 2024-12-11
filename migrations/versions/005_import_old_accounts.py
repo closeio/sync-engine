@@ -19,7 +19,7 @@ from sqlalchemy.ext.declarative import declarative_base
 SQL_DUMP_FILENAME = "alphasync_rds_inbox_imapaccount.sql"
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
@@ -30,7 +30,7 @@ def upgrade():
     # Assert we have the dump file
     if not os.path.isfile(SQL_DUMP_FILENAME):
         print(
-            "Can't find old user SQL dump at {0}...\nMigration no users.".format(
+            "Can't find old user SQL dump at {}...\nMigration no users.".format(
                 SQL_DUMP_FILENAME
             )
         )
@@ -106,5 +106,5 @@ def upgrade():
     op.drop_table("imapaccount_old")
 
 
-def downgrade():
+def downgrade() -> None:
     print("Not removing any accounts!")

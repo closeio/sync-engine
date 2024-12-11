@@ -11,12 +11,14 @@ Create Date: 2014-08-22 22:04:10.763048
 revision = "10db12da2005"
 down_revision = "10a1129fe685"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.sqlalchemy_ext.util import JSON
 
     op.add_column("actionlog", sa.Column("extra_args", JSON(), nullable=True))
@@ -70,5 +72,5 @@ def upgrade():
     op.drop_column("message", "parent_draft_id")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("No.")

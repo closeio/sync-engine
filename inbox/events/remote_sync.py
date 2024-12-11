@@ -47,7 +47,7 @@ class EventSync(BaseSyncMonitor):
         namespace_id: int,
         provider_class: type[AbstractEventsProvider],
         poll_frequency: int = POLL_FREQUENCY,
-    ):
+    ) -> None:
         bind_context(self, "eventsync", account_id)
         self.provider = provider_class(account_id, namespace_id)
         self.log = logger.new(
@@ -243,7 +243,7 @@ def handle_event_updates(
 
         # If we just updated/added a recurring event or override, make sure
         # we link it to the right master event.
-        if isinstance(event, (RecurringEvent, RecurringEventOverride)):
+        if isinstance(event, RecurringEvent | RecurringEventOverride):
             link_events(db_session, event)
 
         # Batch commits to avoid long transactions that may lock calendar rows.
@@ -259,7 +259,7 @@ def handle_event_updates(
 
 
 class WebhookEventSync(EventSync):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(Account).get(self.account_id)
@@ -396,7 +396,7 @@ class WebhookEventSync(EventSync):
                             calendar_uid=calendar.uid,
                             status_code=exc.response.status_code,
                         )
-                        raise exc
+                        raise
 
     def _sync_calendar_list(self, account: Account, db_session: Any) -> None:
         sync_timestamp = datetime.utcnow()

@@ -67,7 +67,7 @@ def process_account(account_id):
 
 @click.command()
 @click.option("--num-accounts", type=int, default=1500)
-def main(num_accounts):
+def main(num_accounts) -> None:
     maybe_enable_rollbar()
 
     with global_session_scope() as db_session:

@@ -14,14 +14,14 @@ down_revision = "365071c47fa7"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_unique_constraint(
         "account_id_2", "folder", ["account_id", "name"]
     )
     op.drop_constraint("account_id", "folder", type_="unique")
 
 
-def downgrade():
+def downgrade() -> None:
     op.create_unique_constraint(
         "account_id",
         "folder",

@@ -11,12 +11,14 @@ Create Date: 2014-12-15 14:58:09.922649
 revision = "955792afd00"
 down_revision = "40ad73aa49df"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.sqlalchemy_ext.util import JSON
 
     op.add_column(
@@ -28,5 +30,5 @@ def upgrade():
     conn.execute(text("UPDATE event SET participants_by_email='{}'"))
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Won't.")

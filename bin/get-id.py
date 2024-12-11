@@ -37,7 +37,7 @@ cls_for_type = dict(
 @click.option("--type", "-t", type=str, required=True)
 @click.option("--id", type=str, default=None)
 @click.option("--public-id", type=str, default=None)
-def main(type, id, public_id):
+def main(type, id, public_id) -> None:
     maybe_enable_rollbar()
 
     type = type.lower()

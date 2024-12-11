@@ -12,6 +12,7 @@ revision = "7a117720554"
 down_revision = "247cd689758c"
 
 import os
+from typing import Never
 
 import sqlalchemy as sa
 from alembic import op
@@ -42,7 +43,7 @@ def decrypt_aes(ciphertext, key):
     return plaintext
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
@@ -84,6 +85,7 @@ def upgrade():
 
                     key = self.key + key
                     return decrypt_aes(self.password_aes, key)
+                return None
 
         with session_scope() as db_session:
             for account in db_session.query(EASAccount):
@@ -95,5 +97,5 @@ def upgrade():
     op.drop_column("account", "key")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("No rolling back")

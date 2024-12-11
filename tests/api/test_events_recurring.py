@@ -70,7 +70,7 @@ def recurring_event_with_bonkers_tz(make_recurring_event):
     return make_recurring_event(original_start_tz="ThisAint/NoTimeZone")
 
 
-def test_api_expand_recurring(db, api_client, recurring_event):
+def test_api_expand_recurring(db, api_client, recurring_event) -> None:
     event = recurring_event
 
     events = api_client.get_data("/events?expand_recurring=false")
@@ -131,7 +131,9 @@ def urlsafe(dt):
     return urllib.parse.quote_plus(dt.isoformat())
 
 
-def test_api_expand_recurring_before_after(db, api_client, recurring_event):
+def test_api_expand_recurring_before_after(
+    db, api_client, recurring_event
+) -> None:
     event = recurring_event
     starts_after = event.start.shift(weeks=+15)
     ends_before = starts_after.shift(days=+1)
@@ -163,7 +165,7 @@ def test_api_expand_recurring_before_after(db, api_client, recurring_event):
 
 def test_api_override_serialization(
     db, api_client, default_namespace, recurring_event
-):
+) -> None:
     event = recurring_event
 
     override = Event.create(
@@ -197,7 +199,7 @@ def test_api_override_serialization(
 
 def test_api_expand_recurring_message(
     db, api_client, message, recurring_event
-):
+) -> None:
     # This is a regression test for https://phab.nylas.com/T3556
     # ("InflatedEvent should not be committed" exception in API").
     event = recurring_event
@@ -224,7 +226,7 @@ def test_api_expand_recurring_message(
         assert "message_id" not in event
 
 
-def test_api_get_specific_event(db, api_client, recurring_event):
+def test_api_get_specific_event(db, api_client, recurring_event) -> None:
     event = api_client.get_data(f"/events/{recurring_event.public_id}")
     assert event["calendar_id"] == recurring_event.calendar.public_id
     assert event["title"] == "recurring-weekly"
@@ -233,7 +235,7 @@ def test_api_get_specific_event(db, api_client, recurring_event):
 
 def test_get_specific_event_invalid_tz_fixed(
     db, api_client, recurring_event_with_invalid_tz
-):
+) -> None:
     event = api_client.get_data(
         f"/events/{recurring_event_with_invalid_tz.public_id}"
     )
@@ -247,7 +249,7 @@ def test_get_specific_event_invalid_tz_fixed(
 
 def test_get_specific_event_with_bonkers_tz(
     db, api_client, recurring_event_with_bonkers_tz
-):
+) -> None:
     event = api_client.get_data(
         f"/events/{recurring_event_with_bonkers_tz.public_id}"
     )

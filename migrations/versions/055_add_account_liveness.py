@@ -15,12 +15,12 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "account",
         sa.Column("state", sa.Enum("live", "down", "invalid"), nullable=True),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("account", "state")

@@ -56,7 +56,7 @@ MAX_DOWNLOAD_COUNT = 1
 
 
 class GmailFolderSyncEngine(FolderSyncEngine):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         FolderSyncEngine.__init__(self, *args, **kwargs)
         self.saved_uids = set()
 
@@ -163,7 +163,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 # schedule change_poller to die
                 change_poller.kill()
 
-    def resync_uids_impl(self):
+    def resync_uids_impl(self) -> None:
         with session_scope(self.namespace_id) as db_session:
             imap_folder_info_entry = (
                 db_session.query(ImapFolderInfo)
@@ -308,7 +308,9 @@ class GmailFolderSyncEngine(FolderSyncEngine):
 
         return brand_new_messages
 
-    def add_message_to_thread(self, db_session, message_obj, raw_message):
+    def add_message_to_thread(
+        self, db_session, message_obj, raw_message
+    ) -> None:
         """
         Associate message_obj to the right Thread object, creating a new
         thread if necessary. We rely on Gmail's threading as defined by
@@ -324,7 +326,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 db_session, self.namespace_id, message_obj
             )
 
-    def download_and_commit_uids(self, crispin_client, uids):
+    def download_and_commit_uids(self, crispin_client, uids) -> int | None:
         start = datetime.utcnow()
         raw_messages = crispin_client.uids(uids)
         if not raw_messages:
@@ -363,6 +365,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
             self.is_first_message = False
 
         self.saved_uids.update(new_uids)
+        return None
 
     def expand_uids_to_download(self, crispin_client, uids, metadata):
         # During Gmail initial sync, we expand threads: given a UID to
@@ -396,7 +399,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
         metadata,
         max_download_bytes=MAX_DOWNLOAD_BYTES,
         max_download_count=MAX_DOWNLOAD_COUNT,
-    ):
+    ) -> None:
         expanded_pending_uids = self.expand_uids_to_download(
             crispin_client, uids, metadata
         )
@@ -467,7 +470,7 @@ def g_msgids(namespace_id, session, in_):
 class GmailSyncMonitor(ImapSyncMonitor):
     sync_engine_class: ClassVar[type[FolderSyncEngine]] = GmailFolderSyncEngine
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         # We start a label refresh whenever we find a new labels
@@ -486,7 +489,9 @@ class GmailSyncMonitor(ImapSyncMonitor):
         self.label_rename_semaphore = Semaphore(value=1)
         self.label_rename_handlers: "dict[str, LabelRenameHandler]" = {}
 
-    def handle_raw_folder_change(self, db_session, account, raw_folder):
+    def handle_raw_folder_change(
+        self, db_session, account, raw_folder
+    ) -> None:
         folder = (
             db_session.query(Folder)
             .filter(
@@ -527,7 +532,7 @@ class GmailSyncMonitor(ImapSyncMonitor):
                 db_session, account, raw_folder.display_name, raw_folder.role
             )
 
-    def set_sync_should_run_bit(self, account):
+    def set_sync_should_run_bit(self, account) -> None:
         # Ensure sync_should_run is True for the folders we want to sync (for
         # Gmail, that's just all folders, since we created them above if
         # they didn't exist.)
@@ -535,7 +540,7 @@ class GmailSyncMonitor(ImapSyncMonitor):
             if folder.imapsyncstatus:
                 folder.imapsyncstatus.sync_should_run = True
 
-    def mark_deleted_labels(self, db_session, deleted_labels):
+    def mark_deleted_labels(self, db_session, deleted_labels) -> None:
         # Go through the labels which have been "deleted" (i.e: they don't
         # show up when running LIST) and mark them as such.
         # We can't delete labels directly because Gmail allows users to hide
@@ -548,7 +553,7 @@ class GmailSyncMonitor(ImapSyncMonitor):
                 category = deleted_label.category
                 category.deleted_at = datetime.now()
 
-    def save_folder_names(self, db_session, raw_folders):
+    def save_folder_names(self, db_session, raw_folders) -> None:
         """
         Save the folders, labels present on the remote backend for an account.
 

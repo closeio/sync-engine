@@ -17,7 +17,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import column, table
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
@@ -109,7 +109,7 @@ def upgrade():
     op.drop_column("account", "g_locale")
 
 
-def downgrade():
+def downgrade() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 

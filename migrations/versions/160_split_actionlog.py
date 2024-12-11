@@ -16,7 +16,7 @@ from alembic import op
 from sqlalchemy.orm import contains_eager
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     op.add_column("actionlog", sa.Column("type", sa.String(16)))
@@ -67,7 +67,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     from inbox.ignition import main_engine
 
     op.drop_column("actionlog", "type")

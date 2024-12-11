@@ -15,7 +15,7 @@ def get_request_uid(headers):
     return headers.get("X-Unique-ID")
 
 
-def log_exception(exc_info, **kwargs):
+def log_exception(exc_info, **kwargs) -> None:
     """
     Add exception info to the log context for the request.
 
@@ -58,7 +58,7 @@ class InputError(APIException):
 
     status_code = 400
 
-    def __init__(self, message):
+    def __init__(self, message) -> None:
         self.message = message
         super().__init__(message)
 
@@ -68,7 +68,7 @@ class NotFoundError(APIException):
 
     status_code = 404
 
-    def __init__(self, message):
+    def __init__(self, message) -> None:
         self.message = message
         super().__init__(message)
 
@@ -76,7 +76,7 @@ class NotFoundError(APIException):
 class ConflictError(APIException):
     status_code = 409
 
-    def __init__(self, message):
+    def __init__(self, message) -> None:
         self.message = message
         super().__init__(message)
 

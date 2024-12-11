@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column(
         "imapfolderinfo",
         "highestmodseq",
@@ -35,5 +35,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     pass

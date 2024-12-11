@@ -15,12 +15,12 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "genericaccount",
         sa.Column("supports_condstore", sa.Boolean(), nullable=True),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("genericaccount", "supports_condstore")

@@ -1,7 +1,7 @@
 """Utilities for debugging failures in development/staging."""
 
 
-def bind_context(thread, role, account_id, *args):
+def bind_context(thread, role, account_id, *args) -> None:
     """
     Bind a human-interpretable "context" to the thread `gr`, for
     execution-tracing purposes. The context consists of the thread's role

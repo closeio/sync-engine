@@ -11,12 +11,14 @@ Create Date: 2014-10-07 10:34:29.302936
 revision = "5709063bff01"
 down_revision = "2f97277cd86d"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "actionlog",
         sa.Column("retries", sa.Integer, nullable=False, server_default="0"),
@@ -38,5 +40,5 @@ def upgrade():
     op.drop_column("actionlog", "executed")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Can't.")

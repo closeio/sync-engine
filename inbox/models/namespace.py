@@ -23,7 +23,7 @@ class Namespace(MailSyncBase, HasPublicID, UpdatedAtMixin, DeletedAtMixin):
         uselist=False,
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "{} <{}>".format(
             self.public_id, self.account.email_address if self.account else ""
         )
@@ -32,6 +32,7 @@ class Namespace(MailSyncBase, HasPublicID, UpdatedAtMixin, DeletedAtMixin):
     def email_address(self):
         if self.account is not None:
             return self.account.email_address
+        return None
 
     @classmethod
     def get(cls, id_, session):

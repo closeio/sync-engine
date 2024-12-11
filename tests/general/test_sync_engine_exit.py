@@ -1,6 +1,8 @@
 # test that we correctly exit a sync engine instance if the folder we are
 # trying to sync comes back as deleted while syncing
 
+from typing import Never
+
 import pytest
 from sqlalchemy.exc import IntegrityError
 
@@ -35,7 +37,7 @@ def yahoo_account(db):
     return account
 
 
-def raise_folder_error(*args, **kwargs):
+def raise_folder_error(*args, **kwargs) -> Never:
     raise FolderMissingError()
 
 
@@ -57,7 +59,7 @@ def sync_engine_stub(db, yahoo_account):
 
 def test_folder_engine_exits_if_folder_missing(
     db, yahoo_account, sync_engine_stub
-):
+) -> None:
     # if the folder does not exist in our database, _load_state will
     # encounter an IntegrityError as it tries to insert a child
     # ImapFolderSyncStatus against an invalid foreign key

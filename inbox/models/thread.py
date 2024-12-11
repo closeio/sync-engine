@@ -133,9 +133,10 @@ class Thread(
             ] or (message.is_draft and message.is_sent):
                 sent_recent_date = message.received_date
                 return sent_recent_date
+        return None
 
     @property
-    def unread(self):
+    def unread(self) -> bool:
         return not all(m.is_read for m in self.messages if not m.is_draft)
 
     @property
@@ -233,7 +234,7 @@ class Thread(
             .joinedload("block"),
         )
 
-    def mark_for_deletion(self):
+    def mark_for_deletion(self) -> None:
         """
         Mark this message to be deleted by an asynchronous delete
         handler.

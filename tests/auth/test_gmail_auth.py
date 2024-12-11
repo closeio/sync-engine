@@ -19,14 +19,14 @@ account_data = GoogleAccountData(
 
 
 @pytest.fixture
-def patched_gmail_client(monkeypatch):
+def patched_gmail_client(monkeypatch) -> None:
     def raise_exc(*args, **kwargs):
         raise ImapSupportDisabledError()
 
     monkeypatch.setattr("inbox.crispin.GmailCrispinClient.__init__", raise_exc)
 
 
-def test_create_account(db):
+def test_create_account(db) -> None:
     handler = GoogleAuthHandler()
 
     # Create an account
@@ -45,7 +45,7 @@ def test_create_account(db):
     assert account._emailed_events_calendar.name == "Emailed events"
 
 
-def test_update_account(db):
+def test_update_account(db) -> None:
     handler = GoogleAuthHandler()
 
     # Create an account
@@ -63,7 +63,7 @@ def test_update_account(db):
     assert account.refresh_token == "NewRefreshToken"
 
 
-def test_verify_account(db, patched_gmail_client):
+def test_verify_account(db, patched_gmail_client) -> None:
     handler = GoogleAuthHandler()
     handler.get_authenticated_imap_connection = lambda account: None
 

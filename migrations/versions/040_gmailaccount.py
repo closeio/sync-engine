@@ -11,11 +11,13 @@ Create Date: 2014-06-17 22:48:01.928601
 revision = "4085dd542739"
 down_revision = "1c72d8a0120e"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     print("Creating new table gmailaccount")
 
     op.create_table(
@@ -116,5 +118,5 @@ def upgrade():
     op.drop_column("imapaccount", "g_locale")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Only roll forward!")

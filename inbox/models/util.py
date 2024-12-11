@@ -136,7 +136,9 @@ class AccountDeletionErrror(Exception):
     pass
 
 
-def batch_delete_namespaces(ids_to_delete, throttle=False, dry_run=False):
+def batch_delete_namespaces(
+    ids_to_delete, throttle=False, dry_run=False
+) -> None:
     start = time.time()
 
     for account_id, namespace_id in ids_to_delete:
@@ -158,7 +160,7 @@ def batch_delete_namespaces(ids_to_delete, throttle=False, dry_run=False):
     )
 
 
-def delete_namespace(namespace_id, throttle=False, dry_run=False):
+def delete_namespace(namespace_id, throttle=False, dry_run=False) -> None:
     """
     Delete all the data associated with a namespace from the database.
     USE WITH CAUTION.
@@ -381,7 +383,7 @@ def _batch_delete(
         assert count == 0
 
 
-def check_throttle():
+def check_throttle() -> bool:
     """
     Returns True if deletions should be throttled and False otherwise.
 
@@ -394,7 +396,7 @@ def check_throttle():
 
 def purge_transactions(
     shard_id, days_ago=60, limit=1000, throttle=False, dry_run=False, now=None
-):
+) -> None:
     start = "now()"
     if now is not None:
         start = "'{}'".format(now.strftime("%Y-%m-%d %H:%M:%S"))

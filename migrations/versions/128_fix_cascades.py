@@ -14,7 +14,7 @@ down_revision = "581e91bd7141"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     connection = op.get_bind()
     connection.execute(
         """
@@ -26,7 +26,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     connection = op.get_bind()
     connection.execute(
         """

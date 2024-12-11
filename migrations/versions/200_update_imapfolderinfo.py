@@ -15,12 +15,12 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "imapfolderinfo",
         sa.Column("last_slow_refresh", sa.DateTime(), nullable=True),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("imapfolderinfo", "last_slow_refresh")

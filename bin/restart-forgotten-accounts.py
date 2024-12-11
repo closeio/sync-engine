@@ -16,7 +16,7 @@ log = get_logger()
 accounts_without_sync_host = set()
 
 
-def check_accounts():
+def check_accounts() -> None:
     maybe_enable_rollbar()
 
     global accounts_without_sync_host
@@ -68,7 +68,7 @@ def check_accounts():
     time.sleep(poll_interval)
 
 
-def main():
+def main() -> None:
     while True:
         retry_with_logging(check_accounts, log)
 

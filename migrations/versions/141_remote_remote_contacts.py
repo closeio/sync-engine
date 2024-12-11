@@ -11,11 +11,13 @@ Create Date: 2015-02-16 16:03:45.288539
 revision = "3ab34bc85c8d"
 down_revision = "3f01a3f1b4cc"
 
+from typing import Never
+
 from alembic import op
 from sqlalchemy.ext.declarative import declarative_base
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
@@ -34,5 +36,5 @@ def upgrade():
     op.drop_column("contact", "source")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Can't roll back. Migration removed data.")

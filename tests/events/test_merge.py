@@ -36,7 +36,7 @@ def fake_event2():
     )
 
 
-def test_overwrite():
+def test_overwrite() -> None:
     ev = fake_event()
     ev2 = fake_event()
     ev2.participants[0]["status"] = "yes"
@@ -45,7 +45,7 @@ def test_overwrite():
     assert merged_participants[0]["status"] == "yes"
 
 
-def test_name_merging():
+def test_name_merging() -> None:
     # Test that we merge correctly emails and names.
     ev = fake_event()
     ev2 = fake_event()
@@ -61,7 +61,7 @@ def test_name_merging():
     assert merged_participants[0]["name"] == "Ronald Zubar"
 
 
-def test_name_conflicts():
+def test_name_conflicts() -> None:
     # Test that we handle participants having the same name correctly.
     ev = fake_event()
     ev2 = fake_event()
@@ -80,7 +80,7 @@ def test_name_conflicts():
             assert participant["name"] == "Ronald Zubar"
 
 
-def test_no_unrelated_overwrites():
+def test_no_unrelated_overwrites() -> None:
     # Test that we're not overwriting participants who haven't been
     # updated.
     ev = fake_event2()

@@ -38,7 +38,7 @@ class SyncEngineRollbarHandler(RollbarHandler):
         return super().emit(record)
 
 
-def log_uncaught_errors(logger=None, **kwargs):
+def log_uncaught_errors(logger=None, **kwargs) -> None:
     """
     Helper to log uncaught exceptions.
 
@@ -99,7 +99,7 @@ def payload_handler(payload, **kw):
     return payload
 
 
-def maybe_enable_rollbar():
+def maybe_enable_rollbar() -> None:
     if not ROLLBAR_API_KEY:
         log.info(
             "ROLLBAR_API_KEY environment variable empty, rollbar disabled"

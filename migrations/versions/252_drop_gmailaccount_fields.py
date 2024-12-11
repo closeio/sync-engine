@@ -16,7 +16,7 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("gmailaccount", "picture")
     op.drop_column("gmailaccount", "g_id")
     op.drop_column("gmailaccount", "family_name")
@@ -31,7 +31,7 @@ def upgrade():
     op.drop_column("gmailaccount", "g_id_token")
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         "gmailaccount",
         sa.Column("g_id_token", mysql.VARCHAR(length=2048), nullable=True),

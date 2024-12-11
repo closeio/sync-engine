@@ -14,7 +14,7 @@ down_revision = "2197bc4a7df5"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "ix_actionlog_status_namespace_id_record_id",
         "actionlog",
@@ -25,7 +25,7 @@ def upgrade():
     op.drop_index("ix_actionlog_status_retries", table_name="actionlog")
 
 
-def downgrade():
+def downgrade() -> None:
     op.create_index(
         "idx_actionlog_status_type",
         "actionlog",

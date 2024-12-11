@@ -27,7 +27,7 @@ from inbox.transactions.actions import SyncbackService
 from tests.util.base import add_fake_category, add_fake_imapuid
 
 
-def test_draft_updates(db, default_account, mock_imapclient):
+def test_draft_updates(db, default_account, mock_imapclient) -> None:
     # Set up folder list
     mock_imapclient._data["Drafts"] = {}
     mock_imapclient._data["Trash"] = {}
@@ -105,7 +105,9 @@ def test_draft_updates(db, default_account, mock_imapclient):
         assert len(all_uids) == 0
 
 
-def test_change_flags(db, default_account, message, folder, mock_imapclient):
+def test_change_flags(
+    db, default_account, message, folder, mock_imapclient
+) -> None:
     mock_imapclient.add_folder_data(folder.name, {})
     mock_imapclient.add_flags = mock.Mock()
     mock_imapclient.remove_flags = mock.Mock()
@@ -140,7 +142,9 @@ def test_change_flags(db, default_account, message, folder, mock_imapclient):
         )
 
 
-def test_change_labels(db, default_account, message, folder, mock_imapclient):
+def test_change_labels(
+    db, default_account, message, folder, mock_imapclient
+) -> None:
     mock_imapclient.add_folder_data(folder.name, {})
     mock_imapclient.add_gmail_labels = mock.Mock()
     mock_imapclient.remove_gmail_labels = mock.Mock()
@@ -165,7 +169,7 @@ def test_change_labels(db, default_account, message, folder, mock_imapclient):
 
 
 @pytest.mark.parametrize("obj_type", ["folder", "label"])
-def test_folder_crud(db, default_account, mock_imapclient, obj_type):
+def test_folder_crud(db, default_account, mock_imapclient, obj_type) -> None:
     mock_imapclient.create_folder = mock.Mock()
     mock_imapclient.rename_folder = mock.Mock()
     mock_imapclient.delete_folder = mock.Mock()
@@ -233,7 +237,7 @@ def patched_syncback_task(monkeypatch):
 # for that event as failed.
 def test_failed_event_creation(
     db, patched_syncback_task, default_account, event
-):
+) -> None:
     schedule_action(
         "create_event", event, default_account.namespace.id, db.session
     )

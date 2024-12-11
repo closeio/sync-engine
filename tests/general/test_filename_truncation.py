@@ -1,7 +1,7 @@
 from inbox.models.message import _trim_filename
 
 
-def test_filename_truncation():
+def test_filename_truncation() -> None:
     # Note: test both 3-byte and 4-byte UTF8 chars to make sure truncation
     # follows UTF8 boundaries.
     uname = "\U0001f1fa\U0001f1f8\u2678\U0001f602.txt"

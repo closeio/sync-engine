@@ -11,12 +11,14 @@ Create Date: 2014-07-19 04:26:55.064832
 revision = "4fd3fcd46a3b"
 down_revision = "4c03aaa1fa47"
 
+from typing import Never
+
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("part", "misc_keyval")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Not supported")

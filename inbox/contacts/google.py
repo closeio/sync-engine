@@ -2,17 +2,8 @@
 
 import posixpath
 import random
-import sys
 import time
 from datetime import datetime
-
-if sys.version_info < (3,):
-    # This library does not work on Python 3 and was not released since 2013.
-    # I need to figure out what to do with it. This is temporary for the sake of running tests
-    # on Python 3.
-    import gdata.auth
-    import gdata.client
-    import gdata.contacts.client
 
 from inbox.contacts.abc import AbstractContactsProvider
 from inbox.logging import get_logger
@@ -50,7 +41,7 @@ class GoogleContactsProvider(AbstractContactsProvider):
 
     PROVIDER_NAME = "google"
 
-    def __init__(self, account_id, namespace_id):
+    def __init__(self, account_id, namespace_id) -> None:
         self.account_id = account_id
         self.namespace_id = namespace_id
         self.log = logger.new(
@@ -123,7 +114,7 @@ class GoogleContactsProvider(AbstractContactsProvider):
             self.log.error(
                 "Something is wrong with contact", contact=google_contact
             )
-            raise e
+            raise
 
         deleted = google_contact.deleted is not None
 

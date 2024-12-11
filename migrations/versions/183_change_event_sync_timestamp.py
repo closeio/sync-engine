@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "calendar", sa.Column("last_synced", sa.DateTime(), nullable=True)
     )
@@ -30,5 +30,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("calendar", "last_synced")

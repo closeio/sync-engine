@@ -11,11 +11,13 @@ Create Date: 2014-08-29 20:24:38.952595
 revision = "565c7325c51d"
 down_revision = "1ac03cab7a24"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -35,5 +37,5 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("No rolling back")

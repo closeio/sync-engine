@@ -16,7 +16,7 @@ from alembic import op
 from sqlalchemy.sql import table
 
 
-def upgrade():
+def upgrade() -> None:
     # remove old events that didn't match foreign key constraints on calendars
     event = table("event")
     op.execute(event.delete())
@@ -94,7 +94,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column(
         "eventparticipant",
         "status",

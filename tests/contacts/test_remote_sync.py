@@ -12,7 +12,7 @@ from tests.util.base import (
 __all__ = ["contact_sync", "contacts_provider"]
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def alternate_contacts_provider():
     return ContactsProviderStub("alternate_provider")
 

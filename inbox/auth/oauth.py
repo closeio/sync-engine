@@ -217,7 +217,7 @@ class OAuthAuthHandler(AuthHandler):
 
     def authenticate_imap_connection(
         self, account: OAuthAccount, conn: IMAPClient
-    ):
+    ) -> None:
         token = token_manager.get_token(
             account, force_refresh=False, scopes=account.email_scopes
         )
@@ -322,7 +322,7 @@ class OAuthAuthHandler(AuthHandler):
 class OAuthRequestsWrapper(requests.auth.AuthBase):
     """Helper class for setting the Authorization header on HTTP requests."""
 
-    def __init__(self, token):
+    def __init__(self, token) -> None:
         self.token = token
 
     def __call__(self, r):

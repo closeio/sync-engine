@@ -17,7 +17,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.sqlalchemy_ext.util import JSON
 
     op.add_column("thread", sa.Column("participants", JSON, nullable=True))
@@ -64,7 +64,7 @@ def upgrade():
             db_session.commit()
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("thread", "participants")
     op.drop_column("thread", "message_public_ids")
     op.drop_column("thread", "snippet")

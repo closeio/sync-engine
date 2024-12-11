@@ -17,7 +17,7 @@ def _absolute_path(relative_path):
     )
 
 
-def check_sudo():
+def check_sudo() -> None:
     if os.getuid() == 0:
         raise Exception("Don't run the Nylas Sync Engine as root!")
 
@@ -48,12 +48,12 @@ $ sudo dpkg-reconfigure --frontend noninteractive tzdata
 """
 
 
-def check_tz():
+def check_tz() -> None:
     if time.tzname[time.daylight] not in ["UTC", "GMT"]:
         sys.exit(_TZ_ERROR_TEXT)
 
 
-def load_overrides(file_path, loaded_config=config):
+def load_overrides(file_path, loaded_config=config) -> None:
     """
     Convenience function for overriding default configuration.
 
@@ -73,7 +73,7 @@ def load_overrides(file_path, loaded_config=config):
         log.debug(f"Imported config overrides {list(overrides)}")
 
 
-def preflight():
+def preflight() -> None:
     check_sudo()
     check_tz()
 

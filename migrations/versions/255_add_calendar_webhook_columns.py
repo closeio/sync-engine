@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "calendar",
         sa.Column("webhook_last_ping", sa.DateTime(), nullable=True),
@@ -35,6 +35,6 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("calendar", "webhook_subscription_expiration")
     op.drop_column("calendar", "webhook_last_ping")

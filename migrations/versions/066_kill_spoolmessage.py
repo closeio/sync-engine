@@ -11,11 +11,13 @@ Create Date: 2014-07-21 17:35:46.026443
 revision = "4f3a1f6eaee3"
 down_revision = "2e6120c97485"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from sqlalchemy.ext.declarative import declarative_base
 
     from inbox.ignition import main_engine
@@ -86,5 +88,5 @@ def upgrade():
     op.drop_table("spoolmessage")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("No going back.")

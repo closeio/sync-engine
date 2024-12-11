@@ -15,7 +15,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("SET FOREIGN_KEY_CHECKS=0;"))
     conn.execute(
@@ -29,7 +29,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("SET FOREIGN_KEY_CHECKS=0;"))
     conn.execute(text("ALTER TABLE event DROP FOREIGN KEY message_ifbk"))

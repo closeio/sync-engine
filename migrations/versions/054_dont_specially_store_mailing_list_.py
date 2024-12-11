@@ -16,12 +16,12 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("message", "mailing_list_headers")
     op.drop_column("thread", "mailing_list_headers")
 
 
-def downgrade():
+def downgrade() -> None:
     # downgrade method provided for convenience, but we won't get the data
     # back. Didn't need it anyway...
     op.add_column(

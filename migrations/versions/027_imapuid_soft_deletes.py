@@ -19,12 +19,12 @@ from alembic import op
 from sqlalchemy.sql import column, table
 
 
-def upgrade():
+def upgrade() -> None:
     t = table("imapuid", column("deleted_at", sa.DateTime()))
 
     op.execute(t.delete().where(t.c.deleted_at.is_(None)))
 
 
-def downgrade():
+def downgrade() -> None:
     # this was fixing a mistake
     pass

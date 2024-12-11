@@ -29,19 +29,19 @@ def is_live_env():
 
 
 class ConfigError(Exception):
-    def __init__(self, error=None, help=None):
+    def __init__(self, error=None, help=None) -> None:
         self.error = error or ""
         self.help = (
             help
             or "Run `sudo cp etc/config-dev.json /etc/inboxapp/config.json` and retry."
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.error} {self.help}"
 
 
 class Configuration(dict):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         dict.__init__(self, *args, **kwargs)
 
     def get_required(self, key):

@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "imapaccount",
         sa.Column("_imap_server_host", sa.String(length=255), nullable=True),
@@ -44,7 +44,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("imapaccount", "_smtp_server_port")
     op.drop_column("imapaccount", "_smtp_server_host")
     op.drop_column("imapaccount", "_imap_server_port")

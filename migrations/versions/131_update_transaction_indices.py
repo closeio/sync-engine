@@ -14,7 +14,7 @@ down_revision = "2b288dc444f"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "namespace_id_created_at",
         "transaction",
@@ -23,5 +23,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("namespace_id_created_at", table_name="transaction")

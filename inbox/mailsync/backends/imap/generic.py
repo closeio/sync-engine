@@ -167,7 +167,7 @@ class FolderSyncEngine(InterruptibleThread):
         email_address,
         provider_name,
         syncmanager_lock,
-    ):
+    ) -> None:
         with session_scope(namespace_id) as db_session:
             try:
                 folder = (
@@ -231,7 +231,7 @@ class FolderSyncEngine(InterruptibleThread):
             f"folder_id={self.folder_id!r}, folder_name={folder_name!r})"
         )
 
-    def setup_heartbeats(self):
+    def setup_heartbeats(self) -> None:
         self.heartbeat_status = HeartbeatStatusProxy(
             self.account_id,
             self.folder_id,
@@ -369,7 +369,7 @@ class FolderSyncEngine(InterruptibleThread):
             # error. It's safe to reset the uidvalidity counter.
             self.uidinvalid_count = 0
 
-    def update_folder_sync_status(self, cb):
+    def update_folder_sync_status(self, cb) -> None:
         # Loads the folder sync status and invokes the provided callback to
         # modify it. Commits any changes and updates `self.state` to ensure
         # they are never out of sync.
@@ -394,7 +394,7 @@ class FolderSyncEngine(InterruptibleThread):
 
             self.state = saved_folder_status.state
 
-    def set_stopped(self, db_session):
+    def set_stopped(self, db_session) -> None:
         self.update_folder_sync_status(lambda s: s.stop_sync())
 
     def _report_initial_sync_start(self):
@@ -408,7 +408,7 @@ class FolderSyncEngine(InterruptibleThread):
             q.initial_sync_end = datetime.utcnow()
 
     @retry_crispin
-    def initial_sync(self):
+    def initial_sync(self) -> str:
         log.bind(state="initial")
         log.info("starting initial sync")
 
@@ -444,7 +444,7 @@ class FolderSyncEngine(InterruptibleThread):
         return "poll"
 
     @retry_crispin
-    def poll(self):
+    def poll(self) -> str:
         log.bind(state="poll")
         # Only log every 5 minutes to cut down on the volume of
         # this log statement
@@ -456,13 +456,13 @@ class FolderSyncEngine(InterruptibleThread):
         return "poll"
 
     @retry_crispin
-    def resync_uids(self):
+    def resync_uids(self) -> str:
         log.bind(state=self.state)
         log.warning("UIDVALIDITY changed; initiating resync")
         self.resync_uids_impl()
         return "initial"
 
-    def initial_sync_impl(self, crispin_client: CrispinClient):
+    def initial_sync_impl(self, crispin_client: CrispinClient) -> None:
         # We wrap the block in a try/finally because the change_poller thread
         # needs to be killed when this thread is interrupted
         change_poller = None
@@ -531,7 +531,7 @@ class FolderSyncEngine(InterruptibleThread):
             )
         return self._should_idle
 
-    def poll_impl(self):
+    def poll_impl(self) -> None:
         with self.conn_pool.get() as crispin_client:
             self.check_uid_changes(crispin_client)
             if self.should_idle(crispin_client):
@@ -567,7 +567,7 @@ class FolderSyncEngine(InterruptibleThread):
                 introduce_jitter(self.poll_frequency)
             )
 
-    def resync_uids_impl(self):
+    def resync_uids_impl(self) -> None:
         # First, let's check if the UIVDALIDITY change was spurious, if
         # it is, just discard it and go on.
         with self.conn_pool.get() as crispin_client:
@@ -610,7 +610,8 @@ class FolderSyncEngine(InterruptibleThread):
         folder: Folder,
         raw_message: RawMessage,
     ) -> ImapUid | None:
-        assert account is not None and account.namespace is not None
+        assert account is not None
+        assert account.namespace is not None
 
         # Check if we somehow already saved the imapuid (shouldn't happen, but
         # possible due to race condition). If so, don't commit changes.
@@ -691,7 +692,9 @@ class FolderSyncEngine(InterruptibleThread):
         )
         return count
 
-    def add_message_to_thread(self, db_session, message_obj, raw_message):
+    def add_message_to_thread(
+        self, db_session, message_obj, raw_message
+    ) -> None:
         """
         Associate message_obj to the right Thread object, creating a new
         thread if necessary.
@@ -796,7 +799,7 @@ class FolderSyncEngine(InterruptibleThread):
         for metric in metrics:
             statsd_client.timing(metric, latency_per_uid)
 
-    def update_uid_counts(self, db_session, **kwargs):
+    def update_uid_counts(self, db_session, **kwargs) -> None:
         saved_status = (
             db_session.query(ImapFolderSyncStatus)
             .join(Folder)
@@ -815,7 +818,7 @@ class FolderSyncEngine(InterruptibleThread):
             metrics.update(kwargs)
             saved_status.update_metrics(metrics)
 
-    def get_new_uids(self, crispin_client):
+    def get_new_uids(self, crispin_client) -> None:
         try:
             remote_uidnext = crispin_client.conn.folder_status(
                 self.folder_name, ["UIDNEXT"]
@@ -835,7 +838,7 @@ class FolderSyncEngine(InterruptibleThread):
             ):
                 raise FolderMissingError()
             else:
-                raise e
+                raise
         if remote_uidnext is not None and remote_uidnext == self.uidnext:
             return
         log.debug(
@@ -956,7 +959,7 @@ class FolderSyncEngine(InterruptibleThread):
                 )
         self.highestmodseq = new_highestmodseq
 
-    def generic_refresh_flags(self, crispin_client):
+    def generic_refresh_flags(self, crispin_client) -> None:
         now = datetime.utcnow()
         slow_refresh_due = (
             self.last_slow_refresh is None

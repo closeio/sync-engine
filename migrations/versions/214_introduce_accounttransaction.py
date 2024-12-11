@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import context, op
 
 
-def upgrade():
+def upgrade() -> None:
     shard_id = int(context.config.get_main_option("shard_id"))
     namespace_id_type = sa.Integer() if shard_id == 0 else sa.BigInteger()
 
@@ -84,5 +84,5 @@ def upgrade():
     conn.execute(f"ALTER TABLE accounttransaction AUTO_INCREMENT={increment}")
 
 
-def downgrade():
+def downgrade() -> None:
     pass

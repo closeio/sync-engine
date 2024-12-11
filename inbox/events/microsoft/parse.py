@@ -681,19 +681,15 @@ def parse_event(
         "singleInstance",
         "seriesMaster",
     ]:
-        assert not master_event_uid and event["type"] in [
-            "singleInstance",
-            "seriesMaster",
-        ]
+        assert not master_event_uid
+        assert event["type"] in ["singleInstance", "seriesMaster"]
 
     if master_event_uid or event["type"] in [
         "exception",
         "synthesizedCancellation",
     ]:
-        assert master_event_uid and event["type"] in [
-            "exception",
-            "synthesizedCancellation",
-        ]
+        assert master_event_uid
+        assert event["type"] in ["exception", "synthesizedCancellation"]
 
     uid = event["id"]
     raw_data = json.dumps(event)

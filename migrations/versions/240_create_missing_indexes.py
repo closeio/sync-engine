@@ -14,7 +14,7 @@ down_revision = "1dfc65e583bf"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     # Thread table
     op.create_index(
         "ix_namespace_id__cleaned_subject",
@@ -77,7 +77,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     # Thread table
     op.create_index(
         "ix_thread_namespace_id", "thread", ["namespace_id"], unique=False

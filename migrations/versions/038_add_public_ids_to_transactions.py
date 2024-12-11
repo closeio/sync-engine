@@ -20,7 +20,7 @@ from sqlalchemy.dialects import mysql
 from sqlalchemy.ext.declarative import declarative_base
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "transaction", sa.Column("public_id", mysql.BINARY(16), nullable=True)
     )
@@ -80,7 +80,7 @@ def upgrade():
     op.drop_column("transaction", "additional_data")
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("ix_transaction_public_id", table_name="transaction")
     op.drop_column("transaction", "public_id")
     op.drop_column("transaction", "object_public_id")

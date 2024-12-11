@@ -340,7 +340,7 @@ def delete_account(namespace_public_id):
 
 
 @app.route("/")
-def home():
+def home() -> str:
     return "Nylas ready.\n"
 
 

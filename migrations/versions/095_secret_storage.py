@@ -11,11 +11,13 @@ Create Date: 2014-08-20 00:42:10.269746
 revision = "1683790906cf"
 down_revision = "427812c1e849"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     # SECRETS TABLE:
     # Can just drop this, was't really used before
     op.drop_column("secret", "acl_id")
@@ -65,5 +67,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception()

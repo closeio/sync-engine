@@ -15,7 +15,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     if not conn.engine.has_table("easuid"):
         return
@@ -28,5 +28,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     pass

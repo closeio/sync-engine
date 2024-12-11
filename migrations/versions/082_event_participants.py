@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "eventparticipant",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -44,5 +44,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("eventparticipant")

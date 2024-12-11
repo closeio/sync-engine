@@ -3,7 +3,7 @@
 from datetime import datetime
 
 
-def test_mutable_json_type(db, config, default_account, folder):
+def test_mutable_json_type(db, config, default_account, folder) -> None:
     """
     Test that FolderSync._sync_status which is a mutable JSON column is
     updated as expected.

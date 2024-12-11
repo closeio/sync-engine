@@ -26,7 +26,7 @@ def page_query(q):
             break
 
 
-def upgrade():
+def upgrade() -> None:
     from sqlalchemy import desc
     from sqlalchemy.sql import not_
 
@@ -50,5 +50,5 @@ def upgrade():
     db_session.commit()
 
 
-def downgrade():
+def downgrade() -> None:
     pass

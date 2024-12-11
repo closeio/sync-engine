@@ -44,7 +44,7 @@ class TestTransactionDeletion:
     """
 
     @pytest.fixture
-    def clear_redis(self):
+    def clear_redis(self) -> None:
         redis_txn.flushdb()
 
     @pytest.fixture
@@ -71,7 +71,9 @@ class TestTransactionDeletion:
 
         return t0
 
-    def test_transaction_deletion_dry_run(self, now, db, default_namespace):
+    def test_transaction_deletion_dry_run(
+        self, now, db, default_namespace
+    ) -> None:
         shard_id = default_namespace.id >> 48
         query = (
             "SELECT count(id) FROM transaction WHERE namespace_id={}".format(
@@ -84,7 +86,9 @@ class TestTransactionDeletion:
         purge_transactions(shard_id, days_ago=30, dry_run=True, now=now)
         assert db.session.execute(query).scalar() == all_transactions
 
-    def test_transaction_deletion_30_days(self, now, db, default_namespace):
+    def test_transaction_deletion_30_days(
+        self, now, db, default_namespace
+    ) -> None:
         shard_id = default_namespace.id >> 48
         query = (
             "SELECT count(id) FROM transaction WHERE namespace_id={}".format(
@@ -107,7 +111,7 @@ class TestTransactionDeletion:
 
     def test_transaction_deletion_one_day(
         self, now, transactions, db, default_namespace
-    ):
+    ) -> None:
         shard_id = default_namespace.id >> 48
         query = (
             "SELECT count(id) FROM transaction WHERE namespace_id={}".format(
@@ -135,7 +139,7 @@ class TestTransactionDeletion:
 
     def test_transaction_deletion_purges_redis(
         self, now, transactions, db, default_namespace
-    ):
+    ) -> None:
         def _get_redis_transactions():
             return redis_txn.zrangebyscore(
                 TXN_REDIS_KEY,

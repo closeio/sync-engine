@@ -55,7 +55,7 @@ def _json_convert(obj):
     """
     if hasattr(obj, "items"):
         return dict(((k, _json_convert(v)) for k, v in obj.items()))
-    elif hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes)):
+    elif hasattr(obj, "__iter__") and not isinstance(obj, str | bytes):
         return list(_json_convert(v) for v in obj)
     try:
         return default(obj)

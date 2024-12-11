@@ -16,7 +16,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "messagecontactassociation",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -43,5 +43,5 @@ def upgrade():
     rerank_contacts()
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("messagecontactassociation")

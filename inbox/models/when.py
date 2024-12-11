@@ -63,7 +63,9 @@ class When:
                 raise ValueError(f"'{key}' parameter invalid.")
         return times
 
-    def __init__(self, start: arrow.Arrow, end: arrow.Arrow | None = None):
+    def __init__(
+        self, start: arrow.Arrow, end: arrow.Arrow | None = None
+    ) -> None:
         self.start = start
         self.end = end or start
 

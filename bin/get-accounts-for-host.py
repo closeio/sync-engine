@@ -10,7 +10,7 @@ from inbox.models.session import global_session_scope
 
 @click.command()
 @click.argument("hostname")
-def main(hostname):
+def main(hostname) -> None:
     maybe_enable_rollbar()
 
     with global_session_scope() as db_session:

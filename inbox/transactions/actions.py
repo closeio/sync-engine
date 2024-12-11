@@ -108,7 +108,7 @@ class SyncbackService(InterruptibleThread):
         num_workers=NUM_PARALLEL_ACCOUNTS,
         batch_size=20,
         fetch_batch_size=100,
-    ):
+    ) -> None:
         self.process_number = process_number
         self.total_processes = total_processes
         self.poll_interval = poll_interval
@@ -342,6 +342,7 @@ class SyncbackService(InterruptibleThread):
             return SyncbackBatchTask(
                 semaphore, tasks[: self.batch_size], account_id
             )
+        return None
 
     def _batch_log_entries(self, db_session, log_entries):
         """
@@ -508,7 +509,7 @@ class SyncbackService(InterruptibleThread):
         self.worker_did_finish.clear()
         self.worker_did_finish.wait(timeout=timeout)
 
-    def stop(self):
+    def stop(self) -> None:
         self.keep_running = False
         kill_all(self.workers)
 
@@ -523,22 +524,22 @@ class SyncbackService(InterruptibleThread):
             interruptible_threading.check_interrupted()
             retry_with_logging(self._run_impl, self.log)
 
-    def notify_worker_active(self):
+    def notify_worker_active(self) -> None:
         self.num_idle_workers -= 1
 
-    def notify_worker_finished(self, action_ids):
+    def notify_worker_finished(self, action_ids) -> None:
         self.num_idle_workers += 1
         self.worker_did_finish.set()
         for action_id in action_ids:
             self.running_action_ids.remove(action_id)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self.keep_running:
             self.stop()
 
 
 class SyncbackBatchTask:
-    def __init__(self, semaphore, tasks, account_id):
+    def __init__(self, semaphore, tasks, account_id) -> None:
         self.semaphore = semaphore
         self.tasks = tasks
         self.account_id = account_id
@@ -549,7 +550,7 @@ class SyncbackBatchTask:
         else:
             return DummyContextManager()
 
-    def execute(self):
+    def execute(self) -> None:
         log = logger.new()
         with self.semaphore, self._crispin_client_or_none() as crispin_client:
             log.debug(
@@ -607,7 +608,7 @@ class SyncbackTask:
         service,
         retry_interval=30,
         extra_args=None,
-    ):
+    ) -> None:
         self.parent_service = weakref.ref(service)
         self.action_name = action_name
         self.semaphore = semaphore
@@ -668,7 +669,7 @@ class SyncbackTask:
             if latency:
                 statsd_client.timing(metric, latency * 1000)
 
-    def execute_with_lock(self):
+    def execute_with_lock(self) -> bool | None:
         """
         Process a task and return whether it executed successfully.
         """
@@ -833,13 +834,13 @@ class SyncbackTask:
     def timeout(self, per_task_timeout):
         return per_task_timeout
 
-    def execute(self):
+    def execute(self) -> None:
         with self.semaphore:
             self.execute_with_lock()
 
 
 class SyncbackWorker(InterruptibleThread):
-    def __init__(self, parent_service, task_timeout=60):
+    def __init__(self, parent_service, task_timeout=60) -> None:
         self.parent_service = weakref.ref(parent_service)
         self.task_timeout = task_timeout
         self.log = logger.new(component="syncback-worker")

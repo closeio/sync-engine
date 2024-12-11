@@ -127,10 +127,7 @@ def _is_log_in_same_fn_scope(exc_tb):
             break
 
     exc_tb_stack = traceback.extract_tb(exc_tb)
-    for _, _, fn_name, _ in exc_tb_stack:
-        if fn_name == calling_fn:
-            return True
-    return False
+    return any(fn_name == calling_fn for _, _, fn_name, _ in exc_tb_stack)
 
 
 def _get_exc_info_if_in_scope():
@@ -254,7 +251,7 @@ LOG_LEVELS = {
 }
 
 
-def json_excepthook(etype, value, tb):
+def json_excepthook(etype, value, tb) -> None:
     log = get_logger()
     log.error(**create_error_log_context((etype, value, tb)))
 
@@ -262,8 +259,7 @@ def json_excepthook(etype, value, tb):
 class ConditionalFormatter(logging.Formatter):
     def format(self, record):
         if (
-            record.name == "__main__"
-            or record.name == "inbox"
+            record.name in ("__main__", "inbox")
             or record.name.startswith("inbox.")
             or record.name == "gunicorn"
             or record.name.startswith("gunicorn.")
@@ -278,7 +274,7 @@ class ConditionalFormatter(logging.Formatter):
         return super().format(record)
 
 
-def configure_logging(log_level=None):
+def configure_logging(log_level=None) -> None:
     """
     Idempotently configure logging.
 

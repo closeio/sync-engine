@@ -6,11 +6,11 @@ down_revision = "457164360472"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "ix_message_decode_error", "message", ["decode_error"], unique=False
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("ix_message_decode_error", table_name="message")

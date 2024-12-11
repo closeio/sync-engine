@@ -26,7 +26,7 @@ def hash_token(token, prefix=None):
 
 def log_token_usage(
     reason, refresh_token=None, access_token=None, account=None, scopes=None
-):
+) -> None:
     nylas_account_id = (
         account.namespace.public_id if account and account.namespace else None
     )
@@ -41,7 +41,7 @@ def log_token_usage(
 
 
 class TokenManager:
-    def __init__(self):
+    def __init__(self) -> None:
         self._token_cache: dict[
             tuple[str, tuple[str, ...] | None], tuple[str, datetime]
         ] = {}

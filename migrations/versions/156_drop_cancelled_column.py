@@ -15,14 +15,14 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         text("ALTER TABLE recurringeventoverride DROP COLUMN cancelled;")
     )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         text(

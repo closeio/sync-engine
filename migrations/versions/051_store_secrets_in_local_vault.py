@@ -17,7 +17,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from sqlalchemy.ext.declarative import declarative_base
 
     from inbox.ignition import main_engine
@@ -89,7 +89,7 @@ def upgrade():
     op.drop_column("gmailaccount", "refresh_token")
 
 
-def downgrade():
+def downgrade() -> None:
     from sqlalchemy.ext.declarative import declarative_base
 
     from inbox.ignition import main_engine

@@ -26,7 +26,7 @@ def draft(db, default_account):
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_file_filtering(api_client, uploaded_file_ids, draft):
+def test_file_filtering(api_client, uploaded_file_ids, draft) -> None:
     # Attach the files to a draft and search there
     draft["file_ids"] = uploaded_file_ids
     r = api_client.post_data("/drafts", draft)
@@ -70,7 +70,7 @@ def test_file_filtering(api_client, uploaded_file_ids, draft):
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_attachment_has_same_id(api_client, uploaded_file_ids, draft):
+def test_attachment_has_same_id(api_client, uploaded_file_ids, draft) -> None:
     attachment_id = uploaded_file_ids.pop()
     draft["file_ids"] = [attachment_id]
     r = api_client.post_data("/drafts", draft)
@@ -81,7 +81,7 @@ def test_attachment_has_same_id(api_client, uploaded_file_ids, draft):
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_delete(api_client, uploaded_file_ids, draft):
+def test_delete(api_client, uploaded_file_ids, draft) -> None:
     non_attachment_id = uploaded_file_ids.pop()
     attachment_id = uploaded_file_ids.pop()
     draft["file_ids"] = [attachment_id]
@@ -106,7 +106,7 @@ def test_delete(api_client, uploaded_file_ids, draft):
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 @pytest.mark.parametrize("filename", FILENAMES)
-def test_get_with_id(api_client, uploaded_file_ids, filename):
+def test_get_with_id(api_client, uploaded_file_ids, filename) -> None:
     # See comment in uploaded_file_ids()
     if filename == "piece-jointe.jpg":
         filename = "pièce-jointe.jpg"
@@ -119,7 +119,7 @@ def test_get_with_id(api_client, uploaded_file_ids, filename):
     assert data["filename"] == filename
 
 
-def test_get_invalid(api_client, uploaded_file_ids):
+def test_get_invalid(api_client, uploaded_file_ids) -> None:
     data = api_client.get_data("/files/0000000000000000000000000")
     assert data["message"].startswith("Couldn't find file")
     data = api_client.get_data("/files/!")
@@ -139,7 +139,7 @@ def test_get_invalid(api_client, uploaded_file_ids):
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 @pytest.mark.parametrize("filename", FILENAMES)
-def test_download(api_client, uploaded_file_ids, filename):
+def test_download(api_client, uploaded_file_ids, filename) -> None:
     # See comment in uploaded_file_ids()
     original_filename = filename
     if filename == "piece-jointe.jpg":
@@ -165,7 +165,7 @@ def test_download(api_client, uploaded_file_ids, filename):
     assert local_md5 == dl_md5
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def fake_attachment(db, default_account, message):
     block = Block()
     namespace_id = default_account.namespace.id
@@ -185,7 +185,7 @@ def fake_attachment(db, default_account, message):
 
 def test_direct_fetching(
     api_client, db, message, fake_attachment, monkeypatch
-):
+) -> None:
     # Mark a file as missing and check that we try to
     # fetch it from the remote provider.
     get_mock = mock.Mock(return_value=None)

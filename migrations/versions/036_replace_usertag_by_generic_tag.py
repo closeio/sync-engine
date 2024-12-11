@@ -11,11 +11,13 @@ Create Date: 2014-05-21 03:36:26.834916
 revision = "21878b1b3d4b"
 down_revision = "24e085e152c0"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "tag",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -140,6 +142,6 @@ def upgrade():
         db_session.commit()
 
 
-def downgrade():
+def downgrade() -> Never:
     # TOO HARD
     raise Exception("Not supported.")

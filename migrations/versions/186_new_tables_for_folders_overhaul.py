@@ -11,11 +11,13 @@ Create Date: 2015-06-19 00:28:56.991030
 revision = "23e204cd1d91"
 down_revision = "14692efd261b"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "category",
         sa.Column("created_at", sa.DateTime(), nullable=False),
@@ -191,5 +193,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Aw hell no")

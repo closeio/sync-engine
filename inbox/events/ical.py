@@ -339,7 +339,7 @@ def events_from_ics(namespace, calendar, ics_str):
     return events
 
 
-def process_invites(db_session, message, account, invites):
+def process_invites(db_session, message, account, invites) -> None:
     new_uids = [event.uid for event in invites]
 
     # Get the list of events which share a uid with those we received.
@@ -408,7 +408,7 @@ def _cleanup_nylas_uid(uid):
     return uid
 
 
-def process_nylas_rsvps(db_session, message, account, rsvps):
+def process_nylas_rsvps(db_session, message, account, rsvps) -> None:
     # The invite sending code generates invites with uids of the form
     # `public_id@nylas.com`. We couldn't use Event.uid for this because
     # it wouldn't work with Exchange (Exchange uids are of the form
@@ -589,7 +589,8 @@ def generate_icalendar_invite(event, invite_type="request"):
 
         # FIXME @karim: handle the case where a participant has no address.
         # We may have to patch the iCalendar module for this.
-        assert email is not None and email != ""
+        assert email is not None
+        assert email != ""
 
         attendee = icalendar.vCalAddress(f"MAILTO:{email}")
         name = participant.get("name", None)
@@ -654,11 +655,12 @@ def generate_invite_message(ical_txt, event, account, invite_type="request"):
     return msg
 
 
-def send_invite(ical_txt, event, account, invite_type="request"):
+def send_invite(ical_txt, event, account, invite_type="request") -> None:
     # We send those transactional emails through a separate domain.
     MAILGUN_API_KEY = config.get("NOTIFICATIONS_MAILGUN_API_KEY")
     MAILGUN_DOMAIN = config.get("NOTIFICATIONS_MAILGUN_DOMAIN")
-    assert MAILGUN_DOMAIN is not None and MAILGUN_API_KEY is not None
+    assert MAILGUN_DOMAIN is not None
+    assert MAILGUN_API_KEY is not None
 
     for participant in event.participants:
         email = participant.get("email", None)
@@ -773,7 +775,7 @@ def rsvp_recipient(event):
     return None
 
 
-def send_rsvp(ical_data, event, body_text, status, account):
+def send_rsvp(ical_data, event, body_text, status, account) -> None:
     from inbox.sendmail.base import SendMailException, get_sendmail_client
 
     ical_file = ical_data["cal"]

@@ -14,7 +14,7 @@ down_revision = "3d8b5977eaa8"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "ix_namespace_id_app_id",
         "metadata",
@@ -24,7 +24,7 @@ def upgrade():
     op.drop_index("ix_metadata_object_id", table_name="metadata")
 
 
-def downgrade():
+def downgrade() -> None:
     op.create_index(
         "ix_metadata_object_id", "metadata", ["object_id"], unique=False
     )

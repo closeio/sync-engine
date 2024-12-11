@@ -16,7 +16,7 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "webhookparameters",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -68,7 +68,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index(
         "ix_webhookparameters_public_id", table_name="webhookparameters"
     )

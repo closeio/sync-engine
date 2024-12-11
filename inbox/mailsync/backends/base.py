@@ -1,5 +1,5 @@
 import threading
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, Never
 
 from inbox.config import config
 from inbox.interruptible_threading import (
@@ -46,7 +46,7 @@ class BaseMailSyncMonitor(InterruptibleThread):
         How often to check for commands.
     """
 
-    def __init__(self, account, heartbeat=1):
+    def __init__(self, account, heartbeat=1) -> None:
         bind_context(self, "mailsyncmonitor", account.id)
         self.shutdown = threading.Event()
         # how often to check inbox, in seconds
@@ -98,7 +98,7 @@ class BaseMailSyncMonitor(InterruptibleThread):
         )
         raise self.sync_thread.exception
 
-    def sync(self):
+    def sync(self) -> Never:
         raise NotImplementedError
 
     def _cleanup(self):

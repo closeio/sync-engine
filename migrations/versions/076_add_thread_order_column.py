@@ -15,11 +15,11 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "message", sa.Column("thread_order", sa.Integer, nullable=False)
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("message", "thread_order")

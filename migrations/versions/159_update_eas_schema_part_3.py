@@ -11,10 +11,12 @@ Create Date: 2015-04-06 23:35:00.178901
 revision = "4e6eedda36af"
 down_revision = "5aa3f27457c"
 
+from typing import Never
+
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -31,5 +33,5 @@ def upgrade():
     conn.execute("""ALTER TABLE easfoldersyncstatus DROP COLUMN folder_id""")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception()

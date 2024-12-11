@@ -14,7 +14,7 @@ down_revision = "2d8a350b4885"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     # This rigamarole is only necessary in MySQL 5.5. In MySQL 5.6 you can just
     # change the column name.
@@ -37,7 +37,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     constraint_name = conn.execute(
         """SELECT constraint_name FROM information_schema.key_column_usage

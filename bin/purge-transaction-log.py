@@ -27,7 +27,7 @@ log = get_logger()
 @click.option("--limit", type=int, default=1000)
 @click.option("--throttle", is_flag=True)
 @click.option("--dry-run", is_flag=True)
-def run(days_ago, limit, throttle, dry_run):
+def run(days_ago, limit, throttle, dry_run) -> None:
     maybe_enable_rollbar()
 
     print("Python", sys.version, file=sys.stderr)
@@ -46,7 +46,7 @@ def run(days_ago, limit, throttle, dry_run):
             )
 
 
-def purge_old_transactions(host, days_ago, limit, throttle, dry_run):
+def purge_old_transactions(host, days_ago, limit, throttle, dry_run) -> None:
     while True:
         for shard in host["SHARDS"]:
             # Ensure shard is explicitly not marked as disabled

@@ -16,10 +16,10 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column("thread", "g_thrid", type_=mysql.BIGINT)
     op.execute("OPTIMIZE TABLE thread")
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column("thread", "g_thrid", type_=sa.String(255))

@@ -16,12 +16,12 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_table("webhook")
     op.drop_table("lens")
 
 
-def downgrade():
+def downgrade() -> None:
     op.create_table(
         "lens",
         sa.Column("public_id", sa.BINARY(length=16), nullable=False),

@@ -15,7 +15,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.models import Namespace
     from inbox.models.session import session_scope
 
@@ -84,6 +84,6 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade() -> None:
     # No actual schema changes, don't need to do anything to roll back.
     pass

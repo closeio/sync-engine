@@ -18,12 +18,12 @@ date_date = datetime.datetime(2022, 9, 29, 19, 7, 34)
 
 
 @pytest.mark.parametrize(
-    "date,received,expected",
+    ("date", "received", "expected"),
     [
         (None, received_header_value, received_date),
         (date_header_value, received_header_value, date_date),
         (date_header_value, None, date_date),
     ],
 )
-def test_get_internaldate(date, received, expected):
+def test_get_internaldate(date, received, expected) -> None:
     assert get_internaldate(date, received) == expected

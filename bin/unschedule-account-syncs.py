@@ -13,7 +13,7 @@ from inbox.models.session import global_session_scope, session_scope
 @click.option("--number", type=int, help="how many accounts to unschedule")
 @click.argument("hostname")
 @click.argument("process", required=False, default=None)
-def main(dry_run, number, hostname, process):
+def main(dry_run, number, hostname, process) -> None:
     """
     Unschedule all accounts assigned to a given sync host.
     Intended primarily for use when decomissioning sync instances or for

@@ -16,7 +16,7 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "account",
         sa.Column(
@@ -107,7 +107,7 @@ def upgrade():
     op.drop_column("contact", "email_address")
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         "account",
         sa.Column("email_address", mysql.VARCHAR(length=191), nullable=True),

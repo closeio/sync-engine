@@ -48,14 +48,14 @@ def fuzzy_equals(a, b):
 # Test storing and removing heartbeats
 
 
-def test_heartbeat_store_singleton():
+def test_heartbeat_store_singleton() -> None:
     # Test we don't unnecessarily create multiple instances of HeartbeatStore
     store_one = HeartbeatStore.store()
     store_two = HeartbeatStore.store()
     assert id(store_one) == id(store_two)
 
 
-def test_heartbeat_status_key():
+def test_heartbeat_status_key() -> None:
     account_id = 1
     folder_id = 2
     key = HeartbeatStatusKey(account_id, folder_id)
@@ -65,7 +65,7 @@ def test_heartbeat_status_key():
     assert key.folder_id == 1
 
 
-def test_proxy_publish_doesnt_break_everything(monkeypatch):
+def test_proxy_publish_doesnt_break_everything(monkeypatch) -> None:
     def break_things(s, k, d, v):
         raise Exception("Redis connection failure")
 
@@ -76,7 +76,7 @@ def test_proxy_publish_doesnt_break_everything(monkeypatch):
     assert True
 
 
-def test_folder_publish_in_index(redis_client):
+def test_folder_publish_in_index(redis_client) -> None:
     proxy = proxy_for(1, 2)
     proxy.publish()
     client = heartbeat_config.get_redis_client()
@@ -92,7 +92,7 @@ def test_folder_publish_in_index(redis_client):
     assert fuzzy_equals(proxy.heartbeat_at, timestamp)
 
 
-def test_kill_device_multiple():
+def test_kill_device_multiple() -> None:
     # If we kill a device and the folder has multiple devices, don't clear
     # the heartbeat status
     local_store = HeartbeatStore().store()
@@ -121,7 +121,9 @@ def random_heartbeats():
     return proxies
 
 
-def make_dead_heartbeat(store, proxies, account_id, folder_id, time_dead):
+def make_dead_heartbeat(
+    store, proxies, account_id, folder_id, time_dead
+) -> None:
     dead_time = time.time() - ALIVE_EXPIRY - time_dead
     dead_proxy = proxies[account_id][folder_id]
     store.publish(
@@ -132,7 +134,7 @@ def make_dead_heartbeat(store, proxies, account_id, folder_id, time_dead):
     )
 
 
-def test_ping(random_heartbeats):
+def test_ping(random_heartbeats) -> None:
     # Get the lightweight ping (only checks indices) and make sure it conforms
     # to the expected format.
     ping = get_ping_status(list(range(10)))
@@ -146,7 +148,7 @@ def test_ping(random_heartbeats):
         assert f.alive
 
 
-def test_ping_single(random_heartbeats):
+def test_ping_single(random_heartbeats) -> None:
     ping = get_ping_status([0])
     assert isinstance(ping, dict)
     single = ping[0]

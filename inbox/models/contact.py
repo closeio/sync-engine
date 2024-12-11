@@ -86,7 +86,7 @@ class Contact(
     def versioned_relationships(self):
         return ["phone_numbers"]
 
-    def merge_from(self, new_contact):
+    def merge_from(self, new_contact) -> None:
         # This must be updated when new fields are added to the class.
         merge_attrs = ["name", "email_address", "raw_data"]
         for attr in merge_attrs:

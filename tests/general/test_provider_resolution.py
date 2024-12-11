@@ -7,7 +7,7 @@ from inbox.exceptions import NotSupportedError
 from inbox.util.url import InvalidEmailAddressError, provider_from_address
 
 
-def test_provider_resolution(mock_dns_resolver):
+def test_provider_resolution(mock_dns_resolver) -> None:
     mock_dns_resolver._load_records(
         "tests/data/general_test_provider_resolution.json"
     )
@@ -57,7 +57,7 @@ def test_provider_resolution(mock_dns_resolver):
         provider_from_address("notanemail.com", lambda: mock_dns_resolver)
 
 
-def test_auth_handler_dispatch():
+def test_auth_handler_dispatch() -> None:
     assert isinstance(handler_from_provider("custom"), GenericAuthHandler)
     assert isinstance(handler_from_provider("gmail"), GoogleAuthHandler)
 

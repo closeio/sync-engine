@@ -38,7 +38,7 @@ else:
     )
 
 
-def run_migrations_offline():
+def run_migrations_offline() -> None:
     """
     Run migrations in 'offline' mode.
 
@@ -63,7 +63,7 @@ def run_migrations_offline():
         context.run_migrations()
 
 
-def run_migrations_online():
+def run_migrations_online() -> None:
     """
     Run migrations in 'online' mode.
 

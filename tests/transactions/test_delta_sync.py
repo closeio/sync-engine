@@ -38,7 +38,7 @@ def get_cursor(api_client, timestamp):
     return json.loads(cursor_response.data)["cursor"]
 
 
-def test_latest_cursor(api_client):
+def test_latest_cursor(api_client) -> None:
     with freeze_time(datetime.datetime.utcnow()) as freezer:
         freezer.tick(datetime.timedelta(seconds=5))
         now = int(time.time())
@@ -50,7 +50,7 @@ def test_latest_cursor(api_client):
         assert latest_cursor == now_cursor
 
 
-def test_invalid_input(api_client):
+def test_invalid_input(api_client) -> None:
     cursor_response = api_client.post_data(
         "/delta/generate_cursor", {"start": "I'm not a timestamp!"}
     )
@@ -63,7 +63,7 @@ def test_invalid_input(api_client):
     assert sync_response.status_code == 400
 
 
-def test_events_are_condensed(api_client, message):
+def test_events_are_condensed(api_client, message) -> None:
     """
     Test that multiple revisions of the same object are rolled up in the
     delta response.
@@ -87,11 +87,12 @@ def test_events_are_condensed(api_client, message):
     assert len(message_deltas) == 1
 
     delta = message_deltas[0]
-    assert delta["object"] == "message" and delta["event"] == "modify"
+    assert delta["object"] == "message"
+    assert delta["event"] == "modify"
     assert delta["attributes"]["unread"] is True
 
 
-def test_message_events_are_propagated_to_thread(api_client, message):
+def test_message_events_are_propagated_to_thread(api_client, message) -> None:
     """
     Test that a revision to a message's `propagated_attributes` returns a delta
     for the message and for its thread.
@@ -119,18 +120,22 @@ def test_message_events_are_propagated_to_thread(api_client, message):
     message_deltas = [d for d in deltas if d["object"] == "message"]
     assert len(message_deltas) == 1
     delta = message_deltas[0]
-    assert delta["object"] == "message" and delta["event"] == "modify"
+    assert delta["object"] == "message"
+    assert delta["event"] == "modify"
     assert delta["attributes"]["unread"] is False
 
     thread_deltas = [d for d in deltas if d["object"] == "thread"]
     assert len(thread_deltas) == 1
     delta = thread_deltas[0]
-    assert delta["object"] == "thread" and delta["event"] == "modify"
+    assert delta["object"] == "thread"
+    assert delta["event"] == "modify"
     assert delta["attributes"]["unread"] is False
     assert delta["attributes"]["version"] == thread["version"] + 1
 
 
-def test_handle_missing_objects(api_client, db, thread, default_namespace):
+def test_handle_missing_objects(
+    api_client, db, thread, default_namespace
+) -> None:
     ts = int(time.time() + 22)
     cursor = get_cursor(api_client, ts)
 
@@ -149,7 +154,7 @@ def test_handle_missing_objects(api_client, db, thread, default_namespace):
     assert all(delta["event"] == "delete" for delta in sync_data["deltas"])
 
 
-def test_exclude_account(api_client, db, default_namespace, thread):
+def test_exclude_account(api_client, db, default_namespace, thread) -> None:
     ts = int(time.time() + 22)
     cursor = get_cursor(api_client, ts)
 
@@ -176,7 +181,7 @@ def test_exclude_account(api_client, db, default_namespace, thread):
     }
 
 
-def test_account_delta(api_client, db, default_namespace):
+def test_account_delta(api_client, db, default_namespace) -> None:
     ts = int(time.time() + 22)
     cursor = get_cursor(api_client, ts)
 
@@ -218,7 +223,7 @@ def test_account_delta(api_client, db, default_namespace):
     assert delta["attributes"]["sync_state"] == "running"
 
 
-def test_account_delta_for_different_namespace_id(db):
+def test_account_delta_for_different_namespace_id(db) -> None:
     from inbox.transactions.delta_sync import format_transactions_after_pointer
 
     account = add_account_with_different_namespace_id(db.session)

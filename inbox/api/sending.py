@@ -63,7 +63,7 @@ def send_draft_copy(account, draft, custom_body, recipient):
     return response_on_success
 
 
-def update_draft_on_send(account, draft, db_session):
+def update_draft_on_send(account, draft, db_session) -> None:
     # Update message
     draft.is_sent = True
     draft.is_draft = False

@@ -129,7 +129,7 @@ def engine(
 
 
 class EngineManager:
-    def __init__(self, databases, users, include_disabled=False):
+    def __init__(self, databases, users, include_disabled=False) -> None:
         self.engines = {}
         self._engine_zones = {}
         keys = set()
@@ -175,7 +175,7 @@ class EngineManager:
                 self.engines[key] = engine(schema_name, uri)
                 self._engine_zones[key] = zone
 
-    def shard_key_for_id(self, id_):
+    def shard_key_for_id(self, id_) -> int:
         return 0
 
     def get_for_id(self, id_):
@@ -194,7 +194,7 @@ engine_manager = EngineManager(
 )
 
 
-def init_db(engine, key=0):
+def init_db(engine, key=0) -> None:
     """
     Make the tables.
 
@@ -223,7 +223,7 @@ def init_db(engine, key=0):
         MailSyncBase.metadata.create_all(engine)
 
 
-def verify_db(engine, schema, key):
+def verify_db(engine, schema, key) -> None:
     from inbox.models.base import MailSyncBase
 
     query = """SELECT AUTO_INCREMENT from information_schema.TABLES where

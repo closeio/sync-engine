@@ -15,7 +15,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
     conn.execute(
@@ -30,7 +30,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
     conn.execute(

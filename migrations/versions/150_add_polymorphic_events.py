@@ -19,7 +19,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "recurringeventoverride",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -58,13 +58,13 @@ def upgrade():
     op.alter_column("event", "recurrence", type_=sa.Text())
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("event", "type")
     op.drop_table("recurringevent")
     op.drop_table("recurringeventoverride")
 
 
-def populate():
+def populate() -> None:
     # Populate new classes from the existing data
     from inbox.events.recurring import link_events
     from inbox.events.util import parse_datetime
@@ -107,7 +107,7 @@ def populate():
             db.execute(create)
         except Exception as e:
             print(f"Couldn't insert RecurringEventOverrides: {e}")
-            exit(2)
+            sys.exit(2)
         print("done.")
 
         c = 0
@@ -157,7 +157,7 @@ def populate():
             db.execute(create)
         except Exception as e:
             print(f"Couldn't insert RecurringEvents: {e}")
-            exit(2)
+            sys.exit(2)
         print("done.")
 
         # Pull out recurrence metadata from recurrence

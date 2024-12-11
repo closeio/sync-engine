@@ -15,7 +15,7 @@ class ProfilingHTTPFrontend:
     syncs.
     """
 
-    def __init__(self, port, profile):
+    def __init__(self, port, profile) -> None:
         self.port = port
         self.profiler = ProfileCollector() if profile else None
 
@@ -25,7 +25,7 @@ class ProfilingHTTPFrontend:
         self._create_app_impl(app)
         return app
 
-    def start(self):
+    def start(self) -> None:
         if self.profiler is not None:
             self.profiler.start()
 
@@ -62,7 +62,7 @@ class SyncbackHTTPFrontend(ProfilingHTTPFrontend):
 
 
 class SyncHTTPFrontend(ProfilingHTTPFrontend):
-    def __init__(self, sync_service, port, profile):
+    def __init__(self, sync_service, port, profile) -> None:
         self.sync_service = sync_service
         super().__init__(port, profile)
 

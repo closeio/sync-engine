@@ -18,7 +18,7 @@ class AbstractEventsProvider(abc.ABC):
     specified account.
     """
 
-    def __init__(self, account_id: int, namespace_id: int):
+    def __init__(self, account_id: int, namespace_id: int) -> None:
         self.account_id = account_id
         self.namespace_id = namespace_id
         self.log = log.new(account_id=account_id, component="calendar sync")

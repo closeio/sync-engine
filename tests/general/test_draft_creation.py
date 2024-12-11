@@ -1,7 +1,7 @@
 from inbox.sendmail.base import create_message_from_json, update_draft
 
 
-def test_headers_presence(default_namespace, db):
+def test_headers_presence(default_namespace, db) -> None:
     data = {"subject": "test draft", "to": [{"email": "karim@nylas.com"}]}
     draft = create_message_from_json(
         data, default_namespace, db.session, False

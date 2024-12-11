@@ -11,10 +11,12 @@ Create Date: 2014-05-09 07:47:54.866524
 revision = "59b42d0ac749"
 down_revision = "4c1eb89f6bed"
 
+from typing import Never
+
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_constraint("account_ibfk_1", "account", type_="foreignkey")
     op.drop_constraint("usersession_ibfk_1", "usersession", type_="foreignkey")
     op.drop_constraint(
@@ -30,5 +32,5 @@ def upgrade():
     op.drop_column("account", "user_id")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Not supported! You didn't need those tables anyway.")

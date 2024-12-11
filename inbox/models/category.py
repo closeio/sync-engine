@@ -42,7 +42,7 @@ class CategoryNameString(StringWithTransform):
     type match the values that we are actually storing in the database.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             sanitize_name, MAX_INDEXABLE_LENGTH, collation="utf8mb4_bin"
         )

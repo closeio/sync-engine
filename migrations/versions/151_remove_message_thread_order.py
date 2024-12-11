@@ -16,11 +16,11 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("message", "thread_order")
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         "message",
         sa.Column(

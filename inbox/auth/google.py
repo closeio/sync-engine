@@ -110,7 +110,7 @@ class GoogleAuthHandler(OAuthAuthHandler):
             except OAuthError:
                 print("\nInvalid authorization code, try again...\n")
 
-    def verify_account(self, account):
+    def verify_account(self, account) -> bool:
         """
         Verify the credentials provided by logging in.
         Verify the account configuration -- specifically checks for the presence

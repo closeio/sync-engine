@@ -115,6 +115,7 @@ def event_response_with_update(calendar_uid, sync_from_time):
                 **default_params,
             )
         ]
+    return None
 
 
 def event_response_with_participants_update(calendar_uid, sync_from_time):
@@ -124,6 +125,7 @@ def event_response_with_participants_update(calendar_uid, sync_from_time):
             {"name": "Johnny Thunders", "email": "johnny@thunde.rs"}
         ]
         return new_events
+    return None
 
 
 def event_response_with_delete(calendar_uid, sync_from_time):
@@ -133,9 +135,10 @@ def event_response_with_delete(calendar_uid, sync_from_time):
                 uid="first_event_uid", status="cancelled", **default_params
             )
         ]
+    return None
 
 
-def test_handle_changes(db, generic_account):
+def test_handle_changes(db, generic_account) -> None:
     namespace_id = generic_account.namespace.id
     event_sync = EventSync(
         generic_account.email_address,

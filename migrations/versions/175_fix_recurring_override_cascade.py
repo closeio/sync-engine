@@ -15,7 +15,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     # Check this migration is needed
     fk_name, fk_delete = conn.execute(
@@ -49,7 +49,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
     conn.execute(text("SET FOREIGN_KEY_CHECKS=0;"))

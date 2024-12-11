@@ -16,7 +16,7 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "gmailauthcredentials",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
@@ -46,5 +46,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("gmailauthcredentials")

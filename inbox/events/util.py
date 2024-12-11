@@ -23,6 +23,7 @@ def parse_datetime(datetime):
         if isinstance(datetime, int):
             return arrow.get(datetime).to("utc")
         return arrow.get(parse(datetime)).to("utc")
+    return None
 
 
 def parse_rrule_datetime(datetime, tzinfo=None):
@@ -57,6 +58,7 @@ def parse_google_time(d):
     for key, dt in d.items():
         if key != "timeZone":
             return arrow.get(dt)
+    return None
 
 
 def google_to_event_time(start_raw: str, end_raw: str) -> EventTime:

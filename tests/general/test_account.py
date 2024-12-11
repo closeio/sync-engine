@@ -29,7 +29,7 @@ def fake_imap_accounts(db):
     return accounts
 
 
-def test_provider_setting(db, fake_imap_accounts):
+def test_provider_setting(db, fake_imap_accounts) -> None:
     for provider, account in fake_imap_accounts.items():
         assert account.provider == provider
         assert account.verbose_provider == provider

@@ -186,7 +186,7 @@ def writable_connection_pool(account_id, pool_size=1):
 
 
 def convert_flags(flags: tuple[bytes | int, ...]) -> tuple[bytes, ...]:
-    """
+    r"""
     Ensure flags are always treated as bytes in downstream code.
 
     We rarely get ints, but we only compare against well known flags like
@@ -220,7 +220,7 @@ class CrispinConnectionPool:
 
     """
 
-    def __init__(self, account_id, num_connections, readonly):
+    def __init__(self, account_id, num_connections, readonly) -> None:
         log.info(
             "Creating Crispin connection pool",
             account_id=account_id,
@@ -297,7 +297,7 @@ class CrispinConnectionPool:
             ):
                 self._logout(client)
             client = None
-            raise exc
+            raise
         finally:
             self._queue.put(client)
             self._sem.release()
@@ -847,7 +847,7 @@ class CrispinClient:
 
         return RawFolder(display_name=display_name, role=role)
 
-    def create_folder(self, name):
+    def create_folder(self, name) -> None:
         interruptible_threading.check_interrupted()
         self.conn.create_folder(name)
 
@@ -1039,7 +1039,7 @@ class CrispinClient:
             if uid in uid_set
         }
 
-    def delete_uids(self, uids):
+    def delete_uids(self, uids) -> None:
         uids = [str(u) for u in uids]
 
         interruptible_threading.check_interrupted()
@@ -1048,14 +1048,14 @@ class CrispinClient:
         interruptible_threading.check_interrupted()
         self.conn.expunge()
 
-    def set_starred(self, uids, starred):
+    def set_starred(self, uids, starred) -> None:
         interruptible_threading.check_interrupted()
         if starred:
             self.conn.add_flags(uids, ["\\Flagged"], silent=True)
         else:
             self.conn.remove_flags(uids, ["\\Flagged"], silent=True)
 
-    def set_unread(self, uids, unread):
+    def set_unread(self, uids, unread) -> None:
         uids = [str(u) for u in uids]
 
         interruptible_threading.check_interrupted()
@@ -1064,7 +1064,7 @@ class CrispinClient:
         else:
             self.conn.add_flags(uids, ["\\Seen"], silent=True)
 
-    def save_draft(self, message, date=None):
+    def save_draft(self, message, date=None) -> None:
         assert (
             self.selected_folder_name in self.folder_names()["drafts"]
         ), f"Must select a drafts folder first ({self.selected_folder_name})"
@@ -1206,7 +1206,7 @@ class CrispinClient:
         self.conn.expunge()
         return True
 
-    def logout(self):
+    def logout(self) -> None:
         interruptible_threading.check_interrupted()
         self.conn.logout()
 
@@ -1562,7 +1562,7 @@ class GmailCrispinClient(CrispinClient):
     def _decode_labels(self, labels):
         return [imapclient.imap_utf7.decode(label) for label in labels]
 
-    def delete_draft(self, message_id_header):
+    def delete_draft(self, message_id_header) -> bool:
         """
         Delete a message in the drafts folder, as identified by the Message-Id
         header. This overrides the parent class's method because gmail has
@@ -1640,7 +1640,9 @@ class GmailCrispinClient(CrispinClient):
         self.conn.expunge()
         return True
 
-    def delete_sent_message(self, message_id_header, delete_multiple=False):
+    def delete_sent_message(
+        self, message_id_header, delete_multiple=False
+    ) -> bool:
         """
         Delete a message in the sent folder, as identified by the Message-Id
         header. This overrides the parent class's method because gmail has

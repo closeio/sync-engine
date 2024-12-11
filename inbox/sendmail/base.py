@@ -35,7 +35,9 @@ class SendMailException(Exception):
 
     """
 
-    def __init__(self, message, http_code, server_error=None, failures=None):
+    def __init__(
+        self, message, http_code, server_error=None, failures=None
+    ) -> None:
         self.message = message
         self.http_code = http_code
         self.server_error = server_error
@@ -342,7 +344,7 @@ def update_draft(
     return draft
 
 
-def delete_draft(db_session, account, draft):
+def delete_draft(db_session, account, draft) -> None:
     """Delete the given draft."""
     thread = draft.thread
     assert draft.is_draft

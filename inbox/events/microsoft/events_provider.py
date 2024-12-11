@@ -69,7 +69,7 @@ EVENT_FIELDS = [
 
 
 class MicrosoftEventsProvider(AbstractEventsProvider):
-    def __init__(self, account_id: int, namespace_id: int):
+    def __init__(self, account_id: int, namespace_id: int) -> None:
         super().__init__(account_id, namespace_id)
 
         self.client = MicrosoftGraphClient(

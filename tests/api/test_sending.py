@@ -15,7 +15,7 @@ __all__ = ["thread", "message", "imported_event"]
 
 
 class MockTokenManager:
-    def __init__(self, allow_auth=True):
+    def __init__(self, allow_auth=True) -> None:
         self.allow_auth = allow_auth
 
     def get_token(self, account, force_refresh=True, scopes=None):
@@ -45,7 +45,7 @@ def patch_smtp(patch_token_manager, monkeypatch):
     submitted_messages = []
 
     class MockSMTPConnection:
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args, **kwargs) -> None:
             pass
 
         def __enter__(self):
@@ -65,7 +65,7 @@ def patch_smtp(patch_token_manager, monkeypatch):
 
 def erring_smtp_connection(exc_type, *args):
     class ErringSMTPConnection:
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args, **kwargs) -> None:
             pass
 
         def __enter__(self):
@@ -457,7 +457,8 @@ def test_body_construction(patch_smtp, api_client):
         elif part.content_type.value == "text/html":
             html_part_found = True
             assert part.body.strip() == "<html>Hello there</html>"
-    assert plain_part_found and html_part_found
+    assert plain_part_found
+    assert html_part_found
 
 
 def test_quoted_printable_encoding_avoided_for_compatibility(
@@ -719,7 +720,7 @@ def test_rsvp_updates_status(
 
 
 @pytest.mark.parametrize(
-    "status,comment",
+    ("status", "comment"),
     [
         ("yes", ""),
         ("no", ""),
@@ -899,7 +900,7 @@ def patch_crispin_del_sent(monkeypatch):
         return True
 
     class FakeConnWrapper:
-        def __init__(self):
+        def __init__(self) -> None:
             pass
 
         @contextlib.contextmanager

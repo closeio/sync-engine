@@ -21,7 +21,7 @@ FILENAMES = [
 ]
 
 
-def create_test_db():
+def create_test_db() -> None:
     """Creates new, empty test databases."""
     from inbox.config import config
 
@@ -53,7 +53,7 @@ def create_test_db():
         )
 
 
-def setup_test_db():
+def setup_test_db() -> None:
     """
     Creates new, empty test databases with table structures generated
     from declarative model classes.
@@ -78,7 +78,7 @@ class MockAnswer:
 
 
 class MockDNSResolver:
-    def __init__(self):
+    def __init__(self) -> None:
         self._registry: dict[
             Literal["mx", "ns"], dict[str, dict[str, str] | list[str]]
         ] = {"mx": {}, "ns": {}}
@@ -107,7 +107,7 @@ def mock_dns_resolver(monkeypatch):
     monkeypatch.undo()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def dump_dns_queries(monkeypatch):
     original_query = dns.resolver.Resolver.query
     query_results: dict[
@@ -144,7 +144,7 @@ class MockIMAPClient:
     logic without requiring a real IMAP account and server.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._data = {}
         self.selected_folder = None
         self.uidvalidity = 1
@@ -157,17 +157,17 @@ class MockIMAPClient:
     def _set_error_message(self, message):
         self.error_message = message
 
-    def login(self, email, password):
+    def login(self, email, password) -> None:
         if email not in self.logins or self.logins[email] != password:
             raise ValidationError(self.error_message)
 
-    def logout(self):
+    def logout(self) -> None:
         pass
 
     def list_folders(self, directory="", pattern="*"):
         return [(b"\\All", b"/", "[Gmail]/All Mail")]
 
-    def has_capability(self, capability):
+    def has_capability(self, capability) -> bool:
         return False
 
     def idle_check(self, timeout=None):
@@ -176,7 +176,7 @@ class MockIMAPClient:
     def idle_done(self):
         return ("Idle terminated", [])
 
-    def add_folder_data(self, folder_name, uids):
+    def add_folder_data(self, folder_name, uids) -> None:
         """Adds fake UID data for the given folder."""
         self._data[folder_name] = uids
 
@@ -243,7 +243,7 @@ class MockIMAPClient:
 
     def append(
         self, folder_name, mimemsg, flags, date, x_gm_msgid=0, x_gm_thrid=0
-    ):
+    ) -> None:
         uid_dict = self._data[folder_name]
         uidnext = max(uid_dict) if uid_dict else 1
         uid_dict[uidnext] = {
@@ -256,7 +256,7 @@ class MockIMAPClient:
             b"X-GM-THRID": x_gm_thrid,
         }
 
-    def copy(self, matching_uids, folder_name):
+    def copy(self, matching_uids, folder_name) -> None:
         """
         Note: _moves_ one or more messages from the currently selected folder
         to folder_name
@@ -278,20 +278,20 @@ class MockIMAPClient:
             )
         return resp
 
-    def delete_messages(self, uids, silent=False):
+    def delete_messages(self, uids, silent=False) -> None:
         for u in uids:
             del self._data[self.selected_folder][u]
 
-    def remove_flags(self, uids, flags):
+    def remove_flags(self, uids, flags) -> None:
         pass
 
-    def remove_gmail_labels(self, uids, labels):
+    def remove_gmail_labels(self, uids, labels) -> None:
         pass
 
-    def expunge(self):
+    def expunge(self) -> None:
         pass
 
-    def oauth2_login(self, email, token):
+    def oauth2_login(self, email, token) -> None:
         pass
 
 
@@ -328,7 +328,7 @@ def mock_smtp_get_connection(monkeypatch):
     monkeypatch.undo()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def files(db):
     filenames = FILENAMES
     data = []
@@ -345,7 +345,7 @@ def files(db):
     return data
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def uploaded_file_ids(api_client, files):
     file_ids = []
     upload_path = "/files"

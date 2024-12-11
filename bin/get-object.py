@@ -48,7 +48,7 @@ except ImportError:
 @click.option("--account-id", type=str, default=None)
 @click.option("--namespace-id", type=str, default=None)
 @click.option("--readwrite", is_flag=True, default=False)
-def main(type, id, public_id, account_id, namespace_id, readwrite):
+def main(type, id, public_id, account_id, namespace_id, readwrite) -> None:
     maybe_enable_rollbar()
 
     type = type.lower()

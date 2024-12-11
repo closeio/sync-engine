@@ -14,11 +14,13 @@ Create Date: 2014-05-04 03:14:39.923489
 revision = "2c313b6ddd9b"
 down_revision = "519e462df171"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.sqlalchemy_ext.util import Base36UID
 
     print("Rename WebhookParameters -> Webhook")
@@ -91,5 +93,5 @@ def upgrade():
     op.create_index("ix_webhook_lens_id", "webhook", ["lens_id"], unique=False)
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Nope.")

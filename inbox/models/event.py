@@ -3,6 +3,7 @@ import contextlib
 import json
 from datetime import datetime
 from email.utils import parseaddr
+from typing import Never
 
 import arrow
 from dateutil.parser import parse as date_parse
@@ -96,7 +97,7 @@ class FlexibleDateTime(TypeDecorator):
             return arrow.get(value).to("utc")
 
     def compare_values(self, x, y):
-        if isinstance(x, (datetime, int)):
+        if isinstance(x, datetime | int):
             x = arrow.get(x)
         if isinstance(y, datetime) or isinstance(x, int):
             y = arrow.get(y)
@@ -452,7 +453,7 @@ class Event(
             cls_ = RecurringEventOverride
         return cls_(**kwargs)
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         if (
             kwargs.pop("__event_created_sanely", None)
             is not _EVENT_CREATED_SANELY_SENTINEL
@@ -489,7 +490,7 @@ class RecurringEvent(Event):
     until = Column(FlexibleDateTime, nullable=True)
     start_timezone = Column(String(35))
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         self.start_timezone = kwargs.pop("original_start_tz", None)
         kwargs["recurrence"] = repr(kwargs["recurrence"])
         super().__init__(**kwargs)
@@ -505,7 +506,7 @@ class RecurringEvent(Event):
 
     # FIXME @karim: use an overrided property instead of a reconstructor.
     @reconstructor
-    def reconstruct(self):
+    def reconstruct(self) -> None:
         try:
             self.unwrap_rrule()
         except Exception as e:
@@ -524,7 +525,7 @@ class RecurringEvent(Event):
         occurrences = get_start_times(self, start, end)
         return [InflatedEvent(self, o) for o in occurrences]
 
-    def unwrap_rrule(self):
+    def unwrap_rrule(self) -> None:
         from inbox.events.util import parse_rrule_datetime
 
         # Unwraps the RRULE list of strings into RecurringEvent properties.
@@ -569,7 +570,7 @@ class RecurringEvent(Event):
                 events.append(e)
         return sorted(events, key=lambda e: e.start)
 
-    def update(self, event):
+    def update(self, event) -> None:
         super().update(event)
         if isinstance(event, type(self)):
             self.rrule = event.rrule
@@ -610,7 +611,7 @@ class RecurringEventOverride(Event):
             return None
         return unicode_safe_truncate(value, MAX_LENS[key])
 
-    def update(self, event):
+    def update(self, event) -> None:
         super().update(event)
         if isinstance(event, type(self)):
             self.master_event_uid = event.master_event_uid
@@ -630,7 +631,7 @@ class InflatedEvent(Event):
     __tablename__ = "event"
     __table_args__ = {"extend_existing": True}
 
-    def __init__(self, event, instance_start):
+    def __init__(self, event, instance_start) -> None:
         self.master = event
         self.update(self.master)
         self.read_only = True  # Until we support modifying inflated events
@@ -641,13 +642,13 @@ class InflatedEvent(Event):
         self.public_id = f"{self.master.public_id}_{ts_id}"
         self.set_start_end(instance_start)
 
-    def set_start_end(self, start):
+    def set_start_end(self, start) -> None:
         # get the length from the master event
         length = self.master.length
         self.start = start.to("utc")
         self.end = self.start + length
 
-    def update(self, master):
+    def update(self, master) -> None:
         super().update(master)
         self.namespace_id = master.namespace_id
         self.calendar_id = master.calendar_id
@@ -664,7 +665,7 @@ class InflatedEvent(Event):
         self.message = None
 
 
-def insert_warning(mapper, connection, target):
+def insert_warning(mapper, connection, target) -> Never:
     log.warning(f"InflatedEvent {target} shouldn't be committed")
     raise Exception("InflatedEvent should not be committed")
 

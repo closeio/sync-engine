@@ -27,7 +27,7 @@ from inbox.logging import MAX_ERROR_MESSAGE_LENGTH, create_error_log_context
 )
 def test_create_error_log_context(
     error_class, error_message, expected_error_log_context
-):
+) -> None:
     try:
         raise error_class(error_message)
     except error_class:

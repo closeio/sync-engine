@@ -36,7 +36,7 @@ def get_latest_transaction_any(db_session, namespace_id):
     )
 
 
-def test_thread_insert_creates_transaction(db, default_namespace):
+def test_thread_insert_creates_transaction(db, default_namespace) -> None:
     thr = add_fake_thread(db.session, default_namespace.id)
     transaction = get_latest_transaction(
         db.session, "thread", thr.id, default_namespace.id
@@ -44,7 +44,7 @@ def test_thread_insert_creates_transaction(db, default_namespace):
     assert transaction.command == "insert"
 
 
-def test_message_insert_creates_transaction(db, default_namespace):
+def test_message_insert_creates_transaction(db, default_namespace) -> None:
     with db.session.no_autoflush:
         thr = add_fake_thread(db.session, default_namespace.id)
         msg = add_fake_message(db.session, default_namespace.id, thr)
@@ -60,7 +60,7 @@ def test_message_insert_creates_transaction(db, default_namespace):
         assert transaction.command == "update"
 
 
-def test_message_updates_create_transaction(db, default_namespace):
+def test_message_updates_create_transaction(db, default_namespace) -> None:
     with db.session.no_autoflush:
         thr = add_fake_thread(db.session, default_namespace.id)
         msg = add_fake_message(db.session, default_namespace.id, thr)
@@ -75,7 +75,9 @@ def test_message_updates_create_transaction(db, default_namespace):
         assert transaction.command == "update"
 
 
-def test_message_updates_create_thread_transaction(db, default_namespace):
+def test_message_updates_create_thread_transaction(
+    db, default_namespace
+) -> None:
     with db.session.no_autoflush:
         thr = add_fake_thread(db.session, default_namespace.id)
         msg = add_fake_message(db.session, default_namespace.id, thr)
@@ -83,10 +85,8 @@ def test_message_updates_create_thread_transaction(db, default_namespace):
         transaction = get_latest_transaction(
             db.session, "thread", thr.id, default_namespace.id
         )
-        assert (
-            transaction.record_id == thr.id
-            and transaction.object_type == "thread"
-        )
+        assert transaction.record_id == thr.id
+        assert transaction.object_type == "thread"
         assert transaction.command == "update"
 
         # An update to one of the message's propagated_attributes creates a
@@ -98,10 +98,8 @@ def test_message_updates_create_thread_transaction(db, default_namespace):
             db.session, "thread", thr.id, default_namespace.id
         )
         assert new_transaction.id != transaction.id
-        assert (
-            new_transaction.record_id == thr.id
-            and new_transaction.object_type == "thread"
-        )
+        assert new_transaction.record_id == thr.id
+        assert new_transaction.object_type == "thread"
         assert new_transaction.command == "update"
 
         # An update to one of its other attributes does not
@@ -114,7 +112,9 @@ def test_message_updates_create_thread_transaction(db, default_namespace):
         assert same_transaction.id == new_transaction.id
 
 
-def test_message_category_updates_create_transaction(db, default_namespace):
+def test_message_category_updates_create_transaction(
+    db, default_namespace
+) -> None:
     with db.session.no_autoflush:
         thr = add_fake_thread(db.session, default_namespace.id)
         msg = add_fake_message(db.session, default_namespace.id, thr)
@@ -139,7 +139,9 @@ def test_message_category_updates_create_transaction(db, default_namespace):
         )
 
 
-def test_object_type_distinguishes_messages_and_drafts(db, default_namespace):
+def test_object_type_distinguishes_messages_and_drafts(
+    db, default_namespace
+) -> None:
     with db.session.no_autoflush:
         thr = add_fake_thread(db.session, default_namespace.id)
         msg = add_fake_message(db.session, default_namespace.id, thr)
@@ -157,7 +159,7 @@ def test_object_type_distinguishes_messages_and_drafts(db, default_namespace):
         assert transaction.command == "delete"
 
 
-def test_event_insert_creates_transaction(db, default_namespace):
+def test_event_insert_creates_transaction(db, default_namespace) -> None:
     with db.session.no_autoflush:
         event = add_fake_event(db.session, default_namespace.id)
         transaction = get_latest_transaction(
@@ -168,7 +170,7 @@ def test_event_insert_creates_transaction(db, default_namespace):
         assert transaction.command == "insert"
 
 
-def test_transactions_created_for_calendars(db, default_namespace):
+def test_transactions_created_for_calendars(db, default_namespace) -> None:
     calendar = Calendar(
         namespace_id=default_namespace.id, name="New Calendar", uid="uid"
     )
@@ -200,7 +202,7 @@ def test_transactions_created_for_calendars(db, default_namespace):
     assert transaction.command == "delete"
 
 
-def test_file_transactions(db, default_namespace):
+def test_file_transactions(db, default_namespace) -> None:
     from inbox.models.message import Message
 
     account = default_namespace.account
@@ -243,7 +245,7 @@ def test_file_transactions(db, default_namespace):
         assert transaction.command == "insert"
 
 
-def test_account_transactions(db, default_namespace):
+def test_account_transactions(db, default_namespace) -> None:
     account = default_namespace.account
 
     transaction = get_latest_transaction(
@@ -276,7 +278,7 @@ def test_account_transactions(db, default_namespace):
         assert same_transaction.id == transaction.id
 
 
-def test_object_deletions_create_transaction(db, default_namespace):
+def test_object_deletions_create_transaction(db, default_namespace) -> None:
     with db.session.no_autoflush:
         thr = add_fake_thread(db.session, default_namespace.id)
         msg = add_fake_message(db.session, default_namespace.id, thr)
@@ -301,7 +303,7 @@ def test_object_deletions_create_transaction(db, default_namespace):
 
 def test_transaction_creation_for_self_referential_message_relationship(
     db, default_namespace
-):
+) -> None:
     # Make sure that updating the self-refential relationship
     # `Message.reply_to_message` does not create a spurious update delta for
     # the parent message.
@@ -320,7 +322,9 @@ def test_transaction_creation_for_self_referential_message_relationship(
     assert transaction.command == "insert"
 
 
-def test_transaction_objects_mapped_for_all_models(db, default_namespace):
+def test_transaction_objects_mapped_for_all_models(
+    db, default_namespace
+) -> None:
     """
     Test that all subclasses of HasRevisions are mapped by the
     transaction_objects() function.
@@ -331,7 +335,7 @@ def test_transaction_objects_mapped_for_all_models(db, default_namespace):
     )
 
 
-def test_accounttransactions(db, default_namespace):
+def test_accounttransactions(db, default_namespace) -> None:
     account = default_namespace.account
 
     transaction = get_latest_transaction(

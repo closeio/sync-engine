@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine()
@@ -72,7 +72,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_constraint("easeventuid_ibfk_1", "easeventuid", type_="foreignkey")
     op.drop_constraint("easeventuid_ibfk_2", "easeventuid", type_="foreignkey")
     op.drop_constraint("easeventuid_ibfk_3", "easeventuid", type_="foreignkey")

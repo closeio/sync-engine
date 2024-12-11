@@ -46,7 +46,7 @@ TABLES = [
 ]
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     for table in TABLES:
         conn.execute(
@@ -56,7 +56,7 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     for table in TABLES:
         conn.execute(

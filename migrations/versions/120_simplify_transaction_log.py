@@ -11,11 +11,13 @@ Create Date: 2014-08-08 01:57:17.144405
 revision = "8c2406df6f8"
 down_revision = "58732bb5d14b"
 
+from typing import Never
+
 from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         text(
@@ -31,5 +33,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception()

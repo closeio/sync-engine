@@ -4,7 +4,7 @@ from inbox.util.html import plaintext2html
 
 
 @pytest.mark.parametrize(
-    "plaintext,html",
+    ("plaintext", "html"),
     [
         ("", "<p></p>"),
         ("a\nb", "<p>a<br>b</p>"),
@@ -18,5 +18,5 @@ from inbox.util.html import plaintext2html
         ),
     ],
 )
-def test_plaintext2html(plaintext, html):
+def test_plaintext2html(plaintext, html) -> None:
     assert plaintext2html(plaintext) == html

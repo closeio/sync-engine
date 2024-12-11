@@ -40,7 +40,7 @@ class _EncryptionOracle:
     module.
     """
 
-    def __init__(self, secret_name):
+    def __init__(self, secret_name) -> None:
         self._closed = False
 
         if not config.get_required("ENCRYPT_SECRETS"):
@@ -60,7 +60,7 @@ class _EncryptionOracle:
     def __exit__(self, exc_type, exc_obj, exc_tb):
         self.close()
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self._closed:
             return
         self.close()

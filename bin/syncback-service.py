@@ -49,7 +49,7 @@ from inbox.util.startup import load_overrides, preflight
     default=False,
     help="Enables the CPU profiler web API",
 )
-def main(prod, config, process_num, syncback_id, enable_profiler):
+def main(prod, config, process_num, syncback_id, enable_profiler) -> None:
     """Launch the actions syncback service."""
     setproctitle(f"syncback-{process_num}")
 

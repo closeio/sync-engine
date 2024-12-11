@@ -23,7 +23,7 @@ from tests.util.base import (
 
 def test_gmail_label_sync(
     db, default_account, message, folder, imapuid, default_namespace
-):
+) -> None:
     # Note that IMAPClient parses numeric labels into integer types. We have to
     # correctly handle those too.
     new_flags = {
@@ -46,7 +46,7 @@ def test_gmail_label_sync(
 
 def test_gmail_drafts_flag_constrained_by_folder(
     db, default_account, message, imapuid, folder
-):
+) -> None:
     new_flags = {imapuid.msg_uid: GmailFlags((), ("\\Draft",), None)}
     update_metadata(
         default_account.id, folder.id, "all", new_flags, db.session
@@ -61,7 +61,7 @@ def test_gmail_drafts_flag_constrained_by_folder(
 @pytest.mark.parametrize("folder_role", ["drafts", "trash", "archive"])
 def test_generic_drafts_flag_constrained_by_folder(
     db, generic_account, folder_role
-):
+) -> None:
     msg_uid = 22
     thread = add_fake_thread(db.session, generic_account.namespace.id)
     message = add_fake_message(
@@ -79,7 +79,7 @@ def test_generic_drafts_flag_constrained_by_folder(
 
 def test_update_categories_when_actionlog_entry_missing(
     db, default_account, message, imapuid
-):
+) -> None:
     message.categories_changes = True
     db.session.commit()
     update_message_metadata(db.session, imapuid.account, message, False)
@@ -87,7 +87,7 @@ def test_update_categories_when_actionlog_entry_missing(
 
 
 @pytest.mark.parametrize(
-    "folder_roles,categories",
+    ("folder_roles", "categories"),
     [
         ([], set()),
         (["inbox"], {"inbox"}),
@@ -98,7 +98,7 @@ def test_update_categories_when_actionlog_entry_missing(
 )
 def test_categories_from_multiple_imap_folders(
     db, generic_account, folder_roles, categories
-):
+) -> None:
     """
     This tests that if we somehow think that a message is inside
     many folders simultanously, we should categorize it with the one
@@ -138,7 +138,9 @@ def test_categories_from_multiple_imap_folders(
     delete_threads(db.session)
 
 
-def test_truncate_imapuid_extra_flags(db, default_account, message, folder):
+def test_truncate_imapuid_extra_flags(
+    db, default_account, message, folder
+) -> None:
     imapuid = ImapUid(
         message=message,
         account_id=default_account.id,

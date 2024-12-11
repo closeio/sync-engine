@@ -14,11 +14,11 @@ down_revision = "4b83e064dd49"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "idx_status_type", "actionlog", ["status", "type"], unique=False
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("idx_status_type", table_name="actionlog")

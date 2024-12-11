@@ -41,7 +41,7 @@ http_server = None
     "-c", "--config", default=None, help="Path to JSON configuration file."
 )
 @click.option("-p", "--port", default=5555, help="Port to run flask app on.")
-def main(prod, config, port):
+def main(prod, config, port) -> None:
     """Launch the Nylas API service."""
     level = os.environ.get("LOGLEVEL", inbox_config.get("LOGLEVEL"))
     configure_logging(log_level=level)

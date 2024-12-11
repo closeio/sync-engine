@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "ix_imapuid_account_id_folder_id_msg_uid_desc",
         "imapuid",
@@ -24,7 +24,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index(
         "ix_imapuid_account_id_folder_id_msg_uid_desc", table_name="imapuid"
     )

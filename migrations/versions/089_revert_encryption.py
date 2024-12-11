@@ -16,7 +16,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     # Block table
     op.drop_column("block", "encryption_scheme")
 
@@ -78,5 +78,5 @@ def upgrade():
     op.drop_column("secret", "encryption_scheme")
 
 
-def downgrade():
+def downgrade() -> None:
     pass

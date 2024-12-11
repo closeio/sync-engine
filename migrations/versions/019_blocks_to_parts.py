@@ -12,6 +12,8 @@ Create Date: 2014-04-28 22:09:00.652851
 revision = "5a787816e2bc"
 down_revision = "223041bb858b"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.ext.declarative import declarative_base
@@ -19,7 +21,7 @@ from sqlalchemy.ext.declarative import declarative_base
 chunk_size = 250
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import Session, session_scope
 
@@ -131,5 +133,5 @@ def upgrade():
     print("Done migration blocks to parts!")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("This will lose data!")

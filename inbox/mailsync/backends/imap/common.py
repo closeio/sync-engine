@@ -163,7 +163,9 @@ def update_message_metadata(
     """
 
 
-def update_metadata(account_id, folder_id, folder_role, new_flags, session):
+def update_metadata(
+    account_id, folder_id, folder_role, new_flags, session
+) -> None:
     """
     Update flags and labels (the only metadata that can change).
 
@@ -208,7 +210,7 @@ def update_metadata(account_id, folder_id, folder_role, new_flags, session):
     )
 
 
-def remove_deleted_uids(account_id, folder_id, uids):
+def remove_deleted_uids(account_id, folder_id, uids) -> None:
     """
     Make sure you're holding a db write lock on the account. (We don't try
     to grab the lock in here in case the caller needs to put higher-level
@@ -341,7 +343,7 @@ def create_imap_message(
     # Update the message's metadata
     with db_session.no_autoflush:
         is_draft = imapuid.is_draft and (
-            folder.canonical_name == "drafts" or folder.canonical_name == "all"
+            folder.canonical_name in ("drafts", "all")
         )
         update_message_metadata(db_session, account, new_message, is_draft)
 

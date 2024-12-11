@@ -14,11 +14,11 @@ down_revision = "569b9d365295"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index("ix_message_subject", "message", ["subject"], unique=False)
     op.create_index("ix_thread_subject", "thread", ["subject"], unique=False)
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("ix_thread_subject", table_name="thread")
     op.drop_index("ix_message_subject", table_name="message")

@@ -11,10 +11,12 @@ Create Date: 2014-09-18 03:03:52.580809
 revision = "248ec24a39f"
 down_revision = "38c29430efeb"
 
+from typing import Never
+
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine()
@@ -23,5 +25,5 @@ def upgrade():
     op.drop_column("secret", "secret")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception()

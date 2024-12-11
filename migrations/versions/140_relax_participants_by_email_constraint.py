@@ -15,12 +15,12 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("ALTER TABLE event MODIFY participants_by_email TEXT;"))
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         text("ALTER TABLE event MODIFY participants_by_email TEXT NOT NULL;")

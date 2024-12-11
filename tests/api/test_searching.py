@@ -211,20 +211,20 @@ def different_imap_messages(
 
 
 class MockImapConnection:
-    def __init__(self):
+    def __init__(self) -> None:
         self.search_args = None
 
     def select_folder(self, name, **_):
         return {b"UIDVALIDITY": 123}
 
-    def logout(self):
+    def logout(self) -> None:
         pass
 
     def search(self, criteria, charset=None):
         self.search_args = (criteria, charset)
         return [2000, 2001, 2002]
 
-    def assert_search(self, criteria, charset=None):
+    def assert_search(self, criteria, charset=None) -> None:
         assert self.search_args == (criteria, charset)
 
 
@@ -254,7 +254,7 @@ def invalid_imap_connection(monkeypatch):
 
 
 @fixture
-def patch_token_manager(monkeypatch):
+def patch_token_manager(monkeypatch) -> None:
     monkeypatch.setattr(
         "inbox.models.backends.oauth.token_manager.get_token",
         lambda *args, **kwargs: "token",
@@ -262,7 +262,7 @@ def patch_token_manager(monkeypatch):
 
 
 @fixture
-def patch_gmail_search_response():
+def patch_gmail_search_response() -> None:
     resp = requests.Response()
     resp.status_code = 200
     resp.elapsed = datetime.timedelta(seconds=22)
@@ -273,7 +273,7 @@ def patch_gmail_search_response():
 
 
 @fixture
-def invalid_gmail_token(monkeypatch):
+def invalid_gmail_token(monkeypatch) -> None:
     from inbox.exceptions import OAuthError
 
     def raise_401(*args):
@@ -292,7 +292,7 @@ def test_gmail_message_search(
     patch_gmail_search_response,
     sorted_gmail_messages,
     is_streaming,
-):
+) -> None:
     search_client = get_search_client(default_account)
     assert isinstance(search_client, GmailSearchClient)
 
@@ -316,7 +316,7 @@ def test_gmail_thread_search(
     sorted_gmail_messages,
     sorted_gmail_threads,
     is_streaming,
-):
+) -> None:
     search_client = get_search_client(default_account)
     assert isinstance(search_client, GmailSearchClient)
 
@@ -341,7 +341,7 @@ def test_gmail_search_unicode(
     sorted_gmail_messages,
     sorted_gmail_threads,
     is_streaming,
-):
+) -> None:
     search_client = get_search_client(default_account)
     assert isinstance(search_client, GmailSearchClient)
 
@@ -362,7 +362,7 @@ def test_invalid_gmail_account_search(
     patch_gmail_search_response,
     sorted_gmail_messages,
     is_streaming,
-):
+) -> None:
     if is_streaming:
         response = api_client.get_raw(
             "/messages/search/streaming?q=blah%20blah%20blah"
@@ -385,7 +385,7 @@ def test_imap_message_search(
     imap_connection,
     sorted_imap_messages,
     is_streaming,
-):
+) -> None:
     search_client = get_search_client(generic_account)
     assert isinstance(search_client, IMAPSearchClient)
 
@@ -411,7 +411,7 @@ def test_imap_thread_search(
     sorted_imap_messages,
     sorted_imap_threads,
     is_streaming,
-):
+) -> None:
     search_client = get_search_client(generic_account)
     assert isinstance(search_client, IMAPSearchClient)
 
@@ -438,7 +438,7 @@ def test_imap_thread_search_unicode(
     sorted_imap_messages,
     sorted_imap_threads,
     is_streaming,
-):
+) -> None:
     search_client = get_search_client(generic_account)
     assert isinstance(search_client, IMAPSearchClient)
 
@@ -460,7 +460,7 @@ def test_invalid_imap_account_search(
     imap_folder,
     sorted_imap_messages,
     is_streaming,
-):
+) -> None:
     if is_streaming:
         # Because of the way streaming search work, it will return a
         # 200 response even though we can't access the account.
@@ -481,7 +481,7 @@ def test_invalid_imap_account_search(
         )
 
 
-def assert_search_result(expected, actual):
+def assert_search_result(expected, actual) -> None:
     assert len(expected) == len(actual)
     for expected_item, actual_item in zip(expected, actual):
         assert expected_item.public_id == actual_item["id"]
@@ -497,12 +497,12 @@ def test_streaming_search_results(
     sorted_imap_messages,
     different_imap_messages,
     endpoint,
-):
+) -> None:
     # Check that the streaming search returns results from different
     # folders.
 
     class MultiFolderMockImapConnection(MockImapConnection):
-        def __init__(self):
+        def __init__(self) -> None:
             self._responses = list(
                 reversed([[2000, 2001, 2002], [5000, 5001]])
             )
@@ -526,6 +526,7 @@ def test_streaming_search_results(
 
     # The API returns JSON lists separated by '\n'
     responses = raw_data.split("\n")
-    assert len(responses) == 3 and responses[2] == ""
+    assert len(responses) == 3
+    assert responses[2] == ""
     assert len(json.loads(responses[0])) == 3
     assert len(json.loads(responses[1])) == 2

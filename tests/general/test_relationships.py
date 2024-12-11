@@ -5,7 +5,7 @@ from tests.api.base import new_api_client
 from tests.util.base import add_fake_message, add_fake_thread
 
 
-def test_category_delete(db, gmail_account):
+def test_category_delete(db, gmail_account) -> None:
     """
     Ensure that all associated MessageCategories are deleted
     when a Category is deleted
@@ -51,7 +51,7 @@ def test_category_delete(db, gmail_account):
     )
 
 
-def test_message_delete(db, gmail_account):
+def test_message_delete(db, gmail_account) -> None:
     """
     Ensure that all associated MessageCategories are deleted
     when a Message is deleted
@@ -92,7 +92,7 @@ def test_message_delete(db, gmail_account):
     )
 
 
-def test_thread_delete(db, gmail_account):
+def test_thread_delete(db, gmail_account) -> None:
     """
     Ensure that all associated Messages are deleted
     when a Thread is deleted.

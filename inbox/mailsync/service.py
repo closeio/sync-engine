@@ -91,7 +91,7 @@ class SyncService:
         process_identifier,
         process_number,
         poll_interval=SYNC_POLL_INTERVAL,
-    ):
+    ) -> None:
         self.keep_running = True
         self.host = platform.node()
         self.process_number = process_number
@@ -133,7 +133,7 @@ class SyncService:
         self._pending_avgs_provider = None
         self.last_unloaded_account = time.time()
 
-    def run(self):
+    def run(self) -> None:
         while self.keep_running:
             retry_with_logging(self._run_impl, self.log)
 
@@ -189,7 +189,7 @@ class SyncService:
             if event is None:
                 break
 
-    def handle_shared_queue_event(self, event):
+    def handle_shared_queue_event(self, event) -> None:
         # Conservatively, stop accepting accounts if the process pending averages
         # is over PENDING_AVGS_THRESHOLD or if the total of accounts being
         # synced by a single process exceeds the threshold. Excessive
@@ -228,7 +228,7 @@ class SyncService:
         )
         shared_sync_event_queue_for_zone(self.zone).send_event(event)
 
-    def poll(self):
+    def poll(self) -> None:
         # Determine which accounts to sync
         start_accounts = self.account_ids_to_sync()
         statsd_client.gauge(
@@ -294,7 +294,7 @@ class SyncService:
                 .all()
             }
 
-    def register_pending_avgs_provider(self, pending_avgs_provider):
+    def register_pending_avgs_provider(self, pending_avgs_provider) -> None:
         self._pending_avgs_provider = pending_avgs_provider
 
     def start_event_sync(self, account: Account) -> None:
@@ -403,7 +403,7 @@ class SyncService:
         self.log.info("stopping sync process")
         self.keep_running = False
 
-    def stop_sync(self, account_id):
+    def stop_sync(self, account_id) -> bool:
         """
         Stops the sync for the account with given account_id.
         If that account doesn't exist, does nothing.

@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "contact",
         sa.Column("provider_name", sa.String(length=64), nullable=False),
@@ -35,7 +35,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column(
         "contact",
         "uid",

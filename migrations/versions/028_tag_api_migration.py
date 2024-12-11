@@ -13,6 +13,7 @@ down_revision = "924ffd092832"
 
 from contextlib import contextmanager
 from datetime import datetime
+from typing import Never
 
 import sqlalchemy as sa
 from alembic import op
@@ -21,7 +22,7 @@ from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -187,5 +188,5 @@ def upgrade():
         db_session.commit()
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Not supported.")

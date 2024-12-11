@@ -14,7 +14,7 @@ down_revision = "1683790906cf"
 import sqlalchemy as sa
 
 
-def upgrade():
+def upgrade() -> None:
     import nacl.secret
     import nacl.utils
 
@@ -87,5 +87,5 @@ def upgrade():
         db_session.commit()
 
 
-def downgrade():
+def downgrade() -> None:
     pass

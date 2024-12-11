@@ -16,7 +16,7 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     # Create DraftThread table
     op.create_table(
         "draftthread",
@@ -85,7 +85,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_constraint(
         "spoolmessage_ibfk_3", "spoolmessage", type_="foreignkey"
     )

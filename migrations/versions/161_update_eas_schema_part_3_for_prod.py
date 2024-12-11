@@ -15,7 +15,7 @@ from alembic import op
 from sqlalchemy.schema import MetaData
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -44,5 +44,5 @@ def upgrade():
     conn.execute("""ALTER TABLE easfoldersyncstatus DROP COLUMN folder_id""")
 
 
-def downgrade():
+def downgrade() -> None:
     pass

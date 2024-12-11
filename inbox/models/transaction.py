@@ -65,7 +65,7 @@ Index(
 )
 
 
-def is_dirty(session, obj):
+def is_dirty(session, obj) -> bool:
     if obj in session.dirty and obj.has_versioned_changes():
         return True
     if hasattr(obj, "dirty") and obj.dirty:
@@ -73,7 +73,7 @@ def is_dirty(session, obj):
     return False
 
 
-def create_revisions(session):
+def create_revisions(session) -> None:
     for obj in session:
         if (
             not isinstance(obj, HasRevisions)
@@ -94,7 +94,7 @@ def create_revisions(session):
             create_revision(obj, session, "delete")
 
 
-def create_revision(obj, session, revision_type):
+def create_revision(obj, session, revision_type) -> None:
     assert revision_type in ("insert", "update", "delete")
 
     # If available use object dates for the transaction timestamp
@@ -140,7 +140,7 @@ def create_revision(obj, session, revision_type):
         session.add(revision)
 
 
-def propagate_changes(session):
+def propagate_changes(session) -> None:
     """
     Mark an object's related object as dirty when certain attributes of the
     object (its `propagated_attributes`) change.
@@ -161,7 +161,7 @@ def propagate_changes(session):
                     obj.thread.dirty = True
 
 
-def increment_versions(session):
+def increment_versions(session) -> None:
     from inbox.models.metadata import Metadata
     from inbox.models.thread import Thread
 
@@ -174,7 +174,7 @@ def increment_versions(session):
             obj.version = Metadata.version + 1  # TODO what's going on here?
 
 
-def bump_redis_txn_id(session):
+def bump_redis_txn_id(session) -> None:
     """
     Called from post-flush hook to bump the latest id stored in redis
     """

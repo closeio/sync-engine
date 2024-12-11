@@ -1,7 +1,7 @@
 from inbox.scheduling.event_queue import EventQueue, EventQueueGroup
 
 
-def test_event_queue():
+def test_event_queue() -> None:
     queue = EventQueue("name")
     sent_event = {"event": "test"}
     queue.send_event(sent_event)
@@ -11,7 +11,7 @@ def test_event_queue():
     assert received_event == sent_event
 
 
-def test_event_queue_timeout_none():
+def test_event_queue_timeout_none() -> None:
     queue = EventQueue("name")
     sent_event = {"event": "test"}
     queue.send_event(sent_event)
@@ -21,13 +21,13 @@ def test_event_queue_timeout_none():
     assert received_event == sent_event
 
 
-def test_event_queue_empty():
+def test_event_queue_empty() -> None:
     queue = EventQueue("name")
     assert queue.receive_event(1) is None
     assert queue.receive_event(None) is None
 
 
-def test_event_queue_group():
+def test_event_queue_group() -> None:
     queue1 = EventQueue("name1")
     queue2 = EventQueue("name2")
 

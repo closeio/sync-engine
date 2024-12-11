@@ -13,13 +13,13 @@ class SearchBackendException(Exception):
     provider.
     """
 
-    def __init__(self, message, http_code, server_error=None):
+    def __init__(self, message, http_code, server_error=None) -> None:
         self.message = message
         self.http_code = http_code
         self.server_error = server_error
         super().__init__(message, http_code, server_error)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
 
@@ -30,6 +30,6 @@ class SearchStoreException(Exception):
     an error
     """
 
-    def __init__(self, err_code):
+    def __init__(self, err_code) -> None:
         self.err_code = err_code
         super().__init__(err_code)

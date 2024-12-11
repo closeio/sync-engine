@@ -13,7 +13,7 @@ THREAD_ID = 2
 # back to the state it started in when the test is done.
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def message(db, config):
     from inbox.models.backends.imap import ImapAccount
 
@@ -30,7 +30,7 @@ def message(db, config):
     return (to, subject, body)
 
 
-def test_remote_save_draft(db, config, message):
+def test_remote_save_draft(db, config, message) -> None:
     """Tests the save_draft function, which saves the draft to the remote."""
     from inbox.actions.backends.gmail import remote_save_draft
     from inbox.models import Account
@@ -77,7 +77,7 @@ def test_remote_save_draft(db, config, message):
         c.conn.expunge()
 
 
-def test_remote_delete_draft(db, config, message):
+def test_remote_delete_draft(db, config, message) -> None:
     """
     Tests the delete_draft function, which deletes the draft from the
     remote.

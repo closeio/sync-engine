@@ -172,9 +172,7 @@ def vcard_from_vobject(vcard):
         property_value = line.value
 
         with contextlib.suppress(AttributeError):
-            if line.ENCODING_paramlist == ["b"] or line.ENCODING_paramlist == [
-                "B"
-            ]:
+            if line.ENCODING_paramlist in (["b"], ["B"]):
                 property_value = base64.b64encode(line.value)
         if isinstance(property_value, list):
             property_value = (",").join(property_value)
@@ -234,7 +232,7 @@ class VCard(defaultdict):
         2: some property was deleted
     """
 
-    def __init__(self, ddict=""):
+    def __init__(self, ddict="") -> None:
         if ddict == "":
             defaultdict.__init__(self, list)
         else:

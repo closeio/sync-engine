@@ -9,7 +9,7 @@ from inbox.ignition import engine_manager
 
 @click.command()
 @click.option("--shard_id", type=int)
-def main(shard_id):
+def main(shard_id) -> None:
     maybe_enable_rollbar()
 
     if shard_id is not None:
@@ -21,7 +21,7 @@ def main(shard_id):
             update_folders_and_labels_for_shard(key)
 
 
-def update_categories_for_shard(shard_id):
+def update_categories_for_shard(shard_id) -> None:
     print(f"Updating categories for shard {shard_id}")
 
     engine = engine_manager.engines[shard_id]
@@ -35,7 +35,7 @@ def update_categories_for_shard(shard_id):
     engine.execute(query)
 
 
-def update_folders_and_labels_for_shard(shard_id):
+def update_folders_and_labels_for_shard(shard_id) -> None:
     print(f"Updating folders for shard {shard_id}")
 
     engine = engine_manager.engines[shard_id]

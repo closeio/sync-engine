@@ -16,7 +16,7 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "spoolmessage",
         sa.Column(
@@ -38,7 +38,7 @@ def upgrade():
     op.drop_table("draftthread")
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         "spoolmessage",
         sa.Column(

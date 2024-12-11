@@ -1,7 +1,7 @@
 import pytest
 
 
-def test_utf8_surrogate_fix_codec():
+def test_utf8_surrogate_fix_codec() -> None:
     assert "abc".encode("utf8-surrogate-fix") == b"abc"
     assert b"abc".decode("utf8-surrogate-fix") == "abc"
 

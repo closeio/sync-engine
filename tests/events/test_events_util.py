@@ -3,7 +3,7 @@ from datetime import datetime
 from inbox.models.event import Event
 
 
-def test_base36_validation():
+def test_base36_validation() -> None:
     from inbox.events.util import valid_base36
 
     assert valid_base36("1234zerzerzedsfsd") is True
@@ -12,7 +12,7 @@ def test_base36_validation():
     assert valid_base36("_°987643") is False
 
 
-def test_event_organizer_parsing():
+def test_event_organizer_parsing() -> None:
     from inbox.models.event import Event
 
     e = Event.create()
@@ -26,7 +26,7 @@ def test_event_organizer_parsing():
     assert e.organizer_email == "pierre.messmer@orange.fr"
 
 
-def test_removed_participants():
+def test_removed_participants() -> None:
     from inbox.events.util import removed_participants
 
     helena = {"email": "helena@nylas.com", "name": "Helena Handbasket"}
@@ -46,10 +46,11 @@ def test_removed_participants():
     assert paul in removed_participants([helena, ben, paul], [helena])
     assert removed_participants([helena, ben], [helena_case_change, ben]) == []
     removed = removed_participants([helena, ben], [helena_case_change, paul])
-    assert ben in removed and len(removed) == 1
+    assert ben in removed
+    assert len(removed) == 1
 
 
-def test_unicode_event_truncation(db, default_account):
+def test_unicode_event_truncation(db, default_account) -> None:
     emoji_str = "".join(["😁" for i in range(300)])
     title = "".join(["a" for i in range(2000)])
 
@@ -102,7 +103,7 @@ def test_unicode_event_truncation(db, default_account):
     assert len(e.master_event_uid) == 767
 
 
-def test_event_emails():
+def test_event_emails() -> None:
     from inbox.models.event import Event
 
     e = Event.create()

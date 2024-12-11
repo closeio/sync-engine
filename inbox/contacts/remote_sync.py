@@ -52,7 +52,7 @@ class ContactSync(BaseSyncMonitor):
         account_id,
         namespace_id,
         poll_frequency=300,
-    ):
+    ) -> None:
         bind_context(self, "contactsync", account_id)
         self.provider_name = provider_name
 
@@ -72,7 +72,7 @@ class ContactSync(BaseSyncMonitor):
             scope="contacts",
         )
 
-    def sync(self):
+    def sync(self) -> None:
         """
         Query a remote provider for updates and persist them to the
         database. This function runs every `self.poll_frequency`.

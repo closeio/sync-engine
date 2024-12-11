@@ -4,6 +4,7 @@ Called by the API.
 """
 
 import uuid
+from typing import Never
 
 from inbox.models import Contact
 
@@ -34,9 +35,9 @@ def read(namespace, db_session, contact_public_id):
     )
 
 
-def update(namespace, db_session, contact_public_id, name, email):
+def update(namespace, db_session, contact_public_id, name, email) -> Never:
     raise NotImplementedError
 
 
-def delete(namespace, db_session, contact_public_id):
+def delete(namespace, db_session, contact_public_id) -> Never:
     raise NotImplementedError

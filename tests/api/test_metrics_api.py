@@ -10,7 +10,7 @@ from tests.util.base import add_fake_message
 
 class TestGlobalDeltas:
     @pytest.fixture(autouse=True)
-    def clear_redis(self):
+    def clear_redis(self) -> None:
         redis_txn.flushdb()
 
     @pytest.fixture
@@ -23,7 +23,7 @@ class TestGlobalDeltas:
 
     def test_global_deltas(
         self, db, unauthed_api_client, default_namespace, thread
-    ):
+    ) -> None:
         deltas_base_url = "/metrics/global-deltas/"
 
         # add a fake message
@@ -67,7 +67,7 @@ class TestGlobalDeltas:
         assert deltas["txnid_end"] > txnid
 
 
-def test_metrics_index(test_client, outlook_account):
+def test_metrics_index(test_client, outlook_account) -> None:
     metrics = test_client.get("/metrics")
 
     (outlook_account_metrics,) = metrics.json
@@ -80,7 +80,7 @@ def test_metrics_index(test_client, outlook_account):
 
 def test_metrics_index_busted_account(
     db, test_client, outlook_account, default_account
-):
+) -> None:
     # Bust outlook_account by deleting its namespace
     db.session.query(Namespace).filter_by(
         id=outlook_account.namespace.id

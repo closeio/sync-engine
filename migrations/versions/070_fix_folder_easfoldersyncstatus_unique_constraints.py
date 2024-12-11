@@ -11,11 +11,13 @@ Create Date: 2014-07-28 18:57:24.476123
 revision = "2525c5245cc2"
 down_revision = "479b3b84a73e"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -41,5 +43,5 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Unsupported, going back will break things.")

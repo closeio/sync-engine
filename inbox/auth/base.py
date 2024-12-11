@@ -1,4 +1,5 @@
 import socket
+from typing import Never
 
 from imapclient import IMAPClient
 
@@ -43,7 +44,7 @@ def handler_from_provider(provider_name):
 
 
 class AuthHandler:
-    def create_account(self, account_data):
+    def create_account(self, account_data) -> Never:
         """
         Create a new account with the given subclass-specific account data.
 
@@ -52,7 +53,7 @@ class AuthHandler:
         """
         raise NotImplementedError()
 
-    def update_account(self, account, account_data):
+    def update_account(self, account, account_data) -> Never:
         """
         Update an existing account with the given subclass-specific account
         data.
@@ -75,7 +76,7 @@ class AuthHandler:
             )
             raise
 
-    def authenticate_imap_connection(self, account, conn):
+    def authenticate_imap_connection(self, account, conn) -> Never:
         raise NotImplementedError()
 
     def get_authenticated_imap_connection(self, account, use_timeout=True):
@@ -83,10 +84,10 @@ class AuthHandler:
         self.authenticate_imap_connection(account, conn)
         return conn
 
-    def interactive_auth(self, email_address):
+    def interactive_auth(self, email_address) -> Never:
         raise NotImplementedError()
 
-    def verify_account(self, account):
+    def verify_account(self, account) -> bool:
         """
         Verifies a generic IMAP account by logging in and logging out to both
         the IMAP/ SMTP servers.

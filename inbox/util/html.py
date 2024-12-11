@@ -1,12 +1,7 @@
 import re
-import sys
+from html import escape as html_escape
 from html.entities import name2codepoint
 from html.parser import HTMLParser
-
-if sys.version_info < (3, 8):
-    from cgi import escape as html_escape
-else:
-    from html import escape as html_escape
 
 
 class HTMLParseError(ValueError):
@@ -17,14 +12,14 @@ class HTMLParseError(ValueError):
 class HTMLTagStripper(HTMLParser):
     strippedTags = ["title", "script", "style"]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.reset()
         self.fed = []
         self.strip_tag_contents_mode = False
 
         HTMLParser.__init__(self)
 
-    def handle_starttag(self, tag, attrs):
+    def handle_starttag(self, tag, attrs) -> None:
         # Replace <br>, <div> tags by spaces
         if tag.lower() in ("br", "div"):
             self.fed.append(" ")
@@ -35,14 +30,14 @@ class HTMLTagStripper(HTMLParser):
         if tag.lower() in HTMLTagStripper.strippedTags:
             self.strip_tag_contents_mode = True
 
-    def handle_endtag(self, tag):
+    def handle_endtag(self, tag) -> None:
         self.strip_tag_contents_mode = False
 
-    def handle_data(self, d):
+    def handle_data(self, d) -> None:
         if not self.strip_tag_contents_mode:
             self.fed.append(d)
 
-    def handle_entityref(self, d):
+    def handle_entityref(self, d) -> None:
         try:
             val = chr(name2codepoint[d])
         except KeyError:

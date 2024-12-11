@@ -18,7 +18,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import backref, relationship
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "message",
         sa.Column(
@@ -75,7 +75,7 @@ def upgrade():
         db_session.commit()
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column(
         "usertagitem",
         "updated_at",

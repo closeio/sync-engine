@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("message", "version")
     op.add_column(
         "message",
@@ -27,7 +27,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("message", "version")
     op.add_column("message", sa.Column("version", sa.BINARY(), nullable=True))
     op.drop_column("thread", "version")

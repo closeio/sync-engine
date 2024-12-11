@@ -11,11 +11,13 @@ Create Date: 2014-10-20 17:31:52.121360
 revision = "ad7b856bcc0"
 down_revision = "26bfb2e45c47"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine()
@@ -135,5 +137,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("!")

@@ -5,7 +5,7 @@ from inbox.util.threading import fetch_corresponding_thread
 from tests.util.base import add_fake_message, add_fake_thread
 
 
-def test_message_cleanup():
+def test_message_cleanup() -> None:
     assert cleanup_subject("Re: Birthday") == "Birthday"
     assert cleanup_subject("Re:Birthday") == "Birthday"
     assert cleanup_subject("Re:FWD:   Birthday") == "Birthday"
@@ -33,7 +33,7 @@ def test_message_cleanup():
     )
 
 
-def test_basic_message_grouping(db, default_namespace):
+def test_basic_message_grouping(db, default_namespace) -> None:
     first_thread = add_fake_thread(db.session, default_namespace.id)
     first_thread.subject = "Some kind of test"
 
@@ -72,7 +72,7 @@ def test_basic_message_grouping(db, default_namespace):
     assert matched_thread is first_thread, "Should match on participants"
 
 
-def test_self_send(db, default_namespace):
+def test_self_send(db, default_namespace) -> None:
     first_thread = add_fake_thread(db.session, default_namespace.id)
     first_thread.subject = "Some kind of test"
 

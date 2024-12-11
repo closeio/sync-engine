@@ -11,12 +11,14 @@ Create Date: 2015-05-06 18:31:46.061688
 revision = "457164360472"
 down_revision = "2235895f313b"
 
+from typing import Never
+
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("transaction", "snapshot")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception()

@@ -7,7 +7,7 @@ from inbox.models import Contact
 from tests.util.base import add_fake_message
 
 
-def test_update_contacts_from_message(db, default_namespace, thread):
+def test_update_contacts_from_message(db, default_namespace, thread) -> None:
     # Check that only one Contact is created for repeatedly-referenced
     # addresses.
     add_fake_message(
@@ -56,7 +56,7 @@ def test_update_contacts_from_message(db, default_namespace, thread):
     assert len(alpha.message_associations) == 4
 
 
-def test_addresses_canonicalized(db, default_namespace, thread):
+def test_addresses_canonicalized(db, default_namespace, thread) -> None:
     msg = add_fake_message(
         db.session,
         default_namespace.id,
@@ -74,7 +74,7 @@ def test_addresses_canonicalized(db, default_namespace, thread):
     assert len({association.contact for association in msg.contacts}) == 1
 
 
-def test_handle_noreply_addresses(db, default_namespace, thread):
+def test_handle_noreply_addresses(db, default_namespace, thread) -> None:
     add_fake_message(
         db.session,
         default_namespace.id,

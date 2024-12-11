@@ -431,12 +431,12 @@ class ImapFolderSyncStatus(
 
         return status
 
-    def start_sync(self):
+    def start_sync(self) -> None:
         self._metrics = dict(
             run_state="running", sync_start_time=datetime.utcnow()
         )
 
-    def stop_sync(self):
+    def stop_sync(self) -> None:
         self._metrics["run_state"] = "stopped"
         self._metrics["sync_end_time"] = datetime.utcnow()
 
@@ -444,7 +444,7 @@ class ImapFolderSyncStatus(
     def is_killed(self):
         return self._metrics.get("run_state") == "killed"
 
-    def update_metrics(self, metrics):
+    def update_metrics(self, metrics) -> None:
         sync_status_metrics = [
             "remote_uid_count",
             "delete_uid_count",

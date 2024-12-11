@@ -28,7 +28,7 @@ def marked_deleted_message(db, message):
 
 def test_messages_deleted_asynchronously(
     db, default_account, thread, message, imapuid, folder
-):
+) -> None:
     msg_uid = imapuid.msg_uid
     update_metadata(
         default_account.id,
@@ -47,7 +47,7 @@ def test_messages_deleted_asynchronously(
 
 def test_drafts_deleted_synchronously(
     db, default_account, thread, message, imapuid, folder
-):
+) -> None:
     message.is_draft = True
     db.session.commit()
     msg_uid = imapuid.msg_uid
@@ -61,7 +61,7 @@ def test_drafts_deleted_synchronously(
 
 def test_deleting_from_a_message_with_multiple_uids(
     db, default_account, message, thread
-):
+) -> None:
     """
     Check that deleting a imapuid from a message with
     multiple uids doesn't mark the message for deletion.
@@ -101,7 +101,7 @@ def test_deletion_with_short_ttl(
     marked_deleted_message,
     thread,
     folder,
-):
+) -> None:
     handler = DeleteHandler(
         account_id=default_account.id,
         namespace_id=default_namespace.id,
@@ -127,7 +127,7 @@ def test_thread_deletion_with_short_ttl(
     marked_deleted_message,
     thread,
     folder,
-):
+) -> None:
     handler = DeleteHandler(
         account_id=default_account.id,
         namespace_id=default_namespace.id,
@@ -165,7 +165,7 @@ def test_non_orphaned_messages_get_unmarked(
     thread,
     folder,
     imapuid,
-):
+) -> None:
     handler = DeleteHandler(
         account_id=default_account.id,
         namespace_id=default_namespace.id,
@@ -187,7 +187,7 @@ def test_threads_only_deleted_when_no_messages_left(
     marked_deleted_message,
     thread,
     folder,
-):
+) -> None:
     handler = DeleteHandler(
         account_id=default_account.id,
         namespace_id=default_namespace.id,
@@ -214,7 +214,7 @@ def test_deletion_deferred_with_longer_ttl(
     marked_deleted_message,
     thread,
     folder,
-):
+) -> None:
     handler = DeleteHandler(
         account_id=default_account.id,
         namespace_id=default_namespace.id,
@@ -237,7 +237,7 @@ def test_deletion_creates_revision(
     marked_deleted_message,
     thread,
     folder,
-):
+) -> None:
     message_id = marked_deleted_message.id
     thread_id = thread.id
     handler = DeleteHandler(
@@ -276,7 +276,7 @@ def test_deletion_creates_revision(
 
 def test_deleted_labels_get_gced(
     empty_db, default_account, thread, message, imapuid, folder
-):
+) -> None:
     # Check that only the labels without messages attached to them
     # get deleted.
     default_namespace = default_account.namespace
@@ -333,7 +333,7 @@ def test_renamed_label_refresh(
     folder,
     mock_imapclient,
     monkeypatch,
-):
+) -> None:
     # Check that imapuids see their labels refreshed after running
     # the LabelRenameHandler.
     msg_uid = imapuid.msg_uid
@@ -389,7 +389,9 @@ def test_renamed_label_refresh(
     assert labels[0].name == "new label"
 
 
-def test_reply_to_message_cascade(db, default_namespace, thread, message):
+def test_reply_to_message_cascade(
+    db, default_namespace, thread, message
+) -> None:
     reply = add_fake_message(db.session, default_namespace.id, thread)
     reply.reply_to_message = message
     db.session.commit()

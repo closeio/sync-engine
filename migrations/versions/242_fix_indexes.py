@@ -14,7 +14,7 @@ down_revision = "407abeb7398f"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "ix_messagecontactassociation_contact_id",
         "messagecontactassociation",
@@ -25,7 +25,7 @@ def upgrade():
     op.drop_index("idx_namespace", table_name="transaction")
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index(
         "ix_messagecontactassociation_contact_id",
         table_name="messagecontactassociation",

@@ -10,12 +10,12 @@ class ProfileCollector:
     this uses signals, it only works on the main thread.
     """
 
-    def __init__(self, interval=0.005):
+    def __init__(self, interval=0.005) -> None:
         self.interval = interval
         self._started = None
         self._stack_counts = collections.defaultdict(int)
 
-    def start(self):
+    def start(self) -> None:
         self._started = time.time()
         try:
             signal.signal(signal.SIGVTALRM, self._sample)
@@ -50,6 +50,6 @@ class ProfileCollector:
         lines.extend([f"{frame} {count}" for frame, count in ordered_stacks])
         return "\n".join(lines) + "\n"
 
-    def reset(self):
+    def reset(self) -> None:
         self._started = time.time()
         self._stack_counts = collections.defaultdict(int)

@@ -66,7 +66,7 @@ class GenericAuthHandler(AuthHandler):
 
         return account
 
-    def authenticate_imap_connection(self, account, conn):
+    def authenticate_imap_connection(self, account, conn) -> None:
         try:
             conn.login(account.imap_username, account.imap_password)
         except IMAPClient.Error as exc:

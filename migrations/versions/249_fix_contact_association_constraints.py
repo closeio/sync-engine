@@ -14,7 +14,7 @@ down_revision = "203ae9bf0ddd"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     connection = op.get_bind()
     connection.execute(
         "ALTER TABLE `eventcontactassociation` DROP FOREIGN KEY `eventcontactassociation_ibfk_2`"
@@ -27,7 +27,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     connection = op.get_bind()
     connection.execute(
         "ALTER TABLE `eventcontactassociation` DROP FOREIGN KEY `eventcontactassociation_ibfk_2`"

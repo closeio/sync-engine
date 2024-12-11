@@ -10,7 +10,7 @@ from inbox.models.account import Account
 from inbox.models.session import session_scope
 
 
-def print_usage():
+def print_usage() -> None:
     print("usage:   set-throttled [--throttled|--unthrottled] --id 1000")
     print("example: set-throttled --throttled --id 1000")
     print(
@@ -24,7 +24,7 @@ def print_usage():
     )
 
 
-def throttle(options):
+def throttle(options) -> None:
     account_id = int(options.account_id)
     with session_scope(account_id) as db_session:
         if options.account_id:
@@ -43,7 +43,7 @@ def throttle(options):
         db_session.commit()
 
 
-def main():
+def main() -> None:
     parser = optparse.OptionParser()
     parser.add_option("--throttled", action="store_true", default=False)
     parser.add_option("--unthrottled", action="store_true", default=False)

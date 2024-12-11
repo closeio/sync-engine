@@ -8,7 +8,7 @@ ACCOUNT_ID = 1
 
 
 @pytest.mark.parametrize("encrypt", [True, False])
-def test_secret(db, config, encrypt):
+def test_secret(db, config, encrypt) -> None:
     """
     If encryption is enabled, ensure that:
     * secrets are encrypted.
@@ -39,7 +39,7 @@ def test_secret(db, config, encrypt):
 
 
 @pytest.mark.parametrize("encrypt", [True, False])
-def test_token(db, config, encrypt):
+def test_token(db, config, encrypt) -> None:
     """
     If encryption is enabled, ensure that:
     * tokens are encrypted.
@@ -93,7 +93,7 @@ def test_token(db, config, encrypt):
 
 
 @pytest.mark.parametrize("encrypt", [True, False])
-def test_token_inputs(db, config, encrypt, default_account):
+def test_token_inputs(db, config, encrypt, default_account) -> None:
     """
     Ensure unicode tokens are converted to bytes.
     Ensure invalid UTF-8 tokens are handled correctly.

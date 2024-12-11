@@ -20,7 +20,7 @@ log = get_logger()
 @click.option("--account-id", "-a", type=int, required=True)
 @click.option("--folder-id", "-f", type=int)
 @click.option("--device-id", "-d", type=int)
-def main(host, port, account_id, folder_id, device_id):
+def main(host, port, account_id, folder_id, device_id) -> None:
     maybe_enable_rollbar()
 
     print("Clearing heartbeat status...")

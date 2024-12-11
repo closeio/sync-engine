@@ -1,6 +1,7 @@
 """Utilities for validating user input to the API."""
 
 import contextlib
+from typing import Never
 
 import arrow
 from arrow.parser import ParserError
@@ -26,7 +27,7 @@ MAX_LIMIT = 1000
 
 
 class ValidatableArgument(reqparse.Argument):
-    def handle_validation_error(self, error, bundle_errors):
+    def handle_validation_error(self, error, bundle_errors) -> Never:
         raise InputError(str(error))
 
 
@@ -111,7 +112,7 @@ def valid_public_id(value):
     return value
 
 
-def valid_account(namespace):
+def valid_account(namespace) -> None:
     if namespace.account.sync_state == "invalid":
         raise AccountInvalidError()
     if namespace.account.sync_state == "stopped":
@@ -303,14 +304,14 @@ def get_calendar(calendar_public_id, namespace, db_session):
         raise NotFoundError(f"Calendar {calendar_public_id} not found")
 
 
-def valid_when(when):
+def valid_when(when) -> None:
     try:
         parse_as_when(when)
     except (ValueError, ParserError) as e:
         raise InputError(str(e))
 
 
-def valid_event(event):
+def valid_event(event) -> None:
     if "when" not in event:
         raise InputError("Must specify 'when' when creating an event.")
 
@@ -345,7 +346,7 @@ def valid_event(event):
             )
 
 
-def valid_event_update(event, namespace, db_session):
+def valid_event_update(event, namespace, db_session) -> None:
     if "when" in event:
         valid_when(event["when"])
 
@@ -367,7 +368,7 @@ def valid_event_update(event, namespace, db_session):
             )
 
 
-def noop_event_update(event, data):
+def noop_event_update(event, data) -> bool:
     # Check whether the update is actually updating fields.
     # We do this by cloning the event, updating the fields and
     # comparing them. This is less cumbersome than having to think
@@ -438,7 +439,7 @@ def valid_delta_object_types(types_arg):
     return types
 
 
-def validate_draft_recipients(draft):
+def validate_draft_recipients(draft) -> None:
     """
     Check that a draft has at least one recipient, and that all recipient
     emails are at least plausible email addresses, before we try to send it.

@@ -53,7 +53,7 @@ def cmp_event_attrs(event1, event2):
     )
 
 
-def test_calendar_parsing():
+def test_calendar_parsing() -> None:
     raw_response = [
         {
             "accessRole": "owner",
@@ -123,7 +123,7 @@ def test_calendar_parsing():
         assert cmp_cal_attrs(obtained, expected)
 
 
-def test_event_parsing():
+def test_event_parsing() -> None:
     raw_response = [
         {
             "created": "2012-10-09T22:35:50.000Z",
@@ -321,7 +321,7 @@ def test_event_parsing():
 
 
 @pytest.mark.parametrize(
-    "raw_conference_data,conference_data",
+    ("raw_conference_data", "conference_data"),
     [
         ({}, None),
         (
@@ -417,7 +417,9 @@ def test_event_parsing():
         ),
     ],
 )
-def test_event_with_conference_data(raw_conference_data, conference_data):
+def test_event_with_conference_data(
+    raw_conference_data, conference_data
+) -> None:
     raw_event = {
         "created": "2014-01-09T03:33:02.000Z",
         "creator": {
@@ -451,7 +453,7 @@ def test_event_with_conference_data(raw_conference_data, conference_data):
     assert _encode(event, "999999")["conference_data"] == conference_data
 
 
-def test_handle_offset_all_day_events():
+def test_handle_offset_all_day_events() -> None:
     raw_event = {
         "created": "2014-01-09T03:33:02.000Z",
         "creator": {
@@ -493,7 +495,7 @@ def test_handle_offset_all_day_events():
     assert cmp_event_attrs(expected, parse_event_response(raw_event, False))
 
 
-def test_handle_unparseable_dates():
+def test_handle_unparseable_dates() -> None:
     raw_response = [
         {
             "id": "20140615_60o30dr564o30c1g60o30dr4ck",
@@ -508,7 +510,7 @@ def test_handle_unparseable_dates():
     assert len(updates) == 0
 
 
-def test_pagination():
+def test_pagination() -> None:
     first_response = requests.Response()
     first_response.status_code = 200
     first_response._content = json.dumps(
@@ -528,7 +530,7 @@ def test_pagination():
     assert items == ["A", "B", "C", "D", "E"]
 
 
-def test_handle_http_401():
+def test_handle_http_401() -> None:
     first_response = requests.Response()
     first_response.status_code = 401
 
@@ -546,7 +548,7 @@ def test_handle_http_401():
 
 
 @pytest.mark.usefixtures("mock_time_sleep")
-def test_handle_quota_exceeded():
+def test_handle_quota_exceeded() -> None:
     first_response = requests.Response()
     first_response.status_code = 403
     first_response._content = json.dumps(
@@ -579,7 +581,7 @@ def test_handle_quota_exceeded():
 
 
 @pytest.mark.usefixtures("mock_time_sleep")
-def test_handle_internal_server_error():
+def test_handle_internal_server_error() -> None:
     first_response = requests.Response()
     first_response.status_code = 503
 
@@ -596,7 +598,7 @@ def test_handle_internal_server_error():
     assert items == ["A", "B", "C"]
 
 
-def test_handle_api_not_enabled():
+def test_handle_api_not_enabled() -> None:
     response = requests.Response()
     response.status_code = 403
     response._content = json.dumps(
@@ -623,7 +625,7 @@ def test_handle_api_not_enabled():
         provider._get_resource_list("https://googleapis.com/testurl")
 
 
-def test_handle_other_errors():
+def test_handle_other_errors() -> None:
     response = requests.Response()
     response.status_code = 403
     response._content = b"This is not the JSON you're looking for"
@@ -642,7 +644,7 @@ def test_handle_other_errors():
         provider._get_resource_list("https://googleapis.com/testurl")
 
 
-def test_recurrence_creation():
+def test_recurrence_creation() -> None:
     event = {
         "created": "2012-10-09T22:35:50.000Z",
         "creator": {
@@ -695,7 +697,7 @@ def test_recurrence_creation():
     assert event.start_timezone == "America/Los_Angeles"
 
 
-def test_override_creation():
+def test_override_creation() -> None:
     event = {
         "created": "2012-10-09T22:35:50.000Z",
         "creator": {
@@ -747,7 +749,7 @@ def test_override_creation():
     assert event.original_start_time == arrow.get(2012, 10, 23, 0, 0, 0)
 
 
-def test_owner_from_organizer():
+def test_owner_from_organizer() -> None:
     event_dict = {
         "created": "2012-10-09T22:35:50.000Z",
         "creator": {
@@ -799,7 +801,7 @@ def test_owner_from_organizer():
     assert owner_email != event_dict["creator"]["email"]
 
 
-def test_cancelled_override_creation():
+def test_cancelled_override_creation() -> None:
     # With showDeleted=True, we receive cancelled events (including instances
     # of recurring events) as full event objects, with status = 'cancelled'.
     # Test that we save this as a RecurringEventOverride rather than trying

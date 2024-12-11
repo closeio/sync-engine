@@ -130,7 +130,7 @@ def update_contacts_from_message(
                 )
 
 
-def update_contacts_from_event(db_session, event, namespace_id):
+def update_contacts_from_event(db_session, event, namespace_id) -> None:
     with db_session.no_autoflush:
         # First create Contact objects for any email addresses that we haven't
         # seen yet. We want to dedupe by canonicalized address, so this part is

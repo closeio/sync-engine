@@ -42,7 +42,7 @@ class SMTP_SSL(smtplib.SMTP_SSL):
     Derived class which correctly surfaces SMTP errors.
     """
 
-    def rset(self):
+    def rset(self) -> None:
         """
         Wrap rset() in order to correctly surface SMTP exceptions.
         SMTP.sendmail() does e.g.:
@@ -69,7 +69,7 @@ class SMTP(smtplib.SMTP):
     Derived class which correctly surfaces SMTP errors.
     """
 
-    def rset(self):
+    def rset(self) -> None:
         """
         Wrap rset() in order to correctly surface SMTP exceptions.
         SMTP.sendmail() does e.g.:
@@ -125,7 +125,7 @@ class SMTPConnection:
         auth_token,
         smtp_endpoint,
         log,
-    ):
+    ) -> None:
         self.account_id = account_id
         self.email_address = email_address
         self.smtp_username = smtp_username
@@ -161,7 +161,7 @@ class SMTPConnection:
             msg = _transform_ssl_error(e.strerror)
             raise SendMailException(msg, 503)
 
-    def setup(self):
+    def setup(self) -> None:
         host, port = self.smtp_endpoint
         self.connection: smtplib.SMTP
         if port in (SMTP_OVER_SSL_PORT, SMTP_OVER_SSL_TEST_PORT):
@@ -229,7 +229,7 @@ class SMTPConnection:
             )
         return code, resp
 
-    def smtp_oauth2(self):
+    def smtp_oauth2(self) -> None:
         code, resp = self._try_xoauth2()
         if code in SMTP_TEMP_AUTH_FAIL_CODES and resp.startswith("4.7.0"):
             # If we're getting 'too many login attempt errors', tell the client
@@ -248,7 +248,7 @@ class SMTPConnection:
         self.log.info("SMTP Auth(OAuth2) success", account_id=self.account_id)
 
     # Password authentication
-    def smtp_password(self):
+    def smtp_password(self) -> None:
         c = self.connection
 
         try:
@@ -289,7 +289,7 @@ class SMTPConnection:
 class SMTPClient:
     """SMTPClient for Gmail and other IMAP providers."""
 
-    def __init__(self, account):
+    def __init__(self, account) -> None:
         self.account_id = account.id
         self.log = get_logger()
         self.log.bind(account_id=account.id)
@@ -413,7 +413,7 @@ class SMTPClient:
         # between SMTP and EAS.
         return self._send(recipients, raw_message)
 
-    def send_custom(self, draft, body, recipients):
+    def send_custom(self, draft, body, recipients) -> None:
         """
         Turn a draft object into a MIME message, replacing the body with
         the provided body, and send it only to the provided recipients.
@@ -453,7 +453,7 @@ class SMTPClient:
         # Sent successfully
         self.log.info("Sending successful", draft_id=draft.id)
 
-    def send(self, draft):
+    def send(self, draft) -> None:
         """
         Turn a draft object into a MIME message and send it.
 
@@ -510,7 +510,7 @@ class SMTPClient:
         # Sent to all successfully
         self.log.info("Sending successful", draft_id=draft.id)
 
-    def send_raw(self, msg):
+    def send_raw(self, msg) -> None:
         recipient_emails = [
             email
             for name, email in itertools.chain(

@@ -16,9 +16,9 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column("imapuid", "msg_uid", type_=mysql.BIGINT)
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column("imapuid", "msg_uid", type_=sa.Integer)

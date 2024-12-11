@@ -10,7 +10,7 @@ import yaml
 from inbox.error_handling import maybe_enable_rollbar
 
 
-def main():
+def main() -> None:
     from inbox.config import config, secrets_path
 
     maybe_enable_rollbar()

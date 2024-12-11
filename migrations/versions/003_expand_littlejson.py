@@ -15,9 +15,9 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column("imapuid", "extra_flags", type_=sa.String(255))
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column("imapuid", "extra_flags", type_=sa.String(40))

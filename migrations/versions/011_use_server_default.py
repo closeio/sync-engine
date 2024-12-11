@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     # Base tables
     op.alter_column(
         "account",
@@ -183,7 +183,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     # Only downgrade those that can be nullable
     op.alter_column(
         "account",

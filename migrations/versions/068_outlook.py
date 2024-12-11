@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "outlookaccount",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -39,5 +39,5 @@ def upgrade():
     op.alter_column("secret", "secret", type_=sa.String(length=2048))
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("outlookaccount")

@@ -16,7 +16,7 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "contactsearchindexcursor",
         sa.Column("created_at", sa.DateTime(), nullable=False),
@@ -54,7 +54,7 @@ def upgrade():
     op.drop_table("searchindexcursor")
 
 
-def downgrade():
+def downgrade() -> None:
     op.create_table(
         "searchindexcursor",
         sa.Column("created_at", mysql.DATETIME(), nullable=False),

@@ -18,7 +18,7 @@ PROVIDER = "imap"
 
 
 class IMAPSearchClient:
-    def __init__(self, account):
+    def __init__(self, account) -> None:
         self.account = account
         self.account_id = account.id
         self.log = get_logger().new(account_id=account.id, component="search")

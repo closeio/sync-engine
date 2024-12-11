@@ -17,20 +17,20 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import column, table
 
 
-def upgrade():
+def upgrade() -> None:
     genericize_imapaccount()
     genericize_thread()
     genericize_namespace_contact_foldersync()
 
 
-def downgrade():
+def downgrade() -> None:
     downgrade_imapaccount()
     downgrade_imapthread()
     downgrade_namespace_contact_foldersync()
 
 
 # Upgrade funtions:
-def genericize_imapaccount():
+def genericize_imapaccount() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
@@ -76,7 +76,7 @@ def genericize_imapaccount():
     op.drop_column("account", "imap_host")
 
 
-def genericize_thread():
+def genericize_thread() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
@@ -119,7 +119,7 @@ def genericize_thread():
     op.drop_column("thread", "g_thrid")
 
 
-def genericize_namespace_contact_foldersync():
+def genericize_namespace_contact_foldersync() -> None:
     # Namespace
     op.drop_constraint("namespace_ibfk_1", "namespace", type_="foreignkey")
     op.alter_column(
@@ -178,7 +178,7 @@ def genericize_namespace_contact_foldersync():
 
 
 # Downgrade functions:
-def downgrade_imapaccount():
+def downgrade_imapaccount() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
@@ -247,7 +247,7 @@ def downgrade_imapaccount():
     )
 
 
-def downgrade_imapthread():
+def downgrade_imapthread() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
@@ -284,7 +284,7 @@ def downgrade_imapthread():
     op.drop_table("imapthread")
 
 
-def downgrade_namespace_contact_foldersync():
+def downgrade_namespace_contact_foldersync() -> None:
     # Namespace
     op.drop_constraint("namespace_ibfk_1", "namespace", type_="foreignkey")
     op.alter_column(

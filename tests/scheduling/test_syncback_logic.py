@@ -11,7 +11,7 @@ from tests.util.base import add_generic_imap_account
 
 
 @pytest.fixture
-def purge_accounts_and_actions():
+def purge_accounts_and_actions() -> None:
     for key in engine_manager.engines:
         with session_scope_by_shard_id(key) as db_session:
             db_session.query(ActionLog).delete(synchronize_session=False)
@@ -52,7 +52,7 @@ def patched_task(monkeypatch):
     monkeypatch.undo()
 
 
-def schedule_test_action(db_session, account):
+def schedule_test_action(db_session, account) -> None:
     from inbox.models.category import Category
 
     category_type = "label" if account.provider == "gmail" else "folder"
@@ -76,7 +76,7 @@ def schedule_test_action(db_session, account):
     db_session.commit()
 
 
-def test_all_keys_are_assigned_exactly_once(patched_enginemanager):
+def test_all_keys_are_assigned_exactly_once(patched_enginemanager) -> None:
     assigned_keys = []
 
     service = SyncbackService(
@@ -98,7 +98,7 @@ def test_all_keys_are_assigned_exactly_once(patched_enginemanager):
 
 
 @pytest.mark.skipif(True, reason="Need to investigate")
-def test_actions_are_claimed(purge_accounts_and_actions, patched_task):
+def test_actions_are_claimed(purge_accounts_and_actions, patched_task) -> None:
     with session_scope_by_shard_id(0) as db_session:
         account = add_generic_imap_account(
             db_session, email_address="0@test.com"
@@ -136,7 +136,7 @@ def test_actions_are_claimed(purge_accounts_and_actions, patched_task):
 @pytest.mark.skipif(True, reason="Need to investigate")
 def test_actions_claimed_by_a_single_service(
     purge_accounts_and_actions, patched_task
-):
+) -> None:
     actionlogs = []
     for key in (0, 1):
         with session_scope_by_shard_id(key) as db_session:
@@ -165,7 +165,7 @@ def test_actions_claimed_by_a_single_service(
 @pytest.mark.skipif(True, reason="Test if causing Jenkins build to fail")
 def test_actions_for_invalid_accounts_are_skipped(
     purge_accounts_and_actions, patched_task
-):
+) -> None:
     with session_scope_by_shard_id(0) as db_session:
         account = add_generic_imap_account(
             db_session, email_address="person@test.com"

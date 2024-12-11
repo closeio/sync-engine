@@ -15,13 +15,13 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column(
         "message", "namespace_id", existing_type=sa.Integer(), nullable=False
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column(
         "message", "namespace_id", existing_type=sa.Integer(), nullable=True
     )

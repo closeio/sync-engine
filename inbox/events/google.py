@@ -268,7 +268,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
         response.raise_for_status()
         return response.json()
 
-    def update_remote_event(self, event, **kwargs):
+    def update_remote_event(self, event, **kwargs) -> None:
         data = _dump_event(event)
         params = {}
 
@@ -284,7 +284,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
         # All non-200 statuses are considered errors
         response.raise_for_status()
 
-    def delete_remote_event(self, calendar_uid, event_uid, **kwargs):
+    def delete_remote_event(self, calendar_uid, event_uid, **kwargs) -> None:
         params = {}
 
         if kwargs.get("notify_participants") is True:

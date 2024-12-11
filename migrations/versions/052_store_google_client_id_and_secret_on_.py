@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "gmailaccount",
         sa.Column("client_id", sa.String(length=256), nullable=True),
@@ -26,6 +26,6 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("gmailaccount", "client_secret")
     op.drop_column("gmailaccount", "client_id")

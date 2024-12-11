@@ -11,10 +11,12 @@ Create Date: 2015-03-26 21:54:13.037161
 revision = "1f06c15ae796"
 down_revision = "4032709362da"
 
+from typing import Never
+
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     data_sha256_index_exists = conn.execute(
         '''SELECT COUNT(*) FROM information_schema.statistics WHERE
@@ -39,5 +41,5 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception()

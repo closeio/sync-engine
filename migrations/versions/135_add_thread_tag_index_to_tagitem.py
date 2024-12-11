@@ -14,9 +14,9 @@ down_revision = "4270a032b943"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index("tag_thread_ids", "tagitem", ["thread_id", "tag_id"])
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("tag_thread_ids", table_name="tagitem")

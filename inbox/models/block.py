@@ -63,7 +63,7 @@ class Block(
     API_OBJECT_NAME = "file"
 
     @property
-    def should_suppress_transaction_creation(self):
+    def should_suppress_transaction_creation(self) -> bool:
         # Only version attachments
         return not any(part.is_attachment for part in self.parts)
 
@@ -78,7 +78,7 @@ class Block(
     filename = Column(String(255))
 
     # TODO: create a constructor that allows the 'content_type' keyword
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         self.content_type = None
         self.size = 0
         MailSyncBase.__init__(self, *args, **kwargs)
@@ -95,7 +95,7 @@ class Block(
     )
 
     @reconstructor
-    def init_on_load(self):
+    def init_on_load(self) -> None:
         if self._content_type_common:
             self.content_type = self._content_type_common
         else:
@@ -230,7 +230,7 @@ class Block(
 
 
 @event.listens_for(Block, "before_insert", propagate=True)
-def serialize_before_insert(mapper, connection, target):
+def serialize_before_insert(mapper, connection, target) -> None:
     if target.content_type in COMMON_CONTENT_TYPES:
         target._content_type_common = target.content_type
         target._content_type_other = None

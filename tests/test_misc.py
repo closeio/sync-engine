@@ -4,7 +4,7 @@ from inbox.models.backends.oauth import hash_token
 
 
 @pytest.mark.parametrize(
-    "prefix,token,expected",
+    ("prefix", "token", "expected"),
     [
         (None, None, None),
         ("prefix", None, None),
@@ -20,6 +20,6 @@ from inbox.models.backends.oauth import hash_token
         ),
     ],
 )
-def test_hash_token(token, prefix, expected):
+def test_hash_token(token, prefix, expected) -> None:
     result = hash_token(token, prefix)
     assert result == expected

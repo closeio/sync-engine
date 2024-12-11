@@ -377,7 +377,7 @@ def _delete_from_disk(data_sha256):
         log.warning(f"No file with name: {data_sha256}!")
 
 
-def delete_from_blockstore(*data_sha256_hashes):
+def delete_from_blockstore(*data_sha256_hashes) -> None:
     log.info("deleting from blockstore", sha256=data_sha256_hashes)
 
     if STORE_MSG_ON_S3:

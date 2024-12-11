@@ -16,12 +16,12 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("calendar", "gpush_expiration")
     op.drop_column("calendar", "gpush_last_ping")
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         "calendar",
         sa.Column("gpush_last_ping", mysql.DATETIME(), nullable=True),

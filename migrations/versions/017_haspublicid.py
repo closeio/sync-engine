@@ -21,7 +21,7 @@ from sqlalchemy.dialects import mysql
 chunk_size = 500
 
 
-def upgrade():
+def upgrade() -> None:
     # These all inherit HasPublicID
     from inbox.models import (
         Account,
@@ -97,7 +97,7 @@ def upgrade():
         print("\nUpdgraded OK!\n")
 
 
-def downgrade():
+def downgrade() -> None:
     # These all inherit HasPublicID
     from inbox.models import (
         Account,

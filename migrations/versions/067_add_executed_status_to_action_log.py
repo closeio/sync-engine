@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     # Purge any existing entries.
     op.drop_table("actionlog")
     op.create_table(
@@ -54,5 +54,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("actionlog", "executed")

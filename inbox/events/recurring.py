@@ -31,6 +31,7 @@ def link_events(db_session, event):
     elif isinstance(event, RecurringEventOverride):
         # Attempt to find my master
         return link_master(db_session, event)
+    return None
 
 
 def link_overrides(db_session, event):
@@ -94,6 +95,7 @@ def parse_rrule(event):
                 error=e,
                 exc_info=True,
             )
+    return None
 
 
 def parse_exdate(event):

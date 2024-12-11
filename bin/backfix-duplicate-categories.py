@@ -20,7 +20,7 @@ configure_logging()
 log = get_logger(purpose="duplicate-category-backfill")
 
 
-def backfix_shard(shard_id, dry_run):
+def backfix_shard(shard_id, dry_run) -> None:
     categories_to_fix = []
     with session_scope_by_shard_id(shard_id) as db_session:
         # 'SELECT id FROM <table> GROUP BY <x>' does not select _all_ of the
@@ -161,7 +161,7 @@ def backfix_shard(shard_id, dry_run):
                         " messagecategories",
                         e=str(e),
                     )
-                    raise e
+                    raise
 
             # We REALLY don't want to delete the category we consolidated all
             # of the messagecategories into
@@ -188,7 +188,7 @@ def backfix_shard(shard_id, dry_run):
 @click.command()
 @click.option("--shard-id", type=int, default=None)
 @click.option("--dry-run", is_flag=True)
-def main(shard_id, dry_run):
+def main(shard_id, dry_run) -> None:
     maybe_enable_rollbar()
 
     if shard_id is not None:

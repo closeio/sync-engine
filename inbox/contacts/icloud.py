@@ -26,7 +26,7 @@ class ICloudContactsProvider(AbstractContactsProvider):
 
     PROVIDER_NAME = "icloud"
 
-    def __init__(self, account_id, namespace_id):
+    def __init__(self, account_id, namespace_id) -> None:
         supports_carddav(ICLOUD_CONTACTS_URL)
         self.account_id = account_id
         self.namespace_id = namespace_id
@@ -43,6 +43,7 @@ class ICloudContactsProvider(AbstractContactsProvider):
             if key in card:
                 with contextlib.suppress(IndexError):
                     return card[key][0][0]
+            return None
 
         # Skip contact groups for now
         if _x("X-ADDRESSBOOKSERVER-KIND") == "group":

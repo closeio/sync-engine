@@ -15,13 +15,13 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("gmailaccount", "access_token")
     op.drop_column("gmailaccount", "expires_in")
     op.drop_column("gmailaccount", "token_type")
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         "gmailaccount",
         sa.Column("access_token", sa.String(length=512), nullable=True),

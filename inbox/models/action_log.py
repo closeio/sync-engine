@@ -20,7 +20,9 @@ from inbox.sqlalchemy_ext.util import JSON
 log = get_logger()
 
 
-def schedule_action(func_name, record, namespace_id, db_session, **kwargs):
+def schedule_action(
+    func_name, record, namespace_id, db_session, **kwargs
+) -> None:
     # Ensure that the record's id is non-null
     db_session.flush()
 

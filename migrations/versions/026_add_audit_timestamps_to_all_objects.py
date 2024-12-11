@@ -40,7 +40,7 @@ table_names = {
 }
 
 
-def add_eas_tables():
+def add_eas_tables() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -51,7 +51,7 @@ def add_eas_tables():
             table_names.add(table_name)
 
 
-def upgrade():
+def upgrade() -> None:
     add_eas_tables()
 
     # mysql 5.5 / sqlalchemy interactions necessitate doing this in steps
@@ -106,7 +106,7 @@ def upgrade():
     op.drop_index("imapuid_imapaccount_id_folder_name", table_name="imapuid")
 
 
-def downgrade():
+def downgrade() -> None:
     add_eas_tables()
 
     for table_name in sorted(table_names):

@@ -32,7 +32,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
 
     sync_engine_class: ClassVar[type[FolderSyncEngine]] = FolderSyncEngine
 
-    def __init__(self, account, heartbeat=1, refresh_frequency=30):
+    def __init__(self, account, heartbeat=1, refresh_frequency=30) -> None:
         self.refresh_frequency = refresh_frequency
         self.syncmanager_lock = BoundedSemaphore(1)
         self.saved_remote_folders = None
@@ -60,7 +60,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                 self.saved_remote_folders = remote_folders
         return sync_folders
 
-    def save_folder_names(self, db_session, raw_folders):
+    def save_folder_names(self, db_session, raw_folders) -> None:
         """
         Save the folders present on the remote backend for an account.
 
@@ -125,7 +125,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
 
         db_session.commit()
 
-    def start_new_folder_sync_engines(self):
+    def start_new_folder_sync_engines(self) -> None:
         running_monitors = {
             monitor.folder_name: monitor for monitor in self.folder_monitors
         }
@@ -166,7 +166,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                 # if a folder keeps exiting constantly
                 self.folder_monitors.remove(thread)
 
-    def start_delete_handler(self):
+    def start_delete_handler(self) -> None:
         if self.delete_handler is None:
             self.delete_handler = DeleteHandler(
                 account_id=self.account_id,
@@ -176,7 +176,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
             )
             self.delete_handler.start()
 
-    def sync(self):
+    def sync(self) -> None:
         try:
             self.start_delete_handler()
             self.start_new_folder_sync_engines()

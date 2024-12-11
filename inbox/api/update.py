@@ -13,7 +13,7 @@ log = get_logger()
 # STOPSHIP(emfree): better naming/structure for this module
 
 
-def update_message(message, request_data, db_session, optimistic):
+def update_message(message, request_data, db_session, optimistic) -> None:
     accept_labels = message.namespace.account.provider == "gmail"
     # Update flags (message.{is_read, is_starred})
     unread, starred = parse_flags(request_data)
@@ -33,7 +33,7 @@ def update_message(message, request_data, db_session, optimistic):
             update_message_folder(message, db_session, folder, optimistic)
 
 
-def update_thread(thread, request_data, db_session, optimistic):
+def update_thread(thread, request_data, db_session, optimistic) -> None:
     accept_labels = thread.namespace.account.provider == "gmail"
 
     (unread, starred) = parse_flags(request_data)
@@ -92,7 +92,7 @@ def parse_flags(request_data):
 
 def update_message_flags(
     message, db_session, optimistic, unread=None, starred=None
-):
+) -> None:
     if unread is not None:
         if optimistic:
             message.is_read = not unread
@@ -147,7 +147,7 @@ def parse_folder(request_data, db_session, namespace_id):
         raise InputError(f"The folder {folder_public_id} does not exist")
 
 
-def update_message_folder(message, db_session, category, optimistic):
+def update_message_folder(message, db_session, category, optimistic) -> None:
     # STOPSHIP(emfree): what about sent/inbox duality?
     if optimistic:
         message.categories = [category]
@@ -205,7 +205,7 @@ def parse_labels(request_data, db_session, namespace_id):
 
 def update_message_labels(
     message, db_session, added_categories, removed_categories, optimistic
-):
+) -> None:
     special_label_map = {
         "inbox": "\\Inbox",
         "important": "\\Important",
@@ -290,7 +290,7 @@ def update_message_labels(
         )
 
 
-def validate_labels(db_session, added_categories, removed_categories):
+def validate_labels(db_session, added_categories, removed_categories) -> None:
     """
     Validate that the labels added and removed obey Gmail's semantics --
     Gmail messages MUST belong to exactly ONE of the '[Gmail]All Mail',
@@ -316,8 +316,8 @@ def validate_labels(db_session, added_categories, removed_categories):
 
 def apply_gmail_label_rules(
     db_session, message, added_categories, removed_categories
-):
-    """
+) -> None:
+    r"""
     The API optimistically updates `message.categories` so ensure it does so
     in a manner consistent with Gmail, namely:
 

@@ -16,12 +16,12 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("gmailaccount", "gpush_calendar_list_expiration")
     op.drop_column("gmailaccount", "gpush_calendar_list_last_ping")
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         "gmailaccount",
         sa.Column(

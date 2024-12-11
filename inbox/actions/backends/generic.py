@@ -86,15 +86,15 @@ def _set_flag(crispin_client, account_id, message_id, flag_name, is_add):
             crispin_client.conn.remove_flags(uids, [flag_name], silent=True)
 
 
-def set_remote_starred(crispin_client, account, message_id, starred):
+def set_remote_starred(crispin_client, account, message_id, starred) -> None:
     _set_flag(crispin_client, account, message_id, "\\Flagged", starred)
 
 
-def set_remote_unread(crispin_client, account, message_id, unread):
+def set_remote_unread(crispin_client, account, message_id, unread) -> None:
     _set_flag(crispin_client, account, message_id, "\\Seen", not unread)
 
 
-def remote_move(crispin_client, account_id, message_id, destination):
+def remote_move(crispin_client, account_id, message_id, destination) -> None:
     with session_scope(account_id) as db_session:
         uids_for_message = uids_by_folder(message_id, db_session)
     if not uids_for_message:
@@ -107,7 +107,7 @@ def remote_move(crispin_client, account_id, message_id, destination):
         crispin_client.delete_uids(uids)
 
 
-def remote_create_folder(crispin_client, account_id, category_id):
+def remote_create_folder(crispin_client, account_id, category_id) -> None:
     with session_scope(account_id) as db_session:
         category = db_session.query(Category).get(category_id)
         if category is None:
@@ -118,7 +118,7 @@ def remote_create_folder(crispin_client, account_id, category_id):
 
 def remote_update_folder(
     crispin_client, account_id, category_id, old_name, new_name
-):
+) -> None:
     with session_scope(account_id) as db_session:
         account = db_session.query(Account).get(account_id)
         account_provider = account.provider
@@ -146,7 +146,7 @@ def remote_update_folder(
                     folder.name = new_display_name
 
 
-def remote_delete_folder(crispin_client, account_id, category_id):
+def remote_delete_folder(crispin_client, account_id, category_id) -> None:
     with session_scope(account_id) as db_session:
         category = db_session.query(Category).get(category_id)
         if category is None:
@@ -166,7 +166,7 @@ def remote_delete_folder(crispin_client, account_id, category_id):
         db_session.commit()
 
 
-def remote_save_draft(crispin_client, account_id, message_id):
+def remote_save_draft(crispin_client, account_id, message_id) -> None:
     with session_scope(account_id) as db_session:
         account = db_session.query(Account).get(account_id)
         message = db_session.query(Message).get(message_id)
@@ -233,7 +233,7 @@ def remote_update_draft(
 
 def remote_delete_draft(
     crispin_client, account_id, nylas_uid, message_id_header
-):
+) -> None:
     if "drafts" not in crispin_client.folder_names():
         log.warning(
             "Account has no detected drafts folder; not deleting draft",

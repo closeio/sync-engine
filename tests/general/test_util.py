@@ -5,7 +5,7 @@ from inbox.util.addr import extract_emails_from_text
 from inbox.util.url import matching_subdomains, naked_domain
 
 
-def test_naked_domain():
+def test_naked_domain() -> None:
     assert naked_domain("python.linux.com") == "python.linux.com"
     assert (
         naked_domain("iplayer.forums.bbc.co.uk") == "iplayer.forums.bbc.co.uk"
@@ -31,7 +31,7 @@ def test_naked_domain():
     )
 
 
-def test_matching_subdomains(monkeypatch):
+def test_matching_subdomains(monkeypatch) -> None:
     def gethostbyname_patch(x):
         return "127.0.0.1"
 
@@ -69,7 +69,7 @@ def test_matching_subdomains(monkeypatch):
     assert matching_subdomains("nylas.com", "nylas.com") is True
 
 
-def test_extract_emails_from_text():
+def test_extract_emails_from_text() -> None:
     assert extract_emails_from_text("test@example.com") == ["test@example.com"]
     assert extract_emails_from_text("foo#test@ex-ample.com#foo") == [
         "foo#test@ex-ample.com"

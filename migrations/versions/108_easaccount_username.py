@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine()
@@ -60,7 +60,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine()

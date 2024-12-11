@@ -15,7 +15,7 @@ from alembic import op
 from sqlalchemy.ext.declarative import declarative_base
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -288,7 +288,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("ix_webhook_updated_at", table_name="webhook")
     op.drop_index("ix_webhook_deleted_at", table_name="webhook")
     op.drop_index("ix_webhook_created_at", table_name="webhook")

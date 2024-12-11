@@ -2,7 +2,7 @@
 from inbox.util.misc import fs_folder_path, imap_folder_path
 
 
-def test_imap_folder_path():
+def test_imap_folder_path() -> None:
     assert imap_folder_path("a/b") == "a.b"
     assert imap_folder_path("a/b", separator="?") == "a?b"
 
@@ -37,7 +37,7 @@ def test_imap_folder_path():
     )
 
 
-def test_fs_folder_path():
+def test_fs_folder_path() -> None:
     assert fs_folder_path("INBOX.A.B") == "INBOX/A/B"
     assert fs_folder_path("INBOX.A.B", prefix="INBOX.") == "A/B"
     assert fs_folder_path("INBOX?A?B", prefix="INBOX?", separator="?") == "A/B"

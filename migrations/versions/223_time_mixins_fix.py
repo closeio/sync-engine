@@ -17,7 +17,7 @@ from sqlalchemy.dialects import mysql
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         text(
@@ -77,7 +77,7 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     op.add_column(
         "transaction",

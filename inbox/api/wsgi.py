@@ -13,7 +13,7 @@ log = get_logger()
 class NylasWSGIWorker(ThreadWorker):
     """Custom worker class for gunicorn."""
 
-    def init_process(self):
+    def init_process(self) -> None:
         print("Python", sys.version, file=sys.stderr)
 
         maybe_enable_rollbar()

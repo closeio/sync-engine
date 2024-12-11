@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from sqlalchemy.ext.declarative import declarative_base
 
     from inbox.ignition import main_engine
@@ -102,7 +102,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column(
         "calendar",
         "description",

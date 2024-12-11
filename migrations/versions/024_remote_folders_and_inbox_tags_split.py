@@ -11,6 +11,8 @@ Create Date: 2014-05-01 02:20:00.936927
 revision = "4c1eb89f6bed"
 down_revision = "4e04f752b7ad"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import mysql
@@ -34,7 +36,7 @@ folder_name_subst_map = {
 }
 
 
-def upgrade():
+def upgrade() -> None:
     easupdate = False
 
     print("Creating new tables and columns...")
@@ -430,5 +432,5 @@ def upgrade():
         op.drop_column("easuid", "folder_name")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Not supported, will lose data!")

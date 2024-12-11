@@ -11,10 +11,12 @@ Create Date: 2014-10-23 11:02:58.010469
 revision = "420bf3422c4f"
 down_revision = "10ecf4841ac3"
 
+from typing import Never
+
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_constraint("easuid_ibfk_2", "easuid", type_="foreignkey")
     op.create_foreign_key(
         "easuid_ibfk_2",
@@ -36,5 +38,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Nope.")

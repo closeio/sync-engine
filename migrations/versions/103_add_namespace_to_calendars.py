@@ -11,12 +11,14 @@ Create Date: 2014-09-22 03:29:21.076836
 revision = "4015edc83ba"
 down_revision = "4d10bc835f44"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "calendar",
         sa.Column("namespace_id", sa.Integer(), sa.ForeignKey("namespace.id")),
@@ -39,5 +41,5 @@ def upgrade():
     op.drop_column("calendar", "account_id")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception()

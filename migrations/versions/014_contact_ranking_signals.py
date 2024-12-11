@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "searchsignal",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -30,6 +30,6 @@ def upgrade():
     op.add_column("contact", sa.Column("score", sa.Integer(), nullable=True))
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("contact", "score")
     op.drop_table("searchsignal")

@@ -18,7 +18,7 @@ class ChangeType(enum.Enum):
 
 
 class MicrosoftGraphClientException(Exception):
-    def __init__(self, response: requests.Response):
+    def __init__(self, response: requests.Response) -> None:
         """
         Arguments:
             response: The reponse that caused exception
@@ -58,7 +58,7 @@ class MicrosoftGraphClient:
     over Microsoft Graph API.
     """
 
-    def __init__(self, get_token: Callable[[], str]):
+    def __init__(self, get_token: Callable[[], str]) -> None:
         """
         Arguments:
             get_token: Function that returns user token

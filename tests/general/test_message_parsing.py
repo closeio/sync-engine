@@ -176,6 +176,7 @@ def test_save_inline_attachments(db, default_account):
         .count()
         == 1
     )
+    return None
 
 
 def test_concatenate_parts_for_body(db, default_account):

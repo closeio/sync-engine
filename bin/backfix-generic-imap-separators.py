@@ -23,7 +23,7 @@ log = get_logger(purpose="separator-backfix")
 @click.option("--min-id", type=int, default=None)
 @click.option("--max-id", type=int, default=None)
 @click.option("--shard-id", type=int, default=None)
-def main(min_id, max_id, shard_id):
+def main(min_id, max_id, shard_id) -> None:
     maybe_enable_rollbar()
 
     generic_accounts = []

@@ -22,7 +22,7 @@ class MailSyncBase(CreatedAtMixin):
     def __table_args__(cls):
         return {"extend_existing": True}
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         try:
             return "<{} (id: {})>".format(
                 self.__module__ + "." + self.__class__.__name__, self.id

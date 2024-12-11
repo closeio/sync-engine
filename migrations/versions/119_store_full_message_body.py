@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "message", sa.Column("full_body_id", sa.Integer, nullable=True)
     )
@@ -24,6 +24,6 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_constraint("full_body_id_fk", "message", type_="foreignkey")
     op.drop_column("message", "full_body_id")

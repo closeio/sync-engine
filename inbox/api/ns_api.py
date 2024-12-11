@@ -126,6 +126,8 @@ with contextlib.suppress(ImportError):
     # test failure.
     from inbox.util.eas.codes import STORE_STATUS_CODES
 
+from typing import Never
+
 from inbox.logging import get_logger
 
 log = get_logger()
@@ -168,7 +170,7 @@ API_VERSIONS = ["2016-03-07", "2016-08-09"]
 
 
 @app.before_request
-def start():
+def start() -> None:
     g.api_version = request.headers.get("Api-Version", API_VERSIONS[0])
 
     if g.api_version not in API_VERSIONS:
@@ -209,7 +211,7 @@ def start():
 
 
 @app.before_request
-def before_remote_request():
+def before_remote_request() -> None:
     """
     Verify the validity of the account's credentials before performing a
     request to the remote server.
@@ -509,7 +511,7 @@ def thread_api_update(public_id):
 #  Delete thread
 #
 @app.route("/threads/<public_id>", methods=["DELETE"])
-def thread_api_delete(public_id):
+def thread_api_delete(public_id) -> Never:
     """Moves the thread to the trash"""
     raise NotImplementedError
 
@@ -1215,7 +1217,7 @@ def event_update_api(public_id):
     if event.read_only:
         raise InputError("Cannot update read_only event.")
 
-    if isinstance(event, (RecurringEvent, RecurringEventOverride)):
+    if isinstance(event, RecurringEvent | RecurringEventOverride):
         raise InputError("Cannot update a recurring event yet.")
 
     data = request.get_json(force=True)

@@ -19,7 +19,7 @@ from alembic import op
 from sqlalchemy.ext.declarative import declarative_base
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
@@ -48,6 +48,6 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column("imapuid", "message_id", nullable=True)
     op.alter_column("imapuid", "msg_uid", nullable=True)

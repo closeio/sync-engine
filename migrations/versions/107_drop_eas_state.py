@@ -11,11 +11,13 @@ Create Date: 2014-10-01 19:31:24.110587
 revision = "3cea90bfcdea"
 down_revision = "118b3cdd0185"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine()
@@ -26,5 +28,5 @@ def upgrade():
         op.drop_column("easaccount", "eas_state")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Won't")

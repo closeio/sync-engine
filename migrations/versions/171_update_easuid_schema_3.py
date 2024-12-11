@@ -14,7 +14,7 @@ down_revision = "3ee78a8b1ac6"
 import sqlalchemy as sa
 
 
-def upgrade():
+def upgrade() -> None:
     from sqlalchemy.ext.declarative import declarative_base
 
     from inbox.ignition import main_engine
@@ -39,5 +39,5 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade() -> None:
     pass

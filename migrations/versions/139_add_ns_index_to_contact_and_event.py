@@ -11,10 +11,12 @@ Create Date: 2015-02-17 18:11:30.726188
 revision = "1fd7b3e0b662"
 down_revision = "5305d4ae30b4"
 
+from typing import Never
+
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "ix_contact_ns_uid_provider_name",
         "contact",
@@ -30,5 +32,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Don't bother.")

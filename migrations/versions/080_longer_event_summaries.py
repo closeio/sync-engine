@@ -15,9 +15,9 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column("event", "subject", type_=sa.String(1024))
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column("event", "subject", type_=sa.String(255))

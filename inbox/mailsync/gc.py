@@ -62,7 +62,7 @@ class DeleteHandler(InterruptibleThread):
         uid_accessor,
         message_ttl=DEFAULT_MESSAGE_TTL,
         thread_ttl=DEFAULT_THREAD_TTL,
-    ):
+    ) -> None:
         bind_context(self, "deletehandler", account_id)
         self.account_id = account_id
         self.namespace_id = namespace_id
@@ -92,7 +92,7 @@ class DeleteHandler(InterruptibleThread):
         self.gc_deleted_threads(current_time)
         interruptible_threading.sleep(self.message_ttl.total_seconds())
 
-    def check(self, current_time):
+    def check(self, current_time) -> None:
         dangling_sha256s = set()
 
         with session_scope(self.namespace_id) as db_session:
@@ -178,7 +178,7 @@ class DeleteHandler(InterruptibleThread):
             self.namespace_id, self.account_id, dangling_sha256s
         )
 
-    def gc_deleted_categories(self):
+    def gc_deleted_categories(self) -> None:
         # Delete categories which have been deleted on the backend.
         # Go through all the categories and check if there are messages
         # associated with it. If not, delete it.
@@ -201,7 +201,7 @@ class DeleteHandler(InterruptibleThread):
                     db_session.delete(category)
                     db_session.commit()
 
-    def gc_deleted_threads(self, current_time):
+    def gc_deleted_threads(self, current_time) -> None:
         with session_scope(self.namespace_id) as db_session:
             deleted_threads = (
                 db_session.query(Thread)
@@ -236,7 +236,9 @@ class LabelRenameHandler(InterruptibleThread):
 
     """
 
-    def __init__(self, account_id, namespace_id, label_name, semaphore):
+    def __init__(
+        self, account_id, namespace_id, label_name, semaphore
+    ) -> None:
         bind_context(self, "renamehandler", account_id)
         self.account_id = account_id
         self.namespace_id = namespace_id

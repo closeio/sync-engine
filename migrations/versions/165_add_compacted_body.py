@@ -16,12 +16,12 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "message",
         sa.Column("_compacted_body", mysql.LONGBLOB(), nullable=True),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("message", "_compacted_body")

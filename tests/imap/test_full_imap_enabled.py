@@ -4,11 +4,11 @@ from imapclient import IMAPClient
 
 
 class MockIMAPClient(IMAPClient):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("randomhost")
 
     def _create_IMAP4(self):
         return Mock()
 
-    def logout(self):
+    def logout(self) -> None:
         pass

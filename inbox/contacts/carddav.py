@@ -30,7 +30,7 @@ USER_AGENT = (
 )
 
 
-def supports_carddav(url):
+def supports_carddav(url) -> None:
     """Basic verification that the endpoint supports CardDav"""
     response = requests.request(
         "OPTIONS", url, headers={"User-Agent": USER_AGENT, "Depth": "1"}
@@ -43,7 +43,7 @@ def supports_carddav(url):
 class CardDav:
     """NOTE: Only supports iCloud for now"""
 
-    def __init__(self, email_address, password, base_url):
+    def __init__(self, email_address, password, base_url) -> None:
         self.session = requests.Session()
         self.session.auth = (email_address, password)
         self.session.verify = True  # verify SSL certs

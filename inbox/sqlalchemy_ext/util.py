@@ -47,7 +47,7 @@ def disabled_dubiously_many_queries_warning():
 @event.listens_for(Engine, "before_cursor_execute")
 def before_cursor_execute(
     conn, cursor, statement, parameters, context, executemany
-):
+) -> None:
     if conn not in query_counts:
         query_counts[conn] = 1
     else:
@@ -55,7 +55,7 @@ def before_cursor_execute(
 
 
 @event.listens_for(Engine, "commit")
-def before_commit(conn):
+def before_commit(conn) -> None:
     if not should_log_dubiously_many_queries:
         return
     if query_counts.get(conn, 0) > MAX_SANE_QUERIES_PER_SESSION:
@@ -96,7 +96,7 @@ class StringWithTransform(TypeDecorator):
 
     impl = String
 
-    def __init__(self, string_transform, *args, **kwargs):
+    def __init__(self, string_transform, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if string_transform is None:
             raise ValueError("Must provide a string_transform")
@@ -187,17 +187,17 @@ class MutableDict(Mutable, dict):
         else:
             return value
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value) -> None:
         """Detect dictionary set events and emit change events."""
         dict.__setitem__(self, key, value)
         self.changed()
 
-    def __delitem__(self, key):
+    def __delitem__(self, key) -> None:
         """Detect dictionary del events and emit change events."""
         dict.__delitem__(self, key)
         self.changed()
 
-    def update(self, *args, **kwargs):
+    def update(self, *args, **kwargs) -> None:
         for k, v in dict(*args, **kwargs).items():
             self[k] = v
 
@@ -222,23 +222,23 @@ class MutableList(Mutable, list):
         else:
             return value
 
-    def __setitem__(self, idx, value):
+    def __setitem__(self, idx, value) -> None:
         list.__setitem__(self, idx, value)
         self.changed()
 
-    def __delitem__(self, idx):
+    def __delitem__(self, idx) -> None:
         list.__delitem__(self, idx)
         self.changed()
 
-    def append(self, value):
+    def append(self, value) -> None:
         list.append(self, value)
         self.changed()
 
-    def insert(self, idx, value):
+    def insert(self, idx, value) -> None:
         list.insert(self, idx, value)
         self.changed()
 
-    def extend(self, values):
+    def extend(self, values) -> None:
         list.extend(self, values)
         self.changed()
 
@@ -247,7 +247,7 @@ class MutableList(Mutable, list):
         self.changed()
         return value
 
-    def remove(self, value):
+    def remove(self, value) -> None:
         list.remove(self, value)
         self.changed()
 
@@ -337,7 +337,7 @@ class ForceStrictModePool(QueuePool):
 #
 # Without this, MySQL will silently insert invalid values in the database if
 @event.listens_for(ForceStrictModePool, "connect")
-def receive_connect(dbapi_connection, connection_record):
+def receive_connect(dbapi_connection, connection_record) -> None:
     cur = dbapi_connection.cursor()
     cur.execute(
         "SET SESSION sql_mode='STRICT_TRANS_TABLES,STRICT_ALL_TABLES,"

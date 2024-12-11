@@ -15,7 +15,7 @@ from alembic import op
 from sqlalchemy import func
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_constraint(
         "messagecontactassociation_ibfk_1",
         "messagecontactassociation",
@@ -78,5 +78,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     pass

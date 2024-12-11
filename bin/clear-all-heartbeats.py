@@ -19,7 +19,7 @@ from inbox.heartbeat.config import (
 @click.option("--host", "-h", type=str, default="localhost")
 @click.option("--port", "-p", type=int, default=6379)
 @click.option("--database", "-d", type=int, default=STATUS_DATABASE)
-def main(host, port, database):
+def main(host, port, database) -> None:
     maybe_enable_rollbar()
 
     connection_pool = BlockingConnectionPool(

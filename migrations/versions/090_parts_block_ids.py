@@ -18,7 +18,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     # Create a new block_id table to make parts be relational
     # Add audit timestamps as Parts will no longer inherit from blocks
@@ -58,7 +58,7 @@ def upgrade():
     op.create_foreign_key("part_ibfk_1", "part", "block", ["block_id"], ["id"])
 
 
-def downgrade():
+def downgrade() -> None:
     table_name = "part"
     op.drop_constraint("part_ibfk_1", table_name, type_="foreignkey")
     op.drop_column(table_name, "block_id")

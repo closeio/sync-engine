@@ -1,7 +1,7 @@
 import os
 import traceback
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Never
 
 from sqlalchemy import (
     BigInteger,
@@ -60,7 +60,7 @@ class Account(
     API_OBJECT_NAME = "account"
 
     @property
-    def provider(self):
+    def provider(self) -> Never:
         """
         A constant, unique lowercase identifier for the account provider
         (e.g., 'gmail', 'eas'). Subclasses should override this.
@@ -136,7 +136,7 @@ class Account(
         "Calendar", post_update=True, foreign_keys=[emailed_events_calendar_id]
     )
 
-    def create_emailed_events_calendar(self):
+    def create_emailed_events_calendar(self) -> None:
         if not self._emailed_events_calendar:
             calname = "Emailed events"
             cal = Calendar(
@@ -225,7 +225,7 @@ class Account(
             return None
         return (self.initial_sync_end - self.initial_sync_end).total_seconds()
 
-    def update_sync_error(self, error=None):
+    def update_sync_error(self, error=None) -> None:
         if error is None:
             self._sync_status["sync_error"] = None
         else:
@@ -240,7 +240,7 @@ class Account(
 
             self._sync_status["sync_error"] = error_obj
 
-    def sync_started(self):
+    def sync_started(self) -> None:
         """
         Record transition to started state. Should be called after the
         sync is actually started, not when the request to start it is made.
@@ -264,13 +264,13 @@ class Account(
 
         self.sync_state = "running"
 
-    def enable_sync(self, sync_host=None):
+    def enable_sync(self, sync_host=None) -> None:
         """Tell the monitor that this account should be syncing."""
         self.sync_should_run = True
         if sync_host is not None:
             self.desired_sync_host = sync_host
 
-    def disable_sync(self, reason):
+    def disable_sync(self, reason) -> None:
         """Tell the monitor that this account should stop syncing."""
         self.sync_should_run = False
         self._sync_status["sync_disabled_reason"] = reason
@@ -279,7 +279,7 @@ class Account(
             "USER", "unknown"
         )
 
-    def mark_invalid(self, reason="invalid credentials", scope="mail"):
+    def mark_invalid(self, reason="invalid credentials", scope="mail") -> None:
         """
         In the event that the credentials for this account are invalid,
         update the status and sync flag accordingly. Should only be called
@@ -289,7 +289,7 @@ class Account(
         self.disable_sync(reason)
         self.sync_state = "invalid"
 
-    def mark_for_deletion(self):
+    def mark_for_deletion(self) -> None:
         """
         Mark account for deletion
         """
@@ -298,13 +298,13 @@ class Account(
         # Commit this to prevent race conditions
         inspect(self).session.commit()
 
-    def unmark_for_deletion(self):
+    def unmark_for_deletion(self) -> None:
         self.enable_sync()
         self._sync_status = {}
         self.sync_state = "running"
         inspect(self).session.commit()
 
-    def sync_stopped(self, requesting_host):
+    def sync_stopped(self, requesting_host) -> bool:
         """
         Record transition to stopped state. Should be called after the
         sync is actually stopped, not when the request to stop it is made.
@@ -346,7 +346,7 @@ class Account(
         )
 
     @property
-    def should_suppress_transaction_creation(self):
+    def should_suppress_transaction_creation(self) -> bool:
         # Only version if new or the `sync_state` has changed.
         obj_state = inspect(self)
         return not (
@@ -355,10 +355,10 @@ class Account(
         )
 
     @property
-    def server_settings(self):
+    def server_settings(self) -> None:
         return None
 
-    def get_raw_message_contents(self, message):
+    def get_raw_message_contents(self, message) -> Never:
         # Get the raw contents of a message. We do this differently
         # for every backend (Gmail, IMAP, EAS), and the best way
         # to do this across repos is to make it a method of the
@@ -390,7 +390,7 @@ def already_registered_listener(obj):
     return getattr(obj, "_listener_state", None) is not None
 
 
-def update_listener_state(obj):
+def update_listener_state(obj) -> None:
     obj._listener_state["sync_should_run"] = obj.sync_should_run
     obj._listener_state["sync_host"] = obj.sync_host
     obj._listener_state["desired_sync_host"] = obj.desired_sync_host
@@ -398,7 +398,7 @@ def update_listener_state(obj):
 
 
 @event.listens_for(Session, "after_flush")
-def after_flush(session, flush_context):
+def after_flush(session, flush_context) -> None:
     from inbox.mailsync.service import (
         SYNC_EVENT_QUEUE_NAME,
         shared_sync_event_queue_for_zone,

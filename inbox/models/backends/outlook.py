@@ -49,7 +49,7 @@ class OutlookAccount(CalendarSyncAccountMixin, ImapAccount, OAuthAccount):
         return MICROSOFT_EMAIL_SCOPES
 
     @property
-    def contacts_scopes(self):
+    def contacts_scopes(self) -> None:
         return None
 
     @property

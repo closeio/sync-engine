@@ -27,7 +27,7 @@ def get_cursor(api_client, timestamp, namespace):
     return json.loads(cursor_response.data)["cursor"]
 
 
-def validate_response_format(response_string):
+def validate_response_format(response_string) -> None:
     response = json.loads(response_string)
     assert "cursor" in response
     assert "attributes" in response
@@ -36,7 +36,9 @@ def validate_response_format(response_string):
     assert "event" in response
 
 
-def test_response_when_old_cursor_given(db, api_client, default_namespace):
+def test_response_when_old_cursor_given(
+    db, api_client, default_namespace
+) -> None:
     url = url_concat("/delta/streaming", {"timeout": 0.1, "cursor": "0"})
     r = api_client.get_raw(url)
     assert r.status_code == 200
@@ -48,7 +50,7 @@ def test_response_when_old_cursor_given(db, api_client, default_namespace):
 
 def test_empty_response_when_latest_cursor_given(
     db, api_client, default_namespace
-):
+) -> None:
     cursor = get_cursor(api_client, int(time.time() + 22), default_namespace)
     url = url_concat("/delta/streaming", {"timeout": 0.1, "cursor": cursor})
     r = api_client.get_raw(url)
@@ -58,7 +60,7 @@ def test_empty_response_when_latest_cursor_given(
 
 def test_exclude_and_include_object_types(
     db, api_client, thread, default_namespace
-):
+) -> None:
     add_fake_message(
         db.session,
         default_namespace.id,
@@ -98,7 +100,9 @@ def test_exclude_and_include_object_types(
     assert all(resp["object"] == "message" for resp in parsed_responses)
 
 
-def test_expanded_view(db, api_client, thread, message, default_namespace):
+def test_expanded_view(
+    db, api_client, thread, message, default_namespace
+) -> None:
     url = url_concat(
         "/delta/streaming",
         {
@@ -119,7 +123,7 @@ def test_expanded_view(db, api_client, thread, message, default_namespace):
             assert "messages" in delta["attributes"]
 
 
-def test_invalid_timestamp(api_client, default_namespace):
+def test_invalid_timestamp(api_client, default_namespace) -> None:
     # Valid UNIX timestamp
     response = api_client.post_data(
         "/delta/generate_cursor", data={"start": int(time.time())}
@@ -133,7 +137,9 @@ def test_invalid_timestamp(api_client, default_namespace):
     assert response.status_code == 400
 
 
-def test_longpoll_delta_newitem(db, api_client, default_namespace, thread):
+def test_longpoll_delta_newitem(
+    db, api_client, default_namespace, thread
+) -> None:
     cursor = get_cursor(api_client, int(time.time() + 22), default_namespace)
     url = url_concat("/delta/longpoll", {"cursor": cursor})
     start_time = time.time()
@@ -160,7 +166,7 @@ def test_longpoll_delta_newitem(db, api_client, default_namespace, thread):
     }
 
 
-def test_longpoll_delta_timeout(db, api_client, default_namespace):
+def test_longpoll_delta_timeout(db, api_client, default_namespace) -> None:
     test_timeout = 2
     cursor = get_cursor(api_client, int(time.time() + 22), default_namespace)
     url = url_concat(

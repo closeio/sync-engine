@@ -2,7 +2,7 @@ from inbox.models.action_log import ActionLog, schedule_action
 from tests.util.base import add_fake_event
 
 
-def test_action_scheduling(db, default_account):
+def test_action_scheduling(db, default_account) -> None:
     event = add_fake_event(db.session, default_account.namespace.id)
 
     schedule_action(
@@ -20,7 +20,8 @@ def test_action_scheduling(db, default_account):
     )
 
     assert entry.discriminator == "actionlog"
-    assert entry.table_name == "event" and entry.record_id == event.id
+    assert entry.table_name == "event"
+    assert entry.record_id == event.id
     assert not entry.extra_args
 
     schedule_action(
@@ -44,7 +45,8 @@ def test_action_scheduling(db, default_account):
     )
 
     assert entry.discriminator == "actionlog"
-    assert entry.table_name == "event" and entry.record_id == event.id
+    assert entry.table_name == "event"
+    assert entry.record_id == event.id
     assert entry.extra_args == dict(
         event_uid=event.uid,
         calendar_name=event.calendar.name,

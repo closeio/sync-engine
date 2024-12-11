@@ -16,7 +16,7 @@ from sqlalchemy import func, or_
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -68,7 +68,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column(
         "message", "to_addr", existing_type=mysql.TEXT(), nullable=True
     )

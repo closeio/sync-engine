@@ -1,4 +1,5 @@
 import threading
+from typing import Never
 
 from inbox import interruptible_threading
 from inbox.exceptions import ConnectionError, ValidationError
@@ -36,7 +37,7 @@ class BaseSyncMonitor(InterruptibleThread):
         provider_name,
         poll_frequency=1,
         scope=None,
-    ):
+    ) -> None:
         self.account_id = account_id
         self.namespace_id = namespace_id
         self.provider_name = provider_name
@@ -96,7 +97,7 @@ class BaseSyncMonitor(InterruptibleThread):
             )
         interruptible_threading.sleep(introduce_jitter(self.poll_frequency))
 
-    def sync(self):
+    def sync(self) -> Never:
         """Subclasses should override this to do work"""
         raise NotImplementedError
 

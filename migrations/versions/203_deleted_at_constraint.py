@@ -15,7 +15,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@foreign_key_checks = 0;"))
     op.drop_constraint("namespace_id", "category", type_="unique")
@@ -39,7 +39,7 @@ def upgrade():
     conn.execute(text("set @@foreign_key_checks = 1;"))
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@foreign_key_checks = 0;"))
     op.drop_constraint("namespace_id", "category", type_="unique")

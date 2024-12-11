@@ -1,4 +1,4 @@
-def test_canonicalization(db):
+def test_canonicalization(db) -> None:
     from inbox.models import Account, Namespace
 
     ns = Namespace()

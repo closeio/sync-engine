@@ -15,9 +15,9 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column("contact", sa.Column("raw_data", sa.Text(), nullable=True))
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("contact", "raw_data")

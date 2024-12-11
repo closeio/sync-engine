@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "metadata",
         sa.Column("queryable_value", sa.BigInteger(), nullable=True),
@@ -28,6 +28,6 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index(op.f("ix_metadata_queryable_value"), table_name="metadata")
     op.drop_column("metadata", "queryable_value")

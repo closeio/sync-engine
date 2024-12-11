@@ -12,7 +12,7 @@ from inbox.config import config
 from inbox.error_handling import maybe_enable_rollbar
 
 
-def main(revision_id):
+def main(revision_id) -> None:
     maybe_enable_rollbar()
 
     alembic_ini_filename = os.environ.get("ALEMBIC_INI_PATH", "alembic.ini")

@@ -11,10 +11,12 @@ Create Date: 2014-10-20 22:06:33.118656
 revision = "26911668870a"
 down_revision = "22d076f48b88"
 
+from typing import Never
+
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         """
@@ -32,5 +34,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception()

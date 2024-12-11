@@ -103,7 +103,7 @@ def normalize_data(data: str) -> str:
 
 
 class MessageTooBigException(Exception):
-    def __init__(self, body_length):
+    def __init__(self, body_length) -> None:
         super().__init__(
             f"message length ({body_length}) is over the parsing limit"
         )
@@ -113,7 +113,7 @@ class Message(
     MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin
 ):
     @property
-    def API_OBJECT_NAME(self):
+    def API_OBJECT_NAME(self) -> str:
         return "message" if not self.is_draft else "draft"
 
     namespace_id = Column(BigInteger, index=True, nullable=False)
@@ -188,7 +188,7 @@ class Message(
     def is_sending(self):
         return self.version == MAX_MYSQL_INTEGER and not self.is_draft
 
-    def mark_as_sending(self):
+    def mark_as_sending(self) -> None:
         if self.is_sent:
             raise ValueError("Cannot mark a sent message as sending")
         self.version = MAX_MYSQL_INTEGER

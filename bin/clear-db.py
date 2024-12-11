@@ -6,7 +6,7 @@ from inbox.error_handling import maybe_enable_rollbar
 from inbox.util.db import drop_everything
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-u",

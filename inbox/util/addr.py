@@ -10,7 +10,7 @@ from inbox.sqlalchemy_ext.util import MAX_TEXT_BYTES
 
 
 class HeaderTooBigException(Exception):
-    def __init__(self, header):
+    def __init__(self, header) -> None:
         super().__init__(f"header {header!r} length is over the parsing limit")
 
 
@@ -22,7 +22,7 @@ EMAIL_FIND_RE = re.compile(
 )
 
 
-def valid_email(email_address):
+def valid_email(email_address) -> bool:
     parsed = address.parse(email_address, addr_spec_only=True)
     if isinstance(parsed, address.EmailAddress):
         return True

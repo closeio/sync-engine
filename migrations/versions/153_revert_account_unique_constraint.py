@@ -14,7 +14,7 @@ down_revision = "211e93aff1e1"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     index_name = conn.execute(
         '''SELECT index_name FROM information_schema.statistics WHERE
@@ -31,7 +31,7 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade() -> None:
     op.create_unique_constraint(
         "unique_account_address", "account", ["_canonicalized_address"]
     )

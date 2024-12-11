@@ -18,7 +18,7 @@ from sqlalchemy.orm import load_only
 CHUNK_SIZE = 1000
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
     from inbox.security.blobstorage import encode_blob
@@ -48,5 +48,5 @@ def upgrade():
             db_session.commit()
 
 
-def downgrade():
+def downgrade() -> None:
     pass

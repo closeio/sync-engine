@@ -14,7 +14,7 @@ down_revision = "36ff8677e77"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "ix_messagecategory_category_id",
         "messagecategory",
@@ -23,7 +23,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index(
         "ix_messagecategory_category_id", table_name="messagecategory"
     )

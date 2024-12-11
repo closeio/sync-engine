@@ -21,7 +21,7 @@ from tests.util.base import (
 
 
 @fixture
-def patch_requests_throttle(monkeypatch):
+def patch_requests_throttle(monkeypatch) -> None:
     def get(*args, **kwargs):
         resp = Response()
         resp.status_code = 500
@@ -30,7 +30,7 @@ def patch_requests_throttle(monkeypatch):
 
 
 @fixture
-def patch_requests_no_throttle(monkeypatch):
+def patch_requests_no_throttle(monkeypatch) -> None:
     def get(*args, **kwargs):
         resp = Response()
         resp.status_code = 500
@@ -82,7 +82,7 @@ def add_completely_fake_account(db, email="test@nylas.com"):
     return fake_account
 
 
-def test_get_accounts_to_delete(db):
+def test_get_accounts_to_delete(db) -> None:
     from inbox.models import Account
     from inbox.models.util import get_accounts_to_delete
 
@@ -119,7 +119,7 @@ def test_get_accounts_to_delete(db):
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_bulk_namespace_deletion(db):
+def test_bulk_namespace_deletion(db) -> None:
     from inbox.models import Account
     from inbox.models.util import (
         batch_delete_namespaces,
@@ -181,7 +181,7 @@ def test_bulk_namespace_deletion(db):
 
 
 @freeze_time("2016-02-02 11:01:34")
-def test_deletion_no_throttle(db, patch_requests_no_throttle):
+def test_deletion_no_throttle(db, patch_requests_no_throttle) -> None:
     from inbox.models import Account
     from inbox.models.util import (
         batch_delete_namespaces,
@@ -209,7 +209,7 @@ def test_deletion_no_throttle(db, patch_requests_no_throttle):
 
 
 @freeze_time("2016-02-02 11:01:34")
-def test_deletion_metric_throttle(db, patch_requests_throttle):
+def test_deletion_metric_throttle(db, patch_requests_throttle) -> None:
     from inbox.models import Account
     from inbox.models.util import (
         batch_delete_namespaces,
@@ -237,7 +237,7 @@ def test_deletion_metric_throttle(db, patch_requests_throttle):
 
 
 @freeze_time("2016-02-02 01:01:34")
-def test_deletion_time_throttle(db, patch_requests_no_throttle):
+def test_deletion_time_throttle(db, patch_requests_no_throttle) -> None:
     from inbox.models import Account
     from inbox.models.util import (
         batch_delete_namespaces,
@@ -264,7 +264,7 @@ def test_deletion_time_throttle(db, patch_requests_no_throttle):
     assert account_2_id in alive_accounts
 
 
-def test_namespace_deletion(db, default_account):
+def test_namespace_deletion(db, default_account) -> None:
     from inbox.models import Account, Message, Thread
     from inbox.models.util import delete_namespace
 
@@ -289,10 +289,8 @@ def test_namespace_deletion(db, default_account):
     fake_account = add_generic_imap_account(db.session)
     fake_account_id = fake_account.id
 
-    assert (
-        fake_account_id != account.id
-        and fake_account.namespace.id != namespace_id
-    )
+    assert fake_account_id != account.id
+    assert fake_account.namespace.id != namespace_id
 
     thread = add_fake_thread(db.session, fake_account.namespace.id)
     thread_id = thread.id
@@ -346,10 +344,11 @@ def test_namespace_deletion(db, default_account):
 
     thread = db.session.query(Thread).get(thread_id)
     message = db.session.query(Message).get(message_id)
-    assert thread and message
+    assert thread
+    assert message
 
 
-def test_namespace_delete_cascade(db, default_account):
+def test_namespace_delete_cascade(db, default_account) -> None:
     from inbox.models import Account, Message, Thread
 
     models = [Thread, Message]
@@ -373,10 +372,8 @@ def test_namespace_delete_cascade(db, default_account):
     fake_account = add_generic_imap_account(db.session)
     fake_account_id = fake_account.id
 
-    assert (
-        fake_account_id != account.id
-        and fake_account.namespace.id != namespace_id
-    )
+    assert fake_account_id != account.id
+    assert fake_account.namespace.id != namespace_id
 
     thread = add_fake_thread(db.session, fake_account.namespace.id)
 
@@ -408,7 +405,7 @@ def test_namespace_delete_cascade(db, default_account):
     )
 
 
-def test_fake_accounts(empty_db):
+def test_fake_accounts(empty_db) -> None:
     from inbox.models import (
         Account,
         Block,
@@ -479,7 +476,7 @@ def test_fake_accounts(empty_db):
     assert db.session.query(ImapUid).count() == 0
 
 
-def test_multiple_fake_accounts(empty_db):
+def test_multiple_fake_accounts(empty_db) -> None:
     # Add three fake accounts, check that removing one doesn't affect
     # the two others.
     from inbox.models import (

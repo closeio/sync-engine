@@ -12,7 +12,7 @@ revision = "14692efd261b"
 down_revision = "2ac4e3c4e049"
 
 
-def upgrade():
+def upgrade() -> None:
     import datetime
 
     from sqlalchemy.ext.declarative import declarative_base
@@ -89,5 +89,5 @@ def upgrade():
         db_session.commit()
 
 
-def downgrade():
+def downgrade() -> None:
     pass

@@ -9,13 +9,13 @@ from inbox.security.blobstorage import decode_blob, encode_blob
 
 # This will run the test for a bunch of randomly-chosen values of sample_input.
 @hypothesis.given(s.binary(), s.booleans())
-def test_blobstorage(config, sample_input, encrypt):
+def test_blobstorage(config, sample_input, encrypt) -> None:
     config["ENCRYPT_SECRETS"] = encrypt
     assert decode_blob(encode_blob(sample_input)) == sample_input
 
 
 @hypothesis.given(s.binary(), s.booleans())
-def test_encoded_format(config, sample_input, encrypt):
+def test_encoded_format(config, sample_input, encrypt) -> None:
     config["ENCRYPT_SECRETS"] = encrypt
     encoded = encode_blob(sample_input)
     assert encoded.startswith(
@@ -30,7 +30,7 @@ def test_encoded_format(config, sample_input, encrypt):
 
 
 @hypothesis.given(s.text(), s.booleans())
-def test_message_body_storage(config, sample_input, encrypt):
+def test_message_body_storage(config, sample_input, encrypt) -> None:
     message = Message()
     config["ENCRYPT_SECRETS"] = encrypt
     message.body = None

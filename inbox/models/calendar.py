@@ -57,7 +57,7 @@ class Calendar(
     )
 
     @property
-    def should_suppress_transaction_creation(self):
+    def should_suppress_transaction_creation(self) -> bool:
         if (
             self in object_session(self).new
             or self in object_session(self).deleted
@@ -70,7 +70,7 @@ class Calendar(
             or obj_state.attrs.read_only.history.has_changes()
         )
 
-    def update(self, calendar: "Calendar"):
+    def update(self, calendar: "Calendar") -> None:
         self.uid = calendar.uid
         self.name = calendar.name[:MAX_INDEXABLE_LENGTH]
         self.read_only = calendar.read_only
@@ -81,10 +81,10 @@ class Calendar(
         self.webhook_subscription_expiration = expiration
         self.webhook_last_ping = datetime.utcnow()
 
-    def handle_webhook_notification(self):
+    def handle_webhook_notification(self) -> None:
         self.webhook_last_ping = datetime.utcnow()
 
-    def can_sync(self):
+    def can_sync(self) -> bool:
         if self.name == "Emailed events" and self.uid == "inbox":
             # This is our own internal calendar
             return False

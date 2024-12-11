@@ -15,14 +15,14 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("ALTER TABLE part DROP FOREIGN KEY part_ibfk_1"))
     conn.execute(text("ALTER TABLE part DROP FOREIGN KEY part_ibfk_2"))
     conn.execute(text("ALTER TABLE block DROP FOREIGN KEY block_ibfk_1"))
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         text(

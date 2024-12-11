@@ -65,7 +65,7 @@ def get_mx_domains(domain, dns_resolver=_dns_resolver):
     return [str(rdata.exchange).lower() for rdata in mx_records]
 
 
-def mx_match(mx_domains, match_domains):
+def mx_match(mx_domains, match_domains) -> bool:
     """
     Return True if any of the `mx_domains` matches an mx_domain
     in `match_domains`.
@@ -190,7 +190,7 @@ def naked_domain(url):
         return ".".join([res.subdomain, res.registered_domain])
 
 
-def matching_subdomains(new_value, old_value):
+def matching_subdomains(new_value, old_value) -> bool:
     """
     We allow our customers to update their server addresses,
     provided that the new server has:

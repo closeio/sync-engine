@@ -35,7 +35,7 @@ from inbox.models.util import delete_namespace
 @click.option("--dry-run", is_flag=True)
 @click.option("--yes", is_flag=True)
 @click.option("--throttle", is_flag=True)
-def delete_account_data(account_id, dry_run, yes, throttle):
+def delete_account_data(account_id, dry_run, yes, throttle) -> int | None:
     maybe_enable_rollbar()
 
     with session_scope(account_id) as db_session:

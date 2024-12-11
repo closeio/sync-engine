@@ -21,7 +21,7 @@ configure_logging(config.get("LOGLEVEL"))
 log = get_logger()
 
 
-def populate_labels(uid, account, db_session):
+def populate_labels(uid, account, db_session) -> None:
     from inbox.models import Label
 
     existing_labels = {(l.name, l.canonical_name): l for l in account.labels}
@@ -54,7 +54,7 @@ def populate_labels(uid, account, db_session):
             uid.labels.add(existing_labels[key])
 
 
-def set_labels_for_imapuids(account, db_session):
+def set_labels_for_imapuids(account, db_session) -> None:
     from inbox.models.backends.imap import ImapUid
 
     uids = (
@@ -67,7 +67,7 @@ def set_labels_for_imapuids(account, db_session):
         log.info("Updated UID labels", account_id=account.id, uid=uid.id)
 
 
-def create_categories_for_folders(account, db_session):
+def create_categories_for_folders(account, db_session) -> None:
     from inbox.models import Category, Folder
 
     for folder in db_session.query(Folder).filter(
@@ -84,7 +84,7 @@ def create_categories_for_folders(account, db_session):
     db_session.commit()
 
 
-def create_categories_for_easfoldersyncstatuses(account, db_session):
+def create_categories_for_easfoldersyncstatuses(account, db_session) -> None:
     from inbox.mailsync.backends.eas.base.foldersync import save_categories
 
     save_categories(db_session, account, account.primary_device_id)
@@ -92,7 +92,7 @@ def create_categories_for_easfoldersyncstatuses(account, db_session):
     save_categories(db_session, account, account.secondary_device_id)
 
 
-def migrate_account_metadata(account_id):
+def migrate_account_metadata(account_id) -> None:
     from inbox.models import Account
     from inbox.models.session import session_scope
 
@@ -107,7 +107,7 @@ def migrate_account_metadata(account_id):
         db_session.commit()
 
 
-def migrate_messages(account_id):
+def migrate_messages(account_id) -> None:
     from inbox.ignition import main_engine
     from inbox.models import Message, Namespace
     from inbox.models.session import session_scope
@@ -163,12 +163,12 @@ def migrate_messages(account_id):
             offset += 1000
 
 
-def migrate_account(account_id):
+def migrate_account(account_id) -> None:
     migrate_account_metadata(account_id)
     migrate_messages(account_id)
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.models import Account
     from inbox.models.session import session_scope
 
@@ -179,5 +179,5 @@ def upgrade():
         migrate_account(id_)
 
 
-def downgrade():
+def downgrade() -> None:
     pass

@@ -32,7 +32,7 @@ def folder_sync_engine(db, generic_account):
     return engine
 
 
-def test_generic_grouping(db, default_account):
+def test_generic_grouping(db, default_account) -> None:
     thread = add_fake_thread(db.session, default_account.namespace.id)
     message = add_fake_message(
         db.session,
@@ -68,7 +68,7 @@ def test_generic_grouping(db, default_account):
     ), "fetch_similar_threads should heed namespace boundaries"
 
 
-def test_threading_limit(db, folder_sync_engine, monkeypatch):
+def test_threading_limit(db, folder_sync_engine, monkeypatch) -> None:
     """
     Test that custom threading doesn't produce arbitrarily long threads,
     which eventually break things.
@@ -84,7 +84,7 @@ def test_threading_limit(db, folder_sync_engine, monkeypatch):
     namespace_id = folder_sync_engine.namespace_id
 
     msg = MockRawMessage([])
-    for i in range(3 * MAX_THREAD_LENGTH):
+    for _i in range(3 * MAX_THREAD_LENGTH):
         m = Message()
         m.namespace_id = namespace_id
         m.received_date = datetime.datetime.utcnow()

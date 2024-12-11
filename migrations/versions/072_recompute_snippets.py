@@ -28,7 +28,7 @@ def page_query(q):
             break
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
     from inbox.util.html import strip_tags
@@ -61,5 +61,5 @@ def upgrade():
     db_session.commit()
 
 
-def downgrade():
+def downgrade() -> None:
     pass

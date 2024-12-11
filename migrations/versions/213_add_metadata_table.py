@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import context, op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.sqlalchemy_ext.util import JSON
 
     shard_id = int(context.get_x_argument(as_dictionary=True).get("shard_id"))
@@ -84,7 +84,7 @@ def upgrade():
     conn.execute(f"ALTER TABLE metadata AUTO_INCREMENT={increment}")
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("ix_obj_public_id_app_id", table_name="metadata")
     op.drop_index(op.f("ix_metadata_updated_at"), table_name="metadata")
     op.drop_index(op.f("ix_metadata_public_id"), table_name="metadata")

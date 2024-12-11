@@ -49,6 +49,7 @@ def start():
 
     if watch_state == "sync":
         return resp(204)
+    return None
 
 
 @app.errorhandler(APIException)

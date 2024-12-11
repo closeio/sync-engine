@@ -30,7 +30,7 @@ def api_client(db, default_namespace, make_api_client):
 
 
 @fixture
-def blockstore_backend(monkeypatch, request):
+def blockstore_backend(monkeypatch, request) -> None:
     if request.param == "disk":
         monkeypatch.setattr("inbox.util.blockstore.STORE_MSG_ON_S3", False)
     elif request.param == "s3":

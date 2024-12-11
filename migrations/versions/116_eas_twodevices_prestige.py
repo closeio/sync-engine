@@ -11,11 +11,13 @@ Create Date: 2014-10-21 20:38:17.143065
 revision = "10ecf4841ac3"
 down_revision = "17dc9c049f8b"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column(
         "easdevice", "created_at", existing_type=sa.DateTime(), nullable=False
     )
@@ -50,5 +52,5 @@ def upgrade():
     op.drop_column("easaccount", "eas_account_sync_key")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("!")

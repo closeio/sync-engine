@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "folder", sa.Column("initial_sync_end", sa.DateTime(), nullable=True)
     )
@@ -24,6 +24,6 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("folder", "initial_sync_start")
     op.drop_column("folder", "initial_sync_end")

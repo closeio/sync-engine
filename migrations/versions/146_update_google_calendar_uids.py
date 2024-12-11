@@ -11,10 +11,12 @@ Create Date: 2015-03-12 17:58:50.477526
 revision = "c77a90d524"
 down_revision = "557378226d9f"
 
+from typing import Never
+
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         """UPDATE calendar JOIN namespace ON calendar.namespace_id=namespace.id
@@ -23,5 +25,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception

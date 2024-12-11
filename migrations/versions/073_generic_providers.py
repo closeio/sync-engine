@@ -19,7 +19,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from sqlalchemy.ext.declarative import declarative_base
 
     from inbox.ignition import main_engine
@@ -99,7 +99,7 @@ def upgrade():
     op.drop_column("imapaccount", "imap_host")
 
 
-def downgrade():
+def downgrade() -> None:
     from sqlalchemy.ext.declarative import declarative_base
 
     from inbox.ignition import main_engine

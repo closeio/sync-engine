@@ -6,7 +6,7 @@ from inbox.models.category import EPOCH
 from inbox.util.concurrency import kill_all
 
 
-def test_imap_save_generic_folder_names(db, default_account):
+def test_imap_save_generic_folder_names(db, default_account) -> None:
     monitor = ImapSyncMonitor(default_account)
     folder_names_and_roles = {
         ("INBOX", "inbox"),
@@ -27,7 +27,7 @@ def test_imap_save_generic_folder_names(db, default_account):
     assert saved_folder_data == folder_names_and_roles
 
 
-def test_handle_folder_deletions(db, default_account):
+def test_handle_folder_deletions(db, default_account) -> None:
     monitor = ImapSyncMonitor(default_account)
     folder_names_and_roles = {("INBOX", "inbox"), ("Miscellania", None)}
     raw_folders = [RawFolder(*args) for args in folder_names_and_roles]
@@ -50,7 +50,7 @@ def test_handle_folder_deletions(db, default_account):
     assert saved_folder_data == {("INBOX", "inbox")}
 
 
-def test_imap_handle_folder_renames(db, default_account):
+def test_imap_handle_folder_renames(db, default_account) -> None:
     monitor = ImapSyncMonitor(default_account)
     folder_names_and_roles = {
         ("INBOX", "inbox"),
@@ -86,7 +86,7 @@ def test_imap_handle_folder_renames(db, default_account):
     assert saved_folder_data == folders_renamed
 
 
-def test_gmail_handle_folder_renames(db, default_account):
+def test_gmail_handle_folder_renames(db, default_account) -> None:
     monitor = GmailSyncMonitor(default_account)
     folder_names_and_roles = {
         ("[Gmail]/Todos", "all"),
@@ -143,7 +143,7 @@ def test_gmail_handle_folder_renames(db, default_account):
         assert renamed_categories[role] == display_name
 
 
-def test_save_gmail_folder_names(db, default_account):
+def test_save_gmail_folder_names(db, default_account) -> None:
     monitor = GmailSyncMonitor(default_account)
     folder_names_and_roles = {
         ("[Gmail]/All Mail", "all"),
@@ -190,7 +190,7 @@ def test_save_gmail_folder_names(db, default_account):
     assert saved_category_data == expected_saved_names_and_roles
 
 
-def test_handle_trailing_whitespace(db, default_account):
+def test_handle_trailing_whitespace(db, default_account) -> None:
     raw_folders = [
         RawFolder("Miscellania", ""),
         RawFolder("Miscellania  ", ""),
@@ -206,7 +206,7 @@ def test_handle_trailing_whitespace(db, default_account):
     assert saved_folder_data == {("Miscellania", ""), ("Inbox", "inbox")}
 
 
-def test_imap_remote_delete(db, default_account):
+def test_imap_remote_delete(db, default_account) -> None:
     monitor = ImapSyncMonitor(default_account)
     folders = {("All", "inbox"), ("Trash", "trash"), ("Applications", "")}
 
@@ -258,7 +258,7 @@ def test_imap_remote_delete(db, default_account):
         assert renamed_categories[role] == display_name
 
 
-def test_not_deleting_canonical_folders(empty_db, default_account):
+def test_not_deleting_canonical_folders(empty_db, default_account) -> None:
     # Create a label w/ no messages attached.
     label = Label.find_or_create(
         empty_db.session, default_account, "[Gmail]/Tous les messages"

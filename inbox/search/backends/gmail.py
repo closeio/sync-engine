@@ -17,7 +17,7 @@ SEARCH_CLS = "GmailSearchClient"
 
 
 class GmailSearchClient:
-    def __init__(self, account):
+    def __init__(self, account) -> None:
         self.account_id = int(account.id)
         try:
             with session_scope(self.account_id) as db_session:

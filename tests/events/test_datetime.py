@@ -18,7 +18,7 @@ from inbox.models.when import (
 )
 
 
-def test_when_time():
+def test_when_time() -> None:
     start_time = arrow.get("2014-09-30T15:34:00.000-07:00")
     time = {"time": start_time.timestamp}
     ts = parse_as_when(time)
@@ -32,7 +32,7 @@ def test_when_time():
     assert ts.delta == timedelta(hours=0)
 
 
-def test_when_timespan():
+def test_when_timespan() -> None:
     start_time = arrow.get("2014-09-30T15:34:00.000-07:00")
     end_time = arrow.get("2014-09-30T16:34:00.000-07:00")
     timespan = {
@@ -50,7 +50,7 @@ def test_when_timespan():
     assert ts.delta == timedelta(hours=1)
 
 
-def test_when_date():
+def test_when_date() -> None:
     start_date = arrow.get("2014-09-30")
     date = {"date": start_date.format("YYYY-MM-DD")}
     ts = parse_as_when(date)
@@ -64,7 +64,7 @@ def test_when_date():
     assert ts.delta == timedelta(days=0)
 
 
-def test_when_datespan():
+def test_when_datespan() -> None:
     start_date = arrow.get("2014-09-30")
     end_date = arrow.get("2014-10-01")
     datespan = {
@@ -82,7 +82,7 @@ def test_when_datespan():
     assert ts.delta == timedelta(days=1)
 
 
-def test_when_spans_arent_spans():
+def test_when_spans_arent_spans() -> None:
     # If start and end are the same, don't create a Span object
     start_date = arrow.get("2014-09-30")
     end_date = arrow.get("2014-09-30")
@@ -103,7 +103,7 @@ def test_when_spans_arent_spans():
     assert isinstance(ts, Time)
 
 
-def test_parse_datetime():
+def test_parse_datetime() -> None:
     t = "20140104T102030Z"
     dt = parse_datetime(t)
     assert dt == arrow.get(2014, 1, 4, 10, 20, 30)
@@ -121,7 +121,7 @@ def test_parse_datetime():
     assert dt == arrow.get(2015, 3, 10, 17, 30, 0)
 
 
-def test_time_parse():
+def test_time_parse() -> None:
     t = 1426008600
     validated = parse_utc(t)
     stored = time_parse(t)
@@ -135,7 +135,7 @@ def test_time_parse():
     assert validated.naive == stored
 
 
-def test_parse_google_time():
+def test_parse_google_time() -> None:
     t = {
         "dateTime": "2012-10-15T17:00:00-07:00",
         "timeZone": "America/Los_Angeles",
@@ -152,7 +152,7 @@ def test_parse_google_time():
     assert gt == arrow.get(2012, 10, 15)
 
 
-def test_google_to_event_time():
+def test_google_to_event_time() -> None:
     start = {
         "dateTime": "2012-10-15T17:00:00-07:00",
         "timeZone": "America/Los_Angeles",
@@ -174,7 +174,7 @@ def test_google_to_event_time():
     assert event_time.all_day is True
 
 
-def test_google_to_event_time_reverse():
+def test_google_to_event_time_reverse() -> None:
     end = {
         "dateTime": "2012-10-15T17:00:00-07:00",
         "timeZone": "America/Los_Angeles",

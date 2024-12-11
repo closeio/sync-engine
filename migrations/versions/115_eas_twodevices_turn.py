@@ -12,13 +12,14 @@ revision = "17dc9c049f8b"
 down_revision = "ad7b856bcc0"
 
 from datetime import datetime
+from typing import Never
 
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine()
@@ -118,5 +119,5 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("!")

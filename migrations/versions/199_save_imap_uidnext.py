@@ -15,11 +15,11 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "imapfolderinfo", sa.Column("uidnext", sa.Integer(), nullable=True)
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("imapfolderinfo", "uidnext")

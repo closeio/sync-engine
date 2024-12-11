@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "gmailaccount", sa.Column("last_calendar_list_sync", sa.DateTime())
     )
@@ -32,7 +32,7 @@ def upgrade():
     op.add_column("calendar", sa.Column("gpush_expiration", sa.DateTime()))
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("gmailaccount", "last_calendar_list_sync")
     op.drop_column("gmailaccount", "gpush_calendar_list_last_ping")
     op.drop_column("gmailaccount", "gpush_calendar_list_expiration")

@@ -16,7 +16,7 @@ from alembic import op
 from sqlalchemy.ext.declarative import declarative_base
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -32,5 +32,5 @@ def upgrade():
         op.drop_column("event", "end_date")
 
 
-def downgrade():
+def downgrade() -> None:
     pass

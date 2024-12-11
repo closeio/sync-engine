@@ -14,7 +14,7 @@ down_revision = "56500282e024"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     while True:
         res = conn.execute(
@@ -26,5 +26,5 @@ def upgrade():
             return
 
 
-def downgrade():
+def downgrade() -> None:
     pass

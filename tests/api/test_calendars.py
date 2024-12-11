@@ -8,7 +8,7 @@ __all__ = ["db", "default_namespace"]
 
 
 @pytest.mark.parametrize(
-    "uid,default", [("inboxapptest@gmail.com", True), ("other", False)]
+    ("uid", "default"), [("inboxapptest@gmail.com", True), ("other", False)]
 )
 def test_get_google_calendar(db, default_namespace, api_client, uid, default):
     cal = Calendar(namespace_id=default_namespace.id, uid=uid, name="Holidays")

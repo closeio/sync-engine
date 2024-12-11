@@ -53,7 +53,8 @@ class TestTransactionDeletion:
 
     @pytest.fixture
     def transactions(self, clear_redis, now, db, default_namespace):
-        """Creates transactions, some new and some old.
+        """
+        Creates transactions, some new and some old.
 
         Yields the newest transaction
         """

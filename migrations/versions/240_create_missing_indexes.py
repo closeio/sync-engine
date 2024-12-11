@@ -1,4 +1,5 @@
-"""create missing indexes and drop redundant ones
+"""
+create missing indexes and drop redundant ones
 
 Revision ID: 36ff8677e77
 Revises: 1dfc65e583bf
@@ -10,7 +11,6 @@ Create Date: 2018-02-26 19:17:07.756565
 revision = "36ff8677e77"
 down_revision = "1dfc65e583bf"
 
-import sqlalchemy as sa
 from alembic import op
 
 

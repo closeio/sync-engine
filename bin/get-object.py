@@ -10,20 +10,16 @@ import IPython
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.models import (
     Account,
-    ActionLog,
     Block,
     Calendar,
-    Category,
     Event,
-    Folder,
-    Label,
     Message,
     Namespace,
     Part,
     Thread,
     Transaction,
 )
-from inbox.models.session import global_session_scope, session_scope
+from inbox.models.session import global_session_scope
 
 cls_for_type = dict(
     account=Account,

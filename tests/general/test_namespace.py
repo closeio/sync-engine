@@ -6,7 +6,6 @@ from pytest import fixture
 from requests import Response
 
 from inbox.models.namespace import Namespace
-
 from tests.util.base import (
     add_fake_calendar,
     add_fake_contact,

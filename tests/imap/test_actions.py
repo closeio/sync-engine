@@ -21,13 +21,9 @@ from inbox.actions.base import (
 from inbox.crispin import writable_connection_pool
 from inbox.models import ActionLog, Category
 from inbox.models.action_log import schedule_action
-from inbox.sendmail.base import (
-    create_message_from_json,
-    update_draft as sendmail_update_draft,
-)
+from inbox.sendmail.base import create_message_from_json
+from inbox.sendmail.base import update_draft as sendmail_update_draft
 from inbox.transactions.actions import SyncbackService
-from inbox.util.testutils import mock_imapclient
-
 from tests.util.base import add_fake_category, add_fake_imapuid
 
 

@@ -5,7 +5,6 @@ import pytest
 
 from inbox.ignition import redis_txn
 from inbox.models.namespace import Namespace
-
 from tests.util.base import add_fake_message
 
 

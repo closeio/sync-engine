@@ -1,4 +1,5 @@
-"""fix account foreign keys
+"""
+fix account foreign keys
 
 Revision ID: 565c7325c51d
 Revises: 1ac03cab7a24

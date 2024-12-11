@@ -1,4 +1,5 @@
-"""Remove Transaction ForeignKeys
+"""
+Remove Transaction ForeignKeys
 
 Revision ID: 23ff7f0b506d
 Revises: 3df39f4fbdec

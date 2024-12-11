@@ -10,7 +10,6 @@ from inbox.mailsync.backends.imap.common import (
 )
 from inbox.models.backends.imap import ImapUid
 from inbox.models.folder import Folder
-
 from tests.util.base import (
     add_fake_folder,
     add_fake_imapuid,

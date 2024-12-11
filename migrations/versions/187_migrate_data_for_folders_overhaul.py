@@ -1,4 +1,5 @@
-"""migrate data for folders overhaul
+"""
+migrate data for folders overhaul
 
 Revision ID: 334b33f18b4f
 Revises: 23e204cd1d91

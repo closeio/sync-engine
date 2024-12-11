@@ -21,6 +21,7 @@ MAX_SANE_TRX_TIME_MS = 30000
 def two_phase_session(engine_map, versioned=True):
     """
     Returns a session that implements two-phase-commit.
+
     Parameters
     ----------
     engine_map: dict

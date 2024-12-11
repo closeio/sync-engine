@@ -1,4 +1,5 @@
-"""event_contact_association
+"""
+event_contact_association
 
 Revision ID: 203ae9bf0ddd
 Revises: 53b532fda984

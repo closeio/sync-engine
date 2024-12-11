@@ -345,7 +345,8 @@ def test_missing_flags(generic_client, constants):
 
 
 def test_deleted_folder_on_select(monkeypatch, generic_client, constants):
-    """Test that a 'select failed EXAMINE' error specifying that a folder
+    """
+    Test that a 'select failed EXAMINE' error specifying that a folder
     doesn't exist is converted into a FolderMissingError. (Yahoo style)
     """
 
@@ -365,7 +366,8 @@ def test_deleted_folder_on_select(monkeypatch, generic_client, constants):
 
 
 def test_deleted_folder_on_fetch(monkeypatch, generic_client, constants):
-    """Test that a 'select failed EXAMINE' error specifying that a folder
+    """
+    Test that a 'select failed EXAMINE' error specifying that a folder
     doesn't exist is converted into a FolderMissingError. (Yahoo style)
     """
 

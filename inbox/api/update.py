@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Set
 
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -331,8 +330,8 @@ def apply_gmail_label_rules(
     and into the '[Gmail]All Mail' folder.
 
     """
-    add: Set[str] = set()
-    discard: Set[str] = set()
+    add: set[str] = set()
+    discard: set[str] = set()
 
     categories = {c.name: c for c in message.categories if c.name}
 

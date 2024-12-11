@@ -1,4 +1,5 @@
-"""fix_cascades
+"""
+fix_cascades
 
 Revision ID: 284227d72f51
 Revises: 581e91bd7141

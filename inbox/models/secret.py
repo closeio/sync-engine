@@ -1,5 +1,4 @@
 import enum
-from typing import Union
 
 from sqlalchemy import Column, Enum, Integer
 from sqlalchemy.orm import validates
@@ -37,7 +36,7 @@ class Secret(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             )
 
     @secret.setter
-    def secret(self, plaintext: Union[str, bytes]) -> None:
+    def secret(self, plaintext: str | bytes) -> None:
         if not isinstance(plaintext, bytes):
             plaintext = plaintext.encode("utf-8")
         if not isinstance(plaintext, bytes):

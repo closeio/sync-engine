@@ -39,7 +39,7 @@ class ContactSync(BaseSyncMonitor):
         for updates.
 
     Attributes
-    ---------
+    ----------
     log: logging.Logger
         Logging handler.
 
@@ -73,7 +73,8 @@ class ContactSync(BaseSyncMonitor):
         )
 
     def sync(self):
-        """Query a remote provider for updates and persist them to the
+        """
+        Query a remote provider for updates and persist them to the
         database. This function runs every `self.poll_frequency`.
 
         """

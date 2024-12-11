@@ -1,4 +1,5 @@
-"""change event sync timestamp
+"""
+change event sync timestamp
 
 Revision ID: 3a58d466f61d
 Revises: 3857f395fb1d

@@ -1,8 +1,6 @@
 import time
 from unittest import mock
 
-from inbox.util.testutils import mock_imapclient
-
 from tests.util.base import add_fake_category, add_fake_folder
 
 

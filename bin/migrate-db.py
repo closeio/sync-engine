@@ -39,7 +39,7 @@ def main():
                 alembic.command.upgrade(alembic_cfg, "head")
                 print(f"Upgraded shard_id {key}\n")
             except alembic.util.CommandError as e:
-                print(f"FAILED to upgrade shard_id {key} with error: {str(e)}")
+                print(f"FAILED to upgrade shard_id {key} with error: {e!s}")
                 continue
 
 

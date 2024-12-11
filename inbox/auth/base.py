@@ -22,6 +22,7 @@ def handler_from_provider(provider_name):
 
     Returns:
         An object that implements the AuthHandler interface.
+
     """
     if provider_name == "custom":
         from .generic import GenericAuthHandler
@@ -94,7 +95,7 @@ class AuthHandler:
         Raises exceptions from connect_account(), SMTPClient._get_connection()
         on error.
 
-        Returns
+        Returns:
         -------
         True: If the client can successfully connect to both.
 
@@ -144,7 +145,7 @@ class AuthHandler:
             )
             raise UserRecoverableConfigError(error_message)
 
-        except socket.timeout as exc:
+        except TimeoutError as exc:
             log.error(
                 "TCP timeout when connecting to SMTP server",
                 account_id=account.id,

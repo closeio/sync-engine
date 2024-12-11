@@ -1,4 +1,5 @@
-"""Split ActionLog.
+"""
+Split ActionLog.
 
 Revision ID: 182f2b40fa36
 Revises: 4e6eedda36af

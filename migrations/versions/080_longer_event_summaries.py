@@ -1,4 +1,5 @@
-"""longer event summaries.
+"""
+longer event summaries.
 Revision ID: 4e3e8abea884
 
 Revises: 5901bf556d83

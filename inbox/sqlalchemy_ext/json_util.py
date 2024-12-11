@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tools for using Python's :mod:`json` module with BSON documents.
+"""
+Tools for using Python's :mod:`json` module with BSON documents.
 
 This module provides two helper methods `dumps` and `loads` that wrap the
 native :mod:`json` methods and provide explicit datetime.datetime conversion to and from
@@ -33,7 +34,8 @@ EPOCH_NAIVE = datetime.datetime.utcfromtimestamp(0)
 
 
 def dumps(obj, *args, **kwargs):
-    """Helper function that wraps :class:`json.dumps`.
+    """
+    Helper function that wraps :class:`json.dumps`.
 
     Recursive function that handles all datetime.datetime type.
     """
@@ -47,13 +49,14 @@ def loads(s, *args, **kwargs):
 
 
 def _json_convert(obj):
-    """Recursive helper method that converts datetime.datetime type so it can be
+    """
+    Recursive helper method that converts datetime.datetime type so it can be
     converted into json.
     """
     if hasattr(obj, "items"):
         return dict(((k, _json_convert(v)) for k, v in obj.items()))
     elif hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes)):
-        return list((_json_convert(v) for v in obj))
+        return list(_json_convert(v) for v in obj)
     try:
         return default(obj)
     except TypeError:

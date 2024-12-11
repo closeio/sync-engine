@@ -1,4 +1,5 @@
-"""Enforce length limit of 255 on Message subjects
+"""
+Enforce length limit of 255 on Message subjects
 
 Revision ID: 4af5952e8a5b
 Revises: 4b4c5579c083

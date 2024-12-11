@@ -11,13 +11,11 @@ from inbox.sqlalchemy_ext.util import MAX_TEXT_BYTES
 from inbox.util.addr import parse_mimepart_address_header
 from inbox.util.blockstore import get_from_blockstore
 from inbox.util.file import get_data
-
 from tests.util.base import (
     add_fake_thread,
     default_account,
     default_namespace,
     mime_message,
-    new_message_from_synced,
     thread,
 )
 

@@ -1,4 +1,5 @@
-"""create sequence_number column
+"""
+create sequence_number column
 
 Revision ID: 606447e78e7
 Revises: 41f957b595fc

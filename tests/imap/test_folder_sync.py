@@ -17,8 +17,6 @@ from inbox.models.backends.imap import (
     ImapFolderSyncStatus,
     ImapUid,
 )
-from inbox.util.testutils import mock_imapclient
-
 from tests.imap.data import uid_data, uids
 
 

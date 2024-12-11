@@ -1,4 +1,5 @@
-"""replace usertag by generic tag
+"""
+replace usertag by generic tag
 
 Revision ID: 21878b1b3d4b
 Revises: 24e085e152c0

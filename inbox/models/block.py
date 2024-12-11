@@ -1,5 +1,4 @@
 from hashlib import sha256
-from typing import Optional
 
 from flanker import mime
 from sqlalchemy import (
@@ -104,7 +103,7 @@ class Block(
 
     @property
     def data(self):
-        value: Optional[bytes]
+        value: bytes | None
         if self.size == 0:
             log.warning("Block size is 0")
             return ""
@@ -241,7 +240,8 @@ def serialize_before_insert(mapper, connection, target):
 
 
 class Part(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
-    """Part is a section of a specific message. This includes message bodies
+    """
+    Part is a section of a specific message. This includes message bodies
     as well as attachments.
     """
 

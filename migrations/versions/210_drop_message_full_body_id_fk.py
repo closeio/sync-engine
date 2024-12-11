@@ -1,4 +1,5 @@
-"""Drop Message.full_body_id
+"""
+Drop Message.full_body_id
 
 Revision ID: 3613ca83ea40
 Revises: 3618838f5bc6

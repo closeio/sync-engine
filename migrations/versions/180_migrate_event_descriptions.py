@@ -1,4 +1,5 @@
-"""migrate event descriptions
+"""
+migrate event descriptions
 
 Revision ID: ea9dc8742ee
 Revises: 56500282e024

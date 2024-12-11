@@ -1,4 +1,5 @@
-"""add executed status to action log
+"""
+add executed status to action log
 
 Revision ID: 322c2800c401
 Revises: 4f3a1f6eaee3

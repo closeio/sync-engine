@@ -1,4 +1,5 @@
-"""add audit timestamps to all objects
+"""
+add audit timestamps to all objects
 
 Revision ID: 146b1817e4a8
 Revises: 59b42d0ac749

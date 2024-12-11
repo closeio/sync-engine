@@ -1,4 +1,5 @@
-"""events
+"""
+events
 
 Revision ID: 1c2253a0e997
 Revises: 3c02d8204335

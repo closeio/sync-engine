@@ -14,11 +14,11 @@ from flask import (
     Blueprint,
     Response,
     g,
-    jsonify as flask_jsonify,
     request,
     send_file,
     stream_with_context,
 )
+from flask import jsonify as flask_jsonify
 from flask_restful import reqparse
 from sqlalchemy import asc, func
 from sqlalchemy.exc import OperationalError
@@ -1927,7 +1927,8 @@ def multi_send_create():
 
 @app.route("/send-multiple/<draft_id>", methods=["POST"])
 def multi_send(draft_id):
-    """Performs a single send operation in an individualized multi-send
+    """
+    Performs a single send operation in an individualized multi-send
     session. Sends a copy of the draft at draft_id to the specified address
     with the specified body, and ensures that a corresponding sent message is
     either not created in the user's Sent folder or is immediately
@@ -1976,7 +1977,8 @@ def multi_send(draft_id):
 
 @app.route("/send-multiple/<draft_id>", methods=["DELETE"])
 def multi_send_finish(draft_id):
-    """Closes out a multi-send session by marking the sending draft as sent
+    """
+    Closes out a multi-send session by marking the sending draft as sent
     and moving it to the user's Sent folder.
     """
     account = g.namespace.account

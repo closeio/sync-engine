@@ -1,4 +1,5 @@
-"""drop contacts search signals
+"""
+drop contacts search signals
 
 Revision ID: 1763103db266
 Revises: 3c02d8204335

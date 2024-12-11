@@ -1,4 +1,5 @@
-"""multiple contact providers
+"""
+multiple contact providers
 
 Revision ID: 169cac0cd87e
 Revises: 3c11391b5eb0

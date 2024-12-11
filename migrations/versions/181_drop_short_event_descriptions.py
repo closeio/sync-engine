@@ -1,4 +1,5 @@
-"""drop short event descriptions
+"""
+drop short event descriptions
 
 Revision ID: 10da2e0bc3bb
 Revises: ea9dc8742ee

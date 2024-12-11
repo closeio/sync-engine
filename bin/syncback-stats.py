@@ -12,7 +12,8 @@ from inbox.models.session import session_scope_by_shard_id
 
 @click.command()
 def main():
-    """Generate per-shard and per-namespace breakdowns of syncback queue
+    """
+    Generate per-shard and per-namespace breakdowns of syncback queue
     lengths.
 
     """

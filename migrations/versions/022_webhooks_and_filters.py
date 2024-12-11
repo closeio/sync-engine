@@ -1,4 +1,5 @@
-"""Rename WebhookParameters -> Webhook
+"""
+Rename WebhookParameters -> Webhook
 
 Note that this migration deletes old webhook data.
 This is OK because we haven't stored any webhooks yet.

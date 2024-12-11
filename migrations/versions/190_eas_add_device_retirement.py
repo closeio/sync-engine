@@ -1,4 +1,5 @@
-"""eas_add_device_retirement
+"""
+eas_add_device_retirement
 
 Revision ID: 246a6bf050bc
 Revises: 3b093f2d7419

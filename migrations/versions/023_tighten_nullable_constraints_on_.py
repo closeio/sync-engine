@@ -1,4 +1,5 @@
-"""Tighten nullable constraints on ImapUids.
+"""
+Tighten nullable constraints on ImapUids.
 
 Will help prevent future heisenbugs.
 

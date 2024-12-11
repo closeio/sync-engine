@@ -1,4 +1,5 @@
-"""Add composite index to TagItem
+"""
+Add composite index to TagItem
 
 Revision ID: 4ee8aab06ee
 Revises: 4270a032b943

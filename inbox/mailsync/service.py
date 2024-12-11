@@ -3,7 +3,6 @@ import random
 import time
 from functools import cache
 from threading import BoundedSemaphore
-from typing import Type
 
 from sqlalchemy import and_, or_
 from sqlalchemy.exc import OperationalError
@@ -55,7 +54,7 @@ def shared_sync_event_queue_for_zone(zone):
 
 
 @cache
-def get_monitor_classes() -> dict[str, Type[BaseMailSyncMonitor]]:
+def get_monitor_classes() -> dict[str, type[BaseMailSyncMonitor]]:
     """
     Return a dictionary mapping provider names to their respective monitor
     """
@@ -84,6 +83,7 @@ class SyncService:
         sync service on the system should get a different value.)
     poll_interval : int
         Serves as the max timeout for the redis blocking pop.
+
     """
 
     def __init__(
@@ -298,7 +298,7 @@ class SyncService:
         self._pending_avgs_provider = pending_avgs_provider
 
     def start_event_sync(self, account: Account) -> None:
-        provider_class: Type[AbstractEventsProvider]
+        provider_class: type[AbstractEventsProvider]
         if account.provider == "gmail":
             provider_class = GoogleEventsProvider
         elif account.provider == "microsoft":

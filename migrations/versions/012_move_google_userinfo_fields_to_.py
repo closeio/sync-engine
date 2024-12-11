@@ -1,4 +1,5 @@
-"""Move Google UserInfo fields to ImapAccount table
+"""
+Move Google UserInfo fields to ImapAccount table
 
 Revision ID: 193802835c33
 Revises: 169cac0cd87e

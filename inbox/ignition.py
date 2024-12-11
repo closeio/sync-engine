@@ -1,7 +1,8 @@
 import time
 import weakref
+from collections.abc import MutableMapping
 from socket import gethostname
-from typing import Any, Dict, MutableMapping
+from typing import Any
 from urllib.parse import quote_plus as urlquote
 from warnings import filterwarnings
 
@@ -27,7 +28,7 @@ DB_POOL_MAX_OVERFLOW = config.get("DB_POOL_MAX_OVERFLOW") or 5
 DB_POOL_TIMEOUT = config.get("DB_POOL_TIMEOUT") or 60
 
 
-pool_tracker: MutableMapping[Any, Dict[str, Any]] = weakref.WeakKeyDictionary()
+pool_tracker: MutableMapping[Any, dict[str, Any]] = weakref.WeakKeyDictionary()
 
 
 def build_uri(username, password, hostname, port, database_name):

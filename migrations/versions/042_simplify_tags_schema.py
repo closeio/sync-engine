@@ -1,4 +1,5 @@
-"""simplify tags schema
+"""
+simplify tags schema
 
 Revision ID: 459dbc29648
 Revises: 159609404baf

@@ -1,4 +1,5 @@
-"""Mutable drafts
+"""
+Mutable drafts
 
 Revision ID: 10db12da2005
 Revises: 43e5867a6ef1

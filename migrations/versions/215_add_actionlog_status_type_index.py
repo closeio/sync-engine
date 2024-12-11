@@ -1,4 +1,5 @@
-"""add actionlog (status, type) index
+"""
+add actionlog (status, type) index
 
 Revision ID: 4bfecbcc7dbd
 Revises: 4b83e064dd49

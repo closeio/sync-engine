@@ -1,4 +1,5 @@
-"""drop ssl_required field
+"""
+drop ssl_required field
 
 Revision ID: 52783469ee6c
 Revises: 32df3d8ff73e

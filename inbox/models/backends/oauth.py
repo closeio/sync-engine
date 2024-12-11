@@ -5,7 +5,6 @@ refresh tokens.
 
 from datetime import datetime, timedelta
 from hashlib import sha256
-from typing import Dict, List, Optional, Tuple, Union
 
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.ext.declarative import declared_attr
@@ -43,15 +42,15 @@ def log_token_usage(
 
 class TokenManager:
     def __init__(self):
-        self._token_cache: Dict[
-            Tuple[str, Optional[Tuple[str, ...]]], Tuple[str, datetime]
+        self._token_cache: dict[
+            tuple[str, tuple[str, ...] | None], tuple[str, datetime]
         ] = {}
 
     def get_token(
         self,
         account: "OAuthAccount",
         force_refresh: bool = False,
-        scopes: Optional[List[str]] = None,
+        scopes: list[str] | None = None,
     ) -> str:
         cache_key = self.get_cache_key(account, scopes)
         if cache_key in self._token_cache:
@@ -84,14 +83,14 @@ class TokenManager:
         return new_token
 
     def get_cache_key(
-        self, account: "OAuthAccount", scopes: Optional[List[str]]
-    ) -> Tuple[str, Optional[Tuple[str, ...]]]:
+        self, account: "OAuthAccount", scopes: list[str] | None
+    ) -> tuple[str, tuple[str, ...] | None]:
         return (account.id, tuple(scopes) if scopes else None)
 
     def cache_token(
         self,
         account: "OAuthAccount",
-        scopes: Optional[List[str]],
+        scopes: list[str] | None,
         token: str,
         expires_in: int,
     ) -> None:
@@ -106,19 +105,19 @@ token_manager = TokenManager()
 
 class OAuthAccount:
     @property
-    def email_scopes(self) -> Optional[List[str]]:
+    def email_scopes(self) -> list[str] | None:
         return None
 
     @property
-    def contacts_scopes(self) -> Optional[List[str]]:
+    def contacts_scopes(self) -> list[str] | None:
         return None
 
     @property
-    def calendar_scopes(self) -> Optional[List[str]]:
+    def calendar_scopes(self) -> list[str] | None:
         return None
 
     @property
-    def scopes(self) -> Optional[List[str]]:
+    def scopes(self) -> list[str] | None:
         return None
 
     @declared_attr
@@ -136,7 +135,7 @@ class OAuthAccount:
         )
 
     @property
-    def refresh_token(self) -> Optional[str]:
+    def refresh_token(self) -> str | None:
         if not self.secret:
             return None
         if self.secret.type == SecretType.Token.value:
@@ -149,7 +148,7 @@ class OAuthAccount:
             raise ValueError("Invalid secret type.")
 
     @refresh_token.setter
-    def refresh_token(self, value: Union[str, bytes]) -> None:
+    def refresh_token(self, value: str | bytes) -> None:
         # Must be a valid UTF-8 byte sequence without NULL bytes.
         if not isinstance(value, bytes):
             value = value.encode("utf-8")
@@ -180,6 +179,7 @@ class OAuthAccount:
 
         Return:
             Tuple with (client_id, client_secret).
+
         """
         if not self.client_id or self.client_id == self.OAUTH_CLIENT_ID:
             return (self.OAUTH_CLIENT_ID, self.OAUTH_CLIENT_SECRET)
@@ -187,8 +187,8 @@ class OAuthAccount:
             raise OAuthError("No valid tokens.")
 
     def new_token(
-        self, force_refresh: bool = False, scopes: Optional[List[str]] = None
-    ) -> Tuple[str, int]:
+        self, force_refresh: bool = False, scopes: list[str] | None = None
+    ) -> tuple[str, int]:
         """
         Retrieves a new access token.
 
@@ -201,6 +201,7 @@ class OAuthAccount:
 
         Raises:
             OAuthError: If no token could be obtained.
+
         """
         try:
             return self.auth_handler.acquire_access_token(

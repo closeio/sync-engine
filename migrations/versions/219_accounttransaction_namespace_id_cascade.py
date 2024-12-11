@@ -1,4 +1,5 @@
-"""accounttransaction namespace_id CASCADE
+"""
+accounttransaction namespace_id CASCADE
 
 Revision ID: 2b2205db4964
 Revises: 3b1cc8580fc2

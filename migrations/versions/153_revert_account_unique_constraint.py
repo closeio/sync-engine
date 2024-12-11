@@ -1,4 +1,5 @@
-"""revert account unique constraint
+"""
+revert account unique constraint
 
 Revision ID: 4032709362da
 Revises: 211e93aff1e1

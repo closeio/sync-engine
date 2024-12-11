@@ -1,4 +1,5 @@
-"""store secrets in local vault
+"""
+store secrets in local vault
 
 Revision ID: 1925c535a52d
 Revises: 29217fad3f46

@@ -1,4 +1,5 @@
-"""more folder names, separate remote folders and inbox tags
+"""
+more folder names, separate remote folders and inbox tags
 
 Revision ID: 4c1eb89f6bed
 Revises: 4c529b9bc68d

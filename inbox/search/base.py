@@ -8,7 +8,8 @@ def get_search_client(account):
 
 
 class SearchBackendException(Exception):
-    """Raised if there's an error proxying the search request to the
+    """
+    Raised if there's an error proxying the search request to the
     provider.
     """
 
@@ -23,7 +24,8 @@ class SearchBackendException(Exception):
 
 
 class SearchStoreException(Exception):
-    """Raised if there's an error proxying the search request to the provider.
+    """
+    Raised if there's an error proxying the search request to the provider.
     This is a special EAS case where the Status code for the Store element has
     an error
     """

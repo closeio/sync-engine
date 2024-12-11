@@ -23,7 +23,7 @@ user always gets the full thread when they look at mail.
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from threading import Semaphore
-from typing import TYPE_CHECKING, ClassVar, Dict, List
+from typing import TYPE_CHECKING, ClassVar
 
 from sqlalchemy.orm import joinedload, load_only
 
@@ -309,7 +309,8 @@ class GmailFolderSyncEngine(FolderSyncEngine):
         return brand_new_messages
 
     def add_message_to_thread(self, db_session, message_obj, raw_message):
-        """Associate message_obj to the right Thread object, creating a new
+        """
+        Associate message_obj to the right Thread object, creating a new
         thread if necessary. We rely on Gmail's threading as defined by
         X-GM-THRID instead of our threading algorithm.
         """
@@ -369,7 +370,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
         # that you don't see incomplete thread views for the duration of the
         # sync. Given a 'seed set' of UIDs, this function returns a generator
         # which yields the 'expanded' set of UIDs to download.
-        thrids: Dict[str, List[str]] = OrderedDict()
+        thrids: dict[str, list[str]] = OrderedDict()
         for uid in sorted(uids, reverse=True):
             g_thrid = metadata[uid].g_thrid
             if g_thrid in thrids:
@@ -402,7 +403,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
         count = 0
         while True:
             dl_size = 0
-            batch: List[str] = []
+            batch: list[str] = []
             while (
                 dl_size < max_download_bytes
                 and len(batch) < max_download_count

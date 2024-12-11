@@ -1,4 +1,5 @@
-"""update_eas_schema_part_2
+"""
+update_eas_schema_part_2
 
 Revision ID: 5aa3f27457c
 Revises: 18064f5205dd

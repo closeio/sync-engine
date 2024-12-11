@@ -1,4 +1,5 @@
-"""drop
+"""
+drop
 
 Revision ID: 31aae1ecb374
 Revises: 3613ca83ea40

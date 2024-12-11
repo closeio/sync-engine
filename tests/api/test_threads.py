@@ -4,7 +4,6 @@ import json
 import pytest
 
 from inbox.api.ns_api import API_VERSIONS
-
 from tests.util.base import (
     add_fake_message,
     add_fake_thread,
@@ -187,7 +186,8 @@ def test_thread_count(db, api_client, default_account):
 def test_thread_label_updates(
     db, api_client, default_account, api_version, custom_label
 ):
-    """Check that you can update a message (optimistically or not),
+    """
+    Check that you can update a message (optimistically or not),
     and that the update is queued in the ActionLog.
     """
     headers = dict()

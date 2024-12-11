@@ -1,4 +1,5 @@
-"""add emailed events calendar
+"""
+add emailed events calendar
 
 Revision ID: 2493281d621
 Revises: 54dcea22a268

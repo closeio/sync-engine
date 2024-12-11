@@ -1,4 +1,5 @@
-"""add_namespace_to_contacts
+"""
+add_namespace_to_contacts
 
 Revision ID: 3bb01fcc755e
 Revises:5a68ac0e3e9

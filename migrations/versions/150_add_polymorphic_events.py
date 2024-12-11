@@ -1,4 +1,5 @@
-"""Add polymorphic Events
+"""
+Add polymorphic Events
 
 Revision ID: 1de526a15c5d
 Revises: 2493281d621

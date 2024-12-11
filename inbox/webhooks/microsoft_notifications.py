@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import List, cast
+from typing import cast
 
 from flask import Blueprint, make_response, request
 from sqlalchemy.orm.exc import NoResultFound
@@ -65,7 +65,7 @@ def validate_webhook_payload_factory(type: MsGraphType):
             except UnsupportedMediaType:
                 return ("Malformed JSON payload", 415)
 
-            change_notifications: List[MsGraphChangeNotification] = cast(
+            change_notifications: list[MsGraphChangeNotification] = cast(
                 MsGraphChangeNotificationCollection, request.json
             )["value"]
 
@@ -130,7 +130,7 @@ def event_update(calendar_public_id):
         except NoResultFound:
             return f"Couldn't find calendar '{calendar_public_id}'", 404
 
-        change_notifications: List[MsGraphChangeNotification] = cast(
+        change_notifications: list[MsGraphChangeNotification] = cast(
             MsGraphChangeNotificationCollection, request.json
         )["value"]
 
@@ -142,7 +142,7 @@ def event_update(calendar_public_id):
 
 
 def handle_event_deletions(
-    calendar: Calendar, change_notifications: List[MsGraphChangeNotification]
+    calendar: Calendar, change_notifications: list[MsGraphChangeNotification]
 ) -> None:
     deleted_event_uids = [
         change_notification["resourceData"]["id"]

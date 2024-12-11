@@ -1,4 +1,5 @@
-"""Add the [_]sync_{contacts|events} cols to the Account tbl.
+"""
+Add the [_]sync_{contacts|events} cols to the Account tbl.
 
 Revision ID: 262436681c4
 Revises: 955792afd00

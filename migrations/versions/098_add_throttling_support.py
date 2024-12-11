@@ -1,4 +1,5 @@
-"""add_throttling_support
+"""
+add_throttling_support
 
 Revision ID: 40b533a6f3e1
 Revises: 248ec24a39f

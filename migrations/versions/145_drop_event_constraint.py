@@ -1,4 +1,5 @@
-"""drop event constraint
+"""
+drop event constraint
 
 Revision ID: 557378226d9f
 Revises: 1c73ca99c03b

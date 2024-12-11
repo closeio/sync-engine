@@ -1,11 +1,11 @@
 import collections
 import signal
 import time
-from typing import List
 
 
 class ProfileCollector:
-    """A simple stack sampler for low-overhead CPU profiling: samples the call
+    """
+    A simple stack sampler for low-overhead CPU profiling: samples the call
     stack every `interval` seconds and keeps track of counts by frame. Because
     this uses signals, it only works on the main thread.
     """
@@ -25,7 +25,7 @@ class ProfileCollector:
         signal.setitimer(signal.ITIMER_VIRTUAL, self.interval, 0)
 
     def _sample(self, signum, frame):
-        stack: List[str] = []
+        stack: list[str] = []
         while frame is not None:
             stack.append(self._format_frame(frame))
             frame = frame.f_back

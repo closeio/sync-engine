@@ -1,4 +1,5 @@
-"""Utility functions for creating, reading, updating and deleting contacts.
+"""
+Utility functions for creating, reading, updating and deleting contacts.
 Called by the API.
 """
 

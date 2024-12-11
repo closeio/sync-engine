@@ -1,4 +1,5 @@
-"""add participants column
+"""
+add participants column
 
 Revision ID: 5305d4ae30b4
 Revises: 1f746c93e8fd

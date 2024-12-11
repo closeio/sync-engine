@@ -5,11 +5,9 @@ from collections import namedtuple
 import pytest
 
 from inbox.mailsync.backends.imap.generic import FolderSyncEngine
-from inbox.models import Folder, Namespace
-from inbox.models.backends.generic import GenericAccount
+from inbox.models import Folder
 from inbox.models.backends.imap import ImapUid
 from inbox.util.threading import fetch_corresponding_thread
-
 from tests.util.base import (
     add_fake_message,
     add_fake_thread,
@@ -71,7 +69,8 @@ def test_generic_grouping(db, default_account):
 
 
 def test_threading_limit(db, folder_sync_engine, monkeypatch):
-    """Test that custom threading doesn't produce arbitrarily long threads,
+    """
+    Test that custom threading doesn't produce arbitrarily long threads,
     which eventually break things.
     """
     from inbox.models import Message, Thread

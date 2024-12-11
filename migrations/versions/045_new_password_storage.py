@@ -1,4 +1,5 @@
-"""Store passwords in plaintext.
+"""
+Store passwords in plaintext.
 
 Revision ID: 7a117720554
 Revises: 247cd689758c

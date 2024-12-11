@@ -1,4 +1,5 @@
-"""remove easeventuid
+"""
+remove easeventuid
 
 Revision ID: 581e91bd7141
 Revises: 262436681c4

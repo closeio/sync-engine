@@ -1,4 +1,5 @@
-"""Drop Contact foreign keys
+"""
+Drop Contact foreign keys
 
 Revision ID: c48fc8dea1b
 Revises: 23ff7f0b506d

@@ -1,4 +1,5 @@
-"""update easuid schema 2
+"""
+update easuid schema 2
 
 Revision ID: 3ee78a8b1ac6
 Revises: 281b07fa75bb

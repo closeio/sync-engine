@@ -1,4 +1,5 @@
-"""remove storage of access_token
+"""
+remove storage of access_token
 
 Revision ID: 4e44216e9830
 Revises: 161b88c17615

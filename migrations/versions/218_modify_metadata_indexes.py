@@ -1,4 +1,5 @@
-"""Modify indices on Metadata table
+"""
+Modify indices on Metadata table
 
 Revision ID: 3b1cc8580fc2
 Revises: 3d8b5977eaa8

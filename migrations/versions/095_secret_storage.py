@@ -1,4 +1,5 @@
-"""Secret storage
+"""
+Secret storage
 
 Revision ID: 1683790906cf
 Revises427812c1e849:

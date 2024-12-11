@@ -1,4 +1,5 @@
-"""refactor participants table
+"""
+refactor participants table
 
 Revision ID: 955792afd00
 Revises: 526eefc1d600

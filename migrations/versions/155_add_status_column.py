@@ -1,4 +1,5 @@
-"""add status column
+"""
+add status column
 
 Revision ID: 7de8a6ce8cd
 Revises: 1f06c15ae796

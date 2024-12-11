@@ -1,4 +1,5 @@
-"""Add sync status columns to foldersync
+"""
+Add sync status columns to foldersync
 
 Revision ID: 159609404baf
 Revises: 1d7374c286c5

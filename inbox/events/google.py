@@ -7,7 +7,7 @@ import random
 import time
 import urllib.parse
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import arrow
 import attrs
@@ -76,8 +76,8 @@ class GoogleEventsProvider(AbstractEventsProvider):
     def sync_events(
         self,
         calendar_uid: str,
-        sync_from_time: Optional[datetime.datetime] = None,
-    ) -> List[Event]:
+        sync_from_time: datetime.datetime | None = None,
+    ) -> list[Event]:
         """
         Fetch event data for an individual calendar.
 
@@ -93,6 +93,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
 
         Returns:
             A list of uncommited Event instances
+
         """
         updates = []
         raw_events = self._get_raw_events(calendar_uid, sync_from_time)
@@ -110,16 +111,17 @@ class GoogleEventsProvider(AbstractEventsProvider):
 
         return updates
 
-    def _get_raw_calendars(self) -> List[Dict[str, Any]]:
+    def _get_raw_calendars(self) -> list[dict[str, Any]]:
         """Gets raw data for the user's calendars."""
         return self._get_resource_list(CALENDARS_URL)
 
     def _get_raw_events(
         self,
         calendar_uid: str,
-        sync_from_time: Optional[datetime.datetime] = None,
-    ) -> List[Dict[str, Any]]:
-        """Gets raw event data for the given calendar.
+        sync_from_time: datetime.datetime | None = None,
+    ) -> list[dict[str, Any]]:
+        """
+        Gets raw event data for the given calendar.
 
         Parameters
         ----------
@@ -132,6 +134,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
         Returns
         -------
         list of dictionaries representing JSON.
+
         """
         if sync_from_time is not None:
             # Note explicit offset is required by Google calendar API.
@@ -158,11 +161,11 @@ class GoogleEventsProvider(AbstractEventsProvider):
             else:
                 raise
 
-    def _get_resource_list(self, url: str, **params) -> List[Dict[str, Any]]:
+    def _get_resource_list(self, url: str, **params) -> list[dict[str, Any]]:
         """Handles response pagination."""
         token = self._get_access_token()
         items = []
-        next_page_token: Optional[str] = None
+        next_page_token: str | None = None
         params["showDeleted"] = True
         while True:
             if next_page_token is not None:
@@ -234,7 +237,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
         self,
         method: str,
         calendar_uid: str,
-        event_uid: Optional[str] = None,
+        event_uid: str | None = None,
         **kwargs,
     ) -> requests.Response:
         """Makes a POST/PUT/DELETE request for a particular event."""
@@ -319,7 +322,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
 
     def watch_calendar_list(
         self, account: Account
-    ) -> Optional[datetime.datetime]:
+    ) -> datetime.datetime | None:
         """
         Subscribe to google push notifications for the calendar list.
 
@@ -331,6 +334,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
 
         Returns:
             The expiration of the notification channel
+
         """
         token = self._get_access_token_for_push_notifications(account)
         receiving_url = CALENDAR_LIST_WEBHOOK_URL.format(
@@ -372,7 +376,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
 
     def watch_calendar(
         self, account: Account, calendar: Calendar
-    ) -> Optional[datetime.datetime]:
+    ) -> datetime.datetime | None:
         """
         Subscribe to google push notifications for a calendar.
 
@@ -386,6 +390,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
 
         Returns:
             The expiration of the notification channel
+
         """
         token = self._get_access_token_for_push_notifications(account)
         watch_url = WATCH_EVENTS_URL.format(urllib.parse.quote(calendar.uid))
@@ -497,7 +502,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
             )
 
 
-def parse_calendar_response(calendar: Dict[str, Any]) -> Calendar:
+def parse_calendar_response(calendar: dict[str, Any]) -> Calendar:
     """
     Constructs a Calendar object from a Google calendarList resource (a
     dictionary).  See
@@ -510,6 +515,7 @@ def parse_calendar_response(calendar: Dict[str, Any]) -> Calendar:
     Returns
     -------
     A corresponding Calendar instance.
+
     """
     uid = calendar["id"]
     name = calendar["summary"]
@@ -519,7 +525,7 @@ def parse_calendar_response(calendar: Dict[str, Any]) -> Calendar:
     if role in ["owner", "writer"]:
         read_only = False
 
-    description = calendar.get("description", None)
+    description = calendar.get("description")
     return Calendar(
         uid=uid, name=name, read_only=read_only, description=description
     )
@@ -545,7 +551,7 @@ class ConferenceSolution:
 
 @attrs.frozen(kw_only=True)
 class ConferenceData:
-    entry_points: List[EntryPoint] = attrs.field(
+    entry_points: list[EntryPoint] = attrs.field(
         validator=[
             attrs.validators.deep_iterable(
                 attrs.validators.instance_of(EntryPoint)
@@ -559,8 +565,8 @@ class ConferenceData:
 
 
 def sanitize_conference_data(
-    conference_data: Optional[Dict[str, Any]]
-) -> Optional[ConferenceData]:
+    conference_data: dict[str, Any] | None
+) -> ConferenceData | None:
     if not conference_data:
         return None
 
@@ -580,7 +586,7 @@ def sanitize_conference_data(
 
 
 def parse_event_response(
-    event: Dict[str, Any], read_only_calendar: bool
+    event: dict[str, Any], read_only_calendar: bool
 ) -> Event:
     """
     Constructs an Event object from a Google event resource (a dictionary).
@@ -594,6 +600,7 @@ def parse_event_response(
     -------
     A corresponding Event instance. This instance is not committed or added to
     a session.
+
     """
     uid = str(event["id"])
     # The entirety of the raw event data in json representation.

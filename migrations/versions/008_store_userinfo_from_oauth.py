@@ -1,4 +1,5 @@
-"""Store UserInfo from Oauth
+"""
+Store UserInfo from Oauth
 
 Revision ID: 3c11391b5eb0
 Revises: 1c3f1812f2d9

@@ -2,7 +2,6 @@ import json
 from base64 import b64encode
 
 from tests.api.base import new_api_client
-from tests.util.base import db, generic_account
 
 
 def test_no_auth(db, generic_account):

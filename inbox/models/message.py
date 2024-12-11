@@ -5,7 +5,7 @@ import threading
 import typing
 from collections import defaultdict
 from hashlib import sha256
-from typing import Any, DefaultDict, Dict, List, Optional, Set, Tuple, Union
+from typing import Any
 
 from flanker import mime
 from flanker.mime.message.part import MimePart
@@ -73,8 +73,8 @@ email_parsing_lock = threading.BoundedSemaphore(value=1)
 
 
 def _trim_filename(
-    s: Optional[Union[str, bytes]], namespace_id: int, max_len: int = 255
-) -> Optional[str]:
+    s: str | bytes | None, namespace_id: int, max_len: int = 255
+) -> str | None:
     if s is None:
         return s
 
@@ -280,9 +280,7 @@ class Message(
         self.deleted_at = datetime.datetime.utcnow()
 
     @validates("subject")
-    def sanitize_subject(
-        self, key: Any, value: Optional[str]
-    ) -> Optional[str]:
+    def sanitize_subject(self, key: Any, value: str | None) -> str | None:
         # Trim overlong subjects, and remove null bytes. The latter can result
         # when, for example, UTF-8 text decoded from an RFC2047-encoded header
         # contains null bytes.
@@ -298,7 +296,7 @@ class Message(
         account: Account,
         imap_uid: int,
         folder_name: str,
-        received_date: Optional[datetime.datetime],
+        received_date: datetime.datetime | None,
         body: bytes,
     ) -> "Message":
         """
@@ -373,8 +371,8 @@ class Message(
                 message._mark_error()
 
             if parsed is not None:
-                plain_parts: List[str] = []
-                html_parts: List[str] = []
+                plain_parts: list[str] = []
+                html_parts: list[str] = []
                 for mimepart in parsed.walk(
                     with_self=parsed.content_type.is_singlepart()
                 ):
@@ -433,7 +431,7 @@ class Message(
                 "references",
                 "reply_to",
             ):
-                value: List[Any] = getattr(message, field)
+                value: list[Any] = getattr(message, field)
                 if json_field_too_long(value):
                     log.warning(
                         "Recipient field too long",
@@ -451,12 +449,12 @@ class Message(
         self,
         parsed: MimePart,
         body_string: bytes,
-        received_date: Optional[datetime.datetime],
+        received_date: datetime.datetime | None,
         account_id: int,
         folder_name: str,
         mid: int,
     ) -> None:
-        mime_version: Optional[str] = parsed.headers.get("Mime-Version")
+        mime_version: str | None = parsed.headers.get("Mime-Version")
         # sometimes MIME-Version is '1.0 (1.0)', hence the .startswith()
         if mime_version is not None and not mime_version.startswith("1.0"):
             log.warning(
@@ -467,7 +465,7 @@ class Message(
                 mime_version=mime_version,
             )
 
-        self.subject: Optional[str] = parsed.subject
+        self.subject: str | None = parsed.subject
         self.from_addr = parse_mimepart_address_header(parsed, "From")
         self.sender_addr = parse_mimepart_address_header(parsed, "Sender")
         self.reply_to = parse_mimepart_address_header(parsed, "Reply-To")
@@ -475,13 +473,11 @@ class Message(
         self.cc_addr = parse_mimepart_address_header(parsed, "Cc")
         self.bcc_addr = parse_mimepart_address_header(parsed, "Bcc")
 
-        self.in_reply_to: Optional[str] = parsed.headers.get("In-Reply-To")
+        self.in_reply_to: str | None = parsed.headers.get("In-Reply-To")
 
         # The RFC mandates that the Message-Id header must be at most 998
         # characters. Sadly, not everybody follows specs.
-        self.message_id_header: Optional[str] = parsed.headers.get(
-            "Message-Id"
-        )
+        self.message_id_header: str | None = parsed.headers.get("Message-Id")
         if self.message_id_header and len(self.message_id_header) > 998:
             self.message_id_header = self.message_id_header[:998]
             log.warning(
@@ -507,7 +503,7 @@ class Message(
         self.received_date = self.received_date.replace(microsecond=0)
 
         # Custom Nylas header
-        self.nylas_uid: Optional[str] = parsed.headers.get("X-INBOX-ID")
+        self.nylas_uid: str | None = parsed.headers.get("X-INBOX-ID")
 
         # In accordance with JWZ (http://www.jwz.org/doc/threading.html)
         self.references = parse_references(
@@ -522,14 +518,14 @@ class Message(
         imap_uid: int,
         mimepart: MimePart,
         namespace_id: int,
-        html_parts: List[str],
-        plain_parts: List[str],
+        html_parts: list[str],
+        plain_parts: list[str],
     ) -> None:
         disposition, _ = mimepart.content_disposition
-        content_id: Optional[str] = mimepart.headers.get("Content-Id")
+        content_id: str | None = mimepart.headers.get("Content-Id")
         content_type, params = mimepart.content_type
 
-        filename: Optional[str] = mimepart.detected_file_name
+        filename: str | None = mimepart.detected_file_name
         if filename == "":
             filename = None
 
@@ -618,11 +614,11 @@ class Message(
 
     def _save_attachment(
         self,
-        data: Optional[str],
+        data: str | None,
         content_disposition: str,
         content_type: str,
-        filename: Optional[str],
-        content_id: Optional[str],
+        filename: str | None,
+        content_id: str | None,
         namespace_id: int,
     ) -> None:
         from inbox.models import Block, Part
@@ -663,8 +659,8 @@ class Message(
 
     def calculate_body(
         self,
-        html_parts: List[str],
-        plain_parts: List[str],
+        html_parts: list[str],
+        plain_parts: list[str],
         store_body: bool = True,
     ) -> None:
         """
@@ -708,20 +704,20 @@ class Message(
         return unicode_safe_truncate(" ".join(text.split()), SNIPPET_LENGTH)
 
     @property
-    def body(self) -> Optional[str]:
+    def body(self) -> str | None:
         if self._compacted_body is None:
             return None
         return decode_blob(self._compacted_body).decode("utf-8")
 
     @body.setter
-    def body(self, value: Optional[str]) -> None:
+    def body(self, value: str | None) -> None:
         if value is None:
             self._compacted_body = None
         else:
             self._compacted_body = encode_blob(value.encode("utf-8"))
 
     @property
-    def participants(self) -> List[Tuple[str, str]]:
+    def participants(self) -> list[tuple[str, str]]:
         """
         Different messages in the thread may reference the same email
         address with different phrases. We partially deduplicate: if the same
@@ -729,7 +725,7 @@ class Message(
         separately return the (empty phrase, address) pair.
 
         """
-        deduped_participants: DefaultDict[str, Set[str]] = defaultdict(set)
+        deduped_participants: defaultdict[str, set[str]] = defaultdict(set)
         chain = []
         if self.from_addr:
             chain.append(self.from_addr)
@@ -754,11 +750,11 @@ class Message(
         return p
 
     @property
-    def attachments(self) -> List["Part"]:
+    def attachments(self) -> list["Part"]:
         return [part for part in self.parts if part.is_attachment]
 
     @property
-    def api_attachment_metadata(self) -> List[Dict[str, Any]]:
+    def api_attachment_metadata(self) -> list[dict[str, Any]]:
         resp = []
         for part in self.parts:
             if not part.is_attachment:
@@ -790,7 +786,7 @@ class Message(
         return "text/calendar" in [p.block.content_type for p in self.parts]
 
     @property
-    def attached_event_files(self) -> List["Part"]:
+    def attached_event_files(self) -> list["Part"]:
         return [
             part
             for part in self.parts

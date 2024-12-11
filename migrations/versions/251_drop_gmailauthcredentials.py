@@ -1,4 +1,5 @@
-"""drop_gmailauthcredentials
+"""
+drop_gmailauthcredentials
 
 Revision ID: 50407c7fe030
 Revises: 1d84676d7731

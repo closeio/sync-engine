@@ -1,4 +1,5 @@
-"""add last_modified column for events
+"""
+add last_modified column for events
 
 Revision ID: 54dcea22a268
 Revises: 486c7fa5b533

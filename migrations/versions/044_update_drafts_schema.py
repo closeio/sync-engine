@@ -1,4 +1,5 @@
-"""update drafts schema
+"""
+update drafts schema
 
 Revision ID: 247cd689758c
 Revises:5a136610b50b

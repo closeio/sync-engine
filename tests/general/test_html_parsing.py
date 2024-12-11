@@ -25,7 +25,8 @@ def test_strip_tags():
 
 
 def test_preserve_refs():
-    """Test that HTML character/entity references are preserved when we strip
+    """
+    Test that HTML character/entity references are preserved when we strip
     tags.
     """
     text = "la philologie m&#x00e8;ne au pire"

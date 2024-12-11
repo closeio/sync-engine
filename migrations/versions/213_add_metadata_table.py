@@ -1,4 +1,5 @@
-"""Add metadata table
+"""
+Add metadata table
 
 Revision ID: bc1119471fe
 Revises: 31aae1ecb374

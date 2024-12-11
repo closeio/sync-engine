@@ -1,4 +1,5 @@
-"""Operations for syncing back local datastore changes to
+"""
+Operations for syncing back local datastore changes to
 generic IMAP providers.
 """
 

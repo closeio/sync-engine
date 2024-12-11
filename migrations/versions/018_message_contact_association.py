@@ -1,4 +1,5 @@
-"""message contact association
+"""
+message contact association
 
 Revision ID: 223041bb858b
 Revises: 2c9f3a06de09

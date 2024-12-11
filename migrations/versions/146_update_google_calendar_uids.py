@@ -1,4 +1,5 @@
-"""update_google_calendar_uids
+"""
+update_google_calendar_uids
 
 Revision ID: c77a90d524
 Revises: 557378226d9f

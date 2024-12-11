@@ -3,7 +3,6 @@ import contextlib
 import json
 from datetime import datetime
 from email.utils import parseaddr
-from typing import Union
 
 import arrow
 from dateutil.parser import parse as date_parse
@@ -69,7 +68,7 @@ MAX_LENS = {
 _EVENT_CREATED_SANELY_SENTINEL = object()
 
 
-def time_parse(x: Union[float, int, str, arrow.Arrow]) -> arrow.Arrow:
+def time_parse(x: float | int | str | arrow.Arrow) -> arrow.Arrow:
     with contextlib.suppress(ValueError, TypeError):
         x = float(x)
 
@@ -266,7 +265,8 @@ class Event(
         return left
 
     def _partial_participants_merge(self, event):
-        """Merge the participants from event into self.participants.
+        """
+        Merge the participants from event into self.participants.
         event always takes precedence over self, except if
         a participant in self isn't in event.
 
@@ -475,7 +475,8 @@ Index("idx_namespace_id_started", Event.namespace_id, Event.start)
 
 
 class RecurringEvent(Event):
-    """Represents an individual one-off instance of a recurring event,
+    """
+    Represents an individual one-off instance of a recurring event,
     including cancelled events.
     """
 
@@ -578,7 +579,8 @@ class RecurringEvent(Event):
 
 
 class RecurringEventOverride(Event):
-    """Represents an individual one-off instance of a recurring event,
+    """
+    Represents an individual one-off instance of a recurring event,
     including cancelled events.
     """
 
@@ -617,7 +619,8 @@ class RecurringEventOverride(Event):
 
 
 class InflatedEvent(Event):
-    """This represents an individual instance of a recurring event, generated
+    """
+    This represents an individual instance of a recurring event, generated
     on the fly when a recurring event is expanded.
     These are transient objects that should never be committed to the
     database.

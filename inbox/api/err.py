@@ -16,7 +16,8 @@ def get_request_uid(headers):
 
 
 def log_exception(exc_info, **kwargs):
-    """Add exception info to the log context for the request.
+    """
+    Add exception info to the log context for the request.
 
     We do not log in a separate log statement in order to make debugging
     easier. As a bonus, this reduces log volume somewhat.
@@ -50,7 +51,8 @@ class APIException(Exception):
 
 
 class InputError(APIException):
-    """Raised on invalid user input (missing required parameter, value too
+    """
+    Raised on invalid user input (missing required parameter, value too
     long, etc.)
     """
 

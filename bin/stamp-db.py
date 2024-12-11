@@ -40,7 +40,7 @@ def main(revision_id):
                 alembic.command.stamp(alembic_cfg, revision_id)
                 print(f"Stamped shard_id {key}\n")
             except alembic.util.CommandError as e:
-                print(f"FAILED to stamp shard_id {key} with error: {str(e)}")
+                print(f"FAILED to stamp shard_id {key} with error: {e!s}")
                 continue
 
 

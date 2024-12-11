@@ -20,6 +20,7 @@ from inbox.sqlalchemy_ext.util import generate_public_id
 class SendMailException(Exception):
     """
     Raised when sending fails.
+
     Parameters
     ----------
     message: string
@@ -31,6 +32,7 @@ class SendMailException(Exception):
     failures: dict, optional
         If sending only failed for some recipients, information on the specific
         failures.
+
     """
 
     def __init__(self, message, http_code, server_error=None, failures=None):
@@ -113,7 +115,8 @@ def block_to_part(block, message, namespace):
 
 
 def create_message_from_json(data, namespace, db_session, is_draft):
-    """Construct a Message instance from `data`, a dictionary representing the
+    """
+    Construct a Message instance from `data`, a dictionary representing the
     POST body of an API request. All new objects are added to the session, but
     not committed.
     """
@@ -388,7 +391,8 @@ def generate_attachments(message, blocks):
 
 
 def _set_reply_headers(new_message, previous_message):
-    """When creating a draft in reply to a thread, set the In-Reply-To and
+    """
+    When creating a draft in reply to a thread, set the In-Reply-To and
     References headers appropriately, if possible.
     """
     if previous_message.message_id_header:

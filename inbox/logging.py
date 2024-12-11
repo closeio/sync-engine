@@ -13,7 +13,7 @@ import sys
 import threading
 import traceback
 from types import TracebackType
-from typing import Any, Dict, Optional, Tuple, Type
+from typing import Any
 
 import colorlog
 import structlog
@@ -36,6 +36,7 @@ def find_first_app_frame_and_name(ignores=None):
     Returns
     -------
     tuple of (frame, name)
+
     """
     ignores = ignores or []
     f = sys._getframe()
@@ -51,7 +52,8 @@ def find_first_app_frame_and_name(ignores=None):
 
 
 def _record_level(logger, name, event_dict):
-    """Processor that records the log level ('info', 'warning', etc.) in the
+    """
+    Processor that records the log level ('info', 'warning', etc.) in the
     structlog event dictionary.
     """
     event_dict["level"] = name
@@ -59,7 +61,8 @@ def _record_level(logger, name, event_dict):
 
 
 def _record_module(logger, name, event_dict):
-    """Processor that records the module and line where the logging call was
+    """
+    Processor that records the module and line where the logging call was
     invoked.
     """
     f, name = find_first_app_frame_and_name(
@@ -77,7 +80,8 @@ def _record_module(logger, name, event_dict):
 
 
 def safe_format_exception(etype, value, tb, limit=None):
-    """Similar to structlog._format_exception, but truncate the exception part.
+    """
+    Similar to structlog._format_exception, but truncate the exception part.
     This is because SQLAlchemy exceptions can sometimes have ludicrously large
     exception strings.
     """
@@ -194,7 +198,8 @@ def _safe_exc_info_renderer(_, __, event_dict):
 
 
 def _safe_encoding_renderer(_, __, event_dict):
-    """Processor that converts all strings to unicode.
+    """
+    Processor that converts all strings to unicode.
     Note that we ignore conversion errors.
     """
     for key in event_dict:
@@ -274,7 +279,8 @@ class ConditionalFormatter(logging.Formatter):
 
 
 def configure_logging(log_level=None):
-    """Idempotently configure logging.
+    """
+    Idempotently configure logging.
 
     Infers options based on whether or not the output is a TTY.
 
@@ -334,10 +340,10 @@ MAX_ERROR_MESSAGE_LENGTH = 1024
 
 
 def create_error_log_context(
-    exc_info: Tuple[Optional[Type], Any, Optional[TracebackType]]
-) -> Dict[str, Any]:
+    exc_info: tuple[type | None, Any, TracebackType | None]
+) -> dict[str, Any]:
     exc_type, exc_value, exc_tb = exc_info
-    out: Dict[str, Any] = {}
+    out: dict[str, Any] = {}
 
     if exc_type is None and exc_value is None and exc_tb is None:
         return out

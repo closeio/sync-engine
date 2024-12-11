@@ -1,6 +1,5 @@
 import itertools
 import time
-from typing import Dict, Optional
 
 # We're doing this weird rename import to make it easier to monkeypatch
 # get_redis_client. That's the only way we have to test our very brittle
@@ -100,11 +99,12 @@ class HeartbeatStatusProxy:
 
 
 class HeartbeatStore:
-    """Store that proxies requests to Redis with handlers that also
+    """
+    Store that proxies requests to Redis with handlers that also
     update indexes and handle scanning through results.
     """
 
-    _instances: Dict[Optional[str], "HeartbeatStore"] = {}
+    _instances: dict[str | None, "HeartbeatStore"] = {}
 
     def __init__(self, host=None, port=6379):
         self.host = host
@@ -155,7 +155,7 @@ class HeartbeatStore:
             n = 0
             for key in client.scan_iter(match, 100):
                 self.remove(key, device_id, pipeline)
-                n += 1  # noqa: SIM113
+                n += 1
             if not device_id:
                 self.remove_from_account_index(account_id, pipeline)
             pipeline.execute()

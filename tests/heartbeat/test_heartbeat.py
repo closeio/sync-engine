@@ -17,7 +17,6 @@ from inbox.logging import configure_logging
 
 configure_logging(config.get("LOGLEVEL"))
 
-from mockredis import MockRedis
 
 # Note that all Redis commands are mocked via mockredis in conftest.py.
 

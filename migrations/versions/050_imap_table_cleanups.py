@@ -1,4 +1,5 @@
-"""imap table cleanups
+"""
+imap table cleanups
 
 Revision ID: 29217fad3f46
 Revises: 161b88c17615

@@ -1,4 +1,5 @@
-"""secrets_endgame
+"""
+secrets_endgame
 
 Revision ID: 248ec24a39f
 Revises: 38c29430efeb

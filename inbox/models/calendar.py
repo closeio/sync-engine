@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import Optional
 
 from sqlalchemy import (
     Boolean,
@@ -154,7 +153,7 @@ class Calendar(
         )
 
 
-def is_default_calendar(calendar: Calendar) -> Optional[bool]:
+def is_default_calendar(calendar: Calendar) -> bool | None:
     """
     Determine if this is a default/primary user calendar.
 
@@ -168,6 +167,7 @@ def is_default_calendar(calendar: Calendar) -> Optional[bool]:
 
     Arguments:
         calendar: The google, microsoft or "inbox" calendar
+
     """
     from inbox.models.backends.gmail import GmailAccount
     from inbox.models.backends.outlook import OutlookAccount

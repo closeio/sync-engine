@@ -1,7 +1,6 @@
 from sqlalchemy import BigInteger, Column, Enum, Index, String, func, inspect
 from sqlalchemy.orm import relationship
 
-from inbox.config import config
 from inbox.ignition import redis_txn
 from inbox.models.base import MailSyncBase
 from inbox.models.category import EPOCH

@@ -1,4 +1,5 @@
-"""add thread order column
+"""
+add thread order column
 
 Revision ID: 3de3979f94bd
 Revises: 322c2800c401

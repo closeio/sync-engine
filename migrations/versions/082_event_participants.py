@@ -1,4 +1,5 @@
-"""event participants
+"""
+event participants
 
 Revision ID: 1322d3787305
 Revises: 4e3e8abea884

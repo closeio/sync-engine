@@ -1,6 +1,5 @@
 import json
 from datetime import datetime
-from typing import List, Set
 
 from sqlalchemy import (
     BigInteger,
@@ -137,7 +136,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     # TO BE DEPRECATED
     g_labels = Column(JSON, default=list, nullable=True)
 
-    def update_flags(self, new_flags: List[bytes]) -> None:
+    def update_flags(self, new_flags: list[bytes]) -> None:
         """
         Sets flag and g_labels values based on the new_flags and x_gm_labels
         parameters. Returns True if any values have changed compared to what we
@@ -174,7 +173,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         self.extra_flags = extra_flags
         return changed
 
-    def update_labels(self, new_labels: List[str]) -> None:
+    def update_labels(self, new_labels: list[str]) -> None:
         # TODO(emfree): This is all mad complicated. Simplify if possible?
 
         # Gmail IMAP doesn't use the normal IMAP \\Draft flag. Silly Gmail
@@ -222,7 +221,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         return self.imapaccount.namespace
 
     @property
-    def categories(self) -> Set[Category]:
+    def categories(self) -> set[Category]:
         categories = {label.category for label in self.labels}
         categories.add(self.folder.category)
         return categories

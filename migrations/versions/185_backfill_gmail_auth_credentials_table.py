@@ -1,4 +1,5 @@
-"""backfill_gmail_auth_credentials_table
+"""
+backfill_gmail_auth_credentials_table
 
 Revision ID: 14692efd261b
 Revises: 2ac4e3c4e049

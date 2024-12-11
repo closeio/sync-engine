@@ -1,4 +1,5 @@
-"""add message column to event
+"""
+add message column to event
 
 Revision ID: 211e93aff1e1
 Revises: 2493281d621

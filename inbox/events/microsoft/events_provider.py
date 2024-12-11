@@ -1,5 +1,6 @@
 import datetime
-from typing import Iterable, List, Optional, Tuple, cast
+from collections.abc import Iterable
+from typing import cast
 
 import ciso8601
 import pytz
@@ -74,7 +75,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         self.client = MicrosoftGraphClient(
             lambda: self._get_access_token(scopes=MICROSOFT_CALENDAR_SCOPES)
         )
-        self._webhook_notifications_enabled: Optional[bool] = None
+        self._webhook_notifications_enabled: bool | None = None
 
     def sync_calendars(self) -> CalendarSyncResponse:
         """
@@ -111,8 +112,8 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
     def sync_events(
         self,
         calendar_uid: str,
-        sync_from_time: Optional[datetime.datetime] = None,
-    ) -> List[Event]:
+        sync_from_time: datetime.datetime | None = None,
+    ) -> list[Event]:
         """
         Fetch event data for an individual calendar.
 
@@ -123,6 +124,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         Returns:
             A list of uncommited Event instances
+
         """
         if sync_from_time:
             # this got here from the database, we store them as naive
@@ -165,7 +167,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         master_event: RecurringEvent,
         *,
         read_only,
-    ) -> Tuple[List[MsGraphEvent], List[MsGraphEvent]]:
+    ) -> tuple[list[MsGraphEvent], list[MsGraphEvent]]:
         """
         Fetch recurring event instances and determine exceptions and cancellations.
 
@@ -176,6 +178,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         Returns:
             Tuple of exceptions and cancellations
+
         """
         assert raw_master_event["type"] == "seriesMaster"
 
@@ -183,7 +186,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         end = start + MAX_RECURRING_EVENT_WINDOW
 
         raw_occurrences = cast(
-            List[MsGraphEvent],
+            list[MsGraphEvent],
             list(
                 self.client.iter_event_instances(
                     master_event.uid, start=start, end=end, fields=EVENT_FIELDS
@@ -262,7 +265,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
     def watch_calendar_list(
         self, account: Account
-    ) -> Optional[datetime.datetime]:
+    ) -> datetime.datetime | None:
         """
         Subscribe to webhook notifications for changes to calendar list.
 
@@ -271,6 +274,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         Returns:
             The expiration of the notification channel
+
         """
         response = self.client.subscribe_to_calendar_changes(
             webhook_url=CALENDAR_LIST_WEBHOOK_URL.format(account.public_id),
@@ -283,7 +287,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
     def watch_calendar(
         self, account: Account, calendar: Calendar
-    ) -> Optional[datetime.datetime]:
+    ) -> datetime.datetime | None:
         """
         Subscribe to webhook notifications for changes to events in a calendar.
 
@@ -293,6 +297,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         Returns:
             The expiration of the notification channel
+
         """
         try:
             response = self.client.subscribe_to_event_changes(

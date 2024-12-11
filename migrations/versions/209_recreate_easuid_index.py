@@ -1,4 +1,5 @@
-"""Re-create EASUid index.
+"""
+Re-create EASUid index.
 
 Revision ID: 3618838f5bc6
 Revises: 1962d17d1c0a

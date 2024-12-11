@@ -1,4 +1,5 @@
-"""add account liveness
+"""
+add account liveness
 
 Revision ID: 4b4674f1a726
 Revises: 1925c535a52d

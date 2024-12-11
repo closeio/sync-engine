@@ -1,4 +1,5 @@
-"""Tighten EAS constraints and fix easfoldersync state enum.
+"""
+Tighten EAS constraints and fix easfoldersync state enum.
 
 Revision ID: 3f96e92953e1
 Revises: 55f0ff54c776

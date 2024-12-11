@@ -1,4 +1,5 @@
-"""Add easeventuid
+"""
+Add easeventuid
 
 Revision ID: 476c5185121b
 Revises: 526eefc1d600

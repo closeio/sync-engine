@@ -1,4 +1,5 @@
-"""Make folder.name case sensitive.
+"""
+Make folder.name case sensitive.
 
 Revision ID: 5349c1a03fde
 Revises: 284227d72f51

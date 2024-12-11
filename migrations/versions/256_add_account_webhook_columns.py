@@ -1,4 +1,5 @@
-"""Add account webhook columns
+"""
+Add account webhook columns
 
 Revision ID: 93cc6f4ce113
 Revises: 9ea81ca0f64b

@@ -1,4 +1,5 @@
-"""EAS two-devices pledge
+"""
+EAS two-devices pledge
 
 Revision ID: ad7b856bcc0
 Revises: 22d076f48b88

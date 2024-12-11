@@ -1,4 +1,5 @@
-"""recompute snippets
+"""
+recompute snippets
 
 Revision ID: 4e93522b5b62
 Revises: 2525c5245cc2

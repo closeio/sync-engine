@@ -2,7 +2,8 @@ import itertools
 
 
 def chunk(iterable, size):
-    """Yield chunks of an iterable.
+    """
+    Yield chunks of an iterable.
 
     If len(iterable) is not evenly divisible by size, the last chunk will
     be shorter than size.

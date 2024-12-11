@@ -1,4 +1,5 @@
-"""Revert encryption
+"""
+Revert encryption
 
 Revision ID: 2c577a8a01b7
 Revises: 2b89164aa9cd

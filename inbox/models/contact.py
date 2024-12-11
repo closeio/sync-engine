@@ -109,7 +109,8 @@ class PhoneNumber(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
 
 class MessageContactAssociation(MailSyncBase):
-    """Association table between messages and contacts.
+    """
+    Association table between messages and contacts.
 
     Examples
     --------
@@ -119,6 +120,7 @@ class MessageContactAssociation(MailSyncBase):
     If c is a contact, get messages sent to contact c with
     [assoc.message for assoc in c.message_associations if assoc.field ==
     ...  'to_addr']
+
     """
 
     contact_id = Column(BigInteger, primary_key=True, index=True)

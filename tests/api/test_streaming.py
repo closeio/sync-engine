@@ -5,7 +5,6 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 
 from inbox.util.url import url_concat
-
 from tests.util.base import add_fake_message
 
 EPSILON = 0.5  # Switching time. VMs on Macs suck :()

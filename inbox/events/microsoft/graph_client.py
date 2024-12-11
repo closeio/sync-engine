@@ -2,7 +2,8 @@ import contextlib
 import datetime
 import enum
 import time
-from typing import Any, Callable, Container, Dict, Iterable, Optional
+from collections.abc import Callable, Container, Iterable
+from typing import Any
 
 import pytz
 import requests
@@ -21,6 +22,7 @@ class MicrosoftGraphClientException(Exception):
         """
         Arguments:
             response: The reponse that caused exception
+
         """
         args = []
         with contextlib.suppress(Exception):
@@ -43,6 +45,7 @@ def format_datetime(dt: datetime.datetime) -> str:
 
     Returns:
         Formatted datetime e.g. 2022-10-17T15:46:36.335288Z
+
     """
     assert dt.tzinfo == pytz.UTC
 
@@ -59,6 +62,7 @@ class MicrosoftGraphClient:
         """
         Arguments:
             get_token: Function that returns user token
+
         """
         self._get_token = get_token
         # Session lets us use HTTP connection pooling
@@ -71,12 +75,12 @@ class MicrosoftGraphClient:
         method: str,
         resource_url: str,
         *,
-        params: Optional[Dict[str, str]] = None,
-        json: Optional[Dict[str, str]] = None,
+        params: dict[str, str] | None = None,
+        json: dict[str, str] | None = None,
         retry_on: Container[int] = frozenset({429, 503}),
         max_retries: int = 10,
         timeout: int = 20,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Perform request.
 
@@ -90,6 +94,7 @@ class MicrosoftGraphClient:
             retry_on: List of HTTP status codes to automatically retry on
             max_retries: The number of maximum retires for 429
             timeout: HTTP request timeout in seconds
+
         """
         if not resource_url.startswith(BASE_URL):
             assert resource_url.startswith("/")
@@ -126,16 +131,17 @@ class MicrosoftGraphClient:
             return response.json()
 
     def _iter(
-        self, initial_url: str, *, params: Optional[Dict[str, str]] = None
-    ) -> Iterable[Dict[str, Any]]:
+        self, initial_url: str, *, params: dict[str, str] | None = None
+    ) -> Iterable[dict[str, Any]]:
         """
         Lazily iterate over paged resources.
 
         Arguments:
             initial_url: The initial resource url
             params: GET params
+
         """
-        next_url: Optional[str] = initial_url
+        next_url: str | None = initial_url
         while next_url:
             response = self.request("GET", next_url, params=params)
             yield from response["value"]
@@ -143,7 +149,7 @@ class MicrosoftGraphClient:
             # @odata.nextLink will already incorporate params
             params = None
 
-    def iter_calendars(self) -> Iterable[Dict[str, Any]]:
+    def iter_calendars(self) -> Iterable[dict[str, Any]]:
         """
         Lazily iterate user calendars.
 
@@ -152,11 +158,12 @@ class MicrosoftGraphClient:
         Returns:
             Iterable of calendars.
             https://learn.microsoft.com/en-us/graph/api/resources/calendar
+
         """
         # TODO: Figure out the top limit we can use on this endpoint
         yield from self._iter("/me/calendars")
 
-    def get_calendar(self, calendar_id: str) -> Dict[str, Any]:
+    def get_calendar(self, calendar_id: str) -> dict[str, Any]:
         """
         Get a single calendar.
 
@@ -168,6 +175,7 @@ class MicrosoftGraphClient:
         Returns:
             The calendar.
             https://learn.microsoft.com/en-us/graph/api/resources/calendar
+
         """
         return self.request("GET", f"/me/calendars/{calendar_id}")
 
@@ -175,9 +183,9 @@ class MicrosoftGraphClient:
         self,
         calendar_id: str,
         *,
-        modified_after: Optional[datetime.datetime] = None,
-        fields: Optional[Iterable[str]] = None,
-    ) -> Iterable[Dict[str, Any]]:
+        modified_after: datetime.datetime | None = None,
+        fields: Iterable[str] | None = None,
+    ) -> Iterable[dict[str, Any]]:
         """
         Lazily iterate events in a calendar.
 
@@ -190,6 +198,7 @@ class MicrosoftGraphClient:
         Returns:
             Iterable of events.
             https://learn.microsoft.com/en-us/graph/api/resources/event
+
         """
         params = {
             # The default amount of events per page is 10,
@@ -212,8 +221,8 @@ class MicrosoftGraphClient:
         )
 
     def get_event(
-        self, event_id: str, *, fields: Optional[Iterable[str]] = None
-    ) -> Dict[str, Any]:
+        self, event_id: str, *, fields: Iterable[str] | None = None
+    ) -> dict[str, Any]:
         """
         Get a single event.
 
@@ -225,6 +234,7 @@ class MicrosoftGraphClient:
         Returns:
             The event.
             https://learn.microsoft.com/en-us/graph/api/resources/event
+
         """
         params = {}
         if fields:
@@ -238,8 +248,8 @@ class MicrosoftGraphClient:
         *,
         start: datetime.datetime,
         end: datetime.datetime,
-        fields: Optional[Iterable[str]] = None,
-    ) -> Iterable[Dict[str, Any]]:
+        fields: Iterable[str] | None = None,
+    ) -> Iterable[dict[str, Any]]:
         """
         Lazily expand series master instances.
 
@@ -253,6 +263,7 @@ class MicrosoftGraphClient:
         Returns:
             Iterable of event instances.
             https://learn.microsoft.com/en-us/graph/api/resources/event
+
         """
         assert start.tzinfo == pytz.UTC
         assert end.tzinfo == pytz.UTC
@@ -274,7 +285,7 @@ class MicrosoftGraphClient:
             f"/me/events/{event_id}/instances", params=params
         )
 
-    def iter_subscriptions(self) -> Iterable[Dict[str, Any]]:
+    def iter_subscriptions(self) -> Iterable[dict[str, Any]]:
         """
         Lazily iterate subscriptions.
 
@@ -283,10 +294,11 @@ class MicrosoftGraphClient:
         Returns:
             Iterable of subscriptions.
             https://learn.microsoft.com/en-us/graph/api/resources/subscription
+
         """
         yield from self._iter("/subscriptions")
 
-    def get_subscription(self, subscription_id: str) -> Dict[str, Any]:
+    def get_subscription(self, subscription_id: str) -> dict[str, Any]:
         """
         Get a single subscription.
 
@@ -298,6 +310,7 @@ class MicrosoftGraphClient:
         Returns:
             The subscription.
             https://learn.microsoft.com/en-us/graph/api/resources/subscription
+
         """
         return self.request("GET", f"/subscriptions/{subscription_id}")
 
@@ -308,8 +321,8 @@ class MicrosoftGraphClient:
         change_types: Iterable[ChangeType],
         webhook_url: str,
         secret: str,
-        expiration: Optional[datetime.datetime] = None,
-    ) -> Dict[str, Any]:
+        expiration: datetime.datetime | None = None,
+    ) -> dict[str, Any]:
         """
         Subscribe to resource changes.
 
@@ -326,6 +339,7 @@ class MicrosoftGraphClient:
         Returns:
             The subscription.
             https://learn.microsoft.com/en-us/graph/api/resources/subscription
+
         """
         if resource_url.startswith(BASE_URL):
             resource_url = resource_url[len(BASE_URL) :]
@@ -368,7 +382,7 @@ class MicrosoftGraphClient:
         last_exception.args = (*last_exception.args, "Max retries reached")
         raise last_exception
 
-    def unsubscribe(self, subscription_id: str) -> Dict[str, Any]:
+    def unsubscribe(self, subscription_id: str) -> dict[str, Any]:
         """
         Unsubscribe from resource changes.
 
@@ -379,14 +393,13 @@ class MicrosoftGraphClient:
 
         Returns:
             Empty dict.
+
         """
         return self.request("DELETE", f"/subscriptions/{subscription_id}")
 
     def renew_subscription(
-        self,
-        subscription_id: str,
-        expiration: Optional[datetime.datetime] = None,
-    ) -> Dict[str, Any]:
+        self, subscription_id: str, expiration: datetime.datetime | None = None
+    ) -> dict[str, Any]:
         """
         Renew a subscription before it expires.
 
@@ -399,6 +412,7 @@ class MicrosoftGraphClient:
         Returns:
             The subscription.
             https://learn.microsoft.com/en-us/graph/api/resources/subscription
+
         """
         if not expiration:
             expiration = datetime.datetime.now(
@@ -414,7 +428,7 @@ class MicrosoftGraphClient:
 
     def subscribe_to_calendar_changes(
         self, *, webhook_url: str, secret: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Subscribe to calendar changes.
 
@@ -428,6 +442,7 @@ class MicrosoftGraphClient:
         Returns:
             The subscription.
             https://learn.microsoft.com/en-us/graph/api/resources/subscription
+
         """
         return self.subscribe(
             resource_url="/me/calendars",
@@ -441,7 +456,7 @@ class MicrosoftGraphClient:
 
     def subscribe_to_event_changes(
         self, calendar_id: str, *, webhook_url: str, secret: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Subscribe to event changes in a calendar.
 
@@ -456,6 +471,7 @@ class MicrosoftGraphClient:
         Returns:
             The subscription.
             https://learn.microsoft.com/en-us/graph/api/resources/subscription
+
         """
         return self.subscribe(
             resource_url=f"/me/calendars/{calendar_id}/events",

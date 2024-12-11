@@ -1,4 +1,5 @@
-"""store less on threads after all
+"""
+store less on threads after all
 
 Revision ID: 1b751e8d9cac
 Revises: 4e44216e9830

@@ -1,4 +1,5 @@
-"""add folder_separator column for generic imap
+"""
+add folder_separator column for generic imap
 
 Revision ID: 4f8e995d1dba
 Revises: 31aae1ecb374

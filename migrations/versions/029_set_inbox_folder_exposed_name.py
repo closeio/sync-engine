@@ -1,4 +1,5 @@
-"""set inbox folder exposed name
+"""
+set inbox folder exposed name
 
 Revision ID: 52a9a976a2e0
 Revises: 40629415951c

@@ -14,7 +14,6 @@ import threading
 import weakref
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import DefaultDict, Optional, Set
 
 from sqlalchemy import desc
 
@@ -130,7 +129,7 @@ class SyncbackService(InterruptibleThread):
         # on any given object. But IMAP actions are already effectively
         # serialized by using an IMAP connection pool of size 1, so it doesn't
         # matter too much.
-        self.account_semaphores: DefaultDict[
+        self.account_semaphores: defaultdict[
             int, threading.BoundedSemaphore
         ] = defaultdict(lambda: threading.BoundedSemaphore(1))
         # This SyncbackService performs syncback for only and all the accounts
@@ -258,8 +257,8 @@ class SyncbackService(InterruptibleThread):
         if action in ("move", "mark_unread"):
             extra_args = log_entries[-1].extra_args
         elif action == "change_labels":
-            added_labels: Set[str] = set()
-            removed_labels: Set[str] = set()
+            added_labels: set[str] = set()
+            removed_labels: set[str] = set()
             for log_entry in log_entries:
                 for label in log_entry.extra_args["added_labels"]:
                     if label in removed_labels:
@@ -351,7 +350,7 @@ class SyncbackService(InterruptibleThread):
         account.
         """
         valid_log_entries = []
-        account_id: Optional[int] = None
+        account_id: int | None = None
 
         has_more = len(log_entries) == self.fetch_batch_size
 
@@ -710,10 +709,8 @@ class SyncbackTask:
                     latency, func_latency = self._mark_action_as_successful(
                         action_log_entry, before, after, db_session
                     )
-                    if latency > max_latency:
-                        max_latency = latency
-                    if func_latency > max_func_latency:
-                        max_func_latency = func_latency
+                    max_latency = max(latency, max_latency)
+                    max_func_latency = max(func_latency, max_func_latency)
                 parent_service = self.parent_service()
                 assert parent_service
                 self.log.info(

@@ -1,4 +1,5 @@
-"""Add public ids to transactions
+"""
+Add public ids to transactions
 
 Revision ID: 1edbd63582c2
 Revises: 1d7374c286c5

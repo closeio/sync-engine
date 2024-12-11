@@ -1,4 +1,5 @@
-"""remove erroneous soft-deleted imapuids
+"""
+remove erroneous soft-deleted imapuids
 
 We are no longer using soft deletes on this table. All soft-deleted uids
 should be hard-deleted instead.

@@ -1,4 +1,5 @@
-"""store google client id and secret on gmailaccounts.
+"""
+store google client id and secret on gmailaccounts.
 
 Revision ID: 358d0320397f
 Revises: 1925c535a52d

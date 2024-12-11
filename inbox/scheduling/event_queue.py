@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from redis import StrictRedis
 
@@ -23,12 +23,13 @@ def _get_redis_client(host=None, port=6379, db=1):
 
 
 class EventQueue:
-    """Simple queue that clients can listen to and wait to be notified of some
+    """
+    Simple queue that clients can listen to and wait to be notified of some
     event that they're interested in.
     """
 
     def __init__(
-        self, queue_name: str, redis: Optional[StrictRedis] = None
+        self, queue_name: str, redis: StrictRedis | None = None
     ) -> None:
         self.redis = redis
         if self.redis is None:
@@ -37,9 +38,7 @@ class EventQueue:
             self.redis = _get_redis_client(host=redis_host, db=redis_db)
         self.queue_name = queue_name
 
-    def receive_event(
-        self, timeout: Optional[int] = 0
-    ) -> Optional[Dict[str, Any]]:
+    def receive_event(self, timeout: int | None = 0) -> dict[str, Any] | None:
         """
         Receive single event from the queue.
 
@@ -55,14 +54,14 @@ class EventQueue:
         assert self.redis
 
         if timeout is None:
-            lpop_result: Optional[bytes] = self.redis.lpop(self.queue_name)
+            lpop_result: bytes | None = self.redis.lpop(self.queue_name)
             if lpop_result is None:
                 return None
 
             queue_name: str = self.queue_name
             event_data = lpop_result
         else:
-            blpop_result: Optional[Tuple[bytes, bytes]] = self.redis.blpop(
+            blpop_result: tuple[bytes, bytes] | None = self.redis.blpop(
                 [self.queue_name], timeout=timeout
             )
             if blpop_result is None:
@@ -83,7 +82,7 @@ class EventQueue:
             )
             return None
 
-    def send_event(self, event_data: Dict[str, Any]) -> None:
+    def send_event(self, event_data: dict[str, Any]) -> None:
         assert self.redis
 
         event_data.pop("queue_name", None)
@@ -93,16 +92,16 @@ class EventQueue:
 class EventQueueGroup:
     """Group of queues that can all be simultaneously watched for new events."""
 
-    def __init__(self, queues: List[EventQueue]) -> None:
+    def __init__(self, queues: list[EventQueue]) -> None:
         self.queues = queues
         self.redis = None
         if len(self.queues) > 0:
             self.redis = self.queues[0].redis
 
-    def receive_event(self, timeout: int = 0) -> Optional[Dict[str, Any]]:
+    def receive_event(self, timeout: int = 0) -> dict[str, Any] | None:
         assert self.redis
 
-        result: Optional[Tuple[bytes, bytes]] = self.redis.blpop(
+        result: tuple[bytes, bytes] | None = self.redis.blpop(
             [q.queue_name for q in self.queues], timeout=timeout
         )
         if result is None:

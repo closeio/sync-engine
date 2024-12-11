@@ -1,4 +1,5 @@
-"""drop messagecategory foreign keys
+"""
+drop messagecategory foreign keys
 
 Revision ID: 25129e0316d4
 Revises: 29a1f2ef5653

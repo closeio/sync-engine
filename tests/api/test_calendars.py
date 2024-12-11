@@ -2,7 +2,6 @@ import pytest
 from sqlalchemy import true
 
 from inbox.models import Calendar
-
 from tests.util.base import add_fake_event, db, default_namespace
 
 __all__ = ["db", "default_namespace"]

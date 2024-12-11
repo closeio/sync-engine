@@ -1,4 +1,5 @@
-"""Add eas_thrid index
+"""
+Add eas_thrid index
 
 Revision ID: 3c02d8204335
 Revises:43cd2de5ad85

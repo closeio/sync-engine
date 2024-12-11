@@ -7,7 +7,6 @@ import pytz
 from inbox.events.ical import events_from_ics, import_attached_events
 from inbox.events.util import MalformedEventError
 from inbox.models.event import Event, RecurringEvent
-
 from tests.util.base import (
     absolute_path,
     add_fake_calendar,

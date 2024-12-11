@@ -1,4 +1,5 @@
-"""save_imap_uidnext
+"""
+save_imap_uidnext
 
 Revision ID: 3583211a4838
 Revises: 301d22aa96b8

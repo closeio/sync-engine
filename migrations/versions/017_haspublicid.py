@@ -1,4 +1,5 @@
-"""HasPublicID
+"""
+HasPublicID
 
 Revision ID: 2c9f3a06de09
 Revises: 5093433b073

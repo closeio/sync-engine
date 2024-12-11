@@ -1,4 +1,5 @@
-"""Store more on threads
+"""
+Store more on threads
 
 Revision ID: 161b88c17615
 Revises: 38d78543f8be

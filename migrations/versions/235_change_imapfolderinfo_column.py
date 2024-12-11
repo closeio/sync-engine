@@ -1,4 +1,5 @@
-"""empty Change imapfolderinfo uidnext to bigint from int
+"""
+empty Change imapfolderinfo uidnext to bigint from int
 
 Revision ID: 34815f9e639c
 Revises: 53e6a7446c45

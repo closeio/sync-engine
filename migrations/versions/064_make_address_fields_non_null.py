@@ -1,4 +1,5 @@
-"""make address fields non-null.
+"""
+make address fields non-null.
 
 Revision ID: 2d05e116bdb7
 Revises: 5143154fb1a2

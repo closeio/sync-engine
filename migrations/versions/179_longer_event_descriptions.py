@@ -1,4 +1,5 @@
-"""longer event descriptions
+"""
+longer event descriptions
 
 Revision ID: 56500282e024
 Revises: 41f957b595fc

@@ -9,7 +9,6 @@ from inbox.mailsync.frontend import SyncHTTPFrontend
 from inbox.mailsync.service import SyncService
 from inbox.models import Account
 from inbox.models.session import session_scope_by_shard_id
-
 from tests.util.base import add_generic_imap_account
 
 host = platform.node()

@@ -1,6 +1,5 @@
 import abc
 import datetime
-from typing import Dict, List, Optional
 
 from inbox.events.util import CalendarSyncResponse
 from inbox.logging import get_logger
@@ -27,7 +26,7 @@ class AbstractEventsProvider(abc.ABC):
         # A hash to store whether a calendar is read-only or not.
         # This is a bit of a hack because this isn't exposed at the event level
         # by the Google or Microsoft API.
-        self.calendars_table: Dict[str, bool] = {}
+        self.calendars_table: dict[str, bool] = {}
 
     @abc.abstractmethod
     def sync_calendars(self) -> CalendarSyncResponse:
@@ -40,8 +39,8 @@ class AbstractEventsProvider(abc.ABC):
     def sync_events(
         self,
         calendar_uid: str,
-        sync_from_time: Optional[datetime.datetime] = None,
-    ) -> List[Event]:
+        sync_from_time: datetime.datetime | None = None,
+    ) -> list[Event]:
         """
         Fetch event data for an individual calendar.
 
@@ -52,6 +51,7 @@ class AbstractEventsProvider(abc.ABC):
 
         Returns:
             A list of uncommited Event instances
+
         """
         raise NotImplementedError()
 
@@ -65,7 +65,7 @@ class AbstractEventsProvider(abc.ABC):
     @abc.abstractmethod
     def watch_calendar_list(
         self, account: Account
-    ) -> Optional[datetime.datetime]:
+    ) -> datetime.datetime | None:
         """
         Subscribe to webhook notifications for changes to calendar list.
 
@@ -74,13 +74,14 @@ class AbstractEventsProvider(abc.ABC):
 
         Returns:
             The expiration of the notification channel
+
         """
         raise NotImplementedError()
 
     @abc.abstractmethod
     def watch_calendar(
         self, account: Account, calendar: Calendar
-    ) -> Optional[datetime.datetime]:
+    ) -> datetime.datetime | None:
         """
         Subscribe to webhook notifications for changes to events in a calendar.
 
@@ -90,11 +91,12 @@ class AbstractEventsProvider(abc.ABC):
 
         Returns:
             The expiration of the notification channel
+
         """
         raise NotImplementedError()
 
     def _get_access_token(
-        self, force_refresh: bool = False, scopes: Optional[List[str]] = None
+        self, force_refresh: bool = False, scopes: list[str] | None = None
     ) -> str:
         """
         Get access token used to fetch data using APIs.
@@ -105,6 +107,7 @@ class AbstractEventsProvider(abc.ABC):
 
         Returns:
             The token
+
         """
         with session_scope(self.namespace_id) as db_session:
             acc = db_session.query(Account).get(self.account_id)

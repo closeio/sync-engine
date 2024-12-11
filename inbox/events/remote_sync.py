@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, List, Tuple, Type
+from typing import Any
 
 import more_itertools
 from requests.exceptions import HTTPError
@@ -45,7 +45,7 @@ class EventSync(BaseSyncMonitor):
         provider_name: str,
         account_id: int,
         namespace_id: int,
-        provider_class: Type[AbstractEventsProvider],
+        provider_class: type[AbstractEventsProvider],
         poll_frequency: int = POLL_FREQUENCY,
     ):
         bind_context(self, "eventsync", account_id)
@@ -68,7 +68,8 @@ class EventSync(BaseSyncMonitor):
         )
 
     def sync(self) -> None:
-        """Query a remote provider for updates and persist them to the
+        """
+        Query a remote provider for updates and persist them to the
         database. This function runs every `self.poll_frequency`.
         """
         self.log.debug("syncing events")
@@ -115,7 +116,7 @@ class EventSync(BaseSyncMonitor):
 
 def handle_calendar_deletes(
     namespace_id: int,
-    deleted_calendar_uids: List[str],
+    deleted_calendar_uids: list[str],
     log: Any,
     db_session: Any,
 ) -> None:
@@ -140,7 +141,7 @@ def handle_calendar_deletes(
 
 def handle_calendar_updates(
     namespace_id: int, calendars, log: Any, db_session: Any
-) -> List[Tuple[str, int]]:
+) -> list[tuple[str, int]]:
     """Persists new or updated Calendar objects to the database."""
     ids_ = []
     added_count = 0
@@ -180,7 +181,7 @@ def handle_calendar_updates(
 def handle_event_updates(
     namespace_id: int,
     calendar_id: int,
-    events: List[Event],
+    events: list[Event],
     log: Any,
     db_session: Any,
 ) -> None:
@@ -273,7 +274,8 @@ class WebhookEventSync(EventSync):
                 self.poll_frequency = PUSH_NOTIFICATION_POLL_FREQUENCY
 
     def sync(self) -> None:
-        """Query a remote provider for updates and persist them to the
+        """
+        Query a remote provider for updates and persist them to the
         database. This function runs every `self.poll_frequency`.
 
         This function also handles refreshing google's push notifications

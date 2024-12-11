@@ -13,7 +13,6 @@ accounts.
 """
 
 from datetime import datetime
-from typing import List, Set
 
 from sqlalchemy import bindparam, desc
 from sqlalchemy.orm import Session
@@ -79,7 +78,7 @@ def update_message_metadata(
     """Update the message's metadata"""
     # Sort imapuids in a way that the ones that were added later come last
     now = datetime.utcnow()
-    sorted_imapuids: List[ImapUid] = sorted(
+    sorted_imapuids: list[ImapUid] = sorted(
         message.imapuids, key=lambda imapuid: imapuid.updated_at or now
     )
 
@@ -87,13 +86,13 @@ def update_message_metadata(
     message.is_starred = any(imapuid.is_flagged for imapuid in sorted_imapuids)
     message.is_draft = is_draft
 
-    sorted_categories: List[Category] = [
+    sorted_categories: list[Category] = [
         category
         for imapuid in sorted_imapuids
         for category in imapuid.categories
     ]
 
-    categories: Set[Category]
+    categories: set[Category]
     if account.category_type == "folder":
         # For generic IMAP we want to deterministically select the last category.
         # A message will always be in a single folder but it seems that for some

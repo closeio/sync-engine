@@ -2,7 +2,7 @@ import imaplib
 import queue
 import socket
 import ssl
-from typing import Any, List
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -18,7 +18,7 @@ class TestableConnectionPool(CrispinConnectionPool):
         return mock.Mock()
 
 
-def get_all(queue: "queue.Queue[Any]") -> List[Any]:
+def get_all(queue: "queue.Queue[Any]") -> list[Any]:
     items = []
     while not queue.empty():
         items.append(queue.get())

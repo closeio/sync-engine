@@ -1,4 +1,5 @@
-"""Remove account old webhook columns
+"""
+Remove account old webhook columns
 
 Revision ID: e9e932c6c55e
 Revises: 4af0d2f17967

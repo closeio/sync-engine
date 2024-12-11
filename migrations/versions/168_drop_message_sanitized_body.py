@@ -1,4 +1,5 @@
-"""drop message.sanitized_body
+"""
+drop message.sanitized_body
 
 Revision ID: 1740b45aa815
 Revises:576f5310e8fc

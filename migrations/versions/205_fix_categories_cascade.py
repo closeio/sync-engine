@@ -1,4 +1,5 @@
-"""fix_categories_cascade
+"""
+fix_categories_cascade
 
 Revision ID: 302d9f6b22f3
 Revises: 420ccbea2c5e

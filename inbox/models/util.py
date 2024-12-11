@@ -2,7 +2,6 @@ import math
 import time
 from collections import OrderedDict
 from collections.abc import Iterable
-from typing import Optional
 
 import limitlion
 from sqlalchemy import desc, func
@@ -32,7 +31,7 @@ bulk_throttle = limitlion.throttle_wait("bulk", rps=0.75, window=5)
 
 def reconcile_message(
     new_message: Message, session: Session
-) -> Optional[Message]:
+) -> Message | None:
     """
     Check to see if the (synced) Message instance new_message was originally
     created/sent via the Nylas API (based on the X-Inbox-Uid header. If so,
@@ -480,6 +479,7 @@ def delete_message_hashes(
         account_id: The account_id of the messages.
         message_hashes: The data_sha256 hashes of the messages.
         dry_run: If True, don't actually delete the data.
+
     """
     if not message_hashes:
         return

@@ -1,4 +1,5 @@
-"""relax_participants_by_email_constraint
+"""
+relax_participants_by_email_constraint
 
 Revision ID: 3f01a3f1b4cc
 Revises: 5305d4ae30b4

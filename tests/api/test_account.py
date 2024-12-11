@@ -3,7 +3,6 @@ import json
 import pytest
 
 from inbox.models.account import Account
-
 from tests.api.base import new_api_client
 from tests.util.base import (
     add_fake_yahoo_account,

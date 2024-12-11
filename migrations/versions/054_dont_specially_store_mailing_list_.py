@@ -1,4 +1,5 @@
-"""Dont specially store mailing list headers
+"""
+Dont specially store mailing list headers
 
 Revision ID: 5143154fb1a2
 Revises: 3795b2a97af1

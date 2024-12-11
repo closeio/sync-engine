@@ -1,4 +1,5 @@
-"""Add ON DELETE CASCADE to part.block_id.
+"""
+Add ON DELETE CASCADE to part.block_id.
 
 Revision ID: 1d93c9f9f506
 Revises: 3bb4a941639c

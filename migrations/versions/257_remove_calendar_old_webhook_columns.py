@@ -1,4 +1,5 @@
-"""Remove calendar old webhook columns
+"""
+Remove calendar old webhook columns
 
 Revision ID: 4af0d2f17967
 Revises: 93cc6f4ce113

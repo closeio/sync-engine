@@ -1,5 +1,3 @@
-from typing import Union
-
 from sqlalchemy import Boolean, Column, ForeignKey, String
 from sqlalchemy.orm import relationship
 
@@ -68,7 +66,7 @@ class GenericAccount(ImapAccount):
             return "imap"
         return self.provider
 
-    def valid_password(self, value: Union[str, bytes]) -> bytes:
+    def valid_password(self, value: str | bytes) -> bytes:
         # Must be a valid UTF-8 byte sequence without NULL bytes.
         if not isinstance(value, bytes):
             value = value.encode("utf-8")
@@ -88,7 +86,7 @@ class GenericAccount(ImapAccount):
         return self.imap_secret.secret.decode("utf-8")
 
     @imap_password.setter
-    def imap_password(self, value: Union[str, bytes]) -> None:
+    def imap_password(self, value: str | bytes) -> None:
         value: bytes = self.valid_password(value)
         if not self.imap_secret:
             self.imap_secret = Secret()
@@ -100,7 +98,7 @@ class GenericAccount(ImapAccount):
         return self.smtp_secret.secret.decode("utf-8")
 
     @smtp_password.setter
-    def smtp_password(self, value: Union[str, bytes]) -> None:
+    def smtp_password(self, value: str | bytes) -> None:
         value: bytes = self.valid_password(value)
         if not self.smtp_secret:
             self.smtp_secret = Secret()

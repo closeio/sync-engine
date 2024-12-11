@@ -95,6 +95,7 @@ def create_email(
         thread.
     attachments: list of dicts, optional
         a list of dicts(filename, data, content_type, content_disposition)
+
     """
     html = html if html else ""
     plaintext = html2text(html)
@@ -236,7 +237,8 @@ def generate_message_id_header(uid):
 
 
 def _rfc_transform(msg):
-    """Create an RFC-2821 compliant SMTP message.
+    """
+    Create an RFC-2821 compliant SMTP message.
     (Specifically, this means splitting the References header to conform to
     line length limits.)
 

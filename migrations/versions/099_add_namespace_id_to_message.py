@@ -1,4 +1,5 @@
-"""add_namespace_id_to_message
+"""
+add_namespace_id_to_message
 
 Revision ID: e27104acb25
 Revises:40b533a6f3e1

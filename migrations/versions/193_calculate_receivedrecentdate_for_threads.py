@@ -1,4 +1,5 @@
-"""calculate receivedrecentdate for threads
+"""
+calculate receivedrecentdate for threads
 
 Revision ID: 691fa97024d
 Revises: 2758cefad87d

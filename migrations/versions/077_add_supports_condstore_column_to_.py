@@ -1,4 +1,5 @@
-"""add supports_condstore column to generic account
+"""
+add supports_condstore column to generic account
 
 Revision ID: 3c74cbe7882e
 Revises: 3c02d8204335

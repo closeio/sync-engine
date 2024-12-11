@@ -1,4 +1,5 @@
-"""add_namespace_to_events
+"""
+add_namespace_to_events
 
 Revision ID: 4d10bc835f44
 Revises: 3bb01fcc755e

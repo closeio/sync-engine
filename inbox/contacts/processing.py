@@ -1,5 +1,5 @@
 import uuid
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Session
 
@@ -9,7 +9,8 @@ from inbox.models import (
     EventContactAssociation,
     MessageContactAssociation,
 )
-from inbox.util.addr import canonicalize_address as canonicalize, valid_email
+from inbox.util.addr import canonicalize_address as canonicalize
+from inbox.util.addr import valid_email
 
 if TYPE_CHECKING:
     from inbox.models.message import Message
@@ -18,8 +19,8 @@ if TYPE_CHECKING:
 def _get_contact_map(
     db_session: Session,
     namespace_id: int,
-    all_addresses: List[Tuple[str, str]],
-) -> Dict[str, Contact]:
+    all_addresses: list[tuple[str, str]],
+) -> dict[str, Contact]:
     """
     Retrieves or creates contacts for the given address pairs, returning a dict
     with the canonicalized emails mapped to Contact objects.
@@ -58,8 +59,8 @@ def _get_contact_map(
 
 
 def _get_contact_from_map(
-    contact_map: Dict[str, Contact], name: str, email_address: str
-) -> Optional[Contact]:
+    contact_map: dict[str, Contact], name: str, email_address: str
+) -> Contact | None:
     if not valid_email(email_address):
         return None
 
@@ -85,7 +86,7 @@ def update_contacts_from_message(
         # First create Contact objects for any email addresses that we haven't
         # seen yet. We want to dedupe by canonicalized address, so this part is
         # a bit finicky.
-        all_addresses: List[Tuple[str, str]] = []
+        all_addresses: list[tuple[str, str]] = []
         for field in (
             message.from_addr,
             message.to_addr,

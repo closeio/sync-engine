@@ -1,4 +1,5 @@
-"""Test local behavior for the drafts API. Doesn't test syncback or actual
+"""
+Test local behavior for the drafts API. Doesn't test syncback or actual
 sending.
 """
 
@@ -407,7 +408,8 @@ def test_update_to_nonexistent_draft(api_client):
 
 
 def test_contacts_updated(api_client):
-    """Tests that draft-contact associations are properly created and
+    """
+    Tests that draft-contact associations are properly created and
     updated.
     """
     draft = {

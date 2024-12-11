@@ -1,4 +1,5 @@
-"""Shorten email addresses so they can be indexed by default
+"""
+Shorten email addresses so they can be indexed by default
 
 Revision ID: 1d7374c286c5
 Revises: 21878b1b3d4b

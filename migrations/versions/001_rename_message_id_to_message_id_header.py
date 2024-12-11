@@ -1,4 +1,5 @@
-"""rename message_id to message_id_header
+"""
+rename message_id to message_id_header
 
 Revision ID: 217431caacc7
 Revises: 2605b23e1fe6

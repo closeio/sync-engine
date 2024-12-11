@@ -3,7 +3,6 @@
 
 import subprocess
 import sys
-from typing import Optional
 
 import click
 
@@ -23,9 +22,7 @@ from inbox.error_handling import maybe_enable_rollbar
     default=False,
     help="Print results using tab as the column separator",
 )
-def main(
-    shard_num: Optional[int], execute: Optional[str], batch: bool
-) -> None:
+def main(shard_num: int | None, execute: str | None, batch: bool) -> None:
     maybe_enable_rollbar()
 
     users = config.get_required("DATABASE_USERS")

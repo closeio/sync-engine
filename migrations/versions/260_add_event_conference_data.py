@@ -1,4 +1,5 @@
-"""add event.conference_data
+"""
+add event.conference_data
 
 Revision ID: fe0488decbd1
 Revises: f9dab5e44c0f

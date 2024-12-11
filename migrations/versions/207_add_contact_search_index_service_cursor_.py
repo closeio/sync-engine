@@ -1,4 +1,5 @@
-"""add contact search index service cursor pointer table
+"""
+add contact search index service cursor pointer table
 
 Revision ID: 4b225df49747
 Revises: gu8eqpm6f2x1n0fg

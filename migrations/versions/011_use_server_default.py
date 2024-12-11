@@ -1,4 +1,5 @@
-"""Use server_default
+"""
+Use server_default
 
 Revision ID: 3237b6b1ee03
 Revises: 193802835c33

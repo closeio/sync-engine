@@ -1,4 +1,5 @@
-"""store label information per-uid
+"""
+store label information per-uid
 
 Revision ID: 4634999269
 Revises: 5709063bff01

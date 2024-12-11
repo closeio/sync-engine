@@ -1,4 +1,5 @@
-"""eas foldersyncstatus startstop columns
+"""
+eas foldersyncstatus startstop columns
 
 Revision ID: 301d22aa96b8
 Revises: 3cf51fb0e76a

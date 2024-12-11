@@ -1,4 +1,5 @@
-"""contact ranking signals
+"""
+contact ranking signals
 
 Revision ID: 563d405d1f99
 Revises: 169cac0cd87e

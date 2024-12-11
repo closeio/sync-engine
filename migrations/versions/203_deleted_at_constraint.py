@@ -1,4 +1,5 @@
-"""Add deleted_at constraint to EASFolderSyncStatus, Label, Folder, and Category
+"""
+Add deleted_at constraint to EASFolderSyncStatus, Label, Folder, and Category
 
 Revision ID: 420ccbea2c5e
 Revises: 2e515548043b

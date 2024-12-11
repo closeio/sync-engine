@@ -7,7 +7,6 @@ from inbox.ignition import engine_manager
 from inbox.models.action_log import ActionLog, schedule_action
 from inbox.models.session import session_scope, session_scope_by_shard_id
 from inbox.transactions.actions import SyncbackService
-
 from tests.util.base import add_generic_imap_account
 
 

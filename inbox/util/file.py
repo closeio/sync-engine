@@ -1,5 +1,5 @@
 import os
-from typing import Generator, List
+from collections.abc import Generator
 
 ROOT_PATH = os.path.normpath(
     os.path.join(__file__, os.pardir, os.pardir, os.pardir)
@@ -12,7 +12,7 @@ def get_data(filename: str) -> bytes:
         return file.read()
 
 
-def iter_module_names(paths: List[str]) -> Generator[str, None, None]:
+def iter_module_names(paths: list[str]) -> Generator[str, None, None]:
     """Iterate all Python module names in given paths"""
     for path in paths:
         for name in os.listdir(path):

@@ -1,4 +1,5 @@
-"""update eas schema
+"""
+update eas schema
 
 Revision ID: 281b07fa75bb
 Revises:1740b45aa815

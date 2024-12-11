@@ -1,4 +1,5 @@
-"""add sync_email bit to Account
+"""
+add sync_email bit to Account
 
 Revision ID: 527bbdc2b0fa
 Revises: dbf45fac873

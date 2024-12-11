@@ -1,4 +1,5 @@
-"""canonicalize addresses
+"""
+canonicalize addresses
 
 Revision ID: 3795b2a97af1
 Revises:358d0320397f

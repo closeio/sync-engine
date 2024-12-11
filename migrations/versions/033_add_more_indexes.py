@@ -1,4 +1,5 @@
-"""add more indexes
+"""
+add more indexes
 
 Revision ID: 1eab2619cc4f
 Revises: 3f96e92953e1

@@ -1,4 +1,5 @@
-"""Store ImapUid<msg_uid as BigInteger instead of Integer
+"""
+Store ImapUid<msg_uid as BigInteger instead of Integer
 
 Revision ID: 519e462df171
 Revises: 4fd291c6940c

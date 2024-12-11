@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union
+from typing import Any
 
 from flask import Flask, g, jsonify, make_response, request
 from flask_restful import reqparse
@@ -31,7 +31,8 @@ from inbox.webhooks.microsoft_notifications import (
 )
 
 from .metrics_api import app as metrics_api
-from .ns_api import DEFAULT_LIMIT, app as ns_api
+from .ns_api import DEFAULT_LIMIT
+from .ns_api import app as ns_api
 
 app = Flask(__name__)
 app.config["JSON_SORT_KEYS"] = False
@@ -184,7 +185,7 @@ def _get_account_data_for_generic_account(data):
 
 
 def _get_account_data_for_google_account(
-    data: Dict[str, Any]
+    data: dict[str, Any]
 ) -> GoogleAccountData:
     email_address = data["email_address"]
     scopes = data.get("scopes", " ".join(GOOGLE_EMAIL_SCOPES))
@@ -219,7 +220,7 @@ def _get_account_data_for_google_account(
 
 
 def _get_account_data_for_microsoft_account(
-    data: Dict[str, Any]
+    data: dict[str, Any]
 ) -> MicrosoftAccountData:
     email_address = data["email_address"]
     scopes = data["scopes"]
@@ -256,9 +257,7 @@ def create_account():
     """Create a new account"""
     data = request.get_json(force=True)
 
-    auth_handler: Union[
-        GenericAuthHandler, GoogleAuthHandler, MicrosoftAuthHandler
-    ]
+    auth_handler: GenericAuthHandler | GoogleAuthHandler | MicrosoftAuthHandler
     if data["type"] == "generic":
         auth_handler = GenericAuthHandler()
         account_data = _get_account_data_for_generic_account(data)
@@ -297,9 +296,9 @@ def modify_account(namespace_public_id):
         )
         account = namespace.account
 
-        auth_handler: Union[
-            GenericAuthHandler, GoogleAuthHandler, MicrosoftAuthHandler
-        ]
+        auth_handler: (
+            GenericAuthHandler | GoogleAuthHandler | MicrosoftAuthHandler
+        )
         if isinstance(account, GenericAccount):
             auth_handler = GenericAuthHandler()
             account_data = _get_account_data_for_generic_account(data)
@@ -347,7 +346,8 @@ def home():
 
 @app.route("/logout")
 def logout():
-    """Utility function used to force browsers to reset cached HTTP Basic Auth
+    """
+    Utility function used to force browsers to reset cached HTTP Basic Auth
     credentials
     """
     return make_response(

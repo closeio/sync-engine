@@ -1,4 +1,5 @@
-"""extend size of eas_folder_id and eas_parent_id
+"""
+extend size of eas_folder_id and eas_parent_id
 
 Revision ID: 211e93aff1e1
 Revises: 2493281d621

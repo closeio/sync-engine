@@ -43,7 +43,8 @@ class SMTP_SSL(smtplib.SMTP_SSL):
     """
 
     def rset(self):
-        """Wrap rset() in order to correctly surface SMTP exceptions.
+        """
+        Wrap rset() in order to correctly surface SMTP exceptions.
         SMTP.sendmail() does e.g.:
             # ...
             (code, resp) = self.data(msg)
@@ -69,7 +70,8 @@ class SMTP(smtplib.SMTP):
     """
 
     def rset(self):
-        """Wrap rset() in order to correctly surface SMTP exceptions.
+        """
+        Wrap rset() in order to correctly surface SMTP exceptions.
         SMTP.sendmail() does e.g.:
             # ...
             (code, resp) = self.data(msg)
@@ -320,7 +322,8 @@ class SMTPClient:
                 self.auth_token = account.password
 
     def _send(self, recipients, msg):
-        """Send the email message. Retries up to SMTP_MAX_RETRIES times if the
+        """
+        Send the email message. Retries up to SMTP_MAX_RETRIES times if the
         message couldn't be submitted to any recipient.
 
         Parameters
@@ -334,6 +337,7 @@ class SMTPClient:
         ------
         SendMailException
             If the message couldn't be sent to all recipients successfully.
+
         """
         last_error = None
         for _ in range(SMTP_MAX_RETRIES + 1):
@@ -422,6 +426,7 @@ class SMTPClient:
             message body to send in place of the existing body attribute in
             the draft.
         recipient_emails: email addresses to send copies of this message to.
+
         """
         blocks = [p.block for p in draft.attachments]
         attachments = generate_attachments(draft, blocks)
@@ -456,6 +461,7 @@ class SMTPClient:
         ----------
         draft : models.message.Message object
             the draft message to send.
+
         """
         blocks = [p.block for p in draft.attachments]
         attachments = generate_attachments(draft, blocks)

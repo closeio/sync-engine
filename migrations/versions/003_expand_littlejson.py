@@ -1,4 +1,5 @@
-"""expand LittleJSON
+"""
+expand LittleJSON
 
 Revision ID: 269247bc37d3
 Revises: 297aa1e1acc7

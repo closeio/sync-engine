@@ -1,4 +1,5 @@
-"""add actionlog index
+"""
+add actionlog index
 
 Revision ID: 39fa82d3168e
 Revises: 4ee8aab06ee

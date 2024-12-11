@@ -1,4 +1,5 @@
-"""Add GenericAccount.ssl_required
+"""
+Add GenericAccount.ssl_required
 
 Revision ID: 3d8b5977eaa8
 Revises: 4f8e995d1dba

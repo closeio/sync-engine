@@ -1,4 +1,5 @@
-"""fix recurring override cascade
+"""
+fix recurring override cascade
 
 Revision ID: 6e5b154d917
 Revises: 41f957b595fc

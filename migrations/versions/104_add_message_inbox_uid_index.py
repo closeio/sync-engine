@@ -1,4 +1,5 @@
-"""add message.inbox_uid index
+"""
+add message.inbox_uid index
 
 Revision ID: 569b9d365295
 Revises: 4015edc83ba

@@ -1,4 +1,5 @@
-"""Remove duplicated Gmail Message objects and tighten constraints for Gmail messages.
+"""
+Remove duplicated Gmail Message objects and tighten constraints for Gmail messages.
 
 Revision ID: 4b4c5579c083
 Revises: 1925c535a52d

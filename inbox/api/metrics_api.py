@@ -1,6 +1,6 @@
 from collections import defaultdict
 from operator import itemgetter
-from typing import Any, DefaultDict, Dict
+from typing import Any
 
 from flask import Blueprint, request
 from sqlalchemy.orm import joinedload
@@ -71,7 +71,7 @@ def _get_folder_data(db_session, accounts):
         ImapFolderSyncStatus._metrics,
     )
 
-    folder_data: DefaultDict[int, Dict[int, Dict[str, Any]]] = defaultdict(
+    folder_data: defaultdict[int, dict[int, dict[str, Any]]] = defaultdict(
         dict
     )
 

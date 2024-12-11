@@ -1,4 +1,5 @@
-"""add unique account constraint
+"""
+add unique account constraint
 
 Revision ID: 13faec74da45
 Revises: 1d93c9f9f506

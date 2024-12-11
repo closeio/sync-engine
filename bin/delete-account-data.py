@@ -77,7 +77,7 @@ def delete_account_data(account_id, dry_run, yes, throttle):
         print("Deleting database data")
         delete_namespace(namespace_id, dry_run=dry_run, throttle=throttle)
     except Exception as e:
-        print(f"Database data deletion failed! Error: {str(e)}")
+        print(f"Database data deletion failed! Error: {e!s}")
         return -1
 
     database_end = time.time()

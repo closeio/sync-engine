@@ -1,4 +1,5 @@
-"""Drafts as required folder
+"""
+Drafts as required folder
 
 Revision ID: 41a7e825d108
 Revises: 269247bc37d3

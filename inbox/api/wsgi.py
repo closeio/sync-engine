@@ -29,7 +29,8 @@ LOGLEVEL = config.get("LOGLEVEL", 10)
 
 
 class JsonRequestFormatter(json_log_formatter.JSONFormatter):
-    """Custom JSON log formatter for gunicorn access logs.
+    """
+    Custom JSON log formatter for gunicorn access logs.
 
     Adapted from https://til.codeinthehole.com/posts/how-to-get-gunicorn-to-log-as-json/
     """
@@ -62,7 +63,8 @@ class JsonRequestFormatter(json_log_formatter.JSONFormatter):
 
 
 class JsonErrorFormatter(json_log_formatter.JSONFormatter):
-    """Custom JSON log formatter for gunicorn error logs.
+    """
+    Custom JSON log formatter for gunicorn error logs.
 
     Adapted from https://til.codeinthehole.com/posts/how-to-get-gunicorn-to-log-as-json/
     """

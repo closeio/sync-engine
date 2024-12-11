@@ -1,4 +1,5 @@
-"""generalize from/sender header field
+"""
+generalize from/sender header field
 
 Revision ID: 3fee2f161614
 Revises: 563d405d1f99

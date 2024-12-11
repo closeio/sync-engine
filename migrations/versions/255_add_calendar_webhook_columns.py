@@ -1,4 +1,5 @@
-"""Add calendar webhook columns
+"""
+Add calendar webhook columns
 
 Revision ID: 9ea81ca0f64b
 Revises: 7bb5c0ca93de

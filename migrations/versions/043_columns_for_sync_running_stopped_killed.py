@@ -1,4 +1,5 @@
-"""Columns for sync running/stopped/killed
+"""
+Columns for sync running/stopped/killed
 
 Revision ID: 5a136610b50b
 Revises: 29efe152cc00

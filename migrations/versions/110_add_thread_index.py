@@ -1,4 +1,5 @@
-"""add thread index
+"""
+add thread index
 
 Revision ID: 4011b943a24d
 Revises: 5709063bff01

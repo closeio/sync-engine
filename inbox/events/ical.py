@@ -3,7 +3,7 @@ import sys
 import traceback
 from datetime import date, datetime
 from email.utils import formataddr
-from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Union
+from typing import TYPE_CHECKING, Literal
 
 import arrow
 import icalendar
@@ -42,8 +42,8 @@ INVERTED_STATUS_MAP = {value: key for key, value in STATUS_MAP.items()}
 
 
 def normalize_repeated_component(
-    component: Union[List[str], Optional[str]]
-) -> Optional[str]:
+    component: list[str] | str | None,
+) -> str | None:
     """
     Some software can repeat components several times.
     We can safely recover from it if all of them have the same value.
@@ -64,7 +64,7 @@ def events_from_ics(namespace, calendar, ics_str):
     except (ValueError, IndexError, KeyError, TypeError) as e:
         raise MalformedEventError("Error while parsing ICS file") from e
 
-    events: Dict[Literal["invites", "rsvps"], List[Event]] = dict(
+    events: dict[Literal["invites", "rsvps"], list[Event]] = dict(
         invites=[], rsvps=[]
     )
 
@@ -193,7 +193,7 @@ def events_from_ics(namespace, calendar, ics_str):
                 # Some providers (e.g: iCloud) don't use the status field.
                 # Instead they use the METHOD field to signal cancellations.
                 method = component.get("method")
-                if method and method.lower() == "cancel":  # noqa: SIM114
+                if method and method.lower() == "cancel":
                     event_status = "cancelled"
                 elif calendar_method and calendar_method.lower() == "cancel":
                     # So, this particular event was not cancelled. Maybe the
@@ -301,8 +301,7 @@ def events_from_ics(namespace, calendar, ics_str):
             # don't follow the spec and generate icalendar files with
             # ridiculously big sequence numbers. Truncate them to fit in
             # our db.
-            if sequence_number > 2147483647:
-                sequence_number = 2147483647
+            sequence_number = min(sequence_number, 2147483647)
 
             event = Event.create(
                 namespace=namespace,

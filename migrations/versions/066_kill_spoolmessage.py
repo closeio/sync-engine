@@ -1,4 +1,5 @@
-"""Kill SpoolMessage
+"""
+Kill SpoolMessage
 
 Revision ID: 4f3a1f6eaee3
 Revises: 2e6120c97485

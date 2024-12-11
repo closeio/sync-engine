@@ -1,4 +1,5 @@
-"""update folder unique constraint
+"""
+update folder unique constraint
 
 Revision ID: 2235895f313b
 Revises: 365071c47fa7

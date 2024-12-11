@@ -1,4 +1,5 @@
-"""Add initial_sync_start/end to Folder
+"""
+Add initial_sync_start/end to Folder
 
 Revision ID: 3b093f2d7419
 Revises: 606447e78e7

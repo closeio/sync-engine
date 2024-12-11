@@ -1,4 +1,5 @@
-"""Drop eas_state
+"""
+Drop eas_state
 
 Revision ID: 3cea90bfcdea
 Revises: 118b3cdd0185

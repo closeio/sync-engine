@@ -6,7 +6,6 @@ from sqlalchemy import desc
 
 from inbox.models import Block, Category, Message, Namespace, Thread
 from inbox.util.misc import dt_to_timestamp
-
 from tests.util.base import add_fake_message, add_fake_thread, test_client
 
 __all__ = ["test_client"]
@@ -286,7 +285,8 @@ def test_strict_argument_parsing(api_client):
 
 
 def test_distinct_results(api_client, db, default_namespace):
-    """Test that limit and offset parameters work correctly when joining on
+    """
+    Test that limit and offset parameters work correctly when joining on
     multiple matching messages per thread.
     """
     # Create a thread with multiple messages on it.

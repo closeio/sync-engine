@@ -1,7 +1,6 @@
 from inbox.models import Folder, Label
 from inbox.models.category import sanitize_name
 from inbox.models.constants import MAX_INDEXABLE_LENGTH
-
 from tests.util.base import (
     add_fake_folder,
     add_fake_label,

@@ -1,4 +1,5 @@
-"""yahoo
+"""
+yahoo
 
 Revision ID: 38d78543f8be
 Revises: 247cd689758c

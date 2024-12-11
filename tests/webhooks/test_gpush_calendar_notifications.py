@@ -6,7 +6,6 @@ import limitlion
 import pytest
 
 from inbox.models.calendar import Calendar
-
 from tests.util.base import webhooks_client
 
 __all__ = ["webhooks_client"]

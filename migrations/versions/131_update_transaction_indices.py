@@ -1,4 +1,5 @@
-"""update_transaction_indices
+"""
+update_transaction_indices
 
 Revision ID: 3bb4a941639c
 Revises: 2b288dc444f

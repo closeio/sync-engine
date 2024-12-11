@@ -1,4 +1,5 @@
-"""store webhook parameters
+"""
+store webhook parameters
 
 Revision ID: 10ef1d46f016
 Revises: 5a787816e2bc

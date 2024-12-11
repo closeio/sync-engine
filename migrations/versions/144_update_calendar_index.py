@@ -1,4 +1,5 @@
-"""Update Calendar index.
+"""
+Update Calendar index.
 
 Revision ID: 1c73ca99c03b
 Revises: 1d7a72222b7c

@@ -1,4 +1,5 @@
-"""Cascade Folder deletes to EASUid
+"""
+Cascade Folder deletes to EASUid
 
 Revision ID: 2a748760ac63
 Revises: 4af5952e8a5b

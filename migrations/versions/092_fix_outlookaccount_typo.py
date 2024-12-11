@@ -1,4 +1,5 @@
-"""fix outlookaccount typo
+"""
+fix outlookaccount typo
 
 Revision ID: 63dc7f205da
 Revises: 4b07b67498e1

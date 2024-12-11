@@ -1,4 +1,5 @@
-"""Add custom IMAP overrides
+"""
+Add custom IMAP overrides
 
 Revision ID: 26bfb2e45c47
 Revises:26911668870a

@@ -1,4 +1,5 @@
-"""add message indices
+"""
+add message indices
 
 Revision ID: 1f06c15ae796
 Revises: 4032709362da

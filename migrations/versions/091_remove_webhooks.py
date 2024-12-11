@@ -1,4 +1,5 @@
-"""remove webhooks
+"""
+remove webhooks
 
 Revision ID: 4b07b67498e1
 Revises: 2b89164aa9cd

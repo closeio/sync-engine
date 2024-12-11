@@ -2,7 +2,8 @@
 
 
 def bind_context(thread, role, account_id, *args):
-    """Bind a human-interpretable "context" to the thread `gr`, for
+    """
+    Bind a human-interpretable "context" to the thread `gr`, for
     execution-tracing purposes. The context consists of the thread's role
     (e.g., "foldersyncengine"), the account_id it's operating on, and possibly
     additional values (e.g., folder id, device id).

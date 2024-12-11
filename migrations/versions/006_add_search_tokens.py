@@ -1,4 +1,5 @@
-"""Add search tokens.
+"""
+Add search tokens.
 
 Revision ID: 482338e7a7d6
 Revises: 41a7e825d108

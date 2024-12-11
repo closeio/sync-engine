@@ -6,7 +6,6 @@ from sqlalchemy import desc
 from inbox.models import AccountTransaction, Calendar, Transaction
 from inbox.models.mixins import HasRevisions
 from inbox.models.util import transaction_objects
-
 from tests.util.base import (
     add_fake_category,
     add_fake_event,

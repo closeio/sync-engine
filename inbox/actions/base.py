@@ -1,4 +1,5 @@
-"""Code for propagating Nylas datastore changes to account backends.
+"""
+Code for propagating Nylas datastore changes to account backends.
 
 Syncback actions don't update anything in the local datastore; the Nylas
 datastore is updated asynchronously (see namespace.py) and bookkeeping about

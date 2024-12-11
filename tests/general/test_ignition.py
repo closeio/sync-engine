@@ -1,7 +1,6 @@
 import pytest
 
 from inbox.ignition import init_db, reset_invalid_autoincrements, verify_db
-from inbox.models.session import session_scope_by_shard_id
 from inbox.util.sharding import get_shard_schemas
 from inbox.util.testutils import create_test_db, setup_test_db
 

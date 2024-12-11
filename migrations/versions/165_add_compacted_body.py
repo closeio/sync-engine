@@ -1,4 +1,5 @@
-"""add compacted body
+"""
+add compacted body
 
 Revision ID: 29698176aa8d
 Revises:17dcbd7754e0

@@ -1,4 +1,5 @@
-"""add ix_imapuid_account_id_folder_id_msg_uid_desc
+"""
+add ix_imapuid_account_id_folder_id_msg_uid_desc
 
 Revision ID: e3cf974d07a5
 Revises: fe0488decbd1

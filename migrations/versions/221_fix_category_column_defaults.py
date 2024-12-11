@@ -1,4 +1,5 @@
-"""Fix Category column defaults.
+"""
+Fix Category column defaults.
 
 Revision ID: 516024977fc5
 Revises: 59e1cc690da9

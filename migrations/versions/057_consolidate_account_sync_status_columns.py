@@ -1,4 +1,5 @@
-"""Consolidate account sync status columns
+"""
+Consolidate account sync status columns
 
 Revision ID: 4f57260602c9
 Revises: 5143154fb1a2

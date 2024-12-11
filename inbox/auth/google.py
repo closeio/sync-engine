@@ -120,6 +120,7 @@ class GoogleAuthHandler(OAuthAuthHandler):
         ------
         An inbox.crispin.GmailSettingError if the 'All Mail' folder is
         not present and is required (account.sync_email == True).
+
         """
         try:
             # Verify login.

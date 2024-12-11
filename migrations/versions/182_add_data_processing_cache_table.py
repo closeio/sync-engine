@@ -1,4 +1,5 @@
-"""add data processing cache table
+"""
+add data processing cache table
 
 Revision ID: 3857f395fb1d
 Revises: 10da2e0bc3bb

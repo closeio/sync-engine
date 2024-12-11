@@ -3,7 +3,6 @@ import sys
 import pytest
 
 from inbox.models import Contact
-
 from tests.util.base import (
     ContactsProviderStub,
     contact_sync,
@@ -110,7 +109,8 @@ def test_deletes(contacts_provider, contact_sync, db):
     sys.version_info >= (3,), reason="gdata library does not work on Python 3"
 )
 def test_auth_error_handling(contact_sync, default_account, db):
-    """Test that the contact sync thread stops if account credentials are
+    """
+    Test that the contact sync thread stops if account credentials are
     invalid.
     """
     # Give the default test account patently invalid OAuth credentials.

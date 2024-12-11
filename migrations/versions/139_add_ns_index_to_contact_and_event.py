@@ -1,4 +1,5 @@
-"""Add compound index to Contact and Event
+"""
+Add compound index to Contact and Event
 
 Revision ID: 1fd7b3e0b662
 Revises: 5305d4ae30b4

@@ -1,4 +1,5 @@
-"""Add new contacts Index
+"""
+Add new contacts Index
 
 Revision ID: 780b1dabd51
 Revises: 3eb4f30c8ed3

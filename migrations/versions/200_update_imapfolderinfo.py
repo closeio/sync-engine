@@ -1,4 +1,5 @@
-"""Update imapfolderinfo
+"""
+Update imapfolderinfo
 
 Revision ID: dbf45fac873
 Revises:3583211a4838

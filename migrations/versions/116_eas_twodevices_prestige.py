@@ -1,4 +1,5 @@
-"""EAS two-devices prestige
+"""
+EAS two-devices prestige
 
 Revision ID: 10ecf4841ac3
 Revises: 17dc9c049f8b

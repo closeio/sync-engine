@@ -74,7 +74,7 @@ def find_blocks(
                 return
 
             yield block, max_id
-            yielded += 1  # noqa: SIM113
+            yielded += 1
 
         last_id = block_batch[-1].id
 

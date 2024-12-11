@@ -1,6 +1,6 @@
 import string
 from collections import namedtuple
-from typing import List, NamedTuple
+from typing import NamedTuple
 
 import arrow
 from dateutil.parser import parse
@@ -84,7 +84,8 @@ def valid_base36(uid):
 
 
 def removed_participants(original_participants, update_participants):
-    """Returns the name and addresses of the participants which have been
+    """
+    Returns the name and addresses of the participants which have been
     removed.
     """
     original_table = {
@@ -116,5 +117,5 @@ class CalendarSyncResponse(NamedTuple):
     list of (un-added, uncommitted) model instances.
     """
 
-    deleted_uids: List[str]
-    updated_objects: List[Calendar]
+    deleted_uids: list[str]
+    updated_objects: list[Calendar]

@@ -73,7 +73,8 @@ class GoogleContactsProvider(AbstractContactsProvider):
         return google_client
 
     def _parse_contact_result(self, google_contact):
-        """Constructs a Contact object from a Google contact entry.
+        """
+        Constructs a Contact object from a Google contact entry.
 
         Parameters
         ----------
@@ -89,6 +90,7 @@ class GoogleContactsProvider(AbstractContactsProvider):
         ------
         AttributeError
            If the contact data could not be parsed correctly.
+
         """
         email_addresses = [
             email for email in google_contact.email if email.primary

@@ -1,7 +1,6 @@
 import datetime
 import itertools
 from collections import defaultdict
-from typing import Optional
 
 from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import (
@@ -86,7 +85,7 @@ class Thread(
 
     @property
     def most_recent_received_date(self):
-        received_recent_date: Optional[datetime.datetime] = None
+        received_recent_date: datetime.datetime | None = None
         for m in self.messages:
             if (
                 all(
@@ -119,7 +118,8 @@ class Thread(
 
     @property
     def most_recent_sent_date(self):
-        """This is the timestamp of the most recently *sent* message on this
+        """
+        This is the timestamp of the most recently *sent* message on this
         thread, as decided by whether the message is in the sent folder or
         not. Clients can use this to properly sort the Sent view.
         """

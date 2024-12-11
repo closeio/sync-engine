@@ -1,4 +1,5 @@
-"""Up max length of Message.message_id_header
+"""
+Up max length of Message.message_id_header
 
 From http://tools.ietf.org/html/rfc4130 (section 5.3.3),
 max message_id_header is 998 characters.

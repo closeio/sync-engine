@@ -1,4 +1,5 @@
-"""Drop unused timestamp mixins
+"""
+Drop unused timestamp mixins
 
 Revision ID: 539ce0291298
 Revises: 361972a1de3e

@@ -1,4 +1,5 @@
-"""Add references column to message table
+"""
+Add references column to message table
 
 Revision ID: 4fd291c6940c
 Revises: 10ef1d46f016

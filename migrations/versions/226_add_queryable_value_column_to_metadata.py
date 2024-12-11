@@ -1,4 +1,5 @@
-"""Add queryable value column to Metadata
+"""
+Add queryable value column to Metadata
 
 Revision ID: 2dbf6da0775b
 Revises: 25129e0316d4

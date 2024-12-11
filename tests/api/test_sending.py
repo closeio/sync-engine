@@ -6,12 +6,9 @@ import time
 import pytest
 from flanker import mime
 
-import inbox.api.ns_api
-import inbox.logging
 from inbox.exceptions import OAuthError
 from inbox.models import Event, Message
 from inbox.sendmail.smtp.postel import _substitute_bcc
-
 from tests.util.base import imported_event, message, thread
 
 __all__ = ["thread", "message", "imported_event"]

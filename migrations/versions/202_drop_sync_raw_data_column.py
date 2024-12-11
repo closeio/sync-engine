@@ -1,4 +1,5 @@
-"""drop_sync_raw_data_column
+"""
+drop_sync_raw_data_column
 
 Revision ID: 2e515548043b
 Revises: 527bbdc2b0fa

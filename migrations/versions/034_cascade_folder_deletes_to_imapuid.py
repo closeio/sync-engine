@@ -1,4 +1,5 @@
-"""cascade folder deletes to imapuid
+"""
+cascade folder deletes to imapuid
 
 Otherwise, since this fk is NOT NULL, deleting a folder which has associated
 imapuids still existing will cause a database IntegrityError. Only the mail

@@ -1,4 +1,5 @@
-"""easaccount.username and easaccount.auth
+"""
+easaccount.username and easaccount.auth
 
 Revision ID: 2f97277cd86d
 Revises: 3cea90bfcdea

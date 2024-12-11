@@ -1,4 +1,5 @@
-"""add visibility to event
+"""
+add visibility to event
 
 Revision ID: 53b532fda984
 Revises: 69c4b13c806

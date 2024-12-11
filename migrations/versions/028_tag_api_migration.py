@@ -1,4 +1,5 @@
-"""tag API migration
+"""
+tag API migration
 
 Revision ID: 40629415951c
 Revises: 924ffd092832

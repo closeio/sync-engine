@@ -1,4 +1,5 @@
-"""Drop Block and Part ForeignKeys
+"""
+Drop Block and Part ForeignKeys
 
 Revision ID: 4265dc58eec6
 Revises: 23ff7f0b506d

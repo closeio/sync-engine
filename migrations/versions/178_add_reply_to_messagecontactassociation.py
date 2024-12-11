@@ -1,4 +1,5 @@
-"""Add reply_to to MessageContactAssociation
+"""
+Add reply_to to MessageContactAssociation
 
 Revision ID: 41f957b595fc
 Revises: 2b9dd6f7593a

@@ -3,7 +3,7 @@ import json
 import os
 import re
 import subprocess
-from typing import Dict, List, Literal, Union
+from typing import Literal
 
 import attr
 import dns
@@ -79,8 +79,8 @@ class MockAnswer:
 
 class MockDNSResolver:
     def __init__(self):
-        self._registry: Dict[
-            Literal["mx", "ns"], Dict[str, Union[Dict[str, str], List[str]]]
+        self._registry: dict[
+            Literal["mx", "ns"], dict[str, dict[str, str] | list[str]]
         ] = {"mx": {}, "ns": {}}
 
     def _load_records(self, filename):
@@ -110,9 +110,8 @@ def mock_dns_resolver(monkeypatch):
 @pytest.fixture(scope="function")
 def dump_dns_queries(monkeypatch):
     original_query = dns.resolver.Resolver.query
-    query_results: Dict[
-        Literal["mx", "ns"],
-        Dict[str, Union[Dict[Literal["error"], str], List[str]]],
+    query_results: dict[
+        Literal["mx", "ns"], dict[str, dict[Literal["error"], str] | list[str]]
     ] = {"ns": {}, "mx": {}}
 
     def mock_query(self, domain, record_type):
@@ -140,7 +139,8 @@ def dump_dns_queries(monkeypatch):
 
 
 class MockIMAPClient:
-    """A bare-bones stand-in for an IMAPClient instance, used to test sync
+    """
+    A bare-bones stand-in for an IMAPClient instance, used to test sync
     logic without requiring a real IMAP account and server.
     """
 

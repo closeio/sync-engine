@@ -1,4 +1,5 @@
-"""add receivedrecentdate column to threads
+"""
+add receivedrecentdate column to threads
 
 Revision ID: 2758cefad87d
 Revises: 246a6bf050bc

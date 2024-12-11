@@ -1,4 +1,5 @@
-"""Make Contact.uid collation case sensitive
+"""
+Make Contact.uid collation case sensitive
 
 Revision ID: 53e6a7446c45
 Revises: 569ebe8e383d

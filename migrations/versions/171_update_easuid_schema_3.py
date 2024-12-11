@@ -1,4 +1,5 @@
-"""update_easuid_schema_3.py
+"""
+update_easuid_schema_3.py
 
 Revision ID: 584356bf23a3
 Revises: 3ee78a8b1ac6

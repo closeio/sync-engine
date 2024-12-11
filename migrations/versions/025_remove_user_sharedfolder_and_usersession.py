@@ -1,4 +1,5 @@
-"""Remove User, SharedFolder, and UserSession
+"""
+Remove User, SharedFolder, and UserSession
 
 Revision ID: 59b42d0ac749
 Revises: 4c1eb89f6bed

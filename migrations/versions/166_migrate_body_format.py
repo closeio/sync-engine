@@ -1,4 +1,5 @@
-"""migrate body format
+"""
+migrate body format
 
 Revision ID: 3d4f5741e1d7
 Revises: 29698176aa8d

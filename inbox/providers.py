@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from inbox.exceptions import NotSupportedError
 
@@ -18,7 +18,7 @@ def provider_info(provider_name):
     return providers[provider_name]
 
 
-providers: Dict[str, Dict[str, Any]] = {
+providers: dict[str, dict[str, Any]] = {
     "aol": {
         "type": "generic",
         "imap": ("imap.aol.com", 993),

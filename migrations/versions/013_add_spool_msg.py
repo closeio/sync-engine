@@ -1,4 +1,5 @@
-"""Add SpoolMessage table
+"""
+Add SpoolMessage table
 
 Revision ID: f7dbd9bf4a6
 Revises: 13102e0e6fbd

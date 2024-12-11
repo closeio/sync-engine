@@ -1,4 +1,5 @@
-"""Add index for cursor queries
+"""
+Add index for cursor queries
 
 Revision ID: 2c67046c548d
 Revises: 2c47d9226de6

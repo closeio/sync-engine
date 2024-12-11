@@ -1,4 +1,5 @@
-"""create index for querying messages by namespace and is_created
+"""
+create index for querying messages by namespace and is_created
 
 Revision ID: 576f5310e8fc
 Revises: 3d4f5741e1d7

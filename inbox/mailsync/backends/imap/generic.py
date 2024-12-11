@@ -66,7 +66,7 @@ import imaplib
 import threading
 import time
 from datetime import datetime, timedelta
-from typing import Any, Dict, NoReturn, Optional
+from typing import Any, NoReturn
 
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
@@ -201,7 +201,7 @@ class FolderSyncEngine(InterruptibleThread):
         else:
             self.poll_frequency = DEFAULT_POLL_FREQUENCY
         self.syncmanager_lock = syncmanager_lock
-        self.state: Optional[str] = None
+        self.state: str | None = None
         self.provider_name = provider_name
         self.last_fast_refresh = None
         self.flags_fetch_results = {}
@@ -609,7 +609,7 @@ class FolderSyncEngine(InterruptibleThread):
         account: Account,
         folder: Folder,
         raw_message: RawMessage,
-    ) -> Optional[ImapUid]:
+    ) -> ImapUid | None:
         assert account is not None and account.namespace is not None
 
         # Check if we somehow already saved the imapuid (shouldn't happen, but
@@ -692,7 +692,8 @@ class FolderSyncEngine(InterruptibleThread):
         return count
 
     def add_message_to_thread(self, db_session, message_obj, raw_message):
-        """Associate message_obj to the right Thread object, creating a new
+        """
+        Associate message_obj to the right Thread object, creating a new
         thread if necessary.
         """
         with db_session.no_autoflush:
@@ -1155,8 +1156,8 @@ class UidInvalid(Exception):
 # This version is elsewhere in the codebase, so keep it for now
 # TODO(emfree): clean this up.
 def uidvalidity_cb(
-    account_id: int, folder_name: str, select_info: Dict[bytes, Any]
-) -> Dict[bytes, Any]:
+    account_id: int, folder_name: str, select_info: dict[bytes, Any]
+) -> dict[bytes, Any]:
     assert (
         folder_name is not None and select_info is not None
     ), "must start IMAP session before verifying UIDVALIDITY"

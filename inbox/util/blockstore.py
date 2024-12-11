@@ -1,9 +1,8 @@
 import io
 import os
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from hashlib import sha256
-from typing import Iterable, Optional
 
 import zstandard
 
@@ -66,6 +65,7 @@ def maybe_compress_raw_mime(
 
     Returns:
         The optionally compressed raw MIME data.
+
     """
     if compress is None:
         compress = config.get("COMPRESS_RAW_MIME", False)
@@ -116,6 +116,7 @@ def save_raw_mime(
 
     Returns:
         The length of the data in the datastore.
+
     """
     compressed_raw_mime = maybe_compress_raw_mime(
         decompressed_raw_mime, compress=compress
@@ -209,7 +210,7 @@ def _save_to_s3_bucket(
     statsd_client.timing("s3_blockstore.save_latency", latency_millis)
 
 
-def get_from_blockstore(data_sha256, *, check_sha=True) -> Optional[bytes]:
+def get_from_blockstore(data_sha256, *, check_sha=True) -> bytes | None:
     if STORE_MSG_ON_S3:
         value = _get_from_s3(data_sha256)
     else:
@@ -237,6 +238,7 @@ def maybe_decompress_raw_mime(compressed_raw_mime: bytes) -> bytes:
 
     Returns:
         The decompressed raw MIME data.
+
     """
     # Raw MIME data will never start with the ZSTD magic number,
     # because email messages always start with headers in 7-bit ASCII.
@@ -259,6 +261,7 @@ def get_raw_mime(data_sha256: str) -> "bytes | None":
 
     Returns:
         The raw MIME data, or None if it wasn't found.
+
     """
     compressed_raw_mime = get_from_blockstore(data_sha256, check_sha=False)
     if compressed_raw_mime is None:

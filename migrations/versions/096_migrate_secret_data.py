@@ -1,4 +1,5 @@
-"""migrate_secret_data
+"""
+migrate_secret_data
 
 Revision ID: 38c29430efeb
 Revises: 1683790906cf

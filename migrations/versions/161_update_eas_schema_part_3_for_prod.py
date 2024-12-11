@@ -1,4 +1,5 @@
-"""update_eas_schema_part_3 for prod
+"""
+update_eas_schema_part_3 for prod
 
 Revision ID: 365071c47fa7
 Revises: 182f2b40fa36

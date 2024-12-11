@@ -1,4 +1,5 @@
-"""Add Folder.identifier
+"""
+Add Folder.identifier
 
 Revision ID: 159607944f52
 Revises: 4b07b67498e1

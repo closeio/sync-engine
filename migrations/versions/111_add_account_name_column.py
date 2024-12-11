@@ -1,4 +1,5 @@
-"""add account.name column
+"""
+add account.name column
 
 Revision ID: 22d076f48b88
 Revises: 4011b943a24d

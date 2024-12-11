@@ -1,4 +1,5 @@
-"""Remove receivedrecentdate column
+"""
+Remove receivedrecentdate column
 
 Revision ID: 51ad0922ad8e
 Revises: 69e93aef3e9

@@ -1,4 +1,5 @@
-"""make message.namespace_id nonnull
+"""
+make message.namespace_id nonnull
 
 Revision ID: 5a68ac0e3e9
 Revises: e27104acb25

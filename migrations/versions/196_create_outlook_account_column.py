@@ -1,4 +1,5 @@
-"""create outlook_account column
+"""
+create outlook_account column
 
 Revision ID: 4fa0540482f8
 Revises: 691fa97024d

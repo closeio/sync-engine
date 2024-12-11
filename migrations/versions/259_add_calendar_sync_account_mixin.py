@@ -1,4 +1,5 @@
-"""Add Calendar Sync Account Mixin
+"""
+Add Calendar Sync Account Mixin
 
 Revision ID: f9dab5e44c0f
 Revises: e9e932c6c55e

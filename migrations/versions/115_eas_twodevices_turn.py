@@ -1,4 +1,5 @@
-"""EAS two-devices turn
+"""
+EAS two-devices turn
 
 Revision ID: 17dc9c049f8b
 Revises: ad7b856bcc0

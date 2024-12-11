@@ -1,4 +1,5 @@
-"""events longer uids
+"""
+events longer uids
 
 Revision ID: 5901bf556d83
 Revises: 1c2253a0e997

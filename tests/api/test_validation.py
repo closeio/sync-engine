@@ -4,7 +4,6 @@ import pytest
 
 from inbox.api.validation import noop_event_update, valid_email
 from inbox.models import Namespace
-
 from tests.util.base import add_fake_event, calendar, db
 
 __all__ = ["db", "calendar"]

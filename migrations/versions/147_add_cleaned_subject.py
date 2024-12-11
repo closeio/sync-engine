@@ -1,4 +1,5 @@
-"""add cleaned subject
+"""
+add cleaned subject
 
 Revision ID: 486c7fa5b533
 Revises: 1d7a72222b7c

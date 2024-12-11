@@ -1,4 +1,5 @@
-"""Remove gmail inbox syncs
+"""
+Remove gmail inbox syncs
 
 Revision ID: 3c743bd31ee2
 Revises:476c5185121b

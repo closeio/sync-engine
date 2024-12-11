@@ -1,4 +1,5 @@
-"""Add columns for smtp/imap-specific auth
+"""
+Add columns for smtp/imap-specific auth
 
 Revision ID: 501f6b2fef28
 Revises: 31aae1ecb374

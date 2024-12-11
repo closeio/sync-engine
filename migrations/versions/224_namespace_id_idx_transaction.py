@@ -1,4 +1,5 @@
-"""Add namespace_id index on transaction table
+"""
+Add namespace_id index on transaction table
 
 Revision ID: 29a1f2ef5653
 Revises: 539ce0291298

@@ -4,7 +4,8 @@ import re
 import struct
 import uuid
 import weakref
-from typing import Any, MutableMapping, Optional, Tuple
+from collections.abc import MutableMapping
+from typing import Any
 
 from sqlalchemy import String, Text, event
 from sqlalchemy.engine import Engine
@@ -65,7 +66,8 @@ def before_commit(conn):
 
 
 class ABCMixin:
-    """Use this if you want a mixin class which is actually an abstract base
+    """
+    Use this if you want a mixin class which is actually an abstract base
     class, for example in order to enforce that concrete subclasses define
     particular methods or properties.
     """
@@ -156,15 +158,15 @@ class Base36UID(TypeDecorator):
     impl = BINARY(16)  # 128 bit unsigned integer
 
     def process_bind_param(
-        self, value: Optional[str], dialect: Any
-    ) -> Optional[bytes]:
+        self, value: str | None, dialect: Any
+    ) -> bytes | None:
         if not value:
             return None
         return b36_to_bin(value)
 
     def process_result_value(
-        self, value: Optional[bytes], dialect: Any
-    ) -> Optional[str]:
+        self, value: bytes | None, dialect: Any
+    ) -> str | None:
         return int128_to_b36(value)
 
 
@@ -250,8 +252,9 @@ class MutableList(Mutable, list):
         self.changed()
 
 
-def int128_to_b36(int128: Optional[bytes]) -> Optional[str]:
-    """int128: a 128 bit unsigned integer
+def int128_to_b36(int128: bytes | None) -> str | None:
+    """
+    int128: a 128 bit unsigned integer
     returns a base-36 string representation
     """
     if not int128:
@@ -263,7 +266,8 @@ def int128_to_b36(int128: Optional[bytes]) -> Optional[str]:
 
 
 def b36_to_bin(b36_string: str) -> bytes:
-    """b36_string: a base-36 encoded string
+    """
+    b36_string: a base-36 encoded string
     returns binary 128 bit unsigned integer
     """
     int128 = base36decode(b36_string)
@@ -285,13 +289,13 @@ RE_SURROGATE_CHARACTER = re.compile(r"[\ud800-\udfff]")
 RE_SURROGATE_PAIR = re.compile(r"[\ud800-\udbff][\udc00-\udfff]")
 
 
-def utf8_encode(text: str, errors: str = "strict") -> Tuple[bytes, int]:
+def utf8_encode(text: str, errors: str = "strict") -> tuple[bytes, int]:
     return text.encode("utf-8", errors), len(text)
 
 
 def utf8_surrogate_fix_decode(
     memory: memoryview, errors: str = "strict"
-) -> Tuple[str, int]:
+) -> tuple[str, int]:
     binary = memory.tobytes()
 
     with contextlib.suppress(UnicodeDecodeError):
@@ -347,7 +351,8 @@ def receive_connect(dbapi_connection, connection_record):
 
 
 def safer_yield_per(query, id_field, start_id, count):
-    """Incautious execution of 'for result in query.yield_per(N):' may cause
+    """
+    Incautious execution of 'for result in query.yield_per(N):' may cause
     slowness or OOMing over large tables. This is a less general but less
     dangerous alternative.
 
@@ -360,6 +365,7 @@ def safer_yield_per(query, id_field, start_id, count):
     start_id: The value of id_field at which to start iterating.
     count: int
         The number of results to fetch at a time.
+
     """
     cur_id = start_id
     while True:

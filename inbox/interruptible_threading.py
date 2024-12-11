@@ -23,9 +23,10 @@ import dataclasses
 import queue
 import threading
 import time
-from typing import Any, Callable, Dict, Optional, Tuple, TypeVar
+from collections.abc import Callable
+from typing import Any, Concatenate, TypeVar
 
-from typing_extensions import Concatenate, ParamSpec
+from typing_extensions import ParamSpec
 
 
 class InterruptibleThreadExit(BaseException):
@@ -52,8 +53,8 @@ class _InterruptibleThreadTarget:
     """
 
     target: Callable[..., Any]
-    args: Tuple[Any, ...]
-    kwargs: Dict[str, Any]
+    args: tuple[Any, ...]
+    kwargs: dict[str, Any]
 
     def __call__(self) -> Any:
         return self.target(*self.args, **self.kwargs)
@@ -62,7 +63,7 @@ class _InterruptibleThreadTarget:
 class InterruptibleThread(threading.Thread):
     def __init__(
         self,
-        target: Optional[Callable[..., Any]] = None,
+        target: Callable[..., Any] | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -81,7 +82,7 @@ class InterruptibleThread(threading.Thread):
             if target
             else None
         )
-        self.__exception: Optional[Exception] = None
+        self.__exception: Exception | None = None
 
         self._timeout_deadline: "float | None" = None
 
@@ -101,7 +102,7 @@ class InterruptibleThread(threading.Thread):
         return self.__ready and self.__exception is None
 
     @property
-    def exception(self) -> Optional[Exception]:
+    def exception(self) -> Exception | None:
         """
         Stores an exception if one was raised during thread
         execution.
@@ -269,7 +270,7 @@ def timeout(timeout: float):
 
     current_thread._timeout_deadline = time.monotonic() + timeout
 
-    try:  # noqa: SIM105
+    try:
         yield
     except InterruptibleThreadTimeout:
         pass

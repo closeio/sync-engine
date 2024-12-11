@@ -1,6 +1,3 @@
-from tests.util.base import event
-
-
 def test_invite_generation(event, default_account):
     from inbox.events.ical import generate_icalendar_invite
 

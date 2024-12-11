@@ -1,4 +1,5 @@
-"""per-provider table split
+"""
+per-provider table split
 
 Revision ID: 1c3f1812f2d9
 Revises: 482338e7a7d6

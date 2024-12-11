@@ -25,6 +25,7 @@ class CalendarSyncAccountMixin:
 
             poll_frequency: Amount of time we should wait until
                 we sync if we don't have working push notifications.
+
         """
         now = datetime.utcnow()
         return (

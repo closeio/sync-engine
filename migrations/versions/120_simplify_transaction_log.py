@@ -1,4 +1,5 @@
-"""simplify transaction log
+"""
+simplify transaction log
 
 Revision ID: 8c2406df6f8
 Revises:58732bb5d14b

@@ -1,4 +1,5 @@
-"""Change EASFolderSync unique constraint
+"""
+Change EASFolderSync unique constraint
 
 Revision ID: 1c72d8a0120e
 Revises: 1edbd63582c2

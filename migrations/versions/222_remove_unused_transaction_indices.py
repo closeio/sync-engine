@@ -1,4 +1,5 @@
-"""Remove unused indices on transaction table
+"""
+Remove unused indices on transaction table
 
 Revision ID: 361972a1de3e
 Revises: 516024977fc5

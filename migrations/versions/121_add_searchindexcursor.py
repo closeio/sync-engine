@@ -1,4 +1,5 @@
-"""add searchindexcursor.
+"""
+add searchindexcursor.
 
 Revision ID: 526eefc1d600
 Revises: 8c2406df6f8

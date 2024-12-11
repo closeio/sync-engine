@@ -1,4 +1,3 @@
-import socket
 from imaplib import IMAP4
 
 from imapclient import IMAPClient

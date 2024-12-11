@@ -1,4 +1,5 @@
-"""remove_soft_deleted_objects
+"""
+remove_soft_deleted_objects
 
 Revision ID: 40ad73aa49df
 Revises:3c743bd31ee2

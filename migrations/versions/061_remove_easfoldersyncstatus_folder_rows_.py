@@ -1,4 +1,5 @@
-"""Remove EASFolderSyncStatus + Folder rows for folders we never sync
+"""
+Remove EASFolderSyncStatus + Folder rows for folders we never sync
 
 Revision ID: 2a748760ac63
 Revises: 4af5952e8a5b

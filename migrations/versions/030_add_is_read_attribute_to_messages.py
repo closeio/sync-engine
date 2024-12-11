@@ -1,4 +1,5 @@
-"""add is_read attribute to messages
+"""
+add is_read attribute to messages
 
 Revision ID: 1b6ceae51b43
 Revises: 52a9a976a2e0

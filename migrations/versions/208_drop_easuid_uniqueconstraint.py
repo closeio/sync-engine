@@ -1,4 +1,5 @@
-"""Drop EASUid UniqueConstraint
+"""
+Drop EASUid UniqueConstraint
 
 Revision ID: 1962d17d1c0a
 Revises: 4b225df49747

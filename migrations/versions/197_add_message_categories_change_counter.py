@@ -1,4 +1,5 @@
-"""Add Message.categories_change_counter
+"""
+Add Message.categories_change_counter
 
 Revision ID: 3cf51fb0e76a
 Revises: 691fa97024d

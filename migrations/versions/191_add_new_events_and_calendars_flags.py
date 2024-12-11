@@ -1,4 +1,5 @@
-"""add new events and calendars flags
+"""
+add new events and calendars flags
 
 Revision ID: 47aec237051e
 Revises: 246a6bf050bc

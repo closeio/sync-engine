@@ -1,4 +1,5 @@
-"""Import old accounts
+"""
+Import old accounts
 
 Revision ID: adc646e1f11
 Revises: 41a7e825d108

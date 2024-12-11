@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from inbox.models.event import Event, RecurringEventOverride
+from inbox.models.event import Event
 
 
 def test_base36_validation():

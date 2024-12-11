@@ -1,4 +1,5 @@
-"""Add Account.desired_sync_host column
+"""
+Add Account.desired_sync_host column
 
 Revision ID: 3eb4f30c8ed3
 Revises: 34815f9e639c

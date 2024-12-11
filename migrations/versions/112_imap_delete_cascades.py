@@ -1,4 +1,5 @@
-"""imap delete cascades
+"""
+imap delete cascades
 
 Revision ID: 26911668870a
 Revises: 22d076f48b88

@@ -1,4 +1,5 @@
-"""drop cancelled column
+"""
+drop cancelled column
 
 Revision ID: 3c7f059a68ba
 Revises: 7de8a6ce8cd

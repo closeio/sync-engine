@@ -1,6 +1,7 @@
 # Not 100% sure where Secret is, but it may have been refactored away.
 
-"""generic_imap
+"""
+generic_imap
 
 Revision ID: 43cd2de5ad85
 Revises: 2525c5245cc2

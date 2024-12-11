@@ -1,4 +1,5 @@
-"""Revert "Drop Block and Part ForeignKeys"
+"""
+Revert "Drop Block and Part ForeignKeys"
 
 Revision ID: 569ebe8e383d
 Revises: 4a44b06cd53b

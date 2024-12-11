@@ -124,7 +124,8 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
         return namespace_public_id or obj.namespace.public_id
 
     def _format_participant_data(participant):
-        """Event.participants is a JSON blob which may contain internal data.
+        """
+        Event.participants is a JSON blob which may contain internal data.
         This function returns a dict with only the data we want to make
         public.
         """

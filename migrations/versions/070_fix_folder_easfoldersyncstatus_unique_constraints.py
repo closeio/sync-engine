@@ -1,4 +1,5 @@
-"""Fix Folder, EASFolderSyncStatus unique constraints
+"""
+Fix Folder, EASFolderSyncStatus unique constraints
 
 Revision ID: 2525c5245cc2
 Revises: 479b3b84a73e

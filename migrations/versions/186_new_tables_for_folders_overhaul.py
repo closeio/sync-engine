@@ -1,4 +1,5 @@
-"""new tables for folders overhaul
+"""
+new tables for folders overhaul
 
 Revision ID: 23e204cd1d91
 Revises:14692efd261b

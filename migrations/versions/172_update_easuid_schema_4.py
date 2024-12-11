@@ -1,4 +1,5 @@
-"""update_easuid_schema_4
+"""
+update_easuid_schema_4
 
 Revision ID: d0427f9f3d1
 Revises: 584356bf23a3

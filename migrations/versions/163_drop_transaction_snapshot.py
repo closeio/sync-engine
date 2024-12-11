@@ -1,4 +1,5 @@
-"""drop transaction snapshot
+"""
+drop transaction snapshot
 
 Revision ID: 457164360472
 Revises:2235895f313b

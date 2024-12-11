@@ -1,4 +1,5 @@
-"""fix owner column length --- it's a varchar(255) on our prod db
+"""
+fix owner column length --- it's a varchar(255) on our prod db
 when it should be a varchar(1024)
 
 Revision ID: fd32a69381a

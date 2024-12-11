@@ -10,7 +10,8 @@ from sqlalchemy.schema import (
 
 # http://www.sqlalchemy.org/trac/wiki/UsageRecipes/DropEverything
 def drop_everything(engine, keep_tables=None, reset_columns=None):
-    """Drops all tables in the db unless their name is in `keep_tables`.
+    """
+    Drops all tables in the db unless their name is in `keep_tables`.
     `reset_columns` is used to specify the columns that should be reset to
     default value in the tables that we're keeping -
     provided as a dict of table_name: list_of_column_names.

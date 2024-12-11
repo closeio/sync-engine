@@ -1,4 +1,5 @@
-"""outlook
+"""
+outlook
 
 Revision ID: 1ceff61ec112
 Revises: 2e6120c97485

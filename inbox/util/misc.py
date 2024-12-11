@@ -3,7 +3,6 @@ import sys
 from datetime import datetime
 from email.utils import mktime_tz, parsedate_tz
 from importlib import import_module
-from typing import List, Optional
 
 from inbox.providers import providers
 from inbox.util.file import iter_module_names
@@ -45,7 +44,7 @@ def parse_ml_headers(headers):
     }
 
 
-def parse_references(references: str, in_reply_to: str) -> List[str]:
+def parse_references(references: str, in_reply_to: str) -> list[str]:
     """
     Parse a References: header and returns an array of MessageIDs.
     The returned array contains the MessageID in In-Reply-To if
@@ -53,7 +52,6 @@ def parse_references(references: str, in_reply_to: str) -> List[str]:
 
     Parameters
     ----------
-
     references: string
         the contents of the referfences header
 
@@ -63,6 +61,7 @@ def parse_references(references: str, in_reply_to: str) -> List[str]:
     Returns
     -------
     list of MessageIds (strings) or an empty list.
+
     """
     replyto = in_reply_to.split()[0] if in_reply_to else in_reply_to
 
@@ -83,7 +82,7 @@ def dt_to_timestamp(dt):
     return int((dt - datetime(1970, 1, 1)).total_seconds())
 
 
-def get_internaldate(date: Optional[str], received: Optional[str]) -> datetime:
+def get_internaldate(date: str | None, received: str | None) -> datetime:
     """Get the date from the headers."""
     if date is None:
         assert received
@@ -146,7 +145,8 @@ def register_backends(base_name, base_path):
 
 
 def cleanup_subject(subject_str):
-    """Clean-up a message subject-line, including whitespace.
+    """
+    Clean-up a message subject-line, including whitespace.
     For instance, 'Re: Re: Re: Birthday   party' becomes 'Birthday party'
     """
     if subject_str is None:

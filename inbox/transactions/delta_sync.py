@@ -23,7 +23,7 @@ def get_transaction_cursor_near_timestamp(namespace_id, timestamp, db_session):
     to that timestamp in age. The cursor is the public_id of that transaction
     (or '0' if there are no such transactions).
 
-    Arguments
+    Arguments:
     ---------
     namespace_id: int
         Id of the namespace for which to get a cursor.
@@ -32,7 +32,7 @@ def get_transaction_cursor_near_timestamp(namespace_id, timestamp, db_session):
     db_session: new_session
         database session
 
-    Returns
+    Returns:
     -------
     string
         A transaction public_id that can be passed as a 'cursor' parameter by
@@ -119,7 +119,7 @@ def format_transactions_after_pointer(
 
     and new_pointer is the integer id of the last included transaction
 
-    Arguments
+    Arguments:
     ---------
     namespace_id: int
         Id of the namespace for which to get changes.
@@ -300,7 +300,7 @@ def streaming_change_generator(
     Poll the transaction log for the given `namespace_id` until `timeout`
     expires, and yield each time new entries are detected.
 
-    Arguments
+    Arguments:
     ---------
     namespace_id: int
         Id of the namespace for which to check changes.

@@ -1,4 +1,5 @@
-"""store full message body
+"""
+store full message body
 
 Revision ID: 58732bb5d14b
 Revises: 26911668870a

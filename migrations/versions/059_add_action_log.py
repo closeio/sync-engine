@@ -1,4 +1,5 @@
-"""Add action log
+"""
+Add action log
 
 Revision ID: 15dfc756a1b0
 Revises:4af5952e8a5b

@@ -1,6 +1,5 @@
 import datetime
 from collections import defaultdict
-from typing import DefaultDict, Dict
 
 """
 This file currently contains algorithms for the contacts/rankings endpoint
@@ -37,7 +36,8 @@ def _jaccard_similarity(set1, set2):
 
 
 def _get_participants(msg, excluded_emails=None):
-    """Returns an alphabetically sorted list of
+    """
+    Returns an alphabetically sorted list of
     emails addresses that msg was sent to (including cc and bcc)
     """
     excluded_emails = excluded_emails or []
@@ -55,7 +55,8 @@ def _get_participants(msg, excluded_emails=None):
 
 # Not really an algorithm, but it seemed reasonable to put this here?
 def is_stale(last_updated, lifespan=14):
-    """last_updated is a datetime.datetime object
+    """
+    last_updated is a datetime.datetime object
     lifespan is measured in days
     """
     if last_updated is None:
@@ -71,7 +72,7 @@ def is_stale(last_updated, lifespan=14):
 
 def calculate_contact_scores(messages, time_dependent=True):
     now = datetime.datetime.now()
-    res: DefaultDict[str, int] = defaultdict(int)
+    res: defaultdict[str, int] = defaultdict(int)
     for message in messages:
         if time_dependent:
             weight = _get_message_weight(now, message.date)
@@ -84,10 +85,11 @@ def calculate_contact_scores(messages, time_dependent=True):
 
 
 def calculate_group_counts(messages, user_email):
-    """Strips out most of the logic from calculate_group_scores
+    """
+    Strips out most of the logic from calculate_group_scores
     algorithm and just returns raw counts for each group.
     """
-    res: DefaultDict[str, int] = defaultdict(int)
+    res: defaultdict[str, int] = defaultdict(int)
     for msg in messages:
         participants = _get_participants(msg, [user_email])
         if len(participants) >= MIN_GROUP_SIZE:
@@ -96,7 +98,8 @@ def calculate_group_counts(messages, user_email):
 
 
 def calculate_group_scores(messages, user_email):
-    """This is a (modified) implementation of the algorithm described
+    """
+    This is a (modified) implementation of the algorithm described
     in this paper: http://mobisocial.stanford.edu/papers/iui11g.pdf
 
     messages must have the following properties:
@@ -106,7 +109,7 @@ def calculate_group_scores(messages, user_email):
         date - datetime.datetime object
     """
     now = datetime.datetime.now()
-    message_ids_to_scores: Dict[str, float] = {}
+    message_ids_to_scores: dict[str, float] = {}
     molecules_dict = defaultdict(set)  # (emails, ...) -> {message ids, ...}
 
     def get_message_list_weight(message_ids):

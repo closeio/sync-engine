@@ -1,4 +1,5 @@
-"""relationship between blocks and parts is 1-to-many
+"""
+relationship between blocks and parts is 1-to-many
 
 Revision ID: 2b89164aa9cd
 Revises: 4e3e8abea884

@@ -1,5 +1,4 @@
 from inbox.models import Contact
-
 from tests.util.base import contact_sync, contacts_provider
 
 __all__ = ["contacts_provider", "contact_sync"]

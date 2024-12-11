@@ -1,4 +1,5 @@
-"""create phone number table
+"""
+create phone number table
 
 Revision ID: 2ac4e3c4e049
 Revises: 3a58d466f61d

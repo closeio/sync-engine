@@ -1,4 +1,5 @@
-"""add message index
+"""
+add message index
 
 Revision ID: 4270a032b943
 Revises:13faec74da45

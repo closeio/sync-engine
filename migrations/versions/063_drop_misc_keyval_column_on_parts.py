@@ -1,4 +1,5 @@
-"""Drop misc_keyval column on parts
+"""
+Drop misc_keyval column on parts
 We're currently neither using it nor doing length checking, which is
 causing problems.
 Revision ID: 4fd3fcd46a3b

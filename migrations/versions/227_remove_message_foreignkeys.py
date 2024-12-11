@@ -1,4 +1,5 @@
-"""Remove Message ForeignKeys
+"""
+Remove Message ForeignKeys
 
 Revision ID: 17b147c1d53c
 Revises: 2dbf6da0775b

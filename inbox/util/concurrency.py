@@ -6,8 +6,8 @@ import socket
 import ssl
 import sys
 import time
-from collections.abc import Callable
-from typing import Any, Iterable, TypeVar
+from collections.abc import Callable, Iterable
+from typing import Any, TypeVar
 
 from MySQLdb import _exceptions as _mysql_exceptions
 from redis import TimeoutError
@@ -51,7 +51,7 @@ def retry(
     Executes the callable func, retrying on uncaught exceptions matching the
     class filters.
 
-    Arguments
+    Arguments:
     ---------
     func : function
     exc_callback : function, optional
@@ -63,6 +63,7 @@ def retry(
     fail_classes: list of Exception subclasses, optional
         Configures what not to retry on. If specified, func is /not/ retried if
         one of these exceptions is raised.
+
     """
     if (
         fail_classes

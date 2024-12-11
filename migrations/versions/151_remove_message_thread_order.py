@@ -1,4 +1,5 @@
-"""remove message.thread_order
+"""
+remove message.thread_order
 
 Revision ID: 2f3c8fa3fc3a
 Revises: 1de526a15c5d

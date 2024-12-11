@@ -1,4 +1,5 @@
-"""Add sync_should_run bit to Account
+"""
+Add sync_should_run bit to Account
 
 Revision ID: 2d8a350b4885
 Revises: 3ab34bc85c8d

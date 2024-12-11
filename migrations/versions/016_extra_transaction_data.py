@@ -1,4 +1,5 @@
-"""extra transaction data
+"""
+extra transaction data
 
 Revision ID: 5093433b073
 Revises: 3fee2f161614

@@ -1,4 +1,5 @@
-"""Store raw contact data.
+"""
+Store raw contact data.
 
 Revision ID: 3b511977a01f
 Revises: 169cac0cd87e

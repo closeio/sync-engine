@@ -1,5 +1,3 @@
-from typing import List
-
 import requests
 from sqlalchemy import desc
 
@@ -108,7 +106,7 @@ class GmailSearchClient:
         return g
 
     def _search(self, search_query, limit):
-        results: List[int] = []
+        results: list[int] = []
 
         params = dict(q=search_query, maxResults=limit)
 

@@ -1,4 +1,5 @@
-"""add_namespace_to_calendars
+"""
+add_namespace_to_calendars
 
 Revision ID: 4015edc83ba
 Revises:4d10bc835f44

@@ -1,4 +1,5 @@
-"""Fix EASUid delete cascades
+"""
+Fix EASUid delete cascades
 
 Revision ID: 420bf3422c4f
 Revises: 10ecf4841ac3

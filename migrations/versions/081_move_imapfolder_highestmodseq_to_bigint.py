@@ -1,4 +1,5 @@
-"""move imapfolder highestmodseq to bigint
+"""
+move imapfolder highestmodseq to bigint
 
 Revision ID: 1bc2536b8bc6
 Revises: 4e3e8abea884

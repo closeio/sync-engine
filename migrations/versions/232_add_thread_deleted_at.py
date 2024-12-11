@@ -1,4 +1,5 @@
-"""At Thread.deleted_at
+"""
+At Thread.deleted_at
 
 Revision ID: 4a44b06cd53b
 Revises: c48fc8dea1b

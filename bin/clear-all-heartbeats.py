@@ -12,7 +12,6 @@ from inbox.heartbeat.config import (
     SOCKET_TIMEOUT,
     STATUS_DATABASE,
     WAIT_TIMEOUT,
-    get_redis_client,
 )
 
 

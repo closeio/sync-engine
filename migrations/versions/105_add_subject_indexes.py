@@ -1,4 +1,5 @@
-"""add subject indexes
+"""
+add subject indexes
 
 Revision ID: 37cd05edd433
 Revises: 569b9d365295

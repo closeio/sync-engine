@@ -1,4 +1,5 @@
-"""drop_gmailaccount_fields
+"""
+drop_gmailaccount_fields
 
 Revision ID: 32df3d8ff73e
 Revises: 50407c7fe030

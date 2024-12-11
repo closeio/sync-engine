@@ -14,12 +14,11 @@ from inbox.mailsync.backends.imap.common import (
 from inbox.mailsync.gc import DeleteHandler, LabelRenameHandler
 from inbox.models import Folder, Message, Transaction
 from inbox.models.label import Label
-from inbox.util.testutils import MockIMAPClient, mock_imapclient
-
+from inbox.util.testutils import MockIMAPClient
 from tests.util.base import add_fake_imapuid, add_fake_message
 
 
-@pytest.fixture()
+@pytest.fixture
 def marked_deleted_message(db, message):
     deleted_timestamp = datetime(2015, 2, 22, 22, 22, 22)
     message.deleted_at = deleted_timestamp
@@ -63,7 +62,8 @@ def test_drafts_deleted_synchronously(
 def test_deleting_from_a_message_with_multiple_uids(
     db, default_account, message, thread
 ):
-    """Check that deleting a imapuid from a message with
+    """
+    Check that deleting a imapuid from a message with
     multiple uids doesn't mark the message for deletion.
     """
     inbox_folder = Folder.find_or_create(

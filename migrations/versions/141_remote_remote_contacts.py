@@ -1,4 +1,5 @@
-"""Remove notion of 'remote' contact and drop contact 'source' column
+"""
+Remove notion of 'remote' contact and drop contact 'source' column
 
 Revision ID: 3ab34bc85c8d
 Revises: 3f01a3f1b4cc

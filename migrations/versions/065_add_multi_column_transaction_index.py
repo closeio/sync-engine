@@ -1,4 +1,5 @@
-"""add multi-column transaction index
+"""
+add multi-column transaction index
 
 Revision ID: 2e6120c97485
 Revises: 2d05e116bdb7

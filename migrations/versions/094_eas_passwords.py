@@ -1,4 +1,5 @@
-"""EAS passwords
+"""
+EAS passwords
 
 Revision ID: 427812c1e849
 Revises:159607944f52

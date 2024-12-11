@@ -1,5 +1,4 @@
 import ssl
-from typing import Union
 
 from imapclient import IMAPClient
 
@@ -9,7 +8,7 @@ from inbox.logging import get_logger
 log = get_logger()
 
 
-def safe_decode(message: Union[str, bytes]) -> str:
+def safe_decode(message: str | bytes) -> str:
     if isinstance(message, bytes):
         return message.decode("utf-8", errors="replace")
 
@@ -71,6 +70,7 @@ def create_imap_connection(host, port, use_timeout=True):
     Raises:
         SSLNotSupportedError: If an encrypted connection is not supported by
             the IMAP server.
+
     """
     is_ssl_port = port == 993
     timeout = 300 if use_timeout else None

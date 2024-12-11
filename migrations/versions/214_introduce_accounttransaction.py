@@ -1,4 +1,5 @@
-"""Introduce AccountTransaction.
+"""
+Introduce AccountTransaction.
 
 Revision ID: 4b83e064dd49
 Revises: 31aae1ecb374

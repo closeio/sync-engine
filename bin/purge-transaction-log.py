@@ -32,10 +32,17 @@ def run(days_ago, limit, throttle, dry_run):
 
     print("Python", sys.version, file=sys.stderr)
 
-    with ThreadPoolExecutor(max_workers=len(config["DATABASE_HOSTS"])) as executor:
+    with ThreadPoolExecutor(
+        max_workers=len(config["DATABASE_HOSTS"])
+    ) as executor:
         for host in config["DATABASE_HOSTS"]:
             executor.submit(
-                purge_old_transactions, host, days_ago, limit, throttle, dry_run
+                purge_old_transactions,
+                host,
+                days_ago,
+                limit,
+                throttle,
+                dry_run,
             )
 
 
@@ -45,12 +52,16 @@ def purge_old_transactions(host, days_ago, limit, throttle, dry_run):
             # Ensure shard is explicitly not marked as disabled
             if "DISABLED" in shard and not shard["DISABLED"]:
                 log.info(
-                    "Spawning transaction purge process for shard", shard_id=shard["ID"]
+                    "Spawning transaction purge process for shard",
+                    shard_id=shard["ID"],
                 )
-                purge_transactions(shard["ID"], days_ago, limit, throttle, dry_run)
+                purge_transactions(
+                    shard["ID"], days_ago, limit, throttle, dry_run
+                )
             else:
                 log.info(
-                    "Will not spawn process for disabled shard", shard_id=shard["ID"]
+                    "Will not spawn process for disabled shard",
+                    shard_id=shard["ID"],
                 )
         time.sleep(600)
 

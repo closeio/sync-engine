@@ -22,7 +22,9 @@ from inbox.error_handling import maybe_enable_rollbar
     default=None,
     help="Initialize a crispin client for a particular account.",
 )
-@click.option("-c", "--client", is_flag=True, help="Start a repl with an APIClient")
+@click.option(
+    "-c", "--client", is_flag=True, help="Start a repl with an APIClient"
+)
 def console(email_address, client):
     """REPL for Nylas."""
     maybe_enable_rollbar()

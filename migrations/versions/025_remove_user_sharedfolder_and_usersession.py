@@ -16,8 +16,12 @@ from alembic import op
 def upgrade():
     op.drop_constraint("account_ibfk_1", "account", type_="foreignkey")
     op.drop_constraint("usersession_ibfk_1", "usersession", type_="foreignkey")
-    op.drop_constraint("sharedfolder_ibfk_1", "sharedfolder", type_="foreignkey")
-    op.drop_constraint("sharedfolder_ibfk_2", "sharedfolder", type_="foreignkey")
+    op.drop_constraint(
+        "sharedfolder_ibfk_1", "sharedfolder", type_="foreignkey"
+    )
+    op.drop_constraint(
+        "sharedfolder_ibfk_2", "sharedfolder", type_="foreignkey"
+    )
 
     op.drop_table("user")
     op.drop_table("sharedfolder")

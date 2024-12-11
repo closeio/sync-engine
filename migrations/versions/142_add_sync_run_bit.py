@@ -17,7 +17,9 @@ from alembic import op
 def upgrade():
     op.add_column(
         "account",
-        sa.Column("sync_should_run", sa.Boolean(), server_default="1", nullable=True),
+        sa.Column(
+            "sync_should_run", sa.Boolean(), server_default="1", nullable=True
+        ),
     )
 
 

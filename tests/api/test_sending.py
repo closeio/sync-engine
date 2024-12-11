@@ -30,13 +30,16 @@ class MockTokenManager:
 
 @pytest.fixture
 def patch_token_manager(monkeypatch):
-    monkeypatch.setattr("inbox.sendmail.smtp.postel.token_manager", MockTokenManager())
+    monkeypatch.setattr(
+        "inbox.sendmail.smtp.postel.token_manager", MockTokenManager()
+    )
 
 
 @pytest.fixture
 def disallow_auth(monkeypatch):
     monkeypatch.setattr(
-        "inbox.sendmail.smtp.postel.token_manager", MockTokenManager(allow_auth=False)
+        "inbox.sendmail.smtp.postel.token_manager",
+        MockTokenManager(allow_auth=False),
     )
 
 
@@ -57,7 +60,9 @@ def patch_smtp(patch_token_manager, monkeypatch):
         def sendmail(self, recipients, msg):
             submitted_messages.append((recipients, msg))
 
-    monkeypatch.setattr("inbox.sendmail.smtp.postel.SMTPConnection", MockSMTPConnection)
+    monkeypatch.setattr(
+        "inbox.sendmail.smtp.postel.SMTPConnection", MockSMTPConnection
+    )
     return submitted_messages
 
 
@@ -112,7 +117,8 @@ def recipients_refused(patch_token_manager, monkeypatch, request):
     monkeypatch.setattr(
         "inbox.sendmail.smtp.postel.SMTPConnection",
         erring_smtp_connection(
-            smtplib.SMTPRecipientsRefused, {"foo@foocorp.com": (550, request.param)}
+            smtplib.SMTPRecipientsRefused,
+            {"foo@foocorp.com": (550, request.param)},
         ),
     )
 
@@ -128,7 +134,9 @@ def recipients_refused(patch_token_manager, monkeypatch, request):
 def message_too_large(patch_token_manager, monkeypatch, request):
     monkeypatch.setattr(
         "inbox.sendmail.smtp.postel.SMTPConnection",
-        erring_smtp_connection(smtplib.SMTPSenderRefused, 552, request.param, None),
+        erring_smtp_connection(
+            smtplib.SMTPSenderRefused, 552, request.param, None
+        ),
     )
 
 
@@ -151,7 +159,10 @@ def example_draft(db, default_account):
         "subject": "Draft test",
         "body": "<html><body><h2>Sea, birds and sand.</h2></body></html>",
         "to": [
-            {"name": "The red-haired mermaid", "email": default_account.email_address}
+            {
+                "name": "The red-haired mermaid",
+                "email": default_account.email_address,
+            }
         ],
     }
 
@@ -171,7 +182,10 @@ def example_draft_bad_subject(db, default_account):
         "subject": ["draft", "test"],
         "body": "<html><body><h2>Sea, birds and sand.</h2></body></html>",
         "to": [
-            {"name": "The red-haired mermaid", "email": default_account.email_address}
+            {
+                "name": "The red-haired mermaid",
+                "email": default_account.email_address,
+            }
         ],
     }
 
@@ -182,7 +196,10 @@ def example_draft_bad_body(db, default_account):
         "subject": "Draft test",
         "body": {"foo": "bar"},
         "to": [
-            {"name": "The red-haired mermaid", "email": default_account.email_address}
+            {
+                "name": "The red-haired mermaid",
+                "email": default_account.email_address,
+            }
         ],
     }
 
@@ -210,11 +227,15 @@ def test_send_existing_draft(patch_smtp, api_client, example_draft):
     draft_public_id = json.loads(r.data)["id"]
     version = json.loads(r.data)["version"]
 
-    r = api_client.post_data("/send", {"draft_id": draft_public_id, "version": version})
+    r = api_client.post_data(
+        "/send", {"draft_id": draft_public_id, "version": version}
+    )
     assert r.status_code == 200
 
     # Test that the sent draft can't be sent again.
-    r = api_client.post_data("/send", {"draft_id": draft_public_id, "version": version})
+    r = api_client.post_data(
+        "/send", {"draft_id": draft_public_id, "version": version}
+    )
     assert r.status_code == 400
 
     drafts = api_client.get_data("/drafts")
@@ -234,7 +255,9 @@ def test_send_rejected_without_version(api_client, example_draft):
 def test_send_rejected_with_wrong_version(api_client, example_draft):
     r = api_client.post_data("/drafts", example_draft)
     draft_public_id = json.loads(r.data)["id"]
-    r = api_client.post_data("/send", {"draft_id": draft_public_id, "version": 222})
+    r = api_client.post_data(
+        "/send", {"draft_id": draft_public_id, "version": 222}
+    )
     assert r.status_code == 409
 
 
@@ -243,11 +266,15 @@ def test_send_rejected_without_recipients(api_client):
     draft_public_id = json.loads(r.data)["id"]
     version = json.loads(r.data)["version"]
 
-    r = api_client.post_data("/send", {"draft_id": draft_public_id, "version": version})
+    r = api_client.post_data(
+        "/send", {"draft_id": draft_public_id, "version": version}
+    )
     assert r.status_code == 400
 
 
-def test_send_new_draft(patch_smtp, api_client, default_account, example_draft):
+def test_send_new_draft(
+    patch_smtp, api_client, default_account, example_draft
+):
     r = api_client.post_data("/send", example_draft)
     assert r.status_code == 200
 
@@ -299,7 +326,10 @@ def test_recipient_validation(patch_smtp, api_client):
         "/drafts",
         {
             "to": [
-                {"name": "Good Recipient", "email": "goodrecipient@example.com"},
+                {
+                    "name": "Good Recipient",
+                    "email": "goodrecipient@example.com",
+                },
                 "badrecipient@example.com",
             ]
         },
@@ -332,7 +362,9 @@ def test_handle_quota_exceeded(quota_exceeded, api_client, example_draft):
     assert json.loads(r.data)["message"] == "Daily sending quota exceeded"
 
 
-def test_handle_server_disconnected(connection_closed, api_client, example_draft):
+def test_handle_server_disconnected(
+    connection_closed, api_client, example_draft
+):
     r = api_client.post_data("/send", example_draft)
     assert r.status_code == 503
     assert (
@@ -341,23 +373,30 @@ def test_handle_server_disconnected(connection_closed, api_client, example_draft
     )
 
 
-def test_handle_recipients_rejected(recipients_refused, api_client, example_draft):
+def test_handle_recipients_rejected(
+    recipients_refused, api_client, example_draft
+):
     r = api_client.post_data("/send", example_draft)
     assert r.status_code == 402
     assert json.loads(r.data)["message"] == "Sending to all recipients failed"
 
 
-def test_handle_message_too_large(message_too_large, api_client, example_draft):
+def test_handle_message_too_large(
+    message_too_large, api_client, example_draft
+):
     r = api_client.post_data("/send", example_draft)
     assert r.status_code == 402
     assert json.loads(r.data)["message"] == "Message too large"
 
 
-def test_message_rejected_for_security(insecure_content, api_client, example_draft):
+def test_message_rejected_for_security(
+    insecure_content, api_client, example_draft
+):
     r = api_client.post_data("/send", example_draft)
     assert r.status_code == 402
     assert (
-        json.loads(r.data)["message"] == "Message content rejected for security reasons"
+        json.loads(r.data)["message"]
+        == "Message content rejected for security reasons"
     )
 
 
@@ -373,14 +412,20 @@ def test_bcc_in_recipients_but_stripped_from_headers(patch_smtp, api_client):
     )
     assert r.status_code == 200
     recipients, msg = patch_smtp[0]
-    assert set(recipients) == {"bob@foocorp.com", "jane@foocorp.com", "spies@nsa.gov"}
+    assert set(recipients) == {
+        "bob@foocorp.com",
+        "jane@foocorp.com",
+        "spies@nsa.gov",
+    }
     parsed = mime.from_string(msg)
     assert "Bcc" not in parsed.headers
     assert parsed.headers.get("To") == "bob@foocorp.com"
     assert parsed.headers.get("Cc") == "jane@foocorp.com"
 
 
-def test_reply_headers_set(db, patch_smtp, api_client, example_draft, thread, message):
+def test_reply_headers_set(
+    db, patch_smtp, api_client, example_draft, thread, message
+):
     message.message_id_header = "<exampleheader@example.com>"
     db.session.commit()
     thread_id = api_client.get_data("/threads")[0]["id"]
@@ -418,7 +463,9 @@ def test_body_construction(patch_smtp, api_client):
     assert plain_part_found and html_part_found
 
 
-def test_quoted_printable_encoding_avoided_for_compatibility(patch_smtp, api_client):
+def test_quoted_printable_encoding_avoided_for_compatibility(
+    patch_smtp, api_client
+):
     # Test that messages with long lines don't get quoted-printable encoded,
     # for maximum server compatibility.
     api_client.post_data(
@@ -450,13 +497,20 @@ def test_quoted_printable_encoding_avoided_for_compatibility(patch_smtp, api_cli
             assert part.content_encoding[0] in ("7bit", "base64")
 
 
-def test_draft_not_persisted_if_sending_fails(recipients_refused, api_client, db):
+def test_draft_not_persisted_if_sending_fails(
+    recipients_refused, api_client, db
+):
     api_client.post_data(
         "/send",
-        {"to": [{"email": "bob@foocorp.com"}], "subject": "some unique subject"},
+        {
+            "to": [{"email": "bob@foocorp.com"}],
+            "subject": "some unique subject",
+        },
     )
     assert (
-        db.session.query(Message).filter_by(subject="some unique subject").first()
+        db.session.query(Message)
+        .filter_by(subject="some unique subject")
+        .first()
         is None
     )
 
@@ -525,7 +579,9 @@ def test_sending_raw_mime(patch_smtp, api_client):
     parsed = mime.from_string(msg)
     assert parsed.body == "Yo."
     assert parsed.headers["From"] == "bob@foocorp.com"
-    assert parsed.headers["Subject"] == "[go-nuts] Runtime Panic On Method Call"
+    assert (
+        parsed.headers["Subject"] == "[go-nuts] Runtime Panic On Method Call"
+    )
     assert parsed.headers["Cc"] == "prez@whitehouse.gov"
     assert parsed.headers["To"] == "golang-nuts <golang-nuts@googlegroups.com>"
     assert (
@@ -533,7 +589,8 @@ def test_sending_raw_mime(patch_smtp, api_client):
         == "<78pgxboai332pi9p2smo4db73-0@mailer.nylas.com>"
     )
     assert (
-        parsed.headers["References"] == "<78pgxboai332pi9p2smo4db73-0@mailer.nylas.com>"
+        parsed.headers["References"]
+        == "<78pgxboai332pi9p2smo4db73-0@mailer.nylas.com>"
     )
     assert parsed.headers["X-My-Custom-Header"] == "Random"
     assert "Bcc" not in parsed.headers
@@ -621,7 +678,9 @@ def test_rsvp_server_disconnected(connection_closed, api_client, example_rsvp):
     )
 
 
-def test_rsvp_recipients_rejected(recipients_refused, api_client, example_rsvp):
+def test_rsvp_recipients_rejected(
+    recipients_refused, api_client, example_rsvp
+):
     r = api_client.post_data("/send-rsvp", example_rsvp)
     assert r.status_code == 402
     assert json.loads(r.data)["message"] == "Sending to all recipients failed"
@@ -633,15 +692,20 @@ def test_rsvp_message_too_large(message_too_large, api_client, example_rsvp):
     assert json.loads(r.data)["message"] == "Message too large"
 
 
-def test_rsvp_message_rejected_for_security(insecure_content, api_client, example_rsvp):
+def test_rsvp_message_rejected_for_security(
+    insecure_content, api_client, example_rsvp
+):
     r = api_client.post_data("/send-rsvp", example_rsvp)
     assert r.status_code == 402
     assert (
-        json.loads(r.data)["message"] == "Message content rejected for security reasons"
+        json.loads(r.data)["message"]
+        == "Message content rejected for security reasons"
     )
 
 
-def test_rsvp_updates_status(patch_smtp, api_client, example_rsvp, imported_event):
+def test_rsvp_updates_status(
+    patch_smtp, api_client, example_rsvp, imported_event
+):
     assert len(imported_event.participants) == 1
     assert imported_event.participants[0]["email"] == "inboxapptest@gmail.com"
     assert imported_event.participants[0]["status"] == "noreply"
@@ -687,7 +751,11 @@ def test_rsvp_idempotent(
     old_update_date = imported_event.updated_at
     db.session.expunge(imported_event)
 
-    rsvp = {"event_id": imported_event.public_id, "status": status, "comment": comment}
+    rsvp = {
+        "event_id": imported_event.public_id,
+        "status": status,
+        "comment": comment,
+    }
     r = api_client.post_data("/send-rsvp", rsvp)
     assert r.status_code == 200
     dct = json.loads(r.data)
@@ -726,7 +794,9 @@ def test_multisend_init_new_draft(patch_smtp, api_client, example_draft):
     draft_public_id = json.loads(r.data)["id"]
 
     # Test that the sent draft can't be sent normally now
-    r = api_client.post_data("/send", {"draft_id": draft_public_id, "version": 0})
+    r = api_client.post_data(
+        "/send", {"draft_id": draft_public_id, "version": 0}
+    )
     assert r.status_code == 400
 
     # It's not a draft anymore
@@ -738,7 +808,9 @@ def test_multisend_init_new_draft(patch_smtp, api_client, example_draft):
     assert message["object"] == "message"
 
 
-def test_multisend_init_rejected_with_existing_draft(api_client, example_draft):
+def test_multisend_init_rejected_with_existing_draft(
+    api_client, example_draft
+):
     r = api_client.post_data("/drafts", example_draft)
     draft_public_id = json.loads(r.data)["id"]
     version = json.loads(r.data)["version"]
@@ -754,7 +826,9 @@ def test_multisend_init_rejected_without_recipients(api_client):
     assert r.status_code == 400
 
 
-def test_multisend_init_malformed_body_rejected(api_client, example_draft_bad_body):
+def test_multisend_init_malformed_body_rejected(
+    api_client, example_draft_bad_body
+):
     r = api_client.post_data("/send-multiple", example_draft_bad_body)
 
     assert r.status_code == 400
@@ -792,7 +866,10 @@ def multisend_draft(api_client, example_draft):
 def multisend(multisend_draft):
     return {
         "id": multisend_draft["id"],
-        "send_req": {"body": "email body", "send_to": multisend_draft["to"][0]},
+        "send_req": {
+            "body": "email body",
+            "send_to": multisend_draft["to"][0],
+        },
         "draft": multisend_draft,
     }
 
@@ -801,7 +878,10 @@ def multisend(multisend_draft):
 def multisend2(multisend_draft):
     return {
         "id": multisend_draft["id"],
-        "send_req": {"body": "email body 2", "send_to": multisend_draft["to"][1]},
+        "send_req": {
+            "body": "email body 2",
+            "send_to": multisend_draft["to"][1],
+        },
         "draft": multisend_draft,
     }
 
@@ -839,14 +919,20 @@ def patch_crispin_del_sent(monkeypatch):
     def fake_conn_pool(acct_id):
         return FakeConnWrapper()
 
-    monkeypatch.setattr("inbox.api.ns_api.remote_delete_sent", fake_remote_delete_sent)
-    monkeypatch.setattr("inbox.api.ns_api.writable_connection_pool", fake_conn_pool)
+    monkeypatch.setattr(
+        "inbox.api.ns_api.remote_delete_sent", fake_remote_delete_sent
+    )
+    monkeypatch.setattr(
+        "inbox.api.ns_api.writable_connection_pool", fake_conn_pool
+    )
 
 
 def test_multisend_session(
     api_client, multisend, multisend2, patch_smtp, patch_crispin_del_sent
 ):
-    r = api_client.post_data("/send-multiple/" + multisend["id"], multisend["send_req"])
+    r = api_client.post_data(
+        "/send-multiple/" + multisend["id"], multisend["send_req"]
+    )
     assert r.status_code == 200
     assert json.loads(r.data)["body"] == multisend["send_req"]["body"]
 
@@ -874,7 +960,9 @@ def test_multisend_session(
 def test_multisend_handle_invalid_credentials(
     disallow_auth, api_client, multisend, patch_crispin_del_sent
 ):
-    r = api_client.post_data("/send-multiple/" + multisend["id"], multisend["send_req"])
+    r = api_client.post_data(
+        "/send-multiple/" + multisend["id"], multisend["send_req"]
+    )
     assert r.status_code == 403
     assert (
         json.loads(r.data)["message"] == "Could not authenticate with "
@@ -885,7 +973,9 @@ def test_multisend_handle_invalid_credentials(
 def test_multisend_handle_quota_exceeded(
     quota_exceeded, api_client, multisend, patch_crispin_del_sent
 ):
-    r = api_client.post_data("/send-multiple/" + multisend["id"], multisend["send_req"])
+    r = api_client.post_data(
+        "/send-multiple/" + multisend["id"], multisend["send_req"]
+    )
     assert r.status_code == 429
     assert json.loads(r.data)["message"] == "Daily sending quota exceeded"
 
@@ -893,7 +983,9 @@ def test_multisend_handle_quota_exceeded(
 def test_multisend_handle_server_disconnected(
     connection_closed, api_client, multisend, patch_crispin_del_sent
 ):
-    r = api_client.post_data("/send-multiple/" + multisend["id"], multisend["send_req"])
+    r = api_client.post_data(
+        "/send-multiple/" + multisend["id"], multisend["send_req"]
+    )
     assert r.status_code == 503
     assert (
         json.loads(r.data)["message"] == "The server unexpectedly closed "
@@ -904,7 +996,9 @@ def test_multisend_handle_server_disconnected(
 def test_multisend_handle_recipients_rejected(
     recipients_refused, api_client, multisend, patch_crispin_del_sent
 ):
-    r = api_client.post_data("/send-multiple/" + multisend["id"], multisend["send_req"])
+    r = api_client.post_data(
+        "/send-multiple/" + multisend["id"], multisend["send_req"]
+    )
     assert r.status_code == 402
     assert json.loads(r.data)["message"] == "Sending to all recipients failed"
 
@@ -912,7 +1006,9 @@ def test_multisend_handle_recipients_rejected(
 def test_multisend_handle_message_too_large(
     message_too_large, api_client, multisend, patch_crispin_del_sent
 ):
-    r = api_client.post_data("/send-multiple/" + multisend["id"], multisend["send_req"])
+    r = api_client.post_data(
+        "/send-multiple/" + multisend["id"], multisend["send_req"]
+    )
     assert r.status_code == 402
     assert json.loads(r.data)["message"] == "Message too large"
 
@@ -920,7 +1016,9 @@ def test_multisend_handle_message_too_large(
 def test_multisend_message_rejected_for_security(
     insecure_content, api_client, multisend, patch_crispin_del_sent
 ):
-    r = api_client.post_data("/send-multiple/" + multisend["id"], multisend["send_req"])
+    r = api_client.post_data(
+        "/send-multiple/" + multisend["id"], multisend["send_req"]
+    )
     assert r.status_code == 402
     assert (
         json.loads(r.data)["message"] == "Message content rejected "

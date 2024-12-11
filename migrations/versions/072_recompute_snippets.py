@@ -42,7 +42,11 @@ def upgrade():
         __table__ = Base.metadata.tables["message"]
 
     def calculate_html_snippet(msg, text):
-        text = text.replace("<br>", " ").replace("<br/>", " ").replace("<br />", " ")
+        text = (
+            text.replace("<br>", " ")
+            .replace("<br/>", " ")
+            .replace("<br />", " ")
+        )
         text = strip_tags(text)
         calculate_plaintext_snippet(msg, text)
 

@@ -31,7 +31,9 @@ def upgrade():
            AND constraint_schema=DATABASE()"""
     ).fetchall()
     for (folder_fk,) in folder_fks:
-        conn.execute(f"ALTER TABLE easfoldersyncstatus DROP FOREIGN KEY {folder_fk}")
+        conn.execute(
+            f"ALTER TABLE easfoldersyncstatus DROP FOREIGN KEY {folder_fk}"
+        )
 
     # Drop folder_id foreign key constraint from easuid table
     folder_fks = conn.execute(

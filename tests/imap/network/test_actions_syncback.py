@@ -71,7 +71,9 @@ def test_copy_delete_syncback(db, config):
     )
     account = db.session.query(ImapAccount).get(ACCOUNT_ID)
 
-    _remote_copy(account, THREAD_ID, account.inbox_folder.name, "testlabel", db.session)
+    _remote_copy(
+        account, THREAD_ID, account.inbox_folder.name, "testlabel", db.session
+    )
 
     with crispin_client(account.id, account.provider) as client:
         client.select_folder(account.inbox_folder.name, uidvalidity_cb)
@@ -102,20 +104,28 @@ def test_remote_unread_syncback(db, config):
     from inbox.models.backends.imap import ImapAccount, ImapThread
 
     account = db.session.query(ImapAccount).get(ACCOUNT_ID)
-    (g_thrid,) = db.session.query(ImapThread.g_thrid).filter_by(id=THREAD_ID).one()
+    (g_thrid,) = (
+        db.session.query(ImapThread.g_thrid).filter_by(id=THREAD_ID).one()
+    )
 
     set_remote_unread(account, THREAD_ID, True, db.session)
 
     with crispin_client(account.id, account.provider) as client:
         client.select_folder(account.all_folder.name, uidvalidity_cb)
         uids = client.find_messages(g_thrid)
-        assert not any("\\Seen" in flags for flags, _ in client.flags(uids).values())
+        assert not any(
+            "\\Seen" in flags for flags, _ in client.flags(uids).values()
+        )
 
         set_remote_unread(account, THREAD_ID, False, db.session)
-        assert all("\\Seen" in flags for flags, _ in client.flags(uids).values())
+        assert all(
+            "\\Seen" in flags for flags, _ in client.flags(uids).values()
+        )
 
         set_remote_unread(account, THREAD_ID, True, db.session)
-        assert not any("\\Seen" in flags for flags, _ in client.flags(uids).values())
+        assert not any(
+            "\\Seen" in flags for flags, _ in client.flags(uids).values()
+        )
 
 
 # TODO: Test more of the different cases here.

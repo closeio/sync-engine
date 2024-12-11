@@ -17,7 +17,9 @@ from inbox.events.microsoft.graph_client import (
 
 def test_format_datetime():
     assert (
-        format_datetime(datetime.datetime(2022, 10, 1, 3, 4, 5, tzinfo=pytz.UTC))
+        format_datetime(
+            datetime.datetime(2022, 10, 1, 3, 4, 5, tzinfo=pytz.UTC)
+        )
         == "2022-10-01T03:04:05Z"
     )
 
@@ -65,8 +67,12 @@ def test_request(client):
 
 @responses.activate(registry=OrderedRegistry)
 def test_request_retry_429(client):
-    responses.get(BASE_URL + "/me/calendars", status=429, headers={"Retry-After": "12"})
-    responses.get(BASE_URL + "/me/calendars", status=429, headers={"Retry-After": "3"})
+    responses.get(
+        BASE_URL + "/me/calendars", status=429, headers={"Retry-After": "12"}
+    )
+    responses.get(
+        BASE_URL + "/me/calendars", status=429, headers={"Retry-After": "3"}
+    )
     responses.get(BASE_URL + "/me/calendars", json=calendars_json)
 
     with unittest.mock.patch("time.sleep") as sleep_mock:
@@ -104,12 +110,17 @@ bad_id_json = {
 
 @responses.activate
 def test_request_exception(client):
-    responses.get(BASE_URL + "/me/calendars/bad_id", status=400, json=bad_id_json)
+    responses.get(
+        BASE_URL + "/me/calendars/bad_id", status=400, json=bad_id_json
+    )
 
     with pytest.raises(MicrosoftGraphClientException) as exc_info:
         client.request("GET", "/me/calendars/bad_id")
 
-    assert exc_info.value.args == ("ErrorInvalidIdMalformed", "Id is malformed.")
+    assert exc_info.value.args == (
+        "ErrorInvalidIdMalformed",
+        "Id is malformed.",
+    )
     assert exc_info.value.response.status_code == 400
 
 
@@ -165,7 +176,9 @@ events_json = {
 
 @responses.activate
 def test_iter_events(client):
-    responses.get(BASE_URL + "/me/calendars/fake_calendar_id/events", json=events_json)
+    responses.get(
+        BASE_URL + "/me/calendars/fake_calendar_id/events", json=events_json
+    )
 
     events = client.iter_events("fake_calendar_id")
     assert {event["subject"] for event in events} == {
@@ -180,7 +193,10 @@ def test_iter_events(client):
 @pytest.mark.parametrize(
     "modified_after,subjects",
     [
-        (datetime.datetime(2022, 9, 9, 12, tzinfo=pytz.UTC), {"Business meeting"}),
+        (
+            datetime.datetime(2022, 9, 9, 12, tzinfo=pytz.UTC),
+            {"Business meeting"},
+        ),
         (
             datetime.datetime(2022, 9, 8, 12, tzinfo=pytz.UTC),
             {"Business meeting", "Contract negotations"},
@@ -196,7 +212,8 @@ def test_iter_events_modified_after(client, modified_after, subjects):
         events = [
             event
             for event in events_json["value"]
-            if ciso8601.parse_datetime(event["lastModifiedDateTime"]) > modified_after
+            if ciso8601.parse_datetime(event["lastModifiedDateTime"])
+            > modified_after
         ]
 
         return (200, {}, json.dumps({"value": events}))
@@ -208,7 +225,9 @@ def test_iter_events_modified_after(client, modified_after, subjects):
         content_type="application/json",
     )
 
-    events = client.iter_events("fake_calendar_id", modified_after=modified_after)
+    events = client.iter_events(
+        "fake_calendar_id", modified_after=modified_after
+    )
 
     assert {event["subject"] for event in events} == subjects
 
@@ -251,11 +270,13 @@ event_instances_second_page = {
 @responses.activate(registry=OrderedRegistry)
 def test_iter_event_instances(client):
     responses.get(
-        BASE_URL + "/me/events/fake_event_id/instances", json=event_instances_first_page
+        BASE_URL + "/me/events/fake_event_id/instances",
+        json=event_instances_first_page,
     )
 
     responses.get(
-        event_instances_first_page["@odata.nextLink"], json=event_instances_second_page
+        event_instances_first_page["@odata.nextLink"],
+        json=event_instances_second_page,
     )
 
     instances = client.iter_event_instances(
@@ -307,8 +328,11 @@ def test_subscribe_connection_closed_max_retries(client):
         status=400,
     )
 
-    with unittest.mock.patch("time.sleep"), pytest.raises(
-        MicrosoftGraphClientException, match="Max retries reached"
+    with (
+        unittest.mock.patch("time.sleep"),
+        pytest.raises(
+            MicrosoftGraphClientException, match="Max retries reached"
+        ),
     ):
         client.subscribe(
             resource_url="/me/calendars",
@@ -386,10 +410,9 @@ def test_iter_subscriptions(client):
 
     subscriptions = client.iter_subscriptions()
 
-    assert {subscription["notificationUrl"] for subscription in subscriptions} == {
-        "https://example.com/1",
-        "https://example.com/2",
-    }
+    assert {
+        subscription["notificationUrl"] for subscription in subscriptions
+    } == {"https://example.com/1", "https://example.com/2"}
 
 
 @responses.activate

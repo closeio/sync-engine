@@ -23,4 +23,6 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_index("ix_message_ns_id_is_draft_received_date", table_name="message")
+    op.drop_index(
+        "ix_message_ns_id_is_draft_received_date", table_name="message"
+    )

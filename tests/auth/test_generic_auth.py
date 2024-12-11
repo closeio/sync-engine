@@ -132,7 +132,9 @@ def test_double_auth(db, mock_imapclient):
     assert account.smtp_password == password
 
     # Second auth using an invalid password should fail.
-    invalid_settings = attr.evolve(account_data, imap_password="invalid_password")
+    invalid_settings = attr.evolve(
+        account_data, imap_password="invalid_password"
+    )
     with pytest.raises(ValidationError):
         account = handler.update_account(account, invalid_settings)
         handler.verify_account(account)
@@ -154,7 +156,9 @@ def test_parent_domain():
     assert parent_domain(".com") == ""
     assert parent_domain("test.google.com") == "google.com"
 
-    assert parent_domain("smtp.example.a.com") == parent_domain("imap.example.a.com")
+    assert parent_domain("smtp.example.a.com") == parent_domain(
+        "imap.example.a.com"
+    )
     assert parent_domain("smtp.example.a.com") == parent_domain("imap.a.com")
 
     assert parent_domain("company.co.uk") != parent_domain("evilcompany.co.uk")

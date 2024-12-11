@@ -17,10 +17,18 @@ from alembic import op
 def upgrade():
     op.add_column(
         "account",
-        sa.Column("sync_state", sa.Enum("running", "stopped", "killed"), nullable=True),
+        sa.Column(
+            "sync_state",
+            sa.Enum("running", "stopped", "killed"),
+            nullable=True,
+        ),
     )
-    op.add_column("account", sa.Column("sync_start_time", sa.DateTime(), nullable=True))
-    op.add_column("account", sa.Column("sync_end_time", sa.DateTime(), nullable=True))
+    op.add_column(
+        "account", sa.Column("sync_start_time", sa.DateTime(), nullable=True)
+    )
+    op.add_column(
+        "account", sa.Column("sync_end_time", sa.DateTime(), nullable=True)
+    )
 
 
 def downgrade():

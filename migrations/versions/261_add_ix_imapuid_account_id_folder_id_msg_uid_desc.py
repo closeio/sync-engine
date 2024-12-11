@@ -24,4 +24,6 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_index("ix_imapuid_account_id_folder_id_msg_uid_desc", table_name="imapuid")
+    op.drop_index(
+        "ix_imapuid_account_id_folder_id_msg_uid_desc", table_name="imapuid"
+    )

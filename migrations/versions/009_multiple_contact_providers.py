@@ -16,7 +16,8 @@ from alembic import op
 
 def upgrade():
     op.add_column(
-        "contact", sa.Column("provider_name", sa.String(length=64), nullable=False)
+        "contact",
+        sa.Column("provider_name", sa.String(length=64), nullable=False),
     )
     op.alter_column(
         "contact",
@@ -43,4 +44,6 @@ def downgrade():
     )
     op.drop_column("contact", "provider_name")
     op.drop_constraint("uid", "contact", type_="unique")
-    op.create_unique_constraint("g_id", "contact", ["g_id", "source", "account_id"])
+    op.create_unique_constraint(
+        "g_id", "contact", ["g_id", "source", "account_id"]
+    )

@@ -47,7 +47,11 @@ class BaseSyncMonitor(InterruptibleThread):
 
         self.shutdown = threading.Event()
         self.heartbeat_status = HeartbeatStatusProxy(
-            self.account_id, folder_id, folder_name, email_address, provider_name
+            self.account_id,
+            folder_id,
+            folder_name,
+            email_address,
+            provider_name,
         )
 
         super().__init__()
@@ -87,7 +91,9 @@ class BaseSyncMonitor(InterruptibleThread):
         # 2x poll frequency.
         except ConnectionError:
             self.log.error("Error while polling", exc_info=True)
-            interruptible_threading.sleep(introduce_jitter(self.poll_frequency))
+            interruptible_threading.sleep(
+                introduce_jitter(self.poll_frequency)
+            )
         interruptible_threading.sleep(introduce_jitter(self.poll_frequency))
 
     def sync(self):

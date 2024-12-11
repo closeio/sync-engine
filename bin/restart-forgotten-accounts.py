@@ -28,10 +28,14 @@ def check_accounts():
                 Account.sync_should_run, Account.sync_host.is_(None)
             )
         )
-        still_not_syncing_accounts = accounts_without_sync_host & not_syncing_accounts
+        still_not_syncing_accounts = (
+            accounts_without_sync_host & not_syncing_accounts
+        )
 
         for account_id in still_not_syncing_accounts:
-            account = db_session.query(Account).with_for_update().get(account_id)
+            account = (
+                db_session.query(Account).with_for_update().get(account_id)
+            )
 
             # The Account got claimed while we were checking.
             if account.sync_host is not None:

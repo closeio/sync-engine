@@ -63,7 +63,9 @@ banner = rf"""{esc}[1;95m
     default=False,
     help="Enables the CPU profiler web API",
 )
-@click.option("-c", "--config", default=None, help="Path to JSON configuration file.")
+@click.option(
+    "-c", "--config", default=None, help="Path to JSON configuration file."
+)
 @click.option(
     "--process_num",
     default=0,

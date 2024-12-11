@@ -190,7 +190,9 @@ def writable_connection_pool(account_id, pool_size=1):
             # your code here
             pass
     """
-    return _get_connection_pool(account_id, pool_size, _writable_pool_map, False)
+    return _get_connection_pool(
+        account_id, pool_size, _writable_pool_map, False
+    )
 
 
 def convert_flags(flags: Tuple[Union[bytes, int], ...]) -> Tuple[bytes, ...]:
@@ -202,7 +204,8 @@ def convert_flags(flags: Tuple[Union[bytes, int], ...]) -> Tuple[bytes, ...]:
     but to prevent exceptions dowstream, we convert everything to bytes.
     """
     return tuple(
-        flag if isinstance(flag, bytes) else str(flag).encode() for flag in flags
+        flag if isinstance(flag, bytes) else str(flag).encode()
+        for flag in flags
     )
 
 
@@ -234,7 +237,9 @@ class CrispinConnectionPool:
         )
         self.account_id = account_id
         self.readonly = readonly
-        self._queue: "queue.Queue[CrispinClient | None]" = queue.Queue(num_connections)
+        self._queue: "queue.Queue[CrispinClient | None]" = queue.Queue(
+            num_connections
+        )
         for _ in range(num_connections):
             self._queue.put(None)
         self._sem = BoundedSemaphore(num_connections)
@@ -291,8 +296,12 @@ class CrispinConnectionPool:
             # isn't always necessary, since if you got e.g. a FETCH failure you
             # could reuse the same connection. But for now it's the simplest
             # thing to do.
-            log.info("IMAP connection error; discarding connection", exc_info=True)
-            if client is not None and not isinstance(exc, CONN_UNUSABLE_EXC_CLASSES):
+            log.info(
+                "IMAP connection error; discarding connection", exc_info=True
+            )
+            if client is not None and not isinstance(
+                exc, CONN_UNUSABLE_EXC_CLASSES
+            ):
                 self._logout(client)
             client = None
             raise exc
@@ -349,7 +358,8 @@ class CrispinConnectionPool:
 
 def _exc_callback(exc):
     log.info(
-        "Connection broken with error; retrying with new connection", exc_info=True
+        "Connection broken with error; retrying with new connection",
+        exc_info=True,
     )
     time.sleep(5)
 
@@ -496,7 +506,9 @@ class CrispinClient:
     def select_folder_if_necessary(
         self,
         folder_name: str,
-        uidvalidity_callback: Callable[[int, str, Dict[bytes, Any]], Dict[bytes, Any]],
+        uidvalidity_callback: Callable[
+            [int, str, Dict[bytes, Any]], Dict[bytes, Any]
+        ],
     ) -> Dict[bytes, Any]:
         """Selects a given folder if it isn't already the currently selected
         folder.
@@ -513,7 +525,10 @@ class CrispinClient:
         you care about having a non-stale value for HIGHESTMODSEQ then don't
         use this function.
         """
-        if self.selected_folder is None or folder_name != self.selected_folder[0]:
+        if (
+            self.selected_folder is None
+            or folder_name != self.selected_folder[0]
+        ):
             return self.select_folder(folder_name, uidvalidity_callback)
         return uidvalidity_callback(
             self.account_id, folder_name, self.selected_folder[1]
@@ -522,7 +537,9 @@ class CrispinClient:
     def select_folder(
         self,
         folder_name: str,
-        uidvalidity_callback: Callable[[int, str, Dict[bytes, Any]], Dict[bytes, Any]],
+        uidvalidity_callback: Callable[
+            [int, str, Dict[bytes, Any]], Dict[bytes, Any]
+        ],
     ) -> Dict[bytes, Any]:
         """Selects a given folder.
 
@@ -642,7 +659,9 @@ class CrispinClient:
 
         return to_sync
 
-    def folder_names(self, force_resync: bool = False) -> DefaultDict[str, List[str]]:
+    def folder_names(
+        self, force_resync: bool = False
+    ) -> DefaultDict[str, List[str]]:
         """
         Return the folder names for the account as a mapping from
         recognized role: list of folder names,
@@ -668,7 +687,9 @@ class CrispinClient:
 
             raw_folders: List[RawFolder] = self.folders()
             for raw_folder in raw_folders:
-                self._folder_names[raw_folder.role].append(raw_folder.display_name)
+                self._folder_names[raw_folder.role].append(
+                    raw_folder.display_name
+                )
 
         return self._folder_names
 
@@ -686,7 +707,9 @@ class CrispinClient:
         # Folders that provide basic functionality of email
         system_role_names = ["inbox", "sent", "trash", "spam"]
 
-        folders: List[Tuple[Tuple[bytes, ...], bytes, str]] = self._fetch_folder_list()
+        folders: List[Tuple[Tuple[bytes, ...], bytes, str]] = (
+            self._fetch_folder_list()
+        )
         for flags, _, name in folders:
             if (
                 b"\\Noselect" in flags
@@ -711,7 +734,8 @@ class CrispinClient:
             if guessed_roles.count(role) == 1:
                 guess_index = guessed_roles.index(role)
                 raw_folders[guess_index] = RawFolder(
-                    display_name=raw_folders[guess_index].display_name, role=role
+                    display_name=raw_folders[guess_index].display_name,
+                    role=role,
                 )
 
         return raw_folders
@@ -762,7 +786,9 @@ class CrispinClient:
 
         return None
 
-    def _process_folder(self, display_name: str, flags: Tuple[bytes, ...]) -> RawFolder:
+    def _process_folder(
+        self, display_name: str, flags: Tuple[bytes, ...]
+    ) -> RawFolder:
         """
         Determine the role for the remote folder from its `name` and `flags`.
 
@@ -897,7 +923,10 @@ class CrispinClient:
 
         elapsed = time.time() - t
         log.debug("Requested all UIDs", search_time=elapsed)
-        return (int(uid) if not isinstance(uid, int) else uid for uid in fetch_result)
+        return (
+            int(uid) if not isinstance(uid, int) else uid
+            for uid in fetch_result
+        )
 
     def uids(self, uids: List[int]) -> List[RawMessage]:
         uid_set = set(uids)
@@ -914,12 +943,16 @@ class CrispinClient:
                     # We might as well not download them at all, save bandwidth, processing time
                     # and prevent OOMs due to fetching oversized emails.
                     interruptible_threading.check_interrupted()
-                    fetched_size: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
-                        uid, ["RFC822.SIZE"]
+                    fetched_size: Dict[int, Dict[bytes, Any]] = (
+                        self.conn.fetch(uid, ["RFC822.SIZE"])
                     )
-                    body_size = int(fetched_size.get(uid, {}).get(b"RFC822.SIZE", 0))
+                    body_size = int(
+                        fetched_size.get(uid, {}).get(b"RFC822.SIZE", 0)
+                    )
                     if body_size > MAX_MESSAGE_BODY_LENGTH:
-                        log.warning("Skipping fetching of oversized message", uid=uid)
+                        log.warning(
+                            "Skipping fetching of oversized message", uid=uid
+                        )
                         continue
 
                     interruptible_threading.check_interrupted()
@@ -1047,9 +1080,13 @@ class CrispinClient:
         ), f"Must select sent folder first ({self.selected_folder_name})"
 
         interruptible_threading.check_interrupted()
-        return self.conn.append(self.selected_folder_name, message, ["\\Seen"], date)
+        return self.conn.append(
+            self.selected_folder_name, message, ["\\Seen"], date
+        )
 
-    def fetch_headers(self, uids: Iterable[int]) -> Dict[int, Dict[bytes, Any]]:
+    def fetch_headers(
+        self, uids: Iterable[int]
+    ) -> Dict[int, Dict[bytes, Any]]:
         """
         Fetch headers for the given uids. Chunked because certain providers
         fail with 'Command line too large' if you feed them too many uids at
@@ -1091,7 +1128,10 @@ class CrispinClient:
         Leaves the Trash folder selected at the end of the method.
 
         """
-        log.info("Trying to delete sent message", message_id_header=message_id_header)
+        log.info(
+            "Trying to delete sent message",
+            message_id_header=message_id_header,
+        )
         sent_folder_name = self.folder_names()["sent"][0]
 
         interruptible_threading.check_interrupted()
@@ -1213,7 +1253,9 @@ class CrispinClient:
             "1:*", items, modifiers=[f"CHANGEDSINCE {modseq}"]
         )
         return {
-            uid: Flags(ret[b"FLAGS"], ret[b"MODSEQ"][0] if b"MODSEQ" in ret else None)
+            uid: Flags(
+                ret[b"FLAGS"], ret[b"MODSEQ"][0] if b"MODSEQ" in ret else None
+            )
             for uid, ret in data.items()
         }
 
@@ -1271,7 +1313,9 @@ class GmailCrispinClient(CrispinClient):
         uid_set = set(uids)
         return {
             uid: GmailFlags(
-                tuple(flag for flag in ret[b"FLAGS"] if isinstance(flag, bytes)),
+                tuple(
+                    flag for flag in ret[b"FLAGS"] if isinstance(flag, bytes)
+                ),
                 self._decode_labels(ret[b"X-GM-LABELS"]),
                 ret[b"MODSEQ"][0] if b"MODSEQ" in ret else None,
             )
@@ -1284,7 +1328,9 @@ class GmailCrispinClient(CrispinClient):
     ) -> Dict[int, Union[GmailFlags, Flags]]:
         interruptible_threading.check_interrupted()
         data: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
-            "1:*", ["FLAGS", "X-GM-LABELS"], modifiers=[f"CHANGEDSINCE {modseq}"]
+            "1:*",
+            ["FLAGS", "X-GM-LABELS"],
+            modifiers=[f"CHANGEDSINCE {modseq}"],
         )
         results: Dict[int, Union[GmailFlags, Flags]] = {}
         for uid, ret in data.items():
@@ -1293,7 +1339,9 @@ class GmailCrispinClient(CrispinClient):
                 # doesn't have all the data we asked for -- if so, explicitly
                 # fetch flags and labels for that UID.
                 log.info(
-                    "Got incomplete response in flags fetch", uid=uid, ret=str(ret)
+                    "Got incomplete response in flags fetch",
+                    uid=uid,
+                    ret=str(ret),
                 )
 
                 interruptible_threading.check_interrupted()
@@ -1304,7 +1352,9 @@ class GmailCrispinClient(CrispinClient):
                     continue
                 ret = data_for_uid[uid]
             results[uid] = GmailFlags(
-                tuple(flag for flag in ret[b"FLAGS"] if isinstance(flag, bytes)),
+                tuple(
+                    flag for flag in ret[b"FLAGS"] if isinstance(flag, bytes)
+                ),
                 self._decode_labels(ret[b"X-GM-LABELS"]),
                 ret[b"MODSEQ"][0],
             )
@@ -1321,9 +1371,15 @@ class GmailCrispinClient(CrispinClient):
 
         """
         interruptible_threading.check_interrupted()
-        data: Dict[int, Dict[bytes, Any]] = self.conn.fetch(uids, ["X-GM-MSGID"])
+        data: Dict[int, Dict[bytes, Any]] = self.conn.fetch(
+            uids, ["X-GM-MSGID"]
+        )
         uid_set = set(uids)
-        return {uid: ret[b"X-GM-MSGID"] for uid, ret in data.items() if uid in uid_set}
+        return {
+            uid: ret[b"X-GM-MSGID"]
+            for uid, ret in data.items()
+            if uid in uid_set
+        }
 
     def g_msgid_to_uids(self, g_msgid: int) -> List[int]:
         """
@@ -1339,7 +1395,9 @@ class GmailCrispinClient(CrispinClient):
         # UIDs ascend over time; return in order most-recent first
         return sorted(uids, reverse=True)
 
-    def folder_names(self, force_resync: bool = False) -> DefaultDict[str, List[str]]:
+    def folder_names(
+        self, force_resync: bool = False
+    ) -> DefaultDict[str, List[str]]:
         """
         Return the folder names ( == label names for Gmail) for the account
         as a mapping from recognized role: list of folder names in the
@@ -1365,11 +1423,15 @@ class GmailCrispinClient(CrispinClient):
 
             raw_folders: List[RawFolder] = self.folders()
             for raw_folder in raw_folders:
-                self._folder_names[raw_folder.role].append(raw_folder.display_name)
+                self._folder_names[raw_folder.role].append(
+                    raw_folder.display_name
+                )
 
         return self._folder_names
 
-    def _process_folder(self, display_name: str, flags: Tuple[bytes, ...]) -> RawFolder:
+    def _process_folder(
+        self, display_name: str, flags: Tuple[bytes, ...]
+    ) -> RawFolder:
         """
         Determine the canonical_name for the remote folder from its `name` and
         `flags`.
@@ -1459,10 +1521,14 @@ class GmailCrispinClient(CrispinClient):
         seqset = uids if len(uids) < 1e6 else "1:*"
 
         interruptible_threading.check_interrupted()
-        data = self.conn.fetch(seqset, ["X-GM-MSGID", "X-GM-THRID", "RFC822.SIZE"])
+        data = self.conn.fetch(
+            seqset, ["X-GM-MSGID", "X-GM-THRID", "RFC822.SIZE"]
+        )
         uid_set = set(uids)
         return {
-            uid: GMetadata(ret[b"X-GM-MSGID"], ret[b"X-GM-THRID"], ret[b"RFC822.SIZE"])
+            uid: GMetadata(
+                ret[b"X-GM-MSGID"], ret[b"X-GM-THRID"], ret[b"RFC822.SIZE"]
+            )
             for uid, ret in data.items()
             if uid in uid_set
         }
@@ -1500,7 +1566,9 @@ class GmailCrispinClient(CrispinClient):
 
         Leaves the Trash folder selected at the end of the method.
         """
-        log.info("Trying to delete gmail draft", message_id_header=message_id_header)
+        log.info(
+            "Trying to delete gmail draft", message_id_header=message_id_header
+        )
         drafts_folder_name = self.folder_names()["drafts"][0]
         trash_folder_name = self.folder_names()["trash"][0]
         sent_folder_name = self.folder_names()["sent"][0]
@@ -1518,11 +1586,15 @@ class GmailCrispinClient(CrispinClient):
         matching_uids = self.find_by_header("Message-Id", message_id_header)
 
         if len(matching_uids) == 0:
-            raise DraftDeletionException("Couldn't find sent message in sent folder.")
+            raise DraftDeletionException(
+                "Couldn't find sent message in sent folder."
+            )
 
         sent_gm_msgids = self.g_msgids(matching_uids)
         if len(sent_gm_msgids) != 1:
-            raise DraftDeletionException("Only one message should have this msgid")
+            raise DraftDeletionException(
+                "Only one message should have this msgid"
+            )
 
         # Then find the draft in the draft folder
         interruptible_threading.check_interrupted()
@@ -1573,7 +1645,10 @@ class GmailCrispinClient(CrispinClient):
         Leaves the Trash folder selected at the end of the method.
 
         """
-        log.info("Trying to delete sent message", message_id_header=message_id_header)
+        log.info(
+            "Trying to delete sent message",
+            message_id_header=message_id_header,
+        )
         sent_folder_name = self.folder_names()["sent"][0]
         trash_folder_name = self.folder_names()["trash"][0]
         # First find the message in Sent
@@ -1619,7 +1694,10 @@ class GmailCrispinClient(CrispinClient):
 
         # If label contained only ASCII characters and does not contain asterisks
         # we don't need to do anything special
-        if encoded_label_name.decode("ascii") == label_name and "*" not in label_name:
+        if (
+            encoded_label_name.decode("ascii") == label_name
+            and "*" not in label_name
+        ):
             return super().search_uids(criteria)
 
         # At this point quote Gmail label name since it could contain asterisks.
@@ -1661,4 +1739,6 @@ class GmailCrispinClient(CrispinClient):
             raise
 
         response = imapclient.response_parser.parse_message_list(data)
-        return (int(uid) if not isinstance(uid, int) else uid for uid in response)
+        return (
+            int(uid) if not isinstance(uid, int) else uid for uid in response
+        )

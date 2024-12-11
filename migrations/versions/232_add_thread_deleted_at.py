@@ -15,7 +15,9 @@ from alembic import op
 
 
 def upgrade():
-    op.add_column("thread", sa.Column("deleted_at", sa.DateTime(), nullable=True))
+    op.add_column(
+        "thread", sa.Column("deleted_at", sa.DateTime(), nullable=True)
+    )
     op.create_index(
         "ix_thread_namespace_id_deleted_at",
         "thread",

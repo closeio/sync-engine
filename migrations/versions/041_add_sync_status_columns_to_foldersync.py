@@ -26,13 +26,17 @@ def upgrade():
 
     op.add_column(
         "foldersync",
-        sa.Column("_sync_status", MutableDict.as_mutable(JSON()), nullable=True),
+        sa.Column(
+            "_sync_status", MutableDict.as_mutable(JSON()), nullable=True
+        ),
     )
 
     if "easfoldersync" in Base.metadata.tables:
         op.add_column(
             "easfoldersync",
-            sa.Column("_sync_status", MutableDict.as_mutable(JSON()), nullable=True),
+            sa.Column(
+                "_sync_status", MutableDict.as_mutable(JSON()), nullable=True
+            ),
         )
 
 

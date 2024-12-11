@@ -18,7 +18,9 @@ class Label(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     # from inbox.models.account import Account
     # `use_alter` required here to avoid circular dependency w/Account
     account_id = Column(
-        ForeignKey("account.id", use_alter=True, name="label_fk1", ondelete="CASCADE"),
+        ForeignKey(
+            "account.id", use_alter=True, name="label_fk1", ondelete="CASCADE"
+        ),
         nullable=False,
     )
     account = relationship(
@@ -33,7 +35,9 @@ class Label(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     )
 
     name = Column(CategoryNameString(), nullable=False)
-    canonical_name = Column(String(MAX_INDEXABLE_LENGTH), nullable=False, default="")
+    canonical_name = Column(
+        String(MAX_INDEXABLE_LENGTH), nullable=False, default=""
+    )
 
     category_id = Column(ForeignKey(Category.id, ondelete="CASCADE"))
     category = relationship(
@@ -74,4 +78,6 @@ class Label(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             session.add(obj)
         return obj
 
-    __table_args__ = (UniqueConstraint("account_id", "name", "canonical_name"),)
+    __table_args__ = (
+        UniqueConstraint("account_id", "name", "canonical_name"),
+    )

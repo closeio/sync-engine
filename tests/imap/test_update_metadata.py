@@ -4,7 +4,10 @@ import json
 import pytest
 
 from inbox.crispin import Flags, GmailFlags
-from inbox.mailsync.backends.imap.common import update_message_metadata, update_metadata
+from inbox.mailsync.backends.imap.common import (
+    update_message_metadata,
+    update_metadata,
+)
 from inbox.models.backends.imap import ImapUid
 from inbox.models.folder import Folder
 
@@ -25,7 +28,9 @@ def test_gmail_label_sync(
     # Note that IMAPClient parses numeric labels into integer types. We have to
     # correctly handle those too.
     new_flags = {
-        imapuid.msg_uid: GmailFlags((), ("\\Important", "\\Starred", "foo", 42), None)
+        imapuid.msg_uid: GmailFlags(
+            (), ("\\Important", "\\Starred", "foo", 42), None
+        )
     }
     update_metadata(
         default_namespace.account.id,
@@ -44,22 +49,32 @@ def test_gmail_drafts_flag_constrained_by_folder(
     db, default_account, message, imapuid, folder
 ):
     new_flags = {imapuid.msg_uid: GmailFlags((), ("\\Draft",), None)}
-    update_metadata(default_account.id, folder.id, "all", new_flags, db.session)
+    update_metadata(
+        default_account.id, folder.id, "all", new_flags, db.session
+    )
     assert message.is_draft
-    update_metadata(default_account.id, folder.id, "trash", new_flags, db.session)
+    update_metadata(
+        default_account.id, folder.id, "trash", new_flags, db.session
+    )
     assert not message.is_draft
 
 
 @pytest.mark.parametrize("folder_role", ["drafts", "trash", "archive"])
-def test_generic_drafts_flag_constrained_by_folder(db, generic_account, folder_role):
+def test_generic_drafts_flag_constrained_by_folder(
+    db, generic_account, folder_role
+):
     msg_uid = 22
     thread = add_fake_thread(db.session, generic_account.namespace.id)
-    message = add_fake_message(db.session, generic_account.namespace.id, thread)
+    message = add_fake_message(
+        db.session, generic_account.namespace.id, thread
+    )
     folder = add_fake_folder(db.session, generic_account)
     add_fake_imapuid(db.session, generic_account.id, message, folder, msg_uid)
 
     new_flags = {msg_uid: Flags((b"\\Draft",), None)}
-    update_metadata(generic_account.id, folder.id, folder_role, new_flags, db.session)
+    update_metadata(
+        generic_account.id, folder.id, folder_role, new_flags, db.session
+    )
     assert message.is_draft == (folder_role == "drafts")
 
 
@@ -99,7 +114,9 @@ def test_categories_from_multiple_imap_folders(
     is likely in a folder it was added to last.
     """
     thread = add_fake_thread(db.session, generic_account.namespace.id)
-    message = add_fake_message(db.session, generic_account.namespace.id, thread)
+    message = add_fake_message(
+        db.session, generic_account.namespace.id, thread
+    )
     for delay, folder_role in enumerate(folder_roles):
         folder = Folder.find_or_create(
             db.session, generic_account, folder_role, folder_role
@@ -109,7 +126,9 @@ def test_categories_from_multiple_imap_folders(
         )
         # Simulate that time passed since those timestamps have second resolution
         # and this executes fast enough that all of them would be the same otherwise
-        imapuid.updated_at = imapuid.updated_at + datetime.timedelta(seconds=delay)
+        imapuid.updated_at = imapuid.updated_at + datetime.timedelta(
+            seconds=delay
+        )
         db.session.commit()
 
     update_message_metadata(db.session, generic_account, message, False)
@@ -122,7 +141,10 @@ def test_categories_from_multiple_imap_folders(
 
 def test_truncate_imapuid_extra_flags(db, default_account, message, folder):
     imapuid = ImapUid(
-        message=message, account_id=default_account.id, msg_uid=2222, folder=folder
+        message=message,
+        account_id=default_account.id,
+        msg_uid=2222,
+        folder=folder,
     )
     imapuid.update_flags(
         [

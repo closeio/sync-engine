@@ -108,7 +108,8 @@ def patch_network_functions(monkeypatch):
     for backend in inbox.actions.backends.module_registry.values():
         for method_name in backend.__all__:
             monkeypatch.setattr(
-                backend.__name__ + "." + method_name, lambda *args, **kwargs: None
+                backend.__name__ + "." + method_name,
+                lambda *args, **kwargs: None,
             )
 
 
@@ -119,7 +120,8 @@ def make_account(db, config, *, cls):
 
     ns = Namespace()
     account = cls(
-        sync_host=f"{platform.node()}:0", email_address="inboxapptest@gmail.com"
+        sync_host=f"{platform.node()}:0",
+        email_address="inboxapptest@gmail.com",
     )
     account.namespace = ns
     account.client_id = config.get_required("GOOGLE_OAUTH_CLIENT_ID")
@@ -248,16 +250,24 @@ class ContactsProviderStub:
         return self._contacts
 
 
-def add_fake_folder(db_session, default_account, display_name="All Mail", name="all"):
+def add_fake_folder(
+    db_session, default_account, display_name="All Mail", name="all"
+):
     from inbox.models.folder import Folder
 
-    return Folder.find_or_create(db_session, default_account, display_name, name)
+    return Folder.find_or_create(
+        db_session, default_account, display_name, name
+    )
 
 
-def add_fake_label(db_session, default_account, display_name="My Label", name=None):
+def add_fake_label(
+    db_session, default_account, display_name="My Label", name=None
+):
     from inbox.models.label import Label
 
-    return Label.find_or_create(db_session, default_account, display_name, name)
+    return Label.find_or_create(
+        db_session, default_account, display_name, name
+    )
 
 
 def add_generic_imap_account(db_session, email_address="test@nylas.com"):
@@ -267,7 +277,9 @@ def add_generic_imap_account(db_session, email_address="test@nylas.com"):
     from inbox.models.backends.generic import GenericAccount
 
     account = GenericAccount(
-        email_address=email_address, sync_host=platform.node(), provider="custom"
+        email_address=email_address,
+        sync_host=platform.node(),
+        provider="custom",
     )
     account.imap_endpoint = ("imap.custom.com", 993)
     account.smtp_endpoint = ("smtp.custom.com", 587)
@@ -296,7 +308,9 @@ def add_fake_yahoo_account(db_session, email_address="cypresstest@yahoo.com"):
     from inbox.models.backends.generic import GenericAccount
 
     account = GenericAccount(
-        email_address=email_address, sync_host=platform.node(), provider="yahoo"
+        email_address=email_address,
+        sync_host=platform.node(),
+        provider="yahoo",
     )
     account.imap_password = "bananagrams"
     account.smtp_password = "bananagrams"
@@ -540,7 +554,10 @@ def add_fake_contact(
     from inbox.models import Contact
 
     contact = Contact(
-        namespace_id=namespace_id, name=name, email_address=email_address, uid=uid
+        namespace_id=namespace_id,
+        name=name,
+        email_address=email_address,
+        uid=uid,
     )
 
     db_session.add(contact)
@@ -559,7 +576,9 @@ def delete_contacts(db_session):
 def add_fake_category(db_session, namespace_id, display_name, name=None):
     from inbox.models import Category
 
-    category = Category(namespace_id=namespace_id, display_name=display_name, name=name)
+    category = Category(
+        namespace_id=namespace_id, display_name=display_name, name=name
+    )
     db_session.add(category)
     db_session.commit()
     return category
@@ -581,7 +600,9 @@ def message(db, default_namespace, thread):
 def folder(db, default_account):
     from inbox.models.folder import Folder
 
-    return Folder.find_or_create(db.session, default_account, "[Gmail]/All Mail", "all")
+    return Folder.find_or_create(
+        db.session, default_account, "[Gmail]/All Mail", "all"
+    )
 
 
 @fixture
@@ -606,7 +627,9 @@ def contact(db, default_account):
 
 @fixture
 def imapuid(db, default_account, message, folder):
-    yield add_fake_imapuid(db.session, default_account.id, message, folder, 2222)
+    yield add_fake_imapuid(
+        db.session, default_account.id, message, folder, 2222
+    )
     delete_imapuids(db.session)
 
 
@@ -685,9 +708,15 @@ def add_fake_msg_with_calendar_part(db_session, account, ics_str, thread=None):
     from inbox.models import Message
 
     parsed = mime.create.multipart("mixed")
-    parsed.append(mime.create.attachment("text/calendar", ics_str, disposition=None))
+    parsed.append(
+        mime.create.attachment("text/calendar", ics_str, disposition=None)
+    )
     msg = Message.create_from_synced(
-        account, 22, "[Gmail]/All Mail", datetime.utcnow(), parsed.to_string().encode()
+        account,
+        22,
+        "[Gmail]/All Mail",
+        datetime.utcnow(),
+        parsed.to_string().encode(),
     )
     msg.from_addr = [("Ben Bitdiddle", "ben@inboxapp.com")]
 
@@ -721,7 +750,9 @@ def mock_client():
 
     def zscan_iter_patch(key, match=None):
         match = str(match).replace("*", "")
-        return [k for k in mock_client.zrange(key, 0, -1) if k.startswith(match)]
+        return [
+            k for k in mock_client.zrange(key, 0, -1) if k.startswith(match)
+        ]
 
     mock_client.zscan_iter = zscan_iter_patch
 
@@ -729,7 +760,9 @@ def mock_client():
         # as of pyredis 3.0, Redis.zadd takes a mapping of {member: score} instead of
         # the old Redis.zadd method that takes *args of score, member, score,
         # member or a kwarg mapping of {member: score}
-        return mock_client.zadd_orig(key, **{str(k): v for k, v in mapping.items()})
+        return mock_client.zadd_orig(
+            key, **{str(k): v for k, v in mapping.items()}
+        )
 
     mock_client.zadd_orig = mock_client.zadd
     mock_client.zadd = zadd_patch
@@ -757,13 +790,17 @@ def redis_mock(redis_client, monkeypatch):
     def fake_redis_client(host=None, port=6379, db=1):
         return redis_client
 
-    monkeypatch.setattr("inbox.heartbeat.config.get_redis_client", fake_redis_client)
+    monkeypatch.setattr(
+        "inbox.heartbeat.config.get_redis_client", fake_redis_client
+    )
     monkeypatch.setattr(
         "inbox.heartbeat.store.HeartbeatStore.__init__", set_self_client
     )
     monkeypatch.setattr(
         "inbox.scheduling.event_queue._get_redis_client", fake_redis_client
     )
-    monkeypatch.setattr("inbox.mailsync.service.SHARED_SYNC_EVENT_QUEUE_ZONE_MAP", {})
+    monkeypatch.setattr(
+        "inbox.mailsync.service.SHARED_SYNC_EVENT_QUEUE_ZONE_MAP", {}
+    )
     yield
     monkeypatch.undo()

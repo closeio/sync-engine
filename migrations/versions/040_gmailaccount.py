@@ -37,7 +37,9 @@ def upgrade():
         sa.Column("locale", sa.String(length=8), nullable=True),
         sa.Column("picture", sa.String(length=1024), nullable=True),
         sa.Column("home_domain", sa.String(length=256), nullable=True),
-        sa.ForeignKeyConstraint(["id"], ["imapaccount.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["id"], ["imapaccount.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
 
@@ -63,7 +65,9 @@ def upgrade():
     with session_scope(versioned=False) as db_session:
         for acct in db_session.query(Account):
             if acct.provider == "Gmail":
-                imap_acct = db_session.query(ImapAccount).filter_by(id=acct.id).one()
+                imap_acct = (
+                    db_session.query(ImapAccount).filter_by(id=acct.id).one()
+                )
                 gmail_acct = GmailAccount(
                     id=acct.id,
                     access_token=acct.o_access_token,

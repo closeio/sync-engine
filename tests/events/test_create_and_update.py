@@ -8,7 +8,8 @@ rrule = "RRULE:FREQ=WEEKLY"
 
 
 @pytest.mark.parametrize(
-    "cls", [Event, partial(RecurringEvent, recurrence=rrule), RecurringEventOverride]
+    "cls",
+    [Event, partial(RecurringEvent, recurrence=rrule), RecurringEventOverride],
 )
 def test_init_explodes(cls):
     with pytest.raises(AssertionError, match="Use Event.create"):

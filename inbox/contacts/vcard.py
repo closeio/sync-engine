@@ -170,7 +170,9 @@ def vcard_from_vobject(vcard):
         property_value = line.value
 
         with contextlib.suppress(AttributeError):
-            if line.ENCODING_paramlist == ["b"] or line.ENCODING_paramlist == ["B"]:
+            if line.ENCODING_paramlist == ["b"] or line.ENCODING_paramlist == [
+                "B"
+            ]:
                 property_value = base64.b64encode(line.value)
         if isinstance(property_value, list):
             property_value = (",").join(property_value)

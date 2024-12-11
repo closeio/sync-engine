@@ -9,7 +9,9 @@ def create_event(account_id, event_id, extra_args):
     with session_scope(account_id) as db_session:
         account = db_session.query(Account).get(account_id)
         event = db_session.query(Event).get(event_id)
-        remote_create_event = module_registry[account.provider].remote_create_event
+        remote_create_event = module_registry[
+            account.provider
+        ].remote_create_event
 
         remote_create_event(account, event, db_session, extra_args)
 
@@ -53,7 +55,9 @@ def update_event(account_id, event_id, extra_args):
         if event.calendar == account.emailed_events_calendar:
             return
 
-        remote_update_event = module_registry[account.provider].remote_update_event
+        remote_update_event = module_registry[
+            account.provider
+        ].remote_update_event
 
         remote_update_event(account, event, db_session, extra_args)
 
@@ -72,7 +76,9 @@ def delete_event(account_id, event_id, extra_args):
         event = db_session.query(Event).get(event_id)
         notify_participants = extra_args.get("notify_participants", False)
 
-        remote_delete_event = module_registry[account.provider].remote_delete_event
+        remote_delete_event = module_registry[
+            account.provider
+        ].remote_delete_event
         event_uid = extra_args.pop("event_uid", None)
         calendar_name = extra_args.pop("calendar_name", None)
 
@@ -83,7 +89,12 @@ def delete_event(account_id, event_id, extra_args):
             return
 
         remote_delete_event(
-            account, event_uid, calendar_name, calendar_uid, db_session, extra_args
+            account,
+            event_uid,
+            calendar_name,
+            calendar_uid,
+            db_session,
+            extra_args,
         )
 
         # Finally, update the event.
@@ -92,6 +103,8 @@ def delete_event(account_id, event_id, extra_args):
         db_session.commit()
 
         if notify_participants and account.provider != "gmail":
-            ical_file = generate_icalendar_invite(event, invite_type="cancel").to_ical()
+            ical_file = generate_icalendar_invite(
+                event, invite_type="cancel"
+            ).to_ical()
 
             send_invite(ical_file, event, account, invite_type="cancel")

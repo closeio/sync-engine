@@ -19,7 +19,10 @@ def message(db, config):
 
     account = db.session.query(ImapAccount).get(ACCOUNT_ID)
     to = [
-        {"name": '"\u2605The red-haired mermaid\u2605"', "email": account.email_address}
+        {
+            "name": '"\u2605The red-haired mermaid\u2605"',
+            "email": account.email_address,
+        }
     ]
     subject = "Draft test: " + str(uuid.uuid4().hex)
     body = "<html><body><h2>Sea, birds, yoga and sand.</h2></body></html>"
@@ -50,7 +53,11 @@ def test_remote_save_draft(db, config, message):
     date = datetime.utcnow()
 
     remote_save_draft(
-        account, account.drafts_folder.name, email.to_string(), db.session, date
+        account,
+        account.drafts_folder.name,
+        email.to_string(),
+        db.session,
+        date,
     )
 
     with crispin_client(account.id, account.provider) as c:
@@ -76,7 +83,10 @@ def test_remote_delete_draft(db, config, message):
     remote.
 
     """
-    from inbox.actions.backends.gmail import remote_delete_draft, remote_save_draft
+    from inbox.actions.backends.gmail import (
+        remote_delete_draft,
+        remote_save_draft,
+    )
     from inbox.models import Account
     from inbox.sendmail.base import _parse_recipients
     from inbox.sendmail.message import Recipients, create_email
@@ -98,7 +108,11 @@ def test_remote_delete_draft(db, config, message):
 
     # Save on remote
     remote_save_draft(
-        account, account.drafts_folder.name, email.to_string(), db.session, date
+        account,
+        account.drafts_folder.name,
+        email.to_string(),
+        db.session,
+        date,
     )
 
     inbox_uid = email.headers["X-INBOX-ID"]
@@ -111,7 +125,9 @@ def test_remote_delete_draft(db, config, message):
         assert uids, "Message missing from Drafts folder"
 
         # Delete on remote
-        remote_delete_draft(account, account.drafts_folder.name, inbox_uid, db.session)
+        remote_delete_draft(
+            account, account.drafts_folder.name, inbox_uid, db.session
+        )
 
         c.conn.select_folder(account.drafts_folder.name, readonly=False)
         uids = c.conn.search(criteria)

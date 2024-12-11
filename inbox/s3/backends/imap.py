@@ -12,7 +12,9 @@ def get_imap_raw_contents(message):
     account = message.namespace.account
 
     if len(message.imapuids) == 0:
-        raise EmailDeletedException("Message was deleted on the backend server.")
+        raise EmailDeletedException(
+            "Message was deleted on the backend server."
+        )
 
     uid = message.imapuids[0]
     folder = uid.folder

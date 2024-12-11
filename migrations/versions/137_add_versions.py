@@ -21,7 +21,8 @@ def upgrade():
         sa.Column("version", sa.Integer(), server_default="0", nullable=False),
     )
     op.add_column(
-        "thread", sa.Column("version", sa.Integer(), server_default="0", nullable=True)
+        "thread",
+        sa.Column("version", sa.Integer(), server_default="0", nullable=True),
     )
 
 

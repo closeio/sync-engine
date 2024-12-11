@@ -59,5 +59,7 @@ def downgrade():
     conn = op.get_bind()
     for table in TABLES:
         conn.execute(
-            text(f"ALTER TABLE `{table}` MODIFY COLUMN `created_at` DATETIME NOT NULL")
+            text(
+                f"ALTER TABLE `{table}` MODIFY COLUMN `created_at` DATETIME NOT NULL"
+            )
         )

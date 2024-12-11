@@ -36,7 +36,8 @@ def downgrade():
         sa.Column("g_id_token", mysql.VARCHAR(length=2048), nullable=True),
     )
     op.add_column(
-        "gmailaccount", sa.Column("link", mysql.VARCHAR(length=256), nullable=True)
+        "gmailaccount",
+        sa.Column("link", mysql.VARCHAR(length=256), nullable=True),
     )
     op.add_column(
         "gmailaccount",
@@ -47,7 +48,8 @@ def downgrade():
         sa.Column("given_name", mysql.VARCHAR(length=256), nullable=True),
     )
     op.add_column(
-        "gmailaccount", sa.Column("g_user_id", mysql.VARCHAR(length=32), nullable=True)
+        "gmailaccount",
+        sa.Column("g_user_id", mysql.VARCHAR(length=32), nullable=True),
     )
     op.add_column(
         "gmailaccount",
@@ -58,18 +60,22 @@ def downgrade():
         sa.Column("home_domain", mysql.VARCHAR(length=256), nullable=True),
     )
     op.add_column(
-        "gmailaccount", sa.Column("gender", mysql.VARCHAR(length=16), nullable=True)
+        "gmailaccount",
+        sa.Column("gender", mysql.VARCHAR(length=16), nullable=True),
     )
     op.add_column(
-        "gmailaccount", sa.Column("locale", mysql.VARCHAR(length=8), nullable=True)
+        "gmailaccount",
+        sa.Column("locale", mysql.VARCHAR(length=8), nullable=True),
     )
     op.add_column(
         "gmailaccount",
         sa.Column("family_name", mysql.VARCHAR(length=256), nullable=True),
     )
     op.add_column(
-        "gmailaccount", sa.Column("g_id", mysql.VARCHAR(length=32), nullable=True)
+        "gmailaccount",
+        sa.Column("g_id", mysql.VARCHAR(length=32), nullable=True),
     )
     op.add_column(
-        "gmailaccount", sa.Column("picture", mysql.VARCHAR(length=1024), nullable=True)
+        "gmailaccount",
+        sa.Column("picture", mysql.VARCHAR(length=1024), nullable=True),
     )

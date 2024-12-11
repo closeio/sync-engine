@@ -1,5 +1,16 @@
 import arrow
-from dateutil.rrule import FR, MO, SA, SU, TH, TU, WE, rrule, rruleset, rrulestr
+from dateutil.rrule import (
+    FR,
+    MO,
+    SA,
+    SU,
+    TH,
+    TU,
+    WE,
+    rrule,
+    rruleset,
+    rrulestr,
+)
 
 from inbox.events.util import parse_rrule_datetime
 from inbox.logging import get_logger
@@ -78,7 +89,10 @@ def parse_rrule(event):
             return rule
         except Exception as e:
             log.error(
-                "Error parsing RRULE entry", event_id=event.id, error=e, exc_info=True
+                "Error parsing RRULE entry",
+                event_id=event.id,
+                error=e,
+                exc_info=True,
             )
 
 
@@ -129,7 +143,9 @@ def get_start_times(event, start=None, end=None):
 
         rrules = parse_rrule(event)
         if not rrules:
-            log.warning("Tried to expand a non-recurring event", event_id=event.id)
+            log.warning(
+                "Tried to expand a non-recurring event", event_id=event.id
+            )
             return [event.start]
 
         excl_dates = parse_exdate(event)
@@ -163,7 +179,15 @@ def get_start_times(event, start=None, end=None):
 
 
 # rrule constant values
-freq_map = ("YEARLY", "MONTHLY", "WEEKLY", "DAILY", "HOURLY", "MINUTELY", "SECONDLY")
+freq_map = (
+    "YEARLY",
+    "MONTHLY",
+    "WEEKLY",
+    "DAILY",
+    "HOURLY",
+    "MINUTELY",
+    "SECONDLY",
+)
 
 weekday_map = (MO, TU, WE, TH, FR, SA, SU)
 
@@ -186,6 +210,12 @@ def rrule_to_json(r):
             j[fieldname] = value
         elif fieldname == "freq":
             j[fieldname] = freq_map[value]
-        elif fieldname in ["dtstart", "interval", "wkst", "count", "until"]:  # tzinfo?
+        elif fieldname in [
+            "dtstart",
+            "interval",
+            "wkst",
+            "count",
+            "until",
+        ]:  # tzinfo?
             j[fieldname] = value
     return j

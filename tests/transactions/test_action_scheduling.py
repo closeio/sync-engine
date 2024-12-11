@@ -6,7 +6,9 @@ from tests.util.base import add_fake_event
 def test_action_scheduling(db, default_account):
     event = add_fake_event(db.session, default_account.namespace.id)
 
-    schedule_action("create_event", event, default_account.namespace.id, db.session)
+    schedule_action(
+        "create_event", event, default_account.namespace.id, db.session
+    )
     db.session.commit()
 
     entry = (

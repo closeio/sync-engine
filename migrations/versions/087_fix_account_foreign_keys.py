@@ -22,9 +22,15 @@ def upgrade():
     if "default_calendar_ibfk_1" in [
         k["name"] for k in inspector.get_foreign_keys("account")
     ]:
-        op.drop_constraint("default_calendar_ibfk_1", "account", type_="foreignkey")
+        op.drop_constraint(
+            "default_calendar_ibfk_1", "account", type_="foreignkey"
+        )
         op.create_foreign_key(
-            "account_ibfk_10", "account", "calendar", ["default_calendar_id"], ["id"]
+            "account_ibfk_10",
+            "account",
+            "calendar",
+            ["default_calendar_id"],
+            ["id"],
         )
 
 

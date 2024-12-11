@@ -27,9 +27,17 @@ def upgrade():
 
 def downgrade():
     op.create_index(
-        "idx_actionlog_status_type", "actionlog", ["status", "type"], unique=False
+        "idx_actionlog_status_type",
+        "actionlog",
+        ["status", "type"],
+        unique=False,
     )
     op.create_index(
-        "ix_actionlog_status_retries", "actionlog", ["status", "retries"], unique=False
+        "ix_actionlog_status_retries",
+        "actionlog",
+        ["status", "retries"],
+        unique=False,
     )
-    op.drop_index("ix_actionlog_status_namespace_id_record_id", table_name="actionlog")
+    op.drop_index(
+        "ix_actionlog_status_namespace_id_record_id", table_name="actionlog"
+    )

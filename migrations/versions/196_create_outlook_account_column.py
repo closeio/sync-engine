@@ -26,7 +26,9 @@ def upgrade():
     Base.metadata.reflect(engine)
 
     if "easaccount" in Base.metadata.tables:
-        conn.execute(text("ALTER TABLE easaccount ADD COLUMN outlook_account BOOL;"))
+        conn.execute(
+            text("ALTER TABLE easaccount ADD COLUMN outlook_account BOOL;")
+        )
 
 
 def downgrade():
@@ -40,4 +42,6 @@ def downgrade():
     Base.metadata.reflect(engine)
 
     if "easaccount" in Base.metadata.tables:
-        conn.execute(text("ALTER TABLE easaccount DROP COLUMN outlook_account;"))
+        conn.execute(
+            text("ALTER TABLE easaccount DROP COLUMN outlook_account;")
+        )

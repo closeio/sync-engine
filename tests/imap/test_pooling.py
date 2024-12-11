@@ -36,7 +36,11 @@ def test_pool():
 def test_timeout_on_depleted_pool():
     pool = TestableConnectionPool(1, num_connections=1, readonly=True)
     # Test that getting a connection when the pool is empty times out
-    with pytest.raises(ConnectionPoolTimeoutError), pool.get(), pool.get(timeout=0.1):
+    with (
+        pytest.raises(ConnectionPoolTimeoutError),
+        pool.get(),
+        pool.get(timeout=0.1),
+    ):
         pass
 
 

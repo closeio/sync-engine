@@ -44,7 +44,11 @@ def _get_participants(msg, excluded_emails=None):
     participants = msg.to_addr + msg.cc_addr + msg.bcc_addr
     return sorted(
         list(
-            {email.lower() for _, email in participants if email not in excluded_emails}
+            {
+                email.lower()
+                for _, email in participants
+                if email not in excluded_emails
+            }
         )
     )
 
@@ -131,13 +135,16 @@ def calculate_group_scores(messages, user_email):
     ]
 
     # Subsets get absorbed by supersets (if minimal info lost)
-    molecules_list = _subsume_molecules(molecules_list, get_message_list_weight)
+    molecules_list = _subsume_molecules(
+        molecules_list, get_message_list_weight
+    )
 
     molecules_list = _combine_similar_molecules(molecules_list)
 
     # Give a score to each group.
     return {
-        ", ".join(sorted(g)): get_message_list_weight(m) for (g, m) in molecules_list
+        ", ".join(sorted(g)): get_message_list_weight(m)
+        for (g, m) in molecules_list
     }
 
 

@@ -77,7 +77,11 @@ def test_dump_datetime_as_msgraph_datetime_tz():
 @pytest.mark.parametrize(
     "event",
     [
-        {"recurrence": {"range": {"recurrenceTimeZone": "Eastern Standard Time"}}},
+        {
+            "recurrence": {
+                "range": {"recurrenceTimeZone": "Eastern Standard Time"}
+            }
+        },
         {
             "recurrence": {"range": {"recurrenceTimeZone": ""}},
             "originalStartTimeZone": "Eastern Standard Time",
@@ -88,7 +92,9 @@ def test_dump_datetime_as_msgraph_datetime_tz():
             "originalEndTimeZone": "Eastern Standard Time",
         },
         {
-            "recurrence": {"range": {"recurrenceTimeZone": "tzone://Microsoft/Custom"}},
+            "recurrence": {
+                "range": {"recurrenceTimeZone": "tzone://Microsoft/Custom"}
+            },
             "originalStartTimeZone": "tzone://Microsoft/Custom",
             "originalEndTimeZone": "Eastern Standard Time",
         },
@@ -101,8 +107,14 @@ def test_get_recurrence_timezone(event):
 @pytest.mark.parametrize(
     "mode,dt",
     [
-        (CombineMode.START, datetime.datetime(2022, 9, 19, 4, 0, 0, tzinfo=pytz.UTC)),
-        (CombineMode.END, datetime.datetime(2022, 9, 20, 3, 59, 59, tzinfo=pytz.UTC)),
+        (
+            CombineMode.START,
+            datetime.datetime(2022, 9, 19, 4, 0, 0, tzinfo=pytz.UTC),
+        ),
+        (
+            CombineMode.END,
+            datetime.datetime(2022, 9, 20, 3, 59, 59, tzinfo=pytz.UTC),
+        ),
     ],
 )
 def test_combine_msgraph_recurrence_date_with_time(mode, dt):
@@ -426,7 +438,9 @@ def test_parse_msgraph_range_start_and_until(event):
 )
 def test_convert_msgraph_patterned_recurrence_to_ical_rrule(recurrence, rrule):
     assert (
-        convert_msgraph_patterned_recurrence_to_ical_rrule({"recurrence": recurrence})
+        convert_msgraph_patterned_recurrence_to_ical_rrule(
+            {"recurrence": recurrence}
+        )
         == rrule
     )
 
@@ -762,7 +776,10 @@ event_occurrences = [
         "type": "occurrence",
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
-        "start": {"dateTime": "2022-09-19T15:00:00.0000000", "timeZone": "UTC"},
+        "start": {
+            "dateTime": "2022-09-19T15:00:00.0000000",
+            "timeZone": "UTC",
+        },
         "originalStart": "2022-09-19T15:00:00Z",
         "end": {"dateTime": "2022-09-19T15:30:00.0000000", "timeZone": "UTC"},
     },
@@ -779,7 +796,10 @@ event_occurrences = [
         "type": "occurrence",
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
-        "start": {"dateTime": "2022-09-20T15:00:00.0000000", "timeZone": "UTC"},
+        "start": {
+            "dateTime": "2022-09-20T15:00:00.0000000",
+            "timeZone": "UTC",
+        },
         "originalStart": "2022-09-20T15:00:00Z",
         "end": {"dateTime": "2022-09-20T15:30:00.0000000", "timeZone": "UTC"},
     },
@@ -796,7 +816,10 @@ event_occurrences = [
         "type": "occurrence",
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
-        "start": {"dateTime": "2022-09-21T15:00:00.0000000", "timeZone": "UTC"},
+        "start": {
+            "dateTime": "2022-09-21T15:00:00.0000000",
+            "timeZone": "UTC",
+        },
         "originalStart": "2022-09-21T15:00:00Z",
         "end": {"dateTime": "2022-09-21T15:30:00.0000000", "timeZone": "UTC"},
     },
@@ -824,7 +847,9 @@ def test_calculate_exception_and_canceled_occurrences_with_deletion():
     assert cancellation["end"] == event_occurrences[1]["end"]
     assert cancellation["recurrence"] is None
     assert cancellation["subject"] == master_event["subject"]
-    assert cancellation["originalStart"] == event_occurrences[1]["originalStart"]
+    assert (
+        cancellation["originalStart"] == event_occurrences[1]["originalStart"]
+    )
 
 
 master_event_crossing_dst = {
@@ -885,7 +910,9 @@ def test_calculate_exception_and_canceled_occurrences_with_deletion_around_dst()
     )
     assert parse_msgraph_datetime_tz_as_utc(
         cancellation["start"]
-    ) == ciso8601.parse_datetime(event_occurrences_crossing_dst[1]["originalStart"])
+    ) == ciso8601.parse_datetime(
+        event_occurrences_crossing_dst[1]["originalStart"]
+    )
 
 
 master_with_exception = {
@@ -935,7 +962,10 @@ master_with_exception_occurrences = [
         "type": "exception",
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
-        "start": {"dateTime": "2022-09-27T13:30:00.0000000", "timeZone": "UTC"},
+        "start": {
+            "dateTime": "2022-09-27T13:30:00.0000000",
+            "timeZone": "UTC",
+        },
         "originalStart": "2022-09-27T12:00:00Z",
         "end": {"dateTime": "2022-09-27T14:00:00.0000000", "timeZone": "UTC"},
     },
@@ -952,7 +982,10 @@ master_with_exception_occurrences = [
         "type": "occurrence",
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
-        "start": {"dateTime": "2022-09-26T12:00:00.0000000", "timeZone": "UTC"},
+        "start": {
+            "dateTime": "2022-09-26T12:00:00.0000000",
+            "timeZone": "UTC",
+        },
         "originalStart": "2022-09-26T12:00:00Z",
         "end": {"dateTime": "2022-09-26T12:30:00.0000000", "timeZone": "UTC"},
     },
@@ -970,7 +1003,10 @@ master_with_exception_occurrences = [
         "type": "occurrence",
         "recurrence": None,
         "body": {"contentType": "html", "content": ""},
-        "start": {"dateTime": "2022-09-28T12:00:00.0000000", "timeZone": "UTC"},
+        "start": {
+            "dateTime": "2022-09-28T12:00:00.0000000",
+            "timeZone": "UTC",
+        },
         "originalStart": "2022-09-28T12:00:00Z",
         "end": {"dateTime": "2022-09-28T12:30:00.0000000", "timeZone": "UTC"},
     },
@@ -1047,8 +1083,14 @@ def test_get_event_location(event, location):
         ),
         (
             {
-                "status": {"response": "declined", "time": "2022-09-08T15:40:17Z"},
-                "emailAddress": {"name": "Somebody", "address": "somebody@close.com"},
+                "status": {
+                    "response": "declined",
+                    "time": "2022-09-08T15:40:17Z",
+                },
+                "emailAddress": {
+                    "name": "Somebody",
+                    "address": "somebody@close.com",
+                },
             },
             {
                 "email": "somebody@close.com",
@@ -1059,8 +1101,14 @@ def test_get_event_location(event, location):
         ),
         (
             {
-                "status": {"response": "accepted", "time": "2022-09-08T15:45:09Z"},
-                "emailAddress": {"name": "Test User", "address": "testing@gmail.com"},
+                "status": {
+                    "response": "accepted",
+                    "time": "2022-09-08T15:45:09Z",
+                },
+                "emailAddress": {
+                    "name": "Test User",
+                    "address": "testing@gmail.com",
+                },
             },
             {
                 "email": "testing@gmail.com",
@@ -1075,7 +1123,10 @@ def test_get_event_location(event, location):
                     "response": "tentativelyAccepted",
                     "time": "2022-09-08T15:47:46Z",
                 },
-                "emailAddress": {"name": "Test User", "address": "testing@gmail.com"},
+                "emailAddress": {
+                    "name": "Test User",
+                    "address": "testing@gmail.com",
+                },
             },
             {
                 "email": "testing@gmail.com",
@@ -1086,7 +1137,10 @@ def test_get_event_location(event, location):
         ),
         (
             {
-                "status": {"response": "organizer", "time": "0001-01-01T00:00:00Z"},
+                "status": {
+                    "response": "organizer",
+                    "time": "0001-01-01T00:00:00Z",
+                },
                 "emailAddress": {
                     "name": "Maria di Pomodoro | The future",
                     "address": "m.pomodoro@thefuture.com",
@@ -1107,7 +1161,12 @@ def test_get_event_location(event, location):
                 },
                 "emailAddress": {"name": "Test User"},
             },
-            {"email": None, "name": "Test User", "status": "maybe", "notes": None},
+            {
+                "email": None,
+                "name": "Test User",
+                "status": "maybe",
+                "notes": None,
+            },
         ),
     ],
 )
@@ -1176,7 +1235,10 @@ recurring_event = {
     "isDraft": False,
     "hideAttendees": False,
     "onlineMeeting": None,
-    "responseStatus": {"response": "organizer", "time": "0001-01-01T00:00:00Z"},
+    "responseStatus": {
+        "response": "organizer",
+        "time": "0001-01-01T00:00:00Z",
+    },
     "body": {"contentType": "html", "content": "<b>Hello world!</b>"},
     "start": {"dateTime": "2022-09-19T15:00:00.0000000", "timeZone": "UTC"},
     "end": {"dateTime": "2022-09-19T15:30:00.0000000", "timeZone": "UTC"},
@@ -1234,7 +1296,11 @@ recurring_event = {
     [
         ({"recurrence": None}, True),
         (
-            {"recurrence": {"range": {"recurrenceTimeZone": "Eastern Standard Time"}}},
+            {
+                "recurrence": {
+                    "range": {"recurrenceTimeZone": "Eastern Standard Time"}
+                }
+            },
             True,
         ),
         (
@@ -1343,8 +1409,13 @@ single_instance_event = {
     "isDraft": False,
     "hideAttendees": False,
     "recurrence": None,
-    "onlineMeeting": {"joinUrl": "https://teams.microsoft.com/l/meetup-join/xyz"},
-    "responseStatus": {"response": "organizer", "time": "0001-01-01T00:00:00Z"},
+    "onlineMeeting": {
+        "joinUrl": "https://teams.microsoft.com/l/meetup-join/xyz"
+    },
+    "responseStatus": {
+        "response": "organizer",
+        "time": "0001-01-01T00:00:00Z",
+    },
     "body": {"contentType": "html", "content": "<i>Singular</i>"},
     "start": {"dateTime": "2022-09-15T12:00:00.0000000", "timeZone": "UTC"},
     "end": {"dateTime": "2022-09-15T12:30:00.0000000", "timeZone": "UTC"},
@@ -1398,7 +1469,12 @@ def test_parse_event_singular():
             "=?utf-8?q?Felipe_Gonz=C3=A1lez?= <felipe.gonzalez@gmail.com>",
         ),
         (
-            {"emailAddress": {"name": "Felipe González", "address": "Felipe González"}},
+            {
+                "emailAddress": {
+                    "name": "Felipe González",
+                    "address": "Felipe González",
+                }
+            },
             "",
         ),  # invalid email address
     ],

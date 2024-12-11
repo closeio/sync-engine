@@ -16,7 +16,8 @@ from alembic import op
 
 def upgrade():
     op.add_column(
-        "imapfolderinfo", sa.Column("last_slow_refresh", sa.DateTime(), nullable=True)
+        "imapfolderinfo",
+        sa.Column("last_slow_refresh", sa.DateTime(), nullable=True),
     )
 
 

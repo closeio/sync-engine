@@ -23,7 +23,11 @@ from inbox.models import Account
 from inbox.models.session import global_session_scope, session_scope
 from inbox.providers import providers
 from inbox.scheduling.event_queue import EventQueue, EventQueueGroup
-from inbox.util.concurrency import kill_all, retry_with_logging, run_in_parallel
+from inbox.util.concurrency import (
+    kill_all,
+    retry_with_logging,
+    run_in_parallel,
+)
 from inbox.util.stats import statsd_client
 
 USE_WEBHOOKS = "GOOGLE_PUSH_NOTIFICATIONS" in config.get(
@@ -83,7 +87,10 @@ class SyncService:
     """
 
     def __init__(
-        self, process_identifier, process_number, poll_interval=SYNC_POLL_INTERVAL
+        self,
+        process_identifier,
+        process_number,
+        poll_interval=SYNC_POLL_INTERVAL,
     ):
         self.keep_running = True
         self.host = platform.node()
@@ -93,7 +100,8 @@ class SyncService:
         self.log = get_logger()
         self.log.bind(process_number=process_number)
         self.log.info(
-            "starting mail sync process", supported_providers=list(module_registry)
+            "starting mail sync process",
+            supported_providers=list(module_registry),
         )
 
         self.syncing_accounts = set()
@@ -104,7 +112,8 @@ class SyncService:
         # when using a timeout while blocking on the redis queues.
         min_poll_interval = 5
         self.poll_interval = int(
-            (random.random() * (poll_interval - min_poll_interval)) + min_poll_interval
+            (random.random() * (poll_interval - min_poll_interval))
+            + min_poll_interval
         )
         self.semaphore = BoundedSemaphore(1)
         self.zone = config.get("ZONE")
@@ -130,7 +139,8 @@ class SyncService:
 
         kill_all(self.contact_sync_monitors.values())
         self.log.info(
-            "stopped contact sync monitors", count=len(self.contact_sync_monitors)
+            "stopped contact sync monitors",
+            count=len(self.contact_sync_monitors),
         )
         kill_all(self.event_sync_monitors.values())
         self.log.info(
@@ -189,7 +199,9 @@ class SyncService:
         pending_avgs_over_threshold = False
         if self._pending_avgs_provider is not None:
             pending_avgs = self._pending_avgs_provider.get_pending_avgs()
-            pending_avgs_over_threshold = pending_avgs[15] >= PENDING_AVGS_THRESHOLD
+            pending_avgs_over_threshold = (
+                pending_avgs[15] >= PENDING_AVGS_THRESHOLD
+            )
 
         if (
             self.stealing_enabled
@@ -199,7 +211,8 @@ class SyncService:
             account_id = event["id"]
             if self.start_sync(account_id):
                 self.log.info(
-                    "Claimed new unassigned account sync", account_id=account_id
+                    "Claimed new unassigned account sync",
+                    account_id=account_id,
                 )
             return
 
@@ -240,7 +253,9 @@ class SyncService:
             try:
                 self.stop_sync(account_id)
             except OperationalError:
-                self.log.error("Database error stopping account sync", exc_info=True)
+                self.log.error(
+                    "Database error stopping account sync", exc_info=True
+                )
                 log_uncaught_errors()
 
     def account_ids_to_sync(self):
@@ -252,7 +267,8 @@ class SyncService:
                     Account.sync_should_run,
                     or_(
                         and_(
-                            Account.desired_sync_host == self.process_identifier,
+                            Account.desired_sync_host
+                            == self.process_identifier,
                             Account.sync_host.is_(None),
                         ),
                         and_(
@@ -260,7 +276,8 @@ class SyncService:
                             Account.sync_host == self.process_identifier,
                         ),
                         and_(
-                            Account.desired_sync_host == self.process_identifier,
+                            Account.desired_sync_host
+                            == self.process_identifier,
                             Account.sync_host == self.process_identifier,
                         ),
                     ),
@@ -316,7 +333,9 @@ class SyncService:
 
         """
         with self.semaphore, session_scope(account_id) as db_session:
-            account = db_session.query(Account).with_for_update().get(account_id)
+            account = (
+                db_session.query(Account).with_for_update().get(account_id)
+            )
             if account is None:
                 self.log.error("no such account", account_id=account_id)
                 return False
@@ -369,7 +388,9 @@ class SyncService:
                 # statsd_client.gauge('mailsync.sync_hosts_counts.{}'.format(acc.id), 1, delta=True)
                 db_session.commit()
                 self.log.info(
-                    "Sync started", account_id=account_id, sync_host=account.sync_host
+                    "Sync started",
+                    account_id=account_id,
+                    sync_host=account.sync_host,
                 )
             except Exception:
                 self.log.error(

@@ -27,7 +27,8 @@ def upgrade():
     # Do not define foreign key constraint here; that's done for all account
     # tables in the next migration.
     op.add_column(
-        "easaccount", sa.Column("password_id", sa.Integer(), sa.ForeignKey("secret.id"))
+        "easaccount",
+        sa.Column("password_id", sa.Integer(), sa.ForeignKey("secret.id")),
     )
     Base = sa.ext.declarative.declarative_base()
     Base.metadata.reflect(engine)

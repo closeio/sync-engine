@@ -15,7 +15,9 @@ from alembic import op
 
 
 def upgrade():
-    op.add_column("message", sa.Column("thread_order", sa.Integer, nullable=False))
+    op.add_column(
+        "message", sa.Column("thread_order", sa.Integer, nullable=False)
+    )
 
 
 def downgrade():

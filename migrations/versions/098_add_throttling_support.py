@@ -17,7 +17,9 @@ from alembic import op
 def upgrade():
     op.add_column(
         "account",
-        sa.Column("throttled", sa.Boolean(), server_default="0", nullable=True),
+        sa.Column(
+            "throttled", sa.Boolean(), server_default="0", nullable=True
+        ),
     )
 
 

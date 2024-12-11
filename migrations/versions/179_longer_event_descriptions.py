@@ -16,7 +16,9 @@ from sqlalchemy.dialects import mysql
 
 
 def upgrade():
-    op.add_column("event", sa.Column("_description", mysql.LONGTEXT(), nullable=True))
+    op.add_column(
+        "event", sa.Column("_description", mysql.LONGTEXT(), nullable=True)
+    )
 
 
 def downgrade():

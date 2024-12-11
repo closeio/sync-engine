@@ -2,7 +2,10 @@ import threading
 from typing import TYPE_CHECKING, ClassVar
 
 from inbox.config import config
-from inbox.interruptible_threading import InterruptibleThread, InterruptibleThreadExit
+from inbox.interruptible_threading import (
+    InterruptibleThread,
+    InterruptibleThreadExit,
+)
 from inbox.logging import get_logger
 from inbox.models.session import session_scope
 from inbox.util.concurrency import kill_all, retry_with_logging

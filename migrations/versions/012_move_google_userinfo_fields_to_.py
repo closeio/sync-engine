@@ -25,25 +25,32 @@ def upgrade():
     Base.metadata.reflect(engine)
     # ADD:
     op.add_column(
-        "imapaccount", sa.Column("family_name", sa.String(length=255), nullable=True)
+        "imapaccount",
+        sa.Column("family_name", sa.String(length=255), nullable=True),
     )
     op.add_column(
-        "imapaccount", sa.Column("g_gender", sa.String(length=16), nullable=True)
+        "imapaccount",
+        sa.Column("g_gender", sa.String(length=16), nullable=True),
     )
     op.add_column(
-        "imapaccount", sa.Column("g_locale", sa.String(length=16), nullable=True)
+        "imapaccount",
+        sa.Column("g_locale", sa.String(length=16), nullable=True),
     )
     op.add_column(
-        "imapaccount", sa.Column("g_picture_url", sa.String(length=255), nullable=True)
+        "imapaccount",
+        sa.Column("g_picture_url", sa.String(length=255), nullable=True),
     )
     op.add_column(
-        "imapaccount", sa.Column("g_plus_url", sa.String(length=255), nullable=True)
+        "imapaccount",
+        sa.Column("g_plus_url", sa.String(length=255), nullable=True),
     )
     op.add_column(
-        "imapaccount", sa.Column("given_name", sa.String(length=255), nullable=True)
+        "imapaccount",
+        sa.Column("given_name", sa.String(length=255), nullable=True),
     )
     op.add_column(
-        "imapaccount", sa.Column("google_id", sa.String(length=255), nullable=True)
+        "imapaccount",
+        sa.Column("google_id", sa.String(length=255), nullable=True),
     )
 
     # MOVE:
@@ -110,18 +117,26 @@ def downgrade():
     Base.metadata.reflect(engine)
     # ADD:
     op.add_column(
-        "account", sa.Column("family_name", sa.String(length=255), nullable=True)
-    )
-    op.add_column("account", sa.Column("g_gender", sa.String(length=16), nullable=True))
-    op.add_column("account", sa.Column("g_locale", sa.String(length=16), nullable=True))
-    op.add_column(
-        "account", sa.Column("g_picture_url", sa.String(length=255), nullable=True)
+        "account",
+        sa.Column("family_name", sa.String(length=255), nullable=True),
     )
     op.add_column(
-        "account", sa.Column("g_plus_url", sa.String(length=255), nullable=True)
+        "account", sa.Column("g_gender", sa.String(length=16), nullable=True)
     )
     op.add_column(
-        "account", sa.Column("given_name", sa.String(length=255), nullable=True)
+        "account", sa.Column("g_locale", sa.String(length=16), nullable=True)
+    )
+    op.add_column(
+        "account",
+        sa.Column("g_picture_url", sa.String(length=255), nullable=True),
+    )
+    op.add_column(
+        "account",
+        sa.Column("g_plus_url", sa.String(length=255), nullable=True),
+    )
+    op.add_column(
+        "account",
+        sa.Column("given_name", sa.String(length=255), nullable=True),
     )
     op.add_column(
         "account", sa.Column("google_id", sa.String(length=255), nullable=True)

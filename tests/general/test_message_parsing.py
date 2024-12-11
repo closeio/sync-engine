@@ -136,7 +136,9 @@ def test_save_attachments(db, default_account):
             "application/pdf", "filler", "attached_file.pdf", "attachment"
         ),
     )
-    msg = create_from_synced(db, default_account, mime_msg.to_string().encode())
+    msg = create_from_synced(
+        db, default_account, mime_msg.to_string().encode()
+    )
     assert len(msg.parts) == 2
     assert all(part.content_disposition == "attachment" for part in msg.parts)
     assert {part.block.filename for part in msg.parts} == {
@@ -198,12 +200,15 @@ def test_concatenate_parts_for_body(db, default_account):
         mime.create.text("html", "<html>First part</html>"),
         mime.create.attachment("image/png", "filler", disposition="inline"),
         mime.create.text("html", "<html>Second part</html>"),
-        mime.create.attachment("image/png", "more filler", disposition="inline"),
+        mime.create.attachment(
+            "image/png", "more filler", disposition="inline"
+        ),
         mime.create.text("html", "<html>3rd part</html>"),
     )
     m = create_from_synced(db, default_account, mime_msg.to_string().encode())
     assert (
-        m.body == "<html>First part</html><html>Second part</html><html>3rd part</html>"
+        m.body
+        == "<html>First part</html><html>Second part</html><html>3rd part</html>"
     )
     assert len(m.parts) == 2
     assert (
@@ -224,7 +229,9 @@ def test_inline_parts_may_form_body_text(db, default_account):
         mime.create.attachment(
             "text/html", "<html>Hello World!</html>", disposition="inline"
         ),
-        mime.create.attachment("text/plain", "Hello World!", disposition="inline"),
+        mime.create.attachment(
+            "text/plain", "Hello World!", disposition="inline"
+        ),
     )
     m = create_from_synced(db, default_account, mime_msg.to_string().encode())
     assert m.body == "<html>Hello World!</html>"
@@ -245,7 +252,9 @@ def test_convert_plaintext_body_to_html(db, default_account):
 
 def test_save_parts_without_disposition_as_attachments(db, default_account):
     mime_msg = mime.create.multipart("mixed")
-    mime_msg.append(mime.create.attachment("image/png", "filler", disposition=None))
+    mime_msg.append(
+        mime.create.attachment("image/png", "filler", disposition=None)
+    )
     m = create_from_synced(db, default_account, mime_msg.to_string().encode())
     assert len(m.parts) == 1
     assert m.parts[0].content_disposition == "attachment"
@@ -263,7 +272,10 @@ def test_handle_long_filenames(db, default_account):
     mime_msg = mime.create.multipart("mixed")
     mime_msg.append(
         mime.create.attachment(
-            "image/png", "filler", filename=990 * "A" + ".png", disposition="attachment"
+            "image/png",
+            "filler",
+            filename=990 * "A" + ".png",
+            disposition="attachment",
         )
     )
     m = create_from_synced(db, default_account, mime_msg.to_string().encode())
@@ -276,7 +288,9 @@ def test_handle_long_filenames(db, default_account):
 
 def test_handle_long_subjects(db, default_account, mime_message):
     mime_message.headers["Subject"] = 4096 * "A"
-    m = create_from_synced(db, default_account, mime_message.to_string().encode())
+    m = create_from_synced(
+        db, default_account, mime_message.to_string().encode()
+    )
     assert len(m.subject) < 256
 
 
@@ -307,7 +321,9 @@ def test_dont_use_attached_html_to_form_body(db, default_account):
 def test_truncate_recipients(
     db, default_account, thread, raw_message_with_many_recipients
 ):
-    m = create_from_synced(db, default_account, raw_message_with_many_recipients)
+    m = create_from_synced(
+        db, default_account, raw_message_with_many_recipients
+    )
     m.thread = thread
     db.session.add(m)
     # Check that no database error is raised.
@@ -328,11 +344,15 @@ def test_address_parsing():
     parsed = parse_mimepart_address_header(mimepart, "From")
     assert parsed == [["Bob", "bob@foocorp.com"]]
 
-    mimepart = mime.from_string("From: Indiegogo <noreply@indiegogo.com> (no reply)")
+    mimepart = mime.from_string(
+        "From: Indiegogo <noreply@indiegogo.com> (no reply)"
+    )
     parsed = parse_mimepart_address_header(mimepart, "From")
     assert parsed == [["Indiegogo", "noreply@indiegogo.com"]]
 
-    mimepart = mime.from_string("From: Anon <support@github.com> (GitHub Staff)")
+    mimepart = mime.from_string(
+        "From: Anon <support@github.com> (GitHub Staff)"
+    )
     parsed = parse_mimepart_address_header(mimepart, "From")
     assert parsed == [["Anon", "support@github.com"]]
 
@@ -357,12 +377,16 @@ def test_address_parsing():
     assert parsed == []
 
     # Duplicate header
-    mimepart = mime.from_string("From: bob@foocorp.com\r\nFrom: bob@foocorp.com")
+    mimepart = mime.from_string(
+        "From: bob@foocorp.com\r\nFrom: bob@foocorp.com"
+    )
     parsed = parse_mimepart_address_header(mimepart, "From")
     assert parsed == [["", "bob@foocorp.com"]]
 
     # RFC2047-encoded phrases with commas
-    mimepart = mime.from_string("From: =?utf-8?Q?Foo=2C=20Corp.?= <info@foocorp.com>")
+    mimepart = mime.from_string(
+        "From: =?utf-8?Q?Foo=2C=20Corp.?= <info@foocorp.com>"
+    )
     parsed = parse_mimepart_address_header(mimepart, "From")
     assert parsed == [["Foo, Corp.", "info@foocorp.com"]]
 
@@ -384,7 +408,9 @@ def test_address_parsing():
     assert parsed == [["", "alice@foocorp.com"], ["", "bob@foocorp.com"]]
 
     # Non ASCII
-    mimepart = mime.from_string("To: =?UTF-8?Q?Pawe=C5=82?= <pawel@example.com>")
+    mimepart = mime.from_string(
+        "To: =?UTF-8?Q?Pawe=C5=82?= <pawel@example.com>"
+    )
     parsed = parse_mimepart_address_header(mimepart, "To")
     assert parsed == [["Paweł", "pawel@example.com"]]
 
@@ -395,10 +421,15 @@ def test_handle_bad_content_disposition(
     # Message with a MIME part that has an invalid content-disposition.
     mime_message.append(
         mime.create.attachment(
-            "image/png", "filler", "attached_image.png", disposition="alternative"
+            "image/png",
+            "filler",
+            "attached_image.png",
+            disposition="alternative",
         )
     )
-    m = create_from_synced(db, default_account, mime_message.to_string().encode())
+    m = create_from_synced(
+        db, default_account, mime_message.to_string().encode()
+    )
     assert m.namespace_id == default_namespace.id
     assert m.to_addr == [["Alice", "alice@example.com"]]
     assert m.cc_addr == [["Bob", "bob@example.com"]]
@@ -412,7 +443,9 @@ def test_handle_bad_content_disposition(
     )
 
 
-def test_store_full_body_on_parse_error(default_account, mime_message_with_bad_date):
+def test_store_full_body_on_parse_error(
+    default_account, mime_message_with_bad_date
+):
     received_date = None
     m = Message.create_from_synced(
         default_account,
@@ -424,15 +457,21 @@ def test_store_full_body_on_parse_error(default_account, mime_message_with_bad_d
     assert get_from_blockstore(m.data_sha256)
 
 
-def test_long_content_id(db, default_account, thread, raw_message_with_long_content_id):
-    m = create_from_synced(db, default_account, raw_message_with_long_content_id)
+def test_long_content_id(
+    db, default_account, thread, raw_message_with_long_content_id
+):
+    m = create_from_synced(
+        db, default_account, raw_message_with_long_content_id
+    )
     m.thread = thread
     db.session.add(m)
     # Check that no database error is raised.
     db.session.commit()
 
 
-def test_parse_body_on_bad_attachment(default_account, raw_message_with_bad_attachment):
+def test_parse_body_on_bad_attachment(
+    default_account, raw_message_with_bad_attachment
+):
     received_date = None
     m = Message.create_from_synced(
         default_account,
@@ -521,23 +560,31 @@ def test_attachments_filename_parsing(
     raw_message_with_filename_attachment,
     raw_message_with_name_attachment,
 ):
-    m = create_from_synced(db, default_account, raw_message_with_filename_attachment)
+    m = create_from_synced(
+        db, default_account, raw_message_with_filename_attachment
+    )
     assert len(m.attachments) == 1
     assert (
-        m.attachments[0].block.filename == "bewerbung_anschreiben_positivbeispiel.txt"
+        m.attachments[0].block.filename
+        == "bewerbung_anschreiben_positivbeispiel.txt"
     )
 
-    m = create_from_synced(db, default_account, raw_message_with_name_attachment)
+    m = create_from_synced(
+        db, default_account, raw_message_with_name_attachment
+    )
     assert len(m.attachments) == 1
     assert (
-        m.attachments[0].block.filename == "bewerbung_anschreiben_positivbeispiel.txt"
+        m.attachments[0].block.filename
+        == "bewerbung_anschreiben_positivbeispiel.txt"
     )
 
 
 def test_inline_attachments_filename_parsing(
     db, default_account, raw_message_with_inline_name_attachment
 ):
-    m = create_from_synced(db, default_account, raw_message_with_inline_name_attachment)
+    m = create_from_synced(
+        db, default_account, raw_message_with_inline_name_attachment
+    )
     assert len(m.attachments) == 1
     assert (
         m.attachments[0].block.filename
@@ -552,23 +599,33 @@ def test_attachments_emoji_filename_parsing(
     assert len(m.attachments) == 1
     assert m.attachments[0].block.filename == "OutlookEmoji-\U0001f60a.png"
     assert m.attachments[0].block.content_type == "image/png"
-    assert m.attachments[0].content_id == "<3f0ea351-779e-48b3-bfa9-7c2a9e373aeb>"
+    assert (
+        m.attachments[0].content_id == "<3f0ea351-779e-48b3-bfa9-7c2a9e373aeb>"
+    )
     assert m.attachments[0].content_disposition == "attachment"
 
 
 def test_attachments_emoji_filename_parsing(
     db, default_account, raw_message_with_outlook_emoji_inline
 ):
-    m = create_from_synced(db, default_account, raw_message_with_outlook_emoji_inline)
+    m = create_from_synced(
+        db, default_account, raw_message_with_outlook_emoji_inline
+    )
     assert len(m.attachments) == 1
     assert m.attachments[0].block.filename == "OutlookEmoji-\U0001f60a.png"
     assert m.attachments[0].block.content_type == "image/png"
-    assert m.attachments[0].content_id == "<3f0ea351-779e-48b3-bfa9-7c2a9e373aeb>"
+    assert (
+        m.attachments[0].content_id == "<3f0ea351-779e-48b3-bfa9-7c2a9e373aeb>"
+    )
     assert m.attachments[0].content_disposition == "inline"
 
 
-def test_long_message_id(db, default_account, thread, raw_message_with_long_message_id):
-    m = create_from_synced(db, default_account, raw_message_with_long_message_id)
+def test_long_message_id(
+    db, default_account, thread, raw_message_with_long_message_id
+):
+    m = create_from_synced(
+        db, default_account, raw_message_with_long_message_id
+    )
     m.thread = thread
     db.session.add(m)
     # Check that no database error is raised.
@@ -580,13 +637,20 @@ def test_long_message_body(db, default_account, raw_message_too_long):
     with patch("inbox.models.message.log") as mock:
         m = create_from_synced(db, default_account, raw_message_too_long)
         assert m.decode_error
-        assert "over the parsing limit" in mock.warning.call_args[1]["error"].args[0]
+        assert (
+            "over the parsing limit"
+            in mock.warning.call_args[1]["error"].args[0]
+        )
 
 
-@pytest.mark.parametrize("header", ["From", "Sender", "Reply-To", "To", "Cc", "Bcc"])
+@pytest.mark.parametrize(
+    "header", ["From", "Sender", "Reply-To", "To", "Cc", "Bcc"]
+)
 def test_long_address_header(db, default_account, mime_message, header):
     with patch("inbox.models.message.log") as mock:
-        mime_message.headers[header] = "b" * MAX_TEXT_BYTES + " <mail@example.com>"
+        mime_message.headers[header] = (
+            "b" * MAX_TEXT_BYTES + " <mail@example.com>"
+        )
         message = create_from_synced(
             db, default_account, mime_message.to_string().encode()
         )

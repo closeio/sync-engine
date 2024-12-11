@@ -21,7 +21,9 @@ def upgrade():
         sa.Column("name", sa.String(length=40), nullable=True),
         sa.Column("value", sa.Integer(), nullable=True),
         sa.Column("contact_id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(["contact_id"], ["contact.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["contact_id"], ["contact.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.add_column("contact", sa.Column("score", sa.Integer(), nullable=True))

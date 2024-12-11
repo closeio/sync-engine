@@ -103,7 +103,11 @@ def upgrade():
         "state",
         server_default="initial",
         existing_type=sa.Enum(
-            "initial", "initial uidinvalid", "poll", "poll uidinvalid", "finish"
+            "initial",
+            "initial uidinvalid",
+            "poll",
+            "poll uidinvalid",
+            "finish",
         ),
         existing_server_default=sa.sql.expression.null(),
         existing_nullable=False,
@@ -158,7 +162,11 @@ def upgrade():
         "state",
         server_default="initial",
         existing_type=sa.Enum(
-            "initial", "initial uidinvalid", "poll", "poll uidinvalid", "finish"
+            "initial",
+            "initial uidinvalid",
+            "poll",
+            "poll uidinvalid",
+            "finish",
         ),
         existing_server_default=sa.sql.expression.null(),
         existing_nullable=False,

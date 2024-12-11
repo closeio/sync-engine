@@ -43,10 +43,14 @@ class CategoryNameString(StringWithTransform):
     """
 
     def __init__(self, *args, **kwargs):
-        super().__init__(sanitize_name, MAX_INDEXABLE_LENGTH, collation="utf8mb4_bin")
+        super().__init__(
+            sanitize_name, MAX_INDEXABLE_LENGTH, collation="utf8mb4_bin"
+        )
 
 
-class Category(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin):
+class Category(
+    MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin
+):
     @property
     def API_OBJECT_NAME(self):
         return self.type_
@@ -61,7 +65,10 @@ class Category(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedA
     # Need `use_alter` here to avoid circular dependencies
     namespace_id = Column(
         ForeignKey(
-            "namespace.id", use_alter=True, name="category_fk1", ondelete="CASCADE"
+            "namespace.id",
+            use_alter=True,
+            name="category_fk1",
+            ondelete="CASCADE",
         ),
         nullable=False,
     )
@@ -90,7 +97,10 @@ class Category(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedA
 
         objects = (
             session.query(cls)
-            .filter(cls.namespace_id == namespace_id, cls.display_name == display_name)
+            .filter(
+                cls.namespace_id == namespace_id,
+                cls.display_name == display_name,
+            )
             .all()
         )
 

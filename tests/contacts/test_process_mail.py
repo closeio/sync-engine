@@ -19,7 +19,9 @@ def test_update_contacts_from_message(db, default_namespace, thread):
     )
 
     assert (
-        db.session.query(Contact).filter_by(email_address="alpha@example.com").count()
+        db.session.query(Contact)
+        .filter_by(email_address="alpha@example.com")
+        .count()
         == 1
     )
 
@@ -45,7 +47,10 @@ def test_update_contacts_from_message(db, default_namespace, thread):
     )
     alpha = (
         db.session.query(Contact)
-        .filter_by(email_address="alpha@example.com", namespace_id=default_namespace.id)
+        .filter_by(
+            email_address="alpha@example.com",
+            namespace_id=default_namespace.id,
+        )
         .one()
     )
     assert len(alpha.message_associations) == 4

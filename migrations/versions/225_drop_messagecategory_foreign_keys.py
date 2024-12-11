@@ -17,11 +17,15 @@ from sqlalchemy.sql import text
 def upgrade():
     conn = op.get_bind()
     conn.execute(
-        text("ALTER TABLE messagecategory DROP FOREIGN KEY messagecategory_ibfk_1")
+        text(
+            "ALTER TABLE messagecategory DROP FOREIGN KEY messagecategory_ibfk_1"
+        )
     )
 
     conn.execute(
-        text("ALTER TABLE messagecategory DROP FOREIGN KEY messagecategory_ibfk_2")
+        text(
+            "ALTER TABLE messagecategory DROP FOREIGN KEY messagecategory_ibfk_2"
+        )
     )
 
 

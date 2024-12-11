@@ -114,7 +114,9 @@ def load_modules(base_name, base_path):
     for module_name in iter_module_names(base_path):
         full_module_name = f"{base_name}.{module_name}"
 
-        module = sys.modules.get(full_module_name, import_module(full_module_name))
+        module = sys.modules.get(
+            full_module_name, import_module(full_module_name)
+        )
         modules.append(module)
 
     return modules

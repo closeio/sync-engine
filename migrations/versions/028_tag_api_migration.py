@@ -50,19 +50,25 @@ def upgrade():
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
-        sa.ForeignKeyConstraint(["thread_id"], ["thread.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["usertag_id"], ["usertag.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["thread_id"], ["thread.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["usertag_id"], ["usertag.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.add_column(
-        "folder", sa.Column("exposed_name", sa.String(length=255), nullable=True)
+        "folder",
+        sa.Column("exposed_name", sa.String(length=255), nullable=True),
     )
     op.add_column(
         "folder", sa.Column("public_id", sa.String(length=191), nullable=True)
     )
 
     op.add_column(
-        "account", sa.Column("provider_prefix", sa.String(length=64), nullable=False)
+        "account",
+        sa.Column("provider_prefix", sa.String(length=64), nullable=False),
     )
     op.add_column(
         "account", sa.Column("important_folder_id", sa.Integer, nullable=True)
@@ -114,7 +120,9 @@ def upgrade():
                 try:
                     dest = (
                         db_session.query(Folder)
-                        .filter(Folder.account == account, Folder.name == alias)
+                        .filter(
+                            Folder.account == account, Folder.name == alias
+                        )
                         .one()
                     )
                 except NoResultFound:

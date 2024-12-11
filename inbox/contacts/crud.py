@@ -26,7 +26,8 @@ def read(namespace, db_session, contact_public_id):
     return (
         db_session.query(Contact)
         .filter(
-            Contact.public_id == contact_public_id, Contact.namespace_id == namespace.id
+            Contact.public_id == contact_public_id,
+            Contact.namespace_id == namespace.id,
         )
         .first()
     )

@@ -3,7 +3,9 @@ from sqlalchemy import Column, ForeignKey, String
 from inbox.config import config
 from inbox.logging import get_logger
 from inbox.models.account import CategoryType
-from inbox.models.backends.calendar_sync_account import CalendarSyncAccountMixin
+from inbox.models.backends.calendar_sync_account import (
+    CalendarSyncAccountMixin,
+)
 from inbox.models.backends.imap import ImapAccount
 from inbox.models.backends.oauth import OAuthAccount
 
@@ -20,7 +22,9 @@ class GmailAccount(CalendarSyncAccountMixin, OAuthAccount, ImapAccount):
     OAUTH_CLIENT_ID = config.get_required("GOOGLE_OAUTH_CLIENT_ID")
     OAUTH_CLIENT_SECRET = config.get_required("GOOGLE_OAUTH_CLIENT_SECRET")
 
-    id = Column(ForeignKey(ImapAccount.id, ondelete="CASCADE"), primary_key=True)
+    id = Column(
+        ForeignKey(ImapAccount.id, ondelete="CASCADE"), primary_key=True
+    )
 
     __mapper_args__ = {"polymorphic_identity": "gmailaccount"}
 
@@ -41,7 +45,11 @@ class GmailAccount(CalendarSyncAccountMixin, OAuthAccount, ImapAccount):
 
     @property
     def scopes(self):
-        return [*self.calendar_scopes, *self.contacts_scopes, *self.email_scopes]
+        return [
+            *self.calendar_scopes,
+            *self.contacts_scopes,
+            *self.email_scopes,
+        ]
 
     @property
     def provider(self):

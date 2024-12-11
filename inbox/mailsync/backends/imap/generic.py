@@ -142,7 +142,9 @@ class ChangePoller(InterruptibleThread):
 
     @retry_crispin
     def _run(self) -> NoReturn:
-        log.new(account_id=self.engine.account_id, folder=self.engine.folder_name)
+        log.new(
+            account_id=self.engine.account_id, folder=self.engine.folder_name
+        )
         while True:
             interruptible_threading.check_interrupted()
             log.debug("polling for changes")
@@ -170,7 +172,10 @@ class FolderSyncEngine(InterruptibleThread):
             try:
                 folder = (
                     db_session.query(Folder)
-                    .filter(Folder.name == folder_name, Folder.account_id == account_id)
+                    .filter(
+                        Folder.name == folder_name,
+                        Folder.account_id == account_id,
+                    )
                     .one()
                 )
             except NoResultFound:
@@ -314,8 +319,12 @@ class FolderSyncEngine(InterruptibleThread):
                 # failing. Otherwise simply stop syncing the folder.
                 if self.folder_name.lower() == "inbox":
                     with session_scope(self.namespace_id) as db_session:
-                        account = db_session.query(Account).get(self.account_id)
-                        account.disable_sync("Detected endless uidvalidity resync loop")
+                        account = db_session.query(Account).get(
+                            self.account_id
+                        )
+                        account.disable_sync(
+                            "Detected endless uidvalidity resync loop"
+                        )
                         account.sync_state = "stopped"
                         db_session.commit()
                     raise MailsyncDone()
@@ -368,7 +377,9 @@ class FolderSyncEngine(InterruptibleThread):
             try:
                 saved_folder_status = (
                     db_session.query(ImapFolderSyncStatus)
-                    .filter_by(account_id=self.account_id, folder_id=self.folder_id)
+                    .filter_by(
+                        account_id=self.account_id, folder_id=self.folder_id
+                    )
                     .one()
                 )
 
@@ -470,7 +481,9 @@ class FolderSyncEngine(InterruptibleThread):
                         local_uids.difference(remote_uids),
                     )
 
-                new_uids = sorted(remote_uids.difference(local_uids), reverse=True)
+                new_uids = sorted(
+                    remote_uids.difference(local_uids), reverse=True
+                )
 
                 len_remote_uids = len(remote_uids)
                 del remote_uids  # free up memory as soon as possible
@@ -488,7 +501,9 @@ class FolderSyncEngine(InterruptibleThread):
 
             change_poller = ChangePoller(self)
             change_poller.start()
-            bind_context(change_poller, "changepoller", self.account_id, self.folder_id)
+            bind_context(
+                change_poller, "changepoller", self.account_id, self.folder_id
+            )
             for count, uid in enumerate(new_uids, start=1):
                 # The speedup from batching appears to be less clear for
                 # non-Gmail accounts, so for now just download one-at-a-time.
@@ -520,7 +535,9 @@ class FolderSyncEngine(InterruptibleThread):
         with self.conn_pool.get() as crispin_client:
             self.check_uid_changes(crispin_client)
             if self.should_idle(crispin_client):
-                crispin_client.select_folder(self.folder_name, self.uidvalidity_cb)
+                crispin_client.select_folder(
+                    self.folder_name, self.uidvalidity_cb
+                )
                 idling = True
                 try:
                     crispin_client.idle(int(introduce_jitter(IDLE_WAIT)))
@@ -532,7 +549,9 @@ class FolderSyncEngine(InterruptibleThread):
                         if not message.startswith("Unexpected IDLE response"):
                             raise
 
-                        log.info("Error initiating IDLE, not idling", error=exc)
+                        log.info(
+                            "Error initiating IDLE, not idling", error=exc
+                        )
                         with contextlib.suppress(AttributeError):
                             # Still have to take the connection out of IDLE
                             # mode to reuse it though.
@@ -544,7 +563,9 @@ class FolderSyncEngine(InterruptibleThread):
                 idling = False
         # Close IMAP connection before sleeping
         if not idling:
-            interruptible_threading.sleep(introduce_jitter(self.poll_frequency))
+            interruptible_threading.sleep(
+                introduce_jitter(self.poll_frequency)
+            )
 
     def resync_uids_impl(self):
         # First, let's check if the UIVDALIDITY change was spurious, if
@@ -570,11 +591,14 @@ class FolderSyncEngine(InterruptibleThread):
                     ImapUid.folder_id == self.folder_id,
                 )
                 .with_hint(
-                    ImapUid, "FORCE INDEX(ix_imapuid_account_id_folder_id_msg_uid_desc)"
+                    ImapUid,
+                    "FORCE INDEX(ix_imapuid_account_id_folder_id_msg_uid_desc)",
                 )
             }
         with self.syncmanager_lock:
-            common.remove_deleted_uids(self.account_id, self.folder_id, invalid_uids)
+            common.remove_deleted_uids(
+                self.account_id, self.folder_id, invalid_uids
+            )
         self.uidvalidity = remote_uidvalidity
         self.highestmodseq = None
         self.uidnext = remote_uidnext
@@ -598,7 +622,8 @@ class FolderSyncEngine(InterruptibleThread):
                 ImapUid.msg_uid == raw_message.uid,
             )
             .with_hint(
-                ImapUid, "FORCE INDEX(ix_imapuid_account_id_folder_id_msg_uid_desc)"
+                ImapUid,
+                "FORCE INDEX(ix_imapuid_account_id_folder_id_msg_uid_desc)",
             )
             .exists()
         ).scalar()
@@ -616,7 +641,9 @@ class FolderSyncEngine(InterruptibleThread):
             log.warning("Server returned a message with an empty body.")
             return None
 
-        new_uid = common.create_imap_message(db_session, account, folder, raw_message)
+        new_uid = common.create_imap_message(
+            db_session, account, folder, raw_message
+        )
         self.add_message_to_thread(db_session, new_uid.message, raw_message)
 
         db_session.flush()
@@ -639,9 +666,16 @@ class FolderSyncEngine(InterruptibleThread):
                 datetime.utcnow() - new_uid.message.received_date
             ).total_seconds() * 1000
             metrics = [
-                ".".join(["mailsync", "providers", "overall", "message_latency"]),
                 ".".join(
-                    ["mailsync", "providers", self.provider_name, "message_latency"]
+                    ["mailsync", "providers", "overall", "message_latency"]
+                ),
+                ".".join(
+                    [
+                        "mailsync",
+                        "providers",
+                        self.provider_name,
+                        "message_latency",
+                    ]
                 ),
             ]
             for metric in metrics:
@@ -692,7 +726,10 @@ class FolderSyncEngine(InterruptibleThread):
             return 0
 
         new_uids = set()
-        with self.syncmanager_lock, session_scope(self.namespace_id) as db_session:
+        with (
+            self.syncmanager_lock,
+            session_scope(self.namespace_id) as db_session,
+        ):
             account = Account.get(self.account_id, db_session)
             folder = Folder.get(self.folder_id, db_session)
             for msg in raw_messages:
@@ -703,10 +740,14 @@ class FolderSyncEngine(InterruptibleThread):
                     new_uids.add(uid)
             db_session.commit()
 
-        log.debug("Committed new UIDs", new_committed_message_count=len(new_uids))
+        log.debug(
+            "Committed new UIDs", new_committed_message_count=len(new_uids)
+        )
         # If we downloaded uids, record message velocity (#uid / latency)
         if self.state == "initial" and len(new_uids):
-            self._report_message_velocity(datetime.utcnow() - start, len(new_uids))
+            self._report_message_velocity(
+                datetime.utcnow() - start, len(new_uids)
+            )
         if self.is_first_message:
             self._report_first_message()
             self.is_first_message = False
@@ -728,7 +769,9 @@ class FolderSyncEngine(InterruptibleThread):
         latency = (now - account_created).total_seconds() * 1000
 
         metrics = [
-            ".".join(["mailsync", "providers", self.provider_name, "first_message"]),
+            ".".join(
+                ["mailsync", "providers", self.provider_name, "first_message"]
+            ),
             ".".join(["mailsync", "providers", "overall", "first_message"]),
         ]
 
@@ -739,7 +782,14 @@ class FolderSyncEngine(InterruptibleThread):
         latency = (timedelta).total_seconds() * 1000
         latency_per_uid = float(latency) / num_uids
         metrics = [
-            ".".join(["mailsync", "providers", self.provider_name, "message_velocity"]),
+            ".".join(
+                [
+                    "mailsync",
+                    "providers",
+                    self.provider_name,
+                    "message_velocity",
+                ]
+            ),
             ".".join(["mailsync", "providers", "overall", "message_velocity"]),
         ]
         for metric in metrics:
@@ -798,7 +848,9 @@ class FolderSyncEngine(InterruptibleThread):
             lastseenuid = common.lastseenuid(
                 self.account_id, db_session, self.folder_id
             )
-        latest_uids = crispin_client.conn.fetch(f"{lastseenuid + 1}:*", ["UID"]).keys()
+        latest_uids = crispin_client.conn.fetch(
+            f"{lastseenuid + 1}:*", ["UID"]
+        ).keys()
         new_uids = set(latest_uids) - {lastseenuid}
         if new_uids:
             for uid in sorted(new_uids):
@@ -838,7 +890,9 @@ class FolderSyncEngine(InterruptibleThread):
             saved_highestmodseq=self.highestmodseq,
         )
         crispin_client.select_folder(self.folder_name, self.uidvalidity_cb)
-        changed_flags = crispin_client.condstore_changed_flags(self.highestmodseq)
+        changed_flags = crispin_client.condstore_changed_flags(
+            self.highestmodseq
+        )
 
         # In order to be able to sync changes to tens of thousands of flags at
         # once, we commit updates in batches. We do this in ascending order by
@@ -850,7 +904,8 @@ class FolderSyncEngine(InterruptibleThread):
         # we avoid that by batching.
         flag_batches = chunk(
             sorted(
-                changed_flags.items(), key=lambda key_and_value: key_and_value[1].modseq
+                changed_flags.items(),
+                key=lambda key_and_value: key_and_value[1].modseq,
             ),
             CONDSTORE_FLAGS_REFRESH_BATCH_SIZE,
         )
@@ -917,7 +972,9 @@ class FolderSyncEngine(InterruptibleThread):
             self.refresh_flags_impl(crispin_client, FAST_FLAGS_REFRESH_LIMIT)
             self.last_fast_refresh = datetime.utcnow()
 
-    def refresh_flags_impl(self, crispin_client: CrispinClient, max_uids: int) -> None:
+    def refresh_flags_impl(
+        self, crispin_client: CrispinClient, max_uids: int
+    ) -> None:
         crispin_client.select_folder(self.folder_name, self.uidvalidity_cb)
 
         with self.global_lock:
@@ -962,17 +1019,27 @@ class FolderSyncEngine(InterruptibleThread):
             #          'not persisting changes', max_uids=max_uids)
             return
         log.debug(
-            "Changed flags refresh response, persisting changes", max_uids=max_uids
+            "Changed flags refresh response, persisting changes",
+            max_uids=max_uids,
         )
         expunged_uids = local_uids.difference(flags)
         with self.syncmanager_lock:
-            common.remove_deleted_uids(self.account_id, self.folder_id, expunged_uids)
+            common.remove_deleted_uids(
+                self.account_id, self.folder_id, expunged_uids
+            )
 
         del expunged_uids  # free memory as soon as possible
 
-        with self.syncmanager_lock, session_scope(self.namespace_id) as db_session:
+        with (
+            self.syncmanager_lock,
+            session_scope(self.namespace_id) as db_session,
+        ):
             common.update_metadata(
-                self.account_id, self.folder_id, self.folder_role, flags, db_session
+                self.account_id,
+                self.folder_id,
+                self.folder_role,
+                flags,
+                db_session,
             )
         self.flags_fetch_results[max_uids] = (local_uids, flags)
 
@@ -1011,7 +1078,9 @@ class FolderSyncEngine(InterruptibleThread):
         # doing a (potentially expensive) full flags refresh for every account
         # on every process restart.
         if not hasattr(self, "_last_slow_refresh"):
-            self._last_slow_refresh = self._load_imap_folder_info().last_slow_refresh
+            self._last_slow_refresh = (
+                self._load_imap_folder_info().last_slow_refresh
+            )
         return self._last_slow_refresh
 
     @last_slow_refresh.setter
@@ -1060,12 +1129,17 @@ class FolderSyncEngine(InterruptibleThread):
         assert folder_name == self.folder_name
         assert account_id == self.account_id
         selected_uidvalidity = select_info[b"UIDVALIDITY"]
-        is_valid = self.uidvalidity is None or selected_uidvalidity <= self.uidvalidity
+        is_valid = (
+            self.uidvalidity is None
+            or selected_uidvalidity <= self.uidvalidity
+        )
         if not is_valid:
             raise UidInvalid(
                 "folder: {}, remote uidvalidity: {}, "
                 "cached uidvalidity: {}".format(
-                    folder_name.encode("utf-8"), selected_uidvalidity, self.uidvalidity
+                    folder_name.encode("utf-8"),
+                    selected_uidvalidity,
+                    self.uidvalidity,
                 )
             )
         return select_info
@@ -1087,12 +1161,15 @@ def uidvalidity_cb(
         folder_name is not None and select_info is not None
     ), "must start IMAP session before verifying UIDVALIDITY"
     with session_scope(account_id) as db_session:
-        saved_folder_info = common.get_folder_info(account_id, db_session, folder_name)
+        saved_folder_info = common.get_folder_info(
+            account_id, db_session, folder_name
+        )
         saved_uidvalidity = or_none(saved_folder_info, lambda i: i.uidvalidity)
     selected_uidvalidity = select_info[b"UIDVALIDITY"]
     if saved_folder_info:
         is_valid = (
-            saved_uidvalidity is None or selected_uidvalidity <= saved_uidvalidity
+            saved_uidvalidity is None
+            or selected_uidvalidity <= saved_uidvalidity
         )
         if not is_valid:
             raise UidInvalid(

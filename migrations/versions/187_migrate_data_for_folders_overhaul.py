@@ -27,14 +27,20 @@ def populate_labels(uid, account, db_session):
     uid.is_draft = "\\Draft" in uid.g_labels
     uid.is_starred = "\\Starred" in uid.g_labels
 
-    category_map = {"\\Inbox": "inbox", "\\Important": "important", "\\Sent": "sent"}
+    category_map = {
+        "\\Inbox": "inbox",
+        "\\Important": "important",
+        "\\Sent": "sent",
+    }
 
     remote_labels = set()
     for label_string in uid.g_labels:
         if label_string in ("\\Draft", "\\Starred"):
             continue
         elif label_string in category_map:
-            remote_labels.add((category_map[label_string], category_map[label_string]))
+            remote_labels.add(
+                (category_map[label_string], category_map[label_string])
+            )
         else:
             remote_labels.add((label_string, None))
 
@@ -63,7 +69,9 @@ def set_labels_for_imapuids(account, db_session):
 def create_categories_for_folders(account, db_session):
     from inbox.models import Category, Folder
 
-    for folder in db_session.query(Folder).filter(Folder.account_id == account.id):
+    for folder in db_session.query(Folder).filter(
+        Folder.account_id == account.id
+    ):
         cat = Category.find_or_create(
             db_session,
             namespace_id=account.namespace.id,
@@ -106,7 +114,9 @@ def migrate_messages(account_id):
     engine = main_engine(pool_size=1, max_overflow=0)
 
     with session_scope(versioned=False) as db_session:
-        namespace = db_session.query(Namespace).filter_by(account_id=account_id).one()
+        namespace = (
+            db_session.query(Namespace).filter_by(account_id=account_id).one()
+        )
         offset = 0
         while True:
             if engine.has_table("easuid"):
@@ -127,7 +137,7 @@ def migrate_messages(account_id):
                     joinedload(Message.namespace).load_only("id"),
                     subqueryload(Message.imapuids),
                     subqueryload(Message.messagecategories),
-                    *additional_options
+                    *additional_options,
                 )
                 .with_hint(Message, "USE INDEX (ix_message_namespace_id)")
                 .order_by(asc(Message.id))
@@ -144,7 +154,9 @@ def migrate_messages(account_id):
                     # Can happen for messages without a folder.
                     pass
                 log.info(
-                    "Updated message", namespace_id=namespace.id, message_id=message.id
+                    "Updated message",
+                    namespace_id=namespace.id,
+                    message_id=message.id,
                 )
             db_session.commit()
             offset += 1000

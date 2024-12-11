@@ -18,7 +18,9 @@ def upgrade():
     conn = op.get_bind()
     conn.execute(text("ALTER TABLE contact DROP FOREIGN KEY contact_ibfk_1"))
 
-    conn.execute(text("ALTER TABLE phonenumber DROP FOREIGN KEY phonenumber_ibfk_1"))
+    conn.execute(
+        text("ALTER TABLE phonenumber DROP FOREIGN KEY phonenumber_ibfk_1")
+    )
 
     conn.execute(
         text(

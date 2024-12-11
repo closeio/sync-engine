@@ -35,7 +35,10 @@ def upgrade():
         "ix_actionlog_deleted_at", "actionlog", ["deleted_at"], unique=False
     )
     op.create_index(
-        "ix_actionlog_namespace_id", "actionlog", ["namespace_id"], unique=False
+        "ix_actionlog_namespace_id",
+        "actionlog",
+        ["namespace_id"],
+        unique=False,
     )
     op.create_index(
         "ix_actionlog_updated_at", "actionlog", ["updated_at"], unique=False

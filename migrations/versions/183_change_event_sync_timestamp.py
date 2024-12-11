@@ -15,7 +15,9 @@ from alembic import op
 
 
 def upgrade():
-    op.add_column("calendar", sa.Column("last_synced", sa.DateTime(), nullable=True))
+    op.add_column(
+        "calendar", sa.Column("last_synced", sa.DateTime(), nullable=True)
+    )
     conn = op.get_bind()
     conn.execute(
         """UPDATE calendar

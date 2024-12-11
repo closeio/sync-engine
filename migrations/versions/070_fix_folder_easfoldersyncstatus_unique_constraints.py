@@ -25,14 +25,18 @@ def upgrade():
     op.drop_constraint("folder_fk1", "folder", type_="foreignkey")
     op.drop_constraint("account_id", "folder", type_="unique")
 
-    op.create_foreign_key("folder_fk1", "folder", "account", ["account_id"], ["id"])
+    op.create_foreign_key(
+        "folder_fk1", "folder", "account", ["account_id"], ["id"]
+    )
     op.create_unique_constraint(
         "account_id", "folder", ["account_id", "name", "canonical_name"]
     )
 
     if "easfoldersyncstatus" in Base.metadata.tables:
         op.create_unique_constraint(
-            "account_id_2", "easfoldersyncstatus", ["account_id", "eas_folder_id"]
+            "account_id_2",
+            "easfoldersyncstatus",
+            ["account_id", "eas_folder_id"],
         )
 
 

@@ -19,7 +19,9 @@ def upgrade():
         "messagecontactassociation",
         "field",
         existing_type=sa.Enum("from_addr", "to_addr", "cc_addr", "bcc_addr"),
-        type_=sa.Enum("from_addr", "to_addr", "cc_addr", "bcc_addr", "reply_to"),
+        type_=sa.Enum(
+            "from_addr", "to_addr", "cc_addr", "bcc_addr", "reply_to"
+        ),
     )
 
 

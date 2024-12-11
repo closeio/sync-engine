@@ -105,7 +105,9 @@ class FlexibleDateTime(TypeDecorator):
         return x == y
 
 
-class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin):
+class Event(
+    MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin
+):
     """Data for events."""
 
     API_OBJECT_NAME = "event"
@@ -118,20 +120,28 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
         "busy",
     ]
 
-    namespace_id = Column(ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False)
+    namespace_id = Column(
+        ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False
+    )
 
     namespace = relationship(Namespace, load_on_pending=True)
 
-    calendar_id = Column(ForeignKey(Calendar.id, ondelete="CASCADE"), nullable=False)
+    calendar_id = Column(
+        ForeignKey(Calendar.id, ondelete="CASCADE"), nullable=False
+    )
     # Note that we configure a delete cascade, rather than
     # passive_deletes=True, in order to ensure that delete revisions are
     # created for events if their parent calendar is deleted.
     calendar = relationship(
-        Calendar, backref=backref("events", cascade="delete"), load_on_pending=True
+        Calendar,
+        backref=backref("events", cascade="delete"),
+        load_on_pending=True,
     )
 
     # A server-provided unique ID.
-    uid = Column(String(UID_MAX_LEN, collation="ascii_general_ci"), nullable=False)
+    uid = Column(
+        String(UID_MAX_LEN, collation="ascii_general_ci"), nullable=False
+    )
 
     # DEPRECATED
     # TODO(emfree): remove
@@ -156,24 +166,34 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
     all_day = Column(Boolean, nullable=False)
     is_owner = Column(Boolean, nullable=False, default=True)
     last_modified = Column(FlexibleDateTime, nullable=True)
-    status = Column("status", Enum(*EVENT_STATUSES), server_default="confirmed")
+    status = Column(
+        "status", Enum(*EVENT_STATUSES), server_default="confirmed"
+    )
 
     # This column is only used for events that are synced from iCalendar
     # files.
-    message_id = Column(ForeignKey(Message.id, ondelete="CASCADE"), nullable=True)
+    message_id = Column(
+        ForeignKey(Message.id, ondelete="CASCADE"), nullable=True
+    )
 
     message = relationship(
         Message,
         backref=backref(
-            "events", order_by="Event.last_modified", cascade="all, delete-orphan"
+            "events",
+            order_by="Event.last_modified",
+            cascade="all, delete-orphan",
         ),
     )
 
     __table_args__ = (
-        Index("ix_event_ns_uid_calendar_id", "namespace_id", "uid", "calendar_id"),
+        Index(
+            "ix_event_ns_uid_calendar_id", "namespace_id", "uid", "calendar_id"
+        ),
     )
 
-    participants = Column(MutableList.as_mutable(BigJSON), default=[], nullable=True)
+    participants = Column(
+        MutableList.as_mutable(BigJSON), default=[], nullable=True
+    )
 
     # This is only used by the iCalendar invite code. The sequence number
     # stores the version number of the invite.
@@ -182,10 +202,19 @@ class Event(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
     visibility = Column(Enum("private", "public"), nullable=True)
 
     discriminator = Column("type", String(30))
-    __mapper_args__ = {"polymorphic_on": discriminator, "polymorphic_identity": "event"}
+    __mapper_args__ = {
+        "polymorphic_on": discriminator,
+        "polymorphic_identity": "event",
+    }
 
     @validates(
-        "reminders", "recurrence", "owner", "location", "title", "uid", "raw_data"
+        "reminders",
+        "recurrence",
+        "owner",
+        "location",
+        "title",
+        "uid",
+        "raw_data",
     )
     def validate_length(self, key, value):
         if value is None:
@@ -467,7 +496,10 @@ class RecurringEvent(Event):
             self.unwrap_rrule()
         except Exception as e:
             log.error(
-                "Error parsing RRULE entry", event_id=self.id, error=e, exc_info=True
+                "Error parsing RRULE entry",
+                event_id=self.id,
+                error=e,
+                exc_info=True,
             )
 
     # FIXME @karim: use an overrided property instead of a reconstructor.
@@ -565,7 +597,9 @@ class RecurringEventOverride(Event):
     master = relationship(
         RecurringEvent,
         foreign_keys=[master_event_id],
-        backref=backref("overrides", lazy="dynamic", cascade="all, delete-orphan"),
+        backref=backref(
+            "overrides", lazy="dynamic", cascade="all, delete-orphan"
+        ),
     )
 
     @validates("master_event_uid")

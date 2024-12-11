@@ -51,7 +51,9 @@ class EventSync(BaseSyncMonitor):
         bind_context(self, "eventsync", account_id)
         self.provider = provider_class(account_id, namespace_id)
         self.log = logger.new(
-            account_id=account_id, component="calendar sync", provider=provider_name
+            account_id=account_id,
+            component="calendar sync",
+            provider=provider_name,
         )
 
         super().__init__(
@@ -98,7 +100,9 @@ class EventSync(BaseSyncMonitor):
                     .scalar()
                 )
 
-            event_changes = self.provider.sync_events(uid, sync_from_time=last_sync)
+            event_changes = self.provider.sync_events(
+                uid, sync_from_time=last_sync
+            )
 
             with session_scope(self.namespace_id) as db_session:
                 handle_event_updates(
@@ -110,7 +114,10 @@ class EventSync(BaseSyncMonitor):
 
 
 def handle_calendar_deletes(
-    namespace_id: int, deleted_calendar_uids: List[str], log: Any, db_session: Any
+    namespace_id: int,
+    deleted_calendar_uids: List[str],
+    log: Any,
+    db_session: Any,
 ) -> None:
     """
     Delete any local Calendar rows with uid in `deleted_calendar_uids`. This
@@ -143,7 +150,10 @@ def handle_calendar_updates(
 
         local_calendar = (
             db_session.query(Calendar)
-            .filter(Calendar.namespace_id == namespace_id, Calendar.uid == calendar.uid)
+            .filter(
+                Calendar.namespace_id == namespace_id,
+                Calendar.uid == calendar.uid,
+            )
             .first()
         )
 
@@ -160,20 +170,29 @@ def handle_calendar_updates(
         ids_.append((local_calendar.uid, local_calendar.id))
 
     log.info(
-        "synced added and updated calendars", added=added_count, updated=updated_count
+        "synced added and updated calendars",
+        added=added_count,
+        updated=updated_count,
     )
     return ids_
 
 
 def handle_event_updates(
-    namespace_id: int, calendar_id: int, events: List[Event], log: Any, db_session: Any
+    namespace_id: int,
+    calendar_id: int,
+    events: List[Event],
+    log: Any,
+    db_session: Any,
 ) -> None:
     """Persists new or updated Event objects to the database."""
     added_count = 0
     updated_count = 0
     existing_event_query = (
         db_session.query(Event)
-        .filter(Event.namespace_id == namespace_id, Event.calendar_id == calendar_id)
+        .filter(
+            Event.namespace_id == namespace_id,
+            Event.calendar_id == calendar_id,
+        )
         .exists()
     )
     events_exist = db_session.query(existing_event_query).scalar()
@@ -300,7 +319,9 @@ class WebhookEventSync(EventSync):
                 return
 
             if account.needs_new_calendar_list_watch():
-                calendar_list_expiration = self.provider.watch_calendar_list(account)
+                calendar_list_expiration = self.provider.watch_calendar_list(
+                    account
+                )
                 if calendar_list_expiration is not None:
                     account.new_calendar_list_watch(calendar_list_expiration)
 
@@ -379,7 +400,9 @@ class WebhookEventSync(EventSync):
         sync_timestamp = datetime.utcnow()
         deleted_uids, calendar_changes = self.provider.sync_calendars()
 
-        handle_calendar_deletes(self.namespace_id, deleted_uids, self.log, db_session)
+        handle_calendar_deletes(
+            self.namespace_id, deleted_uids, self.log, db_session
+        )
         handle_calendar_updates(
             self.namespace_id, calendar_changes, self.log, db_session
         )

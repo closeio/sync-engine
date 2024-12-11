@@ -31,6 +31,11 @@ def downgrade():
         table_name="messagecontactassociation",
     )
     op.create_index(
-        "ix_transaction_namespace_id", "transaction", ["namespace_id"], unique=False
+        "ix_transaction_namespace_id",
+        "transaction",
+        ["namespace_id"],
+        unique=False,
     )
-    op.create_index("idx_namespace", "transaction", ["namespace_id"], unique=False)
+    op.create_index(
+        "idx_namespace", "transaction", ["namespace_id"], unique=False
+    )

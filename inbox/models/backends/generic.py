@@ -11,7 +11,9 @@ PROVIDER = "generic"
 
 
 class GenericAccount(ImapAccount):
-    id = Column(ForeignKey(ImapAccount.id, ondelete="CASCADE"), primary_key=True)
+    id = Column(
+        ForeignKey(ImapAccount.id, ondelete="CASCADE"), primary_key=True
+    )
 
     provider = Column(String(64))
     imap_username = Column(String(255), nullable=True)
@@ -46,7 +48,9 @@ class GenericAccount(ImapAccount):
 
     # Old Secret
     # TODO[logan]: delete once IMAP and SMTP secret are in production.
-    password_id = Column(ForeignKey(Secret.id, ondelete="CASCADE"), nullable=True)
+    password_id = Column(
+        ForeignKey(Secret.id, ondelete="CASCADE"), nullable=True
+    )
     old_secret = relationship(
         "Secret",
         cascade="all, delete-orphan",

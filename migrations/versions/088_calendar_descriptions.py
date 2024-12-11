@@ -30,7 +30,8 @@ def upgrade():
         existing_nullable=True,
     )
     op.add_column(
-        "calendar", sa.Column("provider_name", sa.String(length=64), nullable=False)
+        "calendar",
+        sa.Column("provider_name", sa.String(length=64), nullable=False),
     )
 
     op.alter_column(
@@ -91,7 +92,12 @@ def upgrade():
 
     op.drop_constraint("event_ibfk_2", "event", type_="foreignkey")
     op.create_foreign_key(
-        "event_ibfk_2", "event", "calendar", ["calendar_id"], ["id"], ondelete="CASCADE"
+        "event_ibfk_2",
+        "event",
+        "calendar",
+        ["calendar_id"],
+        ["id"],
+        ondelete="CASCADE",
     )
 
 

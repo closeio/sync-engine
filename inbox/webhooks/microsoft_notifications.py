@@ -70,7 +70,8 @@ def validate_webhook_payload_factory(type: MsGraphType):
             )["value"]
 
             if any(
-                notification["clientState"] != config["MICROSOFT_SUBSCRIPTION_SECRET"]
+                notification["clientState"]
+                != config["MICROSOFT_SUBSCRIPTION_SECRET"]
                 for notification in change_notifications
             ):
                 return (

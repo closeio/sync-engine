@@ -69,7 +69,10 @@ class Contact(
         UniqueConstraint("uid", "namespace_id", "provider_name"),
         Index("idx_namespace_created", "namespace_id", "created_at"),
         Index(
-            "ix_contact_ns_uid_provider_name", "namespace_id", "uid", "provider_name"
+            "ix_contact_ns_uid_provider_name",
+            "namespace_id",
+            "uid",
+            "provider_name",
         ),
     )
 
@@ -119,8 +122,12 @@ class MessageContactAssociation(MailSyncBase):
     """
 
     contact_id = Column(BigInteger, primary_key=True, index=True)
-    message_id = Column(ForeignKey(Message.id, ondelete="CASCADE"), primary_key=True)
-    field = Column(Enum("from_addr", "to_addr", "cc_addr", "bcc_addr", "reply_to"))
+    message_id = Column(
+        ForeignKey(Message.id, ondelete="CASCADE"), primary_key=True
+    )
+    field = Column(
+        Enum("from_addr", "to_addr", "cc_addr", "bcc_addr", "reply_to")
+    )
     # Note: The `cascade` properties need to be a parameter of the backref
     # here, and not of the relationship. Otherwise a sqlalchemy error is thrown
     # when you try to delete a message or a contact.
@@ -139,7 +146,9 @@ class EventContactAssociation(MailSyncBase):
     """Association table between event participants and contacts."""
 
     contact_id = Column(BigInteger, primary_key=True, index=True)
-    event_id = Column(ForeignKey(Event.id, ondelete="CASCADE"), primary_key=True)
+    event_id = Column(
+        ForeignKey(Event.id, ondelete="CASCADE"), primary_key=True
+    )
     field = Column(Enum("participant", "title", "description", "owner"))
     # Note: The `cascade` properties need to be a parameter of the backref
     # here, and not of the relationship. Otherwise a sqlalchemy error is thrown

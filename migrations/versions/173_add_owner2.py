@@ -18,7 +18,9 @@ from sqlalchemy.sql import text
 def upgrade():
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
-    conn.execute(text("ALTER TABLE event ADD COLUMN owner2 varchar(1024) DEFAULT NULL"))
+    conn.execute(
+        text("ALTER TABLE event ADD COLUMN owner2 varchar(1024) DEFAULT NULL")
+    )
 
 
 def downgrade():

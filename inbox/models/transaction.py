@@ -28,7 +28,9 @@ class Transaction(MailSyncBase, HasPublicID):
 
 
 Index("object_type_record_id", Transaction.object_type, Transaction.record_id)
-Index("namespace_id_created_at", Transaction.namespace_id, Transaction.created_at)
+Index(
+    "namespace_id_created_at", Transaction.namespace_id, Transaction.created_at
+)
 Index(
     "ix_transaction_namespace_id_object_type_id",
     Transaction.namespace_id,
@@ -153,7 +155,10 @@ def propagate_changes(session):
         if isinstance(obj, Message):
             obj_state = inspect(obj)
             for attr in obj.propagated_attributes:
-                if getattr(obj_state.attrs, attr).history.has_changes() and obj.thread:
+                if (
+                    getattr(obj_state.attrs, attr).history.has_changes()
+                    and obj.thread
+                ):
                     obj.thread.dirty = True
 
 

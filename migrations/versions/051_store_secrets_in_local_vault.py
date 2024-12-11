@@ -35,7 +35,8 @@ def upgrade():
         sa.PrimaryKeyConstraint("id"),
     )
     op.add_column(
-        "gmailaccount", sa.Column("refresh_token_id", sa.Integer(), nullable=True)
+        "gmailaccount",
+        sa.Column("refresh_token_id", sa.Integer(), nullable=True),
     )
 
     Base = declarative_base()
@@ -110,12 +111,17 @@ def downgrade():
         __table__ = Base.metadata.tables["secret"]
 
     op.add_column(
-        "gmailaccount", sa.Column("refresh_token", sa.String(length=512), nullable=True)
+        "gmailaccount",
+        sa.Column("refresh_token", sa.String(length=512), nullable=True),
     )
 
     with session_scope(versioned=False) as db_session:
         for acct in db_session.query(GmailAccount):
-            secret = db_session.query(Secret).filter_by(id=acct.refresh_token_id).one()
+            secret = (
+                db_session.query(Secret)
+                .filter_by(id=acct.refresh_token_id)
+                .one()
+            )
             acct.refresh_token = secret.secret
             db_session.add(acct)
         db_session.commit()

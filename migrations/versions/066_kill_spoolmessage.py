@@ -41,17 +41,22 @@ def upgrade():
     )
     op.add_column(
         "message",
-        sa.Column("state", sa.Enum("draft", "sending", "sending failed", "sent")),
+        sa.Column(
+            "state", sa.Enum("draft", "sending", "sending failed", "sent")
+        ),
     )
     op.add_column("message", sa.Column("is_reply", sa.Boolean()))
     op.add_column(
-        "message", sa.Column("resolved_message_id", sa.Integer(), nullable=True)
+        "message",
+        sa.Column("resolved_message_id", sa.Integer(), nullable=True),
     )
     op.create_foreign_key(
         "message_ibfk_2", "message", "message", ["resolved_message_id"], ["id"]
     )
 
-    op.add_column("message", sa.Column("parent_draft_id", sa.Integer(), nullable=True))
+    op.add_column(
+        "message", sa.Column("parent_draft_id", sa.Integer(), nullable=True)
+    )
     op.create_foreign_key(
         "message_ibfk_3", "message", "message", ["parent_draft_id"], ["id"]
     )

@@ -22,7 +22,9 @@ class TestGlobalDeltas:
         with app.test_client() as c:
             yield c
 
-    def test_global_deltas(self, db, unauthed_api_client, default_namespace, thread):
+    def test_global_deltas(
+        self, db, unauthed_api_client, default_namespace, thread
+    ):
         deltas_base_url = "/metrics/global-deltas/"
 
         # add a fake message
@@ -40,7 +42,9 @@ class TestGlobalDeltas:
         txnid = deltas["txnid_end"]
 
         # pull again, but with a cursor this time. nothing should be returned
-        response = unauthed_api_client.get(f"/metrics/global-deltas?txnid={txnid}")
+        response = unauthed_api_client.get(
+            f"/metrics/global-deltas?txnid={txnid}"
+        )
         deltas = json.loads(response.data)
         assert not deltas["deltas"]
         assert txnid == deltas["txnid_end"]
@@ -54,7 +58,9 @@ class TestGlobalDeltas:
         )
 
         # pull for global deltas again with a txnid
-        response = unauthed_api_client.get(f"/metrics/global-deltas?txnid={txnid}")
+        response = unauthed_api_client.get(
+            f"/metrics/global-deltas?txnid={txnid}"
+        )
         deltas = json.loads(response.data)
 
         # the default namespace should be returned again
@@ -68,7 +74,8 @@ def test_metrics_index(test_client, outlook_account):
     (outlook_account_metrics,) = metrics.json
     assert outlook_account_metrics["account_private_id"] == outlook_account.id
     assert (
-        outlook_account_metrics["namespace_private_id"] == outlook_account.namespace.id
+        outlook_account_metrics["namespace_private_id"]
+        == outlook_account.namespace.id
     )
 
 
@@ -76,7 +83,9 @@ def test_metrics_index_busted_account(
     db, test_client, outlook_account, default_account
 ):
     # Bust outlook_account by deleting its namespace
-    db.session.query(Namespace).filter_by(id=outlook_account.namespace.id).delete()
+    db.session.query(Namespace).filter_by(
+        id=outlook_account.namespace.id
+    ).delete()
     db.session.commit()
 
     with mock.patch("inbox.api.metrics_api.log") as log_mock:
@@ -92,5 +101,6 @@ def test_metrics_index_busted_account(
     (default_account_metrics,) = metrics.json
     assert default_account_metrics["account_private_id"] == default_account.id
     assert (
-        default_account_metrics["namespace_private_id"] == default_account.namespace.id
+        default_account_metrics["namespace_private_id"]
+        == default_account.namespace.id
     )

@@ -38,7 +38,9 @@ def main():
                     f"{c} (pending actions), {key} (shard), {namespace_id} (namespace)"
                 )
                 total_pending_actions += c
-            print(f"total pending actions for shard {key}: {total_pending_actions}")
+            print(
+                f"total pending actions for shard {key}: {total_pending_actions}"
+            )
 
 
 if __name__ == "__main__":

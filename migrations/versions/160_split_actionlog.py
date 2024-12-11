@@ -30,7 +30,8 @@ def upgrade():
             .join(Namespace)
             .join(Account)
             .filter(
-                ActionLog.status == "pending", Account.discriminator != "easaccount"
+                ActionLog.status == "pending",
+                Account.discriminator != "easaccount",
             )
             .options(contains_eager(ActionLog.namespace, Namespace.account))
         )
@@ -55,7 +56,10 @@ def upgrade():
             server_default="pending",
         ),
         sa.Column(
-            "secondary_retries", sa.Integer(), nullable=False, server_default="0"
+            "secondary_retries",
+            sa.Integer(),
+            nullable=False,
+            server_default="0",
         ),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(["id"], ["actionlog.id"], ondelete="CASCADE"),

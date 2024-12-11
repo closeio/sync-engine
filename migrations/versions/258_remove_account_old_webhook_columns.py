@@ -23,9 +23,13 @@ def upgrade():
 def downgrade():
     op.add_column(
         "gmailaccount",
-        sa.Column("gpush_calendar_list_last_ping", mysql.DATETIME(), nullable=True),
+        sa.Column(
+            "gpush_calendar_list_last_ping", mysql.DATETIME(), nullable=True
+        ),
     )
     op.add_column(
         "gmailaccount",
-        sa.Column("gpush_calendar_list_expiration", mysql.DATETIME(), nullable=True),
+        sa.Column(
+            "gpush_calendar_list_expiration", mysql.DATETIME(), nullable=True
+        ),
     )

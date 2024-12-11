@@ -18,10 +18,13 @@ from sqlalchemy.dialects import mysql
 def upgrade():
     op.add_column(
         "account",
-        sa.Column("_canonicalized_address", sa.String(length=191), nullable=True),
+        sa.Column(
+            "_canonicalized_address", sa.String(length=191), nullable=True
+        ),
     )
     op.add_column(
-        "account", sa.Column("_raw_address", sa.String(length=191), nullable=True)
+        "account",
+        sa.Column("_raw_address", sa.String(length=191), nullable=True),
     )
     op.create_index(
         "ix_account__canonicalized_address",
@@ -35,10 +38,13 @@ def upgrade():
 
     op.add_column(
         "contact",
-        sa.Column("_canonicalized_address", sa.String(length=191), nullable=True),
+        sa.Column(
+            "_canonicalized_address", sa.String(length=191), nullable=True
+        ),
     )
     op.add_column(
-        "contact", sa.Column("_raw_address", sa.String(length=191), nullable=True)
+        "contact",
+        sa.Column("_raw_address", sa.String(length=191), nullable=True),
     )
     op.create_index(
         "ix_contact__canonicalized_address",
@@ -81,7 +87,9 @@ def upgrade():
     with session_scope(versioned=False) as db_session:
         for acct in db_session.query(Account):
             acct._raw_address = acct.email_address
-            acct._canonicalized_address = canonicalize_address(acct.email_address)
+            acct._canonicalized_address = canonicalize_address(
+                acct.email_address
+            )
         db_session.commit()
 
         for contact in db_session.query(Contact):
@@ -100,10 +108,12 @@ def upgrade():
 
 def downgrade():
     op.add_column(
-        "account", sa.Column("email_address", mysql.VARCHAR(length=191), nullable=True)
+        "account",
+        sa.Column("email_address", mysql.VARCHAR(length=191), nullable=True),
     )
     op.add_column(
-        "contact", sa.Column("email_address", mysql.VARCHAR(length=191), nullable=True)
+        "contact",
+        sa.Column("email_address", mysql.VARCHAR(length=191), nullable=True),
     )
     op.create_index(
         "ix_account_email_address", "account", ["email_address"], unique=False

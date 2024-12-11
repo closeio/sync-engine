@@ -57,7 +57,8 @@ def test_invalid_input(api_client):
     assert cursor_response.status_code == 400
 
     sync_response = api_client.client.get(
-        "/delta?cursor={}".format("fake cursor"), headers=api_client.auth_header
+        "/delta?cursor={}".format("fake cursor"),
+        headers=api_client.auth_header,
     )
     assert sync_response.status_code == 400
 
@@ -135,11 +136,15 @@ def test_handle_missing_objects(api_client, db, thread, default_namespace):
 
     messages = []
     for _ in range(100):
-        messages.append(add_fake_message(db.session, default_namespace.id, thread))
+        messages.append(
+            add_fake_message(db.session, default_namespace.id, thread)
+        )
     for message in messages:
         db.session.delete(message)
     db.session.commit()
-    sync_data = api_client.get_data(f"/delta?cursor={cursor}&exclude_types=thread")
+    sync_data = api_client.get_data(
+        f"/delta?cursor={cursor}&exclude_types=thread"
+    )
     assert len(sync_data["deltas"]) == 100
     assert all(delta["event"] == "delete" for delta in sync_data["deltas"])
 
@@ -160,7 +165,9 @@ def test_exclude_account(api_client, db, default_namespace, thread):
     assert {d["object"] for d in sync_data["deltas"]} == {"message", "thread"}
 
     # Verify setting `exclude_account`=True returns the account delta as well.
-    sync_data = api_client.get_data(f"/delta?cursor={cursor}&exclude_account=false")
+    sync_data = api_client.get_data(
+        f"/delta?cursor={cursor}&exclude_account=false"
+    )
     assert len(sync_data["deltas"]) == 3
     assert {d["object"] for d in sync_data["deltas"]} == {
         "message",
@@ -179,7 +186,9 @@ def test_account_delta(api_client, db, default_namespace):
     default_namespace.account.sync_state = "invalid"
     db.session.commit()
 
-    sync_data = api_client.get_data(f"/delta?cursor={cursor}&exclude_account=false")
+    sync_data = api_client.get_data(
+        f"/delta?cursor={cursor}&exclude_account=false"
+    )
     assert len(sync_data["deltas"]) == 1
     delta = sync_data["deltas"][0]
     assert delta["object"] == "account"
@@ -197,7 +206,9 @@ def test_account_delta(api_client, db, default_namespace):
     # Create an new `account` delta
     default_namespace.account.sync_state = "running"
     db.session.commit()
-    sync_data = api_client.get_data(f"/delta?cursor={cursor}&exclude_account=false")
+    sync_data = api_client.get_data(
+        f"/delta?cursor={cursor}&exclude_account=false"
+    )
 
     assert len(sync_data["deltas"]) == 1
     delta = sync_data["deltas"][0]

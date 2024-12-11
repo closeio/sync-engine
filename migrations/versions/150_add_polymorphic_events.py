@@ -45,7 +45,9 @@ def upgrade():
         sa.ForeignKeyConstraint(["id"], ["event.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.add_column("event", sa.Column("type", sa.String(length=30), nullable=True))
+    op.add_column(
+        "event", sa.Column("type", sa.String(length=30), nullable=True)
+    )
     op.create_index(
         "ix_recurringeventoverride_master_event_uid",
         "recurringeventoverride",
@@ -65,13 +67,19 @@ def populate():
     # Populate new classes from the existing data
     from inbox.events.recurring import link_events
     from inbox.events.util import parse_datetime
-    from inbox.models.event import Event, RecurringEvent, RecurringEventOverride
+    from inbox.models.event import (
+        Event,
+        RecurringEvent,
+        RecurringEventOverride,
+    )
     from inbox.models.session import session_scope
 
     with session_scope() as db:
         # Redo recurrence rule population, since we extended the column length
         print("Repopulating max-length recurrences...", end=" ")
-        for e in db.query(Event).filter(sa.func.length(Event.recurrence) > 250):
+        for e in db.query(Event).filter(
+            sa.func.length(Event.recurrence) > 250
+        ):
             try:
                 raw_data = json.loads(e.raw_data)
             except:

@@ -16,12 +16,22 @@ from alembic import op
 def upgrade():
     op.drop_constraint("easuid_ibfk_2", "easuid", type_="foreignkey")
     op.create_foreign_key(
-        "easuid_ibfk_2", "easuid", "message", ["message_id"], ["id"], ondelete="cascade"
+        "easuid_ibfk_2",
+        "easuid",
+        "message",
+        ["message_id"],
+        ["id"],
+        ondelete="cascade",
     )
 
     op.drop_constraint("easuid_ibfk_3", "easuid", type_="foreignkey")
     op.create_foreign_key(
-        "easuid_ibfk_3", "easuid", "folder", ["folder_id"], ["id"], ondelete="cascade"
+        "easuid_ibfk_3",
+        "easuid",
+        "folder",
+        ["folder_id"],
+        ["id"],
+        ondelete="cascade",
     )
 
 

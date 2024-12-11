@@ -79,7 +79,9 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
 
         """
         account = db_session.query(Account).get(self.account_id)
-        remote_folder_names = {sanitize_name(f.display_name) for f in raw_folders}
+        remote_folder_names = {
+            sanitize_name(f.display_name) for f in raw_folders
+        }
 
         local_folders = {
             f.name: f
@@ -94,10 +96,14 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
         discard = set(local_folders) - remote_folder_names
         for name in discard:
             log.info(
-                "Folder deleted from remote", account_id=self.account_id, name=name
+                "Folder deleted from remote",
+                account_id=self.account_id,
+                name=name,
             )
             if local_folders[name].category_id is not None:
-                cat = db_session.query(Category).get(local_folders[name].category_id)
+                cat = db_session.query(Category).get(
+                    local_folders[name].category_id
+                )
                 if cat is not None:
                     db_session.delete(cat)
             del local_folders[name]

@@ -59,7 +59,9 @@ class CardDav:
                 </A:prop>
             </A:propfind>
         """
-        response = self.session.request("PROPFIND", self.base_url, data=payload)
+        response = self.session.request(
+            "PROPFIND", self.base_url, data=payload
+        )
         response.raise_for_status()
 
         xml = response.content

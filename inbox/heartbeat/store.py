@@ -38,7 +38,10 @@ class HeartbeatStatusKey:
         return self.folder_id < other.folder_id
 
     def __eq__(self, other):
-        return self.account_id == other.account_id and self.folder_id == other.folder_id
+        return (
+            self.account_id == other.account_id
+            and self.folder_id == other.folder_id
+        )
 
     @classmethod
     def all_folders(cls, account_id):
@@ -91,7 +94,9 @@ class HeartbeatStatusProxy:
 
     @safe_failure
     def clear(self):
-        self.store.remove_folders(self.account_id, self.folder_id, self.device_id)
+        self.store.remove_folders(
+            self.account_id, self.folder_id, self.device_id
+        )
 
 
 class HeartbeatStore:

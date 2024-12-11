@@ -13,7 +13,9 @@ def test_folder_stripping(db, generic_account, imap_api_client):
     # Check that regular IMAP paths get converted to unix-style paths
     generic_account.folder_separator = "."
     folder = add_fake_folder(db.session, generic_account)
-    add_fake_category(db.session, generic_account.namespace.id, "INBOX.Red.Carpet")
+    add_fake_category(
+        db.session, generic_account.namespace.id, "INBOX.Red.Carpet"
+    )
 
     r = imap_api_client.get_data("/folders")
     for folder in r:

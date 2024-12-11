@@ -30,7 +30,10 @@ def upgrade():
     op.add_column(
         "secret",
         sa.Column(
-            "encryption_scheme", sa.Integer(), server_default="0", nullable=False
+            "encryption_scheme",
+            sa.Integer(),
+            server_default="0",
+            nullable=False,
         ),
     )
     op.add_column("secret", sa.Column("_secret", sa.BLOB(), nullable=False))
@@ -39,10 +42,18 @@ def upgrade():
     # Don't need to change column types for password_id, refresh_token_id;
     # only add foreign key indices.
     op.create_foreign_key(
-        "genericaccount_ibfk_2", "genericaccount", "secret", ["password_id"], ["id"]
+        "genericaccount_ibfk_2",
+        "genericaccount",
+        "secret",
+        ["password_id"],
+        ["id"],
     )
     op.create_foreign_key(
-        "gmailaccount_ibfk_2", "gmailaccount", "secret", ["refresh_token_id"], ["id"]
+        "gmailaccount_ibfk_2",
+        "gmailaccount",
+        "secret",
+        ["refresh_token_id"],
+        ["id"],
     )
     op.create_foreign_key(
         "outlookaccount_ibfk_2",

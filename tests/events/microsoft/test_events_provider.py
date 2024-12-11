@@ -19,13 +19,17 @@ from inbox.models.event import Event, RecurringEvent, RecurringEventOverride
 
 @pytest.fixture(autouse=True)
 def populate_microsoft_subscrtipion_secret():
-    with mock.patch.dict(config, {"MICROSOFT_SUBSCRIPTION_SECRET": "good_s3cr3t"}):
+    with mock.patch.dict(
+        config, {"MICROSOFT_SUBSCRIPTION_SECRET": "good_s3cr3t"}
+    ):
         yield
 
 
 @pytest.fixture(autouse=True)
 def populate_url_prefix():
-    with mock.patch("inbox.events.remote_sync.URL_PREFIX", "https://example.com"):
+    with mock.patch(
+        "inbox.events.remote_sync.URL_PREFIX", "https://example.com"
+    ):
         yield
 
 
@@ -79,7 +83,10 @@ def events_responses():
                         "response": "organizer",
                         "time": "0001-01-01T00:00:00Z",
                     },
-                    "body": {"contentType": "html", "content": "<i>Singular</i>"},
+                    "body": {
+                        "contentType": "html",
+                        "content": "<i>Singular</i>",
+                    },
                     "start": {
                         "dateTime": "2022-09-15T12:00:00.0000000",
                         "timeZone": "UTC",
@@ -115,7 +122,10 @@ def events_responses():
                         "response": "organizer",
                         "time": "0001-01-01T00:00:00Z",
                     },
-                    "body": {"contentType": "html", "content": "<b>Hello world!</b>"},
+                    "body": {
+                        "contentType": "html",
+                        "content": "<b>Hello world!</b>",
+                    },
                     "start": {
                         "dateTime": "2022-09-19T15:00:00.0000000",
                         "timeZone": "UTC",
@@ -174,7 +184,8 @@ def events_responses():
         },
     )
     responses.get(
-        BASE_URL + "/me/calendars/fake_test_calendar_id/events", json={"value": []}
+        BASE_URL + "/me/calendars/fake_test_calendar_id/events",
+        json={"value": []},
     )
 
 
@@ -187,7 +198,11 @@ def subscribe_responses():
             "resource": "/me/calendars",
             "expirationDateTime": "2022-11-24T18:31:12.829451Z",
         },
-        match=[json_params_matcher({"resource": "/me/calendars"}, strict_match=False)],
+        match=[
+            json_params_matcher(
+                {"resource": "/me/calendars"}, strict_match=False
+            )
+        ],
     )
 
     responses.post(
@@ -220,7 +235,9 @@ def subscribe_responses():
         ],
     )
 
-    responses.delete(BASE_URL + "/subscriptions/f798ca9d-d630-4306-b065-af52199f5613")
+    responses.delete(
+        BASE_URL + "/subscriptions/f798ca9d-d630-4306-b065-af52199f5613"
+    )
 
 
 @pytest.fixture
@@ -352,7 +369,10 @@ def exception_override_response():
                         "response": "organizer",
                         "time": "0001-01-01T00:00:00Z",
                     },
-                    "body": {"contentType": "html", "content": "<b>Hello world!</b>"},
+                    "body": {
+                        "contentType": "html",
+                        "content": "<b>Hello world!</b>",
+                    },
                     "start": {
                         "dateTime": "2022-09-20T15:00:00.0000000",
                         "timeZone": "UTC",
@@ -436,7 +456,9 @@ def test_sync_calendars_deletion(db, client, outlook_account):
     db.session.add(deleted_calendar)
     db.session.commit()
 
-    provider = MicrosoftEventsProvider(outlook_account.id, outlook_account.namespace.id)
+    provider = MicrosoftEventsProvider(
+        outlook_account.id, outlook_account.namespace.id
+    )
     provider.client = client
 
     deleted_uids, _ = provider.sync_calendars()
@@ -470,9 +492,13 @@ def test_sync_events_cancellation(provider):
     assert events_by_title_and_status[
         ("Recurring", "confirmed")
     ].start == datetime.datetime(2022, 9, 19, 15, tzinfo=pytz.UTC)
-    assert events_by_title_and_status[("Recurring", "confirmed")].uid == "recurrence_id"
+    assert (
+        events_by_title_and_status[("Recurring", "confirmed")].uid
+        == "recurrence_id"
+    )
     assert isinstance(
-        events_by_title_and_status[("Recurring", "cancelled")], RecurringEventOverride
+        events_by_title_and_status[("Recurring", "cancelled")],
+        RecurringEventOverride,
     )
     assert events_by_title_and_status[
         ("Recurring", "cancelled")
@@ -494,18 +520,24 @@ def test_sync_events_exception(provider):
         2022, 9, 19, 15, tzinfo=pytz.UTC
     )
     assert events_by_title["Recurring"].uid == "recurrence_id"
-    assert isinstance(events_by_title["Recurring exception"], RecurringEventOverride)
+    assert isinstance(
+        events_by_title["Recurring exception"], RecurringEventOverride
+    )
     assert events_by_title["Recurring exception"].start == datetime.datetime(
         2022, 9, 20, 15, tzinfo=pytz.UTC
     )
-    assert events_by_title["Recurring exception"].uid == "recurrence_id_exception"
+    assert (
+        events_by_title["Recurring exception"].uid == "recurrence_id_exception"
+    )
 
 
 @responses.activate
 @pytest.mark.usefixtures("subscribe_responses")
 def test_watch_calendar_list(provider, outlook_account):
     expiration = provider.watch_calendar_list(outlook_account)
-    assert expiration == datetime.datetime(2022, 11, 24, 18, 31, 12, tzinfo=pytz.UTC)
+    assert expiration == datetime.datetime(
+        2022, 11, 24, 18, 31, 12, tzinfo=pytz.UTC
+    )
 
 
 @responses.activate
@@ -514,7 +546,9 @@ def test_watch_calendar(provider, outlook_account):
     calendar = Calendar(uid="fake_calendar_id", public_id="fake_public_id")
 
     expiration = provider.watch_calendar(outlook_account, calendar)
-    assert expiration == datetime.datetime(2022, 10, 25, 4, 22, 34, tzinfo=pytz.UTC)
+    assert expiration == datetime.datetime(
+        2022, 10, 25, 4, 22, 34, tzinfo=pytz.UTC
+    )
 
 
 @responses.activate
@@ -572,7 +606,9 @@ def test_sync(db, provider, outlook_account):
 
     assert outlook_account.webhook_calendar_list_expiration is None
     assert outlook_account.webhook_calendar_list_last_ping is None
-    assert calendars_by_name["Calendar"].webhook_subscription_expiration is None
+    assert (
+        calendars_by_name["Calendar"].webhook_subscription_expiration is None
+    )
     assert calendars_by_name["Calendar"].webhook_last_ping is None
     assert calendars_by_name["Test"].webhook_subscription_expiration is None
     assert calendars_by_name["Test"].webhook_last_ping is None
@@ -584,7 +620,12 @@ def test_sync(db, provider, outlook_account):
 
     assert outlook_account.webhook_calendar_list_expiration is not None
     assert outlook_account.webhook_calendar_list_last_ping is not None
-    assert calendars_by_name["Calendar"].webhook_subscription_expiration is not None
+    assert (
+        calendars_by_name["Calendar"].webhook_subscription_expiration
+        is not None
+    )
     assert calendars_by_name["Calendar"].webhook_last_ping is not None
-    assert calendars_by_name["Test"].webhook_subscription_expiration is not None
+    assert (
+        calendars_by_name["Test"].webhook_subscription_expiration is not None
+    )
     assert calendars_by_name["Test"].webhook_last_ping is not None

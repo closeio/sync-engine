@@ -15,12 +15,16 @@ from alembic import op
 
 
 def upgrade():
-    op.add_column("gmailaccount", sa.Column("last_calendar_list_sync", sa.DateTime()))
     op.add_column(
-        "gmailaccount", sa.Column("gpush_calendar_list_last_ping", sa.DateTime())
+        "gmailaccount", sa.Column("last_calendar_list_sync", sa.DateTime())
     )
     op.add_column(
-        "gmailaccount", sa.Column("gpush_calendar_list_expiration", sa.DateTime())
+        "gmailaccount",
+        sa.Column("gpush_calendar_list_last_ping", sa.DateTime()),
+    )
+    op.add_column(
+        "gmailaccount",
+        sa.Column("gpush_calendar_list_expiration", sa.DateTime()),
     )
 
     op.add_column("calendar", sa.Column("gpush_last_ping", sa.DateTime()))

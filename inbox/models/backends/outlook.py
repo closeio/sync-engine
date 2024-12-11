@@ -2,7 +2,9 @@ from sqlalchemy import Column, ForeignKey, String
 
 from inbox.config import config
 from inbox.models.account import CategoryType
-from inbox.models.backends.calendar_sync_account import CalendarSyncAccountMixin
+from inbox.models.backends.calendar_sync_account import (
+    CalendarSyncAccountMixin,
+)
 from inbox.models.backends.imap import ImapAccount
 from inbox.models.backends.oauth import OAuthAccount
 
@@ -23,7 +25,9 @@ class OutlookAccount(CalendarSyncAccountMixin, ImapAccount, OAuthAccount):
     OAUTH_CLIENT_ID = config.get_required("MICROSOFT_OAUTH_CLIENT_ID")
     OAUTH_CLIENT_SECRET = config.get_required("MICROSOFT_OAUTH_CLIENT_SECRET")
 
-    id = Column(ForeignKey(ImapAccount.id, ondelete="CASCADE"), primary_key=True)
+    id = Column(
+        ForeignKey(ImapAccount.id, ondelete="CASCADE"), primary_key=True
+    )
 
     __mapper_args__ = {"polymorphic_identity": "outlookaccount"}
 

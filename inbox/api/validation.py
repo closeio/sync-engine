@@ -52,7 +52,9 @@ def comma_separated_email_list(value, key):
     for unvalidated_address in addresses:
         parsed = address.parse(unvalidated_address, addr_spec_only=True)
         if not isinstance(parsed, address.EmailAddress):
-            raise InputError(f"Invalid recipient address {unvalidated_address}")
+            raise InputError(
+                f"Invalid recipient address {unvalidated_address}"
+            )
         good_emails.append(parsed.address)
 
     return good_emails
@@ -60,7 +62,9 @@ def comma_separated_email_list(value, key):
 
 def strict_bool(value, key):
     if value.lower() not in ["true", "false"]:
-        raise ValueError(f'Value must be "true" or "false" (not "{value}") for {key}')
+        raise ValueError(
+            f'Value must be "true" or "false" (not "{value}") for {key}'
+        )
     return value.lower() == "true"
 
 
@@ -79,7 +83,9 @@ def limit(value):
     if value < 0:
         raise ValueError("Limit parameter must be nonnegative.")
     if value > MAX_LIMIT:
-        raise ValueError(f"Cannot request more than {MAX_LIMIT} resources at once.")
+        raise ValueError(
+            f"Cannot request more than {MAX_LIMIT} resources at once."
+        )
     return value
 
 
@@ -161,10 +167,14 @@ def get_sending_draft(draft_public_id, namespace_id, db_session):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find multi-send draft {draft_public_id}")
+        raise NotFoundError(
+            f"Couldn't find multi-send draft {draft_public_id}"
+        )
 
     if draft.is_sent or not draft.is_sending:
-        raise InputError(f"Message {draft_public_id} is not a multi-send draft")
+        raise InputError(
+            f"Message {draft_public_id} is not a multi-send draft"
+        )
     return draft
 
 
@@ -267,7 +277,11 @@ def get_recipients(recipients, field):
         raise InputError(f"Invalid {field} field")
 
     for r in recipients:
-        if not (isinstance(r, dict) and "email" in r and isinstance(r["email"], str)):
+        if not (
+            isinstance(r, dict)
+            and "email" in r
+            and isinstance(r["email"], str)
+        ):
             raise InputError(f"Invalid {field} field")
         if "name" in r and not isinstance(r["name"], str):
             raise InputError(f"Invalid {field} field")
@@ -321,7 +335,12 @@ def valid_event(event):
         if not valid_email(p["email"]):
             raise InputError("'{}' is not a valid email".format(p["email"]))
 
-        if "status" in p and p["status"] not in ("yes", "no", "maybe", "noreply"):
+        if "status" in p and p["status"] not in (
+            "yes",
+            "no",
+            "maybe",
+            "noreply",
+        ):
             raise InputError(
                 "'participants' status must be one of: yes, no, maybe, noreply"
             )
@@ -338,7 +357,12 @@ def valid_event_update(event, namespace, db_session):
     for p in participants:
         if "email" not in p:
             raise InputError("'participants' must have email")
-        if "status" in p and p["status"] not in ("yes", "no", "maybe", "noreply"):
+        if "status" in p and p["status"] not in (
+            "yes",
+            "no",
+            "maybe",
+            "noreply",
+        ):
             raise InputError(
                 "'participants' status must be one of: yes, no, maybe, noreply"
             )
@@ -428,7 +452,9 @@ def validate_draft_recipients(draft):
             for _, email_address in field:
                 parsed = address.parse(email_address, addr_spec_only=True)
                 if not isinstance(parsed, address.EmailAddress):
-                    raise InputError(f"Invalid recipient address {email_address}")
+                    raise InputError(
+                        f"Invalid recipient address {email_address}"
+                    )
 
 
 def valid_display_name(namespace_id, category_type, display_name, db_session):
@@ -451,6 +477,8 @@ def valid_display_name(namespace_id, category_type, display_name, db_session):
         .first()
         is not None
     ):
-        raise InputError(f'{category_type} with name "{display_name}" already exists')
+        raise InputError(
+            f'{category_type} with name "{display_name}" already exists'
+        )
 
     return display_name

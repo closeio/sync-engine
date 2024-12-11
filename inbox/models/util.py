@@ -30,7 +30,9 @@ log = get_logger()
 bulk_throttle = limitlion.throttle_wait("bulk", rps=0.75, window=5)
 
 
-def reconcile_message(new_message: Message, session: Session) -> Optional[Message]:
+def reconcile_message(
+    new_message: Message, session: Session
+) -> Optional[Message]:
     """
     Check to see if the (synced) Message instance new_message was originally
     created/sent via the Nylas API (based on the X-Inbox-Uid header. If so,
@@ -225,7 +227,12 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False):
 
     for cls in filters:
         _batch_delete(
-            engine, cls, filters[cls], account_id, throttle=throttle, dry_run=dry_run
+            engine,
+            cls,
+            filters[cls],
+            account_id,
+            throttle=throttle,
+            dry_run=dry_run,
         )
 
     # Use a single delete for the other tables. Rows from tables which contain
@@ -290,7 +297,9 @@ def _batch_delete(
 
     batches = int(math.ceil(float(count) / CHUNK_SIZE))
 
-    log.info("Starting batch deletion", table=table, count=count, batches=batches)
+    log.info(
+        "Starting batch deletion", table=table, count=count, batches=batches
+    )
     start = time.time()
 
     if table in ("message", "block"):
@@ -320,7 +329,9 @@ def _batch_delete(
                 delete_from_blockstore(*block_hashes)
 
             with session_scope(account_id) as db_session:
-                block_query = db_session.query(Block).filter(Block.id.in_(block_ids))
+                block_query = db_session.query(Block).filter(
+                    Block.id.in_(block_ids)
+                )
                 if dry_run is False:
                     block_query.delete(synchronize_session=False)
 
@@ -335,14 +346,17 @@ def _batch_delete(
                     .order_by(desc(Message.received_date))
                     .limit(CHUNK_SIZE)
                     .with_hint(
-                        Message, "use index (ix_message_namespace_id_received_date)"
+                        Message,
+                        "use index (ix_message_namespace_id_received_date)",
                     )
                 )
 
             message_ids = [m[0] for m in messages]
             message_hashes = [m[1] for m in messages]
 
-            delete_message_hashes(id_, account_id, message_hashes, dry_run=dry_run)
+            delete_message_hashes(
+                id_, account_id, message_hashes, dry_run=dry_run
+            )
 
             with session_scope(account_id) as db_session:
                 message_query = db_session.query(Message).filter(
@@ -406,9 +420,13 @@ def purge_transactions(
             if throttle:
                 bulk_throttle()
 
-            with session_scope_by_shard_id(shard_id, versioned=False) as db_session:
+            with session_scope_by_shard_id(
+                shard_id, versioned=False
+            ) as db_session:
                 if dry_run:
-                    rowcount = db_session.execute(f"{query} OFFSET {offset}").rowcount
+                    rowcount = db_session.execute(
+                        f"{query} OFFSET {offset}"
+                    ).rowcount
                     offset += rowcount
                 else:
                     rowcount = db_session.execute(query).rowcount
@@ -430,7 +448,9 @@ def purge_transactions(
         # no dry run for removing things from a redis zset
         return
     try:
-        with session_scope_by_shard_id(shard_id, versioned=False) as db_session:
+        with session_scope_by_shard_id(
+            shard_id, versioned=False
+        ) as db_session:
             (min_txn_id,) = db_session.query(func.min(Transaction.id)).one()
         redis_txn.zremrangebyscore(
             TXN_REDIS_KEY,

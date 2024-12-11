@@ -176,10 +176,13 @@ class Account(
         return self.sync_should_run
 
     sync_state = Column(
-        Enum("running", "stopped", "killed", "invalid", "connerror"), nullable=True
+        Enum("running", "stopped", "killed", "invalid", "connerror"),
+        nullable=True,
     )
 
-    _sync_status = Column(MutableDict.as_mutable(JSON), default={}, nullable=True)
+    _sync_status = Column(
+        MutableDict.as_mutable(JSON), default={}, nullable=True
+    )
 
     @property
     def sync_status(self):
@@ -247,7 +250,8 @@ class Account(
 
         # Never run before (vs restarting stopped/killed)
         if self.sync_state is None and (
-            not self._sync_status or self._sync_status.get("sync_end_time") is None
+            not self._sync_status
+            or self._sync_status.get("sync_end_time") is None
         ):
             self._sync_status["original_start_time"] = current_time
 
@@ -271,7 +275,9 @@ class Account(
         self.sync_should_run = False
         self._sync_status["sync_disabled_reason"] = reason
         self._sync_status["sync_disabled_on"] = datetime.utcnow()
-        self._sync_status["sync_disabled_by"] = os.environ.get("USER", "unknown")
+        self._sync_status["sync_disabled_by"] = os.environ.get(
+            "USER", "unknown"
+        )
 
     def mark_invalid(self, reason="invalid credentials", scope="mail"):
         """
@@ -335,7 +341,8 @@ class Account(
         return (
             self.sync_state in ("stopped", "killed", "invalid")
             and self.sync_should_run is False
-            and self._sync_status.get("sync_disabled_reason") == "account deleted"
+            and self._sync_status.get("sync_disabled_reason")
+            == "account deleted"
         )
 
     @property
@@ -343,7 +350,8 @@ class Account(
         # Only version if new or the `sync_state` has changed.
         obj_state = inspect(self)
         return not (
-            obj_state.pending or inspect(self).attrs.sync_state.history.has_changes()
+            obj_state.pending
+            or inspect(self).attrs.sync_state.history.has_changes()
         )
 
     @property
@@ -411,7 +419,8 @@ def after_flush(session, flush_context):
                     # Somebody is actively syncing this Account, so notify them if
                     # they should give up the Account.
                     if not sync_should_run or (
-                        sync_host != desired_sync_host and desired_sync_host is not None
+                        sync_host != desired_sync_host
+                        and desired_sync_host is not None
                     ):
                         queue_name = SYNC_EVENT_QUEUE_NAME.format(sync_host)
                         log.info(
@@ -433,18 +442,24 @@ def after_flush(session, flush_context):
                 if desired_sync_host is not None:
                     # Nobody is actively syncing the Account, and we have somebody
                     # who wants to sync this Account, so notify them.
-                    queue_name = SYNC_EVENT_QUEUE_NAME.format(desired_sync_host)
+                    queue_name = SYNC_EVENT_QUEUE_NAME.format(
+                        desired_sync_host
+                    )
                     log.info(
                         "Sending 'migrate_to' event for Account",
                         account_id=id,
                         queue_name=queue_name,
                     )
-                    EventQueue(queue_name).send_event({"event": "migrate_to", "id": id})
+                    EventQueue(queue_name).send_event(
+                        {"event": "migrate_to", "id": id}
+                    )
                     return
 
                 # Nobody is actively syncing the Account, and nobody in particular
                 # wants to sync the Account so notify the shared queue.
-                shared_queue = shared_sync_event_queue_for_zone(config.get("ZONE"))
+                shared_queue = shared_sync_event_queue_for_zone(
+                    config.get("ZONE")
+                )
                 log.info(
                     "Sending 'migrate' event for Account",
                     account_id=id,
@@ -470,7 +485,9 @@ def after_flush(session, flush_context):
                 obj._listener_state = {"id": obj.id}
                 update_listener_state(obj)
                 event.listen(
-                    session, "after_commit", send_migration_events(obj._listener_state)
+                    session,
+                    "after_commit",
+                    send_migration_events(obj._listener_state),
                 )
 
     for obj in session.dirty:
@@ -483,7 +500,9 @@ def after_flush(session, flush_context):
                 obj._listener_state = {"id": obj.id}
                 update_listener_state(obj)
                 event.listen(
-                    session, "after_commit", send_migration_events(obj._listener_state)
+                    session,
+                    "after_commit",
+                    send_migration_events(obj._listener_state),
                 )
 
 

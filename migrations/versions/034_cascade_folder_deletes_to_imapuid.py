@@ -25,7 +25,12 @@ from alembic import op
 def upgrade():
     op.drop_constraint("imapuid_ibfk_3", "imapuid", type_="foreignkey")
     op.create_foreign_key(
-        "imapuid_ibfk_3", "imapuid", "folder", ["folder_id"], ["id"], ondelete="CASCADE"
+        "imapuid_ibfk_3",
+        "imapuid",
+        "folder",
+        ["folder_id"],
+        ["id"],
+        ondelete="CASCADE",
     )
     op.drop_constraint("account_ibfk_2", "account", type_="foreignkey")
     op.create_foreign_key(
@@ -116,7 +121,9 @@ def upgrade():
 
 def downgrade():
     op.drop_constraint("imapuid_ibfk_3", "imapuid", type_="foreignkey")
-    op.create_foreign_key("imapuid_ibfk_3", "imapuid", "folder", ["folder_id"], ["id"])
+    op.create_foreign_key(
+        "imapuid_ibfk_3", "imapuid", "folder", ["folder_id"], ["id"]
+    )
     op.drop_constraint("account_ibfk_2", "account", type_="foreignkey")
     op.create_foreign_key(
         "account_ibfk_2", "account", "folder", ["inbox_folder_id"], ["id"]

@@ -98,7 +98,9 @@ def upgrade():
             else:
                 print("FAILED!")
 
-        print(f"Done! Verified {len(verified_accounts)} of {len(migrated_accounts)}")
+        print(
+            f"Done! Verified {len(verified_accounts)} of {len(migrated_accounts)}"
+        )
 
     op.drop_table("imapaccount_old")
 

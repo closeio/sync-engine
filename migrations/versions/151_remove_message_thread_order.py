@@ -22,5 +22,7 @@ def upgrade():
 def downgrade():
     op.add_column(
         "message",
-        sa.Column("thread_order", mysql.INTEGER(display_width=11), nullable=False),
+        sa.Column(
+            "thread_order", mysql.INTEGER(display_width=11), nullable=False
+        ),
     )

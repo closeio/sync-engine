@@ -53,7 +53,9 @@ def remote_create_label(crispin_client, account_id, category_id):
     crispin_client.conn.create_folder(display_name)
 
 
-def remote_update_label(crispin_client, account_id, category_id, old_name, new_name):
+def remote_update_label(
+    crispin_client, account_id, category_id, old_name, new_name
+):
     crispin_client.conn.rename_folder(old_name, new_name)
 
 

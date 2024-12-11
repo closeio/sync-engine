@@ -32,7 +32,9 @@ def upgrade():
         __table__ = Base.metadata.tables["genericaccount"]
 
     with session_scope(versioned=False) as db_session:
-        secrets = db_session.query(Secret).filter(Secret.secret.isnot(None)).all()
+        secrets = (
+            db_session.query(Secret).filter(Secret.secret.isnot(None)).all()
+        )
 
         # Join on the genericaccount and optionally easaccount tables to
         # determine which secrets should have type 'password'.
@@ -56,7 +58,9 @@ def upgrade():
 
         for s in secrets:
             plain = (
-                s.secret.encode("utf-8") if isinstance(s.secret, unicode) else s.secret
+                s.secret.encode("utf-8")
+                if isinstance(s.secret, unicode)
+                else s.secret
             )
             if config.get_required("ENCRYPT_SECRETS"):
                 s._secret = nacl.secret.SecretBox(

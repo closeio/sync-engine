@@ -46,13 +46,20 @@ class ContactSync(BaseSyncMonitor):
     """
 
     def __init__(
-        self, email_address, provider_name, account_id, namespace_id, poll_frequency=300
+        self,
+        email_address,
+        provider_name,
+        account_id,
+        namespace_id,
+        poll_frequency=300,
     ):
         bind_context(self, "contactsync", account_id)
         self.provider_name = provider_name
 
         provider_cls = CONTACT_SYNC_PROVIDER_MAP[self.provider_name]
-        self.provider: AbstractContactsProvider = provider_cls(account_id, namespace_id)
+        self.provider: AbstractContactsProvider = provider_cls(
+            account_id, namespace_id
+        )
 
         super().__init__(
             account_id,
@@ -81,12 +88,14 @@ class ContactSync(BaseSyncMonitor):
             all_contacts = self.provider.get_items(sync_from_dt=last_sync_dt)
 
             # Do a batch insertion of every 100 contact objects
-            change_counter: typing.Counter[Literal["deleted", "updated", "added"]] = (
-                Counter()
-            )
+            change_counter: typing.Counter[
+                Literal["deleted", "updated", "added"]
+            ] = Counter()
             for new_contact in all_contacts:
                 new_contact.namespace = account.namespace
-                assert new_contact.uid is not None, "Got remote item with null uid"
+                assert (
+                    new_contact.uid is not None
+                ), "Got remote item with null uid"
                 assert isinstance(new_contact.uid, str)
 
                 if (
@@ -108,7 +117,8 @@ class ContactSync(BaseSyncMonitor):
                         db_session.query(Contact)
                         .filter(
                             Contact.namespace == account.namespace,
-                            Contact.provider_name == self.provider.PROVIDER_NAME,
+                            Contact.provider_name
+                            == self.provider.PROVIDER_NAME,
                             Contact.uid == new_contact.uid,
                         )
                         .one()

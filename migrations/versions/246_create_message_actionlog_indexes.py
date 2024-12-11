@@ -29,6 +29,10 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_index("ix_message_namespace_id_received_date", table_name="message")
+    op.drop_index(
+        "ix_message_namespace_id_received_date", table_name="message"
+    )
 
-    op.drop_index("ix_actionlog_namespace_id_status_type", table_name="actionlog")
+    op.drop_index(
+        "ix_actionlog_namespace_id_status_type", table_name="actionlog"
+    )

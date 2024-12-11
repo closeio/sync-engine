@@ -36,4 +36,6 @@ def upgrade():
 
 def downgrade():
     op.drop_constraint("easuid_ibfk_3", "easuid", type_="foreignkey")
-    op.create_foreign_key("easuid_ibfk_3", "easuid", "folder", ["folder_id"], ["id"])
+    op.create_foreign_key(
+        "easuid_ibfk_3", "easuid", "folder", ["folder_id"], ["id"]
+    )

@@ -216,7 +216,9 @@ class BoundLogger(structlog.stdlib.BoundLogger):
         if env is not None:
             event_kw["env"] = env
 
-        return super()._proxy_to_logger(method_name, event, *event_args, **event_kw)
+        return super()._proxy_to_logger(
+            method_name, event, *event_args, **event_kw
+        )
 
 
 structlog.configure(

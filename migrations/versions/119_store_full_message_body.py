@@ -15,7 +15,9 @@ from alembic import op
 
 
 def upgrade():
-    op.add_column("message", sa.Column("full_body_id", sa.Integer, nullable=True))
+    op.add_column(
+        "message", sa.Column("full_body_id", sa.Integer, nullable=True)
+    )
     op.create_foreign_key(
         "full_body_id_fk", "message", "block", ["full_body_id"], ["id"]
     )

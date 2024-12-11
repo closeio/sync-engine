@@ -34,7 +34,10 @@ SMTP_ERRORS = {
     522: {"5.7.1": (402, "Recipient address rejected.")},
     530: {"5.7.0": (402, "Recipient address rejected")},
     535: {
-        "5.7.1": (429, "Please log in to Gmail with your web browser and try again.")
+        "5.7.1": (
+            429,
+            "Please log in to Gmail with your web browser and try again.",
+        )
     },
     550: {
         "5.1.1": (
@@ -43,7 +46,10 @@ SMTP_ERRORS = {
             "exist. Please try double-checking the recipient's "
             "email address for typos or unnecessary spaces.",
         ),
-        "5.2.1": (402, "The email account that you tried to reach is disabled."),
+        "5.2.1": (
+            402,
+            "The email account that you tried to reach is disabled.",
+        ),
         "5.3.2": (429, "Server busy, try again later."),
         "5.4.5": (429, "Daily sending quota exceeded"),
         "5.4.6": (429, "Mail server temporarily rejected message."),

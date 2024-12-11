@@ -45,12 +45,16 @@ def label_client(db, gmail_account):
 
 def test_folder_post(db, generic_account):
     api_client = new_api_client(db, generic_account.namespace)
-    po_data = api_client.post_data("/folders/", {"display_name": "Test_Folder"})
+    po_data = api_client.post_data(
+        "/folders/", {"display_name": "Test_Folder"}
+    )
     assert po_data.status_code == 200
 
     category_id = json.loads(po_data.data)["id"]
     category = (
-        db.session.query(Category).filter(Category.public_id == category_id).one()
+        db.session.query(Category)
+        .filter(Category.public_id == category_id)
+        .one()
     )
     assert category.display_name == "Test_Folder"
     assert category.name == ""
@@ -66,7 +70,9 @@ def test_label_post(db, gmail_account):
 
     category_id = json.loads(po_data.data)["id"]
     category = (
-        db.session.query(Category).filter(Category.public_id == category_id).one()
+        db.session.query(Category)
+        .filter(Category.public_id == category_id)
+        .one()
     )
     assert category.display_name == "Test_Label"
     assert category.name == ""
@@ -110,16 +116,23 @@ def test_folder_put(db, folder_client, api_version):
     assert pu_data.status_code == 200
 
     if api_version == API_VERSIONS[0]:
-        assert json.loads(pu_data.data)["display_name"] == "Test_Folder_Renamed"
+        assert (
+            json.loads(pu_data.data)["display_name"] == "Test_Folder_Renamed"
+        )
 
         category_id = gen_folder["id"]
         category = (
-            db.session.query(Category).filter(Category.public_id == category_id).one()
+            db.session.query(Category)
+            .filter(Category.public_id == category_id)
+            .one()
         )
         assert category.display_name == "Test_Folder_Renamed"
         assert category.name == ""
     else:
-        assert json.loads(pu_data.data)["display_name"] == gen_folder["display_name"]
+        assert (
+            json.loads(pu_data.data)["display_name"]
+            == gen_folder["display_name"]
+        )
 
 
 @pytest.mark.parametrize("api_version", API_VERSIONS)
@@ -144,13 +157,18 @@ def test_label_put(db, label_client, api_version):
 
         category_id = gmail_label["id"]
         category = (
-            db.session.query(Category).filter(Category.public_id == category_id).one()
+            db.session.query(Category)
+            .filter(Category.public_id == category_id)
+            .one()
         )
         assert category.display_name == new_name
         assert category.name == ""
     else:
         # non-optimistic update
-        assert json.loads(pu_data.data)["display_name"] == gmail_label["display_name"]
+        assert (
+            json.loads(pu_data.data)["display_name"]
+            == gmail_label["display_name"]
+        )
 
 
 @pytest.mark.parametrize("api_version", API_VERSIONS)
@@ -174,7 +192,9 @@ def test_folder_delete(db, generic_account, folder_client, api_version):
     assert d_data.status_code == 400
 
     # Make an empty folder
-    resp = folder_client.post_data("/folders/", {"display_name": "Empty_Folder"})
+    resp = folder_client.post_data(
+        "/folders/", {"display_name": "Empty_Folder"}
+    )
     empty_folder = json.loads(resp.data)
     # Test that DELETE requests delete empty folders
     d_data = folder_client.delete("/folders/{}".format(empty_folder["id"]))
@@ -184,7 +204,9 @@ def test_folder_delete(db, generic_account, folder_client, api_version):
         # Did we update things optimistically?
         category_id = empty_folder["id"]
         category = (
-            db.session.query(Category).filter(Category.public_id == category_id).one()
+            db.session.query(Category)
+            .filter(Category.public_id == category_id)
+            .one()
         )
         assert category.deleted_at != EPOCH
         assert category.is_deleted is True
@@ -206,7 +228,9 @@ def test_label_delete(db, gmail_account, label_client, api_version):
     # Add label to message
     gmail_label = json.loads(g_data.data)[0]
     data = {"labels": [gmail_label["id"]]}
-    label_client.put_data(f"/messages/{gmail_message.public_id}", data, headers=headers)
+    label_client.put_data(
+        f"/messages/{gmail_message.public_id}", data, headers=headers
+    )
 
     # DELETE requests should work on labels whether or not messages have them
     d_data = label_client.delete(
@@ -218,7 +242,9 @@ def test_label_delete(db, gmail_account, label_client, api_version):
         # Optimistic update.
         category_id = gmail_label["id"]
         category = (
-            db.session.query(Category).filter(Category.public_id == category_id).one()
+            db.session.query(Category)
+            .filter(Category.public_id == category_id)
+            .one()
         )
         assert category.deleted_at != EPOCH
         assert category.is_deleted is True
@@ -228,7 +254,9 @@ def test_folder_exclusivity(folder_client):
     g_data = folder_client.get_raw("/folders/")
     generic_folder = json.loads(g_data.data)[0]
     # These requests to /labels/ should all 404, since the account uses folders
-    po_data = folder_client.post_data("/labels/", {"display_name": "Test_E_Label"})
+    po_data = folder_client.post_data(
+        "/labels/", {"display_name": "Test_E_Label"}
+    )
     assert po_data.status_code == 404
     pu_data = folder_client.put_data(
         "/labels/{}".format(generic_folder["id"]),
@@ -247,7 +275,9 @@ def test_label_exclusivity(label_client):
     g_data = label_client.get_raw("/labels/")
     gmail_label = json.loads(g_data.data)[0]
     # These requests to /folders/ should all 404, since the account uses labels
-    po_data = label_client.post_data("/folders/", {"display_name": "Test_E_Folder"})
+    po_data = label_client.post_data(
+        "/folders/", {"display_name": "Test_E_Folder"}
+    )
     assert po_data.status_code == 404
     pu_data = label_client.put_data(
         "/folders/{}".format(gmail_label["id"]),
@@ -295,7 +325,9 @@ def test_duplicate_folder_create(folder_client):
 def test_duplicate_label_create(label_client):
     data = label_client.get_raw("/labels/")
     label = json.loads(data.data)[0]
-    data = label_client.post_data("/labels/", {"display_name": label["display_name"]})
+    data = label_client.post_data(
+        "/labels/", {"display_name": label["display_name"]}
+    )
     assert data.status_code == 400
 
     # Deleting the label and re-creating (with the same name) succeeds.

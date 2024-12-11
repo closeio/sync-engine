@@ -4,7 +4,11 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from inbox.models import DataProcessingCache
 
-from tests.util.base import add_fake_message, add_fake_thread, default_namespace
+from tests.util.base import (
+    add_fake_message,
+    add_fake_thread,
+    default_namespace,
+)
 
 __all__ = ["default_namespace"]
 
@@ -108,9 +112,12 @@ def test_contact_groups(db, api_client, default_namespace):
     namespace_email = default_namespace.email_address
     me = ("me", namespace_email)
     recipients = (
-        [[("a", "a@nylas.com"), ("b", "b@nylas.com"), ("c", "c@nylas.com")]] * 8
-        + [[("b", "b@nylas.com"), ("c", "c@nylas.com"), ("d", "d@nylas.com")]] * 8
-        + [[("d", "d@nylas.com"), ("e", "e@nylas.com"), ("f", "f@nylas.com")]] * 8
+        [[("a", "a@nylas.com"), ("b", "b@nylas.com"), ("c", "c@nylas.com")]]
+        * 8
+        + [[("b", "b@nylas.com"), ("c", "c@nylas.com"), ("d", "d@nylas.com")]]
+        * 8
+        + [[("d", "d@nylas.com"), ("e", "e@nylas.com"), ("f", "f@nylas.com")]]
+        * 8
         + [
             [
                 ("g", "g@nylas.com"),
@@ -120,7 +127,8 @@ def test_contact_groups(db, api_client, default_namespace):
             ]
         ]
         * 5
-        + [[("g", "g@nylas.com"), ("h", "h@nylas.com"), ("i", "i@nylas.com")]] * 2
+        + [[("g", "g@nylas.com"), ("h", "h@nylas.com"), ("i", "i@nylas.com")]]
+        * 2
         + [[("k", "k@nylas.com"), ("l", "l@nylas.com")]] * 3
     )
 

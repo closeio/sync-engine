@@ -31,9 +31,7 @@ def update_categories_for_shard(shard_id):
 
     print(f"Updated names, updating deleted_at for shard {shard_id}")
 
-    query = (
-        "UPDATE category SET deleted_at='1970-01-01 00:00:00' WHERE deleted_at is NULL;"
-    )
+    query = "UPDATE category SET deleted_at='1970-01-01 00:00:00' WHERE deleted_at is NULL;"
     engine.execute(query)
 
 

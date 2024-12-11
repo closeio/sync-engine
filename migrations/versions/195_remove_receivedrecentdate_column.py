@@ -16,7 +16,9 @@ from alembic import op
 
 def upgrade():
     op.drop_column("thread", "receivedrecentdate")
-    op.drop_index("ix_thread_namespace_id_receivedrecentdate", table_name="thread")
+    op.drop_index(
+        "ix_thread_namespace_id_receivedrecentdate", table_name="thread"
+    )
 
 
 def downgrade():

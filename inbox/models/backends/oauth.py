@@ -75,7 +75,10 @@ class TokenManager:
             scopes=scopes,
         )
         log_token_usage(
-            "access token used", access_token=new_token, account=account, scopes=scopes
+            "access token used",
+            access_token=new_token,
+            account=account,
+            scopes=scopes,
         )
         self.cache_token(account, scopes, new_token, expires_in)
         return new_token
@@ -159,7 +162,9 @@ class OAuthAccount:
         if b"\x00" in value:
             raise ValueError("Invalid refresh_token")
 
-        log_token_usage("refresh token stored", refresh_token=value, account=self)
+        log_token_usage(
+            "refresh token stored", refresh_token=value, account=self
+        )
         self.set_secret(SecretType.Token, value)
 
     def set_secret(self, secret_type: SecretType, secret_value: bytes) -> None:

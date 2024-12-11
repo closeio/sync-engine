@@ -31,7 +31,9 @@ def upgrade():
         [
             (namespace_id, tag_id)
             for namespace_id, tag_id in conn.execute(
-                text("SELECT namespace_id, id FROM tag WHERE name = 'attachment'")
+                text(
+                    "SELECT namespace_id, id FROM tag WHERE name = 'attachment'"
+                )
             )
         ]
     )

@@ -54,7 +54,8 @@ def upgrade():
         print(f"[{c.__tablename__}] adding public_id column... "),
         sys.stdout.flush()
         op.add_column(
-            c.__tablename__, sa.Column("public_id", mysql.BINARY(16), nullable=False)
+            c.__tablename__,
+            sa.Column("public_id", mysql.BINARY(16), nullable=False),
         )
 
         print("adding index... "),
@@ -128,6 +129,8 @@ def downgrade():
         op.drop_column(c.__tablename__, "public_id")
 
         print("Dropping index... "),
-        op.drop_index(f"ix_{c.__tablename__}_public_id", table_name=c.__tablename__)
+        op.drop_index(
+            f"ix_{c.__tablename__}_public_id", table_name=c.__tablename__
+        )
 
         print("Done.")

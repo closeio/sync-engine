@@ -61,7 +61,10 @@ class _InterruptibleThreadTarget:
 
 class InterruptibleThread(threading.Thread):
     def __init__(
-        self, target: Optional[Callable[..., Any]] = None, *args: Any, **kwargs: Any
+        self,
+        target: Optional[Callable[..., Any]] = None,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         """
         Initialize the thread.
@@ -74,7 +77,9 @@ class InterruptibleThread(threading.Thread):
         self.__should_be_killed = False
         self.__ready = False
         self.__run_target = (
-            _InterruptibleThreadTarget(target, args, kwargs) if target else None
+            _InterruptibleThreadTarget(target, args, kwargs)
+            if target
+            else None
         )
         self.__exception: Optional[Exception] = None
 
@@ -159,14 +164,18 @@ T = TypeVar("T")
 
 def _interruptible(
     blocking_function: Callable[P, T]
-) -> Callable[[Callable[Concatenate[InterruptibleThread, P], T]], Callable[P, T]]:
+) -> Callable[
+    [Callable[Concatenate[InterruptibleThread, P], T]], Callable[P, T]
+]:
     """
     If the current thread is interruptible run interruptible version of
     the blocking function. Otherwise fallback to original implementation.
     """
 
     def decorator(
-        interruptible_function: Callable[Concatenate[InterruptibleThread, P], T]
+        interruptible_function: Callable[
+            Concatenate[InterruptibleThread, P], T
+        ]
     ) -> Callable[P, T]:
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             current_thread = threading.current_thread()

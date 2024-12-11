@@ -79,7 +79,10 @@ def _update_config_from_env(config, env):
     srcdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
 
     if env in ["prod", "staging"]:
-        base_cfg_path = ["/etc/inboxapp/secrets.yml", "/etc/inboxapp/config.json"]
+        base_cfg_path = [
+            "/etc/inboxapp/secrets.yml",
+            "/etc/inboxapp/config.json",
+        ]
     else:
         v = {"env": env, "srcdir": srcdir}
         base_cfg_path = [
@@ -88,7 +91,9 @@ def _update_config_from_env(config, env):
         ]
 
     if "SYNC_ENGINE_CFG_PATH" in os.environ:
-        cfg_path = os.environ.get("SYNC_ENGINE_CFG_PATH", "").split(os.path.pathsep)
+        cfg_path = os.environ.get("SYNC_ENGINE_CFG_PATH", "").split(
+            os.path.pathsep
+        )
         cfg_path = list(p.strip() for p in cfg_path if p.strip())
     else:
         cfg_path = []

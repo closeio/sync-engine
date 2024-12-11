@@ -17,10 +17,12 @@ from alembic import op
 
 def upgrade():
     op.add_column(
-        "account", sa.Column("sync_contacts", sa.Boolean, nullable=False, default=False)
+        "account",
+        sa.Column("sync_contacts", sa.Boolean, nullable=False, default=False),
     )
     op.add_column(
-        "account", sa.Column("sync_events", sa.Boolean, nullable=False, default=False)
+        "account",
+        sa.Column("sync_events", sa.Boolean, nullable=False, default=False),
     )
     connection = op.get_bind()
     connection.execute(

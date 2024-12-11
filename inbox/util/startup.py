@@ -12,7 +12,9 @@ log = get_logger()
 
 
 def _absolute_path(relative_path):
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), relative_path)
+    return os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), relative_path
+    )
 
 
 def check_sudo():

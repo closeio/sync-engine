@@ -29,7 +29,9 @@ def two_phase_session(engine_map, versioned=True):
     versioned: bool
 
     """
-    session = Session(binds=engine_map, twophase=True, autoflush=True, autocommit=False)
+    session = Session(
+        binds=engine_map, twophase=True, autoflush=True, autocommit=False
+    )
     if versioned:
         session = configure_versioning(session)
         # TODO[k]: Metrics for transaction latencies!
@@ -168,7 +170,9 @@ def session_scope(id_, versioned=True):
             logger = log.bind(
                 engine_id=id(engine), session_id=id(session), call_loc=call_loc
             )
-            logger.info("creating db_session", sessions_used=engine.pool.checkedout())
+            logger.info(
+                "creating db_session", sessions_used=engine.pool.checkedout()
+            )
         yield session
         session.commit()
     except BaseException as exc:
@@ -177,7 +181,8 @@ def session_scope(id_, versioned=True):
             raise
         except OperationalError:
             log.warning(
-                "Encountered OperationalError on rollback", original_exception=type(exc)
+                "Encountered OperationalError on rollback",
+                original_exception=type(exc),
             )
             raise exc
     finally:

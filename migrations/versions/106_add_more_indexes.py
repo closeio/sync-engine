@@ -14,8 +14,12 @@ from alembic import op
 
 
 def upgrade():
-    op.create_index("ix_thread_recentdate", "thread", ["recentdate"], unique=False)
-    op.create_index("ix_thread_subjectdate", "thread", ["subjectdate"], unique=False)
+    op.create_index(
+        "ix_thread_recentdate", "thread", ["recentdate"], unique=False
+    )
+    op.create_index(
+        "ix_thread_subjectdate", "thread", ["subjectdate"], unique=False
+    )
     op.create_index(
         "ix_message_received_date", "message", ["received_date"], unique=False
     )

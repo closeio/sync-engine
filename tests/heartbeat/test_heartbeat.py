@@ -127,7 +127,10 @@ def make_dead_heartbeat(store, proxies, account_id, folder_id, time_dead):
     dead_time = time.time() - ALIVE_EXPIRY - time_dead
     dead_proxy = proxies[account_id][folder_id]
     store.publish(
-        dead_proxy.key, dead_proxy.device_id, json.dumps(dead_proxy.value), dead_time
+        dead_proxy.key,
+        dead_proxy.device_id,
+        json.dumps(dead_proxy.value),
+        dead_time,
     )
 
 

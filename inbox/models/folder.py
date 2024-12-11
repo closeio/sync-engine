@@ -19,7 +19,9 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     # from inbox.models.account import Account
     # `use_alter` required here to avoid circular dependency w/Account
     account_id = Column(
-        ForeignKey("account.id", use_alter=True, name="folder_fk1", ondelete="CASCADE"),
+        ForeignKey(
+            "account.id", use_alter=True, name="folder_fk1", ondelete="CASCADE"
+        ),
         nullable=False,
     )
     account = relationship(
@@ -42,7 +44,10 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     # https://msdn.microsoft.com/en-us/library/ee624913(v=exchg.80).aspx
     name = Column(CategoryNameString(), nullable=False)
     _canonical_name = Column(
-        String(MAX_INDEXABLE_LENGTH), nullable=False, default="", name="canonical_name"
+        String(MAX_INDEXABLE_LENGTH),
+        nullable=False,
+        default="",
+        name="canonical_name",
     )
 
     @property
@@ -99,7 +104,9 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             )
             session.add(obj)
         except MultipleResultsFound:
-            log.info(f"Duplicate folder rows for name {name}, account_id {account.id}")
+            log.info(
+                f"Duplicate folder rows for name {name}, account_id {account.id}"
+            )
             raise
 
         return obj
@@ -110,4 +117,6 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         q = q.filter(cls.id == bindparam("id_"))
         return q.params(id_=id_).first()
 
-    __table_args__ = (UniqueConstraint("account_id", "name", "canonical_name"),)
+    __table_args__ = (
+        UniqueConstraint("account_id", "name", "canonical_name"),
+    )

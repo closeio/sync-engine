@@ -44,7 +44,8 @@ class CalendarSyncAccountMixin:
             (
                 self.webhook_calendar_list_last_ping is not None
                 and (
-                    self.last_calendar_list_sync < self.webhook_calendar_list_last_ping
+                    self.last_calendar_list_sync
+                    < self.webhook_calendar_list_last_ping
                 )
             )
         )

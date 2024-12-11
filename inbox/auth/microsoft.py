@@ -49,7 +49,9 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
         ]
     )
 
-    def create_account(self, account_data: MicrosoftAccountData) -> OutlookAccount:
+    def create_account(
+        self, account_data: MicrosoftAccountData
+    ) -> OutlookAccount:
         namespace = Namespace()
         account = OutlookAccount(namespace=namespace)
         account.create_emailed_events_calendar()
@@ -62,7 +64,9 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
         account.email_address = account_data.email
 
         if account_data.secret_type:
-            account.set_secret(account_data.secret_type, account_data.secret_value)
+            account.set_secret(
+                account_data.secret_type, account_data.secret_value
+            )
 
         if not account.secret:
             raise OAuthError("No valid auth info.")

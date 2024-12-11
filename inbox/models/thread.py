@@ -26,7 +26,9 @@ from inbox.util.misc import cleanup_subject
 log = get_logger()
 
 
-class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtMixin):
+class Thread(
+    MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtMixin
+):
     """
     Threads are a first-class object in Nylas. This thread aggregates
     the relevant thread metadata from elsewhere so that clients can only
@@ -41,7 +43,9 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
 
     API_OBJECT_NAME = "thread"
 
-    namespace_id = Column(ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False)
+    namespace_id = Column(
+        ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False
+    )
     namespace = relationship(
         "Namespace",
         backref=backref("threads", passive_deletes=True),
@@ -92,15 +96,21 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
                 )
                 and not m.is_draft
                 and not m.is_sent
-                and (not received_recent_date or m.received_date > received_recent_date)
+                and (
+                    not received_recent_date
+                    or m.received_date > received_recent_date
+                )
             ):
                 received_recent_date = m.received_date
 
         if not received_recent_date:
-            sorted_messages = sorted(self.messages, key=lambda m: m.received_date)
+            sorted_messages = sorted(
+                self.messages, key=lambda m: m.received_date
+            )
             if not sorted_messages:
                 log.warning(
-                    "Thread does not have associated messages", thread_id=self.id
+                    "Thread does not have associated messages",
+                    thread_id=self.id,
                 )
                 return None
             received_recent_date = sorted_messages[-1].received_date
@@ -218,7 +228,9 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
             .load_only(*message_columns)
             .joinedload("messagecategories")
             .joinedload("category"),
-            subqueryload(Thread.messages).joinedload("parts").joinedload("block"),
+            subqueryload(Thread.messages)
+            .joinedload("parts")
+            .joinedload("block"),
         )
 
     def mark_for_deletion(self):
@@ -241,7 +253,9 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
 Index("ix_thread_subject", Thread.subject, mysql_length=80)
 
 # For async deletion.
-Index("ix_thread_namespace_id_deleted_at", Thread.namespace_id, Thread.deleted_at)
+Index(
+    "ix_thread_namespace_id_deleted_at", Thread.namespace_id, Thread.deleted_at
+)
 
 # For fetch_corresponding_thread.
 Index(

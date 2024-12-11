@@ -16,7 +16,8 @@ from alembic import op
 
 def upgrade():
     op.add_column(
-        "genericaccount", sa.Column("supports_condstore", sa.Boolean(), nullable=True)
+        "genericaccount",
+        sa.Column("supports_condstore", sa.Boolean(), nullable=True),
     )
 
 

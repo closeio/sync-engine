@@ -61,7 +61,9 @@ def fetch_corresponding_thread(db_session, namespace_id, message):
                 t[1].lower() for t in match.participants if t not in match_bcc
             }
             message_emails = {
-                t[1].lower() for t in message.participants if t not in message_bcc
+                t[1].lower()
+                for t in message.participants
+                if t not in message_bcc
             }
 
             # A conversation takes place between two or more persons.

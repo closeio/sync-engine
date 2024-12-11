@@ -30,7 +30,13 @@ ZSTD_MAGIC_NUMBER_PREFIX = 0xFD2FB528.to_bytes(4, "little")
 
 def _data_file_directory(h):
     return os.path.join(
-        config.get_required("MSG_PARTS_DIRECTORY"), h[0], h[1], h[2], h[3], h[4], h[5]
+        config.get_required("MSG_PARTS_DIRECTORY"),
+        h[0],
+        h[1],
+        h[2],
+        h[3],
+        h[4],
+        h[5],
     )
 
 
@@ -92,7 +98,10 @@ def maybe_compress_raw_mime(
 
 
 def save_raw_mime(
-    data_sha256: str, decompressed_raw_mime: bytes, *, compress: "bool | None" = None
+    data_sha256: str,
+    decompressed_raw_mime: bytes,
+    *,
+    compress: "bool | None" = None,
 ) -> int:
     """
     Save the raw MIME data to the blockstore, optionally compressing it.
@@ -137,13 +146,18 @@ def save_to_blockstore(
             f.write(data)
 
 
-def _save_to_s3(data_sha256: str, data: bytes, *, overwrite: bool = False) -> None:
+def _save_to_s3(
+    data_sha256: str, data: bytes, *, overwrite: bool = False
+) -> None:
     assert (
         "TEMP_MESSAGE_STORE_BUCKET_NAME" in config
     ), "Need temp bucket name to store message data!"
 
     _save_to_s3_bucket(
-        data_sha256, config["TEMP_MESSAGE_STORE_BUCKET_NAME"], data, overwrite=overwrite
+        data_sha256,
+        config["TEMP_MESSAGE_STORE_BUCKET_NAME"],
+        data,
+        overwrite=overwrite,
     )
 
 
@@ -282,7 +296,9 @@ def _get_from_s3(data_sha256):
         return data
 
     log.info(
-        "Couldn't find data in blockstore", sha256=data_sha256, logstash_tag="s3_direct"
+        "Couldn't find data in blockstore",
+        sha256=data_sha256,
+        logstash_tag="s3_direct",
     )
 
     return None

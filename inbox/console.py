@@ -11,7 +11,9 @@ from inbox.models.session import global_session_scope
 def user_console(user_email_address):
     with global_session_scope() as db_session:
         result = (
-            db_session.query(Account).filter_by(email_address=user_email_address).all()
+            db_session.query(Account)
+            .filter_by(email_address=user_email_address)
+            .all()
         )
 
         account = None
@@ -74,8 +76,12 @@ def start_client_console(user_email_address=None):
     try:
         from tests.system.client import NylasTestClient
     except ImportError:
-        sys.exit("You need to have the Nylas Python SDK installed to use this option.")
+        sys.exit(
+            "You need to have the Nylas Python SDK installed to use this option."
+        )
     client = NylasTestClient(user_email_address)  # noqa: F841
     IPython.embed(
-        banner1=("You can access a Nylas API client using the 'client' variable.")
+        banner1=(
+            "You can access a Nylas API client using the 'client' variable."
+        )
     )

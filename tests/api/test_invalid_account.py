@@ -23,7 +23,9 @@ def search_response():
     resp = requests.Response()
     resp.status_code = 200
     resp.elapsed = datetime.timedelta(seconds=22)
-    resp._content = json.dumps({"messages": [{"id": "1"}, {"id": "2"}, {"id": "3"}]})
+    resp._content = json.dumps(
+        {"messages": [{"id": "1"}, {"id": "2"}, {"id": "3"}]}
+    )
     requests.get = mock.Mock(return_value=resp)
 
 
@@ -86,7 +88,9 @@ def test_write_endpoints(db, setup_account, api_client, default_account):
     # Write operations (create, update, delete) succeed.
     r = api_client.post_data(
         "/drafts",
-        data={"body": "<html><body><h2>Sea, birds and sand.</h2></body></html>"},
+        data={
+            "body": "<html><body><h2>Sea, birds and sand.</h2></body></html>"
+        },
     )
     assert r.status_code == 200
     draft_id = json.loads(r.data)["id"]

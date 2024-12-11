@@ -17,7 +17,9 @@ from sqlalchemy.sql import text
 def upgrade():
     conn = op.get_bind()
     conn.execute(
-        text("ALTER TABLE contact MODIFY uid varchar(64) NOT NULL COLLATE utf8mb4_bin")
+        text(
+            "ALTER TABLE contact MODIFY uid varchar(64) NOT NULL COLLATE utf8mb4_bin"
+        )
     )
 
 

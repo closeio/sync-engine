@@ -28,7 +28,10 @@ def upgrade():
     op.add_column(
         "account",
         sa.Column(
-            "_sync_status", MutableDict.as_mutable(JSON()), default={}, nullable=True
+            "_sync_status",
+            MutableDict.as_mutable(JSON()),
+            default={},
+            nullable=True,
         ),
     )
 

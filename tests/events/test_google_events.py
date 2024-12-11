@@ -156,7 +156,9 @@ def test_event_parsing():
                 },
             ],
             "reminders": {"useDefault": True},
-            "recurrence": ["RRULE:FREQ=WEEKLY;UNTIL=20150209T075959Z;BYDAY=MO"],
+            "recurrence": [
+                "RRULE:FREQ=WEEKLY;UNTIL=20150209T075959Z;BYDAY=MO"
+            ],
             "sequence": 0,
             "start": {"dateTime": "2012-10-15T17:00:00-07:00"},
             "status": "confirmed",
@@ -510,7 +512,10 @@ def test_pagination():
     first_response = requests.Response()
     first_response.status_code = 200
     first_response._content = json.dumps(
-        {"items": ["A", "B", "C"], "nextPageToken": "CjkKKzlhb2tkZjNpZTMwNjhtZThllU"}
+        {
+            "items": ["A", "B", "C"],
+            "nextPageToken": "CjkKKzlhb2tkZjNpZTMwNjhtZThllU",
+        }
     ).encode()
     second_response = requests.Response()
     second_response.status_code = 200

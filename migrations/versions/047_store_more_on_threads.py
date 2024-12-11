@@ -20,8 +20,12 @@ def upgrade():
     from inbox.sqlalchemy_ext.util import JSON
 
     op.add_column("thread", sa.Column("participants", JSON, nullable=True))
-    op.add_column("thread", sa.Column("message_public_ids", JSON, nullable=True))
-    op.add_column("thread", sa.Column("snippet", sa.String(191), nullable=True))
+    op.add_column(
+        "thread", sa.Column("message_public_ids", JSON, nullable=True)
+    )
+    op.add_column(
+        "thread", sa.Column("snippet", sa.String(191), nullable=True)
+    )
 
     from inbox.models import Thread
     from inbox.models.session import session_scope
@@ -52,7 +56,9 @@ def upgrade():
                         }
                     )
                 thread.participants = list(participant_set)
-                thread.message_public_ids = [m.public_id for m in thread.messages]
+                thread.message_public_ids = [
+                    m.public_id for m in thread.messages
+                ]
                 db_session.add(thread)
             db_session.commit()
 

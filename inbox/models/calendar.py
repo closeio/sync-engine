@@ -24,9 +24,13 @@ from inbox.models.mixins import (
 from inbox.models.namespace import Namespace
 
 
-class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtMixin):
+class Calendar(
+    MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtMixin
+):
     API_OBJECT_NAME = "calendar"
-    namespace_id = Column(ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False)
+    namespace_id = Column(
+        ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False
+    )
 
     namespace = relationship(
         Namespace, load_on_pending=True, backref=backref("calendars")
@@ -48,12 +52,17 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
     webhook_subscription_expiration = Column(DateTime)
 
     __table_args__ = (
-        UniqueConstraint("namespace_id", "provider_name", "name", "uid", name="uuid"),
+        UniqueConstraint(
+            "namespace_id", "provider_name", "name", "uid", name="uuid"
+        ),
     )
 
     @property
     def should_suppress_transaction_creation(self):
-        if self in object_session(self).new or self in object_session(self).deleted:
+        if (
+            self in object_session(self).new
+            or self in object_session(self).deleted
+        ):
             return False
         obj_state = inspect(self)
         return not (
@@ -129,7 +138,10 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
             self.last_synced is None
             or
             # Push notifications channel is stale (and we didn't just sync it)
-            (self.needs_new_watch() and now > self.last_synced + poll_frequency)
+            (
+                self.needs_new_watch()
+                and now > self.last_synced + poll_frequency
+            )
             or
             # Too much time has passed not to sync
             now > self.last_synced + max_time_between_syncs

@@ -20,11 +20,17 @@ from alembic import op
 
 def upgrade():
     op.alter_column(
-        "message", "message_id_header", type_=sa.String(998), existing_nullable=True
+        "message",
+        "message_id_header",
+        type_=sa.String(998),
+        existing_nullable=True,
     )
 
 
 def downgrade():
     op.alter_column(
-        "message", "message_id_header", type_=sa.String(225), existing_nullable=True
+        "message",
+        "message_id_header",
+        type_=sa.String(225),
+        existing_nullable=True,
     )

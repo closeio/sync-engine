@@ -18,7 +18,10 @@ def example_draft(db, default_account):
         "subject": f"Draft test at {datetime.utcnow()}",
         "body": "<html><body><h2>Sea, birds and sand.</h2></body></html>",
         "to": [
-            {"name": "The red-haired mermaid", "email": default_account.email_address}
+            {
+                "name": "The red-haired mermaid",
+                "email": default_account.email_address,
+            }
         ],
     }
 
@@ -251,7 +254,9 @@ def test_get_all_drafts(api_client, example_draft):
     drafts = api_client.get_data("/drafts")
     assert len(drafts) == 2
     assert first_public_id != second_public_id
-    assert {first_public_id, second_public_id} == {draft["id"] for draft in drafts}
+    assert {first_public_id, second_public_id} == {
+        draft["id"] for draft in drafts
+    }
     assert all(item["object"] == "draft" for item in drafts)
 
 
@@ -283,7 +288,9 @@ def test_update_draft(api_client):
         assert drafts[0]["id"] == updated_public_id
 
         # Check that the thread is updated too.
-        thread = api_client.get_data("/threads/{}".format(drafts[0]["thread_id"]))
+        thread = api_client.get_data(
+            "/threads/{}".format(drafts[0]["thread_id"])
+        )
         assert thread["subject"] == "updated draft"
         assert thread["first_message_timestamp"] == drafts[0]["date"]
         assert thread["last_message_timestamp"] == drafts[0]["date"]
@@ -304,7 +311,9 @@ def test_delete_draft(api_client, thread, message):
     updated_public_id = json.loads(r.data)["id"]
     updated_version = json.loads(r.data)["version"]
 
-    r = api_client.delete(f"/drafts/{updated_public_id}", {"version": updated_version})
+    r = api_client.delete(
+        f"/drafts/{updated_public_id}", {"version": updated_version}
+    )
 
     # Check that drafts were deleted
     drafts = api_client.get_data("/drafts")
@@ -385,7 +394,11 @@ def test_conflicting_updates(api_client):
 
 
 def test_update_to_nonexistent_draft(api_client):
-    updated_draft = {"subject": "updated draft", "body": "updated draft", "version": 22}
+    updated_draft = {
+        "subject": "updated draft",
+        "body": "updated draft",
+        "version": 22,
+    }
 
     r = api_client.put_data("/drafts/{}".format("notarealid"), updated_draft)
     assert r.status_code == 404
@@ -397,7 +410,9 @@ def test_contacts_updated(api_client):
     """Tests that draft-contact associations are properly created and
     updated.
     """
-    draft = {"to": [{"email": "alice@example.com"}, {"email": "bob@example.com"}]}
+    draft = {
+        "to": [{"email": "alice@example.com"}, {"email": "bob@example.com"}]
+    }
 
     r = api_client.post_data("/drafts", draft)
     assert r.status_code == 200
@@ -425,7 +440,9 @@ def test_contacts_updated(api_client):
     assert len(r) == 1
 
     # Check that contacts aren't created for garbage recipients.
-    r = api_client.post_data("/drafts", {"to": [{"name": "who", "email": "nope"}]})
+    r = api_client.post_data(
+        "/drafts", {"to": [{"name": "who", "email": "nope"}]}
+    )
     assert r.status_code == 200
     r = api_client.get_data("/threads?to=nope")
     assert len(r) == 0

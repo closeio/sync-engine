@@ -76,7 +76,8 @@ def test_handle_disconnect(monkeypatch, smtp_port):
     monkeypatch.setattr("smtplib.SMTP.rset", simulate_disconnect)
     monkeypatch.setattr("smtplib.SMTP.mail", lambda *args: (550, "NOPE"))
     monkeypatch.setattr(
-        "inbox.sendmail.smtp.postel.SMTPConnection.smtp_password", lambda *args: None
+        "inbox.sendmail.smtp.postel.SMTPConnection.smtp_password",
+        lambda *args: None,
     )
     conn = SMTPConnection(
         account_id=1,

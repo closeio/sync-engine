@@ -16,7 +16,8 @@ from alembic import op
 
 def upgrade():
     op.add_column(
-        "transaction", sa.Column("additional_data", sa.Text(4194304), nullable=True)
+        "transaction",
+        sa.Column("additional_data", sa.Text(4194304), nullable=True),
     )
 
 

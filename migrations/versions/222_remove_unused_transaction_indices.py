@@ -26,5 +26,8 @@ def downgrade():
         unique=False,
     )
     op.create_index(
-        "ix_transaction_table_name", "transaction", ["object_type"], unique=False
+        "ix_transaction_table_name",
+        "transaction",
+        ["object_type"],
+        unique=False,
     )

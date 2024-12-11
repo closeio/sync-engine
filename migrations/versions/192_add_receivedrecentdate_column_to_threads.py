@@ -44,4 +44,6 @@ def downgrade():
     if not engine.has_table("thread"):
         return
     op.drop_column("thread", "receivedrecentdate")
-    op.drop_index("ix_thread_namespace_id_receivedrecentdate", table_name="thread")
+    op.drop_index(
+        "ix_thread_namespace_id_receivedrecentdate", table_name="thread"
+    )

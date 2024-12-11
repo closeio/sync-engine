@@ -24,8 +24,10 @@ def downgrade():
     # downgrade method provided for convenience, but we won't get the data
     # back. Didn't need it anyway...
     op.add_column(
-        "thread", sa.Column("mailing_list_headers", mysql.TEXT(), nullable=True)
+        "thread",
+        sa.Column("mailing_list_headers", mysql.TEXT(), nullable=True),
     )
     op.add_column(
-        "message", sa.Column("mailing_list_headers", mysql.TEXT(), nullable=True)
+        "message",
+        sa.Column("mailing_list_headers", mysql.TEXT(), nullable=True),
     )

@@ -14,7 +14,11 @@ from authalligator_client.exceptions import AccountError
 from imapclient import IMAPClient
 
 from inbox.config import config
-from inbox.exceptions import ConnectionError, ImapSupportDisabledError, OAuthError
+from inbox.exceptions import (
+    ConnectionError,
+    ImapSupportDisabledError,
+    OAuthError,
+)
 from inbox.logging import get_logger
 from inbox.models.backends.oauth import OAuthAccount, token_manager
 from inbox.models.secret import SecretType
@@ -46,7 +50,9 @@ class OAuthAuthHandler(AuthHandler):
 
         client_id, client_secret = account.get_client_info()
 
-        assert self.OAUTH_ACCESS_TOKEN_URL, "OAUTH_ACCESS_TOKEN_URL is not defined"
+        assert (
+            self.OAUTH_ACCESS_TOKEN_URL
+        ), "OAUTH_ACCESS_TOKEN_URL is not defined"
         access_token_url = self.OAUTH_ACCESS_TOKEN_URL
 
         data = urllib.parse.urlencode(
@@ -65,16 +71,21 @@ class OAuthAuthHandler(AuthHandler):
         account_logger = log.bind(account_id=account.id)
 
         try:
-            response = requests.post(access_token_url, data=data, headers=headers)
+            response = requests.post(
+                access_token_url, data=data, headers=headers
+            )
         except requests.exceptions.ConnectionError as e:
-            account_logger.error("Network error renewing access token", error=e)
+            account_logger.error(
+                "Network error renewing access token", error=e
+            )
             raise ConnectionError()
 
         try:
             session_dict = response.json()
         except ValueError:
             account_logger.error(
-                "Invalid JSON renewing on renewing token", response=response.text
+                "Invalid JSON renewing on renewing token",
+                response=response.text,
             )
             raise ConnectionError("Invalid JSON response on renewing token")
 
@@ -97,7 +108,10 @@ class OAuthAuthHandler(AuthHandler):
         return session_dict["access_token"], session_dict["expires_in"]
 
     def _new_access_token_from_authalligator(
-        self, account: OAuthAccount, force_refresh: bool, scopes: Optional[List[str]]
+        self,
+        account: OAuthAccount,
+        force_refresh: bool,
+        scopes: Optional[List[str]],
     ) -> Tuple[str, int]:
         """
         Return the access token based on an account created in AuthAlligator.
@@ -201,7 +215,9 @@ class OAuthAuthHandler(AuthHandler):
         else:
             raise OAuthError("No supported secret found.")
 
-    def authenticate_imap_connection(self, account: OAuthAccount, conn: IMAPClient):
+    def authenticate_imap_connection(
+        self, account: OAuthAccount, conn: IMAPClient
+    ):
         token = token_manager.get_token(
             account, force_refresh=False, scopes=account.email_scopes
         )
@@ -219,7 +235,9 @@ class OAuthAuthHandler(AuthHandler):
                 raise exc from original_exc
 
             log.warning(
-                "Error during IMAP XOAUTH2 login", account_id=account.id, error=exc
+                "Error during IMAP XOAUTH2 login",
+                account_id=account.id,
+                error=exc,
             )
             if not isinstance(exc, ImapSupportDisabledError):
                 raise  # Unknown IMAPClient error, reraise
@@ -281,8 +299,12 @@ class OAuthAuthHandler(AuthHandler):
             "Accept": "text/plain",
         }
         data = urllib.parse.urlencode(args)
-        assert self.OAUTH_ACCESS_TOKEN_URL, "OAUTH_ACCESS_TOKEN_URL is not defined"
-        resp = requests.post(self.OAUTH_ACCESS_TOKEN_URL, data=data, headers=headers)
+        assert (
+            self.OAUTH_ACCESS_TOKEN_URL
+        ), "OAUTH_ACCESS_TOKEN_URL is not defined"
+        resp = requests.post(
+            self.OAUTH_ACCESS_TOKEN_URL, data=data, headers=headers
+        )
 
         session_dict = resp.json()
 

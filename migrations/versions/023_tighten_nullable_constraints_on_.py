@@ -38,9 +38,13 @@ def upgrade():
 
     print("Tightening NULL constraints...")
 
-    op.alter_column("imapuid", "message_id", existing_type=sa.Integer(), nullable=False)
+    op.alter_column(
+        "imapuid", "message_id", existing_type=sa.Integer(), nullable=False
+    )
     # unrelated to current bugs, but no reason this should be NULLable either
-    op.alter_column("imapuid", "msg_uid", existing_type=sa.BigInteger(), nullable=False)
+    op.alter_column(
+        "imapuid", "msg_uid", existing_type=sa.BigInteger(), nullable=False
+    )
 
 
 def downgrade():

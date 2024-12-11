@@ -198,7 +198,9 @@ def test_api_pessimistic_update(db, api_client, calendar, default_account):
 
     e_update_data = {"title": "new title"}
     e_put_resp = api_client.put_data(
-        "/events/" + e_id, e_update_data, headers={"Api-Version": API_VERSIONS[1]}
+        "/events/" + e_id,
+        e_update_data,
+        headers={"Api-Version": API_VERSIONS[1]},
     )
 
     e_put_data = json.loads(e_put_resp.data)
@@ -277,7 +279,9 @@ def test_api_delete_invalid(db, api_client, calendar):
 
 
 def test_api_update_read_only(db, api_client, calendar, default_namespace):
-    add_fake_event(db.session, default_namespace.id, calendar=calendar, read_only=True)
+    add_fake_event(
+        db.session, default_namespace.id, calendar=calendar, read_only=True
+    )
     event_list = api_client.get_data("/events")
 
     read_only_event = None

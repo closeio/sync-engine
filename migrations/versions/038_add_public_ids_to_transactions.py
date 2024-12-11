@@ -45,7 +45,9 @@ def upgrade():
 
     with session_scope(versioned=False) as db_session:
         count = 0
-        (num_transactions,) = db_session.query(sa.func.max(Transaction.id)).one()
+        (num_transactions,) = db_session.query(
+            sa.func.max(Transaction.id)
+        ).one()
         print(f"Adding public ids to {num_transactions} transactions")
         for pointer in range(0, num_transactions + 1, 500):
             for entry in db_session.query(Transaction).filter(
@@ -60,7 +62,10 @@ def upgrade():
                     garbage_collect()
 
     op.alter_column(
-        "transaction", "public_id", existing_type=mysql.BINARY(16), nullable=False
+        "transaction",
+        "public_id",
+        existing_type=mysql.BINARY(16),
+        nullable=False,
     )
 
     op.add_column(
@@ -79,7 +84,8 @@ def downgrade():
     op.drop_column("transaction", "public_id")
     op.drop_column("transaction", "object_public_id")
     op.add_column(
-        "transaction", sa.Column("additional_data", mysql.LONGTEXT(), nullable=True)
+        "transaction",
+        sa.Column("additional_data", mysql.LONGTEXT(), nullable=True),
     )
     op.drop_column("transaction", "public_snapshot")
     op.drop_column("transaction", "private_snapshot")

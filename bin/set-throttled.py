@@ -13,8 +13,12 @@ from inbox.models.session import session_scope
 def print_usage():
     print("usage:   set-throttled [--throttled|--unthrottled] --id 1000")
     print("example: set-throttled --throttled --id 1000")
-    print("batch usage: set-throttled also accepts tab-separated input on stdin.")
-    print("             echo 'karim@nylas.com	account_id' | set-throttled --throttled")
+    print(
+        "batch usage: set-throttled also accepts tab-separated input on stdin."
+    )
+    print(
+        "             echo 'karim@nylas.com	account_id' | set-throttled --throttled"
+    )
     print(
         "             bin/list-accounts --host precise64 --paying | set-throttled --unthrottled"
     )

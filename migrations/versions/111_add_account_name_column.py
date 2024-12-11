@@ -17,7 +17,9 @@ from alembic import op
 def upgrade():
     op.add_column(
         "account",
-        sa.Column("name", sa.String(length=256), server_default="", nullable=False),
+        sa.Column(
+            "name", sa.String(length=256), server_default="", nullable=False
+        ),
     )
     conn = op.get_bind()
     conn.execute(

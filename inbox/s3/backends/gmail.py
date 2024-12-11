@@ -33,7 +33,9 @@ def get_gmail_raw_contents(message):
     r = requests.get(url, auth=OAuthRequestsWrapper(auth_token))
 
     if r.status_code != 200:
-        log.error("Got an error when fetching raw email", r.status_code, r.text)
+        log.error(
+            "Got an error when fetching raw email", r.status_code, r.text
+        )
 
     if r.status_code in [403, 429]:
         raise TemporaryEmailFetchException(

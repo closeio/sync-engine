@@ -5,7 +5,12 @@ import pytest
 
 from inbox.api.ns_api import API_VERSIONS
 
-from tests.util.base import add_fake_message, add_fake_thread, db, default_account
+from tests.util.base import (
+    add_fake_message,
+    add_fake_thread,
+    db,
+    default_account,
+)
 
 __all__ = ["db", "default_account"]
 
@@ -113,7 +118,9 @@ def test_thread_sent_recent_date(db, api_client, default_account):
 
     for thread in threads:  # should only be one
         assert (
-            datetime.datetime.fromtimestamp(thread["last_message_sent_timestamp"])
+            datetime.datetime.fromtimestamp(
+                thread["last_message_sent_timestamp"]
+            )
             == date2
         )
 

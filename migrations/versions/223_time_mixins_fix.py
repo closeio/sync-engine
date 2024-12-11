@@ -46,9 +46,13 @@ def upgrade():
     conn.execute(
         text("ALTER TABLE accounttransaction DROP updated_at, DROP deleted_at")
     )
-    conn.execute(text("ALTER TABLE messagecategory DROP updated_at, DROP deleted_at"))
     conn.execute(
-        text("ALTER TABLE messagecontactassociation DROP updated_at, DROP deleted_at")
+        text("ALTER TABLE messagecategory DROP updated_at, DROP deleted_at")
+    )
+    conn.execute(
+        text(
+            "ALTER TABLE messagecontactassociation DROP updated_at, DROP deleted_at"
+        )
     )
     conn.execute(
         text(
@@ -56,7 +60,9 @@ def upgrade():
             " ix_thread_namespace_id_recentdate_deleted_at"
         )
     )
-    conn.execute(text("ALTER TABLE transaction DROP deleted_at, DROP updated_at"))
+    conn.execute(
+        text("ALTER TABLE transaction DROP deleted_at, DROP updated_at")
+    )
     if conn.engine.has_table("easdevice"):
         # Run EAS specific migrations
         conn.execute(
@@ -65,26 +71,39 @@ def upgrade():
                 " MODIFY COLUMN updated_at DATETIME NOT NULL DEFAULT '1970-01-01 00:00:00'"
             )
         )
-        conn.execute(text("ALTER TABLE easdevice DROP deleted_at, DROP updated_at"))
+        conn.execute(
+            text("ALTER TABLE easdevice DROP deleted_at, DROP updated_at")
+        )
 
 
 def downgrade():
     conn = op.get_bind()
     op.add_column(
-        "transaction", sa.Column("updated_at", mysql.DATETIME(), nullable=False)
+        "transaction",
+        sa.Column("updated_at", mysql.DATETIME(), nullable=False),
     )
     op.add_column(
         "transaction", sa.Column("deleted_at", mysql.DATETIME(), nullable=True)
     )
     op.create_index(
-        "ix_transaction_updated_at", "transaction", ["updated_at"], unique=False
+        "ix_transaction_updated_at",
+        "transaction",
+        ["updated_at"],
+        unique=False,
     )
     op.create_index(
-        "ix_transaction_deleted_at", "transaction", ["deleted_at"], unique=False
+        "ix_transaction_deleted_at",
+        "transaction",
+        ["deleted_at"],
+        unique=False,
     )
 
-    op.add_column("thread", sa.Column("deleted_at", mysql.DATETIME(), nullable=True))
-    op.create_index("ix_thread_deleted_at", "thread", ["deleted_at"], unique=False)
+    op.add_column(
+        "thread", sa.Column("deleted_at", mysql.DATETIME(), nullable=True)
+    )
+    op.create_index(
+        "ix_thread_deleted_at", "thread", ["deleted_at"], unique=False
+    )
     op.create_index(
         "ix_thread_namespace_id_recentdate_deleted_at",
         "thread",
@@ -114,23 +133,33 @@ def downgrade():
     )
 
     op.add_column(
-        "messagecategory", sa.Column("updated_at", mysql.DATETIME(), nullable=False)
+        "messagecategory",
+        sa.Column("updated_at", mysql.DATETIME(), nullable=False),
     )
     op.add_column(
-        "messagecategory", sa.Column("deleted_at", mysql.DATETIME(), nullable=True)
+        "messagecategory",
+        sa.Column("deleted_at", mysql.DATETIME(), nullable=True),
     )
     op.create_index(
-        "ix_messagecategory_updated_at", "messagecategory", ["updated_at"], unique=False
+        "ix_messagecategory_updated_at",
+        "messagecategory",
+        ["updated_at"],
+        unique=False,
     )
     op.create_index(
-        "ix_messagecategory_deleted_at", "messagecategory", ["deleted_at"], unique=False
+        "ix_messagecategory_deleted_at",
+        "messagecategory",
+        ["deleted_at"],
+        unique=False,
     )
 
     op.add_column(
-        "accounttransaction", sa.Column("updated_at", mysql.DATETIME(), nullable=False)
+        "accounttransaction",
+        sa.Column("updated_at", mysql.DATETIME(), nullable=False),
     )
     op.add_column(
-        "accounttransaction", sa.Column("deleted_at", mysql.DATETIME(), nullable=True)
+        "accounttransaction",
+        sa.Column("deleted_at", mysql.DATETIME(), nullable=True),
     )
     op.create_index(
         "ix_accounttransaction_updated_at",
@@ -147,14 +176,22 @@ def downgrade():
 
     if conn.engine.has_table("easdevice"):
         op.add_column(
-            "easdevice", sa.Column("updated_at", mysql.DATETIME(), nullable=False)
+            "easdevice",
+            sa.Column("updated_at", mysql.DATETIME(), nullable=False),
         )
         op.add_column(
-            "easdevice", sa.Column("deleted_at", mysql.DATETIME(), nullable=True)
+            "easdevice",
+            sa.Column("deleted_at", mysql.DATETIME(), nullable=True),
         )
         op.create_index(
-            "ix_easdevice_updated_at", "easdevice", ["updated_at"], unique=False
+            "ix_easdevice_updated_at",
+            "easdevice",
+            ["updated_at"],
+            unique=False,
         )
         op.create_index(
-            "ix_easdevice_deleted_at", "easdevice", ["deleted_at"], unique=False
+            "ix_easdevice_deleted_at",
+            "easdevice",
+            ["deleted_at"],
+            unique=False,
         )

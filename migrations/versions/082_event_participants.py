@@ -22,7 +22,9 @@ def upgrade():
         sa.Column("event_id", sa.Integer(), nullable=False),
         sa.Column("name", sa.String(length=255), nullable=True),
         sa.Column("_raw_address", sa.String(length=191), nullable=True),
-        sa.Column("_canonicalized_address", sa.String(length=191), nullable=True),
+        sa.Column(
+            "_canonicalized_address", sa.String(length=191), nullable=True
+        ),
         sa.Column(
             "status",
             sa.Enum("yes", "no", "maybe", "awaiting"),
@@ -33,7 +35,9 @@ def upgrade():
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
-        sa.ForeignKeyConstraint(["event_id"], ["event.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["event_id"], ["event.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("_raw_address", "event_id", name="uid"),
     )

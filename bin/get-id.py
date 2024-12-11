@@ -54,7 +54,9 @@ def main(type, id, public_id):
 
     with global_session_scope() as db_session:
         if public_id:
-            obj = db_session.query(cls).filter(cls.public_id == public_id).one()
+            obj = (
+                db_session.query(cls).filter(cls.public_id == public_id).one()
+            )
             print(obj.id)
         elif id:
             obj = db_session.query(cls).filter(cls.id == id).one()

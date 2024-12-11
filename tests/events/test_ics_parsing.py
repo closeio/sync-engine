@@ -20,7 +20,9 @@ FIXTURES = "./events/fixtures/"
 def test_invalid_ical(db, default_account):
     with pytest.raises(MalformedEventError):
         events_from_ics(
-            default_account.namespace, default_account.emailed_events_calendar, "asdf"
+            default_account.namespace,
+            default_account.emailed_events_calendar,
+            "asdf",
         )
 
 
@@ -30,7 +32,9 @@ def test_windows_tz_ical(db, default_account):
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     events = events["invites"]
     assert len(events) == 1, "There should be only one event in the test file"
@@ -49,7 +53,9 @@ def test_icloud_allday_event(db, default_account):
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     events = events["invites"]
     assert len(events) == 1, "There should be only one event in the test file"
@@ -69,7 +75,9 @@ def test_iphone_through_exchange(db, default_account):
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     events = events["invites"]
     assert len(events) == 1, "There should be only one event in the test file"
@@ -83,13 +91,18 @@ def test_iphone_through_exchange(db, default_account):
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_event_update(db, default_account, message):
     add_fake_calendar(
-        db.session, default_account.namespace.id, name="Emailed events", read_only=True
+        db.session,
+        default_account.namespace.id,
+        name="Emailed events",
+        read_only=True,
     )
 
     with open(absolute_path(FIXTURES + "gcal_v1.ics")) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
 
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
@@ -107,7 +120,9 @@ def test_event_update(db, default_account, message):
     with open(absolute_path(FIXTURES + "gcal_v2.ics")) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
 
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
@@ -118,7 +133,9 @@ def test_event_update(db, default_account, message):
         .one()
     )
 
-    assert ev.location == ("Le Zenith, 211 Avenue Jean Jaures, 75019 Paris, France")
+    assert ev.location == (
+        "Le Zenith, 211 Avenue Jean Jaures, 75019 Paris, France"
+    )
 
 
 # This test checks that:
@@ -127,23 +144,33 @@ def test_event_update(db, default_account, message):
 def test_self_sent_update(db, default_account, message):
     # Create the calendars
     add_fake_calendar(
-        db.session, default_account.namespace.id, name="Emailed events", read_only=True
+        db.session,
+        default_account.namespace.id,
+        name="Emailed events",
+        read_only=True,
     )
 
     default_calendar = add_fake_calendar(
-        db.session, default_account.namespace.id, name="Calendar", read_only=False
+        db.session,
+        default_account.namespace.id,
+        name="Calendar",
+        read_only=False,
     )
 
     # Import the self-sent event.
     with open(absolute_path(FIXTURES + "self_sent_v1.ics")) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
     msg.from_addr = [(default_account.name, default_account.email_address)]
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
 
-    evs = db.session.query(Event).filter(Event.uid == "burgos@google.com").all()
+    evs = (
+        db.session.query(Event).filter(Event.uid == "burgos@google.com").all()
+    )
 
     assert len(evs) == 1
     ev = evs[0]
@@ -161,12 +188,16 @@ def test_self_sent_update(db, default_account, message):
     with open(absolute_path(FIXTURES + "self_sent_v2.ics")) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
 
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
 
-    evs = db.session.query(Event).filter(Event.uid == "burgos@google.com").all()
+    evs = (
+        db.session.query(Event).filter(Event.uid == "burgos@google.com").all()
+    )
 
     # Check that the event in the default calendar didn't get updated.
     assert len(evs) == 2
@@ -188,7 +219,9 @@ def test_recurring_ical(db, default_account):
     with open(absolute_path(FIXTURES + "gcal_recur.ics")) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
 
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
@@ -225,11 +258,15 @@ def test_event_no_end_time(db, default_account):
 
 def test_event_no_participants(db, default_account):
     data = None
-    with open(absolute_path(FIXTURES + "event_with_no_participants.ics")) as fd:
+    with open(
+        absolute_path(FIXTURES + "event_with_no_participants.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     events = events["invites"]
     assert len(events) == 1, "There should be only one event in the test file"
@@ -243,7 +280,9 @@ def test_multiple_events(db, default_account):
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     events = events["invites"]
     assert len(events) == 2
@@ -259,13 +298,18 @@ def test_multiple_events(db, default_account):
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_icalendar_import(db, generic_account, message):
     add_fake_calendar(
-        db.session, generic_account.namespace.id, name="Emailed events", read_only=True
+        db.session,
+        generic_account.namespace.id,
+        name="Emailed events",
+        read_only=True,
     )
 
     with open(absolute_path(FIXTURES + "invite_w_rsvps1.ics")) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, generic_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, generic_account, ics_data
+    )
 
     import_attached_events(db.session, generic_account, msg)
 
@@ -294,16 +338,24 @@ def test_rsvp_merging(db, generic_account, message):
     # However, we're simulating invite sending, which supposes using
     # an event from another calendar.
     add_fake_calendar(
-        db.session, generic_account.namespace.id, name="Emailed events", read_only=True
+        db.session,
+        generic_account.namespace.id,
+        name="Emailed events",
+        read_only=True,
     )
     cal2 = add_fake_calendar(
-        db.session, generic_account.namespace.id, name="Random calendar", read_only=True
+        db.session,
+        generic_account.namespace.id,
+        name="Random calendar",
+        read_only=True,
     )
 
     with open(absolute_path(FIXTURES + "invite_w_rsvps1.ics")) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, generic_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, generic_account, ics_data
+    )
 
     import_attached_events(db.session, generic_account, msg)
 
@@ -330,7 +382,9 @@ def test_rsvp_merging(db, generic_account, message):
     with open(absolute_path(FIXTURES + "invite_w_rsvps2.ics")) as fd:
         ics_data = fd.read()
 
-    msg2 = add_fake_msg_with_calendar_part(db.session, generic_account, ics_data)
+    msg2 = add_fake_msg_with_calendar_part(
+        db.session, generic_account, ics_data
+    )
 
     import_attached_events(db.session, generic_account, msg2)
 
@@ -358,7 +412,9 @@ def test_rsvp_merging(db, generic_account, message):
     with open(absolute_path(FIXTURES + "invite_w_rsvps3.ics")) as fd:
         ics_data = fd.read()
 
-    msg3 = add_fake_msg_with_calendar_part(db.session, generic_account, ics_data)
+    msg3 = add_fake_msg_with_calendar_part(
+        db.session, generic_account, ics_data
+    )
 
     import_attached_events(db.session, generic_account, msg3)
 
@@ -424,7 +480,9 @@ def test_cancelled_event(db, default_account):
     with open(absolute_path(FIXTURES + "google_cancelled1.ics")) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
 
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
@@ -440,7 +498,9 @@ def test_cancelled_event(db, default_account):
     with open(absolute_path(FIXTURES + "google_cancelled2.ics")) as fd:
         ics_data = fd.read()
 
-    msg2 = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg2 = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
 
     import_attached_events(db.session, default_account, msg2)
     db.session.commit()
@@ -458,7 +518,9 @@ def test_icloud_cancelled_event(db, default_account):
     with open(absolute_path(FIXTURES + "icloud_cancelled1.ics")) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
 
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
@@ -474,7 +536,9 @@ def test_icloud_cancelled_event(db, default_account):
     with open(absolute_path(FIXTURES + "icloud_cancelled2.ics")) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
 
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
@@ -494,7 +558,9 @@ def test_multiple_summaries(db, default_account):
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     events = events["invites"]
     assert len(events) == 1
@@ -512,7 +578,11 @@ def test_invalid_rsvp(db, default_account):
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
 
-    ev = db.session.query(Event).filter(Event.uid == "234252$cccc@nylas.com").all()
+    ev = (
+        db.session.query(Event)
+        .filter(Event.uid == "234252$cccc@nylas.com")
+        .all()
+    )
 
     assert len(ev) == 0
 
@@ -529,7 +599,11 @@ def test_rsvp_for_other_provider(db, default_account):
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
 
-    ev = db.session.query(Event).filter(Event.uid == "234252cccc@google.com").all()
+    ev = (
+        db.session.query(Event)
+        .filter(Event.uid == "234252cccc@google.com")
+        .all()
+    )
 
     assert len(ev) == 0
 
@@ -544,7 +618,11 @@ def test_truncate_bogus_sequence_numbers(db, default_account):
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
 
-    ev = db.session.query(Event).filter(Event.uid == "234252cccc@google.com").one()
+    ev = (
+        db.session.query(Event)
+        .filter(Event.uid == "234252cccc@google.com")
+        .one()
+    )
 
     # Check that the sequence number got truncated to the biggest possible
     # number.
@@ -556,7 +634,9 @@ def test_handle_missing_sequence_number(db, default_account):
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     events = events["invites"]
     assert len(events) == 1
@@ -565,29 +645,43 @@ def test_handle_missing_sequence_number(db, default_account):
 
 
 def test_event_without_dtend_with_duration(db, default_account):
-    with open(absolute_path(FIXTURES + "event_without_dtend_with_duration.ics")) as fd:
+    with open(
+        absolute_path(FIXTURES + "event_without_dtend_with_duration.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
 
     (event,) = events["invites"]
-    assert event.start == datetime.datetime(2022, 10, 9, 11, 0, tzinfo=pytz.UTC)
+    assert event.start == datetime.datetime(
+        2022, 10, 9, 11, 0, tzinfo=pytz.UTC
+    )
     assert event.end == datetime.datetime(2022, 10, 9, 11, 30, tzinfo=pytz.UTC)
 
 
 def test_event_with_windows_timezone(db, default_account):
-    with open(absolute_path(FIXTURES + "event_with_windows_timezone.ics")) as fd:
+    with open(
+        absolute_path(FIXTURES + "event_with_windows_timezone.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
 
     (event,) = events["rsvps"]
-    assert event.start == datetime.datetime(2022, 10, 11, 15, 0, tzinfo=pytz.UTC)
-    assert event.end == datetime.datetime(2022, 10, 11, 15, 30, tzinfo=pytz.UTC)
+    assert event.start == datetime.datetime(
+        2022, 10, 11, 15, 0, tzinfo=pytz.UTC
+    )
+    assert event.end == datetime.datetime(
+        2022, 10, 11, 15, 30, tzinfo=pytz.UTC
+    )
 
 
 def test_event_with_dtstamp_without_timezone(db, default_account):
@@ -597,7 +691,9 @@ def test_event_with_dtstamp_without_timezone(db, default_account):
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     (event,) = events["rsvps"]
 
@@ -607,11 +703,15 @@ def test_event_with_dtstamp_without_timezone(db, default_account):
 
 
 def test_event_with_status_repeated(db, default_account):
-    with open(absolute_path(FIXTURES + "event_with_status_repeated.ics")) as fd:
+    with open(
+        absolute_path(FIXTURES + "event_with_status_repeated.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
 
     (event,) = events["rsvps"]
@@ -619,11 +719,15 @@ def test_event_with_status_repeated(db, default_account):
 
 
 def test_event_with_method_repeated(db, default_account):
-    with open(absolute_path(FIXTURES + "event_with_method_repeated.ics")) as fd:
+    with open(
+        absolute_path(FIXTURES + "event_with_method_repeated.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
 
     (event,) = events["rsvps"]
@@ -635,7 +739,9 @@ def test_event_with_dstart_only(db, default_account):
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
 
     (event,) = events["rsvps"]
@@ -652,7 +758,9 @@ def test_event_malformed_publish(db, default_account):
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
 
     assert events == {"invites": [], "rsvps": []}
@@ -663,7 +771,9 @@ def test_event_with_organizer_list(db, default_account):
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     (event,) = events["rsvps"]
 
@@ -675,7 +785,9 @@ def test_event_with_non_ascii_uid(db, default_account):
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     (event,) = events["rsvps"]
 

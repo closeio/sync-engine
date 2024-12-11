@@ -9,4 +9,6 @@ def bind_context(thread, role, account_id, *args):
 
     TODO(emfree): this should move to inbox/instrumentation.
     """
-    thread.context = ":".join([role, str(account_id)] + [str(arg) for arg in args])
+    thread.context = ":".join(
+        [role, str(account_id)] + [str(arg) for arg in args]
+    )

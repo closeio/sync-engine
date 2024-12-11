@@ -36,7 +36,9 @@ def upgrade():
             nullable=False,
             server_default=sa.sql.expression.true(),
         ),
-        sa.ForeignKeyConstraint(["namespace_id"], ["namespace.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["namespace_id"], ["namespace.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("namespace_id", "name"),
         sa.UniqueConstraint("namespace_id", "public_id"),
@@ -56,9 +58,15 @@ def upgrade():
         sa.ForeignKeyConstraint(["thread_id"], ["thread.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index("ix_tagitem_created_at", "tagitem", ["created_at"], unique=False)
-    op.create_index("ix_tagitem_deleted_at", "tagitem", ["deleted_at"], unique=False)
-    op.create_index("ix_tagitem_updated_at", "tagitem", ["updated_at"], unique=False)
+    op.create_index(
+        "ix_tagitem_created_at", "tagitem", ["created_at"], unique=False
+    )
+    op.create_index(
+        "ix_tagitem_deleted_at", "tagitem", ["deleted_at"], unique=False
+    )
+    op.create_index(
+        "ix_tagitem_updated_at", "tagitem", ["updated_at"], unique=False
+    )
     op.drop_table("usertagitem")
     op.drop_table("usertag")
 
@@ -102,7 +110,8 @@ def upgrade():
             existing_canonical_tags = (
                 db_session.query(Tag)
                 .filter(
-                    Tag.namespace == namespace, Tag.public_id.in_(CANONICAL_TAG_NAMES)
+                    Tag.namespace == namespace,
+                    Tag.public_id.in_(CANONICAL_TAG_NAMES),
                 )
                 .all()
             )

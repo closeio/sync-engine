@@ -42,7 +42,9 @@ def genericize_imapaccount():
 
     # Get data from columns-to-be-dropped
     with session_scope() as db_session:
-        results = db_session.query(ImapAccount_.id, ImapAccount_.imap_host).all()
+        results = db_session.query(
+            ImapAccount_.id, ImapAccount_.imap_host
+        ).all()
 
     to_insert = [dict(id=r[0], imap_host=r[1]) for r in results]
 
@@ -62,7 +64,9 @@ def genericize_imapaccount():
 
     # The ad-hoc table for insert
     table_ = table(
-        "imapaccount", column("imap_host", sa.String()), column("id", sa.Integer)
+        "imapaccount",
+        column("imap_host", sa.String()),
+        column("id", sa.Integer),
     )
     if to_insert:
         op.bulk_insert(table_, to_insert)
@@ -103,7 +107,9 @@ def genericize_thread():
 
     # The ad-hoc table for insert
     table_ = table(
-        "imapthread", column("g_thrid", sa.BigInteger), column("id", sa.Integer)
+        "imapthread",
+        column("g_thrid", sa.BigInteger),
+        column("id", sa.Integer),
     )
     if to_insert:
         op.bulk_insert(table_, to_insert)
@@ -184,7 +190,9 @@ def downgrade_imapaccount():
 
     # Get data from table-to-be-dropped
     with session_scope() as db_session:
-        results = db_session.query(ImapAccount_.id, ImapAccount_.imap_host).all()
+        results = db_session.query(
+            ImapAccount_.id, ImapAccount_.imap_host
+        ).all()
     to_insert = [dict(id=r[0], imap_host=r[1]) for r in results]
 
     # Drop columns, add new columns + insert data
@@ -192,7 +200,9 @@ def downgrade_imapaccount():
     op.add_column("account", sa.Column("imap_host", sa.String(512)))
 
     table_ = table(
-        "account", column("imap_host", sa.String(512)), column("id", sa.Integer)
+        "account",
+        column("imap_host", sa.String(512)),
+        column("id", sa.Integer),
     )
 
     for r in to_insert:
@@ -255,9 +265,12 @@ def downgrade_imapthread():
     # Drop columns, add new columns + insert data
     op.drop_column("thread", "type")
     op.add_column(
-        "thread", sa.Column("g_thrid", sa.BigInteger(), nullable=True, index=True)
+        "thread",
+        sa.Column("g_thrid", sa.BigInteger(), nullable=True, index=True),
     )
-    table_ = table("thread", column("g_thrid", sa.BigInteger), column("id", sa.Integer))
+    table_ = table(
+        "thread", column("g_thrid", sa.BigInteger), column("id", sa.Integer)
+    )
 
     for r in to_insert:
         op.execute(

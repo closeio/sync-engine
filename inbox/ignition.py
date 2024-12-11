@@ -52,7 +52,11 @@ def engine(
     pool_timeout=DB_POOL_TIMEOUT,
     echo=False,
 ):
-    connect_args = {"binary_prefix": True, "charset": "utf8mb4", "connect_timeout": 60}
+    connect_args = {
+        "binary_prefix": True,
+        "charset": "utf8mb4",
+        "connect_timeout": 60,
+    }
 
     engine = create_engine(
         database_uri,
@@ -67,7 +71,9 @@ def engine(
     )
 
     @event.listens_for(engine, "checkout")
-    def receive_checkout(dbapi_connection, connection_record, connection_proxy):
+    def receive_checkout(
+        dbapi_connection, connection_record, connection_proxy
+    ):
         """Log checkedout and overflow when a connection is checked out"""
         hostname = gethostname().replace(".", "-")
         process_name = str(config.get("PROCESS_NAME", "main_process"))
@@ -75,13 +81,27 @@ def engine(
         if config.get("ENABLE_DB_TXN_METRICS", False):
             statsd_client.gauge(
                 ".".join(
-                    ["dbconn", database_name, hostname, process_name, "checkedout"]
+                    [
+                        "dbconn",
+                        database_name,
+                        hostname,
+                        process_name,
+                        "checkedout",
+                    ]
                 ),
                 connection_proxy._pool.checkedout(),
             )
 
             statsd_client.gauge(
-                ".".join(["dbconn", database_name, hostname, process_name, "overflow"]),
+                ".".join(
+                    [
+                        "dbconn",
+                        database_name,
+                        hostname,
+                        process_name,
+                        "overflow",
+                    ]
+                ),
                 connection_proxy._pool.overflow(),
             )
 
@@ -126,7 +146,9 @@ class EngineManager:
 
                 # Perform some sanity checks on the configuration.
                 assert isinstance(key, int)
-                assert key not in keys, f"Shard key collision: key {key} is repeated"
+                assert (
+                    key not in keys
+                ), f"Shard key collision: key {key} is repeated"
                 assert (
                     schema_name not in schema_names
                 ), f"Shard name collision: {schema_name} is repeated"
@@ -166,7 +188,8 @@ class EngineManager:
 
 
 engine_manager = EngineManager(
-    config.get_required("DATABASE_HOSTS"), config.get_required("DATABASE_USERS")
+    config.get_required("DATABASE_HOSTS"),
+    config.get_required("DATABASE_USERS"),
 )
 
 
@@ -214,7 +237,9 @@ def verify_db(engine, schema, key):
 
         increment = engine.execute(query.format(schema, table)).scalar()
         if increment is not None:
-            assert (increment >> 48) == key, "table: {}, increment: {}, key: {}".format(
+            assert (
+                increment >> 48
+            ) == key, "table: {}, increment: {}, key: {}".format(
                 table, increment, key
             )
         else:
@@ -243,7 +268,9 @@ def reset_invalid_autoincrements(engine, schema, key, dry_run=True):
         increment = engine.execute(query.format(schema, table)).scalar()
         if increment is not None and (increment >> 48) != key:
             if not dry_run:
-                reset_query = f"ALTER TABLE {table} AUTO_INCREMENT={(key << 48) + 1}"
+                reset_query = (
+                    f"ALTER TABLE {table} AUTO_INCREMENT={(key << 48) + 1}"
+                )
                 engine.execute(reset_query)
             reset.add(str(table))
     return reset
@@ -262,5 +289,7 @@ limitlion.throttle_configure(redis_limitlion)
 
 # these are _required_. nylas shouldn't start if these aren't present.
 redis_txn = redis.Redis(
-    config["TXN_REDIS_HOSTNAME"], int(config["REDIS_PORT"]), db=config["TXN_REDIS_DB"]
+    config["TXN_REDIS_HOSTNAME"],
+    int(config["REDIS_PORT"]),
+    db=config["TXN_REDIS_DB"],
 )

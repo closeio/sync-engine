@@ -15,7 +15,10 @@ from alembic import op
 
 def upgrade():
     op.create_index(
-        "ix_actionlog_status_retries", "actionlog", ["status", "retries"], unique=False
+        "ix_actionlog_status_retries",
+        "actionlog",
+        ["status", "retries"],
+        unique=False,
     )
 
 

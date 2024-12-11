@@ -30,7 +30,9 @@ def upgrade():
         existing_nullable=False,
     )
 
-    op.add_column("secret", sa.Column("secret", sa.String(length=512), nullable=True))
+    op.add_column(
+        "secret", sa.Column("secret", sa.String(length=512), nullable=True)
+    )
 
     import nacl.secret
     import nacl.utils

@@ -15,7 +15,9 @@ from alembic import op
 
 
 def upgrade():
-    op.add_column("imapfolderinfo", sa.Column("uidnext", sa.Integer(), nullable=True))
+    op.add_column(
+        "imapfolderinfo", sa.Column("uidnext", sa.Integer(), nullable=True)
+    )
 
 
 def downgrade():

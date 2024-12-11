@@ -36,7 +36,9 @@ def imap_folder(db, generic_account):
 
 @fixture
 def different_imap_folder(db, generic_account):
-    f = Folder.find_or_create(db.session, generic_account, "Archive", "archive")
+    f = Folder.find_or_create(
+        db.session, generic_account, "Archive", "archive"
+    )
     db.session.add(f)
     db.session.commit()
     return f
@@ -106,7 +108,9 @@ def sorted_imap_threads(db, generic_account):
 
 
 @fixture
-def sorted_imap_messages(db, generic_account, sorted_imap_threads, imap_folder):
+def sorted_imap_messages(
+    db, generic_account, sorted_imap_threads, imap_folder
+):
     thread1, thread2, thread3 = sorted_imap_threads
     message1 = add_fake_message(
         db.session,
@@ -118,7 +122,9 @@ def sorted_imap_messages(db, generic_account, sorted_imap_threads, imap_folder):
         subject="YOO!",
     )
 
-    add_fake_imapuid(db.session, generic_account.id, message1, imap_folder, 2000)
+    add_fake_imapuid(
+        db.session, generic_account.id, message1, imap_folder, 2000
+    )
 
     message2 = add_fake_message(
         db.session,
@@ -130,7 +136,9 @@ def sorted_imap_messages(db, generic_account, sorted_imap_threads, imap_folder):
         subject="Hey!",
     )
 
-    add_fake_imapuid(db.session, generic_account.id, message2, imap_folder, 2001)
+    add_fake_imapuid(
+        db.session, generic_account.id, message2, imap_folder, 2001
+    )
 
     message3 = add_fake_message(
         db.session,
@@ -142,7 +150,9 @@ def sorted_imap_messages(db, generic_account, sorted_imap_threads, imap_folder):
         subject="Sup?",
     )
 
-    add_fake_imapuid(db.session, generic_account.id, message3, imap_folder, 2002)
+    add_fake_imapuid(
+        db.session, generic_account.id, message3, imap_folder, 2002
+    )
 
     return [message1, message2, message3]
 
@@ -243,7 +253,8 @@ def invalid_imap_connection(monkeypatch):
 
     conn = MockImapConnection()
     monkeypatch.setattr(
-        "inbox.auth.base.AuthHandler.get_authenticated_imap_connection", raise_401
+        "inbox.auth.base.AuthHandler.get_authenticated_imap_connection",
+        raise_401,
     )
     return conn
 
@@ -316,7 +327,9 @@ def test_gmail_thread_search(
     assert isinstance(search_client, GmailSearchClient)
 
     if is_streaming:
-        threads = api_client.get_data("/threads/search/streaming?q=blah%20blah%20blah")
+        threads = api_client.get_data(
+            "/threads/search/streaming?q=blah%20blah%20blah"
+        )
     else:
         threads = api_client.get_data("/threads/search?q=blah%20blah%20blah")
 
@@ -357,7 +370,9 @@ def test_invalid_gmail_account_search(
     is_streaming,
 ):
     if is_streaming:
-        response = api_client.get_raw("/messages/search/streaming?q=blah%20blah%20blah")
+        response = api_client.get_raw(
+            "/messages/search/streaming?q=blah%20blah%20blah"
+        )
     else:
         response = api_client.get_raw("/messages/search?q=blah%20blah%20blah")
 
@@ -385,7 +400,9 @@ def test_imap_message_search(
             "/messages/search/streaming?q=blah%20blah%20blah"
         )
     else:
-        messages = imap_api_client.get_data("/messages/search?q=blah%20blah%20blah")
+        messages = imap_api_client.get_data(
+            "/messages/search?q=blah%20blah%20blah"
+        )
 
     imap_connection.assert_search([b"TEXT", b"blah blah blah"])
     assert_search_result(sorted_imap_messages, messages)
@@ -409,7 +426,9 @@ def test_imap_thread_search(
             "/threads/search/streaming?q=blah%20blah%20blah"
         )
     else:
-        threads = imap_api_client.get_data("/threads/search?q=blah%20blah%20blah")
+        threads = imap_api_client.get_data(
+            "/threads/search?q=blah%20blah%20blah"
+        )
 
     imap_connection.assert_search([b"TEXT", b"blah blah blah"])
     assert_search_result(sorted_imap_threads, threads)
@@ -456,12 +475,15 @@ def test_invalid_imap_account_search(
         )
         assert response.status_code == 200
     else:
-        response = imap_api_client.get_raw("/messages/search?q=blah%20blah%20blah")
+        response = imap_api_client.get_raw(
+            "/messages/search?q=blah%20blah%20blah"
+        )
 
         assert response.status_code == 403
         assert (
             "This search can't be performed because the account's "
-            "credentials are out of date." in json.loads(response.data)["message"]
+            "credentials are out of date."
+            in json.loads(response.data)["message"]
         )
 
 
@@ -487,7 +509,9 @@ def test_streaming_search_results(
 
     class MultiFolderMockImapConnection(MockImapConnection):
         def __init__(self):
-            self._responses = list(reversed([[2000, 2001, 2002], [5000, 5001]]))
+            self._responses = list(
+                reversed([[2000, 2001, 2002], [5000, 5001]])
+            )
 
         def search(self, criteria, charset=None):
             self.search_args = (criteria, charset)

@@ -27,7 +27,9 @@ class EventQueue:
     event that they're interested in.
     """
 
-    def __init__(self, queue_name: str, redis: Optional[StrictRedis] = None) -> None:
+    def __init__(
+        self, queue_name: str, redis: Optional[StrictRedis] = None
+    ) -> None:
         self.redis = redis
         if self.redis is None:
             redis_host = config["EVENT_QUEUE_REDIS_HOSTNAME"]
@@ -35,7 +37,9 @@ class EventQueue:
             self.redis = _get_redis_client(host=redis_host, db=redis_db)
         self.queue_name = queue_name
 
-    def receive_event(self, timeout: Optional[int] = 0) -> Optional[Dict[str, Any]]:
+    def receive_event(
+        self, timeout: Optional[int] = 0
+    ) -> Optional[Dict[str, Any]]:
         """
         Receive single event from the queue.
 
@@ -73,7 +77,9 @@ class EventQueue:
             return event
         except Exception as e:
             log.error(
-                "Failed to load event data from queue", error=e, event_data=event_data
+                "Failed to load event data from queue",
+                error=e,
+                event_data=event_data,
             )
             return None
 
@@ -109,6 +115,8 @@ class EventQueueGroup:
             return event
         except Exception as e:
             log.error(
-                "Failed to load event data from queue", error=e, event_data=event_data
+                "Failed to load event data from queue",
+                error=e,
+                event_data=event_data,
             )
             return None

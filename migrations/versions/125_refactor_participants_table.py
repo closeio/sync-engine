@@ -18,7 +18,9 @@ from sqlalchemy.sql import text
 def upgrade():
     from inbox.sqlalchemy_ext.util import JSON
 
-    op.add_column("event", sa.Column("participants_by_email", JSON(), nullable=False))
+    op.add_column(
+        "event", sa.Column("participants_by_email", JSON(), nullable=False)
+    )
     op.drop_table("eventparticipant")
 
     conn = op.get_bind()

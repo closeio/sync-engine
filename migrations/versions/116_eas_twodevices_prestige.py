@@ -22,15 +22,26 @@ def upgrade():
         "easdevice", "updated_at", existing_type=sa.DateTime(), nullable=False
     )
     op.alter_column(
-        "easaccount", "primary_device_id", existing_type=sa.Integer(), nullable=False
+        "easaccount",
+        "primary_device_id",
+        existing_type=sa.Integer(),
+        nullable=False,
     )
     op.alter_column(
-        "easaccount", "secondary_device_id", existing_type=sa.Integer(), nullable=False
+        "easaccount",
+        "secondary_device_id",
+        existing_type=sa.Integer(),
+        nullable=False,
     )
     op.alter_column(
-        "easfoldersyncstatus", "device_id", existing_type=sa.Integer(), nullable=False
+        "easfoldersyncstatus",
+        "device_id",
+        existing_type=sa.Integer(),
+        nullable=False,
     )
-    op.alter_column("easuid", "device_id", existing_type=sa.Integer(), nullable=False)
+    op.alter_column(
+        "easuid", "device_id", existing_type=sa.Integer(), nullable=False
+    )
 
     op.drop_column("easaccount", "_eas_device_type")
     op.drop_column("easaccount", "_eas_device_id")

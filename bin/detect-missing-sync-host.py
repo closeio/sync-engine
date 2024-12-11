@@ -25,7 +25,10 @@ def main():
             db_session.query(Account)
             .options(
                 load_only(
-                    "sync_state", "sync_should_run", "sync_host", "desired_sync_host"
+                    "sync_state",
+                    "sync_should_run",
+                    "sync_host",
+                    "desired_sync_host",
                 )
             )
             .filter(Account.sync_state == "stopped")
@@ -34,7 +37,10 @@ def main():
                 print(
                     "account {} assigned to {} but has sync_state 'stopped'"
                     " ({}, {})".format(
-                        acc.id, acc.sync_host, acc.sync_should_run, acc.sync_host
+                        acc.id,
+                        acc.sync_host,
+                        acc.sync_should_run,
+                        acc.sync_host,
                     )
                 )
 

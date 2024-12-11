@@ -56,7 +56,9 @@ def test_selective_retry():
     logger = MockLogger()
     failing_function = FailingFunction(ValueError)
     with pytest.raises(ValueError):
-        retry_with_logging(failing_function, logger=logger, fail_classes=[ValueError])
+        retry_with_logging(
+            failing_function, logger=logger, fail_classes=[ValueError]
+        )
     assert logger.call_count == 0
     assert failing_function.call_count == 1
 
@@ -116,7 +118,9 @@ def test_no_logging_until_many_transient_error():
 def test_logging_on_critical_error():
     critical = [
         TypeError("Example TypeError"),
-        StatementError(message="?", statement="SELECT *", params={}, orig=None),
+        StatementError(
+            message="?", statement="SELECT *", params={}, orig=None
+        ),
         StatementError(
             message="?",
             statement="SELECT *",

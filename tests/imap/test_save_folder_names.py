@@ -63,7 +63,9 @@ def test_imap_handle_folder_renames(db, default_account):
         ("[Gmail]/All", "all"),
         ("[Gmail]/Trash", "trash"),
     }
-    original_raw_folders = [RawFolder(*args) for args in folder_names_and_roles]
+    original_raw_folders = [
+        RawFolder(*args) for args in folder_names_and_roles
+    ]
     renamed_raw_folders = [RawFolder(*args) for args in folders_renamed]
     monitor.save_folder_names(db.session, original_raw_folders)
     assert (
@@ -86,14 +88,21 @@ def test_imap_handle_folder_renames(db, default_account):
 
 def test_gmail_handle_folder_renames(db, default_account):
     monitor = GmailSyncMonitor(default_account)
-    folder_names_and_roles = {("[Gmail]/Todos", "all"), ("[Gmail]/Basura", "trash")}
+    folder_names_and_roles = {
+        ("[Gmail]/Todos", "all"),
+        ("[Gmail]/Basura", "trash"),
+    }
 
     folders_renamed = {("[Gmail]/All", "all"), ("[Gmail]/Trash", "trash")}
-    original_raw_folders = [RawFolder(*args) for args in folder_names_and_roles]
+    original_raw_folders = [
+        RawFolder(*args) for args in folder_names_and_roles
+    ]
     renamed_raw_folders = [RawFolder(*args) for args in folders_renamed]
     monitor.save_folder_names(db.session, original_raw_folders)
     original_folders = (
-        db.session.query(Folder).filter(Folder.account_id == default_account.id).all()
+        db.session.query(Folder)
+        .filter(Folder.account_id == default_account.id)
+        .all()
     )
 
     assert len(original_folders) == 2
@@ -117,7 +126,9 @@ def test_gmail_handle_folder_renames(db, default_account):
     assert saved_folder_data == folders_renamed
 
     renamed_folders = (
-        db.session.query(Folder).filter(Folder.account_id == default_account.id).all()
+        db.session.query(Folder)
+        .filter(Folder.account_id == default_account.id)
+        .all()
     )
 
     for folder in renamed_folders:
@@ -204,7 +215,9 @@ def test_imap_remote_delete(db, default_account):
     new_raw_folders = [RawFolder(*args) for args in new_folders]
     monitor.save_folder_names(db.session, original_raw_folders)
     original_folders = (
-        db.session.query(Folder).filter(Folder.account_id == default_account.id).all()
+        db.session.query(Folder)
+        .filter(Folder.account_id == default_account.id)
+        .all()
     )
 
     assert len(original_folders) == 3
@@ -228,7 +241,9 @@ def test_imap_remote_delete(db, default_account):
     assert saved_folder_data == new_folders
 
     renamed_folders = (
-        db.session.query(Folder).filter(Folder.account_id == default_account.id).all()
+        db.session.query(Folder)
+        .filter(Folder.account_id == default_account.id)
+        .all()
     )
 
     for folder in renamed_folders:

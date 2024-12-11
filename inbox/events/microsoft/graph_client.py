@@ -207,7 +207,9 @@ class MicrosoftGraphClient:
             params["$select"] = ",".join(fields)
 
         # TODO: Figure out the top limit we can use on this endpoint
-        yield from self._iter(f"/me/calendars/{calendar_id}/events", params=params)
+        yield from self._iter(
+            f"/me/calendars/{calendar_id}/events", params=params
+        )
 
     def get_event(
         self, event_id: str, *, fields: Optional[Iterable[str]] = None
@@ -268,7 +270,9 @@ class MicrosoftGraphClient:
         if fields:
             params["$select"] = ",".join(fields)
 
-        yield from self._iter(f"/me/events/{event_id}/instances", params=params)
+        yield from self._iter(
+            f"/me/events/{event_id}/instances", params=params
+        )
 
     def iter_subscriptions(self) -> Iterable[Dict[str, Any]]:
         """
@@ -331,13 +335,15 @@ class MicrosoftGraphClient:
         if not expiration:
             # The maximum expiration for a webhook subscription
             # is 4230 minutes, which is slightly less than 3 days.
-            expiration = datetime.datetime.now(tz=pytz.UTC) + datetime.timedelta(
-                minutes=4230
-            )
+            expiration = datetime.datetime.now(
+                tz=pytz.UTC
+            ) + datetime.timedelta(minutes=4230)
         assert expiration.tzinfo == pytz.UTC
 
         json = {
-            "changeType": ",".join(change_type.value for change_type in change_types),
+            "changeType": ",".join(
+                change_type.value for change_type in change_types
+            ),
             "notificationUrl": webhook_url,
             "resource": resource_url,
             "expirationDateTime": format_datetime(expiration),
@@ -377,7 +383,9 @@ class MicrosoftGraphClient:
         return self.request("DELETE", f"/subscriptions/{subscription_id}")
 
     def renew_subscription(
-        self, subscription_id: str, expiration: Optional[datetime.datetime] = None
+        self,
+        subscription_id: str,
+        expiration: Optional[datetime.datetime] = None,
     ) -> Dict[str, Any]:
         """
         Renew a subscription before it expires.
@@ -393,14 +401,16 @@ class MicrosoftGraphClient:
             https://learn.microsoft.com/en-us/graph/api/resources/subscription
         """
         if not expiration:
-            expiration = datetime.datetime.now(tz=pytz.UTC) + datetime.timedelta(
-                minutes=4230
-            )
+            expiration = datetime.datetime.now(
+                tz=pytz.UTC
+            ) + datetime.timedelta(minutes=4230)
         assert expiration.tzinfo == pytz.UTC
 
         json = {"expirationDateTime": format_datetime(expiration)}
 
-        return self.request("PATCH", f"/subscriptions/{subscription_id}", json=json)
+        return self.request(
+            "PATCH", f"/subscriptions/{subscription_id}", json=json
+        )
 
     def subscribe_to_calendar_changes(
         self, *, webhook_url: str, secret: str
@@ -449,7 +459,11 @@ class MicrosoftGraphClient:
         """
         return self.subscribe(
             resource_url=f"/me/calendars/{calendar_id}/events",
-            change_types=[ChangeType.CREATED, ChangeType.UPDATED, ChangeType.DELETED],
+            change_types=[
+                ChangeType.CREATED,
+                ChangeType.UPDATED,
+                ChangeType.DELETED,
+            ],
             webhook_url=webhook_url,
             secret=secret,
         )

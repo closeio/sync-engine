@@ -16,10 +16,12 @@ from alembic import op
 
 def upgrade():
     op.add_column(
-        "gmailaccount", sa.Column("client_id", sa.String(length=256), nullable=True)
+        "gmailaccount",
+        sa.Column("client_id", sa.String(length=256), nullable=True),
     )
     op.add_column(
-        "gmailaccount", sa.Column("client_secret", sa.String(length=256), nullable=True)
+        "gmailaccount",
+        sa.Column("client_secret", sa.String(length=256), nullable=True),
     )
 
 

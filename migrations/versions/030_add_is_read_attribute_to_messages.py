@@ -29,10 +29,16 @@ def upgrade():
     )
 
     op.alter_column(
-        "usertagitem", "created_at", existing_type=mysql.DATETIME(), nullable=False
+        "usertagitem",
+        "created_at",
+        existing_type=mysql.DATETIME(),
+        nullable=False,
     )
     op.alter_column(
-        "usertagitem", "updated_at", existing_type=mysql.DATETIME(), nullable=False
+        "usertagitem",
+        "updated_at",
+        existing_type=mysql.DATETIME(),
+        nullable=False,
     )
 
     from inbox.ignition import main_engine
@@ -70,9 +76,15 @@ def upgrade():
 
 def downgrade():
     op.alter_column(
-        "usertagitem", "updated_at", existing_type=mysql.DATETIME(), nullable=True
+        "usertagitem",
+        "updated_at",
+        existing_type=mysql.DATETIME(),
+        nullable=True,
     )
     op.alter_column(
-        "usertagitem", "created_at", existing_type=mysql.DATETIME(), nullable=True
+        "usertagitem",
+        "created_at",
+        existing_type=mysql.DATETIME(),
+        nullable=True,
     )
     op.drop_column("message", "is_read")

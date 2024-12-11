@@ -16,7 +16,8 @@ from alembic import op
 
 def upgrade():
     op.add_column(
-        "event", sa.Column("conference_data", sa.Text(length=4194304), nullable=True)
+        "event",
+        sa.Column("conference_data", sa.Text(length=4194304), nullable=True),
     )
 
 

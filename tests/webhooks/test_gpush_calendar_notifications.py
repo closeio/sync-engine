@@ -142,7 +142,9 @@ def test_should_update_logic_no_push(db, default_account, calendar):
     # Updated recently - should not update
     default_account.last_calendar_list_sync = ten_seconds_ago
     calendar.last_synced = ten_seconds_ago
-    assert not default_account.should_update_calendars(ten_minutes, poll_frequency)
+    assert not default_account.should_update_calendars(
+        ten_minutes, poll_frequency
+    )
     assert not calendar.should_update_events(ten_minutes, poll_frequency)
 
 
@@ -158,7 +160,9 @@ def test_needs_new_watch_logic(db, watched_account, watched_calendar):
     assert not watched_calendar.needs_new_watch()
 
 
-def test_receive_sync_message(db, webhooks_client, watched_account, watched_calendar):
+def test_receive_sync_message(
+    db, webhooks_client, watched_account, watched_calendar
+):
     # Sync messages can basically be ignored
     # (see https://developers.google.com/google-apps/calendar/v3/push#sync)
 
@@ -219,7 +223,9 @@ def test_event_update(db, webhooks_client, watched_calendar):
     time.sleep(1)
 
     # Test that webhook_last_ping *is* updated if last updated too long ago
-    watched_calendar.webhook_last_ping = webhook_last_ping - timedelta(seconds=22)
+    watched_calendar.webhook_last_ping = webhook_last_ping - timedelta(
+        seconds=22
+    )
     db.session.commit()
     r = webhooks_client.post_data(event_path, {}, headers)
     db.session.refresh(watched_calendar)

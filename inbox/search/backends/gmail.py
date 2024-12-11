@@ -132,7 +132,9 @@ class GmailSearchClient:
                     response=ret.content,
                 )
                 raise SearchBackendException(
-                    "Error issuing search request", 503, server_error=ret.content
+                    "Error issuing search request",
+                    503,
+                    server_error=ret.content,
                 )
 
             data = ret.json()

@@ -47,7 +47,9 @@ def test_response_when_old_cursor_given(db, api_client, default_namespace):
             validate_response_format(response_string)
 
 
-def test_empty_response_when_latest_cursor_given(db, api_client, default_namespace):
+def test_empty_response_when_latest_cursor_given(
+    db, api_client, default_namespace
+):
     cursor = get_cursor(api_client, int(time.time() + 22), default_namespace)
     url = url_concat("/delta/streaming", {"timeout": 0.1, "cursor": cursor})
     r = api_client.get_raw(url)
@@ -55,9 +57,14 @@ def test_empty_response_when_latest_cursor_given(db, api_client, default_namespa
     assert r.get_data(as_text=True).strip() == ""
 
 
-def test_exclude_and_include_object_types(db, api_client, thread, default_namespace):
+def test_exclude_and_include_object_types(
+    db, api_client, thread, default_namespace
+):
     add_fake_message(
-        db.session, default_namespace.id, thread, from_addr=[("Bob", "bob@foocorp.com")]
+        db.session,
+        default_namespace.id,
+        thread,
+        from_addr=[("Bob", "bob@foocorp.com")],
     )
     # Check that we do get message and contact changes by default.
     url = url_concat("/delta/streaming", {"timeout": 0.1, "cursor": "0"})
@@ -82,7 +89,8 @@ def test_exclude_and_include_object_types(db, api_client, thread, default_namesp
 
     # And check we only get message objects if we use include_types
     url = url_concat(
-        "/delta/streaming", {"timeout": 0.1, "cursor": "0", "include_types": "message"}
+        "/delta/streaming",
+        {"timeout": 0.1, "cursor": "0", "include_types": "message"},
     )
     r = api_client.get_raw(url)
     assert r.status_code == 200
@@ -156,7 +164,9 @@ def test_longpoll_delta_newitem(db, api_client, default_namespace, thread):
 def test_longpoll_delta_timeout(db, api_client, default_namespace):
     test_timeout = 2
     cursor = get_cursor(api_client, int(time.time() + 22), default_namespace)
-    url = url_concat("/delta/longpoll", {"timeout": test_timeout, "cursor": cursor})
+    url = url_concat(
+        "/delta/longpoll", {"timeout": test_timeout, "cursor": cursor}
+    )
     start_time = time.time()
     resp = api_client.get_raw(url)
     end_time = time.time()

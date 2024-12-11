@@ -12,7 +12,9 @@ from inbox.models.session import global_session_scope
 
 
 @click.command()
-@click.option("--account-id", required=True, type=int, help="Account ID to sync.")
+@click.option(
+    "--account-id", required=True, type=int, help="Account ID to sync."
+)
 @click.option(
     "--folder-name",
     default=None,

@@ -30,7 +30,9 @@ class ProfilingHTTPFrontend:
 
         app = self._create_app()
         threading._start_new_thread(
-            run_simple, ("0.0.0.0", self.port, app), {"request_handler": _QuietHandler}
+            run_simple,
+            ("0.0.0.0", self.port, app),
+            {"request_handler": _QuietHandler},
         )
 
     def _create_app_impl(self, app):
@@ -80,9 +82,13 @@ class SyncHTTPFrontend(ProfilingHTTPFrontend):
             filename = "/usr/share/python/cloud-core/metadata.txt"
             with open(filename) as f:
                 _, build_id = f.readline().rstrip("\n").split()
-                build_id = build_id[1:-1]  # Remove first and last single quotes.
+                build_id = build_id[
+                    1:-1
+                ]  # Remove first and last single quotes.
                 _, git_commit = f.readline().rstrip("\n").split()
-                return jsonify({"build_id": build_id, "git_commit": git_commit})
+                return jsonify(
+                    {"build_id": build_id, "git_commit": git_commit}
+                )
 
 
 class _QuietHandler(WSGIRequestHandler):

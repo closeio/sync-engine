@@ -29,6 +29,8 @@ def downgrade():
         "account",
         "sync_state",
         type_=sa.Enum("running", "stopped", "killed"),
-        existing_type=sa.Enum("running", "stopped", "killed", "invalid", "connerror"),
+        existing_type=sa.Enum(
+            "running", "stopped", "killed", "invalid", "connerror"
+        ),
         existing_nullable=True,
     )

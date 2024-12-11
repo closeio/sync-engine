@@ -111,18 +111,23 @@ def mock_dns_resolver(monkeypatch):
 def dump_dns_queries(monkeypatch):
     original_query = dns.resolver.Resolver.query
     query_results: Dict[
-        Literal["mx", "ns"], Dict[str, Union[Dict[Literal["error"], str], List[str]]]
+        Literal["mx", "ns"],
+        Dict[str, Union[Dict[Literal["error"], str], List[str]]],
     ] = {"ns": {}, "mx": {}}
 
     def mock_query(self, domain, record_type):
         try:
             result = original_query(self, domain, record_type)
         except Exception as e:
-            query_results[record_type.lower()][domain] = {"error": type(e).__name__}
+            query_results[record_type.lower()][domain] = {
+                "error": type(e).__name__
+            }
             raise
         record_type = record_type.lower()
         if record_type == "mx":
-            query_results["mx"][domain] = [str(r.exchange).lower() for r in result]
+            query_results["mx"][domain] = [
+                str(r.exchange).lower() for r in result
+            ]
         elif record_type == "ns":
             query_results["ns"][domain] = [str(rdata) for rdata in result]
         else:
@@ -182,13 +187,19 @@ class MockIMAPClient:
         if criteria == ["ALL"]:
             return list(uid_dict)
         if criteria == ["X-GM-LABELS", "inbox"]:
-            return [k for k, v in uid_dict.items() if b"\\Inbox," in v[b"X-GM-LABELS"]]
+            return [
+                k
+                for k, v in uid_dict.items()
+                if b"\\Inbox," in v[b"X-GM-LABELS"]
+            ]
         if criteria[0] == "HEADER":
             name, value = criteria[1:]
             headerstring = f"{name}: {value}".lower()
             # Slow implementation, but whatever
             return [
-                u for u, v in uid_dict.items() if headerstring in v[b"BODY[]"].lower()
+                u
+                for u, v in uid_dict.items()
+                if headerstring in v[b"BODY[]"].lower()
             ]
         if criteria[0] in ["X-GM-THRID", "X-GM-MSGID"]:
             criteria[0] = criteria[0].encode()
@@ -217,16 +228,22 @@ class MockIMAPClient:
                 m = re.match("CHANGEDSINCE (?P<modseq>[0-9]+)", modifiers[0])
                 if m:
                     modseq = int(m.group("modseq"))
-                    items = {u for u in items if uid_dict[u][b"MODSEQ"][0] > modseq}
+                    items = {
+                        u for u in items if uid_dict[u][b"MODSEQ"][0] > modseq
+                    }
         data = [d.encode() for d in data]
         for u in items:
             if u in uid_dict:
                 resp[u] = {
-                    k: v for k, v in uid_dict[u].items() if k in data or k == b"MODSEQ"
+                    k: v
+                    for k, v in uid_dict[u].items()
+                    if k in data or k == b"MODSEQ"
                 }
         return resp
 
-    def append(self, folder_name, mimemsg, flags, date, x_gm_msgid=0, x_gm_thrid=0):
+    def append(
+        self, folder_name, mimemsg, flags, date, x_gm_msgid=0, x_gm_thrid=0
+    ):
         uid_dict = self._data[folder_name]
         uidnext = max(uid_dict) if uid_dict else 1
         uid_dict[uidnext] = {
@@ -256,7 +273,9 @@ class MockIMAPClient:
         lastuid = max(folder_data) if folder_data else 0
         resp = {b"UIDNEXT": lastuid + 1, b"UIDVALIDITY": self.uidvalidity}
         if data and "HIGHESTMODSEQ" in data:
-            resp[b"HIGHESTMODSEQ"] = max(v[b"MODSEQ"][0] for v in folder_data.values())
+            resp[b"HIGHESTMODSEQ"] = max(
+                v[b"MODSEQ"][0] for v in folder_data.values()
+            )
         return resp
 
     def delete_messages(self, uids, silent=False):

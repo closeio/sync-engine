@@ -41,11 +41,15 @@ def fallback_to_base64(charset, preferred_encoding, body):
         if mime.message.part.has_long_lines(body):
             # In the original implementation, this was
             # return stronger_encoding(preferred_encoding, 'quoted-printable')
-            return mime.message.part.stronger_encoding(preferred_encoding, "base64")
+            return mime.message.part.stronger_encoding(
+                preferred_encoding, "base64"
+            )
         else:
             return preferred_encoding
     else:
-        return mime.message.part.stronger_encoding(preferred_encoding, "base64")
+        return mime.message.part.stronger_encoding(
+            preferred_encoding, "base64"
+        )
 
 
 mime.message.part.choose_text_encoding = fallback_to_base64
@@ -136,17 +140,20 @@ def create_email(
     # TODO(emfree): should these really be unicode?
     if to_addr:
         full_to_specs = [
-            _get_full_spec_without_validation(name, spec) for name, spec in to_addr
+            _get_full_spec_without_validation(name, spec)
+            for name, spec in to_addr
         ]
         msg.headers["To"] = ", ".join(full_to_specs)
     if cc_addr:
         full_cc_specs = [
-            _get_full_spec_without_validation(name, spec) for name, spec in cc_addr
+            _get_full_spec_without_validation(name, spec)
+            for name, spec in cc_addr
         ]
         msg.headers["Cc"] = ", ".join(full_cc_specs)
     if bcc_addr:
         full_bcc_specs = [
-            _get_full_spec_without_validation(name, spec) for name, spec in bcc_addr
+            _get_full_spec_without_validation(name, spec)
+            for name, spec in bcc_addr
         ]
         msg.headers["Bcc"] = ", ".join(full_bcc_specs)
     if reply_to:
@@ -195,7 +202,9 @@ def _get_full_spec_without_validation(name, email):
     an invalid email address.
     """
     if name:
-        encoded_name = smart_quote(encode_string(name, maxlinelen=MAX_ADDRESS_LENGTH))
+        encoded_name = smart_quote(
+            encode_string(name, maxlinelen=MAX_ADDRESS_LENGTH)
+        )
         return f"{encoded_name} <{email}>"
     return str(email)
 
@@ -246,6 +255,10 @@ def _rfc_transform(msg):
     substring = msgstring[start:end]
 
     separator = "\n\t"
-    rfcmsg = msgstring[:start] + substring.replace("\t", separator) + msgstring[end:]
+    rfcmsg = (
+        msgstring[:start]
+        + substring.replace("\t", separator)
+        + msgstring[end:]
+    )
 
     return rfcmsg

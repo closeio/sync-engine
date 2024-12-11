@@ -13,7 +13,9 @@ log = get_logger("inbox.util.url")
 from inbox.providers import providers
 
 # http://www.regular-expressions.info/email.html
-EMAIL_REGEX = re.compile(r"[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,4}", re.IGNORECASE)
+EMAIL_REGEX = re.compile(
+    r"[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,4}", re.IGNORECASE
+)
 
 # Use Google's Public DNS server (8.8.8.8)
 GOOGLE_DNS_IP = "8.8.8.8"
@@ -212,16 +214,26 @@ def matching_subdomains(new_value, old_value):
     old_parent_domain = parent_domain(old_value)
 
     if old_parent_domain is None:
-        log.error("old_parent_domain is None", old_value=old_value, new_value=new_value)
+        log.error(
+            "old_parent_domain is None",
+            old_value=old_value,
+            new_value=new_value,
+        )
         # Shouldn't actually happen.
         return False
 
     if new_parent_domain is None:
-        log.error("new_parent_domain is None", old_value=old_value, new_value=new_value)
+        log.error(
+            "new_parent_domain is None",
+            old_value=old_value,
+            new_value=new_value,
+        )
         return False
 
     if new_parent_domain != old_parent_domain:
-        log.error("Domains aren't matching", new_value=new_value, old_value=old_value)
+        log.error(
+            "Domains aren't matching", new_value=new_value, old_value=old_value
+        )
         return False
 
     new_ip = resolve_hostname(new_value)
@@ -229,7 +241,9 @@ def matching_subdomains(new_value, old_value):
 
     if new_ip is None or old_ip is None or new_ip != old_ip:
         log.error(
-            "IP addresses aren't matching", new_value=new_value, old_Value=old_value
+            "IP addresses aren't matching",
+            new_value=new_value,
+            old_Value=old_value,
         )
         return False
 

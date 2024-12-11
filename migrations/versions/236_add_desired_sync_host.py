@@ -16,7 +16,9 @@ from sqlalchemy.sql import text
 
 def upgrade():
     conn = op.get_bind()
-    conn.execute(text("ALTER TABLE account ADD COLUMN desired_sync_host varchar(255)"))
+    conn.execute(
+        text("ALTER TABLE account ADD COLUMN desired_sync_host varchar(255)")
+    )
 
 
 def downgrade():

@@ -86,5 +86,8 @@ uid_data = s.builds(
 
 
 uids = s.dictionaries(
-    s.integers(min_value=22, max_value=MAX_INT_VALUE), uid_data, min_size=5, max_size=10
+    s.integers(min_value=22, max_value=MAX_INT_VALUE),
+    uid_data,
+    min_size=5,
+    max_size=10,
 )

@@ -63,7 +63,10 @@ def threads(
     else:
         query = db_session.query(Thread)
 
-    filters = [Thread.namespace_id == namespace_id, Thread.deleted_at.is_(None)]
+    filters = [
+        Thread.namespace_id == namespace_id,
+        Thread.deleted_at.is_(None),
+    ]
     if thread_public_id is not None:
         filters.append(Thread.public_id == thread_public_id)
 
@@ -85,19 +88,27 @@ def threads(
     query = query.filter(*filters)
 
     if from_addr is not None:
-        from_query = contact_subquery(db_session, namespace_id, from_addr, "from_addr")
+        from_query = contact_subquery(
+            db_session, namespace_id, from_addr, "from_addr"
+        )
         query = query.filter(Thread.id.in_(from_query))
 
     if to_addr is not None:
-        to_query = contact_subquery(db_session, namespace_id, to_addr, "to_addr")
+        to_query = contact_subquery(
+            db_session, namespace_id, to_addr, "to_addr"
+        )
         query = query.filter(Thread.id.in_(to_query))
 
     if cc_addr is not None:
-        cc_query = contact_subquery(db_session, namespace_id, cc_addr, "cc_addr")
+        cc_query = contact_subquery(
+            db_session, namespace_id, cc_addr, "cc_addr"
+        )
         query = query.filter(Thread.id.in_(cc_query))
 
     if bcc_addr is not None:
-        bcc_query = contact_subquery(db_session, namespace_id, bcc_addr, "bcc_addr")
+        bcc_query = contact_subquery(
+            db_session, namespace_id, bcc_addr, "bcc_addr"
+        )
         query = query.filter(Thread.id.in_(bcc_query))
 
     if any_email is not None:
@@ -124,7 +135,9 @@ def threads(
             db_session.query(Message.thread_id)
             .join(Part)
             .join(Block)
-            .filter(Block.filename == filename, Block.namespace_id == namespace_id)
+            .filter(
+                Block.filename == filename, Block.namespace_id == namespace_id
+            )
             .subquery()
         )
         query = query.filter(Thread.id.in_(files_query))
@@ -141,7 +154,9 @@ def threads(
             .prefix_with("STRAIGHT_JOIN")
             .join(Message.messagecategories)
             .join(MessageCategory.category)
-            .filter(Category.namespace_id == namespace_id, or_(*category_filters))
+            .filter(
+                Category.namespace_id == namespace_id, or_(*category_filters)
+            )
             .subquery()
         )
         query = query.filter(Thread.id.in_(category_query))
@@ -150,7 +165,9 @@ def threads(
         read = not unread
         unread_query = (
             db_session.query(Message.thread_id)
-            .filter(Message.namespace_id == namespace_id, Message.is_read == read)
+            .filter(
+                Message.namespace_id == namespace_id, Message.is_read == read
+            )
             .subquery()
         )
         query = query.filter(Thread.id.in_(unread_query))
@@ -158,7 +175,10 @@ def threads(
     if starred is not None:
         starred_query = (
             db_session.query(Message.thread_id)
-            .filter(Message.namespace_id == namespace_id, Message.is_starred == starred)
+            .filter(
+                Message.namespace_id == namespace_id,
+                Message.is_starred == starred,
+            )
             .subquery()
         )
         query = query.filter(Thread.id.in_(starred_query))
@@ -326,10 +346,14 @@ def messages_or_drafts(
         )
 
     if received_before is not None:
-        query = query.filter(Message.received_date <= bindparam("received_before"))
+        query = query.filter(
+            Message.received_date <= bindparam("received_before")
+        )
 
     if received_after is not None:
-        query = query.filter(Message.received_date > bindparam("received_after"))
+        query = query.filter(
+            Message.received_date > bindparam("received_after")
+        )
 
     if to_addr is not None:
         to_query = (
@@ -427,7 +451,9 @@ def messages_or_drafts(
             query.prefix_with("STRAIGHT_JOIN")
             .join(Message.messagecategories)
             .join(MessageCategory.category)
-            .filter(Category.namespace_id == namespace_id, or_(*category_filters))
+            .filter(
+                Category.namespace_id == namespace_id, or_(*category_filters)
+            )
         )
 
     if view == "count":
@@ -449,7 +475,9 @@ def messages_or_drafts(
     # thread table. We should eventually try to simplify this.
     query = query.options(
         contains_eager(Message.thread),
-        subqueryload(Message.messagecategories).joinedload("category", "created_at"),
+        subqueryload(Message.messagecategories).joinedload(
+            "category", "created_at"
+        ),
         subqueryload(Message.parts).joinedload(Part.block),
         subqueryload(Message.events),
     )
@@ -480,7 +508,9 @@ def files(
     # limit to actual attachments (no content-disposition == not a real
     # attachment)
     query = query.outerjoin(Part)
-    query = query.filter(or_(Part.id.is_(None), Part.content_disposition.isnot(None)))
+    query = query.filter(
+        or_(Part.id.is_(None), Part.content_disposition.isnot(None))
+    )
 
     if content_type is not None:
         query = query.filter(
@@ -495,7 +525,9 @@ def files(
 
     # Handle the case of fetching attachments on a particular message.
     if message_public_id is not None:
-        query = query.join(Message).filter(Message.public_id == message_public_id)
+        query = query.join(Message).filter(
+            Message.public_id == message_public_id
+        )
 
     if view == "count":
         return {"count": query.one()[0]}
@@ -581,11 +613,17 @@ def recurring_events(
     after_criteria = []
     if starts_after:
         after_criteria.append(
-            or_(RecurringEvent.until > starts_after, RecurringEvent.until.is_(None))
+            or_(
+                RecurringEvent.until > starts_after,
+                RecurringEvent.until.is_(None),
+            )
         )
     if ends_after:
         after_criteria.append(
-            or_(RecurringEvent.until > ends_after, RecurringEvent.until.is_(None))
+            or_(
+                RecurringEvent.until > ends_after,
+                RecurringEvent.until.is_(None),
+            )
         )
 
     recur_query = recur_query.filter(and_(*after_criteria))
@@ -735,7 +773,8 @@ def events(
             db_session.query(EventContactAssociation.event_id)
             .join(Contact, EventContactAssociation.contact_id == Contact.id)
             .filter(
-                Contact.email_address == any_email, Contact.namespace_id == namespace_id
+                Contact.email_address == any_email,
+                Contact.namespace_id == namespace_id,
             )
             .subquery()
         )
@@ -756,7 +795,9 @@ def events(
         )
 
         # Combine non-recurring events with expanded recurring ones
-        all_events = query.filter(Event.discriminator == "event").all() + expanded
+        all_events = (
+            query.filter(Event.discriminator == "event").all() + expanded
+        )
 
         if view == "count":
             return {"count": len(all_events)}

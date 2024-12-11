@@ -27,7 +27,9 @@ class IMAPSearchClient:
     def _open_crispin_connection(self, db_session):
         account = db_session.query(Account).get(self.account_id)
         try:
-            conn = account.auth_handler.get_authenticated_imap_connection(account)
+            conn = account.auth_handler.get_authenticated_imap_connection(
+                account
+            )
         except (IMAPClient.Error, OSError, IMAP4.error):
             raise SearchBackendException(
                 (
@@ -76,7 +78,8 @@ class IMAPSearchClient:
             db_session.query(Message)
             .join(ImapUid)
             .filter(
-                ImapUid.account_id == self.account_id, ImapUid.msg_uid.in_(imap_uids)
+                ImapUid.account_id == self.account_id,
+                ImapUid.msg_uid.in_(imap_uids),
             )
             .order_by(desc(Message.received_date))
         )
@@ -179,7 +182,8 @@ class IMAPSearchClient:
             special_folder = (
                 db_session.query(Folder)
                 .filter(
-                    Folder.account_id == self.account_id, Folder.canonical_name == cname
+                    Folder.account_id == self.account_id,
+                    Folder.canonical_name == cname,
                 )
                 .one_or_none()
             )
@@ -188,7 +192,9 @@ class IMAPSearchClient:
                 folders.append(special_folder)
 
                 # Don't search the folder twice.
-                account_folders = account_folders.filter(Folder.id != special_folder.id)
+                account_folders = account_folders.filter(
+                    Folder.id != special_folder.id
+                )
 
         folders = folders + account_folders.all()
 
@@ -205,7 +211,8 @@ class IMAPSearchClient:
             return []
         except UidInvalid:
             self.log.error(
-                ("Got Uidvalidity error when searching. Skipping."), exc_info=True
+                ("Got Uidvalidity error when searching. Skipping."),
+                exc_info=True,
             )
             return []
 
@@ -218,6 +225,8 @@ class IMAPSearchClient:
             )
 
         self.log.debug(
-            "Search found messages for folder", folder_name=folder.id, uids=len(uids)
+            "Search found messages for folder",
+            folder_name=folder.id,
+            uids=len(uids),
         )
         return uids

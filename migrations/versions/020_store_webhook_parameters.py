@@ -36,16 +36,27 @@ def upgrade():
         sa.Column("last_message_before", sa.DateTime(), nullable=True),
         sa.Column("last_message_after", sa.DateTime(), nullable=True),
         sa.Column("include_body", sa.Boolean(), nullable=False),
-        sa.Column("max_retries", sa.Integer(), server_default="3", nullable=False),
-        sa.Column("retry_interval", sa.Integer(), server_default="60", nullable=False),
+        sa.Column(
+            "max_retries", sa.Integer(), server_default="3", nullable=False
+        ),
+        sa.Column(
+            "retry_interval", sa.Integer(), server_default="60", nullable=False
+        ),
         sa.Column(
             "active",
             sa.Boolean(),
             server_default=sa.sql.expression.true(),
             nullable=False,
         ),
-        sa.Column("min_processed_id", sa.Integer(), server_default="0", nullable=False),
-        sa.ForeignKeyConstraint(["namespace_id"], ["namespace.id"], ondelete="CASCADE"),
+        sa.Column(
+            "min_processed_id",
+            sa.Integer(),
+            server_default="0",
+            nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ["namespace_id"], ["namespace.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -57,5 +68,7 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_index("ix_webhookparameters_public_id", table_name="webhookparameters")
+    op.drop_index(
+        "ix_webhookparameters_public_id", table_name="webhookparameters"
+    )
     op.drop_table("webhookparameters")

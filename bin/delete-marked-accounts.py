@@ -34,7 +34,9 @@ def run(throttle, dry_run):
 
     print("Python", sys.version, file=sys.stderr)
 
-    with ThreadPoolExecutor(max_workers=len(config["DATABASE_HOSTS"])) as executor:
+    with ThreadPoolExecutor(
+        max_workers=len(config["DATABASE_HOSTS"])
+    ) as executor:
         for host in config["DATABASE_HOSTS"]:
             log.info("Spawning delete process for host", host=host["HOSTNAME"])
             executor.submit(delete_account_data, host, throttle, dry_run)

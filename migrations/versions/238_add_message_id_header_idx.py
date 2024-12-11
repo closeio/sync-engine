@@ -26,4 +26,6 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_index("ix_message_message_id_header_namespace_id", table_name="message")
+    op.drop_index(
+        "ix_message_message_id_header_namespace_id", table_name="message"
+    )

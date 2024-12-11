@@ -21,7 +21,11 @@ from inbox.models import (
     When,
 )
 from inbox.models.calendar import is_default_calendar
-from inbox.models.event import InflatedEvent, RecurringEvent, RecurringEventOverride
+from inbox.models.event import (
+    InflatedEvent,
+    RecurringEvent,
+    RecurringEventOverride,
+)
 
 log = get_logger()
 
@@ -64,7 +68,9 @@ def format_messagecategories(messagecategories):
 def format_phone_numbers(phone_numbers):
     formatted_phone_numbers = []
     for number in phone_numbers:
-        formatted_phone_numbers.append({"type": number.type, "number": number.number})
+        formatted_phone_numbers.append(
+            {"type": number.type, "number": number.number}
+        )
     return formatted_phone_numbers
 
 
@@ -243,7 +249,9 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
             base["labels"] = categories
 
         if not expand:
-            base["message_ids"] = [m.public_id for m in obj.messages if not m.is_draft]
+            base["message_ids"] = [
+                m.public_id for m in obj.messages if not m.is_draft
+            ]
             base["draft_ids"] = [m.public_id for m in obj.drafts]
             return base
 
@@ -283,7 +291,9 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
                 resp["object"] = "draft"
                 resp["version"] = msg.version
                 if msg.reply_to_message is not None:
-                    resp["reply_to_message_id"] = msg.reply_to_message.public_id
+                    resp["reply_to_message_id"] = (
+                        msg.reply_to_message.public_id
+                    )
                 else:
                     resp["reply_to_message_id"] = None
                 all_expanded_drafts.append(resp)
@@ -381,7 +391,9 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
         if len(obj.parts):
             # if obj is actually a message attachment (and not merely an
             # uploaded file), set additional properties
-            resp.update({"message_ids": [p.message.public_id for p in obj.parts]})
+            resp.update(
+                {"message_ids": [p.message.public_id for p in obj.parts]}
+            )
 
             content_ids = list(
                 {p.content_id for p in obj.parts if p.content_id is not None}
@@ -493,4 +505,6 @@ class APIEncoder:
             If obj is not serializable.
 
         """
-        return Response(self.cereal(obj, pretty=True), mimetype="application/json")
+        return Response(
+            self.cereal(obj, pretty=True), mimetype="application/json"
+        )

@@ -22,7 +22,10 @@ def upgrade():
     op.add_column(
         "imapaccount",
         sa.Column(
-            "_imap_server_port", sa.Integer(), server_default="993", nullable=False
+            "_imap_server_port",
+            sa.Integer(),
+            server_default="993",
+            nullable=False,
         ),
     )
     op.add_column(
@@ -32,7 +35,10 @@ def upgrade():
     op.add_column(
         "imapaccount",
         sa.Column(
-            "_smtp_server_port", sa.Integer(), server_default="587", nullable=False
+            "_smtp_server_port",
+            sa.Integer(),
+            server_default="587",
+            nullable=False,
         ),
     )
 

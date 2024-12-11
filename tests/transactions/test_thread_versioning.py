@@ -37,11 +37,15 @@ def test_updating_message_read_starred_increments_version(
     assert thread.version == 3
 
 
-def test_updating_message_categories_increments_version(db, thread, default_namespace):
+def test_updating_message_categories_increments_version(
+    db, thread, default_namespace
+):
     assert thread.version == 0
 
     message = add_fake_message(db.session, default_namespace.id, thread)
-    category = add_fake_category(db.session, default_namespace.id, "mia kategorio")
+    category = add_fake_category(
+        db.session, default_namespace.id, "mia kategorio"
+    )
 
     # Modifying message's categories increments the thread.version
     message.categories = [category]

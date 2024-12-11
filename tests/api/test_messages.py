@@ -104,7 +104,9 @@ def test_rfc822_format(stub_message_from_raw, api_client, mime_message):
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_direct_fetching(stub_message_from_raw, api_client, mime_message, monkeypatch):
+def test_direct_fetching(
+    stub_message_from_raw, api_client, mime_message, monkeypatch
+):
     # Mark a message as missing and check that we try to
     # fetch it from the remote provider.
     get_mock = mock.Mock(return_value=None)
@@ -114,7 +116,9 @@ def test_direct_fetching(stub_message_from_raw, api_client, mime_message, monkey
     monkeypatch.setattr("inbox.util.blockstore.save_to_blockstore", save_mock)
 
     raw_mock = mock.Mock(return_value=b"Return contents")
-    monkeypatch.setattr("inbox.s3.backends.gmail.get_gmail_raw_contents", raw_mock)
+    monkeypatch.setattr(
+        "inbox.s3.backends.gmail.get_gmail_raw_contents", raw_mock
+    )
 
     full_path = f"/messages/{stub_message_from_raw.public_id}"
 
@@ -196,7 +200,8 @@ def test_expanded_threads(stub_message, api_client, api_version):
 
     # /threads/<thread_id>
     resp = api_client.get_raw(
-        f"/threads/{stub_message.thread.public_id}?view=expanded", headers=headers
+        f"/threads/{stub_message.thread.public_id}?view=expanded",
+        headers=headers,
     )
     assert resp.status_code == 200
     resp_dict = json.loads(resp.data)
@@ -236,7 +241,9 @@ def test_expanded_message(stub_message, api_client):
         assert all(x in msg_dict for x in valid_keys)
 
     # /message/<message_id>
-    resp = api_client.get_raw(f"/messages/{stub_message.public_id}?view=expanded")
+    resp = api_client.get_raw(
+        f"/messages/{stub_message.public_id}?view=expanded"
+    )
     assert resp.status_code == 200
     resp_dict = json.loads(resp.data)
     _check_json_message(resp_dict)

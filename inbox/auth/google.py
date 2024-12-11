@@ -61,7 +61,9 @@ class GoogleAuthHandler(OAuthAuthHandler):
         account.email_address = account_data.email
 
         if account_data.secret_type:
-            account.set_secret(account_data.secret_type, account_data.secret_value)
+            account.set_secret(
+                account_data.secret_type, account_data.secret_value
+            )
 
         if not account.secret:
             raise OAuthError("No valid auth info.")
@@ -141,5 +143,7 @@ class GoogleAuthHandler(OAuthAuthHandler):
         # be returned to delta/ streaming clients.
         # NOTE: Setting this does not restart the sync. Sync scheduling occurs
         # via the sync_should_run bit (set to True in update_account() above).
-        account.sync_state = "running" if account.sync_state else account.sync_state
+        account.sync_state = (
+            "running" if account.sync_state else account.sync_state
+        )
         return True

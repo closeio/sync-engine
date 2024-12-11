@@ -37,22 +37,37 @@ def upgrade():
         sa.ForeignKeyConstraint(
             ["easaccount_id"], ["easaccount.id"], ondelete="CASCADE"
         ),
-        sa.ForeignKeyConstraint(["event_id"], ["event.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["folder_id"], ["folder.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["event_id"], ["event.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["folder_id"], ["folder.id"], ondelete="CASCADE"
+        ),
     )
 
     op.create_index(
-        "ix_easeventuid_created_at", "easeventuid", ["created_at"], unique=False
+        "ix_easeventuid_created_at",
+        "easeventuid",
+        ["created_at"],
+        unique=False,
     )
     op.create_index(
-        "ix_easeventuid_updated_at", "easeventuid", ["updated_at"], unique=False
+        "ix_easeventuid_updated_at",
+        "easeventuid",
+        ["updated_at"],
+        unique=False,
     )
     op.create_index(
-        "ix_easeventuid_deleted_at", "easeventuid", ["deleted_at"], unique=False
+        "ix_easeventuid_deleted_at",
+        "easeventuid",
+        ["deleted_at"],
+        unique=False,
     )
 
     op.create_unique_constraint(
-        "uq_folder_id", "easeventuid", ["folder_id", "msg_uid", "easaccount_id"]
+        "uq_folder_id",
+        "easeventuid",
+        ["folder_id", "msg_uid", "easaccount_id"],
     )
 
 

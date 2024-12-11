@@ -71,12 +71,16 @@ def main(target_hostname, host_ip):
                 assert (
                     current_revision
                 ), "Need current revision in alembic_version table."
-                print(f"Already revisioned by alembic version: {current_revision}")
+                print(
+                    f"Already revisioned by alembic version: {current_revision}"
+                )
             else:
                 # Initialize shards, stamp alembic revision
                 print("Initializing database.")
                 init_db(engine, int(key))
-                alembic_ini_filename = os.environ.get("ALEMBIC_INI_PATH", "alembic.ini")
+                alembic_ini_filename = os.environ.get(
+                    "ALEMBIC_INI_PATH", "alembic.ini"
+                )
                 assert os.path.isfile(
                     alembic_ini_filename
                 ), f"Must have alembic.ini file at {alembic_ini_filename}"

@@ -46,7 +46,8 @@ def patched_task(monkeypatch):
         uses_crispin_client,
     )
     monkeypatch.setattr(
-        "inbox.transactions.actions.SyncbackTask.execute_with_lock", execute_with_lock
+        "inbox.transactions.actions.SyncbackTask.execute_with_lock",
+        execute_with_lock,
     )
     yield
     monkeypatch.undo()
@@ -66,9 +67,13 @@ def schedule_test_action(db_session, account):
     db_session.flush()
 
     if category_type == "folder":
-        schedule_action("create_folder", category, account.namespace.id, db_session)
+        schedule_action(
+            "create_folder", category, account.namespace.id, db_session
+        )
     else:
-        schedule_action("create_label", category, account.namespace.id, db_session)
+        schedule_action(
+            "create_label", category, account.namespace.id, db_session
+        )
     db_session.commit()
 
 
@@ -96,11 +101,15 @@ def test_all_keys_are_assigned_exactly_once(patched_enginemanager):
 @pytest.mark.skipif(True, reason="Need to investigate")
 def test_actions_are_claimed(purge_accounts_and_actions, patched_task):
     with session_scope_by_shard_id(0) as db_session:
-        account = add_generic_imap_account(db_session, email_address="0@test.com")
+        account = add_generic_imap_account(
+            db_session, email_address="0@test.com"
+        )
         schedule_test_action(db_session, account)
 
     with session_scope_by_shard_id(1) as db_session:
-        account = add_generic_imap_account(db_session, email_address="1@test.com")
+        account = add_generic_imap_account(
+            db_session, email_address="1@test.com"
+        )
         schedule_test_action(db_session, account)
 
     service = SyncbackService(
@@ -126,7 +135,9 @@ def test_actions_are_claimed(purge_accounts_and_actions, patched_task):
 
 
 @pytest.mark.skipif(True, reason="Need to investigate")
-def test_actions_claimed_by_a_single_service(purge_accounts_and_actions, patched_task):
+def test_actions_claimed_by_a_single_service(
+    purge_accounts_and_actions, patched_task
+):
     actionlogs = []
     for key in (0, 1):
         with session_scope_by_shard_id(key) as db_session:
@@ -157,7 +168,9 @@ def test_actions_for_invalid_accounts_are_skipped(
     purge_accounts_and_actions, patched_task
 ):
     with session_scope_by_shard_id(0) as db_session:
-        account = add_generic_imap_account(db_session, email_address="person@test.com")
+        account = add_generic_imap_account(
+            db_session, email_address="person@test.com"
+        )
         schedule_test_action(db_session, account)
         namespace_id = account.namespace.id
         count = (
@@ -192,7 +205,8 @@ def test_actions_for_invalid_accounts_are_skipped(
 
     with session_scope_by_shard_id(0) as db_session:
         q = db_session.query(ActionLog).filter(
-            ActionLog.namespace_id == namespace_id, ActionLog.status == "pending"
+            ActionLog.namespace_id == namespace_id,
+            ActionLog.status == "pending",
         )
         assert q.count() == count
 
@@ -200,4 +214,6 @@ def test_actions_for_invalid_accounts_are_skipped(
             ActionLog.namespace_id == another_namespace_id
         )
         assert q.filter(ActionLog.status == "pending").count() == 0
-        assert q.filter(ActionLog.status == "successful").count() == another_count
+        assert (
+            q.filter(ActionLog.status == "successful").count() == another_count
+        )

@@ -23,7 +23,9 @@ def test_category_delete(db, gmail_account):
     category_id = category.id
 
     for _ in range(10):
-        generic_thread = add_fake_thread(db.session, gmail_account.namespace.id)
+        generic_thread = add_fake_thread(
+            db.session, gmail_account.namespace.id
+        )
         gen_message = add_fake_message(
             db.session, gmail_account.namespace.id, generic_thread
         )
@@ -97,17 +99,23 @@ def test_thread_delete(db, gmail_account):
     generic_message = add_fake_message(
         db.session, gmail_account.namespace.id, generic_thread
     )
-    assert db.session.query(Thread).filter(Thread.id == generic_thread.id).all() == [
-        generic_thread
-    ]
-    assert db.session.query(Message).filter(Message.id == generic_message.id).all() == [
-        generic_message
-    ]
+    assert db.session.query(Thread).filter(
+        Thread.id == generic_thread.id
+    ).all() == [generic_thread]
+    assert db.session.query(Message).filter(
+        Message.id == generic_message.id
+    ).all() == [generic_message]
 
     db.session.delete(generic_thread)
     db.session.commit()
 
-    assert db.session.query(Thread).filter(Thread.id == generic_thread.id).all() == []
     assert (
-        db.session.query(Message).filter(Message.id == generic_message.id).all() == []
+        db.session.query(Thread).filter(Thread.id == generic_thread.id).all()
+        == []
+    )
+    assert (
+        db.session.query(Message)
+        .filter(Message.id == generic_message.id)
+        .all()
+        == []
     )

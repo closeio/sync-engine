@@ -115,7 +115,9 @@ class HasEmailAddress:
 
     """
 
-    _raw_address = Column(String(MAX_INDEXABLE_LENGTH), nullable=True, index=True)
+    _raw_address = Column(
+        String(MAX_INDEXABLE_LENGTH), nullable=True, index=True
+    )
     _canonicalized_address = Column(
         String(MAX_INDEXABLE_LENGTH), nullable=True, index=True
     )
@@ -140,7 +142,9 @@ class HasEmailAddress:
 
 
 class CreatedAtMixin:
-    created_at = Column(DateTime, server_default=func.now(), nullable=False, index=True)
+    created_at = Column(
+        DateTime, server_default=func.now(), nullable=False, index=True
+    )
 
 
 class UpdatedAtMixin:
@@ -171,5 +175,8 @@ class HasRunState(ABCMixin):
 
     # Database-level tracking of whether the sync should be running.
     sync_should_run = Column(
-        Boolean, default=True, nullable=False, server_default=sql.expression.true()
+        Boolean,
+        default=True,
+        nullable=False,
+        server_default=sql.expression.true(),
     )

@@ -27,7 +27,9 @@ def upgrade():
     ).fetchone()
 
     if fk_delete == "CASCADE":
-        print(f"Checked fk: {fk_name}. This migration is not needed, skipping.")
+        print(
+            f"Checked fk: {fk_name}. This migration is not needed, skipping."
+        )
         return
 
     conn.execute(text("set @@lock_wait_timeout = 20;"))

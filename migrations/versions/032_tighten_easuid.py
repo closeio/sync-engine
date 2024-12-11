@@ -27,7 +27,11 @@ def upgrade():
             "easfoldersync",
             "state",
             type_=sa.Enum(
-                "initial", "initial keyinvalid", "poll", "poll keyinvalid", "finish"
+                "initial",
+                "initial keyinvalid",
+                "poll",
+                "poll keyinvalid",
+                "finish",
             ),
             existing_nullable=False,
             server_default="initial",
@@ -37,8 +41,12 @@ def upgrade():
         op.alter_column(
             "easuid", "message_id", existing_type=sa.Integer(), nullable=False
         )
-        op.alter_column("easuid", "fld_uid", existing_type=sa.Integer(), nullable=False)
-        op.alter_column("easuid", "msg_uid", existing_type=sa.Integer(), nullable=False)
+        op.alter_column(
+            "easuid", "fld_uid", existing_type=sa.Integer(), nullable=False
+        )
+        op.alter_column(
+            "easuid", "msg_uid", existing_type=sa.Integer(), nullable=False
+        )
 
 
 def downgrade():
@@ -53,7 +61,11 @@ def downgrade():
             "easfoldersync",
             "state",
             type_=sa.Enum(
-                "initial", "initial uidinvalid", "poll", "poll uidinvalid", "finish"
+                "initial",
+                "initial uidinvalid",
+                "poll",
+                "poll uidinvalid",
+                "finish",
             ),
             existing_nullable=False,
         )
@@ -62,5 +74,9 @@ def downgrade():
         op.alter_column(
             "easuid", "message_id", existing_type=sa.Integer(), nullable=True
         )
-        op.alter_column("easuid", "fld_uid", existing_type=sa.Integer(), nullable=True)
-        op.alter_column("easuid", "msg_uid", existing_type=sa.Integer(), nullable=True)
+        op.alter_column(
+            "easuid", "fld_uid", existing_type=sa.Integer(), nullable=True
+        )
+        op.alter_column(
+            "easuid", "msg_uid", existing_type=sa.Integer(), nullable=True
+        )

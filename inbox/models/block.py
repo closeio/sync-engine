@@ -2,7 +2,15 @@ from hashlib import sha256
 from typing import Optional
 
 from flanker import mime
-from sqlalchemy import Boolean, Column, Enum, ForeignKey, Integer, String, event
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+    event,
+)
 from sqlalchemy.orm import backref, reconstructor, relationship
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.sql.expression import false
@@ -48,7 +56,9 @@ COMMON_CONTENT_TYPES = [
 ]
 
 
-class Block(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin):
+class Block(
+    MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin
+):
     """Metadata for any file that we store"""
 
     API_OBJECT_NAME = "file"
@@ -74,10 +84,14 @@ class Block(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
         self.size = 0
         MailSyncBase.__init__(self, *args, **kwargs)
 
-    namespace_id = Column(ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False)
+    namespace_id = Column(
+        ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False
+    )
     namespace = relationship(
         "Namespace",
-        backref=backref("blocks", passive_deletes=True, cascade="all,delete-orphan"),
+        backref=backref(
+            "blocks", passive_deletes=True, cascade="all,delete-orphan"
+        ),
         load_on_pending=True,
     )
 
@@ -101,7 +115,9 @@ class Block(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
             value = blockstore.get_from_blockstore(self.data_sha256)
 
         if value is None:
-            log.warning("Couldn't find data on S3 for block", sha_hash=self.data_sha256)
+            log.warning(
+                "Couldn't find data on S3 for block", sha_hash=self.data_sha256
+            )
 
             from inbox.models.block import Block
 
@@ -113,17 +129,23 @@ class Block(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
                 message = self.parts[0].message  # only grab one
                 account = message.namespace.account
 
-                statsd_string = f"api.direct_fetching.{account.provider}.{account.id}"
+                statsd_string = (
+                    f"api.direct_fetching.{account.provider}.{account.id}"
+                )
 
                 # Try to fetch the message from S3 first.
-                with statsd_client.timer(f"{statsd_string}.blockstore_latency"):
+                with statsd_client.timer(
+                    f"{statsd_string}.blockstore_latency"
+                ):
                     raw_mime = blockstore.get_raw_mime(message.data_sha256)
 
                 # If it's not there, get it from the provider.
                 if raw_mime is None:
                     statsd_client.incr(f"{statsd_string}.cache_misses")
 
-                    with statsd_client.timer(f"{statsd_string}.provider_latency"):
+                    with statsd_client.timer(
+                        f"{statsd_string}.provider_latency"
+                    ):
                         raw_mime = get_raw_from_provider(message)
 
                     msg_sha256 = sha256(raw_mime).hexdigest()
@@ -141,7 +163,9 @@ class Block(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
 
                 # If we couldn't find it there, give up.
                 if raw_mime is None:
-                    log.error(f"Don't have raw message for hash {message.data_sha256}")
+                    log.error(
+                        f"Don't have raw message for hash {message.data_sha256}"
+                    )
                     return None
 
                 parsed = mime.from_string(raw_mime)
@@ -162,12 +186,16 @@ class Block(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
 
                         # Found it!
                         if sha256(data).hexdigest() == self.data_sha256:
-                            log.info(f"Found subpart with hash {self.data_sha256}")
+                            log.info(
+                                f"Found subpart with hash {self.data_sha256}"
+                            )
 
                             with statsd_client.timer(
                                 f"{statsd_string}.blockstore_save_latency"
                             ):
-                                blockstore.save_to_blockstore(self.data_sha256, data)
+                                blockstore.save_to_blockstore(
+                                    self.data_sha256, data
+                                )
                                 return data
                 log.error(
                     "Couldn't find the attachment in the raw message",

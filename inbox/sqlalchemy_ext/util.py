@@ -44,7 +44,9 @@ def disabled_dubiously_many_queries_warning():
 
 
 @event.listens_for(Engine, "before_cursor_execute")
-def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+def before_cursor_execute(
+    conn, cursor, statement, parameters, context, executemany
+):
     if conn not in query_counts:
         query_counts[conn] = 1
     else:
@@ -57,7 +59,8 @@ def before_commit(conn):
         return
     if query_counts.get(conn, 0) > MAX_SANE_QUERIES_PER_SESSION:
         log.warning(
-            "Dubiously many queries per session!", query_count=query_counts.get(conn)
+            "Dubiously many queries per session!",
+            query_count=query_counts.get(conn),
         )
 
 
@@ -152,7 +155,9 @@ class Base36UID(TypeDecorator):
 
     impl = BINARY(16)  # 128 bit unsigned integer
 
-    def process_bind_param(self, value: Optional[str], dialect: Any) -> Optional[bytes]:
+    def process_bind_param(
+        self, value: Optional[str], dialect: Any
+    ) -> Optional[bytes]:
         if not value:
             return None
         return b36_to_bin(value)
@@ -358,7 +363,12 @@ def safer_yield_per(query, id_field, start_id, count):
     """
     cur_id = start_id
     while True:
-        results = query.filter(id_field >= cur_id).order_by(id_field).limit(count).all()
+        results = (
+            query.filter(id_field >= cur_id)
+            .order_by(id_field)
+            .limit(count)
+            .all()
+        )
         yield from results
         cur_id = results[-1].id + 1
 
@@ -377,6 +387,8 @@ def get_db_api_cursor_with_query(session, query):
     compiled_query = query.statement.compile(dialect=dialect)
 
     db_api_cursor = session.connection().connection.cursor()
-    db_api_cursor.execute(compiled_query.string, compiled_query.params.values())
+    db_api_cursor.execute(
+        compiled_query.string, compiled_query.params.values()
+    )
 
     return db_api_cursor

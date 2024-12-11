@@ -22,11 +22,16 @@ def upgrade():
     Base.metadata.reflect(engine)
 
     if "easuid" in Base.metadata.tables:
-        op.create_index("ix_easuid_msg_uid", "easuid", ["msg_uid"], unique=False)
+        op.create_index(
+            "ix_easuid_msg_uid", "easuid", ["msg_uid"], unique=False
+        )
 
     op.create_index("ix_imapuid_msg_uid", "imapuid", ["msg_uid"], unique=False)
     op.create_index(
-        "ix_transaction_table_name", "transaction", ["table_name"], unique=False
+        "ix_transaction_table_name",
+        "transaction",
+        ["table_name"],
+        unique=False,
     )
 
 

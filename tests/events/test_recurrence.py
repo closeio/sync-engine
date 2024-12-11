@@ -27,7 +27,14 @@ TEST_EXDATE_RULE.extend(TEST_EXDATE)
 
 
 def recurring_event(
-    db, account, calendar, rrule, start=None, end=None, all_day=False, commit=True
+    db,
+    account,
+    calendar,
+    rrule,
+    start=None,
+    end=None,
+    all_day=False,
+    commit=True,
 ):
     start = start or arrow.get(2014, 8, 7, 20, 30, 0)
     end = end or arrow.get(2014, 8, 7, 21, 30, 0)
@@ -78,7 +85,9 @@ def recurring_override(db, master, original_start, start, end):
 
 def recurring_override_instance(db, master, original_start, start, end):
     # Returns an Override that has the master's UID, but is not linked yet
-    override_uid = "{}_{}".format(master.uid, original_start.strftime("%Y%m%dT%H%M%SZ"))
+    override_uid = "{}_{}".format(
+        master.uid, original_start.strftime("%Y%m%dT%H%M%SZ")
+    )
     ev = db.session.query(Event).filter_by(uid=override_uid).first()
     if ev:
         db.session.delete(ev)
@@ -106,7 +115,9 @@ def test_create_recurrence(db, default_account, calendar):
     assert event.until is not None
 
 
-def test_link_events_from_override(db, default_account, calendar, other_calendar):
+def test_link_events_from_override(
+    db, default_account, calendar, other_calendar
+):
     # Test that by creating a recurring event and override separately, we
     # can link them together based on UID and namespace_id when starting
     # from the override.
@@ -354,7 +365,10 @@ def test_invalid_rrule_entry(db, default_account, calendar):
 
 def test_invalid_parseable_rrule_entry(db, default_account, calendar):
     event = recurring_event(
-        db, default_account, calendar, ["RRULE:FREQ=CHRISTMAS;UNTIL=1984;BYDAY=QQ"]
+        db,
+        default_account,
+        calendar,
+        ["RRULE:FREQ=CHRISTMAS;UNTIL=1984;BYDAY=QQ"],
     )
     infl = event.inflate()
     assert len(infl) == 1
@@ -524,7 +538,9 @@ def test_override_cancelled(db, default_account, calendar):
     all_events = event.all_events()
     assert len(all_events) == 6
     assert override not in all_events
-    assert not any([e.start == arrow.get(2014, 9, 4, 20, 30, 0) for e in all_events])
+    assert not any(
+        [e.start == arrow.get(2014, 9, 4, 20, 30, 0) for e in all_events]
+    )
 
 
 def test_new_instance_cancelled(db, default_account, calendar):

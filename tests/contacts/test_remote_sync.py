@@ -4,7 +4,11 @@ import pytest
 
 from inbox.models import Contact
 
-from tests.util.base import ContactsProviderStub, contact_sync, contacts_provider
+from tests.util.base import (
+    ContactsProviderStub,
+    contact_sync,
+    contacts_provider,
+)
 
 __all__ = ["contact_sync", "contacts_provider"]
 
@@ -19,16 +23,24 @@ def test_add_contacts_case_insensitive(
 ):
     """Tests that syncing two contacts with uids that differ only in case sensitivity doesn't cause an error."""
     num_original_contacts = (
-        db.session.query(Contact).filter_by(namespace_id=default_namespace.id).count()
+        db.session.query(Contact)
+        .filter_by(namespace_id=default_namespace.id)
+        .count()
     )
     contacts_provider._next_uid = "foo"
     contacts_provider._get_next_uid = lambda current: "FOO"
-    contacts_provider.supply_contact("Contact One", "contact.one@email.address")
-    contacts_provider.supply_contact("Contact Two", "contact.two@email.address")
+    contacts_provider.supply_contact(
+        "Contact One", "contact.one@email.address"
+    )
+    contacts_provider.supply_contact(
+        "Contact Two", "contact.two@email.address"
+    )
     contact_sync.provider = contacts_provider
     contact_sync.sync()
     num_current_contacts = (
-        db.session.query(Contact).filter_by(namespace_id=default_namespace.id).count()
+        db.session.query(Contact)
+        .filter_by(namespace_id=default_namespace.id)
+        .count()
     )
     assert num_current_contacts - num_original_contacts == 2
 
@@ -36,15 +48,23 @@ def test_add_contacts_case_insensitive(
 def test_add_contacts(contacts_provider, contact_sync, db, default_namespace):
     """Test that added contacts get stored."""
     num_original_contacts = (
-        db.session.query(Contact).filter_by(namespace_id=default_namespace.id).count()
+        db.session.query(Contact)
+        .filter_by(namespace_id=default_namespace.id)
+        .count()
     )
-    contacts_provider.supply_contact("Contact One", "contact.one@email.address")
-    contacts_provider.supply_contact("Contact Two", "contact.two@email.address")
+    contacts_provider.supply_contact(
+        "Contact One", "contact.one@email.address"
+    )
+    contacts_provider.supply_contact(
+        "Contact Two", "contact.two@email.address"
+    )
 
     contact_sync.provider = contacts_provider
     contact_sync.sync()
     num_current_contacts = (
-        db.session.query(Contact).filter_by(namespace_id=default_namespace.id).count()
+        db.session.query(Contact)
+        .filter_by(namespace_id=default_namespace.id)
+        .count()
     )
     assert num_current_contacts - num_original_contacts == 2
 

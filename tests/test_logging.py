@@ -9,13 +9,18 @@ from inbox.logging import MAX_ERROR_MESSAGE_LENGTH, create_error_log_context
 @pytest.mark.parametrize(
     ("error_class", "error_message", "expected_error_log_context"),
     [
-        (Exception, "test", {"error_name": "Exception", "error_message": "test"}),
+        (
+            Exception,
+            "test",
+            {"error_name": "Exception", "error_message": "test"},
+        ),
         (
             ValueError,
             "test2" * 4096,
             {
                 "error_name": "ValueError",
-                "error_message": ("test2" * 4096)[:MAX_ERROR_MESSAGE_LENGTH] + "...",
+                "error_message": ("test2" * 4096)[:MAX_ERROR_MESSAGE_LENGTH]
+                + "...",
             },
         ),
     ],
@@ -30,6 +35,11 @@ def test_create_error_log_context(
 
     error_log_context = create_error_log_context(exc_info)
 
-    assert error_log_context == {**expected_error_log_context, "error_traceback": ANY}
+    assert error_log_context == {
+        **expected_error_log_context,
+        "error_traceback": ANY,
+    }
     assert error_log_context["error_traceback"].startswith("Traceback")
-    assert "test_create_error_log_context" in error_log_context["error_traceback"]
+    assert (
+        "test_create_error_log_context" in error_log_context["error_traceback"]
+    )

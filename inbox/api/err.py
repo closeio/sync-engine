@@ -39,7 +39,7 @@ def log_exception(exc_info, **kwargs):
         log.warning(
             "attempt to log more than one error to HTTP request",
             request_uid=get_request_uid(request.headers),
-            **new_log_context
+            **new_log_context,
         )
     else:
         request.environ.setdefault("log_context", {}).update(new_log_context)

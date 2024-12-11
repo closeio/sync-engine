@@ -37,10 +37,14 @@ def main(min_id, max_id, shard_id):
             )
 
             if min_id is not None:
-                generic_accounts = generic_accounts.filter(GenericAccount.id > min_id)
+                generic_accounts = generic_accounts.filter(
+                    GenericAccount.id > min_id
+                )
 
             if max_id is not None:
-                generic_accounts = generic_accounts.filter(GenericAccount.id <= max_id)
+                generic_accounts = generic_accounts.filter(
+                    GenericAccount.id <= max_id
+                )
 
             generic_accounts = [acc.id for acc in generic_accounts]
 

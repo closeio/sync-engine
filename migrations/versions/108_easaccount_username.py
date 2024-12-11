@@ -26,7 +26,9 @@ def upgrade():
     # Furthermore, we won't always get a username.
     from inbox.models.constants import MAX_INDEXABLE_LENGTH
 
-    op.add_column("easaccount", sa.Column("username", sa.String(255), nullable=True))
+    op.add_column(
+        "easaccount", sa.Column("username", sa.String(255), nullable=True)
+    )
 
     op.add_column(
         "easaccount",

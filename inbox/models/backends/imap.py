@@ -93,17 +93,27 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
     """
 
-    account_id = Column(ForeignKey(ImapAccount.id, ondelete="CASCADE"), nullable=False)
+    account_id = Column(
+        ForeignKey(ImapAccount.id, ondelete="CASCADE"), nullable=False
+    )
     account = relationship(ImapAccount)
 
-    message_id = Column(ForeignKey(Message.id, ondelete="CASCADE"), nullable=False)
-    message = relationship(Message, backref=backref("imapuids", passive_deletes=True))
+    message_id = Column(
+        ForeignKey(Message.id, ondelete="CASCADE"), nullable=False
+    )
+    message = relationship(
+        Message, backref=backref("imapuids", passive_deletes=True)
+    )
     msg_uid = Column(BigInteger, nullable=False, index=True)
 
-    folder_id = Column(ForeignKey(Folder.id, ondelete="CASCADE"), nullable=False)
+    folder_id = Column(
+        ForeignKey(Folder.id, ondelete="CASCADE"), nullable=False
+    )
     # We almost always need the folder name too, so eager load by default.
     folder = relationship(
-        Folder, lazy="joined", backref=backref("imapuids", passive_deletes=True)
+        Folder,
+        lazy="joined",
+        backref=backref("imapuids", passive_deletes=True),
     )
 
     labels = association_proxy(
@@ -190,7 +200,9 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             else:
                 remote_labels.add((label, None))
 
-        local_labels = {(lbl.name, lbl.canonical_name): lbl for lbl in self.labels}
+        local_labels = {
+            (lbl.name, lbl.canonical_name): lbl for lbl in self.labels
+        }
 
         remove = set(local_labels) - remote_labels
         add = remote_labels - set(local_labels)
@@ -251,11 +263,16 @@ class ImapFolderInfo(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
     """
 
-    account_id = Column(ForeignKey(ImapAccount.id, ondelete="CASCADE"), nullable=False)
+    account_id = Column(
+        ForeignKey(ImapAccount.id, ondelete="CASCADE"), nullable=False
+    )
     account = relationship(ImapAccount)
-    folder_id = Column(ForeignKey("folder.id", ondelete="CASCADE"), nullable=False)
+    folder_id = Column(
+        ForeignKey("folder.id", ondelete="CASCADE"), nullable=False
+    )
     folder = relationship(
-        "Folder", backref=backref("imapfolderinfo", uselist=False, passive_deletes=True)
+        "Folder",
+        backref=backref("imapfolderinfo", uselist=False, passive_deletes=True),
     )
     uidvalidity = Column(BigInteger, nullable=False)
     # Invariant: the local datastore for this folder has always incorporated
@@ -301,7 +318,9 @@ def _choose_existing_thread_for_gmail(message, db_session):
         # If no header, add the new message to the most recent thread.
         return prior_threads[0]
     for prior_thread in prior_threads:
-        prior_message_ids = [m.message_id_header for m in prior_thread.messages]
+        prior_message_ids = [
+            m.message_id_header for m in prior_thread.messages
+        ]
         if message.in_reply_to in prior_message_ids:
             return prior_thread
 
@@ -367,15 +386,22 @@ class ImapThread(Thread):
     __mapper_args__ = {"polymorphic_identity": "imapthread"}
 
 
-class ImapFolderSyncStatus(MailSyncBase, HasRunState, UpdatedAtMixin, DeletedAtMixin):
+class ImapFolderSyncStatus(
+    MailSyncBase, HasRunState, UpdatedAtMixin, DeletedAtMixin
+):
     """Per-folder status state saving for IMAP folders."""
 
-    account_id = Column(ForeignKey(ImapAccount.id, ondelete="CASCADE"), nullable=False)
+    account_id = Column(
+        ForeignKey(ImapAccount.id, ondelete="CASCADE"), nullable=False
+    )
     account = relationship(
-        ImapAccount, backref=backref("foldersyncstatuses", passive_deletes=True)
+        ImapAccount,
+        backref=backref("foldersyncstatuses", passive_deletes=True),
     )
 
-    folder_id = Column(ForeignKey("folder.id", ondelete="CASCADE"), nullable=False)
+    folder_id = Column(
+        ForeignKey("folder.id", ondelete="CASCADE"), nullable=False
+    )
     # We almost always need the folder name too, so eager load by default.
     folder = relationship(
         "Folder",
@@ -385,7 +411,13 @@ class ImapFolderSyncStatus(MailSyncBase, HasRunState, UpdatedAtMixin, DeletedAtM
 
     # see state machine in mailsync/backends/imap/imap.py
     state = Column(
-        Enum("initial", "initial uidinvalid", "poll", "poll uidinvalid", "finish"),
+        Enum(
+            "initial",
+            "initial uidinvalid",
+            "poll",
+            "poll uidinvalid",
+            "finish",
+        ),
         server_default="initial",
         nullable=False,
     )
@@ -401,7 +433,9 @@ class ImapFolderSyncStatus(MailSyncBase, HasRunState, UpdatedAtMixin, DeletedAtM
         return status
 
     def start_sync(self):
-        self._metrics = dict(run_state="running", sync_start_time=datetime.utcnow())
+        self._metrics = dict(
+            run_state="running", sync_start_time=datetime.utcnow()
+        )
 
     def stop_sync(self):
         self._metrics["run_state"] = "stopped"
@@ -446,7 +480,9 @@ class ImapFolderSyncStatus(MailSyncBase, HasRunState, UpdatedAtMixin, DeletedAtM
 class LabelItem(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     """Mapping between imapuids and labels."""
 
-    imapuid_id = Column(ForeignKey(ImapUid.id, ondelete="CASCADE"), nullable=False)
+    imapuid_id = Column(
+        ForeignKey(ImapUid.id, ondelete="CASCADE"), nullable=False
+    )
     imapuid = relationship(
         "ImapUid",
         backref=backref(
@@ -457,7 +493,9 @@ class LabelItem(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     label_id = Column(ForeignKey(Label.id, ondelete="CASCADE"), nullable=False)
     label = relationship(
         Label,
-        backref=backref("labelitems", cascade="all, delete-orphan", lazy="dynamic"),
+        backref=backref(
+            "labelitems", cascade="all, delete-orphan", lazy="dynamic"
+        ),
     )
 
     @property

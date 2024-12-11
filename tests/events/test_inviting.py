@@ -7,7 +7,10 @@ def test_invite_generation(event, default_account):
     from inbox.events.ical import generate_icalendar_invite
 
     event.sequence_number = 1
-    event.participants = [{"email": "helena@nylas.com"}, {"email": "myles@nylas.com"}]
+    event.participants = [
+        {"email": "helena@nylas.com"},
+        {"email": "myles@nylas.com"},
+    ]
     cal = generate_icalendar_invite(event)
     assert cal["method"] == "REQUEST"
 

@@ -26,7 +26,8 @@ def get_ping_status(account_ids, host=None, port=6379, threshold=ALIVE_EXPIRY):
         account_id = account_ids[0]
         folder_heartbeats = store.get_account_folders(account_id)
         folders = [
-            FolderPing(int(aid), ts > expiry, ts) for (aid, ts) in folder_heartbeats
+            FolderPing(int(aid), ts > expiry, ts)
+            for (aid, ts) in folder_heartbeats
         ]
         account = AccountPing(account_id, folders)
         return {account_id: account}
@@ -38,7 +39,8 @@ def get_ping_status(account_ids, host=None, port=6379, threshold=ALIVE_EXPIRY):
             account_id = int(account_id)
             folder_heartbeats = all_folder_heartbeats[account_id]
             folders = [
-                FolderPing(int(aid), ts > expiry, ts) for (aid, ts) in folder_heartbeats
+                FolderPing(int(aid), ts > expiry, ts)
+                for (aid, ts) in folder_heartbeats
             ]
             account = AccountPing(account_id, folders)
             accounts[account_id] = account

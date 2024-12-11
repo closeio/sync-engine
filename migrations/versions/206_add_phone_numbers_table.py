@@ -25,20 +25,34 @@ def upgrade():
         sa.Column("contact_id", sa.Integer(), nullable=False),
         sa.Column("type", mysql.VARCHAR(length=64), nullable=True),
         sa.Column("number", mysql.VARCHAR(length=64), nullable=False),
-        sa.ForeignKeyConstraint(["contact_id"], ["contact.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["contact_id"], ["contact.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        "ix_phonenumber_created_at", "phonenumber", ["created_at"], unique=False
+        "ix_phonenumber_created_at",
+        "phonenumber",
+        ["created_at"],
+        unique=False,
     )
     op.create_index(
-        "ix_phonenumber_updated_at", "phonenumber", ["updated_at"], unique=False
+        "ix_phonenumber_updated_at",
+        "phonenumber",
+        ["updated_at"],
+        unique=False,
     )
     op.create_index(
-        "ix_phonenumber_contact_id", "phonenumber", ["contact_id"], unique=False
+        "ix_phonenumber_contact_id",
+        "phonenumber",
+        ["contact_id"],
+        unique=False,
     )
     op.create_index(
-        "ix_phonenumber_deleted_at", "phonenumber", ["deleted_at"], unique=False
+        "ix_phonenumber_deleted_at",
+        "phonenumber",
+        ["deleted_at"],
+        unique=False,
     )
 
 

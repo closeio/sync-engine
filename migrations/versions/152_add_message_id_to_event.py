@@ -17,7 +17,9 @@ from sqlalchemy.sql import text
 def upgrade():
     conn = op.get_bind()
     conn.execute(text("SET FOREIGN_KEY_CHECKS=0;"))
-    conn.execute(text("ALTER TABLE event ADD COLUMN message_id int(11) DEFAULT NULL"))
+    conn.execute(
+        text("ALTER TABLE event ADD COLUMN message_id int(11) DEFAULT NULL")
+    )
     conn.execute(
         text(
             "ALTER TABLE event ADD CONSTRAINT message_ifbk FOREIGN KEY "

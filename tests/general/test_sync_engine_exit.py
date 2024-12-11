@@ -57,12 +57,16 @@ def sync_engine_stub(db, yahoo_account):
     return engine
 
 
-def test_folder_engine_exits_if_folder_missing(db, yahoo_account, sync_engine_stub):
+def test_folder_engine_exits_if_folder_missing(
+    db, yahoo_account, sync_engine_stub
+):
     # if the folder does not exist in our database, _load_state will
     # encounter an IntegrityError as it tries to insert a child
     # ImapFolderSyncStatus against an invalid foreign key
     folder = (
-        db.session.query(Folder).filter_by(account=yahoo_account, name="Inbox").one()
+        db.session.query(Folder)
+        .filter_by(account=yahoo_account, name="Inbox")
+        .one()
     )
     db.session.delete(folder)
     db.session.commit()

@@ -64,14 +64,18 @@ def events_from_ics(namespace, calendar, ics_str):
     except (ValueError, IndexError, KeyError, TypeError) as e:
         raise MalformedEventError("Error while parsing ICS file") from e
 
-    events: Dict[Literal["invites", "rsvps"], List[Event]] = dict(invites=[], rsvps=[])
+    events: Dict[Literal["invites", "rsvps"], List[Event]] = dict(
+        invites=[], rsvps=[]
+    )
 
     # See: https://tools.ietf.org/html/rfc5546#section-3.2
     calendar_method = None
 
     for component in cal.walk():
         if component.name == "VCALENDAR":
-            calendar_method = normalize_repeated_component(component.get("method"))
+            calendar_method = normalize_repeated_component(
+                component.get("method")
+            )
             # Return early if we see calendar_method we don't care about
             if calendar_method not in ["REQUEST", "CANCEL", "REPLY"]:
                 return events
@@ -79,7 +83,9 @@ def events_from_ics(namespace, calendar, ics_str):
         if component.name == "VTIMEZONE":
             tzname = component.get("TZID")
             if tzname not in timezones_table:
-                raise MalformedEventError("Non-UTC timezone should be in table", tzname)
+                raise MalformedEventError(
+                    "Non-UTC timezone should be in table", tzname
+                )
 
         if component.name == "VEVENT":
             # Make sure the times are in UTC.
@@ -178,7 +184,9 @@ def events_from_ics(namespace, calendar, ics_str):
             if description is not None:
                 description = str(description)
 
-            event_status = normalize_repeated_component(component.get("status"))
+            event_status = normalize_repeated_component(
+                component.get("status")
+            )
             if event_status is not None:
                 event_status = event_status.lower()
             else:
@@ -222,7 +230,8 @@ def events_from_ics(namespace, calendar, ics_str):
 
             is_owner = False
             if owner is not None and (
-                namespace.account.email_address == canonicalize_address(organizer_email)
+                namespace.account.email_address
+                == canonicalize_address(organizer_email)
             ):
                 is_owner = True
 
@@ -370,7 +379,9 @@ def process_invites(db_session, message, account, invites):
             existing_event = existing_events_table[event.uid]
 
             if existing_event.sequence_number <= event.sequence_number:
-                merged_participants = existing_event._partial_participants_merge(event)
+                merged_participants = (
+                    existing_event._partial_participants_merge(event)
+                )
 
                 existing_event.update(event)
                 existing_event.message = message
@@ -404,7 +415,9 @@ def process_nylas_rsvps(db_session, message, account, rsvps):
     # it wouldn't work with Exchange (Exchange uids are of the form
     # 1:2323 and aren't guaranteed to be unique).
     new_uids = [
-        _cleanup_nylas_uid(event.uid) for event in rsvps if "@nylas.com" in event.uid
+        _cleanup_nylas_uid(event.uid)
+        for event in rsvps
+        if "@nylas.com" in event.uid
     ]
 
     # Drop uids which aren't base36 uids.
@@ -423,7 +436,9 @@ def process_nylas_rsvps(db_session, message, account, rsvps):
         .all()
     )
 
-    existing_events_table = {event.public_id: event for event in existing_events}
+    existing_events_table = {
+        event.public_id: event for event in existing_events
+    }
 
     for event in rsvps:
         event_uid = _cleanup_nylas_uid(event.uid)
@@ -437,7 +452,9 @@ def process_nylas_rsvps(db_session, message, account, rsvps):
 
             # Is the current event an update?
             if existing_event.sequence_number == event.sequence_number:
-                merged_participants = existing_event._partial_participants_merge(event)
+                merged_participants = (
+                    existing_event._partial_participants_merge(event)
+                )
 
                 # We have to do this mumbo-jumbo because MutableList does
                 # not register changes to nested elements.
@@ -518,7 +535,9 @@ def import_attached_events(
         # ourselves.
         # - karim
         if account.provider != "gmail":
-            process_nylas_rsvps(db_session, message, account, new_events["rsvps"])
+            process_nylas_rsvps(
+                db_session, message, account, new_events["rsvps"]
+            )
 
 
 def generate_icalendar_invite(event, invite_type="request"):
@@ -545,7 +564,9 @@ def generate_icalendar_invite(event, invite_type="request"):
 
     icalendar_event["organizer"] = organizer
     icalendar_event["sequence"] = str(event.sequence_number)
-    icalendar_event["X-MICROSOFT-CDO-APPT-SEQUENCE"] = icalendar_event["sequence"]
+    icalendar_event["X-MICROSOFT-CDO-APPT-SEQUENCE"] = icalendar_event[
+        "sequence"
+    ]
 
     if invite_type == "cancel":
         icalendar_event["status"] = "CANCELLED"
@@ -604,14 +625,18 @@ def generate_invite_message(ical_txt, event, account, invite_type="request"):
         body.append(
             mime.create.text("plain", text_body),
             mime.create.text("html", html_body),
-            mime.create.text("calendar; method=REQUEST", ical_txt, charset="utf8"),
+            mime.create.text(
+                "calendar; method=REQUEST", ical_txt, charset="utf8"
+            ),
         )
         msg.append(body)
     elif invite_type == "cancel":
         body.append(
             mime.create.text("plain", text_body),
             mime.create.text("html", html_body),
-            mime.create.text("calendar; method=CANCEL", ical_txt, charset="utf8"),
+            mime.create.text(
+                "calendar; method=CANCEL", ical_txt, charset="utf8"
+            ),
         )
         msg.append(body)
 
@@ -780,7 +805,9 @@ def send_rsvp(ical_data, event, body_text, status, account):
     if status == "yes":
         msg.headers["Subject"] = f"Accepted: {event.message.subject}"
     elif status == "maybe":
-        msg.headers["Subject"] = f"Tentatively accepted: {event.message.subject}"
+        msg.headers["Subject"] = (
+            f"Tentatively accepted: {event.message.subject}"
+        )
     elif status == "no":
         msg.headers["Subject"] = f"Declined: {event.message.subject}"
 

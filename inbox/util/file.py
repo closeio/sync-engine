@@ -1,7 +1,9 @@
 import os
 from typing import Generator, List
 
-ROOT_PATH = os.path.normpath(os.path.join(__file__, os.pardir, os.pardir, os.pardir))
+ROOT_PATH = os.path.normpath(
+    os.path.join(__file__, os.pardir, os.pardir, os.pardir)
+)
 
 
 def get_data(filename: str) -> bytes:

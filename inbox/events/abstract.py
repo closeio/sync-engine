@@ -38,7 +38,9 @@ class AbstractEventsProvider(abc.ABC):
 
     @abc.abstractmethod
     def sync_events(
-        self, calendar_uid: str, sync_from_time: Optional[datetime.datetime] = None
+        self,
+        calendar_uid: str,
+        sync_from_time: Optional[datetime.datetime] = None,
     ) -> List[Event]:
         """
         Fetch event data for an individual calendar.
@@ -61,7 +63,9 @@ class AbstractEventsProvider(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def watch_calendar_list(self, account: Account) -> Optional[datetime.datetime]:
+    def watch_calendar_list(
+        self, account: Account
+    ) -> Optional[datetime.datetime]:
         """
         Subscribe to webhook notifications for changes to calendar list.
 

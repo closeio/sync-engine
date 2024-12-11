@@ -17,11 +17,15 @@ from alembic import op
 def upgrade():
     op.add_column(
         "gmailaccount",
-        sa.Column("webhook_calendar_list_last_ping", sa.DateTime(), nullable=True),
+        sa.Column(
+            "webhook_calendar_list_last_ping", sa.DateTime(), nullable=True
+        ),
     )
     op.add_column(
         "gmailaccount",
-        sa.Column("webhook_calendar_list_expiration", sa.DateTime(), nullable=True),
+        sa.Column(
+            "webhook_calendar_list_expiration", sa.DateTime(), nullable=True
+        ),
     )
 
     op.execute(

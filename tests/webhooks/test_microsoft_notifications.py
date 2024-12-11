@@ -10,7 +10,9 @@ from inbox.models.event import Event
 
 @pytest.fixture(autouse=True)
 def populate_microsoft_subscrtipion_secret():
-    with mock.patch.dict(config, {"MICROSOFT_SUBSCRIPTION_SECRET": "good_s3cr3t"}):
+    with mock.patch.dict(
+        config, {"MICROSOFT_SUBSCRIPTION_SECRET": "good_s3cr3t"}
+    ):
         yield
 
 
@@ -71,7 +73,10 @@ bad_type_payload = {
     "value": [
         {
             "changeType": "updated",
-            "resourceData": {"@odata.type": "#Microsoft.Graph.Event", "id": "fake_id"},
+            "resourceData": {
+                "@odata.type": "#Microsoft.Graph.Event",
+                "id": "fake_id",
+            },
             "clientState": "good_s3cr3t",
         }
     ]
@@ -85,7 +90,10 @@ bad_type_payload = {
             bad_client_state_payload,
             "'clientState' did not match one provided when creating subscription",
         ),
-        (bad_type_payload, "Expected '@odata.type' to be '#Microsoft.Graph.Calendar'"),
+        (
+            bad_type_payload,
+            "Expected '@odata.type' to be '#Microsoft.Graph.Calendar'",
+        ),
     ],
 )
 def test_validate_webhook_payload(test_client, payload, data):

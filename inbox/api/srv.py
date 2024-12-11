@@ -26,7 +26,9 @@ from inbox.models.secret import SecretType
 from inbox.models.session import global_session_scope
 from inbox.util.logging_helper import reconfigure_logging
 from inbox.webhooks.google_notifications import app as google_webhooks_api
-from inbox.webhooks.microsoft_notifications import app as microsoft_webhooks_api
+from inbox.webhooks.microsoft_notifications import (
+    app as microsoft_webhooks_api,
+)
 
 from .metrics_api import app as metrics_api
 from .ns_api import DEFAULT_LIMIT, app as ns_api
@@ -108,7 +110,9 @@ def auth():
                 (
                     "Could not verify access credential.",
                     401,
-                    {"WWW-Authenticate": 'Basic realm="API Access Token Required"'},
+                    {
+                        "WWW-Authenticate": 'Basic realm="API Access Token Required"'
+                    },
                 )
             )
 
@@ -118,7 +122,9 @@ def finish(response):
     origin = request.headers.get("origin")
     if origin:  # means it's just a regular request
         response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Headers"] = "Authorization,Content-Type"
+        response.headers["Access-Control-Allow-Headers"] = (
+            "Authorization,Content-Type"
+        )
         response.headers["Access-Control-Allow-Methods"] = (
             "GET,PUT,POST,DELETE,OPTIONS,PATCH"
         )
@@ -134,7 +140,9 @@ def ns_all():
     # to make our own session
     with global_session_scope() as db_session:
         parser = reqparse.RequestParser(argument_class=ValidatableArgument)
-        parser.add_argument("limit", default=DEFAULT_LIMIT, type=limit, location="args")
+        parser.add_argument(
+            "limit", default=DEFAULT_LIMIT, type=limit, location="args"
+        )
         parser.add_argument("offset", default=0, type=int, location="args")
         parser.add_argument("email_address", type=bounded_str, location="args")
         args = strict_parse_args(parser, request.args)
@@ -175,7 +183,9 @@ def _get_account_data_for_generic_account(data):
     )
 
 
-def _get_account_data_for_google_account(data: Dict[str, Any]) -> GoogleAccountData:
+def _get_account_data_for_google_account(
+    data: Dict[str, Any]
+) -> GoogleAccountData:
     email_address = data["email_address"]
     scopes = data.get("scopes", " ".join(GOOGLE_EMAIL_SCOPES))
     client_id = data.get("client_id")
@@ -246,7 +256,9 @@ def create_account():
     """Create a new account"""
     data = request.get_json(force=True)
 
-    auth_handler: Union[GenericAuthHandler, GoogleAuthHandler, MicrosoftAuthHandler]
+    auth_handler: Union[
+        GenericAuthHandler, GoogleAuthHandler, MicrosoftAuthHandler
+    ]
     if data["type"] == "generic":
         auth_handler = GenericAuthHandler()
         account_data = _get_account_data_for_generic_account(data)
@@ -285,7 +297,9 @@ def modify_account(namespace_public_id):
         )
         account = namespace.account
 
-        auth_handler: Union[GenericAuthHandler, GoogleAuthHandler, MicrosoftAuthHandler]
+        auth_handler: Union[
+            GenericAuthHandler, GoogleAuthHandler, MicrosoftAuthHandler
+        ]
         if isinstance(account, GenericAccount):
             auth_handler = GenericAuthHandler()
             account_data = _get_account_data_for_generic_account(data)

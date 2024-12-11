@@ -53,7 +53,9 @@ def get_redis_client(account_id):
     account_shard_number = account_redis_shard_number(account_id)
     host = REDIS_SHARDS[account_shard_number]
 
-    connection_pool = _get_redis_connection_pool(host, REDIS_PORT, STATUS_DATABASE)
+    connection_pool = _get_redis_connection_pool(
+        host, REDIS_PORT, STATUS_DATABASE
+    )
     return StrictRedis(
         host, REDIS_PORT, STATUS_DATABASE, connection_pool=connection_pool
     )

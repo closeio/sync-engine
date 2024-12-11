@@ -66,7 +66,9 @@ def process_shard(shard_id, dry_run, id_start=0):
                     continue
 
                 if not dry_run:
-                    update_contacts_from_event(db_session, event, event.namespace_id)
+                    update_contacts_from_event(
+                        db_session, event, event.namespace_id
+                    )
                     n_updated += 1
 
                     if n_updated % batch_size == 0:
@@ -81,7 +83,11 @@ def process_shard(shard_id, dry_run, id_start=0):
                         throttle()
 
     log.info(
-        "finished", shard_id=shard_id, n=n, n_skipped=n_skipped, n_updated=n_updated
+        "finished",
+        shard_id=shard_id,
+        n=n,
+        n_skipped=n_skipped,
+        n_updated=n_updated,
     )
 
 

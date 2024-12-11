@@ -12,4 +12,6 @@ class ContactSearchIndexCursor(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
     """
 
-    transaction_id = Column(ForeignKey(Transaction.id), nullable=True, index=True)
+    transaction_id = Column(
+        ForeignKey(Transaction.id), nullable=True, index=True
+    )

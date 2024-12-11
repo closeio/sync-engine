@@ -77,8 +77,9 @@ def upgrade():
                     "GOOGLE_OAUTH_CLIENT_ID"
                 )
 
-                auth_creds.client_secret = acc.client_secret or config.get_required(
-                    "GOOGLE_OAUTH_CLIENT_SECRET"
+                auth_creds.client_secret = (
+                    acc.client_secret
+                    or config.get_required("GOOGLE_OAUTH_CLIENT_SECRET")
                 )
 
                 db_session.add(auth_creds)

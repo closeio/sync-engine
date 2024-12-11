@@ -40,7 +40,9 @@ def downgrade():
     conn = op.get_bind()
     conn.execute(text("SET FOREIGN_KEY_CHECKS=0;"))
     conn.execute(text("set @@lock_wait_timeout = 20;"))
-    conn.execute(text("ALTER TABLE account DROP FOREIGN KEY emailed_events_fk"))
+    conn.execute(
+        text("ALTER TABLE account DROP FOREIGN KEY emailed_events_fk")
+    )
     conn.execute(
         text(
             "ALTER TABLE account CHANGE COLUMN emailed_events_calendar_id default_calendar_id INTEGER"

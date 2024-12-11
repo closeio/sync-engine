@@ -15,7 +15,13 @@ class MsGraphDateTimeTimeZone(TypedDict):
 
 
 MsGraphDayOfWeek = Literal[
-    "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
 ]
 
 ICalDayOfWeek = Literal["SU", "MO", "TU", "WE", "TH", "FR", "SA"]
@@ -80,7 +86,9 @@ class MsGraphPatternedRecurrence(TypedDict):
     range: MsGraphRecurrenceRange
 
 
-MsGraphEventType = Literal["singleInstance", "occurrence", "exception", "seriesMaster"]
+MsGraphEventType = Literal[
+    "singleInstance", "occurrence", "exception", "seriesMaster"
+]
 
 
 class MsGraphEmailAddress(TypedDict):
@@ -89,7 +97,12 @@ class MsGraphEmailAddress(TypedDict):
 
 
 MsGraphResponse = Literal[
-    "none", "organizer", "tentativelyAccepted", "accepted", "declined", "notResponded"
+    "none",
+    "organizer",
+    "tentativelyAccepted",
+    "accepted",
+    "declined",
+    "notResponded",
 ]
 
 

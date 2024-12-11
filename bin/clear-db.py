@@ -9,7 +9,11 @@ from inbox.util.db import drop_everything
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-u", "--with-users", action="store_true", dest="with_users", default=False
+        "-u",
+        "--with-users",
+        action="store_true",
+        dest="with_users",
+        default=False,
     )
     args = parser.parse_args()
     from inbox.ignition import init_db, main_engine
@@ -42,7 +46,9 @@ def main():
 
         reset_columns = {"easaccount": ["eas_account_sync_key", "eas_state"]}
 
-    drop_everything(engine, keep_tables=keep_tables, reset_columns=reset_columns)
+    drop_everything(
+        engine, keep_tables=keep_tables, reset_columns=reset_columns
+    )
     # recreate dropped tables
     init_db(engine)
     sys.exit(0)

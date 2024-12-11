@@ -14,7 +14,9 @@ from inbox.models.namespace import Namespace
 class DataProcessingCache(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     """Cached data used in data processing"""
 
-    namespace_id = Column(ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False)
+    namespace_id = Column(
+        ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False
+    )
     _contact_rankings = Column("contact_rankings", MEDIUMBLOB)
     _contact_groups = Column("contact_groups", MEDIUMBLOB)
     contact_rankings_last_updated = Column(DateTime)
@@ -29,7 +31,9 @@ class DataProcessingCache(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
     @contact_rankings.setter
     def contact_rankings(self, value):
-        self._contact_rankings = zlib.compress(json.dumps(value).encode("utf-8"))
+        self._contact_rankings = zlib.compress(
+            json.dumps(value).encode("utf-8")
+        )
         self.contact_rankings_last_updated = datetime.datetime.now()
 
     @property

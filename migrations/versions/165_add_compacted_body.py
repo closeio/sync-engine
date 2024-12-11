@@ -17,7 +17,8 @@ from sqlalchemy.dialects import mysql
 
 def upgrade():
     op.add_column(
-        "message", sa.Column("_compacted_body", mysql.LONGBLOB(), nullable=True)
+        "message",
+        sa.Column("_compacted_body", mysql.LONGBLOB(), nullable=True),
     )
 
 

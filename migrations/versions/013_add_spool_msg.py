@@ -19,7 +19,9 @@ def upgrade():
     op.add_column(
         "message", sa.Column("inbox_uid", sa.String(length=64), nullable=True)
     )
-    op.add_column("message", sa.Column("type", sa.String(length=16), nullable=True))
+    op.add_column(
+        "message", sa.Column("type", sa.String(length=16), nullable=True)
+    )
 
     op.create_table(
         "spoolmessage",

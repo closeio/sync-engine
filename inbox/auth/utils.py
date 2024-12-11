@@ -55,7 +55,10 @@ def auth_is_invalid(exc):
         "incorrect password",
     )
     message = safe_decode(exc.args[0]) if exc.args else ""
-    return any(message.lower().startswith(msg.lower()) for msg in AUTH_INVALID_PREFIXES)
+    return any(
+        message.lower().startswith(msg.lower())
+        for msg in AUTH_INVALID_PREFIXES
+    )
 
 
 def create_imap_connection(host, port, use_timeout=True):

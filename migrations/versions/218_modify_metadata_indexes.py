@@ -15,11 +15,16 @@ from alembic import op
 
 def upgrade():
     op.create_index(
-        "ix_namespace_id_app_id", "metadata", ["namespace_id", "app_id"], unique=False
+        "ix_namespace_id_app_id",
+        "metadata",
+        ["namespace_id", "app_id"],
+        unique=False,
     )
     op.drop_index("ix_metadata_object_id", table_name="metadata")
 
 
 def downgrade():
-    op.create_index("ix_metadata_object_id", "metadata", ["object_id"], unique=False)
+    op.create_index(
+        "ix_metadata_object_id", "metadata", ["object_id"], unique=False
+    )
     op.drop_index("ix_namespace_id_app_id", table_name="metadata")

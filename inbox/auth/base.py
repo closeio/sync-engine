@@ -112,7 +112,9 @@ class AuthHandler:
         except Exception as e:
             message = e.args[0] if e.args else ""
             log.error(
-                "account_folder_list_failed", account_id=account.id, error=message
+                "account_folder_list_failed",
+                account_id=account.id,
+                error=message,
             )
             error_message = (
                 "Full IMAP support is not enabled for this account. "
@@ -132,7 +134,9 @@ class AuthHandler:
                 pass
         except socket.gaierror as exc:
             log.error(
-                "Failed to resolve SMTP server domain", account_id=account.id, error=exc
+                "Failed to resolve SMTP server domain",
+                account_id=account.id,
+                error=exc,
             )
             error_message = (
                 "Couldn't resolve the SMTP server domain name. "
@@ -169,5 +173,7 @@ class AuthHandler:
         # be returned to delta/ streaming clients.
         # NOTE: Setting this does not restart the sync. Sync scheduling occurs
         # via the sync_should_run bit (set to True in update_account() above).
-        account.sync_state = "running" if account.sync_state else account.sync_state
+        account.sync_state = (
+            "running" if account.sync_state else account.sync_state
+        )
         return True

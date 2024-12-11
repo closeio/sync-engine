@@ -14,7 +14,9 @@ from alembic import op
 
 
 def upgrade():
-    op.create_index("ix_message_inbox_uid", "message", ["inbox_uid"], unique=False)
+    op.create_index(
+        "ix_message_inbox_uid", "message", ["inbox_uid"], unique=False
+    )
 
 
 def downgrade():

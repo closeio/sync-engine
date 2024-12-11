@@ -22,9 +22,13 @@ def upgrade():
 
 def downgrade():
     op.add_column(
-        "gmailaccount", sa.Column("access_token", sa.String(length=512), nullable=True)
+        "gmailaccount",
+        sa.Column("access_token", sa.String(length=512), nullable=True),
     )
-    op.add_column("gmailaccount", sa.Column("expires_in", sa.Integer(), nullable=True))
     op.add_column(
-        "gmailaccount", sa.Column("token_type", sa.String(length=64), nullable=True)
+        "gmailaccount", sa.Column("expires_in", sa.Integer(), nullable=True)
+    )
+    op.add_column(
+        "gmailaccount",
+        sa.Column("token_type", sa.String(length=64), nullable=True),
     )

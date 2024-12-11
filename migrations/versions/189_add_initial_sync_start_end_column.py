@@ -15,7 +15,9 @@ from alembic import op
 
 
 def upgrade():
-    op.add_column("folder", sa.Column("initial_sync_end", sa.DateTime(), nullable=True))
+    op.add_column(
+        "folder", sa.Column("initial_sync_end", sa.DateTime(), nullable=True)
+    )
     op.add_column(
         "folder", sa.Column("initial_sync_start", sa.DateTime(), nullable=True)
     )

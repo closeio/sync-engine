@@ -11,7 +11,10 @@ def test_message_cleanup():
     assert cleanup_subject("Re: Birthday") == "Birthday"
     assert cleanup_subject("Re:Birthday") == "Birthday"
     assert cleanup_subject("Re:FWD:   Birthday") == "Birthday"
-    assert cleanup_subject("RE:FWD: My\tBirthday\n   Party") == "My Birthday Party"
+    assert (
+        cleanup_subject("RE:FWD: My\tBirthday\n   Party")
+        == "My Birthday Party"
+    )
     assert (
         cleanup_subject("Re: RE: Alors, comment ça s'est passé ?")
         == "Alors, comment ça s'est passé ?"
@@ -55,7 +58,9 @@ def test_basic_message_grouping(db, default_namespace):
         to_addr=[("Karim Hamidou", "karim@nilas.com")],
     )
 
-    matched_thread = fetch_corresponding_thread(db.session, default_namespace.id, msg2)
+    matched_thread = fetch_corresponding_thread(
+        db.session, default_namespace.id, msg2
+    )
     assert matched_thread is None, "the algo shouldn't thread different convos"
 
     msg3 = add_fake_message(db.session, default_namespace.id, thread=None)
@@ -63,7 +68,9 @@ def test_basic_message_grouping(db, default_namespace):
     msg3.from_addr = [("Eben Freeman", "emfree@nilas.com")]
     msg3.to_addr = [("Karim Hamidou", "karim@nilas.com")]
 
-    matched_thread = fetch_corresponding_thread(db.session, default_namespace.id, msg3)
+    matched_thread = fetch_corresponding_thread(
+        db.session, default_namespace.id, msg3
+    )
     assert matched_thread is first_thread, "Should match on participants"
 
 
@@ -89,7 +96,9 @@ def test_self_send(db, default_namespace):
         to_addr=[("Karim Hamidou", "karim@nilas.com")],
     )
 
-    matched_thread = fetch_corresponding_thread(db.session, default_namespace.id, msg2)
+    matched_thread = fetch_corresponding_thread(
+        db.session, default_namespace.id, msg2
+    )
     assert matched_thread is first_thread, "Should match on self-send"
 
 

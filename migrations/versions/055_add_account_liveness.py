@@ -16,7 +16,8 @@ from alembic import op
 
 def upgrade():
     op.add_column(
-        "account", sa.Column("state", sa.Enum("live", "down", "invalid"), nullable=True)
+        "account",
+        sa.Column("state", sa.Enum("live", "down", "invalid"), nullable=True),
     )
 
 

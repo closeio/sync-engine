@@ -62,7 +62,9 @@ def create_draft_from_mime(
     new_body = new_headers + raw_mime
 
     with db_session.no_autoflush:
-        msg = Message.create_from_synced(account, "", "", datetime.utcnow(), new_body)
+        msg = Message.create_from_synced(
+            account, "", "", datetime.utcnow(), new_body
+        )
 
         if msg.from_addr and len(msg.from_addr) > 1:
             raise InputError("from_addr field can have at most one item")
@@ -135,7 +137,9 @@ def create_message_from_json(data, namespace, db_session, is_draft):
     if not isinstance(body, str):
         raise InputError('"body" should be a string')
     blocks = get_attachments(data.get("file_ids"), namespace.id, db_session)
-    reply_to_thread = get_thread(data.get("thread_id"), namespace.id, db_session)
+    reply_to_thread = get_thread(
+        data.get("thread_id"), namespace.id, db_session
+    )
     reply_to_message = get_message(
         data.get("reply_to_message_id"), namespace.id, db_session
     )
@@ -238,7 +242,11 @@ def create_message_from_json(data, namespace, db_session, is_draft):
     db_session.add(message)
     if is_draft:
         schedule_action(
-            "save_draft", message, namespace.id, db_session, version=message.version
+            "save_draft",
+            message,
+            namespace.id,
+            db_session,
+            version=message.version,
         )
     db_session.flush()
     return message
@@ -360,7 +368,10 @@ def generate_attachments(message, blocks):
     for block in blocks:
         content_disposition = "attachment"
         for part in block.parts:
-            if part.message_id == message.id and part.content_disposition == "inline":
+            if (
+                part.message_id == message.id
+                and part.content_disposition == "inline"
+            ):
                 content_disposition = "inline"
                 break
 

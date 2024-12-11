@@ -35,7 +35,9 @@ class ProfileCollector:
         signal.setitimer(signal.ITIMER_VIRTUAL, self.interval, 0)
 
     def _format_frame(self, frame):
-        return "{}({})".format(frame.f_code.co_name, frame.f_globals.get("__name__"))
+        return "{}({})".format(
+            frame.f_code.co_name, frame.f_globals.get("__name__")
+        )
 
     def stats(self):
         if self._started is None:

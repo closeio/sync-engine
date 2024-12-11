@@ -2,9 +2,20 @@ from datetime import timedelta
 
 import arrow
 
-from inbox.events.util import google_to_event_time, parse_datetime, parse_google_time
+from inbox.events.util import (
+    google_to_event_time,
+    parse_datetime,
+    parse_google_time,
+)
 from inbox.models.event import time_parse
-from inbox.models.when import Date, DateSpan, Time, TimeSpan, parse_as_when, parse_utc
+from inbox.models.when import (
+    Date,
+    DateSpan,
+    Time,
+    TimeSpan,
+    parse_as_when,
+    parse_utc,
+)
 
 
 def test_when_time():
@@ -24,7 +35,10 @@ def test_when_time():
 def test_when_timespan():
     start_time = arrow.get("2014-09-30T15:34:00.000-07:00")
     end_time = arrow.get("2014-09-30T16:34:00.000-07:00")
-    timespan = {"start_time": start_time.timestamp, "end_time": end_time.timestamp}
+    timespan = {
+        "start_time": start_time.timestamp,
+        "end_time": end_time.timestamp,
+    }
     ts = parse_as_when(timespan)
     assert isinstance(ts, TimeSpan)
     assert ts.start == start_time.to("utc")
@@ -81,7 +95,10 @@ def test_when_spans_arent_spans():
 
     start_time = arrow.get("2014-09-30T15:34:00.000-07:00")
     end_time = arrow.get("2014-09-30T15:34:00.000-07:00")
-    timespan = {"start_time": start_time.timestamp, "end_time": end_time.timestamp}
+    timespan = {
+        "start_time": start_time.timestamp,
+        "end_time": end_time.timestamp,
+    }
     ts = parse_as_when(timespan)
     assert isinstance(ts, Time)
 
@@ -119,7 +136,10 @@ def test_time_parse():
 
 
 def test_parse_google_time():
-    t = {"dateTime": "2012-10-15T17:00:00-07:00", "timeZone": "America/Los_Angeles"}
+    t = {
+        "dateTime": "2012-10-15T17:00:00-07:00",
+        "timeZone": "America/Los_Angeles",
+    }
     gt = parse_google_time(t)
     assert gt.to("utc") == arrow.get(2012, 10, 16, 0, 0, 0)
 
@@ -133,8 +153,14 @@ def test_parse_google_time():
 
 
 def test_google_to_event_time():
-    start = {"dateTime": "2012-10-15T17:00:00-07:00", "timeZone": "America/Los_Angeles"}
-    end = {"dateTime": "2012-10-15T17:25:00-07:00", "timeZone": "America/Los_Angeles"}
+    start = {
+        "dateTime": "2012-10-15T17:00:00-07:00",
+        "timeZone": "America/Los_Angeles",
+    }
+    end = {
+        "dateTime": "2012-10-15T17:25:00-07:00",
+        "timeZone": "America/Los_Angeles",
+    }
     event_time = google_to_event_time(start, end)
     assert event_time.start == arrow.get(2012, 10, 16, 0, 0, 0)
     assert event_time.end == arrow.get(2012, 10, 16, 0, 25, 0)
@@ -149,8 +175,14 @@ def test_google_to_event_time():
 
 
 def test_google_to_event_time_reverse():
-    end = {"dateTime": "2012-10-15T17:00:00-07:00", "timeZone": "America/Los_Angeles"}
-    start = {"dateTime": "2012-10-15T17:25:00-07:00", "timeZone": "America/Los_Angeles"}
+    end = {
+        "dateTime": "2012-10-15T17:00:00-07:00",
+        "timeZone": "America/Los_Angeles",
+    }
+    start = {
+        "dateTime": "2012-10-15T17:25:00-07:00",
+        "timeZone": "America/Los_Angeles",
+    }
     event_time = google_to_event_time(start, end)
     assert event_time.start == arrow.get(2012, 10, 16, 0, 0, 0)
     assert event_time.end == arrow.get(2012, 10, 16, 0, 25, 0)

@@ -14,7 +14,9 @@ from alembic import op
 
 
 def upgrade():
-    op.create_index("idx_status_type", "actionlog", ["status", "type"], unique=False)
+    op.create_index(
+        "idx_status_type", "actionlog", ["status", "type"], unique=False
+    )
 
 
 def downgrade():

@@ -50,7 +50,8 @@ class _EncryptionOracle:
 
         self.default_scheme = EncryptionScheme.SECRETBOX_WITH_STATIC_KEY
         self._secret_box = nacl.secret.SecretBox(
-            key=config.get_required(secret_name), encoder=nacl.encoding.HexEncoder
+            key=config.get_required(secret_name),
+            encoder=nacl.encoding.HexEncoder,
         )
 
     def __enter__(self):
@@ -94,8 +95,9 @@ class _EncryptionOracle:
             raise TypeError("encryption_scheme should be an Enum")
         if not 0 <= encryption_scheme.value <= 2**31 - 1:
             raise ValueError("encryption_scheme value out of range")
-        if encryption_scheme != EncryptionScheme.NULL and not config.get_required(
-            "ENCRYPT_SECRETS"
+        if (
+            encryption_scheme != EncryptionScheme.NULL
+            and not config.get_required("ENCRYPT_SECRETS")
         ):
             raise ValueError("ENCRYPT_SECRETS not enabled in config")
 
@@ -111,7 +113,9 @@ class _EncryptionOracle:
             )
 
         else:
-            raise ValueError(f"encryption_scheme not supported: {encryption_scheme}")
+            raise ValueError(
+                f"encryption_scheme not supported: {encryption_scheme}"
+            )
 
         return (ciphertext, encryption_scheme.value)
 
@@ -124,7 +128,9 @@ class _DecryptionOracle(_EncryptionOracle):
     module.
     """
 
-    def reencrypt(self, ciphertext, encryption_scheme, new_encryption_scheme=None):
+    def reencrypt(
+        self, ciphertext, encryption_scheme, new_encryption_scheme=None
+    ):
         """
         Re-encrypt the specified secret.  If no new_encryption_scheme is
         specified (recommended), a reasonable default will be used.
@@ -169,7 +175,8 @@ class _DecryptionOracle(_EncryptionOracle):
             return ciphertext
 
         elif (
-            encryption_scheme_value == EncryptionScheme.SECRETBOX_WITH_STATIC_KEY.value
+            encryption_scheme_value
+            == EncryptionScheme.SECRETBOX_WITH_STATIC_KEY.value
         ):
             assert self._secret_box
             return self._secret_box.decrypt(ciphertext)

@@ -16,7 +16,9 @@ from sqlalchemy.sql import text
 
 def upgrade():
     conn = op.get_bind()
-    conn.execute(text("ALTER TABLE transaction DROP FOREIGN KEY transaction_ibfk_1"))
+    conn.execute(
+        text("ALTER TABLE transaction DROP FOREIGN KEY transaction_ibfk_1")
+    )
     conn.execute(
         text(
             "ALTER TABLE accounttransaction"

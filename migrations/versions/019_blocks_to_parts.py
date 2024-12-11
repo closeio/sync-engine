@@ -34,7 +34,9 @@ def upgrade():
         sa.Column("message_id", sa.Integer(), nullable=True),
         sa.Column("walk_index", sa.Integer(), nullable=True),
         sa.Column(
-            "content_disposition", sa.Enum("inline", "attachment"), nullable=True
+            "content_disposition",
+            sa.Enum("inline", "attachment"),
+            nullable=True,
         ),
         sa.Column("content_id", sa.String(length=255), nullable=True),
         sa.Column("misc_keyval", JSON(), nullable=True),
@@ -45,7 +47,9 @@ def upgrade():
             nullable=True,
         ),
         sa.ForeignKeyConstraint(["id"], ["block.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["message_id"], ["message.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["message_id"], ["message.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("message_id", "walk_index"),
     )
@@ -58,7 +62,9 @@ def upgrade():
         __table__ = Base.metadata.tables["block"]
 
     print("Adding namespace_id column to blocks ", end=" ")
-    op.add_column("block", sa.Column("namespace_id", sa.Integer(), nullable=False))
+    op.add_column(
+        "block", sa.Column("namespace_id", sa.Integer(), nullable=False)
+    )
 
     print("Migrating from blocks to parts")
     new_parts = []

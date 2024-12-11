@@ -15,7 +15,10 @@ def example_draft(db, default_account):
         "subject": f"Draft test at {datetime.utcnow()}",
         "body": "<html><body><h2>Sea, birds and sand.</h2></body></html>",
         "to": [
-            {"name": "The red-haired mermaid", "email": default_account.email_address}
+            {
+                "name": "The red-haired mermaid",
+                "email": default_account.email_address,
+            }
         ],
     }
 
@@ -26,7 +29,9 @@ def test_send_draft(db, api_client, example_draft, default_account):
     public_id = json.loads(r.data)["id"]
     version = json.loads(r.data)["version"]
 
-    r = api_client.post_data("/send", {"draft_id": public_id, "version": version})
+    r = api_client.post_data(
+        "/send", {"draft_id": public_id, "version": version}
+    )
     assert r.status_code == 200
 
     draft = api_client.get_data(f"/drafts/{public_id}")
@@ -35,9 +40,14 @@ def test_send_draft(db, api_client, example_draft, default_account):
     assert draft["object"] != "draft"
 
     with crispin_client(default_account.id, default_account.provider) as c:
-        criteria = ["NOT DELETED", 'SUBJECT "{}"'.format(example_draft["subject"])]
+        criteria = [
+            "NOT DELETED",
+            'SUBJECT "{}"'.format(example_draft["subject"]),
+        ]
 
-        c.conn.select_folder(default_account.drafts_folder.name, readonly=False)
+        c.conn.select_folder(
+            default_account.drafts_folder.name, readonly=False
+        )
 
         draft_uids = c.conn.search(criteria)
         assert not draft_uids, "Message still in Drafts folder"

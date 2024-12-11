@@ -30,7 +30,9 @@ def upgrade():
     if res.fetchall() == []:
         # Execute migration only if the field isn't defined yet.
         conn.execute(
-            text("ALTER TABLE genericaccount ADD COLUMN folder_separator varchar(16)")
+            text(
+                "ALTER TABLE genericaccount ADD COLUMN folder_separator varchar(16)"
+            )
         )
 
     res = conn.execute(
@@ -45,12 +47,16 @@ def upgrade():
     if res.fetchall() == []:
         # Execute migration only if the field isn't defined yet.
         conn.execute(
-            text("ALTER TABLE genericaccount ADD COLUMN folder_prefix varchar(191)")
+            text(
+                "ALTER TABLE genericaccount ADD COLUMN folder_prefix varchar(191)"
+            )
         )
 
 
 def downgrade():
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
-    conn.execute(text("ALTER TABLE genericaccount DROP COLUMN folder_separator"))
+    conn.execute(
+        text("ALTER TABLE genericaccount DROP COLUMN folder_separator")
+    )
     conn.execute(text("ALTER TABLE genericaccount DROP COLUMN folder_prefix"))

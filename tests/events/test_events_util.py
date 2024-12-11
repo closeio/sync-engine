@@ -32,7 +32,10 @@ def test_removed_participants():
     helena = {"email": "helena@nylas.com", "name": "Helena Handbasket"}
     ben = {"email": "ben@nylas.com", "name": "Ben Handbasket"}
     paul = {"email": "paul@nylas.com", "name": "Paul Hochon"}
-    helena_case_change = {"email": "HELENA@nylas.com", "name": "Helena Handbasket"}
+    helena_case_change = {
+        "email": "HELENA@nylas.com",
+        "name": "Helena Handbasket",
+    }
 
     assert removed_participants([], []) == []
     assert removed_participants([helena], [ben]) == [helena]
@@ -108,7 +111,10 @@ def test_event_emails():
     assert e.emails_from_description == ["test@example.com"]
 
     e.description = '<a href="mailto:test@example.com">other@example.com</a>'
-    assert e.emails_from_description == ["test@example.com", "other@example.com"]
+    assert e.emails_from_description == [
+        "test@example.com",
+        "other@example.com",
+    ]
 
     e.title = "Email: title@example.com"
     assert e.emails_from_title == ["title@example.com"]

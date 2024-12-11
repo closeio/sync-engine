@@ -16,7 +16,10 @@ def draft(db, default_account):
         "subject": f"Draft test at {datetime.utcnow()}",
         "body": "<html><body><h2>Sea, birds and sand.</h2></body></html>",
         "to": [
-            {"name": "The red-haired mermaid", "email": default_account.email_address}
+            {
+                "name": "The red-haired mermaid",
+                "email": default_account.email_address,
+            }
         ],
     }
 
@@ -56,7 +59,9 @@ def test_file_filtering(api_client, uploaded_file_ids, draft):
     results = api_client.get_data("/files?content_type=image%2Fjpeg")
     assert len(results) == 2
 
-    results = api_client.get_data("/files?content_type=image%2Fjpeg&view=count")
+    results = api_client.get_data(
+        "/files?content_type=image%2Fjpeg&view=count"
+    )
     assert results["count"] == 2
 
     results = api_client.get_data("/files?content_type=image%2Fjpeg&view=ids")
@@ -148,7 +153,10 @@ def test_download(api_client, uploaded_file_ids, filename):
     data = api_client.get_raw("/files/{}/download".format(in_file["id"])).data
 
     path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "data", original_filename
+        os.path.dirname(os.path.abspath(__file__)),
+        "..",
+        "data",
+        original_filename,
     )
     with open(path, "rb") as fp:
         local_data = fp.read()
@@ -175,7 +183,9 @@ def fake_attachment(db, default_account, message):
     return p
 
 
-def test_direct_fetching(api_client, db, message, fake_attachment, monkeypatch):
+def test_direct_fetching(
+    api_client, db, message, fake_attachment, monkeypatch
+):
     # Mark a file as missing and check that we try to
     # fetch it from the remote provider.
     get_mock = mock.Mock(return_value=None)
@@ -196,13 +206,20 @@ def test_direct_fetching(api_client, db, message, fake_attachment, monkeypatch):
         data = fd.read()
 
     raw_mock = mock.Mock(return_value=data)
-    monkeypatch.setattr("inbox.s3.backends.gmail.get_gmail_raw_contents", raw_mock)
+    monkeypatch.setattr(
+        "inbox.s3.backends.gmail.get_gmail_raw_contents", raw_mock
+    )
 
-    resp = api_client.get_raw(f"/files/{fake_attachment.block.public_id}/download")
+    resp = api_client.get_raw(
+        f"/files/{fake_attachment.block.public_id}/download"
+    )
 
     for m in [get_mock, save_mock, raw_mock]:
         assert m.called
 
     # Check that we got back the right data, with the right headers.
-    assert resp.headers["Content-Disposition"] == "attachment; filename=zambla.txt"
+    assert (
+        resp.headers["Content-Disposition"]
+        == "attachment; filename=zambla.txt"
+    )
     assert resp.data.decode("utf8") == "Chuis pas rassur\xe9"

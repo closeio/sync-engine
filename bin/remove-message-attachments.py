@@ -48,7 +48,9 @@ def find_blocks(
         inner_max_id_query = inner_max_id_query.limit(limit)
 
     with global_session_scope() as db_session:
-        max_id = db_session.query(func.max(inner_max_id_query.subquery().c.id)).scalar()
+        max_id = db_session.query(
+            func.max(inner_max_id_query.subquery().c.id)
+        ).scalar()
 
     yielded = 0
     last_id = 0
@@ -57,7 +59,9 @@ def find_blocks(
         with global_session_scope() as db_session:
             block_batch = (
                 query.filter(Block.id > last_id)
-                .limit(min(limit, BATCH_SIZE) if limit is not None else BATCH_SIZE)
+                .limit(
+                    min(limit, BATCH_SIZE) if limit is not None else BATCH_SIZE
+                )
                 .with_session(db_session)
                 .all()
             )
@@ -103,7 +107,9 @@ def run(
         if data is None:
             resolution = Resolution.NOT_PRESENT
         else:
-            resolution = Resolution.DELETE if not dry_run else Resolution.WOULD_DELETE
+            resolution = (
+                Resolution.DELETE if not dry_run else Resolution.WOULD_DELETE
+            )
 
         print(
             f"{block.id}/{max_id}",

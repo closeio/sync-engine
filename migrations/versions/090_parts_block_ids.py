@@ -34,7 +34,9 @@ def upgrade():
     )
 
     conn.execute(
-        text("UPDATE part SET block_id=part.id, created_at=:now, updated_at=:now"),
+        text(
+            "UPDATE part SET block_id=part.id, created_at=:now, updated_at=:now"
+        ),
         now=datetime.utcnow(),
     )
 
@@ -63,4 +65,6 @@ def downgrade():
     op.drop_column(table_name, "created_at")
     op.drop_column(table_name, "deleted_at")
     op.drop_column(table_name, "updated_at")
-    op.alter_column(table_name, "id", existing_type=sa.Integer, autoincrement=False)
+    op.alter_column(
+        table_name, "id", existing_type=sa.Integer, autoincrement=False
+    )

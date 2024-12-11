@@ -22,8 +22,10 @@ def upgrade():
 
 def downgrade():
     op.add_column(
-        "calendar", sa.Column("gpush_last_ping", mysql.DATETIME(), nullable=True)
+        "calendar",
+        sa.Column("gpush_last_ping", mysql.DATETIME(), nullable=True),
     )
     op.add_column(
-        "calendar", sa.Column("gpush_expiration", mysql.DATETIME(), nullable=True)
+        "calendar",
+        sa.Column("gpush_expiration", mysql.DATETIME(), nullable=True),
     )

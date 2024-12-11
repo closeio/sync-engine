@@ -67,7 +67,9 @@ def downgrade():
             nullable=True,
         ),
         sa.ForeignKeyConstraint(
-            ["transaction_id"], ["transaction.id"], name="searchindexcursor_ibfk_1"
+            ["transaction_id"],
+            ["transaction.id"],
+            name="searchindexcursor_ibfk_1",
         ),
         sa.PrimaryKeyConstraint("id"),
         mysql_default_charset="utf8mb4",

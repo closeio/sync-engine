@@ -37,7 +37,9 @@ http_server = None
     default=False,
     help="Disables the autoreloader and potentially other non-production features.",
 )
-@click.option("-c", "--config", default=None, help="Path to JSON configuration file.")
+@click.option(
+    "-c", "--config", default=None, help="Path to JSON configuration file."
+)
 @click.option("-p", "--port", default=5555, help="Port to run flask app on.")
 def main(prod, config, port):
     """Launch the Nylas API service."""

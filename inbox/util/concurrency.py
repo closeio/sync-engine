@@ -23,7 +23,12 @@ log = get_logger()
 
 BACKOFF_DELAY = 30  # seconds to wait before retrying after a failure
 
-TRANSIENT_NETWORK_ERRS = (socket.timeout, TimeoutError, socket.error, ssl.SSLError)
+TRANSIENT_NETWORK_ERRS = (
+    socket.timeout,
+    TimeoutError,
+    socket.error,
+    ssl.SSLError,
+)
 
 TRANSIENT_MYSQL_MESSAGES = (
     "try restarting transaction",
@@ -59,8 +64,14 @@ def retry(
         Configures what not to retry on. If specified, func is /not/ retried if
         one of these exceptions is raised.
     """
-    if fail_classes and retry_classes and set(fail_classes).intersection(retry_classes):
-        raise ValueError("Can't include exception classes in both fail_on and retry_on")
+    if (
+        fail_classes
+        and retry_classes
+        and set(fail_classes).intersection(retry_classes)
+    ):
+        raise ValueError(
+            "Can't include exception classes in both fail_on and retry_on"
+        )
 
     def should_retry_on(exc):
         if fail_classes and isinstance(exc, tuple(fail_classes)):
@@ -86,7 +97,9 @@ def retry(
 
             # Sleep a bit so that we don't poll too quickly and re-encounter
             # the error. Also add a random delay to prevent herding effects.
-            interruptible_threading.sleep(backoff_delay + int(random.uniform(1, 10)))
+            interruptible_threading.sleep(
+                backoff_delay + int(random.uniform(1, 10))
+            )
 
     return wrapped
 
@@ -118,7 +131,11 @@ def retry_with_logging(
         ):
             mysql_error = e.orig
 
-        if mysql_error and mysql_error.args and isinstance(mysql_error.args[0], str):
+        if (
+            mysql_error
+            and mysql_error.args
+            and isinstance(mysql_error.args[0], str)
+        ):
             for msg in TRANSIENT_MYSQL_MESSAGES:
                 if msg in mysql_error.args[0]:
                     is_transient = True
@@ -142,11 +159,14 @@ def retry_with_logging(
                 log.error(
                     "Error saving sync_error to account object",
                     account_id=account_id,
-                    **create_error_log_context(sys.exc_info())
+                    **create_error_log_context(sys.exc_info()),
                 )
 
         log_uncaught_errors(
-            logger, account_id=account_id, provider=provider, occurrences=occurrences[0]
+            logger,
+            account_id=account_id,
+            provider=provider,
+            occurrences=occurrences[0],
         )
 
     return retry(
@@ -167,7 +187,7 @@ DEFAULT_SWITCH_PERIOD = datetime.timedelta(seconds=1)
 def iterate_and_periodically_check_interrupted(
     iterable: Iterable[IterableItemT],
     *,
-    switch_period: datetime.timedelta = DEFAULT_SWITCH_PERIOD
+    switch_period: datetime.timedelta = DEFAULT_SWITCH_PERIOD,
 ) -> Iterable[IterableItemT]:
     """
     Given an iterable, yield each item, and periodically check if the
@@ -188,7 +208,7 @@ def iterate_and_periodically_check_interrupted(
 def kill_all(
     interruptible_threads: "Iterable[interruptible_threading.InterruptibleThread]",
     *,
-    block: bool = True
+    block: bool = True,
 ) -> None:
     if not interruptible_threads:
         return
@@ -196,7 +216,9 @@ def kill_all(
     for thread in interruptible_threads:
         thread.kill(block=False)
 
-    while block and not all(thread.ready() for thread in interruptible_threads):
+    while block and not all(
+        thread.ready() for thread in interruptible_threads
+    ):
         time.sleep(0.2)
 
 

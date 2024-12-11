@@ -23,4 +23,6 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_index("ix_thread_namespace_id_recentdate_deleted_at", table_name="thread")
+    op.drop_index(
+        "ix_thread_namespace_id_recentdate_deleted_at", table_name="thread"
+    )

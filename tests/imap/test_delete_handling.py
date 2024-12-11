@@ -8,7 +8,10 @@ from sqlalchemy import desc
 from sqlalchemy.orm.exc import ObjectDeletedError
 
 from inbox.crispin import GmailFlags
-from inbox.mailsync.backends.imap.common import remove_deleted_uids, update_metadata
+from inbox.mailsync.backends.imap.common import (
+    remove_deleted_uids,
+    update_metadata,
+)
 from inbox.mailsync.gc import DeleteHandler, LabelRenameHandler
 from inbox.models import Folder, Message, Transaction
 from inbox.models.label import Label
@@ -64,11 +67,19 @@ def test_deleting_from_a_message_with_multiple_uids(
     """Check that deleting a imapuid from a message with
     multiple uids doesn't mark the message for deletion.
     """
-    inbox_folder = Folder.find_or_create(db.session, default_account, "inbox", "inbox")
-    sent_folder = Folder.find_or_create(db.session, default_account, "sent", "sent")
+    inbox_folder = Folder.find_or_create(
+        db.session, default_account, "inbox", "inbox"
+    )
+    sent_folder = Folder.find_or_create(
+        db.session, default_account, "sent", "sent"
+    )
 
-    add_fake_imapuid(db.session, default_account.id, message, sent_folder, 1337)
-    add_fake_imapuid(db.session, default_account.id, message, inbox_folder, 2222)
+    add_fake_imapuid(
+        db.session, default_account.id, message, sent_folder, 1337
+    )
+    add_fake_imapuid(
+        db.session, default_account.id, message, inbox_folder, 2222
+    )
 
     assert len(message.imapuids) == 2
 
@@ -79,11 +90,18 @@ def test_deleting_from_a_message_with_multiple_uids(
         message.deleted_at is None
     ), "The associated message should not have been marked for deletion."
 
-    assert len(message.imapuids) == 1, "The message should have only one imapuid."
+    assert (
+        len(message.imapuids) == 1
+    ), "The message should have only one imapuid."
 
 
 def test_deletion_with_short_ttl(
-    db, default_account, default_namespace, marked_deleted_message, thread, folder
+    db,
+    default_account,
+    default_namespace,
+    marked_deleted_message,
+    thread,
+    folder,
 ):
     handler = DeleteHandler(
         account_id=default_account.id,
@@ -104,7 +122,12 @@ def test_deletion_with_short_ttl(
 
 
 def test_thread_deletion_with_short_ttl(
-    db, default_account, default_namespace, marked_deleted_message, thread, folder
+    db,
+    default_account,
+    default_namespace,
+    marked_deleted_message,
+    thread,
+    folder,
 ):
     handler = DeleteHandler(
         account_id=default_account.id,
@@ -159,7 +182,12 @@ def test_non_orphaned_messages_get_unmarked(
 
 
 def test_threads_only_deleted_when_no_messages_left(
-    db, default_account, default_namespace, marked_deleted_message, thread, folder
+    db,
+    default_account,
+    default_namespace,
+    marked_deleted_message,
+    thread,
+    folder,
 ):
     handler = DeleteHandler(
         account_id=default_account.id,
@@ -181,7 +209,12 @@ def test_threads_only_deleted_when_no_messages_left(
 
 
 def test_deletion_deferred_with_longer_ttl(
-    db, default_account, default_namespace, marked_deleted_message, thread, folder
+    db,
+    default_account,
+    default_namespace,
+    marked_deleted_message,
+    thread,
+    folder,
 ):
     handler = DeleteHandler(
         account_id=default_account.id,
@@ -199,7 +232,12 @@ def test_deletion_deferred_with_longer_ttl(
 
 
 def test_deletion_creates_revision(
-    db, default_account, default_namespace, marked_deleted_message, thread, folder
+    db,
+    default_account,
+    default_namespace,
+    marked_deleted_message,
+    thread,
+    folder,
 ):
     message_id = marked_deleted_message.id
     thread_id = thread.id
@@ -245,7 +283,9 @@ def test_deleted_labels_get_gced(
     default_namespace = default_account.namespace
 
     # Create a label w/ no messages attached.
-    label = Label.find_or_create(empty_db.session, default_account, "dangling label")
+    label = Label.find_or_create(
+        empty_db.session, default_account, "dangling label"
+    )
     label.deleted_at = datetime.utcnow()
     label.category.deleted_at = datetime.utcnow()
     label_id = label.id
@@ -286,7 +326,14 @@ def test_deleted_labels_get_gced(
 
 
 def test_renamed_label_refresh(
-    db, default_account, thread, message, imapuid, folder, mock_imapclient, monkeypatch
+    db,
+    default_account,
+    thread,
+    message,
+    imapuid,
+    folder,
+    mock_imapclient,
+    monkeypatch,
 ):
     # Check that imapuids see their labels refreshed after running
     # the LabelRenameHandler.
@@ -294,7 +341,11 @@ def test_renamed_label_refresh(
     uid_dict = {msg_uid: GmailFlags((), ("stale label",), ("23",))}
 
     update_metadata(
-        default_account.id, folder.id, folder.canonical_name, uid_dict, db.session
+        default_account.id,
+        folder.id,
+        folder.canonical_name,
+        uid_dict,
+        db.session,
     )
 
     new_flags = {
@@ -313,7 +364,10 @@ def test_renamed_label_refresh(
     semaphore = Semaphore(value=1)
 
     rename_handler = LabelRenameHandler(
-        default_account.id, default_account.namespace.id, "new label", semaphore
+        default_account.id,
+        default_account.namespace.id,
+        "new label",
+        semaphore,
     )
 
     # Acquire the semaphore to check that LabelRenameHandlers block if
@@ -345,5 +399,9 @@ def test_reply_to_message_cascade(db, default_namespace, thread, message):
     db.session.delete(message)
     db.session.commit()
 
-    assert db.session.query(Message).filter(Message.id == message.id).all() == []
-    assert db.session.query(Message).filter(Message.id == reply.id).all() == [reply]
+    assert (
+        db.session.query(Message).filter(Message.id == message.id).all() == []
+    )
+    assert db.session.query(Message).filter(Message.id == reply.id).all() == [
+        reply
+    ]

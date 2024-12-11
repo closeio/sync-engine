@@ -16,7 +16,8 @@ from alembic import op
 
 def upgrade():
     op.add_column(
-        "event", sa.Column("visibility", sa.Enum("private", "public"), nullable=True)
+        "event",
+        sa.Column("visibility", sa.Enum("private", "public"), nullable=True),
     )
 
 

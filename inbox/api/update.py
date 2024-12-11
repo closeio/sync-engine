@@ -53,7 +53,11 @@ def update_thread(thread, request_data, db_session, optimistic):
             for message in thread.messages:
                 if not message.is_draft:
                     update_message_labels(
-                        message, db_session, new_labels, removed_labels, optimistic
+                        message,
+                        db_session,
+                        new_labels,
+                        removed_labels,
+                        optimistic,
                     )
 
     elif folder is not None:
@@ -68,7 +72,9 @@ def update_thread(thread, request_data, db_session, optimistic):
 
     for message in thread.messages:
         if not message.is_draft:
-            update_message_flags(message, db_session, optimistic, unread, starred)
+            update_message_flags(
+                message, db_session, optimistic, unread, starred
+            )
 
 
 ## FLAG UPDATES ##
@@ -85,13 +91,19 @@ def parse_flags(request_data):
     return unread, starred
 
 
-def update_message_flags(message, db_session, optimistic, unread=None, starred=None):
+def update_message_flags(
+    message, db_session, optimistic, unread=None, starred=None
+):
     if unread is not None:
         if optimistic:
             message.is_read = not unread
 
         schedule_action(
-            "mark_unread", message, message.namespace_id, db_session, unread=unread
+            "mark_unread",
+            message,
+            message.namespace_id,
+            db_session,
+            unread=unread,
         )
 
     if starred is not None:
@@ -99,7 +111,11 @@ def update_message_flags(message, db_session, optimistic, unread=None, starred=N
             message.is_starred = starred
 
         schedule_action(
-            "mark_starred", message, message.namespace_id, db_session, starred=starred
+            "mark_starred",
+            message,
+            message.namespace_id,
+            db_session,
+            starred=starred,
         )
 
 
@@ -177,7 +193,8 @@ def parse_labels(request_data, db_session, namespace_id):
             category = (
                 db_session.query(Category)
                 .filter(
-                    Category.namespace_id == namespace_id, Category.public_id == id_
+                    Category.namespace_id == namespace_id,
+                    Category.public_id == id_,
                 )
                 .one()
             )
@@ -230,7 +247,9 @@ def update_message_labels(
         # created_at value. Taken from
         # https://docs.sqlalchemy.org/en/13/orm/extensions/
         # associationproxy.html#simplifying-association-objects
-        MessageCategory(category=category, message=message, created_at=update_time)
+        MessageCategory(
+            category=category, message=message, created_at=update_time
+        )
 
     for category in removed_categories:
         # Removing '\\All'/ \\Trash'/ '\\Spam' does not do anything on Gmail
@@ -254,7 +273,9 @@ def update_message_labels(
     if removed_categories or added_categories:
         message.updated_at = update_time
 
-    apply_gmail_label_rules(db_session, message, added_categories, removed_categories)
+    apply_gmail_label_rules(
+        db_session, message, added_categories, removed_categories
+    )
 
     if removed_labels or added_labels:
         message.categories_changes = True
@@ -294,7 +315,9 @@ def validate_labels(db_session, added_categories, removed_categories):
         raise InputError('"all", "trash" and "spam" cannot all be removed')
 
 
-def apply_gmail_label_rules(db_session, message, added_categories, removed_categories):
+def apply_gmail_label_rules(
+    db_session, message, added_categories, removed_categories
+):
     """
     The API optimistically updates `message.categories` so ensure it does so
     in a manner consistent with Gmail, namely:
@@ -339,7 +362,8 @@ def apply_gmail_label_rules(db_session, message, added_categories, removed_categ
             category = (
                 db_session.query(Category)
                 .filter(
-                    Category.namespace_id == message.namespace_id, Category.name == name
+                    Category.namespace_id == message.namespace_id,
+                    Category.name == name,
                 )
                 .one()
             )

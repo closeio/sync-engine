@@ -54,14 +54,18 @@ def schedule_action(func_name, record, namespace_id, db_session, **kwargs):
 
 class ActionLog(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     namespace_id = Column(
-        ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False, index=True
+        ForeignKey(Namespace.id, ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     namespace = relationship("Namespace")
 
     action = Column(Text(40), nullable=False)
     record_id = Column(BigInteger, nullable=False)
     table_name = Column(Text(40), nullable=False)
-    status = Column(Enum("pending", "successful", "failed"), server_default="pending")
+    status = Column(
+        Enum("pending", "successful", "failed"), server_default="pending"
+    )
     retries = Column(Integer, server_default="0", nullable=False)
 
     extra_args = Column(JSON, nullable=True)

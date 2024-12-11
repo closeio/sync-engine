@@ -84,7 +84,10 @@ def test_message_updates_create_thread_transaction(db, default_namespace):
         transaction = get_latest_transaction(
             db.session, "thread", thr.id, default_namespace.id
         )
-        assert transaction.record_id == thr.id and transaction.object_type == "thread"
+        assert (
+            transaction.record_id == thr.id
+            and transaction.object_type == "thread"
+        )
         assert transaction.command == "update"
 
         # An update to one of the message's propagated_attributes creates a
@@ -132,7 +135,8 @@ def test_message_category_updates_create_transaction(db, default_namespace):
 
         assert latest_message_trx.command == "update"
         assert (
-            thread_trx_before_category_change.id != thread_trx_after_category_change.id
+            thread_trx_before_category_change.id
+            != thread_trx_after_category_change.id
         )
 
 
@@ -323,14 +327,19 @@ def test_transaction_objects_mapped_for_all_models(db, default_namespace):
     transaction_objects() function.
 
     """
-    assert set(HasRevisions.__subclasses__()).issubset(transaction_objects().values())
+    assert set(HasRevisions.__subclasses__()).issubset(
+        transaction_objects().values()
+    )
 
 
 def test_accounttransactions(db, default_namespace):
     account = default_namespace.account
 
     transaction = get_latest_transaction(
-        db.session, "account", default_namespace.account.id, default_namespace.id
+        db.session,
+        "account",
+        default_namespace.account.id,
+        default_namespace.id,
     )
     assert transaction.command == "insert"
     transaction_id = transaction.id
@@ -355,7 +364,10 @@ def test_accounttransactions(db, default_namespace):
         account.last_synced_events = datetime.utcnow()
         db.session.commit()
         transaction = get_latest_transaction(
-            db.session, "account", default_namespace.account.id, default_namespace.id
+            db.session,
+            "account",
+            default_namespace.account.id,
+            default_namespace.id,
         )
         assert transaction.id == transaction_id
         accounttransactions = (
@@ -386,7 +398,10 @@ def test_accounttransactions(db, default_namespace):
         account.sync_state = "invalid"
         db.session.commit()
         transaction = get_latest_transaction(
-            db.session, "account", default_namespace.account.id, default_namespace.id
+            db.session,
+            "account",
+            default_namespace.account.id,
+            default_namespace.id,
         )
         assert transaction.id > transaction_id
         assert transaction.command == "update"

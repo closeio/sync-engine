@@ -57,12 +57,16 @@ def upgrade():
     for table_name in sorted(table_names):
         if table_name != "contact":
             op.add_column(
-                table_name, sa.Column("created_at", sa.DateTime(), nullable=True)
+                table_name,
+                sa.Column("created_at", sa.DateTime(), nullable=True),
             )
             op.add_column(
-                table_name, sa.Column("updated_at", sa.DateTime(), nullable=True)
+                table_name,
+                sa.Column("updated_at", sa.DateTime(), nullable=True),
             )
-        op.add_column(table_name, sa.Column("deleted_at", sa.DateTime(), nullable=True))
+        op.add_column(
+            table_name, sa.Column("deleted_at", sa.DateTime(), nullable=True)
+        )
 
         t = table(
             table_name,
@@ -71,15 +75,24 @@ def upgrade():
         )
         op.execute(
             t.update().values(
-                {"created_at": datetime.utcnow(), "updated_at": datetime.utcnow()}
+                {
+                    "created_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow(),
+                }
             )
         )
 
         op.alter_column(
-            table_name, "created_at", existing_type=sa.DateTime(), nullable=False
+            table_name,
+            "created_at",
+            existing_type=sa.DateTime(),
+            nullable=False,
         )
         op.alter_column(
-            table_name, "updated_at", existing_type=sa.DateTime(), nullable=False
+            table_name,
+            "updated_at",
+            existing_type=sa.DateTime(),
+            nullable=False,
         )
 
     # missing from a prev revision

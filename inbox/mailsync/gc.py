@@ -80,7 +80,9 @@ class DeleteHandler(InterruptibleThread):
         while True:
             interruptible_threading.check_interrupted()
             retry_with_logging(
-                self._run_impl, account_id=self.account_id, provider=self.provider_name
+                self._run_impl,
+                account_id=self.account_id,
+                provider=self.provider_name,
             )
 
     def _run_impl(self):
@@ -153,7 +155,9 @@ class DeleteHandler(InterruptibleThread):
                     # TODO(emfree): This is messy. We need better
                     # abstractions for recomputing a thread's attributes
                     # from messages, here and in mail sync.
-                    non_draft_messages = [m for m in thread.messages if not m.is_draft]
+                    non_draft_messages = [
+                        m for m in thread.messages if not m.is_draft
+                    ]
                     if not non_draft_messages:
                         continue
                     # The value of thread.messages is ordered oldest-to-newest.
@@ -170,7 +174,9 @@ class DeleteHandler(InterruptibleThread):
                 # transaction.
                 db_session.commit()
 
-        delete_message_hashes(self.namespace_id, self.account_id, dangling_sha256s)
+        delete_message_hashes(
+            self.namespace_id, self.account_id, dangling_sha256s
+        )
 
     def gc_deleted_categories(self):
         # Delete categories which have been deleted on the backend.
@@ -178,7 +184,8 @@ class DeleteHandler(InterruptibleThread):
         # associated with it. If not, delete it.
         with session_scope(self.namespace_id) as db_session:
             categories = db_session.query(Category).filter(
-                Category.namespace_id == self.namespace_id, Category.deleted_at > EPOCH
+                Category.namespace_id == self.namespace_id,
+                Category.deleted_at > EPOCH,
             )
 
             for category in categories:
@@ -246,9 +253,14 @@ class LabelRenameHandler(InterruptibleThread):
         return retry_with_logging(self._run_impl, account_id=self.account_id)
 
     def _run_impl(self):
-        self.log.info("Starting LabelRenameHandler", label_name=self.label_name)
+        self.log.info(
+            "Starting LabelRenameHandler", label_name=self.label_name
+        )
 
-        with self.semaphore, connection_pool(self.account_id).get() as crispin_client:
+        with (
+            self.semaphore,
+            connection_pool(self.account_id).get() as crispin_client,
+        ):
             folder_names = []
             with session_scope(self.account_id) as db_session:
                 folders = db_session.query(Folder).filter(
@@ -269,7 +281,8 @@ class LabelRenameHandler(InterruptibleThread):
                     flags = crispin_client.flags(chnk)
 
                     self.log.info(
-                        "Running metadata update for folder", folder_name=folder_name
+                        "Running metadata update for folder",
+                        folder_name=folder_name,
                     )
                     with session_scope(self.account_id) as db_session:
                         fld = (

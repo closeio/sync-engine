@@ -16,11 +16,14 @@ from alembic import op
 
 def upgrade():
     op.add_column(
-        "calendar", sa.Column("webhook_last_ping", sa.DateTime(), nullable=True)
+        "calendar",
+        sa.Column("webhook_last_ping", sa.DateTime(), nullable=True),
     )
     op.add_column(
         "calendar",
-        sa.Column("webhook_subscription_expiration", sa.DateTime(), nullable=True),
+        sa.Column(
+            "webhook_subscription_expiration", sa.DateTime(), nullable=True
+        ),
     )
 
     op.execute(

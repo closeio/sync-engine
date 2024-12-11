@@ -53,14 +53,30 @@ def upgrade():
 
     print("making addrs non-nullable")
 
-    op.alter_column("message", "bcc_addr", existing_type=mysql.TEXT(), nullable=False)
-    op.alter_column("message", "cc_addr", existing_type=mysql.TEXT(), nullable=False)
-    op.alter_column("message", "from_addr", existing_type=mysql.TEXT(), nullable=False)
-    op.alter_column("message", "to_addr", existing_type=mysql.TEXT(), nullable=False)
+    op.alter_column(
+        "message", "bcc_addr", existing_type=mysql.TEXT(), nullable=False
+    )
+    op.alter_column(
+        "message", "cc_addr", existing_type=mysql.TEXT(), nullable=False
+    )
+    op.alter_column(
+        "message", "from_addr", existing_type=mysql.TEXT(), nullable=False
+    )
+    op.alter_column(
+        "message", "to_addr", existing_type=mysql.TEXT(), nullable=False
+    )
 
 
 def downgrade():
-    op.alter_column("message", "to_addr", existing_type=mysql.TEXT(), nullable=True)
-    op.alter_column("message", "from_addr", existing_type=mysql.TEXT(), nullable=True)
-    op.alter_column("message", "cc_addr", existing_type=mysql.TEXT(), nullable=True)
-    op.alter_column("message", "bcc_addr", existing_type=mysql.TEXT(), nullable=True)
+    op.alter_column(
+        "message", "to_addr", existing_type=mysql.TEXT(), nullable=True
+    )
+    op.alter_column(
+        "message", "from_addr", existing_type=mysql.TEXT(), nullable=True
+    )
+    op.alter_column(
+        "message", "cc_addr", existing_type=mysql.TEXT(), nullable=True
+    )
+    op.alter_column(
+        "message", "bcc_addr", existing_type=mysql.TEXT(), nullable=True
+    )

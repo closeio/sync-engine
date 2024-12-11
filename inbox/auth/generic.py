@@ -71,7 +71,9 @@ class GenericAuthHandler(AuthHandler):
             conn.login(account.imap_username, account.imap_password)
         except IMAPClient.Error as exc:
             if auth_is_invalid(exc):
-                log.error("IMAP login failed", account_id=account.id, error=exc)
+                log.error(
+                    "IMAP login failed", account_id=account.id, error=exc
+                )
                 raise ValidationError(exc)
             elif auth_requires_app_password(exc):
                 raise AppPasswordError(exc)

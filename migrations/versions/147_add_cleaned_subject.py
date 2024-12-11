@@ -20,7 +20,8 @@ def upgrade():
     conn.execute(text("set @@lock_wait_timeout = 20;"))
 
     op.add_column(
-        "thread", sa.Column("_cleaned_subject", sa.String(length=255), nullable=True)
+        "thread",
+        sa.Column("_cleaned_subject", sa.String(length=255), nullable=True),
     )
     op.create_index(
         "ix_cleaned_subject",

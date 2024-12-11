@@ -136,7 +136,9 @@ def constants():
 
 
 def patch_gmail_client(monkeypatch, folders):
-    monkeypatch.setattr(GmailCrispinClient, "_fetch_folder_list", lambda x: folders)
+    monkeypatch.setattr(
+        GmailCrispinClient, "_fetch_folder_list", lambda x: folders
+    )
 
     conn = MockedIMAPClient(host="somehost")
     return GmailCrispinClient(
@@ -160,7 +162,10 @@ def patch_generic_client(monkeypatch, folders):
 
 
 def patch_imap4(crispin_client, resp):
-    crispin_client.conn._imap._command_complete.return_value = ("OK", ["Success"])
+    crispin_client.conn._imap._command_complete.return_value = (
+        "OK",
+        ["Success"],
+    )
     crispin_client.conn._imap._untagged_response.return_value = ("OK", resp)
 
 
@@ -175,7 +180,9 @@ def test_g_metadata(gmail_client, constants):
     g_msgid = constants["g_msgid"]
     g_thrid = constants["g_thrid"]
     size = constants["size"]
-    assert gmail_client.g_metadata([uid]) == {uid: GMetadata(g_msgid, g_thrid, size)}
+    assert gmail_client.g_metadata([uid]) == {
+        uid: GMetadata(g_msgid, g_thrid, size)
+    }
 
 
 def test_gmail_flags(gmail_client, constants):
@@ -189,7 +196,9 @@ def test_gmail_flags(gmail_client, constants):
     flags = constants["flags"]
     modseq = constants["modseq"]
     g_labels = constants["unicode_g_labels"]
-    assert gmail_client.flags([uid]) == {uid: GmailFlags(flags, g_labels, modseq)}
+    assert gmail_client.flags([uid]) == {
+        uid: GmailFlags(flags, g_labels, modseq)
+    }
 
 
 def test_gmail_bogus_integer_flags(gmail_client, constants):
@@ -200,7 +209,9 @@ def test_gmail_bogus_integer_flags(gmail_client, constants):
     patch_imap4(gmail_client, [expected_resp])
     uid = constants["uid"]
     modseq = constants["modseq"]
-    assert gmail_client.flags([uid]) == {uid: GmailFlags((b"asd",), [], modseq)}
+    assert gmail_client.flags([uid]) == {
+        uid: GmailFlags((b"asd",), [], modseq)
+    }
 
 
 def test_g_msgids(gmail_client, constants):
@@ -345,7 +356,9 @@ def test_deleted_folder_on_select(monkeypatch, generic_client, constants):
             " server encountered an error"
         )
 
-    monkeypatch.setattr("imapclient.IMAPClient.select_folder", raise_invalid_folder_exc)
+    monkeypatch.setattr(
+        "imapclient.IMAPClient.select_folder", raise_invalid_folder_exc
+    )
 
     with pytest.raises(FolderMissingError):
         generic_client.select_folder("missing_folder", lambda: True)
@@ -783,15 +796,25 @@ def test_imap_many_folders_one_role(monkeypatch, constants):
         assert role in folder_names
         number_roles = 2 if (role in ["sent", "trash"]) else 1
         test_set = [x for x in raw_folders if x.role == role]
-        assert len(test_set) == number_roles, f"assigned wrong number of {role}"
+        assert (
+            len(test_set) == number_roles
+        ), f"assigned wrong number of {role}"
 
 
 def test_german_outlook(monkeypatch):
     folders = [
         ((b"\\Marked", b"\\HasNoChildren"), b"/", "Archiv"),
         ((b"\\HasNoChildren", b"\\Drafts"), b"/", "Entwürfe"),
-        ((b"\\Marked", b"\\HasChildren", b"\\Trash"), b"/", "Gelöschte Elemente"),
-        ((b"\\Marked", b"\\HasNoChildren", b"\\Sent"), b"/", "Gesendete Elemente"),
+        (
+            (b"\\Marked", b"\\HasChildren", b"\\Trash"),
+            b"/",
+            "Gelöschte Elemente",
+        ),
+        (
+            (b"\\Marked", b"\\HasNoChildren", b"\\Sent"),
+            b"/",
+            "Gesendete Elemente",
+        ),
         ((b"\\Marked", b"\\HasNoChildren", b"\\Junk"), b"/", "Junk-E-Mail"),
         ((b"\\Marked", b"\\HasNoChildren"), b"/", "INBOX"),
     ]

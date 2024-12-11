@@ -31,7 +31,10 @@ def downgrade():
     op.drop_constraint("calendar_ibfk_1", "calendar", type_="foreignkey")
     op.drop_constraint("uuid", "calendar", type_="unique")
     op.create_index(
-        "uuid", "calendar", ["namespace_id", "provider_name", "name"], unique=True
+        "uuid",
+        "calendar",
+        ["namespace_id", "provider_name", "name"],
+        unique=True,
     )
     op.create_foreign_key(
         "calendar_ibfk_1", "calendar", "namespace", ["namespace_id"], ["id"]

@@ -84,7 +84,9 @@ def create_folder(crispin_client, account_id, category_id):
 def update_folder(crispin_client, account_id, category_id, args):
     old_name = args["old_name"]
     new_name = args["new_name"]
-    remote_update_folder(crispin_client, account_id, category_id, old_name, new_name)
+    remote_update_folder(
+        crispin_client, account_id, category_id, old_name, new_name
+    )
 
 
 def delete_folder(crispin_client, account_id, category_id):
@@ -98,7 +100,9 @@ def create_label(crispin_client, account_id, category_id):
 def update_label(crispin_client, account_id, category_id, args):
     old_name = args["old_name"]
     new_name = args["new_name"]
-    remote_update_label(crispin_client, account_id, category_id, old_name, new_name)
+    remote_update_label(
+        crispin_client, account_id, category_id, old_name, new_name
+    )
 
 
 def delete_label(crispin_client, account_id, category_id):
@@ -156,7 +160,9 @@ def update_draft(crispin_client, account_id, message_id, args):
             log.warning("tried to save outdated version of draft")
             return
 
-    remote_update_draft(crispin_client, account_id, message_id, old_message_id_header)
+    remote_update_draft(
+        crispin_client, account_id, message_id, old_message_id_header
+    )
 
 
 def delete_draft(crispin_client, account_id, draft_id, args):
@@ -169,7 +175,9 @@ def delete_draft(crispin_client, account_id, draft_id, args):
     nylas_uid = args.get("nylas_uid")
     message_id_header = args.get("message_id_header")
     assert nylas_uid or message_id_header, "Need at least one header value"
-    remote_delete_draft(crispin_client, account_id, nylas_uid, message_id_header)
+    remote_delete_draft(
+        crispin_client, account_id, nylas_uid, message_id_header
+    )
 
 
 def save_sent_email(crispin_client, account_id, message_id):

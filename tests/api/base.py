@@ -16,7 +16,9 @@ class TestAPIClient:
     def __init__(self, test_client, default_namespace_public_id):
         self.client = test_client
         credential = f"{default_namespace_public_id}:".encode()
-        self.auth_header = {"Authorization": f"Basic {b64encode(credential).decode()}"}
+        self.auth_header = {
+            "Authorization": f"Basic {b64encode(credential).decode()}"
+        }
 
     def get_raw(self, path, headers=None):
         headers = headers or {}

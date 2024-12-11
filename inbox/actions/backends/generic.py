@@ -115,7 +115,9 @@ def remote_create_folder(crispin_client, account_id, category_id):
     crispin_client.conn.create_folder(display_name)
 
 
-def remote_update_folder(crispin_client, account_id, category_id, old_name, new_name):
+def remote_update_folder(
+    crispin_client, account_id, category_id, old_name, new_name
+):
     with session_scope(account_id) as db_session:
         account = db_session.query(Account).get(account_id)
         account_provider = account.provider
@@ -180,7 +182,9 @@ def remote_save_draft(crispin_client, account_id, message_id):
     crispin_client.save_draft(mimemsg)
 
 
-def remote_update_draft(crispin_client, account_id, message_id, old_message_id_header):
+def remote_update_draft(
+    crispin_client, account_id, message_id, old_message_id_header
+):
     with session_scope(account_id) as db_session:
         account = db_session.query(Account).get(account_id)
         message = db_session.query(Message).get(message_id)
@@ -193,12 +197,15 @@ def remote_update_draft(crispin_client, account_id, message_id, old_message_id_h
 
     if "drafts" not in crispin_client.folder_names():
         log.warning(
-            "Account has no drafts folder. Will not save draft.", account_id=account_id
+            "Account has no drafts folder. Will not save draft.",
+            account_id=account_id,
         )
         return
     folder_name = crispin_client.folder_names()["drafts"][0]
     crispin_client.select_folder_if_necessary(folder_name, uidvalidity_cb)
-    existing_new_draft = crispin_client.find_by_header("Message-Id", message_id_header)
+    existing_new_draft = crispin_client.find_by_header(
+        "Message-Id", message_id_header
+    )
     if not existing_new_draft:
         crispin_client.save_draft(mimemsg)
     else:
@@ -212,7 +219,9 @@ def remote_update_draft(crispin_client, account_id, message_id, old_message_id_h
     # draft does not always have a message id, in which case we can't
     # replace it.
     if old_message_id_header:
-        old_version_deleted = crispin_client.delete_draft(old_message_id_header)
+        old_version_deleted = crispin_client.delete_draft(
+            old_message_id_header
+        )
         if old_version_deleted:
             log.info(
                 "Cleaned up old draft",
@@ -221,7 +230,9 @@ def remote_update_draft(crispin_client, account_id, message_id, old_message_id_h
             )
 
 
-def remote_delete_draft(crispin_client, account_id, nylas_uid, message_id_header):
+def remote_delete_draft(
+    crispin_client, account_id, nylas_uid, message_id_header
+):
     if "drafts" not in crispin_client.folder_names():
         log.warning(
             "Account has no detected drafts folder; not deleting draft",
@@ -266,7 +277,9 @@ def remote_save_sent(crispin_client, account_id, message_id):
     # If there are multiple sent roles we should at least have a warning about it.
     sent_folder_names = crispin_client.folder_names()["sent"]
     if len(sent_folder_names) > 1:
-        log.warning("Multiple sent folders found for account", account_id=account_id)
+        log.warning(
+            "Multiple sent folders found for account", account_id=account_id
+        )
 
     folder_name = sent_folder_names[0]
     crispin_client.select_folder_if_necessary(folder_name, uidvalidity_cb)

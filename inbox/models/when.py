@@ -5,7 +5,9 @@ from typing import Any, Dict, List, Optional, Type, Union
 import arrow
 
 
-def parse_as_when(raw: Dict[str, Any]) -> Union["TimeSpan", "Time", "DateSpan", "Date"]:
+def parse_as_when(
+    raw: Dict[str, Any]
+) -> Union["TimeSpan", "Time", "DateSpan", "Date"]:
     """
     Tries to parse a dictionary into a corresponding Date, DateSpan,
     Time, or TimeSpan instance.
@@ -16,7 +18,9 @@ def parse_as_when(raw: Dict[str, Any]) -> Union["TimeSpan", "Time", "DateSpan", 
 
     """
     when_classes = [TimeSpan, Time, DateSpan, Date]
-    keys_for_type = {tuple(sorted(cls_.json_keys)): cls_ for cls_ in when_classes}
+    keys_for_type = {
+        tuple(sorted(cls_.json_keys)): cls_ for cls_ in when_classes
+    }
     given_keys = tuple(sorted(set(raw.keys()) - set("object")))
     when_type = keys_for_type.get(given_keys)
     if when_type is None:

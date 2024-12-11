@@ -43,7 +43,9 @@ def test_api_when_as_str(db, api_client, calendar, default_namespace):
         "location": "Nylas HQ",
     }
 
-    e_resp_data = _verify_create(default_namespace.public_id, api_client, e_data)
+    e_resp_data = _verify_create(
+        default_namespace.public_id, api_client, e_data
+    )
     assert e_resp_data["when"]["object"] == "time"
 
 
@@ -55,7 +57,9 @@ def test_api_time(db, api_client, calendar, default_namespace):
         "location": "Nylas HQ",
     }
 
-    e_resp_data = _verify_create(default_namespace.public_id, api_client, e_data)
+    e_resp_data = _verify_create(
+        default_namespace.public_id, api_client, e_data
+    )
     assert e_resp_data["when"]["object"] == "time"
 
 
@@ -67,7 +71,9 @@ def test_api_timespan(db, api_client, calendar, default_namespace):
         "location": "Nylas HQ",
     }
 
-    e_resp_data = _verify_create(default_namespace.public_id, api_client, e_data)
+    e_resp_data = _verify_create(
+        default_namespace.public_id, api_client, e_data
+    )
     assert e_resp_data["when"]["object"] == "timespan"
 
 
@@ -79,7 +85,9 @@ def test_api_date(db, api_client, calendar, default_namespace):
         "location": "Nylas HQ",
     }
 
-    e_resp_data = _verify_create(default_namespace.public_id, api_client, e_data)
+    e_resp_data = _verify_create(
+        default_namespace.public_id, api_client, e_data
+    )
     assert e_resp_data["when"]["object"] == "date"
 
 
@@ -91,21 +99,30 @@ def test_api_datespan(db, api_client, calendar, default_namespace):
         "location": "Nylas HQ",
     }
 
-    e_resp_data = _verify_create(default_namespace.public_id, api_client, e_data)
+    e_resp_data = _verify_create(
+        default_namespace.public_id, api_client, e_data
+    )
     assert e_resp_data["when"]["object"] == "datespan"
 
 
 # Invalid
 
 
-def test_api_invalid_event_no_when(db, api_client, calendar, default_namespace):
-    e_data = {"title": "Friday Office Party", "calendar_id": calendar.public_id}
+def test_api_invalid_event_no_when(
+    db, api_client, calendar, default_namespace
+):
+    e_data = {
+        "title": "Friday Office Party",
+        "calendar_id": calendar.public_id,
+    }
 
     with pytest.raises(CreateError):
         _verify_create(default_namespace.public_id, api_client, e_data)
 
 
-def test_api_invalid_event_when_no_params(db, api_client, calendar, default_namespace):
+def test_api_invalid_event_when_no_params(
+    db, api_client, calendar, default_namespace
+):
     e_data = {
         "title": "Friday Office Party",
         "when": {},
@@ -116,7 +133,9 @@ def test_api_invalid_event_when_no_params(db, api_client, calendar, default_name
         _verify_create(default_namespace.public_id, api_client, e_data)
 
 
-def test_api_invalid_event_when_bad_params(db, api_client, calendar, default_namespace):
+def test_api_invalid_event_when_bad_params(
+    db, api_client, calendar, default_namespace
+):
     e_data = {
         "title": "Friday Office Party",
         "calendar_id": calendar.public_id,
@@ -129,7 +148,10 @@ def test_api_invalid_event_when_bad_params(db, api_client, calendar, default_nam
 def test_api_invalid_event_when_timespan_bad_params(
     db, api_client, calendar, default_namespace
 ):
-    e_data = {"title": "Friday Office Party", "when": {"object": "time", "start": 0}}
+    e_data = {
+        "title": "Friday Office Party",
+        "when": {"object": "time", "start": 0},
+    }
 
     with pytest.raises(CreateError):
         _verify_create(default_namespace.public_id, api_client, e_data)
@@ -251,7 +273,9 @@ def test_api_event_when_update(db, api_client, calendar, default_namespace):
         "when": {"time": 0},
     }
 
-    e_resp_data = _verify_create(default_namespace.public_id, api_client, e_data)
+    e_resp_data = _verify_create(
+        default_namespace.public_id, api_client, e_data
+    )
     e_id = e_resp_data["id"]
 
     e_update_data = {"when": {"time": 1}}

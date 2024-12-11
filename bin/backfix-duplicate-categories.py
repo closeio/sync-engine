@@ -84,7 +84,8 @@ def backfix_shard(shard_id, dry_run):
                 # and consolidated
                 if associated_messages:
                     log.info(
-                        "Category has associated messages", category_id=category_id
+                        "Category has associated messages",
+                        category_id=category_id,
                     )
                     categories_with_messages.append(category_id)
 
@@ -97,7 +98,9 @@ def backfix_shard(shard_id, dry_run):
                     )
 
         if len(categories_with_messages) > 0:
-            log.info("Consolidating messages into category", category_id=master_id)
+            log.info(
+                "Consolidating messages into category", category_id=master_id
+            )
 
             for category_id in categories_with_messages:
                 try:
@@ -120,8 +123,10 @@ def backfix_shard(shard_id, dry_run):
                             mc_exists = db_session.query(
                                 exists().where(
                                     and_(
-                                        MessageCategory.category_id == master_id,
-                                        MessageCategory.message_id == mc.message_id,
+                                        MessageCategory.category_id
+                                        == master_id,
+                                        MessageCategory.message_id
+                                        == mc.message_id,
                                     )
                                 )
                             ).scalar()
@@ -132,9 +137,9 @@ def backfix_shard(shard_id, dry_run):
                                 # and the current category, so we can delete
                                 # the current category
                                 if mc_exists:
-                                    db_session.query(MessageCategory).filter_by(
-                                        id=mc.id
-                                    ).delete()
+                                    db_session.query(
+                                        MessageCategory
+                                    ).filter_by(id=mc.id).delete()
                                 else:
                                     # Master does not have a MessageCategory
                                     # for this message. Update this one to

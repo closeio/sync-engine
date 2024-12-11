@@ -41,7 +41,10 @@ def test_noop_event_update(db, default_namespace, calendar):
     )
 
     event.title = "Test event"
-    event.participants = [{"email": "helena@nylas.com"}, {"email": "benb@nylas.com"}]
+    event.participants = [
+        {"email": "helena@nylas.com"},
+        {"email": "benb@nylas.com"},
+    ]
 
     assert noop_event_update(event, {}) is True
 
@@ -65,7 +68,10 @@ def test_noop_event_update(db, default_namespace, calendar):
     assert noop_event_update(event, update) is True
 
     update = {
-        "participants": [{"email": "benb@nylas.com"}, {"email": "helena@nylas.com"}]
+        "participants": [
+            {"email": "benb@nylas.com"},
+            {"email": "helena@nylas.com"},
+        ]
     }
     assert noop_event_update(event, update) is True
 

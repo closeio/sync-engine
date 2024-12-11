@@ -1,5 +1,3 @@
-# flake8: noqa: F401,F811
-
 from tests.util.base import event
 
 

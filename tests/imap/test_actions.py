@@ -1,4 +1,3 @@
-# flake8: noqa: F401, F811
 import time
 from unittest import mock
 
@@ -27,7 +26,7 @@ from inbox.sendmail.base import (
     update_draft as sendmail_update_draft,
 )
 from inbox.transactions.actions import SyncbackService
-from inbox.util.testutils import mock_imapclient  # noqa
+from inbox.util.testutils import mock_imapclient
 
 from tests.util.base import add_fake_category, add_fake_imapuid
 

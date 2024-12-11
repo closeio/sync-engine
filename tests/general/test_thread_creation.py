@@ -1,4 +1,3 @@
-# flake8: noqa: F401
 # test that T441 doesn't reappear, ever.
 import datetime
 from collections import namedtuple

@@ -8,7 +8,7 @@ from flanker import mime
 from mockredis import mock_strict_redis_client
 from pytest import fixture
 
-from inbox.util.testutils import MockIMAPClient, setup_test_db  # noqa
+from inbox.util.testutils import MockIMAPClient, setup_test_db
 
 
 def absolute_path(path):

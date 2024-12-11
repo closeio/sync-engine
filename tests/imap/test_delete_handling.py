@@ -1,4 +1,3 @@
-# flake8: noqa: F401, F811
 import time
 from datetime import datetime, timedelta
 from threading import Semaphore

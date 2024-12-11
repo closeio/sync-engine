@@ -1,4 +1,3 @@
-# flake8: noqa: F401
 import pytest
 
 from inbox.ignition import init_db, reset_invalid_autoincrements, verify_db

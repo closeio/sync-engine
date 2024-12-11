@@ -1,4 +1,3 @@
-# flake8: noqa: F401
 from datetime import datetime
 
 from inbox.events.google import GoogleEventsProvider

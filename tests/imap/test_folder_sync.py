@@ -1,4 +1,3 @@
-# flake8: noqa: F401, F811
 from hashlib import sha256
 from threading import BoundedSemaphore
 
@@ -18,9 +17,9 @@ from inbox.models.backends.imap import (
     ImapFolderSyncStatus,
     ImapUid,
 )
-from inbox.util.testutils import mock_imapclient  # noqa
+from inbox.util.testutils import mock_imapclient
 
-from tests.imap.data import uid_data, uids  # noqa
+from tests.imap.data import uid_data, uids
 
 
 def create_folder_with_syncstatus(account, name, canonical_name, db_session):

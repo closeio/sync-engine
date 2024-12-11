@@ -1,4 +1,3 @@
-# flake8: noqa: F401
 import pytest
 
 from inbox.util.misc import cleanup_subject

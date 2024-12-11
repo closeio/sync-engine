@@ -49,7 +49,7 @@ def create_test_db() -> None:
         )
 
         subprocess.check_call(
-            f"mysql -h {host} -u{user} -p{password} " f'-e "{cmd}"', shell=True
+            f'mysql -h {host} -u{user} -p{password} -e "{cmd}"', shell=True
         )
 
 

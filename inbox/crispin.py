@@ -620,7 +620,7 @@ class CrispinClient:
         # Unfortunately, some servers don't support the NAMESPACE command.
         # In this case, assume that there's no folder prefix.
         if self.conn.has_capability("NAMESPACE"):
-            folder_prefix, folder_separator = self.conn.namespace()[0][0]
+            folder_prefix, __ = self.conn.namespace()[0][0]
             return folder_prefix
         else:
             return ""

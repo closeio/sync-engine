@@ -1,4 +1,4 @@
-#!/usr/bin/env python  # noqa: N999
+#!/usr/bin/env python
 # Duplicate categories were created because of an inadequate unique constraint
 # in MySQL. This script deletes duplicate categories with no messages
 # associated. If two or more duplicate categories exist with associated

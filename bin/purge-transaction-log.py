@@ -1,4 +1,4 @@
-#!/usr/bin/env python  # noqa: N999
+#!/usr/bin/env python
 """
 Deletes entries in the transaction older than `days_ago` days( as measured by
 the created_at column)

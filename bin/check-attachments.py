@@ -1,4 +1,4 @@
-#!/usr/bin/env python  # noqa: N999
+#!/usr/bin/env python
 # Check that we can fetch attachments for 99.9% of our syncing accounts.
 import concurrent.futures
 import datetime

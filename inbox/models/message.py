@@ -782,7 +782,7 @@ class Message(
         return ["is_read", "is_starred", "messagecategories"]
 
     @property
-    def has_attached_events(self):  # noqa: ANN201
+    def has_attached_events(self) -> bool:
         return "text/calendar" in [p.block.content_type for p in self.parts]
 
     @property

@@ -24,7 +24,7 @@ else:
     env = "prod"
 
 
-def is_live_env():
+def is_live_env() -> bool:
     return env in ["prod", "staging"]
 
 

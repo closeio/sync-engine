@@ -398,7 +398,7 @@ class Event(
         return parsed_owner[0]
 
     @property
-    def is_recurring(self):  # noqa: ANN201
+    def is_recurring(self) -> bool:
         return self.recurrence is not None
 
     @property

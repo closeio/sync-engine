@@ -386,7 +386,7 @@ def should_send_event(obj):  # noqa: ANN201
     return hist.has_changes()
 
 
-def already_registered_listener(obj):  # noqa: ANN201
+def already_registered_listener(obj) -> bool:
     return getattr(obj, "_listener_state", None) is not None
 
 

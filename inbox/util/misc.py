@@ -12,7 +12,7 @@ class DummyContextManager:
     def __enter__(self):  # noqa: ANN204
         return None
 
-    def __exit__(self, exc_type, exc_value, traceback):  # noqa: ANN204
+    def __exit__(self, exc_type, exc_value, traceback) -> bool:
         return False
 
 

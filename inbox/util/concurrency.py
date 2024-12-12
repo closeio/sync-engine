@@ -74,7 +74,7 @@ def retry(  # noqa: ANN201, D417
             "Can't include exception classes in both fail_on and retry_on"
         )
 
-    def should_retry_on(exc):
+    def should_retry_on(exc) -> bool:
         if fail_classes and isinstance(exc, tuple(fail_classes)):
             return False
         if retry_classes and not isinstance(exc, tuple(retry_classes)):

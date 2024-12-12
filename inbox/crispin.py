@@ -1179,7 +1179,9 @@ class CrispinClient:
             self._delete_message(message_id_header)
         return draft_deleted
 
-    def _delete_message(self, message_id_header, delete_multiple=False):
+    def _delete_message(
+        self, message_id_header, delete_multiple=False
+    ) -> bool:
         """
         Delete a message from the selected folder, using the Message-Id header
         to locate it. Does nothing if no matching messages are found, or if

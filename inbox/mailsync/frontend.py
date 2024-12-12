@@ -47,7 +47,7 @@ class ProfilingHTTPFrontend:
             return resp
 
         @app.route("/load")
-        def load():
+        def load() -> str:
             return "Load tracing disabled\n"
 
         @app.route("/mem")

@@ -279,7 +279,7 @@ class Part(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         return self.message.thread_id
 
     @property
-    def is_attachment(self):  # noqa: ANN201
+    def is_attachment(self) -> bool:
         return self.content_disposition is not None
 
     @property

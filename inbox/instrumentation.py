@@ -36,7 +36,7 @@ class ProfileCollector:
         self._stack_counts[stack_str] += 1
         signal.setitimer(signal.ITIMER_VIRTUAL, self.interval, 0)
 
-    def _format_frame(self, frame):
+    def _format_frame(self, frame) -> str:
         return "{}({})".format(
             frame.f_code.co_name, frame.f_globals.get("__name__")
         )

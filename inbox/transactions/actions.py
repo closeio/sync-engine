@@ -76,7 +76,7 @@ EVENT_ACTION_FUNCTION_MAP = {
 }
 
 
-def action_uses_crispin_client(action):  # noqa: ANN201
+def action_uses_crispin_client(action) -> bool:
     return action in MAIL_ACTION_FUNCTION_MAP
 
 
@@ -163,7 +163,7 @@ class SyncbackService(InterruptibleThread):
         self.running_action_ids = set()
         super().__init__()
 
-    def _has_recent_move_action(self, db_session, log_entries):
+    def _has_recent_move_action(self, db_session, log_entries) -> bool:
         """
         Determines if we recently completed a move action. Since Nylas doesn't
         update local UID state after completing an action, we space

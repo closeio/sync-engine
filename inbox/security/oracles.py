@@ -1,4 +1,5 @@
 import enum  # Python 3 style enums from enum34
+from types import TracebackType
 
 import nacl.secret
 import nacl.utils
@@ -57,7 +58,12 @@ class _EncryptionOracle:
     def __enter__(self):  # noqa: ANN204
         return self
 
-    def __exit__(self, exc_type, exc_obj, exc_tb) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_obj: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         self.close()
 
     def __del__(self) -> None:

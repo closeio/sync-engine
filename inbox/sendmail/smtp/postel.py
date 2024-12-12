@@ -3,6 +3,7 @@ import itertools
 import re
 import smtplib
 import ssl
+from types import TracebackType
 
 from inbox.logging import get_logger
 
@@ -146,7 +147,12 @@ class SMTPConnection:
     def __enter__(self):  # noqa: ANN204
         return self
 
-    def __exit__(self, type, value, traceback) -> None:
+    def __exit__(
+        self,
+        type: type[BaseException] | None,
+        value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         try:
             self.connection.quit()
         except smtplib.SMTPServerDisconnected:

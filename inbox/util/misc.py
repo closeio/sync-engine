@@ -3,6 +3,7 @@ import sys
 from datetime import datetime
 from email.utils import mktime_tz, parsedate_tz
 from importlib import import_module
+from types import TracebackType
 
 from inbox.providers import providers
 from inbox.util.file import iter_module_names
@@ -12,7 +13,12 @@ class DummyContextManager:
     def __enter__(self):  # noqa: ANN204
         return None
 
-    def __exit__(self, exc_type, exc_value, traceback) -> bool:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> bool:
         return False
 
 

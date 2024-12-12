@@ -24,7 +24,7 @@ def upgrade() -> None:
 
     from inbox.models.session import session_scope
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Message(Base):

@@ -51,7 +51,7 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     )
 
     @property
-    def canonical_name(self):
+    def canonical_name(self):  # noqa: ANN201
         return self._canonical_name
 
     @canonical_name.setter
@@ -72,7 +72,7 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     initial_sync_end = Column(DateTime, nullable=True)
 
     @validates("name")
-    def validate_name(self, key, name):
+    def validate_name(self, key, name):  # noqa: ANN201
         sanitized_name = sanitize_name(name)
         if sanitized_name != name:
             log.warning(
@@ -83,7 +83,7 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         return sanitized_name
 
     @classmethod
-    def find_or_create(cls, session, account, name, role=None):
+    def find_or_create(cls, session, account, name, role=None):  # noqa: ANN206
         q = (
             session.query(cls)
             .filter(cls.account_id == account.id)
@@ -112,7 +112,7 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         return obj
 
     @classmethod
-    def get(cls, id_, session):
+    def get(cls, id_, session):  # noqa: ANN206
         q = session.query(cls)
         q = q.filter(cls.id == bindparam("id_"))
         return q.params(id_=id_).first()

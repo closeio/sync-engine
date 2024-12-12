@@ -21,7 +21,7 @@ app = Blueprint(
 )
 
 
-def handle_initial_validation_response(view_function):
+def handle_initial_validation_response(view_function):  # noqa: ANN201
     @wraps(view_function)
     def _handle_initial_validation_response(*args, **kwargs):
         """
@@ -48,7 +48,7 @@ def handle_initial_validation_response(view_function):
     return _handle_initial_validation_response
 
 
-def validate_webhook_payload_factory(type: MsGraphType):
+def validate_webhook_payload_factory(type: MsGraphType):  # noqa: ANN201
     def validate_webhook_payload(view_function):
         @wraps(view_function)
         def _validate_webhook_payload(*args, **kwargs):
@@ -61,7 +61,7 @@ def validate_webhook_payload_factory(type: MsGraphType):
             event changes.
             """
             try:
-                request.json
+                request.json  # noqa: B018
             except UnsupportedMediaType:
                 return ("Malformed JSON payload", 415)
 
@@ -84,7 +84,7 @@ def validate_webhook_payload_factory(type: MsGraphType):
                 for notification in change_notifications
                 if notification.get("changeType")
             ):
-                return f"Expected '@odata.type' to be '{type}'", 400
+                return (f"Expected '@odata.type' to be '{type}'", 400)
 
             return view_function(*args, **kwargs)
 
@@ -96,7 +96,7 @@ def validate_webhook_payload_factory(type: MsGraphType):
 @app.route("/calendar_list_update/<account_public_id>", methods=["POST"])
 @handle_initial_validation_response
 @validate_webhook_payload_factory("#Microsoft.Graph.Calendar")
-def calendar_update(account_public_id):
+def calendar_update(account_public_id):  # noqa: ANN201
     """Handle calendar list update for given account."""
     with global_session_scope() as db_session:
         try:
@@ -106,7 +106,7 @@ def calendar_update(account_public_id):
                 .one()
             )
         except NoResultFound:
-            return f"Couldn't find account '{account_public_id}'", 404
+            return (f"Couldn't find account '{account_public_id}'", 404)
 
         account.handle_webhook_notification()
         db_session.commit()
@@ -117,7 +117,7 @@ def calendar_update(account_public_id):
 @app.route("/calendar_update/<calendar_public_id>", methods=["POST"])
 @handle_initial_validation_response
 @validate_webhook_payload_factory("#Microsoft.Graph.Event")
-def event_update(calendar_public_id):
+def event_update(calendar_public_id):  # noqa: ANN201
     """Handle events update for given calendar."""
     with global_session_scope() as db_session:
         try:
@@ -128,7 +128,7 @@ def event_update(calendar_public_id):
                 .one()
             )
         except NoResultFound:
-            return f"Couldn't find calendar '{calendar_public_id}'", 404
+            return (f"Couldn't find calendar '{calendar_public_id}'", 404)
 
         change_notifications: list[MsGraphChangeNotification] = cast(
             MsGraphChangeNotificationCollection, request.json

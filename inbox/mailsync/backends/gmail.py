@@ -60,7 +60,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
         FolderSyncEngine.__init__(self, *args, **kwargs)
         self.saved_uids = set()
 
-    def is_all_mail(self, crispin_client):
+    def is_all_mail(self, crispin_client):  # noqa: ANN201
         if not hasattr(self, "_is_all_mail"):
             folder_names = crispin_client.folder_names()
             self._is_all_mail = (
@@ -69,7 +69,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
             )
         return self._is_all_mail
 
-    def should_idle(self, crispin_client):
+    def should_idle(self, crispin_client):  # noqa: ANN201
         return self.is_all_mail(crispin_client)
 
     def initial_sync_impl(self, crispin_client: "CrispinClient") -> None:
@@ -216,7 +216,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
             for entry in imap_uid_entries.yield_per(chunk_size):
                 if entry.message.g_msgid in mapping:
                     log.debug(
-                        "X-GM-MSGID {} from UID {} to UID {}".format(
+                        "X-GM-MSGID {} from UID {} to UID {}".format(  # noqa: G001
                             entry.message.g_msgid,
                             entry.msg_uid,
                             mapping[entry.message.g_msgid],
@@ -226,7 +226,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 else:
                     db_session.delete(entry)
             log.debug(
-                "UIDVALIDITY from {} to {}".format(
+                "UIDVALIDITY from {} to {}".format(  # noqa: G001
                     imap_folder_info_entry.uidvalidity, uidvalidity
                 )
             )
@@ -367,7 +367,9 @@ class GmailFolderSyncEngine(FolderSyncEngine):
         self.saved_uids.update(new_uids)
         return None
 
-    def expand_uids_to_download(self, crispin_client, uids, metadata):
+    def expand_uids_to_download(  # noqa: ANN201
+        self, crispin_client, uids, metadata
+    ):
         # During Gmail initial sync, we expand threads: given a UID to
         # download, we want to also download other UIDs on the same thread, so
         # that you don't see incomplete thread views for the duration of the
@@ -432,7 +434,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 interruptible_threading.sleep(THROTTLE_WAIT)
 
     @property
-    def throttled(self):
+    def throttled(self):  # noqa: ANN201
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(Account).get(self.account_id)
             throttled = account.throttled
@@ -440,7 +442,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
         return throttled
 
 
-def g_msgids(namespace_id, session, in_):
+def g_msgids(namespace_id, session, in_):  # noqa: ANN201
     if not in_:
         return []
     # Easiest way to account-filter Messages is to namespace-filter from

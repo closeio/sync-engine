@@ -20,7 +20,9 @@ class ProfileCollector:
         try:
             signal.signal(signal.SIGVTALRM, self._sample)
         except ValueError:
-            raise ValueError("Can only sample on the main thread")
+            raise ValueError(  # noqa: B904
+                "Can only sample on the main thread"
+            )
 
         signal.setitimer(signal.ITIMER_VIRTUAL, self.interval, 0)
 
@@ -39,7 +41,7 @@ class ProfileCollector:
             frame.f_code.co_name, frame.f_globals.get("__name__")
         )
 
-    def stats(self):
+    def stats(self):  # noqa: ANN201
         if self._started is None:
             return ""
         elapsed = time.time() - self._started

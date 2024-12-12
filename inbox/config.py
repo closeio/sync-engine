@@ -5,7 +5,7 @@ import urllib3
 import yaml
 
 urllib3.disable_warnings()
-from urllib3.exceptions import InsecureRequestWarning
+from urllib3.exceptions import InsecureRequestWarning  # noqa: E402
 
 urllib3.disable_warnings(InsecureRequestWarning)
 
@@ -76,7 +76,9 @@ def _update_config_from_env(config, env):
     Missing files in the path will be ignored.
 
     """
-    srcdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
+    srcdir = os.path.join(  # noqa: PTH118
+        os.path.dirname(os.path.realpath(__file__)), ".."  # noqa: PTH120
+    )
 
     if env in ["prod", "staging"]:
         base_cfg_path = [
@@ -102,7 +104,7 @@ def _update_config_from_env(config, env):
 
     for filename in reversed(path):
         try:
-            with open(filename) as f:
+            with open(filename) as f:  # noqa: PTH123
                 # this also parses json, which is a subset of yaml
                 config.update(yaml.safe_load(f))
         except OSError as e:

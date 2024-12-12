@@ -38,7 +38,7 @@ def upgrade() -> None:
     from inbox.sqlalchemy_ext.util import b36_to_bin, generate_public_id
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Transaction(Base):

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 
 import os
@@ -16,7 +16,7 @@ def main(revision_id) -> None:
     maybe_enable_rollbar()
 
     alembic_ini_filename = os.environ.get("ALEMBIC_INI_PATH", "alembic.ini")
-    assert os.path.isfile(
+    assert os.path.isfile(  # noqa: PTH113
         alembic_ini_filename
     ), f"Missing alembic.ini file at {alembic_ini_filename}"
 

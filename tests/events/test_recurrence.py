@@ -274,7 +274,9 @@ def test_inflation_exceptions(db, default_account, calendar) -> None:
         assert i.start != arrow.get(2014, 9, 4, 13, 30, 0)
 
 
-def test_inflate_across_DST(db, default_account, calendar) -> None:
+def test_inflate_across_DST(  # noqa: N802
+    db, default_account, calendar
+) -> None:
     # If we inflate a RRULE that covers a change to/from Daylight Savings Time,
     # adjust the base time accordingly to account for the new UTC offset.
     # Daylight Savings for US/PST: March 8, 2015 - Nov 1, 2015
@@ -411,7 +413,7 @@ def test_inflated_events_cant_persist(db, default_account, calendar) -> None:
     infl = event.inflate()
     for i in infl:
         db.session.add(i)
-    with pytest.raises(Exception) as excinfo:
+    with pytest.raises(Exception) as excinfo:  # noqa: PT012
         # FIXME "No handlers could be found for logger" - ensure this is only
         # a test issue or fix.
         db.session.commit()
@@ -669,7 +671,7 @@ def test_made_recurring_then_cancelled(db, default_account, calendar) -> None:
     # the same time, we cancel it.
     normal = recurring_event(db, default_account, calendar, None)
     # Check this is specifically an Event, not a RecurringEvent
-    assert type(normal) == Event
+    assert type(normal) == Event  # noqa: E721
 
     # Update with a recurrence rule *and* cancellation
     update = recurring_event(

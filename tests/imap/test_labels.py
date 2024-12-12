@@ -219,7 +219,7 @@ def test_adding_inbox_adds_all_and_removes_trash_spam(
     # Verify a Gmail message in 'trash', 'spam' cannot have 'inbox'.
     # This time we test that adding 'inbox' to a message in the 'trash'/ 'spam'
     # moves it to 'all' in addition to adding 'inbox'.
-    folder_map, message_map = folder_and_message_maps
+    folder_map, message_map = folder_and_message_maps  # noqa: F841
 
     message = message_map[label]
     resp_data = api_client.get_data(f"/messages/{message.public_id}")
@@ -246,7 +246,7 @@ def test_adding_inbox_adds_all_and_removes_trash_spam(
 def test_adding_a_custom_label_preserves_other_labels(
     db, api_client, default_account, folder_and_message_maps, label
 ):
-    folder_map, message_map = folder_and_message_maps
+    folder_map, message_map = folder_and_message_maps  # noqa: F841
 
     message = message_map[label]
     resp_data = api_client.get_data(f"/messages/{message.public_id}")
@@ -274,7 +274,7 @@ def test_adding_a_custom_label_preserves_other_labels(
 def test_removing_a_mutually_exclusive_label_does_not_orphan_a_message(
     db, api_client, default_account, folder_and_message_maps, label
 ):
-    folder_map, message_map = folder_and_message_maps
+    folder_map, message_map = folder_and_message_maps  # noqa: F841
 
     message = message_map[label]
     resp_data = api_client.get_data(f"/messages/{message.public_id}")

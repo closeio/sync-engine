@@ -76,7 +76,9 @@ def _get_folder_data(db_session, accounts):
     )
 
     for folder_sync_status in folder_sync_statuses:
-        account_id, folder_id, folder_name, state, metrics = folder_sync_status
+        (account_id, folder_id, folder_name, state, metrics) = (
+            folder_sync_status
+        )
         folder_data[account_id][folder_id] = {
             "remote_uid_count": metrics.get("remote_uid_count"),
             "download_uid_count": metrics.get("download_uid_count"),
@@ -91,7 +93,7 @@ def _get_folder_data(db_session, accounts):
 
 
 @app.route("/")
-def index():
+def index():  # noqa: ANN201
     with global_session_scope() as db_session:
         if "namespace_id" in request.args:
             try:
@@ -252,7 +254,7 @@ def index():
                     }
                 )
             except Exception:
-                log.error(
+                log.error(  # noqa: G201
                     "Error while serializing account metrics",
                     account_id=account.id,
                     exc_info=True,
@@ -262,7 +264,7 @@ def index():
 
 
 @app.route("/global-deltas")
-def global_deltas():
+def global_deltas():  # noqa: ANN201
     """
     Return the namespaces with recent transactions.
 
@@ -278,7 +280,7 @@ def global_deltas():
     try:
         start_pointer = int(txnid)
     except ValueError:
-        raise InputError("Invalid cursor parameter")
+        raise InputError("Invalid cursor parameter")  # noqa: B904
 
     txns = redis_txn.zrangebyscore(
         TXN_REDIS_KEY,

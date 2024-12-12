@@ -79,7 +79,7 @@ def update_thread(thread, request_data, db_session, optimistic) -> None:
 ## FLAG UPDATES ##
 
 
-def parse_flags(request_data):
+def parse_flags(request_data):  # noqa: ANN201
     unread = request_data.pop("unread", None)
     if unread is not None and not isinstance(unread, bool):
         raise InputError('"unread" must be true or false')
@@ -121,7 +121,7 @@ def update_message_flags(
 ## FOLDER UPDATES ##
 
 
-def parse_folder(request_data, db_session, namespace_id):
+def parse_folder(request_data, db_session, namespace_id):  # noqa: ANN201
     # TODO deprecate being able to post "folder" and not "folder_id"
     if "folder_id" not in request_data and "folder" not in request_data:
         return None
@@ -144,7 +144,9 @@ def parse_folder(request_data, db_session, namespace_id):
             .one()
         )
     except NoResultFound:
-        raise InputError(f"The folder {folder_public_id} does not exist")
+        raise InputError(  # noqa: B904
+            f"The folder {folder_public_id} does not exist"
+        )
 
 
 def update_message_folder(message, db_session, category, optimistic) -> None:
@@ -165,7 +167,7 @@ def update_message_folder(message, db_session, category, optimistic) -> None:
 ### LABEL UPDATES ###
 
 
-def parse_labels(request_data, db_session, namespace_id):
+def parse_labels(request_data, db_session, namespace_id):  # noqa: ANN201
     # TODO deprecate being able to post "labels" and not "label_ids"
     if "label_ids" not in request_data and "labels" not in request_data:
         return None
@@ -199,7 +201,7 @@ def parse_labels(request_data, db_session, namespace_id):
             )
             labels.add(category)
         except NoResultFound:
-            raise InputError(f"The label {id_} does not exist")
+            raise InputError(f"The label {id_} does not exist")  # noqa: B904
     return labels
 
 
@@ -329,7 +331,7 @@ def apply_gmail_label_rules(
     adding it removes a message out of the '[Gmail]Trash'/ '[Gmail]Spam' folders
     and into the '[Gmail]All Mail' folder.
 
-    """
+    """  # noqa: D401
     add: set[str] = set()
     discard: set[str] = set()
 

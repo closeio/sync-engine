@@ -47,7 +47,7 @@ def normalize_repeated_component(
     """
     Some software can repeat components several times.
     We can safely recover from it if all of them have the same value.
-    """
+    """  # noqa: D401
     if component is None:
         return None
     elif isinstance(component, str):
@@ -58,7 +58,7 @@ def normalize_repeated_component(
         raise MalformedEventError("Cannot normalize component", component)
 
 
-def events_from_ics(namespace, calendar, ics_str):
+def events_from_ics(namespace, calendar, ics_str):  # noqa: ANN201
     try:
         cal = iCalendar.from_ical(ics_str)
     except (ValueError, IndexError, KeyError, TypeError) as e:
@@ -92,7 +92,9 @@ def events_from_ics(namespace, calendar, ics_str):
             try:
                 original_start = component.get("dtstart").dt
             except AttributeError:
-                raise MalformedEventError("Event lacks one of DTSTART")
+                raise MalformedEventError(  # noqa: B904
+                    "Event lacks one of DTSTART"
+                )
 
             if component.get("dtend"):
                 original_end = component["dtend"].dt
@@ -539,7 +541,7 @@ def import_attached_events(
             )
 
 
-def generate_icalendar_invite(event, invite_type="request"):
+def generate_icalendar_invite(event, invite_type="request"):  # noqa: ANN201
     # Generates an iCalendar invite from an event.
     assert invite_type in ["request", "cancel"]
 
@@ -612,7 +614,9 @@ def generate_icalendar_invite(event, invite_type="request"):
     return cal
 
 
-def generate_invite_message(ical_txt, event, account, invite_type="request"):
+def generate_invite_message(  # noqa: ANN201
+    ical_txt, event, account, invite_type="request"
+):
     assert invite_type in ["request", "update", "cancel"]
     html_body = event.description or ""
 
@@ -657,8 +661,8 @@ def generate_invite_message(ical_txt, event, account, invite_type="request"):
 
 def send_invite(ical_txt, event, account, invite_type="request") -> None:
     # We send those transactional emails through a separate domain.
-    MAILGUN_API_KEY = config.get("NOTIFICATIONS_MAILGUN_API_KEY")
-    MAILGUN_DOMAIN = config.get("NOTIFICATIONS_MAILGUN_DOMAIN")
+    MAILGUN_API_KEY = config.get("NOTIFICATIONS_MAILGUN_API_KEY")  # noqa: N806
+    MAILGUN_DOMAIN = config.get("NOTIFICATIONS_MAILGUN_DOMAIN")  # noqa: N806
     assert MAILGUN_DOMAIN is not None
     assert MAILGUN_API_KEY is not None
 
@@ -744,7 +748,7 @@ def _generate_rsvp(status, account, event):
     return {"cal": cal}
 
 
-def generate_rsvp(event, participant, account):
+def generate_rsvp(event, participant, account):  # noqa: ANN201
     # Generates an iCalendar file to RSVP to an invite.
     status = INVERTED_STATUS_MAP.get(participant["status"])
     return _generate_rsvp(status, account, event)
@@ -754,7 +758,7 @@ def generate_rsvp(event, participant, account):
 # We try to find the organizer address from the iCal file.
 # If it's not defined, we try to return the invite sender's
 # email address.
-def rsvp_recipient(event):
+def rsvp_recipient(event):  # noqa: ANN201
     if event is None:
         return None
 

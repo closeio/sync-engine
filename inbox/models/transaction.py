@@ -177,7 +177,7 @@ def increment_versions(session) -> None:
 def bump_redis_txn_id(session) -> None:
     """
     Called from post-flush hook to bump the latest id stored in redis
-    """
+    """  # noqa: D401
 
     def get_namespace_public_id(namespace_id):
         # the namespace was just used to create the transaction, so it should

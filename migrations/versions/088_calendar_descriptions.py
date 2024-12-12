@@ -60,7 +60,7 @@ def upgrade() -> None:
     #
     # Also, any already synced events are read only as nobody has created
     # events yet.
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Calendar(Base):

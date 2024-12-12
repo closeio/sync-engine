@@ -2,7 +2,7 @@ import random
 
 import pytest
 from freezegun import freeze_time
-from pytest import fixture
+from pytest import fixture  # noqa: PT013
 from requests import Response
 
 from inbox.models.namespace import Namespace
@@ -283,7 +283,7 @@ def test_namespace_deletion(db, default_account) -> None:
 
     for m in models:
         c = db.session.query(m).filter(m.namespace_id == namespace_id).count()
-        print("count for", m, ":", c)
+        print("count for", m, ":", c)  # noqa: T201
         assert c != 0
 
     fake_account = add_generic_imap_account(db.session)
@@ -366,7 +366,7 @@ def test_namespace_delete_cascade(db, default_account) -> None:
 
     for m in models:
         c = db.session.query(m).filter(m.namespace_id == namespace_id).count()
-        print("count for", m, ":", c)
+        print("count for", m, ":", c)  # noqa: T201
         assert c != 0
 
     fake_account = add_generic_imap_account(db.session)

@@ -25,7 +25,7 @@ log = get_logger()
 EPOCH = datetime.utcfromtimestamp(0)
 
 
-def sanitize_name(name):
+def sanitize_name(name):  # noqa: ANN201
     return unicode_safe_truncate(name, MAX_INDEXABLE_LENGTH)
 
 
@@ -52,7 +52,7 @@ class Category(
     MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin
 ):
     @property
-    def API_OBJECT_NAME(self):
+    def API_OBJECT_NAME(self):  # noqa: ANN201, N802
         return self.type_
 
     # Override the default `deleted_at` column with one that is NOT NULL --
@@ -81,7 +81,7 @@ class Category(
     type_ = Column(Enum("folder", "label"), nullable=False, default="folder")
 
     @validates("display_name")
-    def validate_display_name(self, key, display_name):
+    def validate_display_name(self, key, display_name):  # noqa: ANN201
         sanitized_name = sanitize_name(display_name)
         if sanitized_name != display_name:
             log.warning(
@@ -92,7 +92,9 @@ class Category(
         return sanitized_name
 
     @classmethod
-    def find_or_create(cls, session, namespace_id, name, display_name, type_):
+    def find_or_create(  # noqa: ANN206
+        cls, session, namespace_id, name, display_name, type_
+    ):
         name = name or ""
 
         objects = (
@@ -136,7 +138,9 @@ class Category(
         return obj
 
     @classmethod
-    def create(cls, session, namespace_id, name, display_name, type_):
+    def create(  # noqa: ANN206
+        cls, session, namespace_id, name, display_name, type_
+    ):
         name = name or ""
         obj = cls(
             namespace_id=namespace_id,
@@ -149,23 +153,23 @@ class Category(
         return obj
 
     @property
-    def account(self):
+    def account(self):  # noqa: ANN201
         return self.namespace.account
 
     @property
-    def type(self):
+    def type(self):  # noqa: ANN201
         return self.account.category_type
 
     @hybrid_property
-    def lowercase_name(self):
+    def lowercase_name(self):  # noqa: ANN201
         return self.display_name.lower()
 
     @lowercase_name.comparator
-    def lowercase_name(cls):
+    def lowercase_name(cls):  # noqa: ANN201, N805
         return CaseInsensitiveComparator(cls.display_name)
 
     @property
-    def api_display_name(self):
+    def api_display_name(self):  # noqa: ANN201
         if self.namespace.account.provider == "gmail":
             if self.display_name.startswith("[Gmail]/"):
                 return self.display_name[8:]
@@ -182,7 +186,7 @@ class Category(
         return self.display_name
 
     @property
-    def is_deleted(self):
+    def is_deleted(self):  # noqa: ANN201
         return self.deleted_at > EPOCH
 
     __table_args__ = (

@@ -40,7 +40,7 @@ TRANSIENT_MYSQL_MESSAGES = (
 )
 
 
-def retry(
+def retry(  # noqa: ANN201, D417
     func,
     retry_classes=None,
     fail_classes=None,
@@ -64,7 +64,7 @@ def retry(
         Configures what not to retry on. If specified, func is /not/ retried if
         one of these exceptions is raised.
 
-    """
+    """  # noqa: D401
     if (
         fail_classes
         and retry_classes
@@ -105,7 +105,7 @@ def retry(
     return wrapped
 
 
-def retry_with_logging(
+def retry_with_logging(  # noqa: ANN201
     func,
     logger=None,
     retry_classes=None,

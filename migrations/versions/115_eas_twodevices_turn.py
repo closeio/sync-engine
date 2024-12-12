@@ -29,7 +29,7 @@ def upgrade() -> None:
 
     from inbox.models.session import session_scope
 
-    Base = sa.ext.declarative.declarative_base()
+    Base = sa.ext.declarative.declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class EASAccount(Base):

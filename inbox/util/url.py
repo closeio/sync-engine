@@ -10,7 +10,7 @@ from inbox.logging import get_logger
 
 log = get_logger("inbox.util.url")
 
-from inbox.providers import providers
+from inbox.providers import providers  # noqa: E402
 
 # http://www.regular-expressions.info/email.html
 EMAIL_REGEX = re.compile(
@@ -46,7 +46,7 @@ def _fallback_get_mx_domains(domain):
         return []
 
 
-def get_mx_domains(domain, dns_resolver=_dns_resolver):
+def get_mx_domains(domain, dns_resolver=_dns_resolver):  # noqa: ANN201
     """Retrieve and return the MX records for a domain."""
     mx_records = []
     try:
@@ -91,7 +91,9 @@ def mx_match(mx_domains, match_domains) -> bool:
     return False
 
 
-def provider_from_address(email_address, dns_resolver=_dns_resolver):
+def provider_from_address(  # noqa: ANN201
+    email_address, dns_resolver=_dns_resolver
+):
     if not EMAIL_REGEX.match(email_address):
         raise InvalidEmailAddressError("Invalid email address")
 
@@ -139,7 +141,7 @@ def provider_from_address(email_address, dns_resolver=_dns_resolver):
 
 
 # From tornado.httputil
-def url_concat(url, args, fragments=None):
+def url_concat(url, args, fragments=None):  # noqa: ANN201
     """
     Concatenate url and argument dictionary regardless of whether
     url has existing query parameters.
@@ -168,18 +170,18 @@ def url_concat(url, args, fragments=None):
     return url + args_tail + fragment_tail
 
 
-def resolve_hostname(addr):
+def resolve_hostname(addr):  # noqa: ANN201
     try:
         return socket.gethostbyname(addr)
     except OSError:
         return None
 
 
-def parent_domain(domain):
+def parent_domain(domain):  # noqa: ANN201
     return tld_extract(domain).registered_domain
 
 
-def naked_domain(url):
+def naked_domain(url):  # noqa: ANN201
     # This function extracts the domain name part of an URL.
     # It works indiscriminately on URLs or plain domains.
     res = tld_extract(url)

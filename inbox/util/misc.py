@@ -9,10 +9,10 @@ from inbox.util.file import iter_module_names
 
 
 class DummyContextManager:
-    def __enter__(self):
+    def __enter__(self):  # noqa: ANN204
         return None
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback):  # noqa: ANN204
         return False
 
 
@@ -20,14 +20,14 @@ class ProviderSpecificException(Exception):
     pass
 
 
-def or_none(value, selector):
+def or_none(value, selector):  # noqa: ANN201
     if value is None:
         return None
     else:
         return selector(value)
 
 
-def parse_ml_headers(headers):
+def parse_ml_headers(headers):  # noqa: ANN201
     """
     Parse the mailing list headers described in RFC 4021,
     these headers are optional (RFC 2369).
@@ -78,7 +78,7 @@ def parse_references(references: str, in_reply_to: str) -> list[str]:
     return reference_list
 
 
-def dt_to_timestamp(dt):
+def dt_to_timestamp(dt):  # noqa: ANN201
     return int((dt - datetime(1970, 1, 1)).total_seconds())
 
 
@@ -98,7 +98,7 @@ def get_internaldate(date: str | None, received: str | None) -> datetime:
 
 
 # Based on: http://stackoverflow.com/a/8556471
-def load_modules(base_name, base_path):
+def load_modules(base_name, base_path):  # noqa: ANN201
     """
     Imports all modules underneath `base_module` in the module tree.
 
@@ -107,7 +107,7 @@ def load_modules(base_name, base_path):
     list
         All the modules in the base module tree.
 
-    """
+    """  # noqa: D401
     modules = []
 
     for module_name in iter_module_names(base_path):
@@ -121,7 +121,7 @@ def load_modules(base_name, base_path):
     return modules
 
 
-def register_backends(base_name, base_path):
+def register_backends(base_name, base_path):  # noqa: ANN201
     """
     Dynamically loads all packages contained within thread
     backends module, including those by other module install paths
@@ -144,7 +144,7 @@ def register_backends(base_name, base_path):
     return mod_for
 
 
-def cleanup_subject(subject_str):
+def cleanup_subject(subject_str):  # noqa: ANN201
     """
     Clean-up a message subject-line, including whitespace.
     For instance, 'Re: Re: Re: Birthday   party' becomes 'Birthday party'
@@ -163,7 +163,7 @@ def cleanup_subject(subject_str):
 # IMAP doesn't support nested folders and instead encodes paths inside folder
 # names.
 # imap_folder_path converts a "/" delimited path to an IMAP compatible path.
-def imap_folder_path(path, separator=".", prefix=""):
+def imap_folder_path(path, separator=".", prefix=""):  # noqa: ANN201
     folders = [folder for folder in path.split("/") if folder != ""]
 
     res = None
@@ -182,7 +182,7 @@ def imap_folder_path(path, separator=".", prefix=""):
     return res
 
 
-def strip_prefix(path, prefix):
+def strip_prefix(path, prefix):  # noqa: ANN201
     if path.startswith(prefix):
         return path[len(prefix) :]
 
@@ -190,7 +190,7 @@ def strip_prefix(path, prefix):
 
 
 # fs_folder_path converts an IMAP compatible path to a "/" delimited path.
-def fs_folder_path(path, separator=".", prefix=""):
+def fs_folder_path(path, separator=".", prefix=""):  # noqa: ANN201
     if prefix:
         path = strip_prefix(path, prefix)
 

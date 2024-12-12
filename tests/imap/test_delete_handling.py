@@ -54,9 +54,9 @@ def test_drafts_deleted_synchronously(
     remove_deleted_uids(default_account.id, folder.id, [msg_uid])
     db.session.expire_all()
     with pytest.raises(ObjectDeletedError):
-        message.id
+        message.id  # noqa: B018
     with pytest.raises(ObjectDeletedError):
-        thread.id
+        thread.id  # noqa: B018
 
 
 def test_deleting_from_a_message_with_multiple_uids(
@@ -115,9 +115,9 @@ def test_deletion_with_short_ttl(
     db.session.expire_all()
     # Check that objects were actually deleted
     with pytest.raises(ObjectDeletedError):
-        marked_deleted_message.id
+        marked_deleted_message.id  # noqa: B018
     with pytest.raises(ObjectDeletedError):
-        thread.id
+        thread.id  # noqa: B018
 
 
 def test_thread_deletion_with_short_ttl(
@@ -143,8 +143,8 @@ def test_thread_deletion_with_short_ttl(
     db.session.expire_all()
 
     with pytest.raises(ObjectDeletedError):
-        marked_deleted_message.id
-    thread.id
+        marked_deleted_message.id  # noqa: B018
+    thread.id  # noqa: B018
     assert thread.deleted_at is not None
 
     handler.check(thread.deleted_at + timedelta(seconds=121))
@@ -152,9 +152,9 @@ def test_thread_deletion_with_short_ttl(
     db.session.expire_all()
 
     with pytest.raises(ObjectDeletedError):
-        marked_deleted_message.id
+        marked_deleted_message.id  # noqa: B018
     with pytest.raises(ObjectDeletedError):
-        thread.id
+        thread.id  # noqa: B018
 
 
 def test_non_orphaned_messages_get_unmarked(
@@ -202,9 +202,9 @@ def test_threads_only_deleted_when_no_messages_left(
     db.session.expire_all()
     # Check that the orphaned message was deleted.
     with pytest.raises(ObjectDeletedError):
-        marked_deleted_message.id
+        marked_deleted_message.id  # noqa: B018
     # Would raise ObjectDeletedError if thread was deleted.
-    thread.id
+    thread.id  # noqa: B018
 
 
 def test_deletion_deferred_with_longer_ttl(
@@ -226,8 +226,8 @@ def test_deletion_deferred_with_longer_ttl(
 
     handler.check(marked_deleted_message.deleted_at + timedelta(seconds=1))
     # Would raise ObjectDeletedError if objects were deleted
-    marked_deleted_message.id
-    thread.id
+    marked_deleted_message.id  # noqa: B018
+    thread.id  # noqa: B018
 
 
 def test_deletion_creates_revision(

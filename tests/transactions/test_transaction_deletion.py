@@ -57,7 +57,7 @@ class TestTransactionDeletion:
         Creates transactions, some new and some old.
 
         Yields the newest transaction
-        """
+        """  # noqa: D401
         # Transactions created less than 30 days ago should not be deleted
         t0 = create_transaction(db, now, default_namespace.id)
         create_transaction(db, now - timedelta(days=29), default_namespace.id)
@@ -75,10 +75,8 @@ class TestTransactionDeletion:
         self, now, db, default_namespace
     ) -> None:
         shard_id = default_namespace.id >> 48
-        query = (
-            "SELECT count(id) FROM transaction WHERE namespace_id={}".format(
-                default_namespace.id
-            )
+        query = "SELECT count(id) FROM transaction WHERE namespace_id={}".format(  # noqa: S608
+            default_namespace.id
         )
         all_transactions = db.session.execute(query).scalar()
 
@@ -90,14 +88,12 @@ class TestTransactionDeletion:
         self, now, db, default_namespace
     ) -> None:
         shard_id = default_namespace.id >> 48
-        query = (
-            "SELECT count(id) FROM transaction WHERE namespace_id={}".format(
-                default_namespace.id
-            )
+        query = "SELECT count(id) FROM transaction WHERE namespace_id={}".format(  # noqa: S608
+            default_namespace.id
         )
         all_transactions = db.session.execute(query).scalar()
         date_query = (
-            "SELECT count(id) FROM transaction WHERE created_at < "
+            "SELECT count(id) FROM transaction WHERE created_at < "  # noqa: S608
             f"DATE_SUB({format_datetime(now)}, INTERVAL 30 day)"
         )
         older_than_thirty_days = db.session.execute(date_query).scalar()
@@ -113,15 +109,13 @@ class TestTransactionDeletion:
         self, now, transactions, db, default_namespace
     ) -> None:
         shard_id = default_namespace.id >> 48
-        query = (
-            "SELECT count(id) FROM transaction WHERE namespace_id={}".format(
-                default_namespace.id
-            )
+        query = "SELECT count(id) FROM transaction WHERE namespace_id={}".format(  # noqa: S608
+            default_namespace.id
         )
         all_transactions = db.session.execute(query).scalar()
 
         date_query = (
-            "SELECT count(id) FROM transaction WHERE created_at < "
+            "SELECT count(id) FROM transaction WHERE created_at < "  # noqa: S608
             f"DATE_SUB({format_datetime(now)}, INTERVAL 1 day)"
         )
         older_than_one_day = db.session.execute(date_query).scalar()

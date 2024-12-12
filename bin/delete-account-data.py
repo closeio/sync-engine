@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 """
 Deletes an account's data permanently.
 
@@ -63,7 +63,7 @@ def delete_account_data(account_id, dry_run, yes, throttle) -> int | None:
             )
         )
 
-        answer = raw_input(question).strip().lower()
+        answer = raw_input(question).strip().lower()  # noqa: F821
 
         if answer != "yes":
             print("Will NOT delete, goodbye.")

@@ -22,7 +22,7 @@ def upgrade() -> None:
 
     engine = main_engine(pool_size=1, max_overflow=0)
 
-    Base = sa.ext.declarative.declarative_base()
+    Base = sa.ext.declarative.declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     op.drop_constraint("folder_fk1", "folder", type_="foreignkey")

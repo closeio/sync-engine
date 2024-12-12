@@ -29,7 +29,7 @@ def test_archive_move_syncback(db, config) -> None:
     set_remote_archived(account, THREAD_ID, False, db.session)
     set_remote_archived(account, THREAD_ID, True, db.session)
 
-    assert (
+    assert (  # noqa: PT018
         account.inbox_folder_id and account.all_folder_id
     ), "`inbox_folder_id` and `all_folder_id` cannot be NULL"
     with crispin_client(account.id, account.provider) as client:

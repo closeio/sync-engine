@@ -23,7 +23,7 @@ class DataProcessingCache(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     contact_groups_last_updated = Column(DateTime)
 
     @property
-    def contact_rankings(self):
+    def contact_rankings(self):  # noqa: ANN201
         if self._contact_rankings is None:
             return None
         else:
@@ -37,7 +37,7 @@ class DataProcessingCache(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         self.contact_rankings_last_updated = datetime.datetime.now()
 
     @property
-    def contact_groups(self):
+    def contact_groups(self):  # noqa: ANN201
         if self._contact_groups is None:
             return None
         else:

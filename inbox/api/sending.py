@@ -8,7 +8,7 @@ from inbox.sendmail.base import SendMailException, get_sendmail_client
 log = get_logger()
 
 
-def send_draft(account, draft, db_session):
+def send_draft(account, draft, db_session):  # noqa: ANN201
     """Send the draft with id = `draft_id`."""
     # Update message state and prepare a response so that we can immediately
     # return it on success, and not potentially have queries fail after
@@ -30,13 +30,13 @@ def send_draft(account, draft, db_session):
     return response_on_success
 
 
-def send_draft_copy(account, draft, custom_body, recipient):
+def send_draft_copy(account, draft, custom_body, recipient):  # noqa: ANN201
     """
     Sends a copy of this draft to the recipient, using the specified body
     rather that the one on the draft object, and not marking the draft as
     sent. Used within multi-send to send messages to individual recipients
     with customized bodies.
-    """
+    """  # noqa: D401
     # Create the response to send on success by serlializing the draft. After
     # serializing, we replace the new custom body (which the recipient will get
     # and which should be returned in this response) in place of the existing
@@ -74,7 +74,7 @@ def update_draft_on_send(account, draft, db_session) -> None:
     db_session.flush()
 
 
-def send_raw_mime(account, db_session, msg):
+def send_raw_mime(account, db_session, msg):  # noqa: ANN201
     # Prepare a response so that we can immediately return it on success, and
     # not potentially have queries fail after sending.
     response_on_success = APIEncoder().jsonify(msg)

@@ -1,4 +1,4 @@
-import datetime
+import datetime  # noqa: INP001
 from unittest import mock
 
 import pytest

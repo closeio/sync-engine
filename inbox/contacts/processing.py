@@ -24,7 +24,7 @@ def _get_contact_map(
     """
     Retrieves or creates contacts for the given address pairs, returning a dict
     with the canonicalized emails mapped to Contact objects.
-    """
+    """  # noqa: D401
     canonicalized_addresses = [
         canonicalize(address) for _, address in all_addresses
     ]

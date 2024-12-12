@@ -1,4 +1,4 @@
-import datetime
+import datetime  # noqa: INP001
 import json
 import unittest.mock
 

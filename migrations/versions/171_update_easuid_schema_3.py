@@ -24,7 +24,7 @@ def upgrade() -> None:
     if not engine.has_table("easuid"):
         return
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class EASUid(Base):

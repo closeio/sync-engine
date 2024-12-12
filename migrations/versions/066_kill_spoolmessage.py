@@ -64,7 +64,7 @@ def upgrade() -> None:
         "message_ibfk_3", "message", "message", ["parent_draft_id"], ["id"]
     )
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Message(Base):

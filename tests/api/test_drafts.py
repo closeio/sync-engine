@@ -49,8 +49,11 @@ def attachments(db):
     filenames = ["muir.jpg", "LetMeSendYouEmail.wav", "piece-jointe.jpg"]
     data = []
     for filename in filenames:
-        path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "..", "data", filename
+        path = os.path.join(  # noqa: PTH118
+            os.path.dirname(os.path.abspath(__file__)),  # noqa: PTH100, PTH120
+            "..",
+            "data",
+            filename,
         ).encode("utf-8")
         # Mac and linux fight over filesystem encodings if we store this
         # filename on the fs. Work around by changing the filename we upload
@@ -193,7 +196,7 @@ def test_create_draft_with_attachments(
     attachment_ids = []
     upload_path = "/files"
     for filename, path in attachments:
-        with open(path, "rb") as fp:
+        with open(path, "rb") as fp:  # noqa: PTH123
             data = {"file": (fp, filename)}
             r = api_client.post_raw(upload_path, data=data)
         assert r.status_code == 200

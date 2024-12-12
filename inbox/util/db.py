@@ -15,7 +15,7 @@ def drop_everything(engine, keep_tables=None, reset_columns=None) -> None:
     `reset_columns` is used to specify the columns that should be reset to
     default value in the tables that we're keeping -
     provided as a dict of table_name: list_of_column_names.
-    """
+    """  # noqa: D401
     keep_tables = keep_tables or []
     reset_columns = reset_columns or {}
     conn = engine.connect()
@@ -43,7 +43,7 @@ def drop_everything(engine, keep_tables=None, reset_columns=None) -> None:
                     if c["name"] in column_names:
                         assert c["default"]
 
-                        q = "UPDATE {} SET {}={};".format(
+                        q = "UPDATE {} SET {}={};".format(  # noqa: S608
                             table_name, c["name"], c["default"]
                         )
                         conn.execute(q)

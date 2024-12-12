@@ -24,7 +24,7 @@ log = get_logger()
 EXPAND_RECURRING_YEARS = 1
 
 
-def link_events(db_session, event):
+def link_events(db_session, event):  # noqa: ANN201
     if isinstance(event, RecurringEvent):
         # Attempt to find my overrides
         return link_overrides(db_session, event)
@@ -34,7 +34,7 @@ def link_events(db_session, event):
     return None
 
 
-def link_overrides(db_session, event):
+def link_overrides(db_session, event):  # noqa: ANN201
     # Find event instances which override this specific
     # RecurringEvent instance.
     overrides = (
@@ -53,7 +53,7 @@ def link_overrides(db_session, event):
     return overrides
 
 
-def link_master(db_session, event):
+def link_master(db_session, event):  # noqa: ANN201
     # Find the master RecurringEvent that spawned this
     # RecurringEventOverride (may not exist if it hasn't
     # been synced yet)
@@ -73,7 +73,7 @@ def link_master(db_session, event):
     return event.master  # This may be None.
 
 
-def parse_rrule(event):
+def parse_rrule(event):  # noqa: ANN201
     # Parse the RRULE string and return a dateutil.rrule.rrule object
     if event.rrule is not None:
         if event.all_day:
@@ -89,7 +89,7 @@ def parse_rrule(event):
 
             return rule
         except Exception as e:
-            log.error(
+            log.error(  # noqa: G201
                 "Error parsing RRULE entry",
                 event_id=event.id,
                 error=e,
@@ -98,7 +98,7 @@ def parse_rrule(event):
     return None
 
 
-def parse_exdate(event):
+def parse_exdate(event):  # noqa: ANN201
     # Parse the EXDATE string and return a list of arrow datetimes
     excl_dates = []
     if event.exdate:
@@ -115,7 +115,7 @@ def parse_exdate(event):
     return excl_dates
 
 
-def get_start_times(event, start=None, end=None):
+def get_start_times(event, start=None, end=None):  # noqa: ANN201
     # Expands the rrule on event to return a list of arrow datetimes
     # representing start times for its recurring instances.
     # If start and/or end are supplied, will return times within that range,
@@ -194,7 +194,7 @@ freq_map = (
 weekday_map = (MO, TU, WE, TH, FR, SA, SU)
 
 
-def rrule_to_json(r):
+def rrule_to_json(r):  # noqa: ANN201
     if not isinstance(r, rrule):
         r = parse_rrule(r)
     info = vars(r)

@@ -77,13 +77,13 @@ class Contact(
     )
 
     @validates("raw_data")
-    def validate_text_column_length(self, key, value):
+    def validate_text_column_length(self, key, value):  # noqa: ANN201
         if value is None:
             return None
         return unicode_safe_truncate(value, MAX_TEXT_CHARS)
 
     @property
-    def versioned_relationships(self):
+    def versioned_relationships(self):  # noqa: ANN201
         return ["phone_numbers"]
 
     def merge_from(self, new_contact) -> None:

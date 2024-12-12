@@ -31,7 +31,9 @@ DB_POOL_TIMEOUT = config.get("DB_POOL_TIMEOUT") or 60
 pool_tracker: MutableMapping[Any, dict[str, Any]] = weakref.WeakKeyDictionary()
 
 
-def build_uri(username, password, hostname, port, database_name):
+def build_uri(  # noqa: ANN201
+    username, password, hostname, port, database_name
+):
     uri_template = (
         "mysql+mysqldb://{username}:{password}@{hostname}"
         ":{port}/{database_name}?charset=utf8mb4"
@@ -45,7 +47,7 @@ def build_uri(username, password, hostname, port, database_name):
     )
 
 
-def engine(
+def engine(  # noqa: ANN201
     database_name,
     database_uri,
     pool_size=DB_POOL_SIZE,
@@ -178,13 +180,13 @@ class EngineManager:
     def shard_key_for_id(self, id_) -> int:
         return 0
 
-    def get_for_id(self, id_):
+    def get_for_id(self, id_):  # noqa: ANN201
         return self.engines[self.shard_key_for_id(id_)]
 
-    def zone_for_id(self, id_):
+    def zone_for_id(self, id_):  # noqa: ANN201
         return self._engine_zones[self.shard_key_for_id(id_)]
 
-    def shards_for_zone(self, zone):
+    def shards_for_zone(self, zone):  # noqa: ANN201
         return [k for k, z in self._engine_zones.items() if z == zone]
 
 
@@ -258,7 +260,9 @@ def verify_db(engine, schema, key) -> None:
         verified.add(table)
 
 
-def reset_invalid_autoincrements(engine, schema, key, dry_run=True):
+def reset_invalid_autoincrements(  # noqa: ANN201
+    engine, schema, key, dry_run=True
+):
     from inbox.models.base import MailSyncBase
 
     query = """SELECT AUTO_INCREMENT from information_schema.TABLES where

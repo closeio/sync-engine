@@ -92,7 +92,7 @@ def upgrade() -> None:
 
     with session_scope(versioned=False) as db_session:
         # create canonical tags that don't already exist.
-        CANONICAL_TAG_NAMES = [
+        CANONICAL_TAG_NAMES = [  # noqa: N806
             "inbox",
             "all",
             "archive",
@@ -135,7 +135,7 @@ def upgrade() -> None:
         count = 0
         for folderitem in db_session.query(FolderItem).yield_per(500):
             folderitem.thread.also_set_tag(None, folderitem, False)
-            count += 1
+            count += 1  # noqa: SIM113
             if not count % 500:
                 db_session.commit()
 

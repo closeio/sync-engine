@@ -112,7 +112,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
         return updates
 
     def _get_raw_calendars(self) -> list[dict[str, Any]]:
-        """Gets raw data for the user's calendars."""
+        """Gets raw data for the user's calendars."""  # noqa: D401
         return self._get_resource_list(CALENDARS_URL)
 
     def _get_raw_events(
@@ -135,7 +135,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
         -------
         list of dictionaries representing JSON.
 
-        """
+        """  # noqa: D401
         if sync_from_time is not None:
             # Note explicit offset is required by Google calendar API.
             sync_from_time_str = (
@@ -152,7 +152,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
                 url, updatedMin=sync_from_time_str, eventTypes="default"
             )
         except requests.exceptions.HTTPError as exc:
-            assert exc.response is not None
+            assert exc.response is not None  # noqa: PT017
             if exc.response.status_code == 410:
                 # The calendar API may return 410 if you pass a value for
                 # updatedMin that's too far in the past. In that case, refetch
@@ -162,7 +162,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
                 raise
 
     def _get_resource_list(self, url: str, **params) -> list[dict[str, Any]]:
-        """Handles response pagination."""
+        """Handles response pagination."""  # noqa: D401
         token = self._get_access_token()
         items = []
         next_page_token: str | None = None
@@ -240,7 +240,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
         event_uid: str | None = None,
         **kwargs,
     ) -> requests.Response:
-        """Makes a POST/PUT/DELETE request for a particular event."""
+        """Makes a POST/PUT/DELETE request for a particular event."""  # noqa: D401
         event_uid = event_uid or ""
         url = "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}".format(
             urllib.parse.quote(calendar_uid), urllib.parse.quote(event_uid)
@@ -251,7 +251,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
         )
         return response
 
-    def create_remote_event(self, event, **kwargs):
+    def create_remote_event(self, event, **kwargs):  # noqa: ANN201
         data = _dump_event(event)
         params = {}
 
@@ -439,7 +439,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
                 # Handle error and return None
                 self._handle_watch_errors(r)
             except requests.exceptions.HTTPError as e:
-                assert e.response is not None
+                assert e.response is not None  # noqa: PT017
                 if e.response.status_code == 404:
                     raise CalendarGoneException(calendar.uid) from e
 
@@ -502,7 +502,9 @@ class GoogleEventsProvider(AbstractEventsProvider):
             )
 
 
-def parse_calendar_response(calendar: dict[str, Any]) -> Calendar:
+def parse_calendar_response(  # noqa: D417
+    calendar: dict[str, Any]
+) -> Calendar:
     """
     Constructs a Calendar object from a Google calendarList resource (a
     dictionary).  See
@@ -516,7 +518,7 @@ def parse_calendar_response(calendar: dict[str, Any]) -> Calendar:
     -------
     A corresponding Calendar instance.
 
-    """
+    """  # noqa: D401
     uid = calendar["id"]
     name = calendar["summary"]
 
@@ -585,7 +587,7 @@ def sanitize_conference_data(
     )
 
 
-def parse_event_response(
+def parse_event_response(  # noqa: D417
     event: dict[str, Any], read_only_calendar: bool
 ) -> Event:
     """
@@ -601,7 +603,7 @@ def parse_event_response(
     A corresponding Event instance. This instance is not committed or added to
     a session.
 
-    """
+    """  # noqa: D401
     uid = str(event["id"])
     # The entirety of the raw event data in json representation.
     raw_data = json.dumps(event)
@@ -715,7 +717,7 @@ def _dump_event(event):
         "description": event.description,
         "location": event.location,
         # Whether the event blocks time on the calendar.
-        "transparency": "opaque" if event.busy else "transparent",
+        "transparency": ("opaque" if event.busy else "transparent"),
     }
 
     if event.all_day:

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 
 import os
@@ -81,7 +81,7 @@ def main(target_hostname, host_ip) -> None:
                 alembic_ini_filename = os.environ.get(
                     "ALEMBIC_INI_PATH", "alembic.ini"
                 )
-                assert os.path.isfile(
+                assert os.path.isfile(  # noqa: PTH113
                     alembic_ini_filename
                 ), f"Must have alembic.ini file at {alembic_ini_filename}"
                 alembic_cfg = alembic.config.Config(alembic_ini_filename)

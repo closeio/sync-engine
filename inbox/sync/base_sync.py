@@ -74,7 +74,7 @@ class BaseSyncMonitor(InterruptibleThread):
                 )
         except ValidationError:
             # Bad account credentials; exit.
-            self.log.error(
+            self.log.error(  # noqa: G201
                 "Credential validation error; exiting",
                 exc_info=True,
                 logstash_tag="mark_invalid",
@@ -91,14 +91,14 @@ class BaseSyncMonitor(InterruptibleThread):
         # If we get a connection or API permissions error, then sleep
         # 2x poll frequency.
         except ConnectionError:
-            self.log.error("Error while polling", exc_info=True)
+            self.log.error("Error while polling", exc_info=True)  # noqa: G201
             interruptible_threading.sleep(
                 introduce_jitter(self.poll_frequency)
             )
         interruptible_threading.sleep(introduce_jitter(self.poll_frequency))
 
     def sync(self) -> Never:
-        """Subclasses should override this to do work"""
+        """Subclasses should override this to do work"""  # noqa: D401
         raise NotImplementedError
 
     def __repr__(self) -> str:

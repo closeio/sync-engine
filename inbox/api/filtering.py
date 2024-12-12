@@ -19,7 +19,9 @@ from inbox.models import (
 from inbox.models.event import RecurringEvent
 
 
-def contact_subquery(db_session, namespace_id, email_address, field):
+def contact_subquery(  # noqa: ANN201
+    db_session, namespace_id, email_address, field
+):
     return (
         db_session.query(Message.thread_id)
         .join(MessageContactAssociation)
@@ -33,7 +35,7 @@ def contact_subquery(db_session, namespace_id, email_address, field):
     )
 
 
-def threads(
+def threads(  # noqa: ANN201
     namespace_id,
     subject,
     from_addr,
@@ -203,7 +205,7 @@ def threads(
     return query.all()
 
 
-def messages_or_drafts(
+def messages_or_drafts(  # noqa: ANN201
     namespace_id,
     drafts,
     subject,
@@ -486,7 +488,7 @@ def messages_or_drafts(
     return prepared.all()
 
 
-def files(
+def files(  # noqa: ANN201
     namespace_id,
     message_public_id,
     filename,
@@ -543,7 +545,7 @@ def files(
         return query.all()
 
 
-def filter_event_query(
+def filter_event_query(  # noqa: ANN201
     query,
     event_cls,
     namespace_id,
@@ -584,7 +586,7 @@ def filter_event_query(
     return query
 
 
-def recurring_events(
+def recurring_events(  # noqa: ANN201
     filters,
     starts_before,
     starts_after,
@@ -642,7 +644,7 @@ def recurring_events(
     return recur_instances
 
 
-def events(
+def events(  # noqa: ANN201
     namespace_id,
     event_public_id,
     calendar_public_id,
@@ -822,7 +824,9 @@ def events(
         return all_events
 
 
-def messages_for_contact_scores(db_session, namespace_id, starts_after=None):
+def messages_for_contact_scores(  # noqa: ANN201
+    db_session, namespace_id, starts_after=None
+):
     query = (
         db_session.query(
             Message.to_addr,

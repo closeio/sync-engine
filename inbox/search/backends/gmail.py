@@ -25,14 +25,16 @@ class GmailSearchClient:
                 self.auth_token = token_manager.get_token(self.account)
                 db_session.expunge_all()
         except OAuthError:
-            raise SearchBackendException(
+            raise SearchBackendException(  # noqa: B904
                 "This search can't be performed because the account's "
                 "credentials are out of date. Please reauthenticate and try "
                 "again.",
                 403,
             )
 
-    def search_messages(self, db_session, search_query, offset=0, limit=40):
+    def search_messages(  # noqa: ANN201
+        self, db_session, search_query, offset=0, limit=40
+    ):
         # We need to get the next limit + offset terms if we want to
         # offset results from the db.
         g_msgids = self._search(search_query, limit=limit + offset)
@@ -57,7 +59,7 @@ class GmailSearchClient:
 
     # We're only issuing a single request to the Gmail API so there's
     # no need to stream it.
-    def stream_messages(self, search_query):
+    def stream_messages(self, search_query):  # noqa: ANN201
         def g():
             encoder = APIEncoder()
 
@@ -68,7 +70,9 @@ class GmailSearchClient:
 
         return g
 
-    def search_threads(self, db_session, search_query, offset=0, limit=40):
+    def search_threads(  # noqa: ANN201
+        self, db_session, search_query, offset=0, limit=40
+    ):
         # We need to get the next limit + offset terms if we want to
         # offset results from the db.
         g_msgids = self._search(search_query, limit=limit + offset)
@@ -94,7 +98,7 @@ class GmailSearchClient:
 
         return query.all()
 
-    def stream_threads(self, search_query):
+    def stream_threads(self, search_query):  # noqa: ANN201
         def g():
             encoder = APIEncoder()
 

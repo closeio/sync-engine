@@ -15,7 +15,7 @@ down_revision = "2a748760ac63"
 
 
 def upgrade() -> None:
-    if "easfoldersyncstatus" in Base.metadata.tables:
+    if "easfoldersyncstatus" in Base.metadata.tables:  # noqa: F821
         from inbox.ignition import main_engine
 
         engine = main_engine(pool_size=1, max_overflow=0)
@@ -24,7 +24,7 @@ def upgrade() -> None:
 
         from inbox.models.session import session_scope
 
-        Base = declarative_base()
+        Base = declarative_base()  # noqa: N806
         Base.metadata.reflect(engine)
         from inbox.models import Folder
         from inbox.models.backends.eas import EASFolderSyncStatus

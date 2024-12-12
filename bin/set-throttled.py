@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: EXE001, N999
 # throttle or unthrottle an account
 
 
@@ -49,7 +49,7 @@ def main() -> None:
     parser.add_option("--unthrottled", action="store_true", default=False)
     parser.add_option("--id", action="store", dest="account_id", default=None)
     parser.add_option("--stdin", action="store_true", default=False)
-    options, remainder = parser.parse_args(sys.argv[1:])
+    options, remainder = parser.parse_args(sys.argv[1:])  # noqa: F841
     if all(opt is False for opt in [options.throttled, options.unthrottled]):
         print_usage()
         sys.exit(-1)
@@ -67,7 +67,7 @@ def main() -> None:
             if len(splat) < 2:
                 continue
 
-            email, id = splat[:2]
+            email, id = splat[:2]  # noqa: A001, F841
             options.account_id = id
             throttle(options)
 

@@ -22,7 +22,7 @@ def upgrade() -> None:
     engine = main_engine(pool_size=1, max_overflow=0)
     from inbox.sqlalchemy_ext.util import JSON, MutableDict
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     op.add_column(
@@ -45,7 +45,7 @@ def downgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     op.drop_column("foldersync", "_sync_status")

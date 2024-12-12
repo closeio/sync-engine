@@ -36,7 +36,7 @@ REPLYSTR = "Re: "
 # and garble the encoded messages when sending, unless you break the lines with
 # '=\r\n'. Their expectation seems to be technically correct, per RFC1521
 # section 5.1. However, we opt to simply avoid this mess entirely.
-def fallback_to_base64(charset, preferred_encoding, body):
+def fallback_to_base64(charset, preferred_encoding, body):  # noqa: ANN201
     if charset in ("ascii", "iso8859=1", "us-ascii"):
         if mime.message.part.has_long_lines(body):
             # In the original implementation, this was
@@ -55,7 +55,7 @@ def fallback_to_base64(charset, preferred_encoding, body):
 mime.message.part.choose_text_encoding = fallback_to_base64
 
 
-def create_email(
+def create_email(  # noqa: ANN201, D417
     from_name,
     from_email,
     reply_to,
@@ -96,7 +96,7 @@ def create_email(
     attachments: list of dicts, optional
         a list of dicts(filename, data, content_type, content_disposition)
 
-    """
+    """  # noqa: D401
     html = html if html else ""
     plaintext = html2text(html)
 
@@ -186,7 +186,7 @@ def create_email(
     return rfcmsg
 
 
-def encode_string(value, maxlinelen):
+def encode_string(value, maxlinelen):  # noqa: ANN201
     try:
         header = Header(value.encode("ascii"), "ascii", maxlinelen)
     except UnicodeEncodeError:
@@ -201,7 +201,7 @@ def _get_full_spec_without_validation(name, email):
     a Flanker address.EmailAddress object. This function exists
     because you can't construct a Flanker EmailAddress object with
     an invalid email address.
-    """
+    """  # noqa: D401, D404
     if name:
         encoded_name = smart_quote(
             encode_string(name, maxlinelen=MAX_ADDRESS_LENGTH)

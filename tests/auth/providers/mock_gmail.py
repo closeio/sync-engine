@@ -67,8 +67,8 @@ class MockGmailAuthHandler(GmailAuthHandler):
         try:
             self.verify_config(account)
         except GmailSettingError as e:
-            print(e)
-            raise UserRecoverableConfigError(e)
+            print(e)  # noqa: T201
+            raise UserRecoverableConfigError(e)  # noqa: B904
 
         return account
 

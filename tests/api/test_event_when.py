@@ -235,7 +235,7 @@ def test_api_invalid_event_when_time_bad_params(
         "when": {"object": "date", "time": 0},
     }
 
-    e_data
+    e_data  # noqa: B018
     with pytest.raises(CreateError):
         _verify_create(default_namespace.public_id, api_client, e_data)
 

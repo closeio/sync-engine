@@ -43,11 +43,11 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
         BaseMailSyncMonitor.__init__(self, account, heartbeat)
 
     @retry_crispin
-    def prepare_sync(self):
+    def prepare_sync(self):  # noqa: ANN201
         """
         Gets and save Folder objects for folders on the IMAP backend. Returns a
         list of folder names for the folders we want to sync (in order).
-        """
+        """  # noqa: D401
         with connection_pool(self.account_id).get() as crispin_client:
             # Get a fresh list of the folder names from the remote
             remote_folders = crispin_client.folders()
@@ -184,7 +184,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                 interruptible_threading.sleep(self.refresh_frequency)
                 self.start_new_folder_sync_engines()
         except ValidationError as exc:
-            log.error(
+            log.error(  # noqa: G201
                 "Error authenticating; stopping sync",
                 exc_info=True,
                 account_id=self.account_id,

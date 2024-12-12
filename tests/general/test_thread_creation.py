@@ -76,7 +76,7 @@ def test_threading_limit(db, folder_sync_engine, monkeypatch) -> None:
     from inbox.models import Message, Thread
 
     # Shorten bound to make test faster
-    MAX_THREAD_LENGTH = 10
+    MAX_THREAD_LENGTH = 10  # noqa: N806
     monkeypatch.setattr(
         "inbox.mailsync.backends.imap.generic.MAX_THREAD_LENGTH",
         MAX_THREAD_LENGTH,

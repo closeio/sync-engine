@@ -23,7 +23,7 @@ def upgrade() -> None:
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = sa.ext.declarative.declarative_base()
+    Base = sa.ext.declarative.declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Secret(Base):
@@ -60,7 +60,7 @@ def upgrade() -> None:
         for s in secrets:
             plain = (
                 s.secret.encode("utf-8")
-                if isinstance(s.secret, unicode)
+                if isinstance(s.secret, unicode)  # noqa: F821
                 else s.secret
             )
             if config.get_required("ENCRYPT_SECRETS"):

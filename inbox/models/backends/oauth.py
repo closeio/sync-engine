@@ -17,7 +17,7 @@ from inbox.models.secret import Secret, SecretType
 log = get_logger()
 
 
-def hash_token(token, prefix=None):
+def hash_token(token, prefix=None):  # noqa: ANN201
     if not token:
         return None
     string = f"{prefix}:{token}" if prefix else token
@@ -121,11 +121,11 @@ class OAuthAccount:
         return None
 
     @declared_attr
-    def refresh_token_id(cls):
+    def refresh_token_id(cls):  # noqa: ANN201, N805
         return Column(ForeignKey(Secret.id), nullable=False)
 
     @declared_attr
-    def secret(cls):
+    def secret(cls):  # noqa: ANN201, N805
         return relationship(
             "Secret",
             cascade="all",
@@ -156,7 +156,7 @@ class OAuthAccount:
         try:
             value.decode("utf-8")
         except UnicodeDecodeError:
-            raise ValueError("Invalid refresh_token")
+            raise ValueError("Invalid refresh_token")  # noqa: B904
 
         if b"\x00" in value:
             raise ValueError("Invalid refresh_token")
@@ -173,7 +173,7 @@ class OAuthAccount:
         self.secret.type = secret_type.value
         self.secret.secret = secret_value
 
-    def get_client_info(self):
+    def get_client_info(self):  # noqa: ANN201
         """
         Obtain the client ID and secret for this OAuth account.
 
@@ -186,7 +186,7 @@ class OAuthAccount:
         else:
             raise OAuthError("No valid tokens.")
 
-    def new_token(
+    def new_token(  # noqa: D417
         self, force_refresh: bool = False, scopes: list[str] | None = None
     ) -> tuple[str, int]:
         """
@@ -202,7 +202,7 @@ class OAuthAccount:
         Raises:
             OAuthError: If no token could be obtained.
 
-        """
+        """  # noqa: D401
         try:
             return self.auth_handler.acquire_access_token(
                 self, force_refresh=force_refresh, scopes=scopes

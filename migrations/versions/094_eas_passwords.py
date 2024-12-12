@@ -31,7 +31,7 @@ def upgrade() -> None:
         "easaccount",
         sa.Column("password_id", sa.Integer(), sa.ForeignKey("secret.id")),
     )
-    Base = sa.ext.declarative.declarative_base()
+    Base = sa.ext.declarative.declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
     from inbox.models.session import session_scope
 

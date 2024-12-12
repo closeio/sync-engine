@@ -51,7 +51,7 @@ from inbox.models.session import session_scope
 log = get_logger()
 
 
-def can_handle_multiple_records(action_name):
+def can_handle_multiple_records(action_name):  # noqa: ANN201
     return action_name == "change_labels"
 
 

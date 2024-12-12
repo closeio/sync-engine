@@ -61,12 +61,12 @@ class Thread(
     version = Column(Integer, nullable=True, server_default="0")
 
     @validates("subject")
-    def compute_cleaned_up_subject(self, key, value):
+    def compute_cleaned_up_subject(self, key, value):  # noqa: ANN201
         self._cleaned_subject = cleanup_subject(value)
         return value
 
     @validates("messages")
-    def update_from_message(self, k, message):
+    def update_from_message(self, k, message):  # noqa: ANN201
         with object_session(self).no_autoflush:
             if message.is_draft:
                 # Don't change subjectdate, recentdate, or unread/unseen based
@@ -84,7 +84,7 @@ class Thread(
             return message
 
     @property
-    def most_recent_received_date(self):
+    def most_recent_received_date(self):  # noqa: ANN201
         received_recent_date: datetime.datetime | None = None
         for m in self.messages:
             if (
@@ -117,12 +117,12 @@ class Thread(
         return received_recent_date
 
     @property
-    def most_recent_sent_date(self):
+    def most_recent_sent_date(self):  # noqa: ANN201
         """
         This is the timestamp of the most recently *sent* message on this
         thread, as decided by whether the message is in the sent folder or
         not. Clients can use this to properly sort the Sent view.
-        """
+        """  # noqa: D404
         sent_recent_date = None
         sorted_messages = sorted(
             self.messages, key=lambda m: m.received_date, reverse=True
@@ -140,19 +140,19 @@ class Thread(
         return not all(m.is_read for m in self.messages if not m.is_draft)
 
     @property
-    def starred(self):
+    def starred(self):  # noqa: ANN201
         return any(m.is_starred for m in self.messages if not m.is_draft)
 
     @property
-    def has_attachments(self):
+    def has_attachments(self):  # noqa: ANN201
         return any(m.attachments for m in self.messages if not m.is_draft)
 
     @property
-    def versioned_relationships(self):
+    def versioned_relationships(self):  # noqa: ANN201
         return ["messages"]
 
     @property
-    def participants(self):
+    def participants(self):  # noqa: ANN201
         """
         Different messages in the thread may reference the same email
         address with different phrases. We partially deduplicate: if the same
@@ -177,7 +177,7 @@ class Thread(
         return p
 
     @property
-    def drafts(self):
+    def drafts(self):  # noqa: ANN201
         """
         Return all drafts on this thread that don't have later revisions.
 
@@ -185,22 +185,22 @@ class Thread(
         return [m for m in self.messages if m.is_draft]
 
     @property
-    def attachments(self):
+    def attachments(self):  # noqa: ANN201
         return any(m.attachments for m in self.messages)
 
     @property
-    def account(self):
+    def account(self):  # noqa: ANN201
         return self.namespace.account
 
     @property
-    def categories(self):
+    def categories(self):  # noqa: ANN201
         categories = set()
         for m in self.messages:
             categories.update(m.categories)
         return categories
 
     @classmethod
-    def api_loading_options(cls, expand=False):
+    def api_loading_options(cls, expand=False):  # noqa: ANN206
         message_columns = [
             "public_id",
             "is_draft",

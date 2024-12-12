@@ -69,7 +69,7 @@ class Account(
         raise NotImplementedError
 
     @property
-    def verbose_provider(self):
+    def verbose_provider(self):  # noqa: ANN201
         """
         A detailed identifier for the account provider
         (e.g., 'gmail', 'office365', 'outlook').
@@ -89,17 +89,17 @@ class Account(
         raise NotImplementedError
 
     @property
-    def auth_handler(self):
+    def auth_handler(self):  # noqa: ANN201
         from inbox.auth.base import handler_from_provider
 
         return handler_from_provider(self.provider)
 
     @property
-    def provider_info(self):
+    def provider_info(self):  # noqa: ANN201
         return provider_info(self.provider)
 
     @property
-    def thread_cls(self):
+    def thread_cls(self):  # noqa: ANN201
         from inbox.models.thread import Thread
 
         return Thread
@@ -149,7 +149,7 @@ class Account(
             self._emailed_events_calendar = cal
 
     @property
-    def emailed_events_calendar(self):
+    def emailed_events_calendar(self):  # noqa: ANN201
         self.create_emailed_events_calendar()
         return self._emailed_events_calendar
 
@@ -172,7 +172,7 @@ class Account(
     # folders and heartbeats.
 
     @property
-    def sync_enabled(self):
+    def sync_enabled(self):  # noqa: ANN201
         return self.sync_should_run
 
     sync_state = Column(
@@ -185,7 +185,7 @@ class Account(
     )
 
     @property
-    def sync_status(self):
+    def sync_status(self):  # noqa: ANN201
         d = dict(
             id=self.id,
             email=self.email_address,
@@ -200,11 +200,11 @@ class Account(
         return d
 
     @property
-    def sync_error(self):
+    def sync_error(self):  # noqa: ANN201
         return self._sync_status.get("sync_error")
 
     @property
-    def initial_sync_start(self):
+    def initial_sync_start(self):  # noqa: ANN201
         if len(self.folders) == 0 or any(
             [f.initial_sync_start is None for f in self.folders]
         ):
@@ -212,7 +212,7 @@ class Account(
         return min(f.initial_sync_start for f in self.folders)
 
     @property
-    def initial_sync_end(self):
+    def initial_sync_end(self):  # noqa: ANN201
         if len(self.folders) == 0 or any(
             [f.initial_sync_end is None for f in self.folders]
         ):
@@ -220,7 +220,7 @@ class Account(
         return max(f.initial_sync_end for f in self.folders)
 
     @property
-    def initial_sync_duration(self):
+    def initial_sync_duration(self):  # noqa: ANN201
         if not self.initial_sync_start or not self.initial_sync_end:
             return None
         return (self.initial_sync_end - self.initial_sync_end).total_seconds()
@@ -323,21 +323,21 @@ class Account(
         return False
 
     @classmethod
-    def get(cls, id_, session):
+    def get(cls, id_, session):  # noqa: ANN206
         q = session.query(cls)
         q = q.filter(cls.id == bindparam("id_"))
         return q.params(id_=id_).first()
 
     @property
-    def is_killed(self):
+    def is_killed(self):  # noqa: ANN201
         return self.sync_state == "killed"
 
     @property
-    def is_running(self):
+    def is_running(self):  # noqa: ANN201
         return self.sync_state == "running"
 
     @property
-    def is_marked_for_deletion(self):
+    def is_marked_for_deletion(self):  # noqa: ANN201
         return (
             self.sync_state in ("stopped", "killed", "invalid")
             and self.sync_should_run is False
@@ -372,7 +372,7 @@ class Account(
     }
 
 
-def should_send_event(obj):
+def should_send_event(obj):  # noqa: ANN201
     if not isinstance(obj, Account):
         return False
     inspected_obj = inspect(obj)
@@ -386,7 +386,7 @@ def should_send_event(obj):
     return hist.has_changes()
 
 
-def already_registered_listener(obj):
+def already_registered_listener(obj):  # noqa: ANN201
     return getattr(obj, "_listener_state", None) is not None
 
 
@@ -409,7 +409,7 @@ def after_flush(session, flush_context) -> None:
             if obj_state["sent_event"]:
                 return
 
-            id = obj_state["id"]
+            id = obj_state["id"]  # noqa: A001
             sync_should_run = obj_state["sync_should_run"]
             sync_host = obj_state["sync_host"]
             desired_sync_host = obj_state["desired_sync_host"]

@@ -911,7 +911,9 @@ def patch_crispin_del_sent(monkeypatch):
         def folder_names(self):
             return ["sent"]
 
-        def delete_sent_message(message_id_header, delete_multiple=False):
+        def delete_sent_message(
+            message_id_header, delete_multiple=False  # noqa: N805
+        ):
             pass
 
     def fake_conn_pool(acct_id):

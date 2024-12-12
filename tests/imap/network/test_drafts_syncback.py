@@ -71,7 +71,9 @@ def test_remote_save_draft(db, config, message) -> None:
         flags = c.conn.get_flags(draft_uids)
         for uid in draft_uids:
             f = flags.get(uid)
-            assert f and "\\Draft" in f, "Message missing '\\Draft' flag"
+            assert (  # noqa: PT018
+                f and "\\Draft" in f
+            ), "Message missing '\\Draft' flag"
 
         c.conn.delete_messages(draft_uids)
         c.conn.expunge()

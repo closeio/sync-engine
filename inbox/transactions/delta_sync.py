@@ -17,7 +17,9 @@ EVENT_NAME_FOR_COMMAND = {
 }
 
 
-def get_transaction_cursor_near_timestamp(namespace_id, timestamp, db_session):
+def get_transaction_cursor_near_timestamp(  # noqa: ANN201
+    namespace_id, timestamp, db_session
+):
     """
     Exchange a timestamp for a 'cursor' into the transaction log entry near
     to that timestamp in age. The cursor is the public_id of that transaction
@@ -94,7 +96,7 @@ def _get_last_trx_id_for_namespace(namespace_id, db_session):
     return q.params(namespace_id=namespace_id).one()[0]
 
 
-def format_transactions_after_pointer(
+def format_transactions_after_pointer(  # noqa: ANN201, D417
     namespace,
     pointer,
     db_session,
@@ -283,7 +285,7 @@ def format_transactions_after_pointer(
             pointer = transactions[-1].id
 
 
-def streaming_change_generator(
+def streaming_change_generator(  # noqa: ANN201, D417
     namespace,
     poll_interval,
     timeout,

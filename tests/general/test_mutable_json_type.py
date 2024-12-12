@@ -25,7 +25,7 @@ def test_mutable_json_type(db, config, default_account, folder) -> None:
     updated_metrics = sync_status.metrics
 
     metrics.update(original_metrics)
-    assert (
+    assert (  # noqa: PT018
         updated_metrics != original_metrics and updated_metrics == metrics
     ), "metrics not updated correctly"
 

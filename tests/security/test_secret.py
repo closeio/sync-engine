@@ -82,7 +82,7 @@ def test_token(db, config, encrypt) -> None:
         ), "token encrypted when encryption disabled"
 
     decrypted_secret = secret.secret  # type: bytes
-    assert decrypted_secret == token.encode(
+    assert decrypted_secret == token.encode(  # noqa: PT018
         "utf-8"
     ) and account.refresh_token == decrypted_secret.decode(
         "utf-8"

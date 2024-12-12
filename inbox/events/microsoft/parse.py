@@ -70,7 +70,9 @@ def get_microsoft_tzinfo(timezone_id: str) -> pytz.tzinfo.BaseTzInfo:
 MAX_DATETIME = datetime.datetime(9999, 12, 31, 23, 59, 59)
 
 
-def parse_msgraph_datetime_tz_as_utc(datetime_tz: MsGraphDateTimeTimeZone):
+def parse_msgraph_datetime_tz_as_utc(  # noqa: ANN201
+    datetime_tz: MsGraphDateTimeTimeZone,
+):
     """
     Parse Microsoft Graph DateTimeTimeZone and return UTC datetime.
 
@@ -221,7 +223,7 @@ def parse_msgraph_range_start_and_until(
     recurrence_timezone = get_recurrence_timezone(event)
     assert recurrence_timezone
     tzinfo = get_microsoft_tzinfo(recurrence_timezone)
-    range = event["recurrence"]["range"]
+    range = event["recurrence"]["range"]  # noqa: A001
 
     start_datetime = combine_msgraph_recurrence_date_with_time(
         range["startDate"], tzinfo, CombineMode.START
@@ -306,7 +308,7 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
     """
     assert event["recurrence"]
     patterned_recurrence = event["recurrence"]
-    pattern, range = (
+    pattern, range = (  # noqa: A001
         patterned_recurrence["pattern"],
         patterned_recurrence["range"],
     )

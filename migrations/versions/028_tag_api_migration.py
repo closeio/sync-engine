@@ -27,7 +27,7 @@ def upgrade() -> None:
 
     engine = main_engine(pool_size=1, max_overflow=0)
 
-    Session = sessionmaker(bind=engine)
+    Session = sessionmaker(bind=engine)  # noqa: N806
 
     @contextmanager
     def basic_session():
@@ -76,7 +76,7 @@ def upgrade() -> None:
         "account", sa.Column("important_folder_id", sa.Integer, nullable=True)
     )
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Folder(Base):

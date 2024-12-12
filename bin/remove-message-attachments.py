@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 import datetime
 import enum
 import logging
@@ -94,8 +94,8 @@ def run(
 ) -> None:
     blocks = find_blocks(
         limit,
-        datetime.datetime.fromisoformat(after) if after else None,
-        datetime.datetime.fromisoformat(before) if before else None,
+        (datetime.datetime.fromisoformat(after) if after else None),
+        (datetime.datetime.fromisoformat(before) if before else None),
     )
 
     for block, max_id in blocks:

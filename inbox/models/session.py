@@ -18,7 +18,7 @@ log = get_logger()
 MAX_SANE_TRX_TIME_MS = 30000
 
 
-def two_phase_session(engine_map, versioned=True):
+def two_phase_session(engine_map, versioned=True):  # noqa: ANN201, D417
     """
     Returns a session that implements two-phase-commit.
 
@@ -29,7 +29,7 @@ def two_phase_session(engine_map, versioned=True):
 
     versioned: bool
 
-    """
+    """  # noqa: D401
     session = Session(
         binds=engine_map, twophase=True, autoflush=True, autocommit=False
     )
@@ -39,8 +39,8 @@ def two_phase_session(engine_map, versioned=True):
     return session
 
 
-def new_session(engine, versioned=True):
-    """Returns a session bound to the given engine."""
+def new_session(engine, versioned=True):  # noqa: ANN201
+    """Returns a session bound to the given engine."""  # noqa: D401
     session = Session(bind=engine, autoflush=True, autocommit=False)
 
     if versioned:
@@ -93,7 +93,7 @@ def new_session(engine, versioned=True):
     return session
 
 
-def configure_versioning(session):
+def configure_versioning(session):  # noqa: ANN201
     from inbox.models.transaction import (
         bump_redis_txn_id,
         create_revisions,
@@ -112,7 +112,7 @@ def configure_versioning(session):
         Hook to log revision snapshots. Must be post-flush in order to
         grab object IDs on new objects.
 
-        """
+        """  # noqa: D401
         # Note: `bump_redis_txn_id` __must__ come first. `create_revisions`
         # creates new objects which haven't been flushed to the db yet.
         # `bump_redis_txn_id` looks at objects on the session and expects them
@@ -128,7 +128,7 @@ def configure_versioning(session):
 
 
 @contextmanager
-def session_scope(id_, versioned=True):
+def session_scope(id_, versioned=True):  # noqa: ANN201
     """
     Provide a transactional scope around a series of operations.
 
@@ -185,7 +185,7 @@ def session_scope(id_, versioned=True):
                 "Encountered OperationalError on rollback",
                 original_exception=type(exc),
             )
-            raise exc
+            raise exc  # noqa: B904
     finally:
         if config.get("LOG_DB_SESSIONS"):
             lifetime = time.time() - start_time
@@ -198,7 +198,7 @@ def session_scope(id_, versioned=True):
 
 
 @contextmanager
-def session_scope_by_shard_id(shard_id, versioned=True):
+def session_scope_by_shard_id(shard_id, versioned=True):  # noqa: ANN201
     key = shard_id << 48
 
     with session_scope(key, versioned) as db_session:
@@ -208,11 +208,11 @@ def session_scope_by_shard_id(shard_id, versioned=True):
 # GLOBAL (cross-shard) queries. USE WITH CAUTION.
 
 
-def shard_chooser(mapper, instance, clause=None):
+def shard_chooser(mapper, instance, clause=None):  # noqa: ANN201
     return str(engine_manager.shard_key_for_id(instance.id))
 
 
-def id_chooser(query, ident):
+def id_chooser(query, ident):  # noqa: ANN201
     # STOPSHIP(emfree): is ident a tuple here???
     # TODO[k]: What if len(list) > 1?
     if isinstance(ident, list) and len(ident) == 1:
@@ -220,12 +220,12 @@ def id_chooser(query, ident):
     return [str(engine_manager.shard_key_for_id(ident))]
 
 
-def query_chooser(query):
+def query_chooser(query):  # noqa: ANN201
     return [str(k) for k in engine_manager.engines]
 
 
 @contextmanager
-def global_session_scope():
+def global_session_scope():  # noqa: ANN201
     shards = {str(k): v for k, v in engine_manager.engines.items()}
     session = ShardedSession(
         shard_chooser=shard_chooser,

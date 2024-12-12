@@ -30,7 +30,7 @@ class IMAPSearchClient:
                 account
             )
         except (IMAPClient.Error, OSError, IMAP4.error):
-            raise SearchBackendException(
+            raise SearchBackendException(  # noqa: B904
                 (
                     "Unable to connect to the IMAP "
                     "server. Please retry in a "
@@ -39,7 +39,7 @@ class IMAPSearchClient:
                 503,
             )
         except ValidationError:
-            raise SearchBackendException(
+            raise SearchBackendException(  # noqa: B904
                 (
                     "This search can't be performed "
                     "because the account's credentials "
@@ -68,7 +68,9 @@ class IMAPSearchClient:
     def _close_crispin_connection(self):
         self.crispin_client.logout()
 
-    def search_messages(self, db_session, search_query, offset=0, limit=40):
+    def search_messages(  # noqa: ANN201
+        self, db_session, search_query, offset=0, limit=40
+    ):
         imap_uids = []
         for uids in self._search(db_session, search_query):
             imap_uids.extend(uids)
@@ -90,7 +92,7 @@ class IMAPSearchClient:
 
         return query.all()
 
-    def stream_messages(self, search_query):
+    def stream_messages(self, search_query):  # noqa: ANN201
         def g():
             encoder = APIEncoder()
 
@@ -112,7 +114,9 @@ class IMAPSearchClient:
 
         return g
 
-    def search_threads(self, db_session, search_query, offset=0, limit=40):
+    def search_threads(  # noqa: ANN201
+        self, db_session, search_query, offset=0, limit=40
+    ):
         imap_uids = []
         for uids in self._search(db_session, search_query):
             imap_uids.extend(uids)
@@ -137,7 +141,7 @@ class IMAPSearchClient:
             query = query.limit(limit)
         return query.all()
 
-    def stream_threads(self, search_query):
+    def stream_threads(self, search_query):  # noqa: ANN201
         def g():
             encoder = APIEncoder()
 
@@ -209,7 +213,7 @@ class IMAPSearchClient:
             self.log.warning("Won't search missing IMAP folder", exc_info=True)
             return []
         except UidInvalid:
-            self.log.error(
+            self.log.error(  # noqa: G201
                 ("Got Uidvalidity error when searching. Skipping."),
                 exc_info=True,
             )
@@ -219,7 +223,7 @@ class IMAPSearchClient:
             uids = self.crispin_client.conn.search(criteria, charset=charset)
         except IMAP4.error:
             self.log.warning("Search error", exc_info=True)
-            raise SearchBackendException(
+            raise SearchBackendException(  # noqa: B904
                 ("Unknown IMAP error when performing search."), 503
             )
 

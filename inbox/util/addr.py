@@ -74,6 +74,6 @@ def parse_mimepart_address_header(
     return sorted(list(elem) for elem in addresses)
 
 
-def extract_emails_from_text(text):
+def extract_emails_from_text(text):  # noqa: ANN201
     emails = EMAIL_FIND_RE.findall(text)
     return [email for email in emails if valid_email(email)]

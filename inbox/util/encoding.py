@@ -22,7 +22,7 @@ def unicode_safe_truncate(s: bytes | str | int, max_length: int) -> str:
     """
     Implements unicode-safe truncation and trims whitespace for a given input
     string, number or unicode string.
-    """
+    """  # noqa: D401
     if isinstance(s, bytes):
         s = s.decode("utf-8", "ignore")
     else:

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 
 import binascii
@@ -36,11 +36,11 @@ def main() -> None:
     # so it better exist.
     # Update it
     try:
-        with open(secrets_path, "a") as f:
+        with open(secrets_path, "a") as f:  # noqa: PTH123
             print(f"Writing keys to secrets config file {secrets_path}")
             yaml.dump(data, f, default_flow_style=False)
     except OSError:
-        raise Exception(
+        raise Exception(  # noqa: B904
             f"Check file write permissions on config file {secrets_path}"
         )
 

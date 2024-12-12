@@ -26,7 +26,7 @@ def _get_redis_connection_pool(host, port, db):
     # instantiating the singleton HeartBeatStore, so doing this here
     # should be okay for now.
     # TODO[k]: Refactor.
-    global connection_pool_map
+    global connection_pool_map  # noqa: PLW0602
 
     connection_pool = connection_pool_map.get(host)
     if connection_pool is None:
@@ -43,11 +43,11 @@ def _get_redis_connection_pool(host, port, db):
     return connection_pool
 
 
-def account_redis_shard_number(account_id):
+def account_redis_shard_number(account_id):  # noqa: ANN201
     return account_id % len(REDIS_SHARDS)
 
 
-def get_redis_client(account_id):
+def get_redis_client(account_id):  # noqa: ANN201
     account_shard_number = account_redis_shard_number(account_id)
     host = REDIS_SHARDS[account_shard_number]
 

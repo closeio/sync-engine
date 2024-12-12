@@ -11,7 +11,9 @@ MAX_THREAD_LENGTH = 500
 MAX_MESSAGES_SCANNED = 20000
 
 
-def fetch_corresponding_thread(db_session, namespace_id, message):
+def fetch_corresponding_thread(  # noqa: ANN201
+    db_session, namespace_id, message
+):
     """
     Fetch a thread matching the corresponding message. Returns None if
     there's no matching thread.

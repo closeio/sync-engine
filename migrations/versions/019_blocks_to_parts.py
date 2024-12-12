@@ -58,10 +58,12 @@ def upgrade() -> None:
     )
 
     print("Reflecting old block table schema")
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Block_(Base):  # old schema, reflected from database table
+    class Block_(  # noqa: N801
+        Base
+    ):  # old schema, reflected from database table
         __table__ = Base.metadata.tables["block"]
 
     print("Adding namespace_id column to blocks ", end=" ")
@@ -82,7 +84,7 @@ def upgrade() -> None:
             p.content_disposition = block.content_disposition
             p.content_id = block.content_id
             p.misc_keyval = block.misc_keyval
-            p.is_inboxapp_attachment
+            p.is_inboxapp_attachment  # noqa: B018
 
             old_namespace = (
                 db_session.query(Namespace)

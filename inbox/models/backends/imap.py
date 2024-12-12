@@ -48,7 +48,7 @@ class ImapAccount(Account):
     _smtp_server_port = Column(Integer, nullable=False, server_default="587")
 
     @property
-    def imap_endpoint(self):
+    def imap_endpoint(self):  # noqa: ANN201
         if self._imap_server_host is not None:
             # We have to take care to coerce to int here and below, because
             # mysqlclient returns Integer columns as type long, and
@@ -65,7 +65,7 @@ class ImapAccount(Account):
         self._imap_server_port = int(port)
 
     @property
-    def smtp_endpoint(self):
+    def smtp_endpoint(self):  # noqa: ANN201
         if self._smtp_server_host is not None:
             return (self._smtp_server_host, int(self._smtp_server_port))
         else:
@@ -77,7 +77,7 @@ class ImapAccount(Account):
         self._smtp_server_host = host
         self._smtp_server_port = int(port)
 
-    def get_raw_message_contents(self, message):
+    def get_raw_message_contents(self, message):  # noqa: ANN201
         from inbox.s3.backends.imap import get_imap_raw_contents
 
         return get_imap_raw_contents(message)
@@ -142,7 +142,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         parameters. Returns True if any values have changed compared to what we
         previously stored.
 
-        """
+        """  # noqa: D401
         changed = False
         new_flags = {flag.decode() for flag in new_flags}
         columns_for_flag = {
@@ -217,7 +217,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
                 self.labels.add(label)
 
     @property
-    def namespace(self):
+    def namespace(self):  # noqa: ANN201
         return self.imapaccount.namespace
 
     @property
@@ -339,7 +339,9 @@ class ImapThread(Thread):
     g_thrid = Column(BigInteger, nullable=True, index=True, unique=False)
 
     @classmethod
-    def from_gmail_message(cls, session, namespace_id, message):
+    def from_gmail_message(  # noqa: ANN206
+        cls, session, namespace_id, message
+    ):
         """
         Threads are broken solely on Gmail's X-GM-THRID for now. (Subjects
         are not taken into account, even if they change.)
@@ -367,7 +369,7 @@ class ImapThread(Thread):
         return thread
 
     @classmethod
-    def from_imap_message(cls, session, namespace_id, message):
+    def from_imap_message(cls, session, namespace_id, message):  # noqa: ANN206
         if message.thread is not None:
             # If this message *already* has a thread associated with it, don't
             # create a new one.
@@ -425,7 +427,7 @@ class ImapFolderSyncStatus(
     _metrics = Column(MutableDict.as_mutable(JSON), default={}, nullable=True)
 
     @property
-    def metrics(self):
+    def metrics(self):  # noqa: ANN201
         status = dict(name=self.folder.name, state=self.state)
         status.update(self._metrics or {})
 
@@ -441,7 +443,7 @@ class ImapFolderSyncStatus(
         self._metrics["sync_end_time"] = datetime.utcnow()
 
     @property
-    def is_killed(self):
+    def is_killed(self):  # noqa: ANN201
         return self._metrics.get("run_state") == "killed"
 
     def update_metrics(self, metrics) -> None:
@@ -466,7 +468,7 @@ class ImapFolderSyncStatus(
             self._metrics = metrics
 
     @property
-    def sync_enabled(self):
+    def sync_enabled(self):  # noqa: ANN201
         # sync is enabled if the folder's run bit is set, and the account's
         # run bit is set. (this saves us needing to reproduce account-state
         # transition logic on the folder level, and gives us a comparison bit
@@ -498,7 +500,7 @@ class LabelItem(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     )
 
     @property
-    def namespace(self):
+    def namespace(self):  # noqa: ANN201
         return self.label.namespace
 
 

@@ -16,7 +16,9 @@ AccountPing = namedtuple("AccountPing", ["id", "folders"])
 FolderPing = namedtuple("FolderPing", ["id", "alive", "timestamp"])
 
 
-def get_ping_status(account_ids, host=None, port=6379, threshold=ALIVE_EXPIRY):
+def get_ping_status(  # noqa: ANN201
+    account_ids, host=None, port=6379, threshold=ALIVE_EXPIRY
+):
     # Query the indexes and not the per-folder info for faster lookup.
     store = HeartbeatStore.store(host, port)
     now = time.time()
@@ -48,7 +50,9 @@ def get_ping_status(account_ids, host=None, port=6379, threshold=ALIVE_EXPIRY):
         return accounts
 
 
-def clear_heartbeat_status(account_id, folder_id=None, device_id=None):
+def clear_heartbeat_status(  # noqa: ANN201
+    account_id, folder_id=None, device_id=None
+):
     # Clears the status for the account, folder and/or device.
     # Returns the number of folders cleared.
     store = HeartbeatStore.store()

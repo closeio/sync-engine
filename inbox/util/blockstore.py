@@ -16,8 +16,8 @@ log = get_logger()
 # TODO: store AWS credentials in a better way.
 STORE_MSG_ON_S3 = config.get("STORE_MESSAGES_ON_S3", None)
 
-import boto3
-import botocore.exceptions
+import boto3  # noqa: E402
+import botocore.exceptions  # noqa: E402
 
 # https://github.com/facebook/zstd/blob/dev/doc/zstd_compression_format.md#zstandard-frames
 # > This value was selected to be less probable to find at the beginning of some random file.
@@ -28,7 +28,7 @@ ZSTD_MAGIC_NUMBER_PREFIX = 0xFD2FB528.to_bytes(4, "little")
 
 
 def _data_file_directory(h):
-    return os.path.join(
+    return os.path.join(  # noqa: PTH118
         config.get_required("MSG_PARTS_DIRECTORY"),
         h[0],
         h[1],
@@ -40,7 +40,7 @@ def _data_file_directory(h):
 
 
 def _data_file_path(h):
-    return os.path.join(_data_file_directory(h), h)
+    return os.path.join(_data_file_directory(h), h)  # noqa: PTH118
 
 
 def maybe_compress_raw_mime(
@@ -141,9 +141,9 @@ def save_to_blockstore(
         _save_to_s3(data_sha256, data, overwrite=overwrite)
     else:
         directory = _data_file_directory(data_sha256)
-        os.makedirs(directory, exist_ok=True)
+        os.makedirs(directory, exist_ok=True)  # noqa: PTH103
 
-        with open(_data_file_path(data_sha256), "wb") as f:
+        with open(_data_file_path(data_sha256), "wb") as f:  # noqa: PTH123
             f.write(data)
 
 
@@ -162,7 +162,7 @@ def _save_to_s3(
     )
 
 
-def get_s3_bucket(bucket_name):
+def get_s3_bucket(bucket_name):  # noqa: ANN201
     resource = boto3.resource(
         "s3",
         aws_access_key_id=config.get("AWS_ACCESS_KEY_ID"),
@@ -331,7 +331,7 @@ def _get_from_disk(data_sha256):
         return None
 
     try:
-        with open(_data_file_path(data_sha256), "rb") as f:
+        with open(_data_file_path(data_sha256), "rb") as f:  # noqa: PTH123
             return f.read()
     except OSError:
         log.warning(f"No file with name: {data_sha256}!")
@@ -372,7 +372,7 @@ def _delete_from_disk(data_sha256):
         return
 
     try:
-        os.remove(_data_file_path(data_sha256))
+        os.remove(_data_file_path(data_sha256))  # noqa: PTH107
     except OSError:
         log.warning(f"No file with name: {data_sha256}!")
 

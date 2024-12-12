@@ -27,7 +27,9 @@ def test_invalid_ical(db, default_account) -> None:
 
 def test_windows_tz_ical(db, default_account) -> None:
     data = None
-    with open(absolute_path(FIXTURES + "windows_event.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "windows_event.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
@@ -48,7 +50,9 @@ def test_windows_tz_ical(db, default_account) -> None:
 
 def test_icloud_allday_event(db, default_account) -> None:
     data = None
-    with open(absolute_path(FIXTURES + "icloud_oneday_event.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "icloud_oneday_event.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
@@ -70,7 +74,9 @@ def test_icloud_allday_event(db, default_account) -> None:
 
 def test_iphone_through_exchange(db, default_account) -> None:
     data = None
-    with open(absolute_path(FIXTURES + "iphone_through_exchange.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "iphone_through_exchange.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
@@ -96,7 +102,7 @@ def test_event_update(db, default_account, message) -> None:
         read_only=True,
     )
 
-    with open(absolute_path(FIXTURES + "gcal_v1.ics")) as fd:
+    with open(absolute_path(FIXTURES + "gcal_v1.ics")) as fd:  # noqa: PTH123
         ics_data = fd.read()
 
     msg = add_fake_msg_with_calendar_part(
@@ -116,7 +122,7 @@ def test_event_update(db, default_account, message) -> None:
         "Olympia Hall, 28 Boulevard des Capucines, 75009 Paris, France"
     )
 
-    with open(absolute_path(FIXTURES + "gcal_v2.ics")) as fd:
+    with open(absolute_path(FIXTURES + "gcal_v2.ics")) as fd:  # noqa: PTH123
         ics_data = fd.read()
 
     msg = add_fake_msg_with_calendar_part(
@@ -157,7 +163,9 @@ def test_self_sent_update(db, default_account, message) -> None:
     )
 
     # Import the self-sent event.
-    with open(absolute_path(FIXTURES + "self_sent_v1.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "self_sent_v1.ics")
+    ) as fd:
         ics_data = fd.read()
 
     msg = add_fake_msg_with_calendar_part(
@@ -184,7 +192,9 @@ def test_self_sent_update(db, default_account, message) -> None:
     db.session.add(event_copy)
     db.session.commit()
 
-    with open(absolute_path(FIXTURES + "self_sent_v2.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "self_sent_v2.ics")
+    ) as fd:
         ics_data = fd.read()
 
     msg = add_fake_msg_with_calendar_part(
@@ -215,7 +225,9 @@ def test_self_sent_update(db, default_account, message) -> None:
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_recurring_ical(db, default_account) -> None:
-    with open(absolute_path(FIXTURES + "gcal_recur.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "gcal_recur.ics")
+    ) as fd:
         ics_data = fd.read()
 
     msg = add_fake_msg_with_calendar_part(
@@ -240,7 +252,9 @@ def test_recurring_ical(db, default_account) -> None:
 
 def test_event_no_end_time(db, default_account) -> None:
     # With no end time, import should fail
-    with open(absolute_path(FIXTURES + "meetup_infinite.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "meetup_infinite.ics")
+    ) as fd:
         ics_data = fd.read()
 
     add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
@@ -257,7 +271,7 @@ def test_event_no_end_time(db, default_account) -> None:
 
 def test_event_no_participants(db, default_account) -> None:
     data = None
-    with open(
+    with open(  # noqa: PTH123
         absolute_path(FIXTURES + "event_with_no_participants.ics")
     ) as fd:
         data = fd.read()
@@ -275,7 +289,9 @@ def test_event_no_participants(db, default_account) -> None:
 
 def test_multiple_events(db, default_account) -> None:
     data = None
-    with open(absolute_path(FIXTURES + "multiple_events.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "multiple_events.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
@@ -303,7 +319,9 @@ def test_icalendar_import(db, generic_account, message) -> None:
         read_only=True,
     )
 
-    with open(absolute_path(FIXTURES + "invite_w_rsvps1.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "invite_w_rsvps1.ics")
+    ) as fd:
         ics_data = fd.read()
 
     msg = add_fake_msg_with_calendar_part(
@@ -349,7 +367,9 @@ def test_rsvp_merging(db, generic_account, message) -> None:
         read_only=True,
     )
 
-    with open(absolute_path(FIXTURES + "invite_w_rsvps1.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "invite_w_rsvps1.ics")
+    ) as fd:
         ics_data = fd.read()
 
     msg = add_fake_msg_with_calendar_part(
@@ -378,7 +398,9 @@ def test_rsvp_merging(db, generic_account, message) -> None:
     ev.public_id = "cccc"
     ev.calendar = cal2
 
-    with open(absolute_path(FIXTURES + "invite_w_rsvps2.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "invite_w_rsvps2.ics")
+    ) as fd:
         ics_data = fd.read()
 
     msg2 = add_fake_msg_with_calendar_part(
@@ -408,7 +430,9 @@ def test_rsvp_merging(db, generic_account, message) -> None:
         elif participant["email"] == "karim@example.com":
             assert participant["status"] == "noreply"
 
-    with open(absolute_path(FIXTURES + "invite_w_rsvps3.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "invite_w_rsvps3.ics")
+    ) as fd:
         ics_data = fd.read()
 
     msg3 = add_fake_msg_with_calendar_part(
@@ -445,7 +469,9 @@ def test_rsvp_merging(db, generic_account, message) -> None:
     # discarded.
     ev.sequence_number += 1
 
-    with open(absolute_path(FIXTURES + "invite_w_rsvps_4.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "invite_w_rsvps_4.ics")
+    ) as fd:
         ics_data = fd.read()
 
     add_fake_msg_with_calendar_part(db.session, generic_account, ics_data)
@@ -476,7 +502,9 @@ def test_rsvp_merging(db, generic_account, message) -> None:
 
 
 def test_cancelled_event(db, default_account) -> None:
-    with open(absolute_path(FIXTURES + "google_cancelled1.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "google_cancelled1.ics")
+    ) as fd:
         ics_data = fd.read()
 
     msg = add_fake_msg_with_calendar_part(
@@ -494,7 +522,9 @@ def test_cancelled_event(db, default_account) -> None:
 
     assert ev.status == "confirmed"
 
-    with open(absolute_path(FIXTURES + "google_cancelled2.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "google_cancelled2.ics")
+    ) as fd:
         ics_data = fd.read()
 
     msg2 = add_fake_msg_with_calendar_part(
@@ -514,7 +544,9 @@ def test_cancelled_event(db, default_account) -> None:
 
 
 def test_icloud_cancelled_event(db, default_account) -> None:
-    with open(absolute_path(FIXTURES + "icloud_cancelled1.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "icloud_cancelled1.ics")
+    ) as fd:
         ics_data = fd.read()
 
     msg = add_fake_msg_with_calendar_part(
@@ -532,7 +564,9 @@ def test_icloud_cancelled_event(db, default_account) -> None:
 
     assert ev.status == "confirmed"
 
-    with open(absolute_path(FIXTURES + "icloud_cancelled2.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "icloud_cancelled2.ics")
+    ) as fd:
         ics_data = fd.read()
 
     msg = add_fake_msg_with_calendar_part(
@@ -553,7 +587,9 @@ def test_icloud_cancelled_event(db, default_account) -> None:
 
 def test_multiple_summaries(db, default_account) -> None:
     data = None
-    with open(absolute_path(FIXTURES + "multiple_summaries.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "multiple_summaries.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
@@ -569,7 +605,9 @@ def test_multiple_summaries(db, default_account) -> None:
 def test_invalid_rsvp(db, default_account) -> None:
     # Test that we don't save an RSVP reply with an invalid id.
     data = None
-    with open(absolute_path(FIXTURES + "invalid_rsvp.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "invalid_rsvp.ics")
+    ) as fd:
         data = fd.read()
 
     msg = add_fake_msg_with_calendar_part(db.session, default_account, data)
@@ -590,7 +628,9 @@ def test_rsvp_for_other_provider(db, default_account) -> None:
     # Test that we don't save RSVP replies which aren't replies to a Nylas
     # invite.
     data = None
-    with open(absolute_path(FIXTURES + "invalid_rsvp2.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "invalid_rsvp2.ics")
+    ) as fd:
         data = fd.read()
 
     msg = add_fake_msg_with_calendar_part(db.session, default_account, data)
@@ -609,7 +649,9 @@ def test_rsvp_for_other_provider(db, default_account) -> None:
 
 def test_truncate_bogus_sequence_numbers(db, default_account) -> None:
     data = None
-    with open(absolute_path(FIXTURES + "bogus_sequence_number.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "bogus_sequence_number.ics")
+    ) as fd:
         data = fd.read()
 
     msg = add_fake_msg_with_calendar_part(db.session, default_account, data)
@@ -629,7 +671,9 @@ def test_truncate_bogus_sequence_numbers(db, default_account) -> None:
 
 
 def test_handle_missing_sequence_number(db, default_account) -> None:
-    with open(absolute_path(FIXTURES + "event_without_sequence.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "event_without_sequence.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
@@ -644,7 +688,7 @@ def test_handle_missing_sequence_number(db, default_account) -> None:
 
 
 def test_event_without_dtend_with_duration(db, default_account) -> None:
-    with open(
+    with open(  # noqa: PTH123
         absolute_path(FIXTURES + "event_without_dtend_with_duration.ics")
     ) as fd:
         data = fd.read()
@@ -663,7 +707,7 @@ def test_event_without_dtend_with_duration(db, default_account) -> None:
 
 
 def test_event_with_windows_timezone(db, default_account) -> None:
-    with open(
+    with open(  # noqa: PTH123
         absolute_path(FIXTURES + "event_with_windows_timezone.ics")
     ) as fd:
         data = fd.read()
@@ -684,7 +728,7 @@ def test_event_with_windows_timezone(db, default_account) -> None:
 
 
 def test_event_with_dtstamp_without_timezone(db, default_account) -> None:
-    with open(
+    with open(  # noqa: PTH123
         absolute_path(FIXTURES + "event_with_dtstamp_without_timezone.ics")
     ) as fd:
         data = fd.read()
@@ -702,7 +746,7 @@ def test_event_with_dtstamp_without_timezone(db, default_account) -> None:
 
 
 def test_event_with_status_repeated(db, default_account) -> None:
-    with open(
+    with open(  # noqa: PTH123
         absolute_path(FIXTURES + "event_with_status_repeated.ics")
     ) as fd:
         data = fd.read()
@@ -718,7 +762,7 @@ def test_event_with_status_repeated(db, default_account) -> None:
 
 
 def test_event_with_method_repeated(db, default_account) -> None:
-    with open(
+    with open(  # noqa: PTH123
         absolute_path(FIXTURES + "event_with_method_repeated.ics")
     ) as fd:
         data = fd.read()
@@ -734,7 +778,9 @@ def test_event_with_method_repeated(db, default_account) -> None:
 
 
 def test_event_with_dstart_only(db, default_account) -> None:
-    with open(absolute_path(FIXTURES + "event_with_dtstart_only.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "event_with_dtstart_only.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
@@ -753,7 +799,9 @@ def test_event_malformed_publish(db, default_account) -> None:
     # and so is malformed, but the calendar method is PUBLISH
     # so we don't need to process it at all because it does not contain
     # rsvps or invites.
-    with open(absolute_path(FIXTURES + "event_malformed_publish.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "event_malformed_publish.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
@@ -766,7 +814,9 @@ def test_event_malformed_publish(db, default_account) -> None:
 
 
 def test_event_with_organizer_list(db, default_account) -> None:
-    with open(absolute_path(FIXTURES + "event_with_organizer_list.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "event_with_organizer_list.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
@@ -780,7 +830,9 @@ def test_event_with_organizer_list(db, default_account) -> None:
 
 
 def test_event_with_non_ascii_uid(db, default_account) -> None:
-    with open(absolute_path(FIXTURES + "event_with_non_ascii_uid.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "event_with_non_ascii_uid.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(

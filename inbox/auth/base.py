@@ -13,7 +13,7 @@ from .utils import create_imap_connection
 log = get_logger()
 
 
-def handler_from_provider(provider_name):
+def handler_from_provider(provider_name):  # noqa: ANN201
     """
     Return an authentication handler for the given provider.
 
@@ -62,7 +62,7 @@ class AuthHandler:
         """
         raise NotImplementedError()
 
-    def get_imap_connection(self, account, use_timeout=True):
+    def get_imap_connection(self, account, use_timeout=True):  # noqa: ANN201
         host, port = account.imap_endpoint
         try:
             return create_imap_connection(host, port, use_timeout)
@@ -79,7 +79,9 @@ class AuthHandler:
     def authenticate_imap_connection(self, account, conn) -> Never:
         raise NotImplementedError()
 
-    def get_authenticated_imap_connection(self, account, use_timeout=True):
+    def get_authenticated_imap_connection(  # noqa: ANN201
+        self, account, use_timeout=True
+    ):
         conn = self.get_imap_connection(account, use_timeout=use_timeout)
         self.authenticate_imap_connection(account, conn)
         return conn
@@ -100,7 +102,7 @@ class AuthHandler:
         -------
         True: If the client can successfully connect to both.
 
-        """
+        """  # noqa: D401
         # Verify IMAP login
         conn = self.get_authenticated_imap_connection(account)
         crispin = CrispinClient(
@@ -123,7 +125,7 @@ class AuthHandler:
                 "Please contact your domain "
                 "administrator and try again."
             )
-            raise UserRecoverableConfigError(error_message)
+            raise UserRecoverableConfigError(error_message)  # noqa: B904
         finally:
             conn.logout()
 
@@ -144,7 +146,7 @@ class AuthHandler:
                 "Couldn't resolve the SMTP server domain name. "
                 "Please check that your SMTP settings are correct."
             )
-            raise UserRecoverableConfigError(error_message)
+            raise UserRecoverableConfigError(error_message)  # noqa: B904
 
         except TimeoutError as exc:
             log.error(
@@ -157,7 +159,7 @@ class AuthHandler:
                 "Connection timeout when connecting to SMTP server. "
                 "Please check that your SMTP settings are correct."
             )
-            raise UserRecoverableConfigError(error_message)
+            raise UserRecoverableConfigError(error_message)  # noqa: B904
 
         except Exception as exc:
             log.error(
@@ -166,7 +168,7 @@ class AuthHandler:
                 account_id=account.id,
                 error=exc,
             )
-            raise UserRecoverableConfigError(
+            raise UserRecoverableConfigError(  # noqa: B904
                 "Please check that your SMTP settings are correct."
             )
 

@@ -111,7 +111,7 @@ def test_categories_from_multiple_imap_folders(
     appear in one of those folders depending on the order they were returned
     from the database. This makes it deterministic and more-correct because a message
     is likely in a folder it was added to last.
-    """
+    """  # noqa: D404
     thread = add_fake_thread(db.session, generic_account.namespace.id)
     message = add_fake_message(
         db.session, generic_account.namespace.id, thread

@@ -47,13 +47,13 @@ class RemoteConsole(InteractiveConsole):
         to confuse this with the real interpreter -- since it's so
         close!).
 
-        """
+        """  # noqa: D401
         try:
-            sys.ps1
+            sys.ps1  # noqa: B018
         except AttributeError:
             sys.ps1 = ">>> "
         try:
-            sys.ps2
+            sys.ps2  # noqa: B018
         except AttributeError:
             sys.ps2 = "... "
         cprt = 'Type "help", "copyright", "credits" or "license" for more information.'
@@ -99,7 +99,7 @@ class RemoteConsole(InteractiveConsole):
         except OSError:
             return
 
-    def raw_input(self, prompt=""):
+    def raw_input(self, prompt=""):  # noqa: ANN201
         self.handle.write(prompt)
         self.handle.flush()
         return self.handle.readline()

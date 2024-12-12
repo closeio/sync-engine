@@ -22,7 +22,7 @@ FILENAMES = [
 
 
 def create_test_db() -> None:
-    """Creates new, empty test databases."""
+    """Creates new, empty test databases."""  # noqa: D401
     from inbox.config import config
 
     database_hosts = config.get_required("DATABASE_HOSTS")
@@ -58,7 +58,7 @@ def setup_test_db() -> None:
     Creates new, empty test databases with table structures generated
     from declarative model classes.
 
-    """
+    """  # noqa: D401
     from inbox.config import config
     from inbox.ignition import engine_manager, init_db
 
@@ -86,7 +86,7 @@ class MockDNSResolver:
     def _load_records(self, filename):
         self._registry = json.loads(get_data(filename))
 
-    def query(self, domain, record_type):
+    def query(self, domain, record_type):  # noqa: ANN201
         record_type = record_type.lower()
         entry = self._registry[record_type][domain]
         if isinstance(entry, dict):
@@ -100,7 +100,7 @@ class MockDNSResolver:
 
 
 @pytest.fixture
-def mock_dns_resolver(monkeypatch):
+def mock_dns_resolver(monkeypatch):  # noqa: ANN201
     dns_resolver = MockDNSResolver()
     monkeypatch.setattr("inbox.util.url.dns_resolver", dns_resolver)
     yield dns_resolver
@@ -108,7 +108,7 @@ def mock_dns_resolver(monkeypatch):
 
 
 @pytest.fixture
-def dump_dns_queries(monkeypatch):
+def dump_dns_queries(monkeypatch):  # noqa: ANN201
     original_query = dns.resolver.Resolver.query
     query_results: dict[
         Literal["mx", "ns"], dict[str, dict[Literal["error"], str] | list[str]]
@@ -135,7 +135,7 @@ def dump_dns_queries(monkeypatch):
 
     monkeypatch.setattr("dns.resolver.Resolver.query", mock_query)
     yield
-    print(json.dumps(query_results, indent=4, sort_keys=True))
+    print(json.dumps(query_results, indent=4, sort_keys=True))  # noqa: T201
 
 
 class MockIMAPClient:
@@ -164,23 +164,23 @@ class MockIMAPClient:
     def logout(self) -> None:
         pass
 
-    def list_folders(self, directory="", pattern="*"):
+    def list_folders(self, directory="", pattern="*"):  # noqa: ANN201
         return [(b"\\All", b"/", "[Gmail]/All Mail")]
 
     def has_capability(self, capability) -> bool:
         return False
 
-    def idle_check(self, timeout=None):
+    def idle_check(self, timeout=None):  # noqa: ANN201
         return []
 
-    def idle_done(self):
+    def idle_done(self):  # noqa: ANN201
         return ("Idle terminated", [])
 
     def add_folder_data(self, folder_name, uids) -> None:
-        """Adds fake UID data for the given folder."""
+        """Adds fake UID data for the given folder."""  # noqa: D401
         self._data[folder_name] = uids
 
-    def search(self, criteria):
+    def search(self, criteria):  # noqa: ANN201
         assert self.selected_folder is not None
         assert isinstance(criteria, list)
         uid_dict = self._data[self.selected_folder]
@@ -208,11 +208,11 @@ class MockIMAPClient:
             return [u for u, v in uid_dict.items() if v[criteria[0]] == thrid]
         raise ValueError(f"unsupported test criteria: {criteria!r}")
 
-    def select_folder(self, folder_name, readonly=False):
+    def select_folder(self, folder_name, readonly=False):  # noqa: ANN201
         self.selected_folder = folder_name
         return self.folder_status(folder_name)
 
-    def fetch(self, items, data, modifiers=None):
+    def fetch(self, items, data, modifiers=None):  # noqa: ANN201
         assert self.selected_folder is not None
         uid_dict = self._data[self.selected_folder]
         resp = {}
@@ -265,10 +265,10 @@ class MockIMAPClient:
             self._data[folder_name][u] = self._data[self.selected_folder][u]
         self.delete_messages(matching_uids)
 
-    def capabilities(self):
+    def capabilities(self):  # noqa: ANN201
         return []
 
-    def folder_status(self, folder_name, data=None):
+    def folder_status(self, folder_name, data=None):  # noqa: ANN201
         folder_data = self._data[folder_name]
         lastuid = max(folder_data) if folder_data else 0
         resp = {b"UIDNEXT": lastuid + 1, b"UIDVALIDITY": self.uidvalidity}
@@ -296,7 +296,7 @@ class MockIMAPClient:
 
 
 @pytest.fixture
-def mock_imapclient(monkeypatch):
+def mock_imapclient(monkeypatch):  # noqa: ANN201
     conn = MockIMAPClient()
     monkeypatch.setattr(
         "inbox.crispin.CrispinConnectionPool._new_raw_connection",
@@ -314,7 +314,7 @@ class MockSMTPClient:
 
 
 @pytest.fixture
-def mock_smtp_get_connection(monkeypatch):
+def mock_smtp_get_connection(monkeypatch):  # noqa: ANN201
     client = MockSMTPClient()
 
     @contextlib.contextmanager
@@ -329,12 +329,12 @@ def mock_smtp_get_connection(monkeypatch):
 
 
 @pytest.fixture
-def files(db):
+def files(db):  # noqa: ANN201
     filenames = FILENAMES
     data = []
     for filename in filenames:
-        path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
+        path = os.path.join(  # noqa: PTH118
+            os.path.dirname(os.path.abspath(__file__)),  # noqa: PTH100, PTH120
             "..",
             "..",
             "tests",
@@ -346,7 +346,7 @@ def files(db):
 
 
 @pytest.fixture
-def uploaded_file_ids(api_client, files):
+def uploaded_file_ids(api_client, files):  # noqa: ANN201
     file_ids = []
     upload_path = "/files"
     for filename, path in files:
@@ -359,7 +359,7 @@ def uploaded_file_ids(api_client, files):
             filename = "ἄνδρα μοι ἔννεπε"
         elif filename == "long-non-ascii-filename.txt":
             filename = 100 * "μ"
-        with open(path, "rb") as fp:
+        with open(path, "rb") as fp:  # noqa: PTH123
             data = {"file": (fp, filename)}
             r = api_client.post_raw(upload_path, data=data)
         assert r.status_code == 200

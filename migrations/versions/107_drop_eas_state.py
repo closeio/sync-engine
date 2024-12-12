@@ -21,7 +21,7 @@ def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine()
-    Base = sa.ext.declarative.declarative_base()
+    Base = sa.ext.declarative.declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     if "easaccount" in Base.metadata.tables:

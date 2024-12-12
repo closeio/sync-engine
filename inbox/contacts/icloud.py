@@ -2,7 +2,7 @@
 
 import contextlib
 
-import lxml.etree as ET
+import lxml.etree as ET  # noqa: N812
 
 from inbox.contacts.abc import AbstractContactsProvider
 from inbox.contacts.carddav import supports_carddav
@@ -36,7 +36,7 @@ class ICloudContactsProvider(AbstractContactsProvider):
             provider=self.PROVIDER_NAME,
         )
 
-    def _vCard_raw_to_contact(self, cardstring):
+    def _vCard_raw_to_contact(self, cardstring):  # noqa: N802
         card = vcard_from_string(cardstring)
 
         def _x(key):  # Ugly parsing helper for ugly formats
@@ -66,7 +66,7 @@ class ICloudContactsProvider(AbstractContactsProvider):
             raw_data=cardstring,
         )
 
-    def get_items(self, sync_from_dt=None, max_results=100000):
+    def get_items(self, sync_from_dt=None, max_results=100000):  # noqa: ANN201
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(GenericAccount).get(self.account_id)
             email_address = account.email_address

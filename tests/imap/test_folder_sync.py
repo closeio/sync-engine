@@ -200,7 +200,7 @@ def test_generic_flags_refresh_expunges_transient_uids(
     folder_sync_engine.last_slow_refresh = None
     folder_sync_engine.poll_impl()
     with pytest.raises(ObjectDeletedError):
-        transient_uid.id
+        transient_uid.id  # noqa: B018
 
 
 def test_handle_uidinvalid(

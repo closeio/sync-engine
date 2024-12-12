@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 
 import os
@@ -83,13 +83,15 @@ def main(prod, enable_profiler, config, process_num) -> None:
     if config is not None:
         from inbox.util.startup import load_overrides
 
-        config_path = os.path.abspath(config)
+        config_path = os.path.abspath(config)  # noqa: PTH100
         load_overrides(config_path)
 
     if not prod:
         preflight()
 
-    total_processes = int(os.environ.get("MAILSYNC_PROCESSES", 1))
+    total_processes = int(
+        os.environ.get("MAILSYNC_PROCESSES", 1)  # noqa: PLW1508
+    )
 
     setproctitle.setproctitle(f"sync-engine-{process_num}")
 

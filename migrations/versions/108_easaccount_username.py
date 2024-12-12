@@ -36,7 +36,7 @@ def upgrade() -> None:
         sa.Column("eas_auth", sa.String(MAX_INDEXABLE_LENGTH), nullable=True),
     )
 
-    Base = sa.ext.declarative.declarative_base()
+    Base = sa.ext.declarative.declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
     from inbox.models.session import session_scope
 

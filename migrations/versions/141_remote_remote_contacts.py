@@ -22,10 +22,10 @@ def upgrade() -> None:
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Contact_Old(Base):
+    class Contact_Old(Base):  # noqa: N801
         __table__ = Base.metadata.tables["contact"]
 
     # Delete the "remote" contacts. This is just a server cache for comparing

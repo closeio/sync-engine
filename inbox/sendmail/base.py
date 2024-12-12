@@ -45,7 +45,7 @@ class SendMailException(Exception):
         super().__init__(message, http_code, server_error, failures)
 
 
-def get_sendmail_client(account):
+def get_sendmail_client(account):  # noqa: ANN201
     from inbox.sendmail import module_registry
 
     sendmail_mod = module_registry.get(account.provider)
@@ -101,7 +101,7 @@ def create_draft_from_mime(
     return msg
 
 
-def block_to_part(block, message, namespace):
+def block_to_part(block, message, namespace):  # noqa: ANN201
     inline_image_uri = rf"cid:{block.public_id}"
     is_inline = re.search(inline_image_uri, message.body) is not None
     # Create a new Part object to associate to the message object.
@@ -116,7 +116,9 @@ def block_to_part(block, message, namespace):
     return part
 
 
-def create_message_from_json(data, namespace, db_session, is_draft):
+def create_message_from_json(  # noqa: ANN201
+    data, namespace, db_session, is_draft
+):
     """
     Construct a Message instance from `data`, a dictionary representing the
     POST body of an API request. All new objects are added to the session, but
@@ -257,7 +259,7 @@ def create_message_from_json(data, namespace, db_session, is_draft):
     return message
 
 
-def update_draft(
+def update_draft(  # noqa: ANN201
     db_session,
     account,
     draft,
@@ -368,7 +370,7 @@ def delete_draft(db_session, account, draft) -> None:
     db_session.commit()
 
 
-def generate_attachments(message, blocks):
+def generate_attachments(message, blocks):  # noqa: ANN201
     attachment_dicts = []
     for block in blocks:
         content_disposition = "attachment"

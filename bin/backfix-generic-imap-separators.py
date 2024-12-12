@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 # We previously didn't store IMAP path separators for generic imap accounts.
 # This script backfixes the accounts.
 

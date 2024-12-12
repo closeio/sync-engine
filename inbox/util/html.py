@@ -10,7 +10,7 @@ class HTMLParseError(ValueError):
 
 # http://stackoverflow.com/questions/753052/strip-html-from-strings-in-python
 class HTMLTagStripper(HTMLParser):
-    strippedTags = ["title", "script", "style"]
+    strippedTags = ["title", "script", "style"]  # noqa: N815
 
     def __init__(self) -> None:
         self.reset()

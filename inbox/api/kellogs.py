@@ -30,13 +30,13 @@ from inbox.models.event import (
 log = get_logger()
 
 
-def format_address_list(addresses):
+def format_address_list(addresses):  # noqa: ANN201
     if addresses is None:
         return []
     return [{"name": name, "email": email} for name, email in addresses]
 
 
-def format_categories(categories):
+def format_categories(categories):  # noqa: ANN201
     if categories is None:
         return []
     return [
@@ -50,7 +50,7 @@ def format_categories(categories):
     ]
 
 
-def format_messagecategories(messagecategories):
+def format_messagecategories(messagecategories):  # noqa: ANN201
     if messagecategories is None:
         return []
     return [
@@ -65,7 +65,7 @@ def format_messagecategories(messagecategories):
     ]
 
 
-def format_phone_numbers(phone_numbers):
+def format_phone_numbers(phone_numbers):  # noqa: ANN201
     formatted_phone_numbers = []
     for number in phone_numbers:
         formatted_phone_numbers.append(
@@ -74,7 +74,9 @@ def format_phone_numbers(phone_numbers):
     return formatted_phone_numbers
 
 
-def encode(obj, namespace_public_id=None, expand=False, is_n1=False):
+def encode(  # noqa: ANN201
+    obj, namespace_public_id=None, expand=False, is_n1=False
+):
     try:
         return _encode(obj, namespace_public_id, expand, is_n1=is_n1)
     except Exception as e:
@@ -100,7 +102,9 @@ def _convert_timezone_to_iana_tz(original_tz):
         return original_tz
 
 
-def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
+def _encode(  # noqa: D417
+    obj, namespace_public_id=None, expand=False, is_n1=False
+):
     """
     Returns a dictionary representation of a Nylas model object obj, or
     None if there is no such representation defined. If the optional
@@ -118,7 +122,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
     -------
     dictionary or None
 
-    """
+    """  # noqa: D401
 
     def _get_namespace_public_id(obj):
         return namespace_public_id or obj.namespace.public_id
@@ -161,7 +165,9 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
             "id": obj.public_id,
             "object": "account",
             "account_id": obj.public_id,
-            "email_address": obj.account.email_address if obj.account else "",
+            "email_address": (
+                obj.account.email_address if obj.account else ""
+            ),
             "name": obj.account.name,
             "provider": obj.account.provider,
             "organization_unit": obj.account.category_type,
@@ -320,8 +326,8 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
             "id": obj.public_id,
             "object": "event",
             "account_id": _get_namespace_public_id(obj),
-            "calendar_id": obj.calendar.public_id if obj.calendar else None,
-            "message_id": obj.message.public_id if obj.message else None,
+            "calendar_id": (obj.calendar.public_id if obj.calendar else None),
+            "message_id": (obj.message.public_id if obj.message else None),
             "title": obj.title,
             "email_addresses_from_title": obj.emails_from_title,
             "description": obj.description,
@@ -468,7 +474,7 @@ class APIEncoder:
 
         return InternalEncoder
 
-    def cereal(self, obj, pretty=False):
+    def cereal(self, obj, pretty=False):  # noqa: ANN201, D417
         """
         Returns the JSON string representation of obj.
 
@@ -483,7 +489,7 @@ class APIEncoder:
         TypeError
             If obj is not serializable.
 
-        """
+        """  # noqa: D401
         if pretty:
             return dumps(
                 obj,
@@ -494,7 +500,7 @@ class APIEncoder:
             )
         return dumps(obj, cls=self.encoder_class)
 
-    def jsonify(self, obj):
+    def jsonify(self, obj):  # noqa: ANN201, D417
         """
         Returns a Flask Response object encapsulating the JSON
         representation of obj.
@@ -508,7 +514,7 @@ class APIEncoder:
         TypeError
             If obj is not serializable.
 
-        """
+        """  # noqa: D401
         return Response(
             self.cereal(obj, pretty=True), mimetype="application/json"
         )

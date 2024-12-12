@@ -88,7 +88,7 @@ def reconcile_message(
     return existing_message
 
 
-def transaction_objects():
+def transaction_objects():  # noqa: ANN201
     """
     Return the mapping from API object name - which becomes the
     Transaction.object_type - for models that generate Transactions (i.e.
@@ -121,7 +121,7 @@ def transaction_objects():
     }
 
 
-def get_accounts_to_delete(shard_id):
+def get_accounts_to_delete(shard_id):  # noqa: ANN201
     ids_to_delete = []
     with session_scope_by_shard_id(shard_id) as db_session:
         ids_to_delete = [
@@ -179,7 +179,9 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False) -> None:
                 .one()
             )
         except NoResultFound:
-            raise AccountDeletionErrror("Could not find account in database")
+            raise AccountDeletionErrror(  # noqa: B904
+                "Could not find account in database"
+            )
 
         if not account.is_marked_for_deletion:
             raise AccountDeletionErrror(
@@ -289,7 +291,7 @@ def _batch_delete(
 ):
     (column, id_) = column_id_filters
     count = engine.execute(
-        f"SELECT COUNT(*) FROM {table} WHERE {column}={id_};"
+        f"SELECT COUNT(*) FROM {table} WHERE {column}={id_};"  # noqa: S608
     ).scalar()
 
     if count == 0:
@@ -306,7 +308,7 @@ def _batch_delete(
     if table in ("message", "block"):
         query = ""
     else:
-        query = f"DELETE FROM {table} WHERE {column}={id_} LIMIT {CHUNK_SIZE};"
+        query = f"DELETE FROM {table} WHERE {column}={id_} LIMIT {CHUNK_SIZE};"  # noqa: S608
 
     log.info("deleting", account_id=account_id, table=table)
 
@@ -376,7 +378,7 @@ def _batch_delete(
     log.info("Completed batch deletion", time=end - start, table=table)
 
     count = engine.execute(
-        f"SELECT COUNT(*) FROM {table} WHERE {column}={id_};"
+        f"SELECT COUNT(*) FROM {table} WHERE {column}={id_};"  # noqa: S608
     ).scalar()
 
     if dry_run is False:
@@ -390,7 +392,7 @@ def check_throttle() -> bool:
     check_throttle is ignored entirely if the separate `throttle` flag is False
     (meaning that throttling is not done at all), but if throttling is enabled,
     this method determines when.
-    """
+    """  # noqa: D401
     return True
 
 
@@ -406,12 +408,12 @@ def purge_transactions(
     if dry_run:
         offset = 0
         query = (
-            "SELECT id FROM transaction where created_at < "
+            "SELECT id FROM transaction where created_at < "  # noqa: S608
             f"DATE_SUB({start}, INTERVAL {days_ago} day) LIMIT {limit}"
         )
     else:
         query = (
-            f"DELETE FROM transaction where created_at < DATE_SUB({start},"
+            f"DELETE FROM transaction where created_at < DATE_SUB({start},"  # noqa: S608
             f" INTERVAL {days_ago} day) LIMIT {limit}"
         )
     try:
@@ -456,7 +458,7 @@ def purge_transactions(
         redis_txn.zremrangebyscore(
             TXN_REDIS_KEY,
             "-inf",
-            f"({min_txn_id}" if min_txn_id is not None else "+inf",
+            (f"({min_txn_id}" if min_txn_id is not None else "+inf"),
         )
         log.info(
             "Finished purging transaction entries from redis",

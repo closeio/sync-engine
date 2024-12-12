@@ -11,7 +11,7 @@ from inbox.models import Contact
 INBOX_PROVIDER_NAME = "inbox"
 
 
-def create(namespace, db_session, name, email):
+def create(namespace, db_session, name, email):  # noqa: ANN201
     contact = Contact(
         namespace=namespace,
         provider_name=INBOX_PROVIDER_NAME,
@@ -24,7 +24,7 @@ def create(namespace, db_session, name, email):
     return contact
 
 
-def read(namespace, db_session, contact_public_id):
+def read(namespace, db_session, contact_public_id):  # noqa: ANN201
     return (
         db_session.query(Contact)
         .filter(

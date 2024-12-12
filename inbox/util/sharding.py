@@ -4,11 +4,11 @@ from inbox.config import config
 from inbox.ignition import engine_manager
 
 
-def get_shards():
+def get_shards():  # noqa: ANN201
     return list(engine_manager.engines)
 
 
-def get_open_shards():
+def get_open_shards():  # noqa: ANN201
     # Can't use engine_manager.engines here because it does not track
     # shard state (open/ closed)
     database_hosts = config.get_required("DATABASE_HOSTS")
@@ -23,7 +23,7 @@ def get_open_shards():
     return open_shards
 
 
-def get_shard_schemas():
+def get_shard_schemas():  # noqa: ANN201
     # Can't use engine_manager.engines here because it does not track
     # shard schemas.
     shard_schemas = {}
@@ -37,7 +37,7 @@ def get_shard_schemas():
     return shard_schemas
 
 
-def generate_open_shard_key():
+def generate_open_shard_key():  # noqa: ANN201
     """
     Return the key that can be passed into session_scope() for an open shard,
     picked at random.

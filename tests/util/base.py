@@ -6,7 +6,7 @@ from unittest import mock
 
 from flanker import mime
 from mockredis import mock_strict_redis_client
-from pytest import fixture
+from pytest import fixture  # noqa: PT013
 
 from inbox.util.testutils import setup_test_db
 
@@ -16,16 +16,20 @@ def absolute_path(path):
     Returns the absolute path for a path specified as relative to the
     tests/ directory, needed for the dump file name in config.cfg
 
-    """
-    return os.path.abspath(
-        os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", path)
+    """  # noqa: D401
+    return os.path.abspath(  # noqa: PTH100
+        os.path.join(  # noqa: PTH118
+            os.path.dirname(os.path.realpath(__file__)),  # noqa: PTH120
+            "..",
+            path,
+        )
     )
 
 
 def make_config(tmpdir_factory):
     from inbox.config import config
 
-    assert (
+    assert (  # noqa: PT018
         "NYLAS_ENV" in os.environ and os.environ["NYLAS_ENV"] == "test"
     ), "NYLAS_ENV must be 'test' to run tests"
     # don't try to write test data to the module tree

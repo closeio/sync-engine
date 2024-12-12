@@ -8,7 +8,7 @@ from inbox.s3.exc import EmailDeletedException, EmailFetchException
 log = get_logger()
 
 
-def get_imap_raw_contents(message):
+def get_imap_raw_contents(message):  # noqa: ANN201
     account = message.namespace.account
 
     if len(message.imapuids) == 0:
@@ -31,12 +31,12 @@ def get_imap_raw_contents(message):
 
             return uids[0].body
         except imapclient.IMAPClient.Error:
-            log.error(
+            log.error(  # noqa: G201
                 "Error while fetching raw contents",
                 exc_info=True,
                 logstash_tag="fetching_error",
             )
-            raise EmailFetchException(
+            raise EmailFetchException(  # noqa: B904
                 "Couldn't get message from server. "
                 "Please try again in a few minutes."
             )

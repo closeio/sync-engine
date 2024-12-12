@@ -18,20 +18,20 @@ TODOs
 - Implement WebDavSync
 - Support manipulating groups: http://stackoverflow.com/q/24202551
 
-"""
+"""  # noqa: D404
 
-import lxml.etree as ET
+import lxml.etree as ET  # noqa: N812
 import requests
 
 # Fake it till you make it
 USER_AGENT = (
-    "User-Agent: DAVKit/4.0.1 (730); CalendarStore/4.0.1 "
+    "User-Agent: DAVKit/4.0.1 (730); CalendarStore/4.0.1 "  # noqa: ISC003
     + "(973); iCal/4.0.1 (1374); Mac OS X/10.6.2 (10C540)"
 )
 
 
 def supports_carddav(url) -> None:
-    """Basic verification that the endpoint supports CardDav"""
+    """Basic verification that the endpoint supports CardDav"""  # noqa: D401
     response = requests.request(
         "OPTIONS", url, headers={"User-Agent": USER_AGENT, "Depth": "1"}
     )
@@ -50,7 +50,7 @@ class CardDav:
         self.session.headers.update({"User-Agent": USER_AGENT, "Depth": "1"})
         self.base_url = base_url
 
-    def get_principal_url(self):
+    def get_principal_url(self):  # noqa: ANN201
         """Use PROPFIND method to find the `principal` carddav url"""
         payload = """
             <A:propfind xmlns:A='DAV:'>
@@ -69,7 +69,7 @@ class CardDav:
         principal_href = element[0][1][0][0][0].text
         return principal_href
 
-    def get_address_book_home(self, url):
+    def get_address_book_home(self, url):  # noqa: ANN201
         payload = """
         <D:propfind xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:carddav">
           <D:prop>
@@ -107,7 +107,7 @@ class CardDav:
     #     response.raise_for_status()
     #     return response.content
 
-    def get_cards(self, url):
+    def get_cards(self, url):  # noqa: ANN201
         payload = """
        <C:addressbook-query xmlns:D="DAV:"
                          xmlns:C="urn:ietf:params:xml:ns:carddav">

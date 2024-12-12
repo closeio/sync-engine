@@ -45,7 +45,7 @@ class OutlookAccount(CalendarSyncAccountMixin, ImapAccount, OAuthAccount):
     locale = Column(String(8))
 
     @property
-    def email_scopes(self):
+    def email_scopes(self):  # noqa: ANN201
         return MICROSOFT_EMAIL_SCOPES
 
     @property
@@ -53,15 +53,15 @@ class OutlookAccount(CalendarSyncAccountMixin, ImapAccount, OAuthAccount):
         return None
 
     @property
-    def calendar_scopes(self):
+    def calendar_scopes(self):  # noqa: ANN201
         return MICROSOFT_CALENDAR_SCOPES
 
     @property
-    def scopes(self):
+    def scopes(self):  # noqa: ANN201
         return self.email_scopes
 
     @property
-    def provider(self):
+    def provider(self):  # noqa: ANN201
         return PROVIDER
 
     @property
@@ -69,13 +69,13 @@ class OutlookAccount(CalendarSyncAccountMixin, ImapAccount, OAuthAccount):
         return "folder"
 
     @property
-    def thread_cls(self):
+    def thread_cls(self):  # noqa: ANN201
         from inbox.models.backends.imap import ImapThread
 
         return ImapThread
 
     @property
-    def actionlog_cls(self):
+    def actionlog_cls(self):  # noqa: ANN201
         from inbox.models.action_log import ActionLog
 
         return ActionLog

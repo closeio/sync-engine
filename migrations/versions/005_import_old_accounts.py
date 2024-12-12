@@ -28,7 +28,7 @@ def upgrade() -> None:
     from inbox.models.backends.imap import ImapAccount
 
     # Assert we have the dump file
-    if not os.path.isfile(SQL_DUMP_FILENAME):
+    if not os.path.isfile(SQL_DUMP_FILENAME):  # noqa: PTH113
         print(
             "Can't find old user SQL dump at {}...\nMigration no users.".format(
                 SQL_DUMP_FILENAME
@@ -37,15 +37,15 @@ def upgrade() -> None:
         return
 
     # Imports to `imapaccount_old` table
-    with open(SQL_DUMP_FILENAME) as f:
+    with open(SQL_DUMP_FILENAME) as f:  # noqa: PTH123
         print("Importing old account data..."),
         op.execute(f.read())
         print("OK!")
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class ImapAccount_Old(Base):
+    class ImapAccount_Old(Base):  # noqa: N801
         __table__ = Base.metadata.tables["imapaccount_old"]
 
     with session_scope() as db_session:

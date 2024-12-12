@@ -83,20 +83,20 @@ class FlexibleDateTime(TypeDecorator):
 
     impl = DateTime
 
-    def process_bind_param(self, value, dialect):
+    def process_bind_param(self, value, dialect):  # noqa: ANN201
         if isinstance(value, arrow.arrow.Arrow):
             value = value.to("utc").naive
         if isinstance(value, datetime):
             value = arrow.get(value).to("utc").naive
         return value
 
-    def process_result_value(self, value, dialect):
+    def process_result_value(self, value, dialect):  # noqa: ANN201
         if value is None:
             return value
         else:
             return arrow.get(value).to("utc")
 
-    def compare_values(self, x, y):
+    def compare_values(self, x, y):  # noqa: ANN201
         if isinstance(x, datetime | int):
             x = arrow.get(x)
         if isinstance(y, datetime) or isinstance(x, int):
@@ -216,13 +216,13 @@ class Event(
         "uid",
         "raw_data",
     )
-    def validate_length(self, key, value):
+    def validate_length(self, key, value):  # noqa: ANN201
         if value is None:
             return None
         return unicode_safe_truncate(value, MAX_LENS[key])
 
     @property
-    def when(self):
+    def when(self):  # noqa: ANN201
         if self.all_day:
             # Dates are stored as DateTimes so transform to dates here.
             start = arrow.get(self.start).to("utc").date()
@@ -355,7 +355,7 @@ class Event(
             self.sequence_number = event.sequence_number
 
     @property
-    def recurring(self):
+    def recurring(self):  # noqa: ANN201
         if self.recurrence and self.recurrence != "":
             try:
                 r = ast.literal_eval(self.recurrence)
@@ -372,7 +372,7 @@ class Event(
         return []
 
     @property
-    def organizer_email(self):
+    def organizer_email(self):  # noqa: ANN201
         # For historical reasons, the event organizer field is stored as
         # "Owner Name <owner@email.com>".
 
@@ -386,7 +386,7 @@ class Event(
         return parsed_owner[1]
 
     @property
-    def organizer_name(self):
+    def organizer_name(self):  # noqa: ANN201
         parsed_owner = parseaddr(self.owner)
 
         if len(parsed_owner) == 0:
@@ -398,15 +398,15 @@ class Event(
         return parsed_owner[0]
 
     @property
-    def is_recurring(self):
+    def is_recurring(self):  # noqa: ANN201
         return self.recurrence is not None
 
     @property
-    def length(self):
+    def length(self):  # noqa: ANN201
         return self.when.delta
 
     @property
-    def cancelled(self):
+    def cancelled(self):  # noqa: ANN201
         return self.status == "cancelled"
 
     @cancelled.setter
@@ -417,28 +417,28 @@ class Event(
             self.status = "confirmed"
 
     @property
-    def calendar_event_link(self):
+    def calendar_event_link(self):  # noqa: ANN201
         try:
             return json.loads(self.raw_data)["htmlLink"]
         except (ValueError, KeyError):
             return None
 
     @property
-    def emails_from_description(self):
+    def emails_from_description(self):  # noqa: ANN201
         if self.description:
             return extract_emails_from_text(self.description)
         else:
             return []
 
     @property
-    def emails_from_title(self):
+    def emails_from_title(self):  # noqa: ANN201
         if self.title:
             return extract_emails_from_text(self.title)
         else:
             return []
 
     @classmethod
-    def create(cls, **kwargs):
+    def create(cls, **kwargs):  # noqa: ANN206
         # Decide whether or not to instantiate a RecurringEvent/Override
         # based on the kwargs we get.
         cls_ = cls
@@ -497,7 +497,7 @@ class RecurringEvent(Event):
         try:
             self.unwrap_rrule()
         except Exception as e:
-            log.error(
+            log.error(  # noqa: G201
                 "Error parsing RRULE entry",
                 event_id=self.id,
                 error=e,
@@ -510,14 +510,14 @@ class RecurringEvent(Event):
         try:
             self.unwrap_rrule()
         except Exception as e:
-            log.error(
+            log.error(  # noqa: G201
                 "Error parsing stored RRULE entry",
                 event_id=self.id,
                 error=e,
                 exc_info=True,
             )
 
-    def inflate(self, start=None, end=None):
+    def inflate(self, start=None, end=None):  # noqa: ANN201
         # Convert a RecurringEvent into a series of InflatedEvents
         # by expanding its RRULE into a series of start times.
         from inbox.events.recurring import get_start_times
@@ -539,7 +539,7 @@ class RecurringEvent(Event):
             elif item.startswith("EXDATE"):
                 self.exdate = item
 
-    def all_events(self, start=None, end=None):
+    def all_events(self, start=None, end=None):  # noqa: ANN201
         # Returns all inflated events along with overrides that match the
         # provided time range.
         overrides = self.overrides
@@ -606,7 +606,7 @@ class RecurringEventOverride(Event):
     )
 
     @validates("master_event_uid")
-    def validate_master_event_uid_length(self, key, value):
+    def validate_master_event_uid_length(self, key, value):  # noqa: ANN201
         if value is None:
             return None
         return unicode_safe_truncate(value, MAX_LENS[key])
@@ -625,7 +625,7 @@ class InflatedEvent(Event):
     on the fly when a recurring event is expanded.
     These are transient objects that should never be committed to the
     database.
-    """
+    """  # noqa: D404
 
     __mapper_args__ = {"polymorphic_identity": "inflatedevent"}
     __tablename__ = "event"

@@ -73,7 +73,9 @@ class ActionLog(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     extra_args = Column(JSON, nullable=True)
 
     @classmethod
-    def create(cls, action, table_name, record_id, namespace_id, extra_args):
+    def create(  # noqa: ANN206
+        cls, action, table_name, record_id, namespace_id, extra_args
+    ):
         return cls(
             action=action,
             table_name=table_name,

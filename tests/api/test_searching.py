@@ -4,7 +4,7 @@ from unittest import mock
 
 import pytest
 import requests
-from pytest import fixture
+from pytest import fixture  # noqa: PT013
 
 from inbox.models import Folder
 from inbox.search.backends.gmail import GmailSearchClient

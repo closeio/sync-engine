@@ -33,17 +33,17 @@ import json
 EPOCH_NAIVE = datetime.datetime.utcfromtimestamp(0)
 
 
-def dumps(obj, *args, **kwargs):
+def dumps(obj, *args, **kwargs):  # noqa: ANN201
     """
     Helper function that wraps :class:`json.dumps`.
 
     Recursive function that handles all datetime.datetime type.
-    """
+    """  # noqa: D401
     return json.dumps(_json_convert(obj), *args, **kwargs)
 
 
-def loads(s, *args, **kwargs):
-    """Helper function that wraps :class:`json.loads`."""
+def loads(s, *args, **kwargs):  # noqa: ANN201
+    """Helper function that wraps :class:`json.loads`."""  # noqa: D401
     kwargs["object_hook"] = lambda dct: object_hook(dct)
     return json.loads(s, *args, **kwargs)
 
@@ -63,7 +63,7 @@ def _json_convert(obj):
         return obj
 
 
-def object_hook(dct):
+def object_hook(dct):  # noqa: ANN201
     if "$date" in dct:
         dtm = dct["$date"]
         secs = float(dtm) / 1000.0
@@ -71,7 +71,7 @@ def object_hook(dct):
     return dct
 
 
-def default(obj):
+def default(obj):  # noqa: ANN201
     if isinstance(obj, datetime.datetime):
         if obj.utcoffset() is not None:
             obj = obj - obj.utcoffset()

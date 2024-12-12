@@ -22,7 +22,7 @@ from structlog.threadlocal import wrap_dict
 MAX_EXCEPTION_LENGTH = 10000
 
 
-def find_first_app_frame_and_name(ignores=None):
+def find_first_app_frame_and_name(ignores=None):  # noqa: ANN201
     """
     Remove ignorable calls and return the relevant app frame. Borrowed from
     structlog, but fixes an issue when the stack includes an 'exec' statement
@@ -79,17 +79,17 @@ def _record_module(logger, name, event_dict):
     return event_dict
 
 
-def safe_format_exception(etype, value, tb, limit=None):
+def safe_format_exception(etype, value, tb, limit=None):  # noqa: ANN201
     """
     Similar to structlog._format_exception, but truncate the exception part.
     This is because SQLAlchemy exceptions can sometimes have ludicrously large
     exception strings.
     """
     if tb:
-        list = ["Traceback (most recent call last):\n"]
-        list = list + traceback.format_tb(tb, limit)
+        list = ["Traceback (most recent call last):\n"]  # noqa: A001
+        list = list + traceback.format_tb(tb, limit)  # noqa: A001
     elif etype and value:
-        list = []
+        list = []  # noqa: A001
     else:
         return None
     exc_only = traceback.format_exception_only(etype, value)
@@ -97,7 +97,7 @@ def safe_format_exception(etype, value, tb, limit=None):
     # errors it may contain multiple elements, but we don't really need to
     # worry about that here.
     exc_only[0] = exc_only[0][:MAX_EXCEPTION_LENGTH]
-    list = list + exc_only
+    list = list + exc_only  # noqa: A001
     return "".join(list)
 
 
@@ -257,7 +257,7 @@ def json_excepthook(etype, value, tb) -> None:
 
 
 class ConditionalFormatter(logging.Formatter):
-    def format(self, record):
+    def format(self, record):  # noqa: ANN201
         if (
             record.name in ("__main__", "inbox")
             or record.name.startswith("inbox.")

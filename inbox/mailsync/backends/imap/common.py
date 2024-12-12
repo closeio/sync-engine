@@ -60,7 +60,7 @@ def local_uids(
     return {uid for uid, in db_api_cursor.fetchall()}
 
 
-def lastseenuid(account_id, session, folder_id):
+def lastseenuid(account_id, session, folder_id):  # noqa: ANN201
     q = session.query(func.max(ImapUid.msg_uid)).with_hint(
         ImapUid, "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)"
     )
@@ -278,7 +278,7 @@ def remove_deleted_uids(account_id, folder_id, uids) -> None:
     log.info("Deleted expunged UIDs", count=deleted_uid_count)
 
 
-def get_folder_info(account_id, session, folder_name):
+def get_folder_info(account_id, session, folder_name):  # noqa: ANN201
     try:
         # using .one() here may catch duplication bugs
         return (

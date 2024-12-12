@@ -152,13 +152,13 @@ def test_download(api_client, uploaded_file_ids, filename) -> None:
     in_file = api_client.get_data(f"/files?filename={filename}")[0]
     data = api_client.get_raw("/files/{}/download".format(in_file["id"])).data
 
-    path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
+    path = os.path.join(  # noqa: PTH118
+        os.path.dirname(os.path.abspath(__file__)),  # noqa: PTH100, PTH120
         "..",
         "data",
         original_filename,
     )
-    with open(path, "rb") as fp:
+    with open(path, "rb") as fp:  # noqa: PTH123
         local_data = fp.read()
     local_md5 = md5(local_data).digest()
     dl_md5 = md5(data).digest()
@@ -195,14 +195,14 @@ def test_direct_fetching(
     monkeypatch.setattr("inbox.util.blockstore.save_to_blockstore", save_mock)
 
     # Mock the request to return the contents of an actual email.
-    path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
+    path = os.path.join(  # noqa: PTH118
+        os.path.dirname(os.path.abspath(__file__)),  # noqa: PTH100, PTH120
         "..",
         "data",
         "raw_message_with_filename_attachment.txt",
     )
     data = ""
-    with open(path, "rb") as fd:
+    with open(path, "rb") as fd:  # noqa: PTH123
         data = fd.read()
 
     raw_mock = mock.Mock(return_value=data)

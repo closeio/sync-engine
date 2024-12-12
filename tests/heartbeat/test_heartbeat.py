@@ -103,7 +103,7 @@ def test_kill_device_multiple() -> None:
     folders = local_store.get_account_folders(1)
 
     assert len(folders) == 1
-    f, ts = folders[0]
+    f, ts = folders[0]  # noqa: F841
     assert f.decode() == "2"
 
 

@@ -604,7 +604,7 @@ def test_attachments_emoji_filename_parsing(
     assert m.attachments[0].content_disposition == "attachment"
 
 
-def test_attachments_emoji_filename_parsing(
+def test_attachments_emoji_filename_parsing(  # noqa: F811
     db, default_account, raw_message_with_outlook_emoji_inline
 ):
     m = create_from_synced(

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 
 import subprocess
@@ -51,7 +51,7 @@ def main(shard_num: int | None, execute: str | None, batch: bool) -> None:
                 creds["db_name"] = shard["SCHEMA_NAME"]
                 break
 
-    for key in creds.keys():
+    for key in creds.keys():  # noqa: PLC0206
         if creds[key] is None:
             print(f"Error: {key} is None")
             sys.exit(-1)

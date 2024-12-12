@@ -113,7 +113,7 @@ class Message(
     MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin
 ):
     @property
-    def API_OBJECT_NAME(self) -> str:
+    def API_OBJECT_NAME(self) -> str:  # noqa: N802
         return "message" if not self.is_draft else "draft"
 
     namespace_id = Column(BigInteger, index=True, nullable=False)
@@ -136,7 +136,7 @@ class Message(
     )
 
     @property
-    def thread(self):
+    def thread(self):  # noqa: ANN201
         return self._thread
 
     @thread.setter
@@ -185,7 +185,7 @@ class Message(
     )
 
     @property
-    def is_sending(self):
+    def is_sending(self):  # noqa: ANN201
         return self.version == MAX_MYSQL_INTEGER and not self.is_draft
 
     def mark_as_sending(self) -> None:
@@ -196,7 +196,7 @@ class Message(
         self.regenerate_nylas_uid()
 
     @property
-    def categories_changes(self):
+    def categories_changes(self):  # noqa: ANN201
         return self.state == "actions_pending"
 
     @categories_changes.setter
@@ -243,7 +243,7 @@ class Message(
         concatenated. Because the nylas_uid identifies the draft on the remote
         provider, we regenerate it on each draft revision so that we can delete
         the old draft and add the new one on the remote.
-        """
+        """  # noqa: D401
         from inbox.sendmail.message import generate_message_id_header
 
         self.nylas_uid = f"{self.public_id}-{self.version}"
@@ -291,7 +291,7 @@ class Message(
         return value
 
     @classmethod
-    def create_from_synced(
+    def create_from_synced(  # noqa: D417
         cls,
         account: Account,
         imap_uid: int,
@@ -316,7 +316,7 @@ class Message(
         body : bytes
             The full message including headers (encoded).
 
-        """
+        """  # noqa: D401
         # stop trickle-down bugs
         assert account.namespace is not None
         assert isinstance(body, bytes)
@@ -480,7 +480,7 @@ class Message(
         self.message_id_header: str | None = parsed.headers.get("Message-Id")
         if self.message_id_header and len(self.message_id_header) > 998:
             self.message_id_header = self.message_id_header[:998]
-            log.warning(
+            log.warning(  # noqa: PLE1205
                 "Message-Id header too long. Truncating",
                 parsed.headers.get("Message-Id"),
                 logstash_tag="truncated_message_id",
@@ -523,7 +523,7 @@ class Message(
     ) -> None:
         disposition, _ = mimepart.content_disposition
         content_id: str | None = mimepart.headers.get("Content-Id")
-        content_type, params = mimepart.content_type
+        content_type, params = mimepart.content_type  # noqa: F841
 
         filename: str | None = mimepart.detected_file_name
         if filename == "":
@@ -691,7 +691,7 @@ class Message(
         try:
             text = strip_tags(text)
         except HTMLParseError:
-            log.error(
+            log.error(  # noqa: G201
                 "error stripping tags",
                 message_nylas_uid=self.nylas_uid,
                 exc_info=True,
@@ -774,15 +774,15 @@ class Message(
         return resp
 
     @property
-    def versioned_relationships(self):
+    def versioned_relationships(self):  # noqa: ANN201
         return ["parts", "messagecategories"]
 
     @property
-    def propagated_attributes(self):
+    def propagated_attributes(self):  # noqa: ANN201
         return ["is_read", "is_starred", "messagecategories"]
 
     @property
-    def has_attached_events(self):
+    def has_attached_events(self):  # noqa: ANN201
         return "text/calendar" in [p.block.content_type for p in self.parts]
 
     @property
@@ -817,7 +817,7 @@ class Message(
         return q.params(public_id=public_id, namespace_id=namespace_id).one()
 
     @classmethod
-    def api_loading_options(cls, expand=False):
+    def api_loading_options(cls, expand=False):  # noqa: ANN206
         columns = [
             "public_id",
             "is_draft",
@@ -930,7 +930,7 @@ class MessageCategory(MailSyncBase):
     )
 
     @property
-    def namespace(self):
+    def namespace(self):  # noqa: ANN201
         return self.message.namespace
 
 

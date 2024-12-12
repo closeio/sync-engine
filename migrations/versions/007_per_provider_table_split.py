@@ -35,10 +35,10 @@ def genericize_imapaccount() -> None:
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class ImapAccount_(Base):
+    class ImapAccount_(Base):  # noqa: N801
         __table__ = Base.metadata.tables["imapaccount"]
 
     # Get data from columns-to-be-dropped
@@ -81,10 +81,10 @@ def genericize_thread() -> None:
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Thread_(Base):
+    class Thread_(Base):  # noqa: N801
         __table__ = Base.metadata.tables["thread"]
 
     # Get data from columns-to-be-dropped
@@ -183,10 +183,10 @@ def downgrade_imapaccount() -> None:
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class ImapAccount_(Base):
+    class ImapAccount_(Base):  # noqa: N801
         __table__ = Base.metadata.tables["imapaccount"]
 
     # Get data from table-to-be-dropped
@@ -252,10 +252,10 @@ def downgrade_imapthread() -> None:
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class ImapThread_(Base):
+    class ImapThread_(Base):  # noqa: N801
         __table__ = Base.metadata.tables["imapthread"]
 
     # Get data from table-to-be-dropped

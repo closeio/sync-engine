@@ -45,7 +45,7 @@ class Label(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     )
 
     @validates("name")
-    def validate_name(self, key, name):
+    def validate_name(self, key, name):  # noqa: ANN201
         sanitized_name = sanitize_name(name)
         if sanitized_name != name:
             log.warning(
@@ -56,7 +56,7 @@ class Label(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         return sanitized_name
 
     @classmethod
-    def find_or_create(cls, session, account, name, role=None):
+    def find_or_create(cls, session, account, name, role=None):  # noqa: ANN206
         q = session.query(cls).filter(cls.account_id == account.id)
 
         role = role or ""

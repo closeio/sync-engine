@@ -94,7 +94,7 @@ def upgrade() -> None:
     )
 
     # migrate data and add new constraints
-    Base = sa.ext.declarative.declarative_base()
+    Base = sa.ext.declarative.declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     if "easfoldersync" in Base.metadata.tables:

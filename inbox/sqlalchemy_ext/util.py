@@ -37,7 +37,7 @@ should_log_dubiously_many_queries = True
 # that. Don't use this to silence any warnings in application code because
 # these warnings are an indicator of excessive lazy loading from the DB.
 @contextlib.contextmanager
-def disabled_dubiously_many_queries_warning():
+def disabled_dubiously_many_queries_warning():  # noqa: ANN201
     global should_log_dubiously_many_queries
     should_log_dubiously_many_queries = False
     yield
@@ -104,11 +104,11 @@ class StringWithTransform(TypeDecorator):
             raise TypeError("`string_transform` must be callable")
         self._string_transform = string_transform
 
-    def process_bind_param(self, value, dialect):
+    def process_bind_param(self, value, dialect):  # noqa: ANN201
         return self._string_transform(value)
 
-    class comparator_factory(String.Comparator):
-        def __eq__(self, other):
+    class comparator_factory(String.Comparator):  # noqa: N801
+        def __eq__(self, other):  # noqa: ANN204
             other = self.type._string_transform(other)
             return self.operate(operators.eq, other)
 
@@ -119,13 +119,13 @@ class JSON(TypeDecorator):
 
     impl = Text
 
-    def process_bind_param(self, value, dialect):
+    def process_bind_param(self, value, dialect):  # noqa: ANN201
         if value is None:
             return None
 
         return json_util.dumps(value)
 
-    def process_result_value(self, value, dialect):
+    def process_result_value(self, value, dialect):  # noqa: ANN201
         if not value:
             return None
 
@@ -139,7 +139,7 @@ class JSON(TypeDecorator):
             log.error("ValueError on decoding JSON", value=value)
 
 
-def json_field_too_long(value):
+def json_field_too_long(value):  # noqa: ANN201
     return len(json_util.dumps(value)) > MAX_TEXT_CHARS
 
 
@@ -176,7 +176,7 @@ class Base36UID(TypeDecorator):
 # (because these are simply called under the hood)
 class MutableDict(Mutable, dict):
     @classmethod
-    def coerce(cls, key, value):
+    def coerce(cls, key, value):  # noqa: ANN206
         """Convert plain dictionaries to MutableDict."""
         if not isinstance(value, MutableDict):
             if isinstance(value, dict):
@@ -202,16 +202,16 @@ class MutableDict(Mutable, dict):
             self[k] = v
 
     # To support pickling:
-    def __getstate__(self):
+    def __getstate__(self):  # noqa: ANN204
         return dict(self)
 
-    def __setstate__(self, state):
+    def __setstate__(self, state):  # noqa: ANN204
         self.update(state)
 
 
 class MutableList(Mutable, list):
     @classmethod
-    def coerce(cls, key, value):
+    def coerce(cls, key, value):  # noqa: ANN206
         """Convert plain list to MutableList"""
         if not isinstance(value, MutableList):
             if isinstance(value, list):
@@ -242,7 +242,7 @@ class MutableList(Mutable, list):
         list.extend(self, values)
         self.changed()
 
-    def pop(self, *args, **kw):
+    def pop(self, *args, **kw):  # noqa: ANN201
         value = list.pop(self, *args, **kw)
         self.changed()
         return value
@@ -271,12 +271,12 @@ def b36_to_bin(b36_string: str) -> bytes:
     returns binary 128 bit unsigned integer
     """
     int128 = base36decode(b36_string)
-    MAX_INT64 = 0xFFFFFFFFFFFFFFFF
+    MAX_INT64 = 0xFFFFFFFFFFFFFFFF  # noqa: N806
     return struct.pack(">QQ", (int128 >> 64) & MAX_INT64, int128 & MAX_INT64)
 
 
 def generate_public_id() -> str:
-    """Returns a base-36 string UUID"""
+    """Returns a base-36 string UUID"""  # noqa: D401
     u = uuid.uuid4().bytes
     result = int128_to_b36(u)
     assert result
@@ -350,7 +350,7 @@ def receive_connect(dbapi_connection, connection_record) -> None:
     dbapi_connection.encoding = "utf8-surrogate-fix"
 
 
-def safer_yield_per(query, id_field, start_id, count):
+def safer_yield_per(query, id_field, start_id, count):  # noqa: ANN201, D417
     """
     Incautious execution of 'for result in query.yield_per(N):' may cause
     slowness or OOMing over large tables. This is a less general but less
@@ -379,7 +379,7 @@ def safer_yield_per(query, id_field, start_id, count):
         cur_id = results[-1].id + 1
 
 
-def get_db_api_cursor_with_query(session, query):
+def get_db_api_cursor_with_query(session, query):  # noqa: ANN201
     """
     Return a DB-API cursor with the given SQLAlchemy query executed.
 

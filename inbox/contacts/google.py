@@ -56,8 +56,8 @@ class GoogleContactsProvider(AbstractContactsProvider):
             account = db_session.query(GmailAccount).get(self.account_id)
             db_session.expunge(account)
         access_token = token_manager.get_token(account)
-        token = gdata.gauth.AuthSubToken(access_token)
-        google_client = gdata.contacts.client.ContactsClient(
+        token = gdata.gauth.AuthSubToken(access_token)  # noqa: F821
+        google_client = gdata.contacts.client.ContactsClient(  # noqa: F821
             source=SOURCE_APP_NAME
         )
         google_client.auth_token = token
@@ -82,7 +82,7 @@ class GoogleContactsProvider(AbstractContactsProvider):
         AttributeError
            If the contact data could not be parsed correctly.
 
-        """
+        """  # noqa: D401
         email_addresses = [
             email for email in google_contact.email if email.primary
         ]
@@ -110,7 +110,7 @@ class GoogleContactsProvider(AbstractContactsProvider):
             # The entirety of the raw contact data in XML string
             # representation.
             raw_data = google_contact.to_string()
-        except AttributeError as e:
+        except AttributeError as e:  # noqa: F841
             self.log.error(
                 "Something is wrong with contact", contact=google_contact
             )
@@ -128,7 +128,7 @@ class GoogleContactsProvider(AbstractContactsProvider):
             raw_data=raw_data,
         )
 
-    def get_items(self, sync_from_dt=None, max_results=100000):
+    def get_items(self, sync_from_dt=None, max_results=100000):  # noqa: ANN201
         """
         Fetches and parses fresh contact data.
 
@@ -151,8 +151,8 @@ class GoogleContactsProvider(AbstractContactsProvider):
             If no data could be fetched because of invalid credentials or
             insufficient permissions, respectively.
 
-        """
-        query = gdata.contacts.client.ContactsQuery()
+        """  # noqa: D401
+        query = gdata.contacts.client.ContactsQuery()  # noqa: F821
         # TODO(emfree): Implement batch fetching
         # Note: The Google contacts API will only return 25 results if
         # query.max_results is not explicitly set, so have to set it to a large
@@ -168,7 +168,7 @@ class GoogleContactsProvider(AbstractContactsProvider):
                 return [
                     self._parse_contact_result(result) for result in results
                 ]
-            except gdata.client.RequestError as e:
+            except gdata.client.RequestError as e:  # noqa: F821
                 if e.status == 503:
                     self.log.info(
                         "Ran into Google bot detection. Sleeping.", message=e
@@ -179,7 +179,7 @@ class GoogleContactsProvider(AbstractContactsProvider):
                         "contact sync request failure; retrying", message=e
                     )
                     time.sleep(30 + random.randrange(0, 60))
-            except gdata.client.Unauthorized:
+            except gdata.client.Unauthorized:  # noqa: F821
                 self.log.warning(
                     "Invalid access token; refreshing and retrying"
                 )

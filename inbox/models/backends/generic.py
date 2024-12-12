@@ -61,7 +61,7 @@ class GenericAccount(ImapAccount):
     __mapper_args__ = {"polymorphic_identity": "genericaccount"}
 
     @property
-    def verbose_provider(self):
+    def verbose_provider(self):  # noqa: ANN201
         if self.provider == "custom":
             return "imap"
         return self.provider
@@ -74,7 +74,7 @@ class GenericAccount(ImapAccount):
         try:
             value.decode("utf-8")
         except UnicodeDecodeError:
-            raise ValueError("Invalid password")
+            raise ValueError("Invalid password")  # noqa: B904
 
         if b"\x00" in value:
             raise ValueError("Invalid password")
@@ -113,19 +113,19 @@ class GenericAccount(ImapAccount):
             return "folder"
 
     @property
-    def thread_cls(self):
+    def thread_cls(self):  # noqa: ANN201
         from inbox.models.backends.imap import ImapThread
 
         return ImapThread
 
     @property
-    def actionlog_cls(self):
+    def actionlog_cls(self):  # noqa: ANN201
         from inbox.models.action_log import ActionLog
 
         return ActionLog
 
     @property
-    def server_settings(self):
+    def server_settings(self):  # noqa: ANN201
         settings = {}
         settings["imap_host"], settings["imap_port"] = self.imap_endpoint
         settings["smtp_host"], settings["smtp_port"] = self.smtp_endpoint
@@ -138,13 +138,13 @@ class GenericAccount(ImapAccount):
     # provider attribute to "gmail" to use the Gmail sync engine.
 
     @property
-    def provider_info(self):
+    def provider_info(self):  # noqa: ANN201
         provider_info = super().provider_info
         provider_info["auth"] = "password"
         return provider_info
 
     @property
-    def auth_handler(self):
+    def auth_handler(self):  # noqa: ANN201
         from inbox.auth.base import handler_from_provider
 
         return handler_from_provider("custom")

@@ -20,7 +20,7 @@ def upgrade() -> None:
     engine = main_engine(pool_size=1, max_overflow=0)
     from sqlalchemy.ext.declarative import declarative_base
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     if "easfoldersyncstatus" in Base.metadata.tables:

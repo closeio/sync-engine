@@ -83,10 +83,10 @@ def populate() -> None:
         ):
             try:
                 raw_data = json.loads(e.raw_data)
-            except:
+            except:  # noqa: E722
                 try:
                     raw_data = ast.literal_eval(e.raw_data)
-                except:
+                except:  # noqa: E722
                     print(f"Could not load raw data for event {e.id}")
                     continue
             e.recurrence = raw_data["recurrence"]
@@ -117,10 +117,10 @@ def populate() -> None:
             try:
                 # Some raw data is str(dict), other is json.dumps
                 raw_data = json.loads(e.raw_data)
-            except:
+            except:  # noqa: E722
                 try:
                     raw_data = ast.literal_eval(e.raw_data)
-                except:
+                except:  # noqa: E722
                     print(f"Could not load raw data for event {e.id}")
                     continue
             rec_uid = raw_data.get("recurringEventId")
@@ -168,10 +168,10 @@ def populate() -> None:
             r.unwrap_rrule()
             try:
                 raw_data = json.loads(r.raw_data)
-            except:
+            except:  # noqa: E722
                 try:
                     raw_data = ast.literal_eval(r.raw_data)
-                except:
+                except:  # noqa: E722
                     print(f"Could not load raw data for event {r.id}")
                     continue
             r.start_timezone = raw_data["start"].get("timeZone")

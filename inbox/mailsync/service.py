@@ -46,7 +46,7 @@ SHARED_SYNC_EVENT_QUEUE_NAME = "sync:shared_event_queue:{}"
 SHARED_SYNC_EVENT_QUEUE_ZONE_MAP = {}
 
 
-def shared_sync_event_queue_for_zone(zone):
+def shared_sync_event_queue_for_zone(zone):  # noqa: ANN201
     queue_name = SHARED_SYNC_EVENT_QUEUE_NAME.format(zone)
     if queue_name not in SHARED_SYNC_EVENT_QUEUE_ZONE_MAP:
         SHARED_SYNC_EVENT_QUEUE_ZONE_MAP[queue_name] = EventQueue(queue_name)
@@ -161,7 +161,7 @@ class SyncService:
         """
         Waits for notifications about Account migrations and checks for start/stop commands.
 
-        """
+        """  # noqa: D401
         # When the service first starts we should check the state of the world.
         self.poll()
         event = None
@@ -242,7 +242,7 @@ class SyncService:
                 try:
                     self.start_sync(account_id)
                 except OperationalError:
-                    self.log.error(
+                    self.log.error(  # noqa: G201
                         "Database error starting account sync", exc_info=True
                     )
                     log_uncaught_errors()
@@ -253,12 +253,12 @@ class SyncService:
             try:
                 self.stop_sync(account_id)
             except OperationalError:
-                self.log.error(
+                self.log.error(  # noqa: G201
                     "Database error stopping account sync", exc_info=True
                 )
                 log_uncaught_errors()
 
-    def account_ids_to_sync(self):
+    def account_ids_to_sync(self):  # noqa: ANN201
         with global_session_scope() as db_session:
             return {
                 r[0]
@@ -285,7 +285,7 @@ class SyncService:
                 .all()
             }
 
-    def account_ids_owned(self):
+    def account_ids_owned(self):  # noqa: ANN201
         with global_session_scope() as db_session:
             return {
                 r[0]
@@ -331,7 +331,7 @@ class SyncService:
         Starts a sync for the account with the given account_id.
         If that account doesn't exist, does nothing.
 
-        """
+        """  # noqa: D401
         with self.semaphore, session_scope(account_id) as db_session:
             account = (
                 db_session.query(Account).with_for_update().get(account_id)
@@ -393,7 +393,7 @@ class SyncService:
                     sync_host=account.sync_host,
                 )
             except Exception:
-                self.log.error(
+                self.log.error(  # noqa: G201
                     "Error starting sync", exc_info=True, account_id=account_id
                 )
                 return False
@@ -408,7 +408,7 @@ class SyncService:
         Stops the sync for the account with given account_id.
         If that account doesn't exist, does nothing.
 
-        """
+        """  # noqa: D401
         with self.semaphore:
             self.log.info("Stopping monitors", account_id=account_id)
             if account_id in self.email_sync_monitors:

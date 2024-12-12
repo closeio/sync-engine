@@ -180,6 +180,6 @@ def test_longpoll_delta_timeout(db, api_client, default_namespace) -> None:
     assert end_time - start_time - test_timeout < EPSILON
     parsed_responses = json.loads(resp.data)
     assert len(parsed_responses["deltas"]) == 0
-    assert type(parsed_responses["deltas"]) == list
+    assert type(parsed_responses["deltas"]) == list  # noqa: E721
     assert parsed_responses["cursor_start"] == cursor
     assert parsed_responses["cursor_end"] == cursor

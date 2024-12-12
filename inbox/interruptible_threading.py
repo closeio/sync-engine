@@ -255,7 +255,7 @@ class InterruptibleThreadTimeout(BaseException):
 
 
 @contextlib.contextmanager
-def timeout(timeout: float):
+def timeout(timeout: float):  # noqa: ANN201
     """
     Context manager to set a timeout for the interruptible
     operations run by the current interruptible thread.

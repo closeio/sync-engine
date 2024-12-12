@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 
 import click
@@ -17,7 +17,7 @@ def main() -> None:
     was _started_ on a new host without being first stopped on its previous
     host.)
 
-    """
+    """  # noqa: D401
     maybe_enable_rollbar()
 
     with global_session_scope() as db_session:

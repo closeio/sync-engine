@@ -37,7 +37,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Account(Base):
@@ -126,7 +126,7 @@ def downgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Account(Base):
@@ -147,7 +147,9 @@ def downgrade() -> None:
     with session_scope(versioned=False) as db_session:
         for acct in db_session.query(GenericAccount):
             secret = (
-                db_session.query(Secret).filter_by(id=acct.password_id).one()
+                db_session.query(Secret)  # noqa: F821
+                .filter_by(id=acct.password_id)
+                .one()
             )
 
             if acct.provider == "yahoo":

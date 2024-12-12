@@ -4,7 +4,7 @@ import os
 
 os.environ["NYLAS_ENV"] = "test"
 
-from pytest import fixture
+from pytest import fixture  # noqa: PT013
 
 from tests.api.base import TestAPIClient
 

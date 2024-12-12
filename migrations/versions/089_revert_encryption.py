@@ -43,7 +43,7 @@ def upgrade() -> None:
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = sa.ext.declarative.declarative_base()
+    Base = sa.ext.declarative.declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     key = config.get_required("SECRET_ENCRYPTION_KEY")

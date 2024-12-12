@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 
 import click
@@ -27,7 +27,7 @@ def main(dry_run, number, hostname, process) -> None:
             "You have not provided a --number option. This will "
             "unschedule ALL syncs on the host. Proceed? [Y/n] "
         )
-        if raw_input(message).strip().lower() == "n":
+        if raw_input(message).strip().lower() == "n":  # noqa: F821
             print("Will not proceed")
             return
 
@@ -38,7 +38,7 @@ def main(dry_run, number, hostname, process) -> None:
                 hostname
             )
         )
-        if raw_input(message).strip().lower() == "n":
+        if raw_input(message).strip().lower() == "n":  # noqa: F821
             print("Bailing out")
             return
 

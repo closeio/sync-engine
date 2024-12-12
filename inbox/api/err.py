@@ -8,10 +8,10 @@ from inbox.logging import create_error_log_context, get_logger
 
 log = get_logger()
 
-from inbox.config import is_live_env
+from inbox.config import is_live_env  # noqa: E402
 
 
-def get_request_uid(headers):
+def get_request_uid(headers):  # noqa: ANN201
     return headers.get("X-Unique-ID")
 
 
@@ -26,9 +26,9 @@ def log_exception(exc_info, **kwargs) -> None:
     rollbar.report_exc_info(exc_info)
 
     if not is_live_env():
-        print()
+        print()  # noqa: T201
         traceback.print_exc()
-        print()
+        print()  # noqa: T201
 
     new_log_context = create_error_log_context(exc_info)
     new_log_context.update(kwargs)
@@ -110,7 +110,7 @@ class AccountDoesNotExistError(APIException):
     message = "The account does not exist."
 
 
-def err(http_code, message, **kwargs):
+def err(http_code, message, **kwargs):  # noqa: ANN201
     """Handle unexpected errors, including sending the traceback to Rollbar."""
     log_exception(sys.exc_info(), user_error_message=message, **kwargs)
     resp = {"type": "api_error", "message": message}

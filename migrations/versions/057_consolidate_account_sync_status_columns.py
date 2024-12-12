@@ -38,7 +38,7 @@ def upgrade() -> None:
         ),
     )
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Account(Base):

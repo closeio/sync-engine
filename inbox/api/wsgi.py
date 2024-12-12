@@ -14,7 +14,7 @@ class NylasWSGIWorker(ThreadWorker):
     """Custom worker class for gunicorn."""
 
     def init_process(self) -> None:
-        print("Python", sys.version, file=sys.stderr)
+        print("Python", sys.version, file=sys.stderr)  # noqa: T201
 
         maybe_enable_rollbar()
 
@@ -23,7 +23,7 @@ class NylasWSGIWorker(ThreadWorker):
         super().init_process()
 
 
-from inbox.config import config
+from inbox.config import config  # noqa: E402
 
 LOGLEVEL = config.get("LOGLEVEL", 10)
 

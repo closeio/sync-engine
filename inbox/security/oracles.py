@@ -14,7 +14,7 @@ class EncryptionScheme(enum.Enum):
     SECRETBOX_WITH_STATIC_KEY = 1
 
 
-def get_encryption_oracle(secret_name):
+def get_encryption_oracle(secret_name):  # noqa: ANN201
     """
     Return an encryption oracle for the given secret.
     """
@@ -38,7 +38,7 @@ class _EncryptionOracle:
 
     In the future, it may interface with a subprocess or a hardware security
     module.
-    """
+    """  # noqa: D404
 
     def __init__(self, secret_name) -> None:
         self._closed = False
@@ -54,10 +54,10 @@ class _EncryptionOracle:
             encoder=nacl.encoding.HexEncoder,
         )
 
-    def __enter__(self):
+    def __enter__(self):  # noqa: ANN204
         return self
 
-    def __exit__(self, exc_type, exc_obj, exc_tb):
+    def __exit__(self, exc_type, exc_obj, exc_tb):  # noqa: ANN204
         self.close()
 
     def __del__(self) -> None:
@@ -126,7 +126,7 @@ class _DecryptionOracle(_EncryptionOracle):
 
     In the future, it may interface with a subprocess or a hardware security
     module.
-    """
+    """  # noqa: D404
 
     def reencrypt(
         self, ciphertext, encryption_scheme, new_encryption_scheme=None

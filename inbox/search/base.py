@@ -1,4 +1,4 @@
-def get_search_client(account):
+def get_search_client(account):  # noqa: ANN201
     from inbox.search.backends import module_registry
 
     search_mod = module_registry.get(account.provider)

@@ -27,7 +27,7 @@ from inbox.crispin import (
 
 
 class MockedIMAPClient(imapclient.IMAPClient):
-    def _create_IMAP4(self):
+    def _create_IMAP4(self):  # noqa: N802
         return mock.Mock()
 
 

@@ -4,7 +4,7 @@ that were not properly labeled as trash, sent, or spam.
 This list was constructed semi automatically, and manuallly verified.
 Should we encounter problems with account folders in the future, add them
 below to test for them.
-"""
+"""  # noqa: D404
 
 localized_folder_names = {
     "trash": {

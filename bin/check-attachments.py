@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 # Check that we can fetch attachments for 99.9% of our syncing accounts.
 import concurrent.futures
 import datetime
@@ -20,7 +20,7 @@ log = get_logger(purpose="separator-backfix")
 NUM_MESSAGES = 10
 
 
-def process_account(account_id):
+def process_account(account_id):  # noqa: ANN201
     ret = defaultdict(int)
 
     try:

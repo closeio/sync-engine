@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 """
 Run the syncback service separately. You should run this if you run the
 API under something like gunicorn. (For convenience, the bin/inbox-api script
@@ -58,13 +58,15 @@ def main(prod, config, process_num, syncback_id, enable_profiler) -> None:
     print("Python", sys.version, file=sys.stderr)
 
     if config is not None:
-        config_path = os.path.abspath(config)
+        config_path = os.path.abspath(config)  # noqa: PTH100
         load_overrides(config_path)
     level = os.environ.get("LOGLEVEL", inbox_config.get("LOGLEVEL"))
     configure_logging(log_level=level)
     reconfigure_logging()
 
-    total_processes = int(os.environ.get("SYNCBACK_PROCESSES", 1))
+    total_processes = int(
+        os.environ.get("SYNCBACK_PROCESSES", 1)  # noqa: PLW1508
+    )
 
     def start():
         # Start the syncback service, and just hang out forever

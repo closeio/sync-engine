@@ -179,7 +179,7 @@ class MicrosoftGraphClient:
         """
         return self.request("GET", f"/me/calendars/{calendar_id}")
 
-    def iter_events(
+    def iter_events(  # noqa: D417
         self,
         calendar_id: str,
         *,
@@ -220,7 +220,7 @@ class MicrosoftGraphClient:
             f"/me/calendars/{calendar_id}/events", params=params
         )
 
-    def get_event(
+    def get_event(  # noqa: D417
         self, event_id: str, *, fields: Iterable[str] | None = None
     ) -> dict[str, Any]:
         """
@@ -242,7 +242,7 @@ class MicrosoftGraphClient:
 
         return self.request("GET", f"/me/events/{event_id}", params=params)
 
-    def iter_event_instances(
+    def iter_event_instances(  # noqa: D417
         self,
         event_id: str,
         *,

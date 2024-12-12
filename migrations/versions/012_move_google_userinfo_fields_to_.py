@@ -22,7 +22,7 @@ def upgrade() -> None:
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
     # ADD:
     op.add_column(
@@ -55,7 +55,7 @@ def upgrade() -> None:
     )
 
     # MOVE:
-    class Account_(Base):
+    class Account_(Base):  # noqa: N801
         __table__ = Base.metadata.tables["account"]
 
     with session_scope() as db_session:
@@ -114,7 +114,7 @@ def downgrade() -> None:
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
     # ADD:
     op.add_column(
@@ -144,7 +144,7 @@ def downgrade() -> None:
     )
 
     # MOVE:
-    class ImapAccount_(Base):
+    class ImapAccount_(Base):  # noqa: N801
         __table__ = Base.metadata.tables["imapaccount"]
 
     with session_scope() as db_session:

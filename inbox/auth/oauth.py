@@ -77,7 +77,7 @@ class OAuthAuthHandler(AuthHandler):
             account_logger.error(
                 "Network error renewing access token", error=e
             )
-            raise ConnectionError()
+            raise ConnectionError()  # noqa: B904
 
         try:
             session_dict = response.json()
@@ -86,7 +86,9 @@ class OAuthAuthHandler(AuthHandler):
                 "Invalid JSON renewing on renewing token",
                 response=response.text,
             )
-            raise ConnectionError("Invalid JSON response on renewing token")
+            raise ConnectionError(  # noqa: B904
+                "Invalid JSON response on renewing token"
+            )
 
         if "error" in session_dict:
             if session_dict["error"] == "invalid_grant":
@@ -104,7 +106,7 @@ class OAuthAuthHandler(AuthHandler):
                 )
                 raise ConnectionError("Server error renewing access token")
 
-        return session_dict["access_token"], session_dict["expires_in"]
+        return (session_dict["access_token"], session_dict["expires_in"])
 
     def _new_access_token_from_authalligator(
         self,
@@ -184,7 +186,7 @@ class OAuthAuthHandler(AuthHandler):
             "Max retries reached"
         )
 
-    def acquire_access_token(
+    def acquire_access_token(  # noqa: D417
         self,
         account: OAuthAccount,
         force_refresh: bool = False,
@@ -274,12 +276,12 @@ class OAuthAuthHandler(AuthHandler):
             response = urllib.request.urlopen(request)
         except urllib.error.HTTPError as e:
             if e.code == 401:
-                raise OAuthError("Could not retrieve user info.")
+                raise OAuthError("Could not retrieve user info.")  # noqa: B904
             log.error("user_info_fetch_failed", error_code=e.code, error=e)
-            raise ConnectionError()
+            raise ConnectionError()  # noqa: B904
         except urllib.error.URLError as e:
             log.error("user_info_fetch_failed", error=e)
-            raise ConnectionError()
+            raise ConnectionError()  # noqa: B904
 
         userinfo_dict = json.loads(response.read())
 
@@ -325,7 +327,7 @@ class OAuthRequestsWrapper(requests.auth.AuthBase):
     def __init__(self, token) -> None:
         self.token = token
 
-    def __call__(self, r):
+    def __call__(self, r):  # noqa: ANN204
         r.headers["Authorization"] = f"Bearer {self.token}"
         return r
 

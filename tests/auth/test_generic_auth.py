@@ -135,7 +135,7 @@ def test_double_auth(db, mock_imapclient) -> None:
     invalid_settings = attr.evolve(
         account_data, imap_password="invalid_password"
     )
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError):  # noqa: PT012
         account = handler.update_account(account, invalid_settings)
         handler.verify_account(account)
 

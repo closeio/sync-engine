@@ -13,7 +13,7 @@ class ProfilingHTTPFrontend:
     or syncback process. It allows you to programmatically interact with the
     process: to get profile/memory/load metrics, or to schedule new account
     syncs.
-    """
+    """  # noqa: D404
 
     def __init__(self, port, profile) -> None:
         self.port = port
@@ -76,12 +76,12 @@ class SyncHTTPFrontend(ProfilingHTTPFrontend):
             if ret:
                 return "OK"
             else:
-                return "Account not assigned to this process", 409
+                return ("Account not assigned to this process", 409)
 
         @app.route("/build-metadata", methods=["GET"])
         def build_metadata():
             filename = "/usr/share/python/cloud-core/metadata.txt"
-            with open(filename) as f:
+            with open(filename) as f:  # noqa: PTH123
                 _, build_id = f.readline().rstrip("\n").split()
                 build_id = build_id[
                     1:-1

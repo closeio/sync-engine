@@ -76,11 +76,11 @@ EVENT_ACTION_FUNCTION_MAP = {
 }
 
 
-def action_uses_crispin_client(action):
+def action_uses_crispin_client(action):  # noqa: ANN201
     return action in MAIL_ACTION_FUNCTION_MAP
 
 
-def function_for_action(action):
+def function_for_action(action):  # noqa: ANN201
     if action in MAIL_ACTION_FUNCTION_MAP:
         return MAIL_ACTION_FUNCTION_MAP[action]
     return EVENT_ACTION_FUNCTION_MAP[action]
@@ -168,7 +168,7 @@ class SyncbackService(InterruptibleThread):
         Determines if we recently completed a move action. Since Nylas doesn't
         update local UID state after completing an action, we space
         non-optimistic actions apart so the sync process can catch up.
-        """
+        """  # noqa: D401
         if not log_entries:
             return False
 
@@ -309,7 +309,7 @@ class SyncbackService(InterruptibleThread):
         """
         Helper for _batch_log_entries that returns the batch task for the given
         valid log entries.
-        """
+        """  # noqa: D401
         if not log_entries:
             return None
         namespace = log_entries[0].namespace
@@ -395,7 +395,7 @@ class SyncbackService(InterruptibleThread):
                     log_entry.status = "failed"
                     db_session.commit()
                     self.log.warning(
-                        "Marking action as failed for {} account, older than grace period".format(
+                        "Marking action as failed for {} account, older than grace period".format(  # noqa: G001
                             sync_state
                         ),
                         account_id=account_id,
@@ -570,14 +570,14 @@ class SyncbackBatchTask:
                     # failed.
                     break
 
-    def uses_crispin_client(self):
+    def uses_crispin_client(self):  # noqa: ANN201
         return any([task.uses_crispin_client() for task in self.tasks])
 
-    def timeout(self, per_task_timeout):
+    def timeout(self, per_task_timeout):  # noqa: ANN201
         return len(self.tasks) * per_task_timeout
 
     @property
-    def action_log_ids(self):
+    def action_log_ids(self):  # noqa: ANN201
         return [entry for task in self.tasks for entry in task.action_log_ids]
 
 
@@ -621,7 +621,7 @@ class SyncbackTask:
         self.retry_interval = retry_interval
         self.crispin_client = None
 
-    def try_merge_with(self, other):
+    def try_merge_with(self, other):  # noqa: ANN201
         if self.func != other.func:
             return None
 
@@ -828,10 +828,10 @@ class SyncbackTask:
             event.deleted_at = datetime.now()
         db_session.commit()
 
-    def uses_crispin_client(self):
+    def uses_crispin_client(self):  # noqa: ANN201
         return action_uses_crispin_client(self.action_name)
 
-    def timeout(self, per_task_timeout):
+    def timeout(self, per_task_timeout):  # noqa: ANN201
         return per_task_timeout
 
     def execute(self) -> None:
@@ -859,7 +859,7 @@ class SyncbackWorker(InterruptibleThread):
                 ):
                     task.execute()
             except Exception:
-                self.log.error(
+                self.log.error(  # noqa: G201
                     "SyncbackWorker caught exception",
                     exc_info=True,
                     account_id=task.account_id,

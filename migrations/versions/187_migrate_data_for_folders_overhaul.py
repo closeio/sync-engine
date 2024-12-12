@@ -149,7 +149,7 @@ def migrate_messages(account_id) -> None:
             if not messages:
                 return
             for message in messages:
-                try:
+                try:  # noqa: SIM105
                     message.update_metadata(message.is_draft)
                 except IndexError:
                     # Can happen for messages without a folder.

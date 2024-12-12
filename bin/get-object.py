@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 # Query the id corresponding to a public id and vice-versa.
 
 
@@ -51,7 +51,7 @@ except ImportError:
 def main(type, id, public_id, account_id, namespace_id, readwrite) -> None:
     maybe_enable_rollbar()
 
-    type = type.lower()
+    type = type.lower()  # noqa: A001
 
     if type not in cls_for_type:
         print(f"Error: unknown type '{type}'")

@@ -102,7 +102,7 @@ class Block(
             self.content_type = self._content_type_other
 
     @property
-    def data(self):
+    def data(self):  # noqa: ANN201
         value: bytes | None
         if self.size == 0:
             log.warning("Block size is 0")
@@ -273,17 +273,17 @@ class Part(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     __table_args__ = (UniqueConstraint("message_id", "walk_index"),)
 
     @property
-    def thread_id(self):
+    def thread_id(self):  # noqa: ANN201
         if not self.message:
             return None
         return self.message.thread_id
 
     @property
-    def is_attachment(self):
+    def is_attachment(self):  # noqa: ANN201
         return self.content_disposition is not None
 
     @property
-    def is_embedded(self):
+    def is_embedded(self):  # noqa: ANN201
         return (
             self.content_disposition is not None
             and self.content_disposition.lower() == "inline"

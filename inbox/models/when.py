@@ -16,7 +16,7 @@ def parse_as_when(
     ------
     ValueError
 
-    """
+    """  # noqa: D401
     when_classes = [TimeSpan, Time, DateSpan, Date]
     keys_for_type = {
         tuple(sorted(cls_.json_keys)): cls_ for cls_ in when_classes
@@ -48,7 +48,7 @@ class When:
     spanning = False
 
     @classmethod
-    def parse(cls, raw: dict[str, Any]):
+    def parse(cls, raw: dict[str, Any]):  # noqa: ANN206
         parsed_times = cls.parse_keys(raw)
         return cls(*parsed_times)
 
@@ -60,7 +60,7 @@ class When:
                 time = parse_utc(raw[key])
                 times.append(time)
             except (AttributeError, ValueError, TypeError):
-                raise ValueError(f"'{key}' parameter invalid.")
+                raise ValueError(f"'{key}' parameter invalid.")  # noqa: B904
         return times
 
     def __init__(
@@ -94,7 +94,7 @@ class SpanningWhen(When):
     singular_cls: type
 
     @classmethod
-    def parse(cls, raw: dict[str, Any]):
+    def parse(cls, raw: dict[str, Any]):  # noqa: ANN206
         # If initializing a span, we sanity check the timestamps and initialize
         # the singular form if they are equal.
         start, end = cls.parse_keys(raw)

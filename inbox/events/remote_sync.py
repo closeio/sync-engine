@@ -142,7 +142,7 @@ def handle_calendar_deletes(
 def handle_calendar_updates(
     namespace_id: int, calendars, log: Any, db_session: Any
 ) -> list[tuple[str, int]]:
-    """Persists new or updated Calendar objects to the database."""
+    """Persists new or updated Calendar objects to the database."""  # noqa: D401
     ids_ = []
     added_count = 0
     updated_count = 0
@@ -185,7 +185,7 @@ def handle_event_updates(
     log: Any,
     db_session: Any,
 ) -> None:
-    """Persists new or updated Event objects to the database."""
+    """Persists new or updated Event objects to the database."""  # noqa: D401
     added_count = 0
     updated_count = 0
     existing_event_query = (
@@ -380,7 +380,7 @@ class WebhookEventSync(EventSync):
                 try:
                     self._sync_calendar(calendar, db_session)
                 except HTTPError as exc:
-                    assert exc.response is not None
+                    assert exc.response is not None  # noqa: PT017
                     if exc.response.status_code == 404:
                         self.log.warning(
                             "Tried to sync a deleted calendar."

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 import os
 import sys
@@ -49,7 +49,7 @@ def main(prod, config, port) -> None:
     maybe_enable_rollbar()
 
     if config is not None:
-        config_path = os.path.abspath(config)
+        config_path = os.path.abspath(config)  # noqa: PTH100
         load_overrides(config_path)
 
     start(port=int(port), use_reloader=not prod)

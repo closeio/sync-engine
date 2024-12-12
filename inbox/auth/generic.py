@@ -33,7 +33,7 @@ class GenericAccountData:
 
 
 class GenericAuthHandler(AuthHandler):
-    def create_account(self, account_data):
+    def create_account(self, account_data):  # noqa: ANN201
         namespace = Namespace()
         account = GenericAccount(namespace=namespace)
         account.provider = "custom"
@@ -41,7 +41,7 @@ class GenericAuthHandler(AuthHandler):
         account.sync_should_run = False
         return self.update_account(account, account_data)
 
-    def update_account(self, account, account_data):
+    def update_account(self, account, account_data):  # noqa: ANN201
         account.email_address = account_data.email
 
         account.imap_endpoint = (
@@ -74,9 +74,9 @@ class GenericAuthHandler(AuthHandler):
                 log.error(
                     "IMAP login failed", account_id=account.id, error=exc
                 )
-                raise ValidationError(exc)
+                raise ValidationError(exc)  # noqa: B904
             elif auth_requires_app_password(exc):
-                raise AppPasswordError(exc)
+                raise AppPasswordError(exc)  # noqa: B904
             else:
                 log.warning(
                     "IMAP login failed for an unknown reason. Check auth_is_invalid",
@@ -85,7 +85,7 @@ class GenericAuthHandler(AuthHandler):
                 )
                 raise
 
-    def interactive_auth(self, email_address):
+    def interactive_auth(self, email_address):  # noqa: ANN201
         imap_server_host = input("IMAP server host: ").strip()
         imap_server_port = input("IMAP server port: ").strip() or 993
         imap_um = "IMAP username (empty for same as email address): "

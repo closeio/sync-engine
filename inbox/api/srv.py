@@ -44,13 +44,13 @@ reconfigure_logging()
 
 
 @app.errorhandler(APIException)
-def handle_input_error(error):
+def handle_input_error(error):  # noqa: ANN201
     response = jsonify(message=error.message, type="invalid_request_error")
     response.status_code = error.status_code
     return response
 
 
-def default_json_error(ex):
+def default_json_error(ex):  # noqa: ANN201
     """Exception -> flask JSON responder"""
     logger = get_logger()
     logger.error("Uncaught error thrown by Flask/Werkzeug", exc_info=ex)
@@ -65,7 +65,7 @@ for code in default_exceptions:
 
 
 @app.before_request
-def auth():
+def auth():  # noqa: ANN201
     """Check for account ID on all non-root URLS"""
     if (
         request.path == "/"
@@ -76,7 +76,7 @@ def auth():
         return None
 
     if not request.authorization or not request.authorization.username:
-        AUTH_ERROR_MSG = (
+        AUTH_ERROR_MSG = (  # noqa: N806
             "Could not verify access credential.",
             401,
             {"WWW-Authenticate": 'Basic realm="API Access Token Required"'},
@@ -119,7 +119,7 @@ def auth():
 
 
 @app.after_request
-def finish(response):
+def finish(response):  # noqa: ANN201
     origin = request.headers.get("origin")
     if origin:  # means it's just a regular request
         response.headers["Access-Control-Allow-Origin"] = origin
@@ -134,7 +134,7 @@ def finish(response):
 
 
 @app.route("/accounts/", methods=["GET"])
-def ns_all():
+def ns_all():  # noqa: ANN201
     """Return all namespaces"""
     # We do this outside the blueprint to support the case of an empty
     # public_id.  However, this means the before_request isn't run, so we need
@@ -253,7 +253,7 @@ def _get_account_data_for_microsoft_account(
 
 
 @app.route("/accounts/", methods=["POST"])
-def create_account():
+def create_account():  # noqa: ANN201
     """Create a new account"""
     data = request.get_json(force=True)
 
@@ -280,7 +280,7 @@ def create_account():
 
 
 @app.route("/accounts/<namespace_public_id>/", methods=["PUT"])
-def modify_account(namespace_public_id):
+def modify_account(namespace_public_id):  # noqa: ANN201
     """
     Modify an existing account
 
@@ -320,7 +320,7 @@ def modify_account(namespace_public_id):
 
 
 @app.route("/accounts/<namespace_public_id>/", methods=["DELETE"])
-def delete_account(namespace_public_id):
+def delete_account(namespace_public_id):  # noqa: ANN201
     """Mark an existing account for deletion."""
     try:
         with global_session_scope() as db_session:
@@ -333,7 +333,9 @@ def delete_account(namespace_public_id):
             account.mark_for_deletion()
             db_session.commit()
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find account `{namespace_public_id}` ")
+        raise NotFoundError(  # noqa: B904
+            f"Couldn't find account `{namespace_public_id}` "
+        )
 
     encoder = APIEncoder()
     return encoder.jsonify({})
@@ -345,11 +347,11 @@ def home() -> str:
 
 
 @app.route("/logout")
-def logout():
+def logout():  # noqa: ANN201
     """
     Utility function used to force browsers to reset cached HTTP Basic Auth
     credentials
-    """
+    """  # noqa: D401
     return make_response(
         (
             "<meta http-equiv='refresh' content='0; url=/''>.",

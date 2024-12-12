@@ -145,10 +145,11 @@ app.log_exception = log_exception
 # TODO perhaps expand to encompass non-standard mimetypes too
 # see python mimetypes library
 common_extensions = {}
-mt_path = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "mime_types.txt"
+mt_path = os.path.join(  # noqa: PTH118
+    os.path.dirname(os.path.abspath(__file__)),  # noqa: PTH100, PTH120
+    "mime_types.txt",
 )
-with open(mt_path) as f:
+with open(mt_path) as f:  # noqa: PTH123
     for x in f:
         x = x.strip()
         if not x or x.startswith("#"):
@@ -244,7 +245,7 @@ def before_remote_request() -> None:
 
 
 @app.after_request
-def finish(response):
+def finish(response):  # noqa: ANN201
     if response.status_code == 200 and hasattr(g, "db_session"):  # be cautious
         g.db_session.commit()
     if hasattr(g, "db_session"):
@@ -253,7 +254,7 @@ def finish(response):
 
 
 @app.errorhandler(OperationalError)
-def handle_operational_error(error):
+def handle_operational_error(error):  # noqa: ANN201
     rule = request.url_rule
     if "send" in rule.rule and "rsvp" not in rule.rule:
         message = "A temporary database error prevented us from serving this request. Your message has NOT been sent. Please try again in a few minutes."
@@ -267,7 +268,7 @@ def handle_operational_error(error):
 
 
 @app.errorhandler(NotImplementedError)
-def handle_not_implemented_error(error):
+def handle_not_implemented_error(error):  # noqa: ANN201
     request.environ["log_context"]["error"] = "NotImplementedError"
     response = flask_jsonify(
         message="API endpoint not yet implemented", type="api_error"
@@ -277,7 +278,7 @@ def handle_not_implemented_error(error):
 
 
 @app.errorhandler(APIException)
-def handle_input_error(error):
+def handle_input_error(error):  # noqa: ANN201
     # these "errors" are normal, so we don't need to save a traceback
     request.environ["log_context"]["error"] = error.__class__.__name__
     request.environ["log_context"]["error_message"] = error.message
@@ -289,7 +290,7 @@ def handle_input_error(error):
 
 
 @app.errorhandler(Exception)
-def handle_generic_error(error):
+def handle_generic_error(error):  # noqa: ANN201
     log_exception(sys.exc_info())
     response = flask_jsonify(
         message="An internal error occured. If this issue persists, please contact support@nylas.com and include this request_uid: {}".format(
@@ -301,7 +302,7 @@ def handle_generic_error(error):
 
 
 @app.route("/account")
-def one_account():
+def one_account():  # noqa: ANN201
     g.parser.add_argument("view", type=view, location="args")
     args = strict_parse_args(g.parser, request.args)
     # Use a new encoder object with the expand parameter set.
@@ -313,7 +314,7 @@ def one_account():
 # Sync status (enable/disable account / throttling)
 #
 @app.route("/status/", methods=["GET", "PUT"])
-def status():
+def status():  # noqa: ANN201
     account = g.namespace.account
 
     # Don't allow resuming accounts marked for deletion.
@@ -343,7 +344,7 @@ def status():
 # Threads
 #
 @app.route("/threads/")
-def thread_query_api():
+def thread_query_api():  # noqa: ANN201
     g.parser.add_argument("subject", type=bounded_str, location="args")
     g.parser.add_argument("to", type=bounded_str, location="args")
     g.parser.add_argument("from", type=bounded_str, location="args")
@@ -402,7 +403,7 @@ def thread_query_api():
 
 
 @app.route("/threads/search", methods=["GET"])
-def thread_search_api():
+def thread_search_api():  # noqa: ANN201
     g.parser.add_argument("q", type=bounded_str, location="args")
     args = strict_parse_args(g.parser, request.args)
     if not args["q"]:
@@ -429,7 +430,7 @@ def thread_search_api():
 
 
 @app.route("/threads/search/streaming", methods=["GET"])
-def thread_streaming_search_api():
+def thread_streaming_search_api():  # noqa: ANN201
     g.parser.add_argument("q", type=bounded_str, location="args")
     args = strict_parse_args(g.parser, request.args)
     if not args["q"]:
@@ -457,7 +458,7 @@ def thread_streaming_search_api():
 
 
 @app.route("/threads/<public_id>")
-def thread_api(public_id):
+def thread_api(public_id):  # noqa: ANN201
     g.parser.add_argument("view", type=view, location="args")
     args = strict_parse_args(g.parser, request.args)
     # Use a new encoder object with the expand parameter set.
@@ -475,14 +476,16 @@ def thread_api(public_id):
         )
         return encoder.jsonify(thread)
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find thread `{public_id}`")
+        raise NotFoundError(  # noqa: B904
+            f"Couldn't find thread `{public_id}`"
+        )
 
 
 #
 # Update thread
 #
 @app.route("/threads/<public_id>", methods=["PUT", "PATCH"])
-def thread_api_update(public_id):
+def thread_api_update(public_id):  # noqa: ANN201
     try:
         valid_public_id(public_id)
         thread = (
@@ -495,7 +498,9 @@ def thread_api_update(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find thread `{public_id}` ")
+        raise NotFoundError(  # noqa: B904
+            f"Couldn't find thread `{public_id}` "
+        )
     data = request.get_json(force=True)
     if not isinstance(data, dict):
         raise InputError("Invalid request body")
@@ -512,7 +517,7 @@ def thread_api_update(public_id):
 #
 @app.route("/threads/<public_id>", methods=["DELETE"])
 def thread_api_delete(public_id) -> Never:
-    """Moves the thread to the trash"""
+    """Moves the thread to the trash"""  # noqa: D401
     raise NotImplementedError
 
 
@@ -520,7 +525,7 @@ def thread_api_delete(public_id) -> Never:
 # Messages
 ##
 @app.route("/messages/")
-def message_query_api():
+def message_query_api():  # noqa: ANN201
     g.parser.add_argument("subject", type=bounded_str, location="args")
     g.parser.add_argument("to", type=bounded_str, location="args")
     g.parser.add_argument("from", type=bounded_str, location="args")
@@ -580,7 +585,7 @@ def message_query_api():
 
 
 @app.route("/messages/search", methods=["GET"])
-def message_search_api():
+def message_search_api():  # noqa: ANN201
     g.parser.add_argument("q", type=bounded_str, location="args")
     args = strict_parse_args(g.parser, request.args)
     if not args["q"]:
@@ -607,7 +612,7 @@ def message_search_api():
 
 
 @app.route("/messages/search/streaming", methods=["GET"])
-def message_streaming_search_api():
+def message_streaming_search_api():  # noqa: ANN201
     g.parser.add_argument("q", type=bounded_str, location="args")
     args = strict_parse_args(g.parser, request.args)
     if not args["q"]:
@@ -635,7 +640,7 @@ def message_streaming_search_api():
 
 
 @app.route("/messages/<public_id>", methods=["GET"])
-def message_read_api(public_id):
+def message_read_api(public_id):  # noqa: ANN201
     g.parser.add_argument("view", type=view, location="args")
     args = strict_parse_args(g.parser, request.args)
     encoder = APIEncoder(g.namespace.public_id, args["view"] == "expanded")
@@ -646,7 +651,7 @@ def message_read_api(public_id):
             public_id, g.namespace.id, g.db_session
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find message {public_id}")
+        raise NotFoundError(f"Couldn't find message {public_id}")  # noqa: B904
 
     if request.headers.get("Accept", None) == "message/rfc822":
         raw_message = blockstore.get_raw_mime(message.data_sha256)
@@ -717,7 +722,7 @@ def message_read_api(public_id):
 
 
 @app.route("/messages/<public_id>", methods=["PUT", "PATCH"])
-def message_update_api(public_id):
+def message_update_api(public_id):  # noqa: ANN201
     try:
         valid_public_id(public_id)
         message = (
@@ -729,7 +734,9 @@ def message_update_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find message {public_id} ")
+        raise NotFoundError(  # noqa: B904
+            f"Couldn't find message {public_id} "
+        )
     data = request.get_json(force=True)
     if not isinstance(data, dict):
         raise InputError("Invalid request body")
@@ -744,7 +751,7 @@ def message_update_api(public_id):
 # Folders / Labels
 @app.route("/folders")
 @app.route("/labels")
-def folders_labels_query_api():
+def folders_labels_query_api():  # noqa: ANN201
     category_type = g.namespace.account.category_type
     rule = request.url_rule.rule
     valid_category_type(category_type, rule)
@@ -773,16 +780,16 @@ def folders_labels_query_api():
 
 
 @app.route("/folders/<public_id>")
-def folder_api(public_id):
+def folder_api(public_id):  # noqa: ANN201
     return folders_labels_api_impl(public_id)
 
 
 @app.route("/labels/<public_id>")
-def label_api(public_id):
+def label_api(public_id):  # noqa: ANN201
     return folders_labels_api_impl(public_id)
 
 
-def folders_labels_api_impl(public_id):
+def folders_labels_api_impl(public_id):  # noqa: ANN201
     category_type = g.namespace.account.category_type
     rule = request.url_rule.rule
     valid_category_type(category_type, rule)
@@ -798,13 +805,13 @@ def folders_labels_api_impl(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError("Object not found")
+        raise NotFoundError("Object not found")  # noqa: B904
     return g.encoder.jsonify(category)
 
 
 @app.route("/folders", methods=["POST"])
 @app.route("/labels", methods=["POST"])
-def folders_labels_create_api():
+def folders_labels_create_api():  # noqa: ANN201
     category_type = g.namespace.account.category_type
     rule = request.url_rule.rule
     valid_category_type(category_type, rule)
@@ -864,7 +871,7 @@ def folders_labels_create_api():
 
 @app.route("/folders/<public_id>", methods=["PUT", "PATCH"])
 @app.route("/labels/<public_id>", methods=["PUT", "PATCH"])
-def folder_label_update_api(public_id):
+def folder_label_update_api(public_id):  # noqa: ANN201
     category_type = g.namespace.account.category_type
     rule = request.url_rule.rule
     valid_category_type(category_type, rule)
@@ -880,7 +887,9 @@ def folder_label_update_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise InputError(f"Couldn't find {category_type} {public_id}")
+        raise InputError(  # noqa: B904
+            f"Couldn't find {category_type} {public_id}"
+        )
     if category.name:
         raise InputError(f"Cannot modify a standard {category_type}")
 
@@ -930,7 +939,7 @@ def folder_label_update_api(public_id):
 
 @app.route("/folders/<public_id>", methods=["DELETE"])
 @app.route("/labels/<public_id>", methods=["DELETE"])
-def folder_label_delete_api(public_id):
+def folder_label_delete_api(public_id):  # noqa: ANN201
     category_type = g.namespace.account.category_type
     rule = request.url_rule.rule
     valid_category_type(category_type, rule)
@@ -946,7 +955,9 @@ def folder_label_delete_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise InputError(f"Couldn't find {category_type} {public_id}")
+        raise InputError(  # noqa: B904
+            f"Couldn't find {category_type} {public_id}"
+        )
     if category.name:
         raise InputError(f"Cannot modify a standard {category_type}")
 
@@ -994,7 +1005,7 @@ def folder_label_delete_api(public_id):
 # Contacts
 ##
 @app.route("/contacts/", methods=["GET"])
-def contact_api():
+def contact_api():  # noqa: ANN201
     g.parser.add_argument(
         "filter", type=bounded_str, default="", location="args"
     )
@@ -1032,7 +1043,7 @@ def contact_api():
 
 
 @app.route("/contacts/<public_id>", methods=["GET"])
-def contact_read_api(public_id):
+def contact_read_api(public_id):  # noqa: ANN201
     # Get all data for an existing contact.
     valid_public_id(public_id)
     result = inbox.contacts.crud.read(g.namespace, g.db_session, public_id)
@@ -1045,7 +1056,7 @@ def contact_read_api(public_id):
 # Events
 ##
 @app.route("/events/", methods=["GET"])
-def event_api():
+def event_api():  # noqa: ANN201
     g.parser.add_argument("event_id", type=valid_public_id, location="args")
     g.parser.add_argument("calendar_id", type=valid_public_id, location="args")
     g.parser.add_argument("title", type=bounded_str, location="args")
@@ -1102,7 +1113,7 @@ def event_api():
 
 
 @app.route("/events/", methods=["POST"])
-def event_create_api():
+def event_create_api():  # noqa: ANN201
     g.parser.add_argument(
         "notify_participants", type=strict_bool, location="args"
     )
@@ -1167,7 +1178,7 @@ def event_create_api():
 
 
 @app.route("/events/<public_id>", methods=["GET"])
-def event_read_api(public_id):
+def event_read_api(public_id):  # noqa: ANN201
     """Get all data for an existing event."""
     valid_public_id(public_id)
     try:
@@ -1181,12 +1192,14 @@ def event_read_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find event id {public_id}")
+        raise NotFoundError(  # noqa: B904
+            f"Couldn't find event id {public_id}"
+        )
     return g.encoder.jsonify(event)
 
 
 @app.route("/events/<public_id>", methods=["PUT", "PATCH"])
-def event_update_api(public_id):
+def event_update_api(public_id):  # noqa: ANN201
     g.parser.add_argument(
         "notify_participants", type=strict_bool, location="args"
     )
@@ -1205,7 +1218,7 @@ def event_update_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find event {public_id}")
+        raise NotFoundError(f"Couldn't find event {public_id}")  # noqa: B904
 
     # iCalendar-imported files are read-only by default but let's give a
     # slightly more helpful error message.
@@ -1294,7 +1307,7 @@ def event_update_api(public_id):
 
 
 @app.route("/events/<public_id>", methods=["DELETE"])
-def event_delete_api(public_id):
+def event_delete_api(public_id):  # noqa: ANN201
     g.parser.add_argument(
         "notify_participants", type=strict_bool, location="args"
     )
@@ -1313,7 +1326,7 @@ def event_delete_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find event {public_id}")
+        raise NotFoundError(f"Couldn't find event {public_id}")  # noqa: B904
 
     if event.calendar == g.namespace.account.emailed_events_calendar:
         raise InputError(
@@ -1349,7 +1362,7 @@ def event_delete_api(public_id):
 
 
 @app.route("/send-rsvp", methods=["POST"])
-def event_rsvp_api():
+def event_rsvp_api():  # noqa: ANN201
     data = request.get_json(force=True)
 
     event_id = data.get("event_id")
@@ -1364,7 +1377,7 @@ def event_rsvp_api():
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find event {event_id}")
+        raise NotFoundError(f"Couldn't find event {event_id}")  # noqa: B904
 
     if event.message is None:
         raise InputError(
@@ -1445,7 +1458,7 @@ def event_rsvp_api():
 # Files
 #
 @app.route("/files/", methods=["GET"])
-def files_api():
+def files_api():  # noqa: ANN201
     g.parser.add_argument("filename", type=bounded_str, location="args")
     g.parser.add_argument("message_id", type=valid_public_id, location="args")
     g.parser.add_argument("content_type", type=bounded_str, location="args")
@@ -1468,7 +1481,7 @@ def files_api():
 
 
 @app.route("/files/<public_id>", methods=["GET"])
-def file_read_api(public_id):
+def file_read_api(public_id):  # noqa: ANN201
     valid_public_id(public_id)
     try:
         f = (
@@ -1481,11 +1494,11 @@ def file_read_api(public_id):
         )
         return g.encoder.jsonify(f)
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find file {public_id} ")
+        raise NotFoundError(f"Couldn't find file {public_id} ")  # noqa: B904
 
 
 @app.route("/files/<public_id>", methods=["DELETE"])
-def file_delete_api(public_id):
+def file_delete_api(public_id):  # noqa: ANN201
     valid_public_id(public_id)
     try:
         f = (
@@ -1513,7 +1526,7 @@ def file_delete_api(public_id):
         # Effectively no error == success
         return g.encoder.jsonify(None)
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find file {public_id} ")
+        raise NotFoundError(f"Couldn't find file {public_id} ")  # noqa: B904
 
 
 #
@@ -1522,7 +1535,7 @@ def file_delete_api(public_id):
 # $ curl http://localhost:5555/n/4s4iz36h36w17kumggi36ha2b/files \
 # --form upload=@dancingbaby.gif
 @app.route("/files/", methods=["POST"])
-def file_upload_api():
+def file_upload_api():  # noqa: ANN201
     all_files = []
     for name, uploaded in request.files.items():
         request.environ["log_context"].setdefault("filenames", []).append(name)
@@ -1543,7 +1556,7 @@ def file_upload_api():
 # File downloads
 #
 @app.route("/files/<public_id>/download")
-def file_download_api(public_id):
+def file_download_api(public_id):  # noqa: ANN201
     valid_public_id(public_id)
     try:
         f = (
@@ -1555,7 +1568,7 @@ def file_download_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find file {public_id} ")
+        raise NotFoundError(f"Couldn't find file {public_id} ")  # noqa: B904
 
     # Here we figure out the filename.extension given the
     # properties which were set on the original attachment
@@ -1638,7 +1651,7 @@ def file_download_api(public_id):
 # Calendars
 ##
 @app.route("/calendars/", methods=["GET"])
-def calendar_api():
+def calendar_api():  # noqa: ANN201
     g.parser.add_argument("view", type=view, location="args")
 
     args = strict_parse_args(g.parser, request.args)
@@ -1663,7 +1676,7 @@ def calendar_api():
 
 
 @app.route("/calendars/<public_id>", methods=["GET"])
-def calendar_read_api(public_id):
+def calendar_read_api(public_id):  # noqa: ANN201
     """Get all data for an existing calendar."""
     valid_public_id(public_id)
 
@@ -1677,7 +1690,9 @@ def calendar_read_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find calendar {public_id}")
+        raise NotFoundError(  # noqa: B904
+            f"Couldn't find calendar {public_id}"
+        )
     return g.encoder.jsonify(calendar)
 
 
@@ -1690,7 +1705,7 @@ def calendar_read_api(public_id):
 
 
 @app.route("/drafts/", methods=["GET"])
-def draft_query_api():
+def draft_query_api():  # noqa: ANN201
     g.parser.add_argument("subject", type=bounded_str, location="args")
     g.parser.add_argument("to", type=bounded_str, location="args")
     g.parser.add_argument("cc", type=bounded_str, location="args")
@@ -1747,7 +1762,7 @@ def draft_query_api():
 
 
 @app.route("/drafts/<public_id>", methods=["GET"])
-def draft_get_api(public_id):
+def draft_get_api(public_id):  # noqa: ANN201
     valid_public_id(public_id)
     draft = (
         g.db_session.query(Message)
@@ -1763,7 +1778,7 @@ def draft_get_api(public_id):
 
 
 @app.route("/drafts/", methods=["POST"])
-def draft_create_api():
+def draft_create_api():  # noqa: ANN201
     data = request.get_json(force=True)
     draft = create_message_from_json(
         data, g.namespace, g.db_session, is_draft=True
@@ -1772,7 +1787,7 @@ def draft_create_api():
 
 
 @app.route("/drafts/<public_id>", methods=["PUT", "PATCH"])
-def draft_update_api(public_id):
+def draft_update_api(public_id):  # noqa: ANN201
     data = request.get_json(force=True)
     original_draft = get_draft(
         public_id, data.get("version"), g.namespace.id, g.db_session
@@ -1815,7 +1830,7 @@ def draft_update_api(public_id):
 
 
 @app.route("/drafts/<public_id>", methods=["DELETE"])
-def draft_delete_api(public_id):
+def draft_delete_api(public_id):  # noqa: ANN201
     data = request.get_json(force=True)
     # Validate draft id, version, etc.
     draft = get_draft(
@@ -1828,7 +1843,7 @@ def draft_delete_api(public_id):
 
 @app.route("/send", methods=["POST"])
 @app.route("/send-with-features", methods=["POST"])  # TODO deprecate this URL
-def draft_send_api():
+def draft_send_api():  # noqa: ANN201
     request_started = time.time()
     account = g.namespace.account
 
@@ -1904,8 +1919,8 @@ def draft_send_api():
 
 
 @app.route("/send-multiple", methods=["POST"])
-def multi_send_create():
-    """Initiates a multi-send session by creating a new multi-send draft."""
+def multi_send_create():  # noqa: ANN201
+    """Initiates a multi-send session by creating a new multi-send draft."""  # noqa: D401
     account = g.namespace.account
 
     if account.discriminator == "easaccount":
@@ -1928,14 +1943,14 @@ def multi_send_create():
 
 
 @app.route("/send-multiple/<draft_id>", methods=["POST"])
-def multi_send(draft_id):
+def multi_send(draft_id):  # noqa: ANN201
     """
     Performs a single send operation in an individualized multi-send
     session. Sends a copy of the draft at draft_id to the specified address
     with the specified body, and ensures that a corresponding sent message is
     either not created in the user's Sent folder or is immediately
     deleted from it.
-    """
+    """  # noqa: D401
     request_started = time.time()
     account = g.namespace.account
 
@@ -1978,11 +1993,11 @@ def multi_send(draft_id):
 
 
 @app.route("/send-multiple/<draft_id>", methods=["DELETE"])
-def multi_send_finish(draft_id):
+def multi_send_finish(draft_id):  # noqa: ANN201
     """
     Closes out a multi-send session by marking the sending draft as sent
     and moving it to the user's Sent folder.
-    """
+    """  # noqa: D401
     account = g.namespace.account
 
     if account.discriminator == "easaccount":
@@ -2023,7 +2038,7 @@ def multi_send_finish(draft_id):
 ##
 @app.route("/delta")
 @app.route("/delta/longpoll")
-def sync_deltas():
+def sync_deltas():  # noqa: ANN201
     g.parser.add_argument(
         "cursor", type=valid_public_id, location="args", required=True
     )
@@ -2083,7 +2098,7 @@ def sync_deltas():
                 .one()
             )
         except NoResultFound:
-            raise InputError("Invalid cursor parameter")
+            raise InputError("Invalid cursor parameter")  # noqa: B904
 
     # The client wants us to wait until there are changes
     g.db_session.expunge(g.namespace)
@@ -2128,7 +2143,7 @@ def sync_deltas():
 
 # TODO Deprecate this
 @app.route("/delta/generate_cursor", methods=["POST"])
-def generate_cursor():
+def generate_cursor():  # noqa: ANN201
     data = request.get_json(force=True)
 
     if list(data) != ["start"] or not isinstance(data["start"], int):
@@ -2142,7 +2157,7 @@ def generate_cursor():
     try:
         datetime.utcfromtimestamp(timestamp)
     except ValueError:
-        raise InputError(
+        raise InputError(  # noqa: B904
             "generate_cursor request body must have the format "
             '{"start": <Unix timestamp> (seconds)}'
         )
@@ -2154,7 +2169,7 @@ def generate_cursor():
 
 
 @app.route("/delta/latest_cursor", methods=["POST"])
-def latest_cursor():
+def latest_cursor():  # noqa: ANN201
     cursor = delta_sync.get_transaction_cursor_near_timestamp(
         g.namespace.id, int(time.time()), g.db_session
     )
@@ -2167,7 +2182,7 @@ def latest_cursor():
 
 
 @app.route("/delta/streaming")
-def stream_changes():
+def stream_changes():  # noqa: ANN201
     g.parser.add_argument("timeout", type=float, location="args")
     g.parser.add_argument(
         "cursor", type=valid_public_id, location="args", required=True
@@ -2263,7 +2278,7 @@ def stream_changes():
 
 
 @app.route("/groups/intrinsic")
-def groups_intrinsic():
+def groups_intrinsic():  # noqa: ANN201
     g.parser.add_argument(
         "force_recalculate", type=strict_bool, location="args"
     )
@@ -2313,7 +2328,7 @@ def groups_intrinsic():
 
 
 @app.route("/contacts/rankings")
-def contact_rankings():
+def contact_rankings():  # noqa: ANN201
     g.parser.add_argument(
         "force_recalculate", type=strict_bool, location="args"
     )

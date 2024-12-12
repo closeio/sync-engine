@@ -6,7 +6,7 @@ class SSLNotSupportedError(AuthError):
     pass
 
 
-class ConnectionError(AuthError):
+class ConnectionError(AuthError):  # noqa: A001
     pass
 
 

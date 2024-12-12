@@ -13,8 +13,8 @@ down_revision = "2758cefad87d"
 
 
 # solution from http://stackoverflow.com/a/1217947
-def page_query(q):
-    CHUNK_SIZE = 500
+def page_query(q):  # noqa: ANN201
+    CHUNK_SIZE = 500  # noqa: N806
     offset = 0
     while True:
         r = False

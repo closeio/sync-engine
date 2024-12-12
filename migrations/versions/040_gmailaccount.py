@@ -53,7 +53,7 @@ def upgrade() -> None:
     engine = main_engine(pool_size=1, max_overflow=0)
     from inbox.models.session import session_scope
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Account(Base):

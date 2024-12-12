@@ -182,7 +182,7 @@ def test_api_override_serialization(
     db.session.add(override)
     db.session.commit()
 
-    filter = "starts_after={}&ends_before={}".format(
+    filter = "starts_after={}&ends_before={}".format(  # noqa: A001
         urlsafe(event.start.shift(hours=-1)),
         urlsafe(event.start.shift(weeks=+1)),
     )

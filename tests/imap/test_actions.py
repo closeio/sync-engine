@@ -252,7 +252,7 @@ def test_failed_event_creation(
     )
     db.session.commit()
 
-    NUM_WORKERS = 2
+    NUM_WORKERS = 2  # noqa: N806
     service = SyncbackService(
         syncback_id=0,
         process_number=0,

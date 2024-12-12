@@ -12,12 +12,14 @@ from inbox.util.itert import chunk
 log = get_logger()
 
 
-def safe_failure(f):
+def safe_failure(f):  # noqa: ANN201
     def wrapper(*args, **kwargs):
         try:
             return f(*args, **kwargs)
         except Exception:
-            log.error("Error interacting with heartbeats", exc_info=True)
+            log.error(  # noqa: G201
+                "Error interacting with heartbeats", exc_info=True
+            )
 
     return wrapper
 
@@ -31,31 +33,31 @@ class HeartbeatStatusKey:
     def __repr__(self) -> str:
         return self.key
 
-    def __lt__(self, other):
+    def __lt__(self, other):  # noqa: ANN204
         if self.account_id != other.account_id:
             return self.account_id < other.account_id
         return self.folder_id < other.folder_id
 
-    def __eq__(self, other):
+    def __eq__(self, other):  # noqa: ANN204
         return (
             self.account_id == other.account_id
             and self.folder_id == other.folder_id
         )
 
     @classmethod
-    def all_folders(cls, account_id):
+    def all_folders(cls, account_id):  # noqa: ANN206
         return cls(account_id, "*")
 
     @classmethod
-    def contacts(cls, account_id):
+    def contacts(cls, account_id):  # noqa: ANN206
         return cls(account_id, CONTACTS_FOLDER_ID)
 
     @classmethod
-    def events(cls, account_id):
+    def events(cls, account_id):  # noqa: ANN206
         return cls(account_id, EVENTS_FOLDER_ID)
 
     @classmethod
-    def from_string(cls, string_key):
+    def from_string(cls, string_key):  # noqa: ANN206
         account_id, folder_id = (int(part) for part in string_key.split(":"))
         return cls(account_id, folder_id)
 
@@ -83,7 +85,7 @@ class HeartbeatStatusProxy:
             self.store.publish(self.key, self.heartbeat_at)
         except Exception:
             log = get_logger()
-            log.error(
+            log.error(  # noqa: G201
                 "Error while writing the heartbeat status",
                 account_id=self.key.account_id,
                 folder_id=self.key.folder_id,
@@ -111,7 +113,7 @@ class HeartbeatStore:
         self.port = port
 
     @classmethod
-    def store(cls, host=None, port=None):
+    def store(cls, host=None, port=None):  # noqa: ANN206
         # Allow singleton access to the store, keyed by host.
         if cls._instances.get(host) is None:
             cls._instances[host] = cls(host, port)
@@ -138,7 +140,9 @@ class HeartbeatStore:
             self.remove_from_folder_index(key, client)
 
     @safe_failure
-    def remove_folders(self, account_id, folder_id=None, device_id=None):
+    def remove_folders(  # noqa: ANN201
+        self, account_id, folder_id=None, device_id=None
+    ):
         # Remove heartbeats for the given account, folder and/or device.
         if folder_id:
             key = HeartbeatStatusKey(account_id, folder_id)
@@ -172,11 +176,11 @@ class HeartbeatStore:
         # Find the oldest heartbeat from the account-folder index
         try:
             client = heartbeat_config.get_redis_client(key.account_id)
-            f, oldest_heartbeat = client.zrange(
+            f, oldest_heartbeat = client.zrange(  # noqa: F841
                 key.account_id, 0, 0, withscores=True
             ).pop()
             client.zadd("account_index", {key.account_id: oldest_heartbeat})
-        except Exception:
+        except Exception:  # noqa: S110
             # If all heartbeats were deleted at the same time as this, the pop
             # will fail -- ignore it.
             pass
@@ -191,11 +195,11 @@ class HeartbeatStore:
         client.delete(account_id)
         client.zrem("account_index", account_id)
 
-    def get_account_folders(self, account_id):
+    def get_account_folders(self, account_id):  # noqa: ANN201
         client = heartbeat_config.get_redis_client(account_id)
         return client.zrange(account_id, 0, -1, withscores=True)
 
-    def get_accounts_folders(self, account_ids):
+    def get_accounts_folders(self, account_ids):  # noqa: ANN201
         # This is where things get interesting --- we need to make queries
         # to multiple shards and return the results to a single caller.
         # Preferred method of querying for multiple accounts. Uses pipelining

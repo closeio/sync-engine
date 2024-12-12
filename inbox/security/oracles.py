@@ -57,7 +57,7 @@ class _EncryptionOracle:
     def __enter__(self):  # noqa: ANN204
         return self
 
-    def __exit__(self, exc_type, exc_obj, exc_tb):  # noqa: ANN204
+    def __exit__(self, exc_type, exc_obj, exc_tb) -> None:
         self.close()
 
     def __del__(self) -> None:
@@ -65,7 +65,7 @@ class _EncryptionOracle:
             return
         self.close()
 
-    def close(self):
+    def close(self) -> None:
         if self._closed:
             # already closed
             return

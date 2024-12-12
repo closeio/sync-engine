@@ -65,7 +65,7 @@ class IMAPSearchClient:
             readonly=True,
         )
 
-    def _close_crispin_connection(self):
+    def _close_crispin_connection(self) -> None:
         self.crispin_client.logout()
 
     def search_messages(  # noqa: ANN201

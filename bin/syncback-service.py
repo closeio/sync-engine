@@ -68,7 +68,7 @@ def main(prod, config, process_num, syncback_id, enable_profiler) -> None:
         os.environ.get("SYNCBACK_PROCESSES", 1)  # noqa: PLW1508
     )
 
-    def start():
+    def start() -> None:
         # Start the syncback service, and just hang out forever
         syncback = SyncbackService(syncback_id, process_num, total_processes)
 

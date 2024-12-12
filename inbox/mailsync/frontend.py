@@ -36,7 +36,7 @@ class ProfilingHTTPFrontend:
             {"request_handler": _QuietHandler},
         )
 
-    def _create_app_impl(self, app):
+    def _create_app_impl(self, app) -> None:
         @app.route("/profile")
         def profile():
             if self.profiler is None:
@@ -66,7 +66,7 @@ class SyncHTTPFrontend(ProfilingHTTPFrontend):
         self.sync_service = sync_service
         super().__init__(port, profile)
 
-    def _create_app_impl(self, app):
+    def _create_app_impl(self, app) -> None:
         super()._create_app_impl(app)
 
         @app.route("/unassign", methods=["POST"])
@@ -93,5 +93,5 @@ class SyncHTTPFrontend(ProfilingHTTPFrontend):
 
 
 class _QuietHandler(WSGIRequestHandler):
-    def log_request(self, *args, **kwargs):
+    def log_request(self, *args, **kwargs) -> None:
         """Suppress request logging so as not to pollute application logs."""

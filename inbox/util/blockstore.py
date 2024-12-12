@@ -367,7 +367,7 @@ def _delete_from_s3_bucket(
     statsd_client.timing("s3_blockstore.delete_latency", latency_millis)
 
 
-def _delete_from_disk(data_sha256):
+def _delete_from_disk(data_sha256) -> None:
     if not data_sha256:
         return
 

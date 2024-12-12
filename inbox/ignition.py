@@ -76,7 +76,7 @@ def engine(  # noqa: ANN201
     @event.listens_for(engine, "checkout")
     def receive_checkout(
         dbapi_connection, connection_record, connection_proxy
-    ):
+    ) -> None:
         """Log checkedout and overflow when a connection is checked out"""
         hostname = gethostname().replace(".", "-")
         process_name = str(config.get("PROCESS_NAME", "main_process"))
@@ -123,7 +123,7 @@ def engine(  # noqa: ANN201
         }
 
     @event.listens_for(engine, "checkin")
-    def receive_checkin(dbapi_connection, connection_record):
+    def receive_checkin(dbapi_connection, connection_record) -> None:
         if dbapi_connection in pool_tracker:
             del pool_tracker[dbapi_connection]
 

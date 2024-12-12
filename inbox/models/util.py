@@ -288,7 +288,7 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False) -> None:
 
 def _batch_delete(
     engine, table, column_id_filters, account_id, throttle=False, dry_run=False
-):
+) -> None:
     (column, id_) = column_id_filters
     count = engine.execute(
         f"SELECT COUNT(*) FROM {table} WHERE {column}={id_};"  # noqa: S608

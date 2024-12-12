@@ -242,7 +242,7 @@ class CrispinConnectionPool:
         # constituent SyncbackTasks.
         return self.readonly
 
-    def _logout(self, client):
+    def _logout(self, client) -> None:
         try:
             client.logout()
         except Exception:
@@ -302,7 +302,7 @@ class CrispinConnectionPool:
             self._queue.put(client)
             self._sem.release()
 
-    def _set_account_info(self):
+    def _set_account_info(self) -> None:
         with session_scope(self.account_id) as db_session:
             account = db_session.query(ImapAccount).get(self.account_id)
             self.sync_state = account.sync_state
@@ -349,7 +349,7 @@ class CrispinConnectionPool:
         )
 
 
-def _exc_callback(exc):
+def _exc_callback(exc) -> None:
     log.info(
         "Connection broken with error; retrying with new connection",
         exc_info=True,

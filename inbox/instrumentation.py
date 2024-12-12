@@ -26,7 +26,7 @@ class ProfileCollector:
 
         signal.setitimer(signal.ITIMER_VIRTUAL, self.interval, 0)
 
-    def _sample(self, signum, frame):
+    def _sample(self, signum, frame) -> None:
         stack: list[str] = []
         while frame is not None:
             stack.append(self._format_frame(frame))

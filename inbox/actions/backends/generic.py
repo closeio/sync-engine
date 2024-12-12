@@ -71,7 +71,9 @@ def _create_email(account, message):
     return msg
 
 
-def _set_flag(crispin_client, account_id, message_id, flag_name, is_add):
+def _set_flag(
+    crispin_client, account_id, message_id, flag_name, is_add
+) -> None:
     with session_scope(account_id) as db_session:
         uids_for_message = uids_by_folder(message_id, db_session)
     if not uids_for_message:
@@ -185,7 +187,7 @@ def remote_save_draft(crispin_client, account_id, message_id) -> None:
 
 def remote_update_draft(
     crispin_client, account_id, message_id, old_message_id_header
-):
+) -> None:
     with session_scope(account_id) as db_session:
         account = db_session.query(Account).get(account_id)
         message = db_session.query(Message).get(message_id)
@@ -245,7 +247,7 @@ def remote_delete_draft(
 
 def remote_delete_sent(
     crispin_client, account_id, message_id_header, delete_multiple=False
-):
+) -> None:
     if "sent" not in crispin_client.folder_names():
         log.warning(
             "Account has no detected sent folder; not deleting message",
@@ -255,7 +257,7 @@ def remote_delete_sent(
     crispin_client.delete_sent_message(message_id_header, delete_multiple)
 
 
-def remote_save_sent(crispin_client, account_id, message_id):
+def remote_save_sent(crispin_client, account_id, message_id) -> None:
     with session_scope(account_id) as db_session:
         account = db_session.query(Account).get(account_id)
         message = db_session.query(Message).get(message_id)

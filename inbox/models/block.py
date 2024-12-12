@@ -210,7 +210,7 @@ class Block(
         return value
 
     @data.setter
-    def data(self, value):
+    def data(self, value) -> None:
         assert value is not None
         assert isinstance(value, bytes)
 

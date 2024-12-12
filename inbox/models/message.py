@@ -140,7 +140,7 @@ class Message(
         return self._thread
 
     @thread.setter
-    def thread(self, value):
+    def thread(self, value) -> None:
         if value is not None and self._thread is not None:
             self._thread.deleted_at = None
         self._thread = value
@@ -200,7 +200,7 @@ class Message(
         return self.state == "actions_pending"
 
     @categories_changes.setter
-    def categories_changes(self, has_changes):
+    def categories_changes(self, has_changes) -> None:
         if has_changes is True:
             self.state = "actions_pending"
         else:

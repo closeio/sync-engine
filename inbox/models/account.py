@@ -154,7 +154,7 @@ class Account(
         return self._emailed_events_calendar
 
     @emailed_events_calendar.setter
-    def emailed_events_calendar(self, cal):
+    def emailed_events_calendar(self, cal) -> None:
         self._emailed_events_calendar = cal
 
     sync_host = Column(String(255), nullable=True)
@@ -405,7 +405,7 @@ def after_flush(session, flush_context) -> None:
     )
 
     def send_migration_events(obj_state):
-        def f(session):
+        def f(session) -> None:
             if obj_state["sent_event"]:
                 return
 

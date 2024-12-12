@@ -146,7 +146,7 @@ class SMTPConnection:
     def __enter__(self):  # noqa: ANN204
         return self
 
-    def __exit__(self, type, value, traceback):  # noqa: ANN204
+    def __exit__(self, type, value, traceback) -> None:
         try:
             self.connection.quit()
         except smtplib.SMTPServerDisconnected:
@@ -203,7 +203,7 @@ class SMTPConnection:
             )
 
     # OAuth2 authentication
-    def _smtp_oauth2_try_refresh(self):
+    def _smtp_oauth2_try_refresh(self) -> None:
         with session_scope(self.account_id) as db_session:
             account = db_session.query(ImapAccount).get(self.account_id)
             self.auth_token = token_manager.get_token(

@@ -83,7 +83,7 @@ class MockDNSResolver:
             Literal["mx", "ns"], dict[str, dict[str, str] | list[str]]
         ] = {"mx": {}, "ns": {}}
 
-    def _load_records(self, filename):
+    def _load_records(self, filename) -> None:
         self._registry = json.loads(get_data(filename))
 
     def query(self, domain, record_type):  # noqa: ANN201
@@ -151,10 +151,10 @@ class MockIMAPClient:
         self.logins = {}
         self.error_message = ""
 
-    def _add_login(self, email, password):
+    def _add_login(self, email, password) -> None:
         self.logins[email] = password
 
-    def _set_error_message(self, message):
+    def _set_error_message(self, message) -> None:
         self.error_message = message
 
     def login(self, email, password) -> None:

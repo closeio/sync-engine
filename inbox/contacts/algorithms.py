@@ -152,7 +152,7 @@ def calculate_group_scores(messages, user_email):  # noqa: ANN201
 
 
 # Helper functions for calculating group scores
-def _expand_molecule_pool(molecules_dict):
+def _expand_molecule_pool(molecules_dict) -> None:
     mditems = [(set(g), msgs) for (g, msgs) in molecules_dict.items()]
     for i in range(len(mditems)):
         g1, m1 = mditems[i]

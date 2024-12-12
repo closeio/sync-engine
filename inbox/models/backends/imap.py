@@ -59,7 +59,7 @@ class ImapAccount(Account):
             return self.provider_info["imap"]
 
     @imap_endpoint.setter
-    def imap_endpoint(self, endpoint):
+    def imap_endpoint(self, endpoint) -> None:
         host, port = endpoint
         self._imap_server_host = host
         self._imap_server_port = int(port)
@@ -72,7 +72,7 @@ class ImapAccount(Account):
             return self.provider_info["smtp"]
 
     @smtp_endpoint.setter
-    def smtp_endpoint(self, endpoint):
+    def smtp_endpoint(self, endpoint) -> None:
         host, port = endpoint
         self._smtp_server_host = host
         self._smtp_server_port = int(port)

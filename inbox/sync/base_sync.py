@@ -59,7 +59,7 @@ class BaseSyncMonitor(InterruptibleThread):
 
         self.name = f"{self.__class__.__name__}(account_id={account_id!r})"
 
-    def _run(self):
+    def _run(self) -> None:
         # Bind thread-local logging context.
         self.log = self.log.new(account_id=self.account_id)
         try:
@@ -83,7 +83,7 @@ class BaseSyncMonitor(InterruptibleThread):
                 account = db_session.query(Account).get(self.account_id)
                 account.mark_invalid(scope=self.scope)
 
-    def _run_impl(self):
+    def _run_impl(self) -> None:
         try:
             self.sync()
             self.heartbeat_status.publish(state="poll")

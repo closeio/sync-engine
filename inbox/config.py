@@ -112,7 +112,7 @@ def _update_config_from_env(config, env):
                 raise
 
 
-def _update_config_from_env_variables(config):
+def _update_config_from_env_variables(config) -> None:
     flags = (
         os.environ.get("FEATURE_FLAGS", "") or config.get("FEATURE_FLAGS", "")
     ).split()
@@ -124,7 +124,7 @@ def _update_config_from_env_variables(config):
     config["CALENDAR_POLL_FREQUENCY"] = calendar_poll_frequencey
 
 
-def _get_process_name(config):
+def _get_process_name(config) -> None:
     if os.environ.get("PROCESS_NAME") is not None:
         config["PROCESS_NAME"] = os.environ.get("PROCESS_NAME")
 

@@ -101,7 +101,7 @@ class BaseMailSyncMonitor(InterruptibleThread):
     def sync(self) -> Never:
         raise NotImplementedError
 
-    def _cleanup(self):
+    def _cleanup(self) -> None:
         self.sync_thread.kill()
         with session_scope(self.namespace_id) as mailsync_db_session:
             for x in self.folder_monitors:

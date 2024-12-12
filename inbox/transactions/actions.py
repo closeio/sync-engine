@@ -449,7 +449,7 @@ class SyncbackService(InterruptibleThread):
             )
         return batch_task
 
-    def _process_log(self):
+    def _process_log(self) -> None:
         for key in self.keys:
             with session_scope_by_shard_id(key) as db_session:
                 # Get the list of namespace ids with pending actions
@@ -491,14 +491,14 @@ class SyncbackService(InterruptibleThread):
                     if task is not None:
                         self.task_queue.put(task)
 
-    def _restart_workers(self):
+    def _restart_workers(self) -> None:
         while len(self.workers) < self.num_workers:
             worker = SyncbackWorker(self)
             self.workers.append(worker)
             self.num_idle_workers += 1
             worker.start()
 
-    def _run_impl(self):
+    def _run_impl(self) -> None:
         self._restart_workers()
         self._process_log()
         # Wait for a worker to finish or for the fixed poll_interval,
@@ -513,7 +513,7 @@ class SyncbackService(InterruptibleThread):
         self.keep_running = False
         kill_all(self.workers)
 
-    def _run(self):
+    def _run(self) -> None:
         self.log.info(
             "Starting syncback service",
             process_num=self.process_number,
@@ -658,7 +658,7 @@ class SyncbackTask:
             )
         return None
 
-    def _log_to_statsd(self, action_log_status, latency=None):
+    def _log_to_statsd(self, action_log_status, latency=None) -> None:
         metric_names = [
             f"syncback.overall.{action_log_status}",
             f"syncback.providers.{self.provider}.{action_log_status}",
@@ -801,7 +801,7 @@ class SyncbackTask:
         self._log_to_statsd(action_log_entry.status, latency)
         return (latency, func_latency)
 
-    def _mark_action_as_failed(self, action_log_entry, db_session):
+    def _mark_action_as_failed(self, action_log_entry, db_session) -> None:
         self.log.critical("Max retries reached, giving up.", exc_info=True)
         action_log_entry.status = "failed"
         self._log_to_statsd(action_log_entry.status)
@@ -846,7 +846,7 @@ class SyncbackWorker(InterruptibleThread):
         self.log = logger.new(component="syncback-worker")
         super().__init__()
 
-    def _run(self):
+    def _run(self) -> None:
         while self.parent_service().keep_running:
             task = interruptible_threading.queue_get(
                 self.parent_service().task_queue

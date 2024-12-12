@@ -250,7 +250,7 @@ class FolderSyncEngine(InterruptibleThread):
         # eagerly signal the sync status
         self.heartbeat_status.publish()
 
-        def start_sync(saved_folder_status):
+        def start_sync(saved_folder_status) -> None:
             # Ensure we don't cause an error if the folder was deleted.
             sync_end_time = (
                 saved_folder_status.folder
@@ -359,7 +359,7 @@ class FolderSyncEngine(InterruptibleThread):
         # killed between the end of the handler and the commit.
         if self.state != old_state:
 
-            def update(status):
+            def update(status) -> None:
                 status.state = self.state
 
             self.update_folder_sync_status(update)
@@ -397,12 +397,12 @@ class FolderSyncEngine(InterruptibleThread):
     def set_stopped(self, db_session) -> None:
         self.update_folder_sync_status(lambda s: s.stop_sync())
 
-    def _report_initial_sync_start(self):
+    def _report_initial_sync_start(self) -> None:
         with session_scope(self.namespace_id) as db_session:
             q = db_session.query(Folder).get(self.folder_id)
             q.initial_sync_start = datetime.utcnow()
 
-    def _report_initial_sync_end(self):
+    def _report_initial_sync_end(self) -> None:
         with session_scope(self.namespace_id) as db_session:
             q = db_session.query(Folder).get(self.folder_id)
             q.initial_sync_end = datetime.utcnow()
@@ -758,7 +758,7 @@ class FolderSyncEngine(InterruptibleThread):
 
         return len(new_uids)
 
-    def _report_first_message(self):
+    def _report_first_message(self) -> None:
         # Only record the "time to first message" in the inbox. Because users
         # can add more folders at any time, "initial sync"-style metrics for
         # other folders don't mean much.
@@ -782,7 +782,7 @@ class FolderSyncEngine(InterruptibleThread):
         for metric in metrics:
             statsd_client.timing(metric, latency)
 
-    def _report_message_velocity(self, timedelta, num_uids):
+    def _report_message_velocity(self, timedelta, num_uids) -> None:
         latency = (timedelta).total_seconds() * 1000
         latency_per_uid = float(latency) / num_uids
         metrics = [
@@ -1061,7 +1061,7 @@ class FolderSyncEngine(InterruptibleThread):
         return self._uidvalidity
 
     @uidvalidity.setter
-    def uidvalidity(self, value):
+    def uidvalidity(self, value) -> None:
         self._update_imap_folder_info("uidvalidity", value)
         self._uidvalidity = value
 
@@ -1072,7 +1072,7 @@ class FolderSyncEngine(InterruptibleThread):
         return self._uidnext
 
     @uidnext.setter
-    def uidnext(self, value):
+    def uidnext(self, value) -> None:
         self._update_imap_folder_info("uidnext", value)
         self._uidnext = value
 
@@ -1088,7 +1088,7 @@ class FolderSyncEngine(InterruptibleThread):
         return self._last_slow_refresh
 
     @last_slow_refresh.setter
-    def last_slow_refresh(self, value):
+    def last_slow_refresh(self, value) -> None:
         self._update_imap_folder_info("last_slow_refresh", value)
         self._last_slow_refresh = value
 
@@ -1099,7 +1099,7 @@ class FolderSyncEngine(InterruptibleThread):
         return self._highestmodseq
 
     @highestmodseq.setter
-    def highestmodseq(self, value):
+    def highestmodseq(self, value) -> None:
         self._highestmodseq = value
         self._update_imap_folder_info("highestmodseq", value)
 
@@ -1116,7 +1116,7 @@ class FolderSyncEngine(InterruptibleThread):
             db_session.expunge(imapfolderinfo)
             return imapfolderinfo
 
-    def _update_imap_folder_info(self, attrname, value):
+    def _update_imap_folder_info(self, attrname, value) -> None:
         with session_scope(self.namespace_id) as db_session:
             imapfolderinfo = (
                 db_session.query(ImapFolderInfo)

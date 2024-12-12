@@ -119,7 +119,7 @@ def retry_with_logging(  # noqa: ANN201
     # http://stackoverflow.com/questions/7935966/python-overwriting-variables-in-nested-functions
     occurrences = [0]
 
-    def callback(e):
+    def callback(e) -> None:
         is_transient = isinstance(e, TRANSIENT_NETWORK_ERRS)
         mysql_error = None
 

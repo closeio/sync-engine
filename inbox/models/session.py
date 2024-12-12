@@ -61,7 +61,7 @@ def new_session(engine, versioned=True):  # noqa: ANN201
         metric_name = f"db.{engine.url.database}.{modname}.{funcname}"
 
         @event.listens_for(session, "after_begin")
-        def after_begin(session, transaction, connection):
+        def after_begin(session, transaction, connection) -> None:
             # It's okay to key on the session object here, because each session
             # binds to only one engine/connection. If this changes in the
             # future such that a session may encompass multiple engines, then
@@ -70,7 +70,7 @@ def new_session(engine, versioned=True):  # noqa: ANN201
 
         @event.listens_for(session, "after_commit")
         @event.listens_for(session, "after_rollback")
-        def end(session):
+        def end(session) -> None:
             start_time = transaction_start_map.get(session)
             if not start_time:
                 return
@@ -102,12 +102,12 @@ def configure_versioning(session):  # noqa: ANN201
     )
 
     @event.listens_for(session, "before_flush")
-    def before_flush(session, flush_context, instances):
+    def before_flush(session, flush_context, instances) -> None:
         propagate_changes(session)
         increment_versions(session)
 
     @event.listens_for(session, "after_flush")
-    def after_flush(session, flush_context):
+    def after_flush(session, flush_context) -> None:
         """
         Hook to log revision snapshots. Must be post-flush in order to
         grab object IDs on new objects.

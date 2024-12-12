@@ -18,7 +18,9 @@ log = get_logger()
 MAX_SANE_TRX_TIME_MS = 30000
 
 
-def two_phase_session(engine_map, versioned=True):  # noqa: ANN201, D417
+def two_phase_session(  # noqa: ANN201, D417
+    engine_map, versioned: bool = True
+):
     """
     Returns a session that implements two-phase-commit.
 
@@ -39,7 +41,7 @@ def two_phase_session(engine_map, versioned=True):  # noqa: ANN201, D417
     return session
 
 
-def new_session(engine, versioned=True):  # noqa: ANN201
+def new_session(engine, versioned: bool = True):  # noqa: ANN201
     """Returns a session bound to the given engine."""  # noqa: D401
     session = Session(bind=engine, autoflush=True, autocommit=False)
 
@@ -61,7 +63,7 @@ def new_session(engine, versioned=True):  # noqa: ANN201
         metric_name = f"db.{engine.url.database}.{modname}.{funcname}"
 
         @event.listens_for(session, "after_begin")
-        def after_begin(session, transaction, connection):
+        def after_begin(session, transaction, connection) -> None:
             # It's okay to key on the session object here, because each session
             # binds to only one engine/connection. If this changes in the
             # future such that a session may encompass multiple engines, then
@@ -70,7 +72,7 @@ def new_session(engine, versioned=True):  # noqa: ANN201
 
         @event.listens_for(session, "after_commit")
         @event.listens_for(session, "after_rollback")
-        def end(session):
+        def end(session) -> None:
             start_time = transaction_start_map.get(session)
             if not start_time:
                 return
@@ -102,12 +104,12 @@ def configure_versioning(session):  # noqa: ANN201
     )
 
     @event.listens_for(session, "before_flush")
-    def before_flush(session, flush_context, instances):
+    def before_flush(session, flush_context, instances) -> None:
         propagate_changes(session)
         increment_versions(session)
 
     @event.listens_for(session, "after_flush")
-    def after_flush(session, flush_context):
+    def after_flush(session, flush_context) -> None:
         """
         Hook to log revision snapshots. Must be post-flush in order to
         grab object IDs on new objects.
@@ -128,7 +130,7 @@ def configure_versioning(session):  # noqa: ANN201
 
 
 @contextmanager
-def session_scope(id_, versioned=True):  # noqa: ANN201
+def session_scope(id_, versioned: bool = True):  # noqa: ANN201
     """
     Provide a transactional scope around a series of operations.
 
@@ -198,7 +200,9 @@ def session_scope(id_, versioned=True):  # noqa: ANN201
 
 
 @contextmanager
-def session_scope_by_shard_id(shard_id, versioned=True):  # noqa: ANN201
+def session_scope_by_shard_id(  # noqa: ANN201
+    shard_id, versioned: bool = True
+):
     key = shard_id << 48
 
     with session_scope(key, versioned) as db_session:

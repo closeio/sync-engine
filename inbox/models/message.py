@@ -140,7 +140,7 @@ class Message(
         return self._thread
 
     @thread.setter
-    def thread(self, value):
+    def thread(self, value) -> None:
         if value is not None and self._thread is not None:
             self._thread.deleted_at = None
         self._thread = value
@@ -200,7 +200,7 @@ class Message(
         return self.state == "actions_pending"
 
     @categories_changes.setter
-    def categories_changes(self, has_changes):
+    def categories_changes(self, has_changes) -> None:
         if has_changes is True:
             self.state = "actions_pending"
         else:
@@ -782,7 +782,7 @@ class Message(
         return ["is_read", "is_starred", "messagecategories"]
 
     @property
-    def has_attached_events(self):  # noqa: ANN201
+    def has_attached_events(self) -> bool:
         return "text/calendar" in [p.block.content_type for p in self.parts]
 
     @property
@@ -817,7 +817,7 @@ class Message(
         return q.params(public_id=public_id, namespace_id=namespace_id).one()
 
     @classmethod
-    def api_loading_options(cls, expand=False):  # noqa: ANN206
+    def api_loading_options(cls, expand: bool = False):  # noqa: ANN206
         columns = [
             "public_id",
             "is_draft",

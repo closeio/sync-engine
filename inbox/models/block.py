@@ -210,7 +210,7 @@ class Block(
         return value
 
     @data.setter
-    def data(self, value):
+    def data(self, value) -> None:
         assert value is not None
         assert isinstance(value, bytes)
 
@@ -279,7 +279,7 @@ class Part(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         return self.message.thread_id
 
     @property
-    def is_attachment(self):  # noqa: ANN201
+    def is_attachment(self) -> bool:
         return self.content_disposition is not None
 
     @property

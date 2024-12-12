@@ -42,7 +42,7 @@ def upgrade() -> None:
     class Message(Base):
         __table__ = Base.metadata.tables["message"]
 
-    def calculate_html_snippet(msg, text):
+    def calculate_html_snippet(msg, text) -> None:
         text = (
             text.replace("<br>", " ")
             .replace("<br/>", " ")
@@ -51,7 +51,7 @@ def upgrade() -> None:
         text = strip_tags(text)
         calculate_plaintext_snippet(msg, text)
 
-    def calculate_plaintext_snippet(msg, text):
+    def calculate_plaintext_snippet(msg, text) -> None:
         msg.snippet = " ".join(text.split())[:SNIPPET_LENGTH]
 
     with session_scope(versioned=False) as db_session:

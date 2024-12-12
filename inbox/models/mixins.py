@@ -131,7 +131,7 @@ class HasEmailAddress:
         return AddressComparator(cls._canonicalized_address)
 
     @email_address.setter
-    def email_address(self, value):
+    def email_address(self, value) -> None:
         # Silently truncate if necessary. In practice, this may be too
         # long if somebody put a super-long email into their contacts by
         # mistake or something.

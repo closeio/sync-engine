@@ -103,11 +103,11 @@ def format_transactions_after_pointer(  # noqa: ANN201, D417
     result_limit,
     exclude_types=None,
     include_types=None,
-    exclude_folders=True,
-    exclude_metadata=True,
-    exclude_account=True,
-    expand=False,
-    is_n1=False,
+    exclude_folders: bool = True,
+    exclude_metadata: bool = True,
+    exclude_account: bool = True,
+    expand: bool = False,
+    is_n1: bool = False,
 ):
     """
     Return a pair (deltas, new_pointer), where deltas is a list of change
@@ -292,11 +292,11 @@ def streaming_change_generator(  # noqa: ANN201, D417
     transaction_pointer,
     exclude_types=None,
     include_types=None,
-    exclude_folders=True,
-    exclude_metadata=True,
-    exclude_account=True,
-    expand=False,
-    is_n1=False,
+    exclude_folders: bool = True,
+    exclude_metadata: bool = True,
+    exclude_account: bool = True,
+    expand: bool = False,
+    is_n1: bool = False,
 ):
     """
     Poll the transaction log for the given `namespace_id` until `timeout`

@@ -234,7 +234,7 @@ class Event(
             return Time(start) if start == end else TimeSpan(start, end)
 
     @when.setter
-    def when(self, when):
+    def when(self, when) -> None:
         if "time" in when:
             self.start = self.end = time_parse(when["time"])
             self.all_day = False
@@ -398,7 +398,7 @@ class Event(
         return parsed_owner[0]
 
     @property
-    def is_recurring(self):  # noqa: ANN201
+    def is_recurring(self) -> bool:
         return self.recurrence is not None
 
     @property
@@ -410,7 +410,7 @@ class Event(
         return self.status == "cancelled"
 
     @cancelled.setter
-    def cancelled(self, is_cancelled):
+    def cancelled(self, is_cancelled) -> None:
         if is_cancelled:
             self.status = "cancelled"
         else:

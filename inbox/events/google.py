@@ -311,7 +311,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
     # -------- logic for push notification subscriptions -------- #
 
     def _get_access_token_for_push_notifications(
-        self, account, force_refresh=False
+        self, account, force_refresh: bool = False
     ):
         if not self.webhook_notifications_enabled(account):
             raise OAuthError("Account not enabled for push notifications.")

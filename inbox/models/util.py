@@ -137,7 +137,7 @@ class AccountDeletionErrror(Exception):
 
 
 def batch_delete_namespaces(
-    ids_to_delete, throttle=False, dry_run=False
+    ids_to_delete, throttle: bool = False, dry_run: bool = False
 ) -> None:
     start = time.time()
 
@@ -160,7 +160,9 @@ def batch_delete_namespaces(
     )
 
 
-def delete_namespace(namespace_id, throttle=False, dry_run=False) -> None:
+def delete_namespace(
+    namespace_id, throttle: bool = False, dry_run: bool = False
+) -> None:
     """
     Delete all the data associated with a namespace from the database.
     USE WITH CAUTION.
@@ -287,8 +289,13 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False) -> None:
 
 
 def _batch_delete(
-    engine, table, column_id_filters, account_id, throttle=False, dry_run=False
-):
+    engine,
+    table,
+    column_id_filters,
+    account_id,
+    throttle: bool = False,
+    dry_run: bool = False,
+) -> None:
     (column, id_) = column_id_filters
     count = engine.execute(
         f"SELECT COUNT(*) FROM {table} WHERE {column}={id_};"  # noqa: S608
@@ -397,7 +404,12 @@ def check_throttle() -> bool:
 
 
 def purge_transactions(
-    shard_id, days_ago=60, limit=1000, throttle=False, dry_run=False, now=None
+    shard_id,
+    days_ago: int = 60,
+    limit: int = 1000,
+    throttle: bool = False,
+    dry_run: bool = False,
+    now=None,
 ) -> None:
     start = "now()"
     if now is not None:

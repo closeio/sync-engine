@@ -50,7 +50,7 @@ class GoogleContactsProvider(AbstractContactsProvider):
             provider=self.PROVIDER_NAME,
         )
 
-    def _get_google_client(self, retry_conn_errors=True):
+    def _get_google_client(self, retry_conn_errors: bool = True):
         """Return the Google API client."""
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(GmailAccount).get(self.account_id)
@@ -128,7 +128,9 @@ class GoogleContactsProvider(AbstractContactsProvider):
             raw_data=raw_data,
         )
 
-    def get_items(self, sync_from_dt=None, max_results=100000):  # noqa: ANN201
+    def get_items(  # noqa: ANN201
+        self, sync_from_dt=None, max_results: int = 100000
+    ):
         """
         Fetches and parses fresh contact data.
 

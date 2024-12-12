@@ -83,7 +83,7 @@ class MockDNSResolver:
             Literal["mx", "ns"], dict[str, dict[str, str] | list[str]]
         ] = {"mx": {}, "ns": {}}
 
-    def _load_records(self, filename):
+    def _load_records(self, filename) -> None:
         self._registry = json.loads(get_data(filename))
 
     def query(self, domain, record_type):  # noqa: ANN201
@@ -151,10 +151,10 @@ class MockIMAPClient:
         self.logins = {}
         self.error_message = ""
 
-    def _add_login(self, email, password):
+    def _add_login(self, email, password) -> None:
         self.logins[email] = password
 
-    def _set_error_message(self, message):
+    def _set_error_message(self, message) -> None:
         self.error_message = message
 
     def login(self, email, password) -> None:
@@ -164,7 +164,9 @@ class MockIMAPClient:
     def logout(self) -> None:
         pass
 
-    def list_folders(self, directory="", pattern="*"):  # noqa: ANN201
+    def list_folders(  # noqa: ANN201
+        self, directory: str = "", pattern: str = "*"
+    ):
         return [(b"\\All", b"/", "[Gmail]/All Mail")]
 
     def has_capability(self, capability) -> bool:
@@ -208,7 +210,9 @@ class MockIMAPClient:
             return [u for u, v in uid_dict.items() if v[criteria[0]] == thrid]
         raise ValueError(f"unsupported test criteria: {criteria!r}")
 
-    def select_folder(self, folder_name, readonly=False):  # noqa: ANN201
+    def select_folder(  # noqa: ANN201
+        self, folder_name, readonly: bool = False
+    ):
         self.selected_folder = folder_name
         return self.folder_status(folder_name)
 
@@ -242,7 +246,13 @@ class MockIMAPClient:
         return resp
 
     def append(
-        self, folder_name, mimemsg, flags, date, x_gm_msgid=0, x_gm_thrid=0
+        self,
+        folder_name,
+        mimemsg,
+        flags,
+        date,
+        x_gm_msgid: int = 0,
+        x_gm_thrid: int = 0,
     ) -> None:
         uid_dict = self._data[folder_name]
         uidnext = max(uid_dict) if uid_dict else 1
@@ -278,7 +288,7 @@ class MockIMAPClient:
             )
         return resp
 
-    def delete_messages(self, uids, silent=False) -> None:
+    def delete_messages(self, uids, silent: bool = False) -> None:
         for u in uids:
             del self._data[self.selected_folder][u]
 

@@ -169,7 +169,7 @@ def connection_pool(account_id, pool_size=None):
 _writable_pool_map: dict[int, "CrispinConnectionPool"] = {}
 
 
-def writable_connection_pool(account_id, pool_size=1):
+def writable_connection_pool(account_id, pool_size: int = 1):
     """
     Per-account crispin connection pool, with *read-write* connections.
 
@@ -242,7 +242,7 @@ class CrispinConnectionPool:
         # constituent SyncbackTasks.
         return self.readonly
 
-    def _logout(self, client):
+    def _logout(self, client) -> None:
         try:
             client.logout()
         except Exception:
@@ -302,7 +302,7 @@ class CrispinConnectionPool:
             self._queue.put(client)
             self._sem.release()
 
-    def _set_account_info(self):
+    def _set_account_info(self) -> None:
         with session_scope(self.account_id) as db_session:
             account = db_session.query(ImapAccount).get(self.account_id)
             self.sync_state = account.sync_state
@@ -349,7 +349,7 @@ class CrispinConnectionPool:
         )
 
 
-def _exc_callback(exc):
+def _exc_callback(exc) -> None:
     log.info(
         "Connection broken with error; retrying with new connection",
         exc_info=True,
@@ -1125,7 +1125,7 @@ class CrispinClient:
         return results
 
     def delete_sent_message(  # noqa: ANN201
-        self, message_id_header, delete_multiple=False
+        self, message_id_header, delete_multiple: bool = False
     ):
         """
         Delete a message in the sent folder, as identified by the Message-Id
@@ -1179,7 +1179,9 @@ class CrispinClient:
             self._delete_message(message_id_header)
         return draft_deleted
 
-    def _delete_message(self, message_id_header, delete_multiple=False):
+    def _delete_message(
+        self, message_id_header, delete_multiple: bool = False
+    ) -> bool:
         """
         Delete a message from the selected folder, using the Message-Id header
         to locate it. Does nothing if no matching messages are found, or if
@@ -1644,7 +1646,7 @@ class GmailCrispinClient(CrispinClient):
         return True
 
     def delete_sent_message(
-        self, message_id_header, delete_multiple=False
+        self, message_id_header, delete_multiple: bool = False
     ) -> bool:
         """
         Delete a message in the sent folder, as identified by the Message-Id

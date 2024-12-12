@@ -157,7 +157,7 @@ class SyncService:
             "stopped email sync monitors", count=len(self.email_sync_monitors)
         )
 
-    def _run_impl(self):
+    def _run_impl(self) -> None:
         """
         Waits for notifications about Account migrations and checks for start/stop commands.
 
@@ -183,7 +183,7 @@ class SyncService:
         self._flush_private_queue()
         self.poll()
 
-    def _flush_private_queue(self):
+    def _flush_private_queue(self) -> None:
         while True:
             event = self.private_queue.receive_event(timeout=None)
             if event is None:

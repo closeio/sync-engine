@@ -33,7 +33,7 @@ class GmailSearchClient:
             )
 
     def search_messages(  # noqa: ANN201
-        self, db_session, search_query, offset=0, limit=40
+        self, db_session, search_query, offset: int = 0, limit: int = 40
     ):
         # We need to get the next limit + offset terms if we want to
         # offset results from the db.
@@ -71,7 +71,7 @@ class GmailSearchClient:
         return g
 
     def search_threads(  # noqa: ANN201
-        self, db_session, search_query, offset=0, limit=40
+        self, db_session, search_query, offset: int = 0, limit: int = 40
     ):
         # We need to get the next limit + offset terms if we want to
         # offset results from the db.

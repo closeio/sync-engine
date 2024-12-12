@@ -60,7 +60,9 @@ def auth_is_invalid(exc):  # noqa: ANN201
     )
 
 
-def create_imap_connection(host, port, use_timeout=True):  # noqa: ANN201
+def create_imap_connection(  # noqa: ANN201
+    host, port, use_timeout: bool = True
+):
     """
     Return a connection to the IMAP server.
 

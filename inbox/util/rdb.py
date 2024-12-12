@@ -99,13 +99,13 @@ class RemoteConsole(InteractiveConsole):
         except OSError:
             return
 
-    def raw_input(self, prompt=""):  # noqa: ANN201
+    def raw_input(self, prompt: str = ""):  # noqa: ANN201
         self.handle.write(prompt)
         self.handle.flush()
         return self.handle.readline()
 
 
-def break_to_interpreter(host="localhost", port=None) -> None:
+def break_to_interpreter(host: str = "localhost", port=None) -> None:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 

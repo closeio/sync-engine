@@ -279,7 +279,9 @@ class Account(
             "USER", "unknown"
         )
 
-    def mark_invalid(self, reason="invalid credentials", scope="mail") -> None:
+    def mark_invalid(
+        self, reason: str = "invalid credentials", scope: str = "mail"
+    ) -> None:
         """
         In the event that the credentials for this account are invalid,
         update the status and sync flag accordingly. Should only be called

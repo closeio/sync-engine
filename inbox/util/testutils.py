@@ -164,7 +164,9 @@ class MockIMAPClient:
     def logout(self) -> None:
         pass
 
-    def list_folders(self, directory="", pattern="*"):  # noqa: ANN201
+    def list_folders(  # noqa: ANN201
+        self, directory: str = "", pattern: str = "*"
+    ):
         return [(b"\\All", b"/", "[Gmail]/All Mail")]
 
     def has_capability(self, capability) -> bool:

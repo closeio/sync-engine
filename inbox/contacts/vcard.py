@@ -232,7 +232,7 @@ class VCard(defaultdict):
         2: some property was deleted
     """
 
-    def __init__(self, ddict="") -> None:
+    def __init__(self, ddict: str = "") -> None:
         if ddict == "":
             defaultdict.__init__(self, list)
         else:

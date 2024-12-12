@@ -163,7 +163,9 @@ def cleanup_subject(subject_str):  # noqa: ANN201
 # IMAP doesn't support nested folders and instead encodes paths inside folder
 # names.
 # imap_folder_path converts a "/" delimited path to an IMAP compatible path.
-def imap_folder_path(path, separator=".", prefix=""):  # noqa: ANN201
+def imap_folder_path(  # noqa: ANN201
+    path, separator: str = ".", prefix: str = ""
+):
     folders = [folder for folder in path.split("/") if folder != ""]
 
     res = None
@@ -190,7 +192,9 @@ def strip_prefix(path, prefix):  # noqa: ANN201
 
 
 # fs_folder_path converts an IMAP compatible path to a "/" delimited path.
-def fs_folder_path(path, separator=".", prefix=""):  # noqa: ANN201
+def fs_folder_path(  # noqa: ANN201
+    path, separator: str = ".", prefix: str = ""
+):
     if prefix:
         path = strip_prefix(path, prefix)
 

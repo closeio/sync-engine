@@ -70,7 +70,9 @@ def is_stale(last_updated, lifespan: int = 14):  # noqa: ANN201
 ##
 
 
-def calculate_contact_scores(messages, time_dependent=True):  # noqa: ANN201
+def calculate_contact_scores(  # noqa: ANN201
+    messages, time_dependent: bool = True
+):
     now = datetime.datetime.now()
     res: defaultdict[str, int] = defaultdict(int)
     for message in messages:

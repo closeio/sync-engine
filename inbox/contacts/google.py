@@ -50,7 +50,7 @@ class GoogleContactsProvider(AbstractContactsProvider):
             provider=self.PROVIDER_NAME,
         )
 
-    def _get_google_client(self, retry_conn_errors=True):
+    def _get_google_client(self, retry_conn_errors: bool = True):
         """Return the Google API client."""
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(GmailAccount).get(self.account_id)

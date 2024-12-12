@@ -200,7 +200,7 @@ class Thread(
         return categories
 
     @classmethod
-    def api_loading_options(cls, expand=False):  # noqa: ANN206
+    def api_loading_options(cls, expand: bool = False):  # noqa: ANN206
         message_columns = [
             "public_id",
             "is_draft",

@@ -817,7 +817,7 @@ class Message(
         return q.params(public_id=public_id, namespace_id=namespace_id).one()
 
     @classmethod
-    def api_loading_options(cls, expand=False):  # noqa: ANN206
+    def api_loading_options(cls, expand: bool = False):  # noqa: ANN206
         columns = [
             "public_id",
             "is_draft",

@@ -18,7 +18,9 @@ log = get_logger()
 MAX_SANE_TRX_TIME_MS = 30000
 
 
-def two_phase_session(engine_map, versioned=True):  # noqa: ANN201, D417
+def two_phase_session(  # noqa: ANN201, D417
+    engine_map, versioned: bool = True
+):
     """
     Returns a session that implements two-phase-commit.
 
@@ -39,7 +41,7 @@ def two_phase_session(engine_map, versioned=True):  # noqa: ANN201, D417
     return session
 
 
-def new_session(engine, versioned=True):  # noqa: ANN201
+def new_session(engine, versioned: bool = True):  # noqa: ANN201
     """Returns a session bound to the given engine."""  # noqa: D401
     session = Session(bind=engine, autoflush=True, autocommit=False)
 
@@ -128,7 +130,7 @@ def configure_versioning(session):  # noqa: ANN201
 
 
 @contextmanager
-def session_scope(id_, versioned=True):  # noqa: ANN201
+def session_scope(id_, versioned: bool = True):  # noqa: ANN201
     """
     Provide a transactional scope around a series of operations.
 
@@ -198,7 +200,9 @@ def session_scope(id_, versioned=True):  # noqa: ANN201
 
 
 @contextmanager
-def session_scope_by_shard_id(shard_id, versioned=True):  # noqa: ANN201
+def session_scope_by_shard_id(  # noqa: ANN201
+    shard_id, versioned: bool = True
+):
     key = shard_id << 48
 
     with session_scope(key, versioned) as db_session:

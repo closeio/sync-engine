@@ -208,7 +208,9 @@ class MockIMAPClient:
             return [u for u, v in uid_dict.items() if v[criteria[0]] == thrid]
         raise ValueError(f"unsupported test criteria: {criteria!r}")
 
-    def select_folder(self, folder_name, readonly=False):  # noqa: ANN201
+    def select_folder(  # noqa: ANN201
+        self, folder_name, readonly: bool = False
+    ):
         self.selected_folder = folder_name
         return self.folder_status(folder_name)
 
@@ -284,7 +286,7 @@ class MockIMAPClient:
             )
         return resp
 
-    def delete_messages(self, uids, silent=False) -> None:
+    def delete_messages(self, uids, silent: bool = False) -> None:
         for u in uids:
             del self._data[self.selected_folder][u]
 

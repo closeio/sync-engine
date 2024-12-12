@@ -1125,7 +1125,7 @@ class CrispinClient:
         return results
 
     def delete_sent_message(  # noqa: ANN201
-        self, message_id_header, delete_multiple=False
+        self, message_id_header, delete_multiple: bool = False
     ):
         """
         Delete a message in the sent folder, as identified by the Message-Id
@@ -1180,7 +1180,7 @@ class CrispinClient:
         return draft_deleted
 
     def _delete_message(
-        self, message_id_header, delete_multiple=False
+        self, message_id_header, delete_multiple: bool = False
     ) -> bool:
         """
         Delete a message from the selected folder, using the Message-Id header
@@ -1646,7 +1646,7 @@ class GmailCrispinClient(CrispinClient):
         return True
 
     def delete_sent_message(
-        self, message_id_header, delete_multiple=False
+        self, message_id_header, delete_multiple: bool = False
     ) -> bool:
         """
         Delete a message in the sent folder, as identified by the Message-Id

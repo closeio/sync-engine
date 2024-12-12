@@ -53,7 +53,7 @@ def engine(  # noqa: ANN201
     pool_size=DB_POOL_SIZE,
     max_overflow=DB_POOL_MAX_OVERFLOW,
     pool_timeout=DB_POOL_TIMEOUT,
-    echo=False,
+    echo: bool = False,
 ):
     connect_args = {
         "binary_prefix": True,
@@ -131,7 +131,9 @@ def engine(  # noqa: ANN201
 
 
 class EngineManager:
-    def __init__(self, databases, users, include_disabled=False) -> None:
+    def __init__(
+        self, databases, users, include_disabled: bool = False
+    ) -> None:
         self.engines = {}
         self._engine_zones = {}
         keys = set()
@@ -261,7 +263,7 @@ def verify_db(engine, schema, key) -> None:
 
 
 def reset_invalid_autoincrements(  # noqa: ANN201
-    engine, schema, key, dry_run=True
+    engine, schema, key, dry_run: bool = True
 ):
     from inbox.models.base import MailSyncBase
 

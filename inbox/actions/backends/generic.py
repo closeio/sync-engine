@@ -246,7 +246,10 @@ def remote_delete_draft(
 
 
 def remote_delete_sent(
-    crispin_client, account_id, message_id_header, delete_multiple=False
+    crispin_client,
+    account_id,
+    message_id_header,
+    delete_multiple: bool = False,
 ) -> None:
     if "sent" not in crispin_client.folder_names():
         log.warning(

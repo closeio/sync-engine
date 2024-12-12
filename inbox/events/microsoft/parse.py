@@ -285,7 +285,7 @@ RRULE_SERIALIZATION_ORDER = [
 
 
 def convert_msgraph_patterned_recurrence_to_ical_rrule(
-    event: MsGraphEvent, *, naive=False
+    event: MsGraphEvent, *, naive: bool = False
 ) -> str:
     """
     Convert Microsoft Graph PatternedRecurrence to iCal RRULE.

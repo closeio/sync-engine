@@ -1,4 +1,4 @@
-#!/usr/bin/env python  # noqa: N999
+#!/usr/bin/env python
 """
 Run the syncback service separately. You should run this if you run the
 API under something like gunicorn. (For convenience, the bin/inbox-api script

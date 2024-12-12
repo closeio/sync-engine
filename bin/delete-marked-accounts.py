@@ -1,4 +1,4 @@
-#!/usr/bin/env python  # noqa: N999
+#!/usr/bin/env python
 """
 Searches for accounts that are marked for deletion and deletes
 all of their data

@@ -1,4 +1,4 @@
-#!/usr/bin/env python  # noqa: EXE001, N999
+#!/usr/bin/env python
 # throttle or unthrottle an account
 
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python  # noqa: N999
+#!/usr/bin/env python
 """
 Deletes an account's data permanently.
 

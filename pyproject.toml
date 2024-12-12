@@ -150,6 +150,6 @@ unfixable = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"bin/**.py" = ["T201", "E402"]
+"bin/**.py" = ["T201", "E402", "N999"]
 "migrations/**.py" = ["T201", "E402"]
 "tests/**.py" = ["ANN"]

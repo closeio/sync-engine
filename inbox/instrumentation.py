@@ -10,7 +10,7 @@ class ProfileCollector:
     this uses signals, it only works on the main thread.
     """
 
-    def __init__(self, interval=0.005) -> None:
+    def __init__(self, interval: float = 0.005) -> None:
         self.interval = interval
         self._started = None
         self._stack_counts = collections.defaultdict(int)

@@ -1,4 +1,5 @@
-"""Add polymorphic Events
+"""
+Add polymorphic Events
 
 Revision ID: 1de526a15c5d
 Revises: 2493281d621
@@ -18,7 +19,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "recurringeventoverride",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -45,7 +46,9 @@ def upgrade():
         sa.ForeignKeyConstraint(["id"], ["event.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.add_column("event", sa.Column("type", sa.String(length=30), nullable=True))
+    op.add_column(
+        "event", sa.Column("type", sa.String(length=30), nullable=True)
+    )
     op.create_index(
         "ix_recurringeventoverride_master_event_uid",
         "recurringeventoverride",
@@ -55,29 +58,35 @@ def upgrade():
     op.alter_column("event", "recurrence", type_=sa.Text())
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("event", "type")
     op.drop_table("recurringevent")
     op.drop_table("recurringeventoverride")
 
 
-def populate():
+def populate() -> None:
     # Populate new classes from the existing data
     from inbox.events.recurring import link_events
     from inbox.events.util import parse_datetime
-    from inbox.models.event import Event, RecurringEvent, RecurringEventOverride
+    from inbox.models.event import (
+        Event,
+        RecurringEvent,
+        RecurringEventOverride,
+    )
     from inbox.models.session import session_scope
 
     with session_scope() as db:
         # Redo recurrence rule population, since we extended the column length
         print("Repopulating max-length recurrences...", end=" ")
-        for e in db.query(Event).filter(sa.func.length(Event.recurrence) > 250):
+        for e in db.query(Event).filter(
+            sa.func.length(Event.recurrence) > 250
+        ):
             try:
                 raw_data = json.loads(e.raw_data)
-            except:
+            except:  # noqa: E722
                 try:
                     raw_data = ast.literal_eval(e.raw_data)
-                except:
+                except:  # noqa: E722
                     print(f"Could not load raw data for event {e.id}")
                     continue
             e.recurrence = raw_data["recurrence"]
@@ -98,7 +107,7 @@ def populate():
             db.execute(create)
         except Exception as e:
             print(f"Couldn't insert RecurringEventOverrides: {e}")
-            exit(2)
+            sys.exit(2)
         print("done.")
 
         c = 0
@@ -108,10 +117,10 @@ def populate():
             try:
                 # Some raw data is str(dict), other is json.dumps
                 raw_data = json.loads(e.raw_data)
-            except:
+            except:  # noqa: E722
                 try:
                     raw_data = ast.literal_eval(e.raw_data)
-                except:
+                except:  # noqa: E722
                     print(f"Could not load raw data for event {e.id}")
                     continue
             rec_uid = raw_data.get("recurringEventId")
@@ -148,7 +157,7 @@ def populate():
             db.execute(create)
         except Exception as e:
             print(f"Couldn't insert RecurringEvents: {e}")
-            exit(2)
+            sys.exit(2)
         print("done.")
 
         # Pull out recurrence metadata from recurrence
@@ -159,10 +168,10 @@ def populate():
             r.unwrap_rrule()
             try:
                 raw_data = json.loads(r.raw_data)
-            except:
+            except:  # noqa: E722
                 try:
                     raw_data = ast.literal_eval(r.raw_data)
-                except:
+                except:  # noqa: E722
                     print(f"Could not load raw data for event {r.id}")
                     continue
             r.start_timezone = raw_data["start"].get("timeZone")

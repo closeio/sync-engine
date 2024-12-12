@@ -1,4 +1,5 @@
-"""Re-create EASUid index.
+"""
+Re-create EASUid index.
 
 Revision ID: 3618838f5bc6
 Revises: 1962d17d1c0a
@@ -14,7 +15,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     if not conn.engine.has_table("easuid"):
         return
@@ -27,5 +28,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     pass

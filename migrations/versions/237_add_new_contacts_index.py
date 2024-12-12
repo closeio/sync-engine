@@ -1,4 +1,5 @@
-"""Add new contacts Index
+"""
+Add new contacts Index
 
 Revision ID: 780b1dabd51
 Revises: 3eb4f30c8ed3
@@ -14,7 +15,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         text(
@@ -24,6 +25,6 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("ALTER TABLE contact DROP INDEX idx_namespace_created"))

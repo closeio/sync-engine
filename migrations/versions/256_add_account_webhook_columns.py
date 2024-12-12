@@ -1,4 +1,5 @@
-"""Add account webhook columns
+"""
+Add account webhook columns
 
 Revision ID: 93cc6f4ce113
 Revises: 9ea81ca0f64b
@@ -14,14 +15,18 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "gmailaccount",
-        sa.Column("webhook_calendar_list_last_ping", sa.DateTime(), nullable=True),
+        sa.Column(
+            "webhook_calendar_list_last_ping", sa.DateTime(), nullable=True
+        ),
     )
     op.add_column(
         "gmailaccount",
-        sa.Column("webhook_calendar_list_expiration", sa.DateTime(), nullable=True),
+        sa.Column(
+            "webhook_calendar_list_expiration", sa.DateTime(), nullable=True
+        ),
     )
 
     op.execute(
@@ -32,6 +37,6 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("gmailaccount", "webhook_calendar_list_expiration")
     op.drop_column("gmailaccount", "webhook_calendar_list_last_ping")

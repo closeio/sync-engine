@@ -1,4 +1,5 @@
-"""relationship between blocks and parts is 1-to-many
+"""
+relationship between blocks and parts is 1-to-many
 
 Revision ID: 2b89164aa9cd
 Revises: 4e3e8abea884
@@ -17,7 +18,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     # Create a new block_id table to make parts be relational
     # Add audit timestamps as Parts will no longer inherit from blocks
@@ -34,7 +35,9 @@ def upgrade():
     )
 
     conn.execute(
-        text("UPDATE part SET block_id=part.id, created_at=:now, updated_at=:now"),
+        text(
+            "UPDATE part SET block_id=part.id, created_at=:now, updated_at=:now"
+        ),
         now=datetime.utcnow(),
     )
 
@@ -55,7 +58,7 @@ def upgrade():
     op.create_foreign_key("part_ibfk_1", "part", "block", ["block_id"], ["id"])
 
 
-def downgrade():
+def downgrade() -> None:
     table_name = "part"
     op.drop_constraint("part_ibfk_1", table_name, type_="foreignkey")
     op.drop_column(table_name, "block_id")
@@ -63,4 +66,6 @@ def downgrade():
     op.drop_column(table_name, "created_at")
     op.drop_column(table_name, "deleted_at")
     op.drop_column(table_name, "updated_at")
-    op.alter_column(table_name, "id", existing_type=sa.Integer, autoincrement=False)
+    op.alter_column(
+        table_name, "id", existing_type=sa.Integer, autoincrement=False
+    )

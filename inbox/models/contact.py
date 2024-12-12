@@ -69,21 +69,24 @@ class Contact(
         UniqueConstraint("uid", "namespace_id", "provider_name"),
         Index("idx_namespace_created", "namespace_id", "created_at"),
         Index(
-            "ix_contact_ns_uid_provider_name", "namespace_id", "uid", "provider_name"
+            "ix_contact_ns_uid_provider_name",
+            "namespace_id",
+            "uid",
+            "provider_name",
         ),
     )
 
     @validates("raw_data")
-    def validate_text_column_length(self, key, value):
+    def validate_text_column_length(self, key, value):  # noqa: ANN201
         if value is None:
             return None
         return unicode_safe_truncate(value, MAX_TEXT_CHARS)
 
     @property
-    def versioned_relationships(self):
+    def versioned_relationships(self):  # noqa: ANN201
         return ["phone_numbers"]
 
-    def merge_from(self, new_contact):
+    def merge_from(self, new_contact) -> None:
         # This must be updated when new fields are added to the class.
         merge_attrs = ["name", "email_address", "raw_data"]
         for attr in merge_attrs:
@@ -106,7 +109,8 @@ class PhoneNumber(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
 
 class MessageContactAssociation(MailSyncBase):
-    """Association table between messages and contacts.
+    """
+    Association table between messages and contacts.
 
     Examples
     --------
@@ -116,11 +120,16 @@ class MessageContactAssociation(MailSyncBase):
     If c is a contact, get messages sent to contact c with
     [assoc.message for assoc in c.message_associations if assoc.field ==
     ...  'to_addr']
+
     """
 
     contact_id = Column(BigInteger, primary_key=True, index=True)
-    message_id = Column(ForeignKey(Message.id, ondelete="CASCADE"), primary_key=True)
-    field = Column(Enum("from_addr", "to_addr", "cc_addr", "bcc_addr", "reply_to"))
+    message_id = Column(
+        ForeignKey(Message.id, ondelete="CASCADE"), primary_key=True
+    )
+    field = Column(
+        Enum("from_addr", "to_addr", "cc_addr", "bcc_addr", "reply_to")
+    )
     # Note: The `cascade` properties need to be a parameter of the backref
     # here, and not of the relationship. Otherwise a sqlalchemy error is thrown
     # when you try to delete a message or a contact.
@@ -139,7 +148,9 @@ class EventContactAssociation(MailSyncBase):
     """Association table between event participants and contacts."""
 
     contact_id = Column(BigInteger, primary_key=True, index=True)
-    event_id = Column(ForeignKey(Event.id, ondelete="CASCADE"), primary_key=True)
+    event_id = Column(
+        ForeignKey(Event.id, ondelete="CASCADE"), primary_key=True
+    )
     field = Column(Enum("participant", "title", "description", "owner"))
     # Note: The `cascade` properties need to be a parameter of the backref
     # here, and not of the relationship. Otherwise a sqlalchemy error is thrown

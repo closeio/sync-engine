@@ -1,24 +1,33 @@
 import uuid
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Session
 
 from inbox.contacts.crud import INBOX_PROVIDER_NAME
-from inbox.models import Contact, EventContactAssociation, MessageContactAssociation
-from inbox.util.addr import canonicalize_address as canonicalize, valid_email
+from inbox.models import (
+    Contact,
+    EventContactAssociation,
+    MessageContactAssociation,
+)
+from inbox.util.addr import canonicalize_address as canonicalize
+from inbox.util.addr import valid_email
 
 if TYPE_CHECKING:
     from inbox.models.message import Message
 
 
 def _get_contact_map(
-    db_session: Session, namespace_id: int, all_addresses: List[Tuple[str, str]]
-) -> Dict[str, Contact]:
+    db_session: Session,
+    namespace_id: int,
+    all_addresses: list[tuple[str, str]],
+) -> dict[str, Contact]:
     """
     Retrieves or creates contacts for the given address pairs, returning a dict
     with the canonicalized emails mapped to Contact objects.
-    """
-    canonicalized_addresses = [canonicalize(address) for _, address in all_addresses]
+    """  # noqa: D401
+    canonicalized_addresses = [
+        canonicalize(address) for _, address in all_addresses
+    ]
 
     if not canonicalized_addresses:
         return {}
@@ -50,8 +59,8 @@ def _get_contact_map(
 
 
 def _get_contact_from_map(
-    contact_map: Dict[str, Contact], name: str, email_address: str
-) -> Optional[Contact]:
+    contact_map: dict[str, Contact], name: str, email_address: str
+) -> Contact | None:
     if not valid_email(email_address):
         return None
 
@@ -77,7 +86,7 @@ def update_contacts_from_message(
         # First create Contact objects for any email addresses that we haven't
         # seen yet. We want to dedupe by canonicalized address, so this part is
         # a bit finicky.
-        all_addresses: List[Tuple[str, str]] = []
+        all_addresses: list[tuple[str, str]] = []
         for field in (
             message.from_addr,
             message.to_addr,
@@ -97,21 +106,31 @@ def update_contacts_from_message(
         contact_map = _get_contact_map(db_session, namespace_id, all_addresses)
 
         # Now associate each contact to the message.
-        for field_name in ("from_addr", "to_addr", "cc_addr", "bcc_addr", "reply_to"):
+        for field_name in (
+            "from_addr",
+            "to_addr",
+            "cc_addr",
+            "bcc_addr",
+            "reply_to",
+        ):
             field = getattr(message, field_name)
             if field is None:
                 continue
             for name, email_address in field:
-                contact = _get_contact_from_map(contact_map, name, email_address)
+                contact = _get_contact_from_map(
+                    contact_map, name, email_address
+                )
                 if not contact:
                     continue
 
                 message.contacts.append(
-                    MessageContactAssociation(contact=contact, field=field_name)
+                    MessageContactAssociation(
+                        contact=contact, field=field_name
+                    )
                 )
 
 
-def update_contacts_from_event(db_session, event, namespace_id):
+def update_contacts_from_event(db_session, event, namespace_id) -> None:
     with db_session.no_autoflush:
         # First create Contact objects for any email addresses that we haven't
         # seen yet. We want to dedupe by canonicalized address, so this part is

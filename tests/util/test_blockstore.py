@@ -8,7 +8,7 @@ from inbox.util import blockstore
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_save_to_and_get_from_blockstore():
+def test_save_to_and_get_from_blockstore() -> None:
     data = b"test data"
     data_sha256 = hashlib.sha256(data).hexdigest()
     blockstore.save_to_blockstore(data_sha256, data)
@@ -22,7 +22,7 @@ def tiny_email_data() -> bytes:
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_save_and_get_raw_mime_no_compression(tiny_email_data):
+def test_save_and_get_raw_mime_no_compression(tiny_email_data) -> None:
     data_sha256 = hashlib.sha256(tiny_email_data).hexdigest()
     stored_length = blockstore.save_raw_mime(
         data_sha256, tiny_email_data, compress=False
@@ -34,7 +34,7 @@ def test_save_and_get_raw_mime_no_compression(tiny_email_data):
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_save_and_get_raw_mime_with_compression(tiny_email_data):
+def test_save_and_get_raw_mime_with_compression(tiny_email_data) -> None:
     data_sha256 = hashlib.sha256(tiny_email_data).hexdigest()
     stored_length = blockstore.save_raw_mime(
         data_sha256, tiny_email_data, compress=True

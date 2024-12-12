@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 
 import click
@@ -10,14 +10,14 @@ from inbox.models.session import global_session_scope
 
 
 @click.command()
-def main():
+def main() -> None:
     """
     Detects accounts with sync_state and sync_host inconsistent with
     sync_should_run bit. (At one point, this could happen if, say, an account
     was _started_ on a new host without being first stopped on its previous
     host.)
 
-    """
+    """  # noqa: D401
     maybe_enable_rollbar()
 
     with global_session_scope() as db_session:
@@ -25,7 +25,10 @@ def main():
             db_session.query(Account)
             .options(
                 load_only(
-                    "sync_state", "sync_should_run", "sync_host", "desired_sync_host"
+                    "sync_state",
+                    "sync_should_run",
+                    "sync_host",
+                    "desired_sync_host",
                 )
             )
             .filter(Account.sync_state == "stopped")
@@ -34,7 +37,10 @@ def main():
                 print(
                     "account {} assigned to {} but has sync_state 'stopped'"
                     " ({}, {})".format(
-                        acc.id, acc.sync_host, acc.sync_should_run, acc.sync_host
+                        acc.id,
+                        acc.sync_host,
+                        acc.sync_should_run,
+                        acc.sync_host,
                     )
                 )
 

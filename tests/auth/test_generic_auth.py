@@ -4,7 +4,7 @@ import attr
 import pytest
 
 from inbox.auth.generic import GenericAccountData, GenericAuthHandler
-from inbox.exceptions import SettingUpdateError, ValidationError
+from inbox.exceptions import ValidationError
 from inbox.models.account import Account
 from inbox.util.url import parent_domain
 
@@ -22,7 +22,7 @@ account_data = GenericAccountData(
 )
 
 
-def test_create_account(db):
+def test_create_account(db) -> None:
     handler = GenericAuthHandler()
 
     # Create an authenticated account
@@ -45,7 +45,7 @@ def test_create_account(db):
     assert account._emailed_events_calendar.name == "Emailed events"
 
 
-def test_update_account(db):
+def test_update_account(db) -> None:
     handler = GenericAuthHandler()
 
     # Create an authenticated account
@@ -63,7 +63,7 @@ def test_update_account(db):
     assert account.imap_username == "other@example.com"
 
 
-def test_update_account_with_different_subdomain(db, monkeypatch):
+def test_update_account_with_different_subdomain(db, monkeypatch) -> None:
     # Check that you can update the server endpoints for an account
     # provided that
     # 1/ they're on a subdomain of the same domain name.
@@ -106,7 +106,7 @@ def test_update_account_with_different_subdomain(db, monkeypatch):
 
 
 @pytest.mark.usefixtures("mock_smtp_get_connection")
-def test_double_auth(db, mock_imapclient):
+def test_double_auth(db, mock_imapclient) -> None:
     password = "valid"
     email = account_data.email
     mock_imapclient._add_login(email, password)
@@ -132,8 +132,10 @@ def test_double_auth(db, mock_imapclient):
     assert account.smtp_password == password
 
     # Second auth using an invalid password should fail.
-    invalid_settings = attr.evolve(account_data, imap_password="invalid_password")
-    with pytest.raises(ValidationError):
+    invalid_settings = attr.evolve(
+        account_data, imap_password="invalid_password"
+    )
+    with pytest.raises(ValidationError):  # noqa: PT012
         account = handler.update_account(account, invalid_settings)
         handler.verify_account(account)
 
@@ -148,20 +150,22 @@ def test_double_auth(db, mock_imapclient):
     assert account.smtp_password == password
 
 
-def test_parent_domain():
+def test_parent_domain() -> None:
     assert parent_domain("x.a.com") == "a.com"
     assert parent_domain("a.com") == "a.com"
     assert parent_domain(".com") == ""
     assert parent_domain("test.google.com") == "google.com"
 
-    assert parent_domain("smtp.example.a.com") == parent_domain("imap.example.a.com")
+    assert parent_domain("smtp.example.a.com") == parent_domain(
+        "imap.example.a.com"
+    )
     assert parent_domain("smtp.example.a.com") == parent_domain("imap.a.com")
 
     assert parent_domain("company.co.uk") != parent_domain("evilcompany.co.uk")
 
 
 @pytest.mark.usefixtures("mock_smtp_get_connection")
-def test_successful_reauth_resets_sync_state(db, mock_imapclient):
+def test_successful_reauth_resets_sync_state(db, mock_imapclient) -> None:
     email = account_data.email
     password = account_data.imap_password
     mock_imapclient._add_login(email, password)

@@ -1,4 +1,5 @@
-"""add audit timestamps to all objects
+"""
+add audit timestamps to all objects
 
 Revision ID: 146b1817e4a8
 Revises: 59b42d0ac749
@@ -39,30 +40,34 @@ table_names = {
 }
 
 
-def add_eas_tables():
+def add_eas_tables() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
     for table_name in ["easuid", "easfoldersync"]:
         if table_name in Base.metadata.tables:
             table_names.add(table_name)
 
 
-def upgrade():
+def upgrade() -> None:
     add_eas_tables()
 
     # mysql 5.5 / sqlalchemy interactions necessitate doing this in steps
     for table_name in sorted(table_names):
         if table_name != "contact":
             op.add_column(
-                table_name, sa.Column("created_at", sa.DateTime(), nullable=True)
+                table_name,
+                sa.Column("created_at", sa.DateTime(), nullable=True),
             )
             op.add_column(
-                table_name, sa.Column("updated_at", sa.DateTime(), nullable=True)
+                table_name,
+                sa.Column("updated_at", sa.DateTime(), nullable=True),
             )
-        op.add_column(table_name, sa.Column("deleted_at", sa.DateTime(), nullable=True))
+        op.add_column(
+            table_name, sa.Column("deleted_at", sa.DateTime(), nullable=True)
+        )
 
         t = table(
             table_name,
@@ -71,15 +76,24 @@ def upgrade():
         )
         op.execute(
             t.update().values(
-                {"created_at": datetime.utcnow(), "updated_at": datetime.utcnow()}
+                {
+                    "created_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow(),
+                }
             )
         )
 
         op.alter_column(
-            table_name, "created_at", existing_type=sa.DateTime(), nullable=False
+            table_name,
+            "created_at",
+            existing_type=sa.DateTime(),
+            nullable=False,
         )
         op.alter_column(
-            table_name, "updated_at", existing_type=sa.DateTime(), nullable=False
+            table_name,
+            "updated_at",
+            existing_type=sa.DateTime(),
+            nullable=False,
         )
 
     # missing from a prev revision
@@ -92,7 +106,7 @@ def upgrade():
     op.drop_index("imapuid_imapaccount_id_folder_name", table_name="imapuid")
 
 
-def downgrade():
+def downgrade() -> None:
     add_eas_tables()
 
     for table_name in sorted(table_names):

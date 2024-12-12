@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 import os
 import sys
@@ -37,9 +37,11 @@ http_server = None
     default=False,
     help="Disables the autoreloader and potentially other non-production features.",
 )
-@click.option("-c", "--config", default=None, help="Path to JSON configuration file.")
+@click.option(
+    "-c", "--config", default=None, help="Path to JSON configuration file."
+)
 @click.option("-p", "--port", default=5555, help="Port to run flask app on.")
-def main(prod, config, port):
+def main(prod, config, port) -> None:
     """Launch the Nylas API service."""
     level = os.environ.get("LOGLEVEL", inbox_config.get("LOGLEVEL"))
     configure_logging(log_level=level)
@@ -47,7 +49,7 @@ def main(prod, config, port):
     maybe_enable_rollbar()
 
     if config is not None:
-        config_path = os.path.abspath(config)
+        config_path = os.path.abspath(config)  # noqa: PTH100
         load_overrides(config_path)
 
     start(port=int(port), use_reloader=not prod)

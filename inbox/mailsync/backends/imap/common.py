@@ -13,7 +13,6 @@ accounts.
 """
 
 from datetime import datetime
-from typing import List, Set
 
 from sqlalchemy import bindparam, desc
 from sqlalchemy.orm import Session
@@ -61,7 +60,7 @@ def local_uids(
     return {uid for uid, in db_api_cursor.fetchall()}
 
 
-def lastseenuid(account_id, session, folder_id):
+def lastseenuid(account_id, session, folder_id):  # noqa: ANN201
     q = session.query(func.max(ImapUid.msg_uid)).with_hint(
         ImapUid, "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)"
     )
@@ -79,7 +78,7 @@ def update_message_metadata(
     """Update the message's metadata"""
     # Sort imapuids in a way that the ones that were added later come last
     now = datetime.utcnow()
-    sorted_imapuids: List[ImapUid] = sorted(
+    sorted_imapuids: list[ImapUid] = sorted(
         message.imapuids, key=lambda imapuid: imapuid.updated_at or now
     )
 
@@ -87,11 +86,13 @@ def update_message_metadata(
     message.is_starred = any(imapuid.is_flagged for imapuid in sorted_imapuids)
     message.is_draft = is_draft
 
-    sorted_categories: List[Category] = [
-        category for imapuid in sorted_imapuids for category in imapuid.categories
+    sorted_categories: list[Category] = [
+        category
+        for imapuid in sorted_imapuids
+        for category in imapuid.categories
     ]
 
-    categories: Set[Category]
+    categories: set[Category]
     if account.category_type == "folder":
         # For generic IMAP we want to deterministically select the last category.
         # A message will always be in a single folder but it seems that for some
@@ -118,10 +119,14 @@ def update_message_metadata(
     # saves on database queries and also lets use rely on the message category
     # creation timestamp to determine when the message was added to a category.
     old_categories = [
-        category for category in message.categories if category not in categories
+        category
+        for category in message.categories
+        if category not in categories
     ]
     new_categories = [
-        category for category in categories if category not in message.categories
+        category
+        for category in categories
+        if category not in message.categories
     ]
     for category in old_categories:
         message.categories.remove(category)
@@ -131,7 +136,9 @@ def update_message_metadata(
         # created_at value. Taken from
         # https://docs.sqlalchemy.org/en/13/orm/extensions/
         # associationproxy.html#simplifying-association-objects
-        MessageCategory(category=category, message=message, created_at=update_time)
+        MessageCategory(
+            category=category, message=message, created_at=update_time
+        )
 
     # Update the message updated_at field so that it can be used in
     # the transaction that will be created for category changes.
@@ -156,7 +163,9 @@ def update_message_metadata(
     """
 
 
-def update_metadata(account_id, folder_id, folder_role, new_flags, session):
+def update_metadata(
+    account_id, folder_id, folder_role, new_flags, session
+) -> None:
     """
     Update flags and labels (the only metadata that can change).
 
@@ -178,7 +187,8 @@ def update_metadata(account_id, folder_id, folder_role, new_flags, session):
             ImapUid.msg_uid.in_(new_flags),
         )
         .with_hint(
-            ImapUid, "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)"
+            ImapUid,
+            "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)",
         )
     ):
         flags = new_flags[item.msg_uid].flags
@@ -195,10 +205,12 @@ def update_metadata(account_id, folder_id, folder_role, new_flags, session):
             is_draft = item.is_draft and folder_role in ["drafts", "all"]
             update_message_metadata(session, account, item.message, is_draft)
             session.commit()
-    log.info("Updated UID metadata", changed=change_count, out_of=len(new_flags))
+    log.info(
+        "Updated UID metadata", changed=change_count, out_of=len(new_flags)
+    )
 
 
-def remove_deleted_uids(account_id, folder_id, uids):
+def remove_deleted_uids(account_id, folder_id, uids) -> None:
     """
     Make sure you're holding a db write lock on the account. (We don't try
     to grab the lock in here in case the caller needs to put higher-level
@@ -266,13 +278,16 @@ def remove_deleted_uids(account_id, folder_id, uids):
     log.info("Deleted expunged UIDs", count=deleted_uid_count)
 
 
-def get_folder_info(account_id, session, folder_name):
+def get_folder_info(account_id, session, folder_name):  # noqa: ANN201
     try:
         # using .one() here may catch duplication bugs
         return (
             session.query(ImapFolderInfo)
             .join(Folder)
-            .filter(ImapFolderInfo.account_id == account_id, Folder.name == folder_name)
+            .filter(
+                ImapFolderInfo.account_id == account_id,
+                Folder.name == folder_name,
+            )
             .one()
         )
     except NoResultFound:
@@ -280,7 +295,10 @@ def get_folder_info(account_id, session, folder_name):
 
 
 def create_imap_message(
-    db_session: Session, account: Account, folder: Folder, raw_message: RawMessage
+    db_session: Session,
+    account: Account,
+    folder: Folder,
+    raw_message: RawMessage,
 ) -> ImapUid:
     """
     IMAP-specific message creation logic.
@@ -313,7 +331,10 @@ def create_imap_message(
         new_message = existing_copy
 
     imapuid = ImapUid(
-        account=account, folder=folder, msg_uid=raw_message.uid, message=new_message
+        account=account,
+        folder=folder,
+        msg_uid=raw_message.uid,
+        message=new_message,
     )
     imapuid.update_flags(raw_message.flags)
     if raw_message.g_labels is not None:
@@ -322,7 +343,7 @@ def create_imap_message(
     # Update the message's metadata
     with db_session.no_autoflush:
         is_draft = imapuid.is_draft and (
-            folder.canonical_name == "drafts" or folder.canonical_name == "all"
+            folder.canonical_name in ("drafts", "all")
         )
         update_message_metadata(db_session, account, new_message, is_draft)
 

@@ -1,4 +1,5 @@
-"""Shorten email addresses so they can be indexed by default
+"""
+Shorten email addresses so they can be indexed by default
 
 Revision ID: 1d7374c286c5
 Revises: 21878b1b3d4b
@@ -14,11 +15,11 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column("account", "email_address", type_=mysql.VARCHAR(191))
     op.alter_column("contact", "email_address", type_=mysql.VARCHAR(191))
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column("account", "email_address", type_=mysql.VARCHAR(254))
     op.alter_column("contact", "email_address", type_=mysql.VARCHAR(191))

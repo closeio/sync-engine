@@ -1,4 +1,5 @@
-"""add supports_condstore column to generic account
+"""
+add supports_condstore column to generic account
 
 Revision ID: 3c74cbe7882e
 Revises: 3c02d8204335
@@ -14,11 +15,12 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
-        "genericaccount", sa.Column("supports_condstore", sa.Boolean(), nullable=True)
+        "genericaccount",
+        sa.Column("supports_condstore", sa.Boolean(), nullable=True),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("genericaccount", "supports_condstore")

@@ -14,11 +14,11 @@ from flask import (
     Blueprint,
     Response,
     g,
-    jsonify as flask_jsonify,
     request,
     send_file,
     stream_with_context,
 )
+from flask import jsonify as flask_jsonify
 from flask_restful import reqparse
 from sqlalchemy import asc, func
 from sqlalchemy.exc import OperationalError
@@ -126,6 +126,8 @@ with contextlib.suppress(ImportError):
     # test failure.
     from inbox.util.eas.codes import STORE_STATUS_CODES
 
+from typing import Never
+
 from inbox.logging import get_logger
 
 log = get_logger()
@@ -143,8 +145,11 @@ app.log_exception = log_exception
 # TODO perhaps expand to encompass non-standard mimetypes too
 # see python mimetypes library
 common_extensions = {}
-mt_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mime_types.txt")
-with open(mt_path) as f:
+mt_path = os.path.join(  # noqa: PTH118
+    os.path.dirname(os.path.abspath(__file__)),  # noqa: PTH100, PTH120
+    "mime_types.txt",
+)
+with open(mt_path) as f:  # noqa: PTH123
     for x in f:
         x = x.strip()
         if not x or x.startswith("#"):
@@ -166,7 +171,7 @@ API_VERSIONS = ["2016-03-07", "2016-08-09"]
 
 
 @app.before_request
-def start():
+def start() -> None:
     g.api_version = request.headers.get("Api-Version", API_VERSIONS[0])
 
     if g.api_version not in API_VERSIONS:
@@ -200,12 +205,14 @@ def start():
     g.encoder = APIEncoder(g.namespace.public_id, is_n1=is_n1)
 
     g.parser = reqparse.RequestParser(argument_class=ValidatableArgument)
-    g.parser.add_argument("limit", default=DEFAULT_LIMIT, type=limit, location="args")
+    g.parser.add_argument(
+        "limit", default=DEFAULT_LIMIT, type=limit, location="args"
+    )
     g.parser.add_argument("offset", default=0, type=offset, location="args")
 
 
 @app.before_request
-def before_remote_request():
+def before_remote_request() -> None:
     """
     Verify the validity of the account's credentials before performing a
     request to the remote server.
@@ -229,14 +236,16 @@ def before_remote_request():
     ) and g.namespace:
         # Logging provider here to ensure that the provider is only logged for
         # requests that modify data or are proxied to remote servers.
-        request.environ["log_context"]["provider"] = g.namespace.account.provider
+        request.environ["log_context"][
+            "provider"
+        ] = g.namespace.account.provider
 
         # Disable validation so we can perform requests on paused accounts.
         # valid_account(g.namespace)
 
 
 @app.after_request
-def finish(response):
+def finish(response):  # noqa: ANN201
     if response.status_code == 200 and hasattr(g, "db_session"):  # be cautious
         g.db_session.commit()
     if hasattr(g, "db_session"):
@@ -245,7 +254,7 @@ def finish(response):
 
 
 @app.errorhandler(OperationalError)
-def handle_operational_error(error):
+def handle_operational_error(error):  # noqa: ANN201
     rule = request.url_rule
     if "send" in rule.rule and "rsvp" not in rule.rule:
         message = "A temporary database error prevented us from serving this request. Your message has NOT been sent. Please try again in a few minutes."
@@ -259,7 +268,7 @@ def handle_operational_error(error):
 
 
 @app.errorhandler(NotImplementedError)
-def handle_not_implemented_error(error):
+def handle_not_implemented_error(error):  # noqa: ANN201
     request.environ["log_context"]["error"] = "NotImplementedError"
     response = flask_jsonify(
         message="API endpoint not yet implemented", type="api_error"
@@ -269,17 +278,19 @@ def handle_not_implemented_error(error):
 
 
 @app.errorhandler(APIException)
-def handle_input_error(error):
+def handle_input_error(error):  # noqa: ANN201
     # these "errors" are normal, so we don't need to save a traceback
     request.environ["log_context"]["error"] = error.__class__.__name__
     request.environ["log_context"]["error_message"] = error.message
-    response = flask_jsonify(message=error.message, type="invalid_request_error")
+    response = flask_jsonify(
+        message=error.message, type="invalid_request_error"
+    )
     response.status_code = error.status_code
     return response
 
 
 @app.errorhandler(Exception)
-def handle_generic_error(error):
+def handle_generic_error(error):  # noqa: ANN201
     log_exception(sys.exc_info())
     response = flask_jsonify(
         message="An internal error occured. If this issue persists, please contact support@nylas.com and include this request_uid: {}".format(
@@ -291,7 +302,7 @@ def handle_generic_error(error):
 
 
 @app.route("/account")
-def one_account():
+def one_account():  # noqa: ANN201
     g.parser.add_argument("view", type=view, location="args")
     args = strict_parse_args(g.parser, request.args)
     # Use a new encoder object with the expand parameter set.
@@ -303,7 +314,7 @@ def one_account():
 # Sync status (enable/disable account / throttling)
 #
 @app.route("/status/", methods=["GET", "PUT"])
-def status():
+def status():  # noqa: ANN201
     account = g.namespace.account
 
     # Don't allow resuming accounts marked for deletion.
@@ -333,18 +344,26 @@ def status():
 # Threads
 #
 @app.route("/threads/")
-def thread_query_api():
+def thread_query_api():  # noqa: ANN201
     g.parser.add_argument("subject", type=bounded_str, location="args")
     g.parser.add_argument("to", type=bounded_str, location="args")
     g.parser.add_argument("from", type=bounded_str, location="args")
     g.parser.add_argument("cc", type=bounded_str, location="args")
     g.parser.add_argument("bcc", type=bounded_str, location="args")
-    g.parser.add_argument("any_email", type=comma_separated_email_list, location="args")
-    g.parser.add_argument("message_id_header", type=bounded_str, location="args")
+    g.parser.add_argument(
+        "any_email", type=comma_separated_email_list, location="args"
+    )
+    g.parser.add_argument(
+        "message_id_header", type=bounded_str, location="args"
+    )
     g.parser.add_argument("started_before", type=timestamp, location="args")
     g.parser.add_argument("started_after", type=timestamp, location="args")
-    g.parser.add_argument("last_message_before", type=timestamp, location="args")
-    g.parser.add_argument("last_message_after", type=timestamp, location="args")
+    g.parser.add_argument(
+        "last_message_before", type=timestamp, location="args"
+    )
+    g.parser.add_argument(
+        "last_message_after", type=timestamp, location="args"
+    )
     g.parser.add_argument("filename", type=bounded_str, location="args")
     g.parser.add_argument("in", type=bounded_str, location="args")
     g.parser.add_argument("thread_id", type=valid_public_id, location="args")
@@ -384,7 +403,7 @@ def thread_query_api():
 
 
 @app.route("/threads/search", methods=["GET"])
-def thread_search_api():
+def thread_search_api():  # noqa: ANN201
     g.parser.add_argument("q", type=bounded_str, location="args")
     args = strict_parse_args(g.parser, request.args)
     if not args["q"]:
@@ -411,7 +430,7 @@ def thread_search_api():
 
 
 @app.route("/threads/search/streaming", methods=["GET"])
-def thread_streaming_search_api():
+def thread_streaming_search_api():  # noqa: ANN201
     g.parser.add_argument("q", type=bounded_str, location="args")
     args = strict_parse_args(g.parser, request.args)
     if not args["q"]:
@@ -422,7 +441,9 @@ def thread_streaming_search_api():
         search_client = get_search_client(g.namespace.account)
         generator = search_client.stream_threads(args["q"])
 
-        return Response(stream_with_context(generator()), mimetype="text/json-stream")
+        return Response(
+            stream_with_context(generator()), mimetype="text/json-stream"
+        )
     except SearchBackendException as exc:
         kwargs = {}
         if exc.server_error:
@@ -437,7 +458,7 @@ def thread_streaming_search_api():
 
 
 @app.route("/threads/<public_id>")
-def thread_api(public_id):
+def thread_api(public_id):  # noqa: ANN201
     g.parser.add_argument("view", type=view, location="args")
     args = strict_parse_args(g.parser, request.args)
     # Use a new encoder object with the expand parameter set.
@@ -455,14 +476,16 @@ def thread_api(public_id):
         )
         return encoder.jsonify(thread)
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find thread `{public_id}`")
+        raise NotFoundError(  # noqa: B904
+            f"Couldn't find thread `{public_id}`"
+        )
 
 
 #
 # Update thread
 #
 @app.route("/threads/<public_id>", methods=["PUT", "PATCH"])
-def thread_api_update(public_id):
+def thread_api_update(public_id):  # noqa: ANN201
     try:
         valid_public_id(public_id)
         thread = (
@@ -475,12 +498,16 @@ def thread_api_update(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find thread `{public_id}` ")
+        raise NotFoundError(  # noqa: B904
+            f"Couldn't find thread `{public_id}` "
+        )
     data = request.get_json(force=True)
     if not isinstance(data, dict):
         raise InputError("Invalid request body")
 
-    update_thread(thread, data, g.db_session, g.api_features.optimistic_updates)
+    update_thread(
+        thread, data, g.db_session, g.api_features.optimistic_updates
+    )
 
     return g.encoder.jsonify(thread)
 
@@ -489,8 +516,8 @@ def thread_api_update(public_id):
 #  Delete thread
 #
 @app.route("/threads/<public_id>", methods=["DELETE"])
-def thread_api_delete(public_id):
-    """Moves the thread to the trash"""
+def thread_api_delete(public_id) -> Never:
+    """Moves the thread to the trash"""  # noqa: D401
     raise NotImplementedError
 
 
@@ -498,17 +525,23 @@ def thread_api_delete(public_id):
 # Messages
 ##
 @app.route("/messages/")
-def message_query_api():
+def message_query_api():  # noqa: ANN201
     g.parser.add_argument("subject", type=bounded_str, location="args")
     g.parser.add_argument("to", type=bounded_str, location="args")
     g.parser.add_argument("from", type=bounded_str, location="args")
     g.parser.add_argument("cc", type=bounded_str, location="args")
     g.parser.add_argument("bcc", type=bounded_str, location="args")
-    g.parser.add_argument("any_email", type=comma_separated_email_list, location="args")
+    g.parser.add_argument(
+        "any_email", type=comma_separated_email_list, location="args"
+    )
     g.parser.add_argument("started_before", type=timestamp, location="args")
     g.parser.add_argument("started_after", type=timestamp, location="args")
-    g.parser.add_argument("last_message_before", type=timestamp, location="args")
-    g.parser.add_argument("last_message_after", type=timestamp, location="args")
+    g.parser.add_argument(
+        "last_message_before", type=timestamp, location="args"
+    )
+    g.parser.add_argument(
+        "last_message_after", type=timestamp, location="args"
+    )
     g.parser.add_argument("received_before", type=timestamp, location="args")
     g.parser.add_argument("received_after", type=timestamp, location="args")
     g.parser.add_argument("filename", type=bounded_str, location="args")
@@ -552,7 +585,7 @@ def message_query_api():
 
 
 @app.route("/messages/search", methods=["GET"])
-def message_search_api():
+def message_search_api():  # noqa: ANN201
     g.parser.add_argument("q", type=bounded_str, location="args")
     args = strict_parse_args(g.parser, request.args)
     if not args["q"]:
@@ -579,7 +612,7 @@ def message_search_api():
 
 
 @app.route("/messages/search/streaming", methods=["GET"])
-def message_streaming_search_api():
+def message_streaming_search_api():  # noqa: ANN201
     g.parser.add_argument("q", type=bounded_str, location="args")
     args = strict_parse_args(g.parser, request.args)
     if not args["q"]:
@@ -590,7 +623,9 @@ def message_streaming_search_api():
         search_client = get_search_client(g.namespace.account)
         generator = search_client.stream_messages(args["q"])
 
-        return Response(stream_with_context(generator()), mimetype="text/json-stream")
+        return Response(
+            stream_with_context(generator()), mimetype="text/json-stream"
+        )
     except SearchBackendException as exc:
         kwargs = {}
         if exc.server_error:
@@ -605,16 +640,18 @@ def message_streaming_search_api():
 
 
 @app.route("/messages/<public_id>", methods=["GET"])
-def message_read_api(public_id):
+def message_read_api(public_id):  # noqa: ANN201
     g.parser.add_argument("view", type=view, location="args")
     args = strict_parse_args(g.parser, request.args)
     encoder = APIEncoder(g.namespace.public_id, args["view"] == "expanded")
 
     try:
         valid_public_id(public_id)
-        message = Message.from_public_id(public_id, g.namespace.id, g.db_session)
+        message = Message.from_public_id(
+            public_id, g.namespace.id, g.db_session
+        )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find message {public_id}")
+        raise NotFoundError(f"Couldn't find message {public_id}")  # noqa: B904
 
     if request.headers.get("Accept", None) == "message/rfc822":
         raw_message = blockstore.get_raw_mime(message.data_sha256)
@@ -623,7 +660,9 @@ def message_read_api(public_id):
         else:
             # Try getting the message from the email provider.
             account = g.namespace.account
-            statsd_string = f"api.direct_fetching.{account.provider}.{account.id}"
+            statsd_string = (
+                f"api.direct_fetching.{account.provider}.{account.id}"
+            )
 
             try:
                 with statsd_client.timer(f"{statsd_string}.provider_latency"):
@@ -683,23 +722,28 @@ def message_read_api(public_id):
 
 
 @app.route("/messages/<public_id>", methods=["PUT", "PATCH"])
-def message_update_api(public_id):
+def message_update_api(public_id):  # noqa: ANN201
     try:
         valid_public_id(public_id)
         message = (
             g.db_session.query(Message)
             .filter(
-                Message.public_id == public_id, Message.namespace_id == g.namespace.id
+                Message.public_id == public_id,
+                Message.namespace_id == g.namespace.id,
             )
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find message {public_id} ")
+        raise NotFoundError(  # noqa: B904
+            f"Couldn't find message {public_id} "
+        )
     data = request.get_json(force=True)
     if not isinstance(data, dict):
         raise InputError("Invalid request body")
 
-    update_message(message, data, g.db_session, g.api_features.optimistic_updates)
+    update_message(
+        message, data, g.db_session, g.api_features.optimistic_updates
+    )
 
     return g.encoder.jsonify(message)
 
@@ -707,7 +751,7 @@ def message_update_api(public_id):
 # Folders / Labels
 @app.route("/folders")
 @app.route("/labels")
-def folders_labels_query_api():
+def folders_labels_query_api():  # noqa: ANN201
     category_type = g.namespace.account.category_type
     rule = request.url_rule.rule
     valid_category_type(category_type, rule)
@@ -736,16 +780,16 @@ def folders_labels_query_api():
 
 
 @app.route("/folders/<public_id>")
-def folder_api(public_id):
+def folder_api(public_id):  # noqa: ANN201
     return folders_labels_api_impl(public_id)
 
 
 @app.route("/labels/<public_id>")
-def label_api(public_id):
+def label_api(public_id):  # noqa: ANN201
     return folders_labels_api_impl(public_id)
 
 
-def folders_labels_api_impl(public_id):
+def folders_labels_api_impl(public_id):  # noqa: ANN201
     category_type = g.namespace.account.category_type
     rule = request.url_rule.rule
     valid_category_type(category_type, rule)
@@ -761,13 +805,13 @@ def folders_labels_api_impl(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError("Object not found")
+        raise NotFoundError("Object not found")  # noqa: B904
     return g.encoder.jsonify(category)
 
 
 @app.route("/folders", methods=["POST"])
 @app.route("/labels", methods=["POST"])
-def folders_labels_create_api():
+def folders_labels_create_api():  # noqa: ANN201
     category_type = g.namespace.account.category_type
     rule = request.url_rule.rule
     valid_category_type(category_type, rule)
@@ -777,7 +821,9 @@ def folders_labels_create_api():
     # Validates the display_name and checks if there is a non-deleted Category
     # with this display_name already. If so, we do not allow creating a
     # duplicate.
-    valid_display_name(g.namespace.id, category_type, display_name, g.db_session)
+    valid_display_name(
+        g.namespace.id, category_type, display_name, g.db_session
+    )
 
     if g.namespace.account.provider not in ["gmail", "microsoft"]:
         # Translate the name of the folder to an actual IMAP name
@@ -814,7 +860,9 @@ def folders_labels_create_api():
     g.db_session.flush()
 
     if category_type == "folder":
-        schedule_action("create_folder", category, g.namespace.id, g.db_session)
+        schedule_action(
+            "create_folder", category, g.namespace.id, g.db_session
+        )
     else:
         schedule_action("create_label", category, g.namespace.id, g.db_session)
 
@@ -823,7 +871,7 @@ def folders_labels_create_api():
 
 @app.route("/folders/<public_id>", methods=["PUT", "PATCH"])
 @app.route("/labels/<public_id>", methods=["PUT", "PATCH"])
-def folder_label_update_api(public_id):
+def folder_label_update_api(public_id):  # noqa: ANN201
     category_type = g.namespace.account.category_type
     rule = request.url_rule.rule
     valid_category_type(category_type, rule)
@@ -839,13 +887,17 @@ def folder_label_update_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise InputError(f"Couldn't find {category_type} {public_id}")
+        raise InputError(  # noqa: B904
+            f"Couldn't find {category_type} {public_id}"
+        )
     if category.name:
         raise InputError(f"Cannot modify a standard {category_type}")
 
     data = request.get_json(force=True)
     display_name = data.get("display_name")
-    valid_display_name(g.namespace.id, category_type, display_name, g.db_session)
+    valid_display_name(
+        g.namespace.id, category_type, display_name, g.db_session
+    )
 
     if g.namespace.account.provider not in ["gmail", "microsoft"]:
         # Translate the name of the folder to an actual IMAP name
@@ -887,7 +939,7 @@ def folder_label_update_api(public_id):
 
 @app.route("/folders/<public_id>", methods=["DELETE"])
 @app.route("/labels/<public_id>", methods=["DELETE"])
-def folder_label_delete_api(public_id):
+def folder_label_delete_api(public_id):  # noqa: ANN201
     category_type = g.namespace.account.category_type
     rule = request.url_rule.rule
     valid_category_type(category_type, rule)
@@ -903,7 +955,9 @@ def folder_label_delete_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise InputError(f"Couldn't find {category_type} {public_id}")
+        raise InputError(  # noqa: B904
+            f"Couldn't find {category_type} {public_id}"
+        )
     if category.name:
         raise InputError(f"Cannot modify a standard {category_type}")
 
@@ -930,7 +984,9 @@ def folder_label_delete_api(public_id):
             for folder in folders:
                 folder.deleted_at = deleted_at
 
-        schedule_action("delete_folder", category, g.namespace.id, g.db_session)
+        schedule_action(
+            "delete_folder", category, g.namespace.id, g.db_session
+        )
     else:
         if g.api_features.optimistic_updates:
             deleted_at = datetime.utcnow()
@@ -949,8 +1005,10 @@ def folder_label_delete_api(public_id):
 # Contacts
 ##
 @app.route("/contacts/", methods=["GET"])
-def contact_api():
-    g.parser.add_argument("filter", type=bounded_str, default="", location="args")
+def contact_api():  # noqa: ANN201
+    g.parser.add_argument(
+        "filter", type=bounded_str, default="", location="args"
+    )
     g.parser.add_argument("view", type=bounded_str, location="args")
 
     args = strict_parse_args(g.parser, request.args)
@@ -985,7 +1043,7 @@ def contact_api():
 
 
 @app.route("/contacts/<public_id>", methods=["GET"])
-def contact_read_api(public_id):
+def contact_read_api(public_id):  # noqa: ANN201
     # Get all data for an existing contact.
     valid_public_id(public_id)
     result = inbox.contacts.crud.read(g.namespace, g.db_session, public_id)
@@ -998,7 +1056,7 @@ def contact_read_api(public_id):
 # Events
 ##
 @app.route("/events/", methods=["GET"])
-def event_api():
+def event_api():  # noqa: ANN201
     g.parser.add_argument("event_id", type=valid_public_id, location="args")
     g.parser.add_argument("calendar_id", type=valid_public_id, location="args")
     g.parser.add_argument("title", type=bounded_str, location="args")
@@ -1010,12 +1068,18 @@ def event_api():
     g.parser.add_argument("ends_before", type=timestamp, location="args")
     g.parser.add_argument("ends_after", type=timestamp, location="args")
     g.parser.add_argument("view", type=bounded_str, location="args")
-    g.parser.add_argument("expand_recurring", type=strict_bool, location="args")
+    g.parser.add_argument(
+        "expand_recurring", type=strict_bool, location="args"
+    )
     g.parser.add_argument("show_cancelled", type=strict_bool, location="args")
     g.parser.add_argument("title_email", type=bounded_str, location="args")
-    g.parser.add_argument("description_email", type=bounded_str, location="args")
+    g.parser.add_argument(
+        "description_email", type=bounded_str, location="args"
+    )
     g.parser.add_argument("owner_email", type=bounded_str, location="args")
-    g.parser.add_argument("participant_email", type=bounded_str, location="args")
+    g.parser.add_argument(
+        "participant_email", type=bounded_str, location="args"
+    )
     g.parser.add_argument("any_email", type=bounded_str, location="args")
 
     args = strict_parse_args(g.parser, request.args)
@@ -1049,8 +1113,10 @@ def event_api():
 
 
 @app.route("/events/", methods=["POST"])
-def event_create_api():
-    g.parser.add_argument("notify_participants", type=strict_bool, location="args")
+def event_create_api():  # noqa: ANN201
+    g.parser.add_argument(
+        "notify_participants", type=strict_bool, location="args"
+    )
     args = strict_parse_args(g.parser, request.args)
     notify_participants = args["notify_participants"]
 
@@ -1112,7 +1178,7 @@ def event_create_api():
 
 
 @app.route("/events/<public_id>", methods=["GET"])
-def event_read_api(public_id):
+def event_read_api(public_id):  # noqa: ANN201
     """Get all data for an existing event."""
     valid_public_id(public_id)
     try:
@@ -1126,13 +1192,17 @@ def event_read_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find event id {public_id}")
+        raise NotFoundError(  # noqa: B904
+            f"Couldn't find event id {public_id}"
+        )
     return g.encoder.jsonify(event)
 
 
 @app.route("/events/<public_id>", methods=["PUT", "PATCH"])
-def event_update_api(public_id):
-    g.parser.add_argument("notify_participants", type=strict_bool, location="args")
+def event_update_api(public_id):  # noqa: ANN201
+    g.parser.add_argument(
+        "notify_participants", type=strict_bool, location="args"
+    )
     args = strict_parse_args(g.parser, request.args)
     notify_participants = args["notify_participants"]
 
@@ -1148,17 +1218,19 @@ def event_update_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find event {public_id}")
+        raise NotFoundError(f"Couldn't find event {public_id}")  # noqa: B904
 
     # iCalendar-imported files are read-only by default but let's give a
     # slightly more helpful error message.
     if event.calendar == g.namespace.account.emailed_events_calendar:
-        raise InputError("Can not update an event imported from an iCalendar file.")
+        raise InputError(
+            "Can not update an event imported from an iCalendar file."
+        )
 
     if event.read_only:
         raise InputError("Cannot update read_only event.")
 
-    if isinstance(event, (RecurringEvent, RecurringEventOverride)):
+    if isinstance(event, RecurringEvent | RecurringEventOverride):
         raise InputError("Cannot update a recurring event yet.")
 
     data = request.get_json(force=True)
@@ -1222,7 +1294,9 @@ def event_update_api(public_id):
         )
 
         if len(json.dumps(kwargs)) > 2**16 - 12:
-            raise InputError("Event update too big --- please break it in parts.")
+            raise InputError(
+                "Event update too big --- please break it in parts."
+            )
 
         if event.calendar != account.emailed_events_calendar:
             schedule_action(
@@ -1233,8 +1307,10 @@ def event_update_api(public_id):
 
 
 @app.route("/events/<public_id>", methods=["DELETE"])
-def event_delete_api(public_id):
-    g.parser.add_argument("notify_participants", type=strict_bool, location="args")
+def event_delete_api(public_id):  # noqa: ANN201
+    g.parser.add_argument(
+        "notify_participants", type=strict_bool, location="args"
+    )
     args = strict_parse_args(g.parser, request.args)
     notify_participants = args["notify_participants"]
 
@@ -1250,13 +1326,17 @@ def event_delete_api(public_id):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find event {public_id}")
+        raise NotFoundError(f"Couldn't find event {public_id}")  # noqa: B904
 
     if event.calendar == g.namespace.account.emailed_events_calendar:
-        raise InputError("Can not update an event imported from an iCalendar file.")
+        raise InputError(
+            "Can not update an event imported from an iCalendar file."
+        )
 
     if event.calendar.read_only:
-        raise InputError(f"Cannot delete event {public_id} from read_only calendar.")
+        raise InputError(
+            f"Cannot delete event {public_id} from read_only calendar."
+        )
 
     if g.api_features.optimistic_updates:
         # Set the local event status to 'cancelled' rather than deleting it,
@@ -1282,7 +1362,7 @@ def event_delete_api(public_id):
 
 
 @app.route("/send-rsvp", methods=["POST"])
-def event_rsvp_api():
+def event_rsvp_api():  # noqa: ANN201
     data = request.get_json(force=True)
 
     event_id = data.get("event_id")
@@ -1290,14 +1370,19 @@ def event_rsvp_api():
     try:
         event = (
             g.db_session.query(Event)
-            .filter(Event.public_id == event_id, Event.namespace_id == g.namespace.id)
+            .filter(
+                Event.public_id == event_id,
+                Event.namespace_id == g.namespace.id,
+            )
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find event {event_id}")
+        raise NotFoundError(f"Couldn't find event {event_id}")  # noqa: B904
 
     if event.message is None:
-        raise InputError("This is not a message imported from an iCalendar invite.")
+        raise InputError(
+            "This is not a message imported from an iCalendar invite."
+        )
 
     status = data.get("status")
     if not status:
@@ -1324,7 +1409,11 @@ def event_rsvp_api():
     # Make this API idempotent.
     if p["status"] == status and (
         ("comment" not in p and "comment" not in data)
-        or ("comment" in p and "comment" in data and p["comment"] == data["comment"])
+        or (
+            "comment" in p
+            and "comment" in data
+            and p["comment"] == data["comment"]
+        )
     ):
         return g.encoder.jsonify(event)
 
@@ -1369,7 +1458,7 @@ def event_rsvp_api():
 # Files
 #
 @app.route("/files/", methods=["GET"])
-def files_api():
+def files_api():  # noqa: ANN201
     g.parser.add_argument("filename", type=bounded_str, location="args")
     g.parser.add_argument("message_id", type=valid_public_id, location="args")
     g.parser.add_argument("content_type", type=bounded_str, location="args")
@@ -1392,26 +1481,32 @@ def files_api():
 
 
 @app.route("/files/<public_id>", methods=["GET"])
-def file_read_api(public_id):
+def file_read_api(public_id):  # noqa: ANN201
     valid_public_id(public_id)
     try:
         f = (
             g.db_session.query(Block)
-            .filter(Block.public_id == public_id, Block.namespace_id == g.namespace.id)
+            .filter(
+                Block.public_id == public_id,
+                Block.namespace_id == g.namespace.id,
+            )
             .one()
         )
         return g.encoder.jsonify(f)
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find file {public_id} ")
+        raise NotFoundError(f"Couldn't find file {public_id} ")  # noqa: B904
 
 
 @app.route("/files/<public_id>", methods=["DELETE"])
-def file_delete_api(public_id):
+def file_delete_api(public_id):  # noqa: ANN201
     valid_public_id(public_id)
     try:
         f = (
             g.db_session.query(Block)
-            .filter(Block.public_id == public_id, Block.namespace_id == g.namespace.id)
+            .filter(
+                Block.public_id == public_id,
+                Block.namespace_id == g.namespace.id,
+            )
             .one()
         )
 
@@ -1431,7 +1526,7 @@ def file_delete_api(public_id):
         # Effectively no error == success
         return g.encoder.jsonify(None)
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find file {public_id} ")
+        raise NotFoundError(f"Couldn't find file {public_id} ")  # noqa: B904
 
 
 #
@@ -1440,7 +1535,7 @@ def file_delete_api(public_id):
 # $ curl http://localhost:5555/n/4s4iz36h36w17kumggi36ha2b/files \
 # --form upload=@dancingbaby.gif
 @app.route("/files/", methods=["POST"])
-def file_upload_api():
+def file_upload_api():  # noqa: ANN201
     all_files = []
     for name, uploaded in request.files.items():
         request.environ["log_context"].setdefault("filenames", []).append(name)
@@ -1461,16 +1556,19 @@ def file_upload_api():
 # File downloads
 #
 @app.route("/files/<public_id>/download")
-def file_download_api(public_id):
+def file_download_api(public_id):  # noqa: ANN201
     valid_public_id(public_id)
     try:
         f = (
             g.db_session.query(Block)
-            .filter(Block.public_id == public_id, Block.namespace_id == g.namespace.id)
+            .filter(
+                Block.public_id == public_id,
+                Block.namespace_id == g.namespace.id,
+            )
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find file {public_id} ")
+        raise NotFoundError(f"Couldn't find file {public_id} ")  # noqa: B904
 
     # Here we figure out the filename.extension given the
     # properties which were set on the original attachment
@@ -1553,7 +1651,7 @@ def file_download_api(public_id):
 # Calendars
 ##
 @app.route("/calendars/", methods=["GET"])
-def calendar_api():
+def calendar_api():  # noqa: ANN201
     g.parser.add_argument("view", type=view, location="args")
 
     args = strict_parse_args(g.parser, request.args)
@@ -1578,7 +1676,7 @@ def calendar_api():
 
 
 @app.route("/calendars/<public_id>", methods=["GET"])
-def calendar_read_api(public_id):
+def calendar_read_api(public_id):  # noqa: ANN201
     """Get all data for an existing calendar."""
     valid_public_id(public_id)
 
@@ -1586,12 +1684,15 @@ def calendar_read_api(public_id):
         calendar = (
             g.db_session.query(Calendar)
             .filter(
-                Calendar.public_id == public_id, Calendar.namespace_id == g.namespace.id
+                Calendar.public_id == public_id,
+                Calendar.namespace_id == g.namespace.id,
             )
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find calendar {public_id}")
+        raise NotFoundError(  # noqa: B904
+            f"Couldn't find calendar {public_id}"
+        )
     return g.encoder.jsonify(calendar)
 
 
@@ -1604,16 +1705,22 @@ def calendar_read_api(public_id):
 
 
 @app.route("/drafts/", methods=["GET"])
-def draft_query_api():
+def draft_query_api():  # noqa: ANN201
     g.parser.add_argument("subject", type=bounded_str, location="args")
     g.parser.add_argument("to", type=bounded_str, location="args")
     g.parser.add_argument("cc", type=bounded_str, location="args")
     g.parser.add_argument("bcc", type=bounded_str, location="args")
-    g.parser.add_argument("any_email", type=comma_separated_email_list, location="args")
+    g.parser.add_argument(
+        "any_email", type=comma_separated_email_list, location="args"
+    )
     g.parser.add_argument("started_before", type=timestamp, location="args")
     g.parser.add_argument("started_after", type=timestamp, location="args")
-    g.parser.add_argument("last_message_before", type=timestamp, location="args")
-    g.parser.add_argument("last_message_after", type=timestamp, location="args")
+    g.parser.add_argument(
+        "last_message_before", type=timestamp, location="args"
+    )
+    g.parser.add_argument(
+        "last_message_after", type=timestamp, location="args"
+    )
     g.parser.add_argument("received_before", type=timestamp, location="args")
     g.parser.add_argument("received_after", type=timestamp, location="args")
     g.parser.add_argument("filename", type=bounded_str, location="args")
@@ -1655,11 +1762,14 @@ def draft_query_api():
 
 
 @app.route("/drafts/<public_id>", methods=["GET"])
-def draft_get_api(public_id):
+def draft_get_api(public_id):  # noqa: ANN201
     valid_public_id(public_id)
     draft = (
         g.db_session.query(Message)
-        .filter(Message.public_id == public_id, Message.namespace_id == g.namespace.id)
+        .filter(
+            Message.public_id == public_id,
+            Message.namespace_id == g.namespace.id,
+        )
         .first()
     )
     if draft is None:
@@ -1668,14 +1778,16 @@ def draft_get_api(public_id):
 
 
 @app.route("/drafts/", methods=["POST"])
-def draft_create_api():
+def draft_create_api():  # noqa: ANN201
     data = request.get_json(force=True)
-    draft = create_message_from_json(data, g.namespace, g.db_session, is_draft=True)
+    draft = create_message_from_json(
+        data, g.namespace, g.db_session, is_draft=True
+    )
     return g.encoder.jsonify(draft)
 
 
 @app.route("/drafts/<public_id>", methods=["PUT", "PATCH"])
-def draft_update_api(public_id):
+def draft_update_api(public_id):  # noqa: ANN201
     data = request.get_json(force=True)
     original_draft = get_draft(
         public_id, data.get("version"), g.namespace.id, g.db_session
@@ -1718,10 +1830,12 @@ def draft_update_api(public_id):
 
 
 @app.route("/drafts/<public_id>", methods=["DELETE"])
-def draft_delete_api(public_id):
+def draft_delete_api(public_id):  # noqa: ANN201
     data = request.get_json(force=True)
     # Validate draft id, version, etc.
-    draft = get_draft(public_id, data.get("version"), g.namespace.id, g.db_session)
+    draft = get_draft(
+        public_id, data.get("version"), g.namespace.id, g.db_session
+    )
 
     result = delete_draft(g.db_session, g.namespace.account, draft)
     return g.encoder.jsonify(result)
@@ -1729,7 +1843,7 @@ def draft_delete_api(public_id):
 
 @app.route("/send", methods=["POST"])
 @app.route("/send-with-features", methods=["POST"])  # TODO deprecate this URL
-def draft_send_api():
+def draft_send_api():  # noqa: ANN201
     request_started = time.time()
     account = g.namespace.account
 
@@ -1737,7 +1851,9 @@ def draft_send_api():
         draft = create_draft_from_mime(account, request.data, g.db_session)
         validate_draft_recipients(draft)
         if isinstance(account, GenericAccount):
-            schedule_action("save_sent_email", draft, draft.namespace.id, g.db_session)
+            schedule_action(
+                "save_sent_email", draft, draft.namespace.id, g.db_session
+            )
         resp = send_raw_mime(account, g.db_session, draft)
         return resp
 
@@ -1778,7 +1894,9 @@ def draft_send_api():
         )
 
     if isinstance(account, GenericAccount):
-        schedule_action("save_sent_email", draft, draft.namespace.id, g.db_session)
+        schedule_action(
+            "save_sent_email", draft, draft.namespace.id, g.db_session
+        )
     if time.time() - request_started > SEND_TIMEOUT:
         # Preemptively time out the request if we got stuck doing database work
         # -- we don't want clients to disconnect and then still send the
@@ -1801,8 +1919,8 @@ def draft_send_api():
 
 
 @app.route("/send-multiple", methods=["POST"])
-def multi_send_create():
-    """Initiates a multi-send session by creating a new multi-send draft."""
+def multi_send_create():  # noqa: ANN201
+    """Initiates a multi-send session by creating a new multi-send draft."""  # noqa: D401
     account = g.namespace.account
 
     if account.discriminator == "easaccount":
@@ -1812,7 +1930,9 @@ def multi_send_create():
 
     # Make a new draft and don't save it to the remote (by passing
     # is_draft=False)
-    draft = create_message_from_json(data, g.namespace, g.db_session, is_draft=False)
+    draft = create_message_from_json(
+        data, g.namespace, g.db_session, is_draft=False
+    )
     validate_draft_recipients(draft)
 
     # Mark the draft as sending, which ensures that it cannot be modified.
@@ -1823,13 +1943,14 @@ def multi_send_create():
 
 
 @app.route("/send-multiple/<draft_id>", methods=["POST"])
-def multi_send(draft_id):
-    """Performs a single send operation in an individualized multi-send
+def multi_send(draft_id):  # noqa: ANN201
+    """
+    Performs a single send operation in an individualized multi-send
     session. Sends a copy of the draft at draft_id to the specified address
     with the specified body, and ensures that a corresponding sent message is
     either not created in the user's Sent folder or is immediately
     deleted from it.
-    """
+    """  # noqa: D401
     request_started = time.time()
     account = g.namespace.account
 
@@ -1848,7 +1969,9 @@ def multi_send(draft_id):
 
     emails = {
         email
-        for name, email in itertools.chain(draft.to_addr, draft.cc_addr, draft.bcc_addr)
+        for name, email in itertools.chain(
+            draft.to_addr, draft.cc_addr, draft.bcc_addr
+        )
     }
     if send_to[1] not in emails:
         raise InputError("Invalid send_to, not present in message recipients")
@@ -1870,10 +1993,11 @@ def multi_send(draft_id):
 
 
 @app.route("/send-multiple/<draft_id>", methods=["DELETE"])
-def multi_send_finish(draft_id):
-    """Closes out a multi-send session by marking the sending draft as sent
-    and moving it to the user's Sent folder.
+def multi_send_finish(draft_id):  # noqa: ANN201
     """
+    Closes out a multi-send session by marking the sending draft as sent
+    and moving it to the user's Sent folder.
+    """  # noqa: D401
     account = g.namespace.account
 
     if account.discriminator == "easaccount":
@@ -1914,7 +2038,7 @@ def multi_send_finish(draft_id):
 ##
 @app.route("/delta")
 @app.route("/delta/longpoll")
-def sync_deltas():
+def sync_deltas():  # noqa: ANN201
     g.parser.add_argument(
         "cursor", type=valid_public_id, location="args", required=True
     )
@@ -1974,7 +2098,7 @@ def sync_deltas():
                 .one()
             )
         except NoResultFound:
-            raise InputError("Invalid cursor parameter")
+            raise InputError("Invalid cursor parameter")  # noqa: B904
 
     # The client wants us to wait until there are changes
     g.db_session.expunge(g.namespace)
@@ -2019,7 +2143,7 @@ def sync_deltas():
 
 # TODO Deprecate this
 @app.route("/delta/generate_cursor", methods=["POST"])
-def generate_cursor():
+def generate_cursor():  # noqa: ANN201
     data = request.get_json(force=True)
 
     if list(data) != ["start"] or not isinstance(data["start"], int):
@@ -2033,7 +2157,7 @@ def generate_cursor():
     try:
         datetime.utcfromtimestamp(timestamp)
     except ValueError:
-        raise InputError(
+        raise InputError(  # noqa: B904
             "generate_cursor request body must have the format "
             '{"start": <Unix timestamp> (seconds)}'
         )
@@ -2045,7 +2169,7 @@ def generate_cursor():
 
 
 @app.route("/delta/latest_cursor", methods=["POST"])
-def latest_cursor():
+def latest_cursor():  # noqa: ANN201
     cursor = delta_sync.get_transaction_cursor_near_timestamp(
         g.namespace.id, int(time.time()), g.db_session
     )
@@ -2058,7 +2182,7 @@ def latest_cursor():
 
 
 @app.route("/delta/streaming")
-def stream_changes():
+def stream_changes():  # noqa: ANN201
     g.parser.add_argument("timeout", type=float, location="args")
     g.parser.add_argument(
         "cursor", type=valid_public_id, location="args", required=True
@@ -2143,7 +2267,9 @@ def stream_changes():
         expand=expand,
         is_n1=is_n1,
     )
-    return Response(stream_with_context(generator), mimetype="text/event-stream")
+    return Response(
+        stream_with_context(generator), mimetype="text/event-stream"
+    )
 
 
 ##
@@ -2152,8 +2278,10 @@ def stream_changes():
 
 
 @app.route("/groups/intrinsic")
-def groups_intrinsic():
-    g.parser.add_argument("force_recalculate", type=strict_bool, location="args")
+def groups_intrinsic():  # noqa: ANN201
+    g.parser.add_argument(
+        "force_recalculate", type=strict_bool, location="args"
+    )
     args = strict_parse_args(g.parser, request.args)
     try:
         dpcache = (
@@ -2200,8 +2328,10 @@ def groups_intrinsic():
 
 
 @app.route("/contacts/rankings")
-def contact_rankings():
-    g.parser.add_argument("force_recalculate", type=strict_bool, location="args")
+def contact_rankings():  # noqa: ANN201
+    g.parser.add_argument(
+        "force_recalculate", type=strict_bool, location="args"
+    )
     args = strict_parse_args(g.parser, request.args)
     try:
         dpcache = (

@@ -1,4 +1,4 @@
-def get_search_client(account):
+def get_search_client(account):  # noqa: ANN201
     from inbox.search.backends import module_registry
 
     search_mod = module_registry.get(account.provider)
@@ -8,26 +8,28 @@ def get_search_client(account):
 
 
 class SearchBackendException(Exception):
-    """Raised if there's an error proxying the search request to the
+    """
+    Raised if there's an error proxying the search request to the
     provider.
     """
 
-    def __init__(self, message, http_code, server_error=None):
+    def __init__(self, message, http_code, server_error=None) -> None:
         self.message = message
         self.http_code = http_code
         self.server_error = server_error
         super().__init__(message, http_code, server_error)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
 
 class SearchStoreException(Exception):
-    """Raised if there's an error proxying the search request to the provider.
+    """
+    Raised if there's an error proxying the search request to the provider.
     This is a special EAS case where the Status code for the Store element has
     an error
     """
 
-    def __init__(self, err_code):
+    def __init__(self, err_code) -> None:
         self.err_code = err_code
         super().__init__(err_code)

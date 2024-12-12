@@ -34,13 +34,14 @@ from collections import defaultdict
 import vobject
 
 
-def list_clean(string):
-    """Transforms a comma seperated string to a list, stripping whitespaces
+def list_clean(string):  # noqa: ANN201
+    """
+    Transforms a comma seperated string to a list, stripping whitespaces
     "HOME, WORK,pref" -> ['HOME', 'WORK', 'pref']
 
     string: string of comma seperated elements
     returns: list()
-    """
+    """  # noqa: D401
     string = string.split(",")
     rstring = list()
     for element in string:
@@ -125,7 +126,7 @@ NTEXT = "\x1b[0m"
 BTEXT = "\x1b[1m"
 
 
-def get_names(display_name):
+def get_names(display_name):  # noqa: ANN201
     first_name, last_name = "", display_name
 
     if display_name.find(",") > 0:
@@ -139,16 +140,17 @@ def get_names(display_name):
         last_name = "".join(name_list[-1])
         first_name = " ".join(name_list[:-1])
 
-    return first_name.strip().capitalize(), last_name.strip().capitalize()
+    return (first_name.strip().capitalize(), last_name.strip().capitalize())
 
 
-def fix_vobject(vcard):
-    """Trying to fix some more or less common errors in vcards
+def fix_vobject(vcard):  # noqa: ANN201
+    """
+    Trying to fix some more or less common errors in vcards
 
     for now only missing FN properties are handled (and reconstructed from N)
     :type vcard: vobject.base.Component (vobject based vcard)
 
-    """
+    """  # noqa: D401
     if "fn" not in vcard.contents:
         logging.debug("vcard has no formatted name, reconstructing...")
         fname = vcard.contents["n"][0].valueRepr()
@@ -158,7 +160,7 @@ def fix_vobject(vcard):
     return vcard
 
 
-def vcard_from_vobject(vcard):
+def vcard_from_vobject(vcard):  # noqa: ANN201
     vcard = fix_vobject(vcard)
     vdict = VCard()
     if vcard.name != "VCARD":
@@ -170,7 +172,7 @@ def vcard_from_vobject(vcard):
         property_value = line.value
 
         with contextlib.suppress(AttributeError):
-            if line.ENCODING_paramlist == ["b"] or line.ENCODING_paramlist == ["B"]:
+            if line.ENCODING_paramlist in (["b"], ["B"]):
                 property_value = base64.b64encode(line.value)
         if isinstance(property_value, list):
             property_value = (",").join(property_value)
@@ -179,7 +181,7 @@ def vcard_from_vobject(vcard):
     return vdict
 
 
-def vcard_from_string(vcard_string):
+def vcard_from_string(vcard_string):  # noqa: ANN201
     """
     vcard_string: str
     returns VCard()
@@ -187,11 +189,11 @@ def vcard_from_string(vcard_string):
     try:
         vcard = vobject.readOne(vcard_string)
     except vobject.base.ParseError as error:
-        raise Exception(error)  # TODO proper exception
+        raise Exception(error)  # TODO proper exception  # noqa: B904
     return vcard_from_vobject(vcard)
 
 
-def vcard_from_email(display_name, email):
+def vcard_from_email(display_name, email):  # noqa: ANN201
     fname, lname = get_names(display_name)
     vcard = vobject.vCard()
     vcard.add("n")
@@ -204,7 +206,7 @@ def vcard_from_email(display_name, email):
     return vcard_from_vobject(vcard)
 
 
-def cards_from_file(cards_f):
+def cards_from_file(cards_f):  # noqa: ANN201
     collector = list()
     for vcard in vobject.readComponents(cards_f):
         collector.append(vcard_from_vobject(vcard))
@@ -230,7 +232,7 @@ class VCard(defaultdict):
         2: some property was deleted
     """
 
-    def __init__(self, ddict=""):
+    def __init__(self, ddict="") -> None:
         if ddict == "":
             defaultdict.__init__(self, list)
         else:
@@ -240,11 +242,11 @@ class VCard(defaultdict):
         self.etag = ""
         self.edited = 0
 
-    def serialize(self):
+    def serialize(self):  # noqa: ANN201
         return repr(list(self.items()))
 
     @property
-    def name(self):
+    def name(self):  # noqa: ANN201
         return str(self["N"][0][0]) if self["N"] else ""
 
     @name.setter
@@ -254,22 +256,22 @@ class VCard(defaultdict):
         self["N"][0][0] = value
 
     @property
-    def fname(self):
+    def fname(self):  # noqa: ANN201
         return str(self["FN"][0][0]) if self["FN"] else ""
 
     @fname.setter
     def fname(self, value):
         self["FN"][0] = (value, {})
 
-    def alt_keys(self):
+    def alt_keys(self):  # noqa: ANN201
         keylist = list(self)
         for one in [x for x in ["FN", "N", "VERSION"] if x in keylist]:
             keylist.remove(one)
         keylist.sort()
         return keylist
 
-    def print_email(self):
-        """Prints only name, email and type for use with mutt"""
+    def print_email(self):  # noqa: ANN201
+        """Prints only name, email and type for use with mutt"""  # noqa: D401
         collector = list()
         try:
             for one in self["EMAIL"]:
@@ -282,8 +284,8 @@ class VCard(defaultdict):
         except KeyError:
             return ""
 
-    def print_tel(self):
-        """Prints only name, email and type for use with mutt"""
+    def print_tel(self):  # noqa: ANN201
+        """Prints only name, email and type for use with mutt"""  # noqa: D401
         collector = list()
         try:
             for one in self["TEL"]:
@@ -297,11 +299,11 @@ class VCard(defaultdict):
             return ""
 
     @property
-    def pretty(self):
+    def pretty(self):  # noqa: ANN201
         return self._pretty_base(self.alt_keys())
 
     @property
-    def pretty_min(self):
+    def pretty_min(self):  # noqa: ANN201
         return self._pretty_base(["TEL", "EMAIL"])
 
     def _pretty_base(self, keylist):
@@ -330,8 +332,9 @@ class VCard(defaultdict):
             return ";" + ";".join(collector)
 
     @property
-    def vcf(self):
-        """Serialize to VCARD as specified in RFC2426,
+    def vcf(self):  # noqa: ANN201
+        """
+        Serialize to VCARD as specified in RFC2426,
         if no UID is specified yet, one will be added (as a UID is mandatory
         for carddav as specified in RFC6352
         TODO make shure this random uid is unique
@@ -340,7 +343,8 @@ class VCard(defaultdict):
         import string
 
         def generate_random_uid():
-            """Generate a random uid, when random isn't broken, getting a
+            """
+            Generate a random uid, when random isn't broken, getting a
             random UID from a pool of roughly 10^56 should be good enough
             """
             choice = string.ascii_uppercase + string.digits

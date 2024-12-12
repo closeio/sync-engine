@@ -1,4 +1,5 @@
-"""message contact association
+"""
+message contact association
 
 Revision ID: 223041bb858b
 Revises: 2c9f3a06de09
@@ -15,7 +16,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "messagecontactassociation",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -42,5 +43,5 @@ def upgrade():
     rerank_contacts()
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("messagecontactassociation")

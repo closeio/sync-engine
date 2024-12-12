@@ -1,4 +1,5 @@
-"""Tighten EAS constraints and fix easfoldersync state enum.
+"""
+Tighten EAS constraints and fix easfoldersync state enum.
 
 Revision ID: 3f96e92953e1
 Revises: 55f0ff54c776
@@ -15,11 +16,11 @@ from alembic import op
 from sqlalchemy.ext.declarative import declarative_base
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     if "easfoldersync" in Base.metadata.tables:
@@ -27,7 +28,11 @@ def upgrade():
             "easfoldersync",
             "state",
             type_=sa.Enum(
-                "initial", "initial keyinvalid", "poll", "poll keyinvalid", "finish"
+                "initial",
+                "initial keyinvalid",
+                "poll",
+                "poll keyinvalid",
+                "finish",
             ),
             existing_nullable=False,
             server_default="initial",
@@ -37,15 +42,19 @@ def upgrade():
         op.alter_column(
             "easuid", "message_id", existing_type=sa.Integer(), nullable=False
         )
-        op.alter_column("easuid", "fld_uid", existing_type=sa.Integer(), nullable=False)
-        op.alter_column("easuid", "msg_uid", existing_type=sa.Integer(), nullable=False)
+        op.alter_column(
+            "easuid", "fld_uid", existing_type=sa.Integer(), nullable=False
+        )
+        op.alter_column(
+            "easuid", "msg_uid", existing_type=sa.Integer(), nullable=False
+        )
 
 
-def downgrade():
+def downgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     if "easfoldersync" in Base.metadata.tables:
@@ -53,7 +62,11 @@ def downgrade():
             "easfoldersync",
             "state",
             type_=sa.Enum(
-                "initial", "initial uidinvalid", "poll", "poll uidinvalid", "finish"
+                "initial",
+                "initial uidinvalid",
+                "poll",
+                "poll uidinvalid",
+                "finish",
             ),
             existing_nullable=False,
         )
@@ -62,5 +75,9 @@ def downgrade():
         op.alter_column(
             "easuid", "message_id", existing_type=sa.Integer(), nullable=True
         )
-        op.alter_column("easuid", "fld_uid", existing_type=sa.Integer(), nullable=True)
-        op.alter_column("easuid", "msg_uid", existing_type=sa.Integer(), nullable=True)
+        op.alter_column(
+            "easuid", "fld_uid", existing_type=sa.Integer(), nullable=True
+        )
+        op.alter_column(
+            "easuid", "msg_uid", existing_type=sa.Integer(), nullable=True
+        )

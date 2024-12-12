@@ -1,4 +1,5 @@
-"""add more indexes
+"""
+add more indexes
 
 Revision ID: 1eab2619cc4f
 Revises: 3f96e92953e1
@@ -14,27 +15,32 @@ from alembic import op
 from sqlalchemy.ext.declarative import declarative_base
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     if "easuid" in Base.metadata.tables:
-        op.create_index("ix_easuid_msg_uid", "easuid", ["msg_uid"], unique=False)
+        op.create_index(
+            "ix_easuid_msg_uid", "easuid", ["msg_uid"], unique=False
+        )
 
     op.create_index("ix_imapuid_msg_uid", "imapuid", ["msg_uid"], unique=False)
     op.create_index(
-        "ix_transaction_table_name", "transaction", ["table_name"], unique=False
+        "ix_transaction_table_name",
+        "transaction",
+        ["table_name"],
+        unique=False,
     )
 
 
-def downgrade():
+def downgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     if "easuid" in Base.metadata.tables:

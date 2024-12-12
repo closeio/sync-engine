@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 # Check that we can fetch attachments for 99.9% of our syncing accounts.
 import concurrent.futures
 import datetime
@@ -20,7 +20,7 @@ log = get_logger(purpose="separator-backfix")
 NUM_MESSAGES = 10
 
 
-def process_account(account_id):
+def process_account(account_id):  # noqa: ANN201
     ret = defaultdict(int)
 
     try:
@@ -28,7 +28,9 @@ def process_account(account_id):
             acc = db_session.query(Account).get(account_id)
             db_session.expunge(acc)
 
-        one_month_ago = datetime.datetime.utcnow() - datetime.timedelta(days=30)
+        one_month_ago = datetime.datetime.utcnow() - datetime.timedelta(
+            days=30
+        )
 
         for _ in range(NUM_MESSAGES):
             with session_scope(account_id) as db_session:
@@ -65,7 +67,7 @@ def process_account(account_id):
 
 @click.command()
 @click.option("--num-accounts", type=int, default=1500)
-def main(num_accounts):
+def main(num_accounts) -> None:
     maybe_enable_rollbar()
 
     with global_session_scope() as db_session:

@@ -1,4 +1,5 @@
-"""Add columns for drafts support to SpoolMessage
+"""
+Add columns for drafts support to SpoolMessage
 
 Revision ID: 24e085e152c0
 Revises: 350a08df27ee
@@ -15,16 +16,20 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     # Create DraftThread table
     op.create_table(
         "draftthread",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("master_public_id", mysql.BINARY(16), nullable=False),
         sa.Column("thread_id", sa.Integer()),
-        sa.ForeignKeyConstraint(["thread_id"], ["thread.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["thread_id"], ["thread.id"], ondelete="CASCADE"
+        ),
         sa.Column("message_id", sa.Integer()),
-        sa.ForeignKeyConstraint(["message_id"], ["message.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["message_id"], ["message.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
@@ -34,7 +39,8 @@ def upgrade():
 
     # Add columns to SpoolMessage table
     op.add_column(
-        "spoolmessage", sa.Column("parent_draft_id", sa.Integer(), nullable=True)
+        "spoolmessage",
+        sa.Column("parent_draft_id", sa.Integer(), nullable=True),
     )
     op.create_foreign_key(
         "spoolmessage_ibfk_3",
@@ -45,7 +51,8 @@ def upgrade():
     )
 
     op.add_column(
-        "spoolmessage", sa.Column("draft_copied_from", sa.Integer(), nullable=True)
+        "spoolmessage",
+        sa.Column("draft_copied_from", sa.Integer(), nullable=True),
     )
     op.create_foreign_key(
         "spoolmessage_ibfk_4",
@@ -56,7 +63,8 @@ def upgrade():
     )
 
     op.add_column(
-        "spoolmessage", sa.Column("replyto_thread_id", sa.Integer(), nullable=True)
+        "spoolmessage",
+        sa.Column("replyto_thread_id", sa.Integer(), nullable=True),
     )
     op.create_foreign_key(
         "spoolmessage_ibfk_5",
@@ -77,14 +85,20 @@ def upgrade():
     )
 
 
-def downgrade():
-    op.drop_constraint("spoolmessage_ibfk_3", "spoolmessage", type_="foreignkey")
+def downgrade() -> None:
+    op.drop_constraint(
+        "spoolmessage_ibfk_3", "spoolmessage", type_="foreignkey"
+    )
     op.drop_column("spoolmessage", "parent_draft_id")
 
-    op.drop_constraint("spoolmessage_ibfk_4", "spoolmessage", type_="foreignkey")
+    op.drop_constraint(
+        "spoolmessage_ibfk_4", "spoolmessage", type_="foreignkey"
+    )
     op.drop_column("spoolmessage", "draft_copied_from")
 
-    op.drop_constraint("spoolmessage_ibfk_5", "spoolmessage", type_="foreignkey")
+    op.drop_constraint(
+        "spoolmessage_ibfk_5", "spoolmessage", type_="foreignkey"
+    )
     op.drop_column("spoolmessage", "replyto_thread_id")
     op.drop_column("spoolmessage", "state")
 

@@ -7,8 +7,10 @@ from inbox.exceptions import NotSupportedError
 from inbox.util.url import InvalidEmailAddressError, provider_from_address
 
 
-def test_provider_resolution(mock_dns_resolver):
-    mock_dns_resolver._load_records("tests/data/general_test_provider_resolution.json")
+def test_provider_resolution(mock_dns_resolver) -> None:
+    mock_dns_resolver._load_records(
+        "tests/data/general_test_provider_resolution.json"
+    )
     test_cases = [
         ("foo@example.com", "unknown"),
         ("foo@noresolve.com", "unknown"),
@@ -43,7 +45,8 @@ def test_provider_resolution(mock_dns_resolver):
     ]
     for email, expected_provider in test_cases:
         assert (
-            provider_from_address(email, lambda: mock_dns_resolver) == expected_provider
+            provider_from_address(email, lambda: mock_dns_resolver)
+            == expected_provider
         )
 
     with pytest.raises(InvalidEmailAddressError):
@@ -54,7 +57,7 @@ def test_provider_resolution(mock_dns_resolver):
         provider_from_address("notanemail.com", lambda: mock_dns_resolver)
 
 
-def test_auth_handler_dispatch():
+def test_auth_handler_dispatch() -> None:
     assert isinstance(handler_from_provider("custom"), GenericAuthHandler)
     assert isinstance(handler_from_provider("gmail"), GoogleAuthHandler)
 

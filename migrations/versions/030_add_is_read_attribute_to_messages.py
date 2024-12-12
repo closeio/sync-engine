@@ -1,4 +1,5 @@
-"""add is_read attribute to messages
+"""
+add is_read attribute to messages
 
 Revision ID: 1b6ceae51b43
 Revises: 52a9a976a2e0
@@ -17,7 +18,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import backref, relationship
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "message",
         sa.Column(
@@ -29,17 +30,23 @@ def upgrade():
     )
 
     op.alter_column(
-        "usertagitem", "created_at", existing_type=mysql.DATETIME(), nullable=False
+        "usertagitem",
+        "created_at",
+        existing_type=mysql.DATETIME(),
+        nullable=False,
     )
     op.alter_column(
-        "usertagitem", "updated_at", existing_type=mysql.DATETIME(), nullable=False
+        "usertagitem",
+        "updated_at",
+        existing_type=mysql.DATETIME(),
+        nullable=False,
     )
 
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Message(Base):
@@ -68,11 +75,17 @@ def upgrade():
         db_session.commit()
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column(
-        "usertagitem", "updated_at", existing_type=mysql.DATETIME(), nullable=True
+        "usertagitem",
+        "updated_at",
+        existing_type=mysql.DATETIME(),
+        nullable=True,
     )
     op.alter_column(
-        "usertagitem", "created_at", existing_type=mysql.DATETIME(), nullable=True
+        "usertagitem",
+        "created_at",
+        existing_type=mysql.DATETIME(),
+        nullable=True,
     )
     op.drop_column("message", "is_read")

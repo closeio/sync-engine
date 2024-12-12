@@ -5,7 +5,6 @@ import pytest
 
 from inbox.api.ns_api import API_VERSIONS
 from inbox.util.blockstore import get_from_blockstore
-
 from tests.api.base import new_api_client
 from tests.util.base import (
     add_fake_message,
@@ -104,7 +103,9 @@ def test_rfc822_format(stub_message_from_raw, api_client, mime_message):
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_direct_fetching(stub_message_from_raw, api_client, mime_message, monkeypatch):
+def test_direct_fetching(
+    stub_message_from_raw, api_client, mime_message, monkeypatch
+):
     # Mark a message as missing and check that we try to
     # fetch it from the remote provider.
     get_mock = mock.Mock(return_value=None)
@@ -114,7 +115,9 @@ def test_direct_fetching(stub_message_from_raw, api_client, mime_message, monkey
     monkeypatch.setattr("inbox.util.blockstore.save_to_blockstore", save_mock)
 
     raw_mock = mock.Mock(return_value=b"Return contents")
-    monkeypatch.setattr("inbox.s3.backends.gmail.get_gmail_raw_contents", raw_mock)
+    monkeypatch.setattr(
+        "inbox.s3.backends.gmail.get_gmail_raw_contents", raw_mock
+    )
 
     full_path = f"/messages/{stub_message_from_raw.public_id}"
 
@@ -196,7 +199,8 @@ def test_expanded_threads(stub_message, api_client, api_version):
 
     # /threads/<thread_id>
     resp = api_client.get_raw(
-        f"/threads/{stub_message.thread.public_id}?view=expanded", headers=headers
+        f"/threads/{stub_message.thread.public_id}?view=expanded",
+        headers=headers,
     )
     assert resp.status_code == 200
     resp_dict = json.loads(resp.data)
@@ -236,7 +240,9 @@ def test_expanded_message(stub_message, api_client):
         assert all(x in msg_dict for x in valid_keys)
 
     # /message/<message_id>
-    resp = api_client.get_raw(f"/messages/{stub_message.public_id}?view=expanded")
+    resp = api_client.get_raw(
+        f"/messages/{stub_message.public_id}?view=expanded"
+    )
     assert resp.status_code == 200
     resp_dict = json.loads(resp.data)
     _check_json_message(resp_dict)
@@ -265,13 +271,15 @@ def test_message_folders(db, generic_account):
 
     assert resp_data["id"] == generic_thread.public_id
     assert resp_data["object"] == "thread"
-    assert "folders" in resp_data and "labels" not in resp_data
+    assert "folders" in resp_data
+    assert "labels" not in resp_data
 
     resp_data = api_client.get_data(f"/messages/{generic_message.public_id}")
 
     assert resp_data["id"] == generic_message.public_id
     assert resp_data["object"] == "message"
-    assert "folder" in resp_data and "labels" not in resp_data
+    assert "folder" in resp_data
+    assert "labels" not in resp_data
 
 
 def test_message_labels(db, gmail_account):
@@ -288,13 +296,15 @@ def test_message_labels(db, gmail_account):
 
     assert resp_data["id"] == gmail_thread.public_id
     assert resp_data["object"] == "thread"
-    assert "labels" in resp_data and "folders" not in resp_data
+    assert "labels" in resp_data
+    assert "folders" not in resp_data
 
     resp_data = api_client.get_data(f"/messages/{gmail_message.public_id}")
 
     assert resp_data["id"] == gmail_message.public_id
     assert resp_data["object"] == "message"
-    assert "labels" in resp_data and "folders" not in resp_data
+    assert "labels" in resp_data
+    assert "folders" not in resp_data
 
 
 @pytest.mark.skipif(True, reason="Need to investigate")
@@ -302,7 +312,8 @@ def test_message_labels(db, gmail_account):
 def test_message_label_updates(
     db, api_client, default_account, api_version, custom_label
 ):
-    """Check that you can update a message (optimistically or not),
+    """
+    Check that you can update a message (optimistically or not),
     and that the update is queued in the ActionLog.
     """
     headers = dict()

@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import Optional
 
 from sqlalchemy import (
     Boolean,
@@ -24,9 +23,13 @@ from inbox.models.mixins import (
 from inbox.models.namespace import Namespace
 
 
-class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtMixin):
+class Calendar(
+    MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtMixin
+):
     API_OBJECT_NAME = "calendar"
-    namespace_id = Column(ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False)
+    namespace_id = Column(
+        ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False
+    )
 
     namespace = relationship(
         Namespace, load_on_pending=True, backref=backref("calendars")
@@ -48,12 +51,17 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
     webhook_subscription_expiration = Column(DateTime)
 
     __table_args__ = (
-        UniqueConstraint("namespace_id", "provider_name", "name", "uid", name="uuid"),
+        UniqueConstraint(
+            "namespace_id", "provider_name", "name", "uid", name="uuid"
+        ),
     )
 
     @property
-    def should_suppress_transaction_creation(self):
-        if self in object_session(self).new or self in object_session(self).deleted:
+    def should_suppress_transaction_creation(self) -> bool:
+        if (
+            self in object_session(self).new
+            or self in object_session(self).deleted
+        ):
             return False
         obj_state = inspect(self)
         return not (
@@ -62,7 +70,7 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
             or obj_state.attrs.read_only.history.has_changes()
         )
 
-    def update(self, calendar: "Calendar"):
+    def update(self, calendar: "Calendar") -> None:
         self.uid = calendar.uid
         self.name = calendar.name[:MAX_INDEXABLE_LENGTH]
         self.read_only = calendar.read_only
@@ -73,10 +81,10 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
         self.webhook_subscription_expiration = expiration
         self.webhook_last_ping = datetime.utcnow()
 
-    def handle_webhook_notification(self):
+    def handle_webhook_notification(self) -> None:
         self.webhook_last_ping = datetime.utcnow()
 
-    def can_sync(self):
+    def can_sync(self) -> bool:
         if self.name == "Emailed events" and self.uid == "inbox":
             # This is our own internal calendar
             return False
@@ -129,7 +137,10 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
             self.last_synced is None
             or
             # Push notifications channel is stale (and we didn't just sync it)
-            (self.needs_new_watch() and now > self.last_synced + poll_frequency)
+            (
+                self.needs_new_watch()
+                and now > self.last_synced + poll_frequency
+            )
             or
             # Too much time has passed not to sync
             now > self.last_synced + max_time_between_syncs
@@ -142,7 +153,7 @@ class Calendar(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
         )
 
 
-def is_default_calendar(calendar: Calendar) -> Optional[bool]:
+def is_default_calendar(calendar: Calendar) -> bool | None:
     """
     Determine if this is a default/primary user calendar.
 
@@ -156,6 +167,7 @@ def is_default_calendar(calendar: Calendar) -> Optional[bool]:
 
     Arguments:
         calendar: The google, microsoft or "inbox" calendar
+
     """
     from inbox.models.backends.gmail import GmailAccount
     from inbox.models.backends.outlook import OutlookAccount

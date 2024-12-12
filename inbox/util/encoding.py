@@ -1,6 +1,3 @@
-from typing import Union
-
-
 def base36encode(number: int) -> str:
     if not isinstance(number, int):
         raise TypeError("number must be an integer")
@@ -21,11 +18,11 @@ def base36decode(number: str) -> int:
     return int(number, 36)
 
 
-def unicode_safe_truncate(s: Union[bytes, str, int], max_length: int) -> str:
+def unicode_safe_truncate(s: bytes | str | int, max_length: int) -> str:
     """
     Implements unicode-safe truncation and trims whitespace for a given input
     string, number or unicode string.
-    """
+    """  # noqa: D401
     if isinstance(s, bytes):
         s = s.decode("utf-8", "ignore")
     else:

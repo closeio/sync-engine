@@ -1,4 +1,5 @@
-"""drop
+"""
+drop
 
 Revision ID: 31aae1ecb374
 Revises: 3613ca83ea40
@@ -13,9 +14,9 @@ down_revision = "3613ca83ea40"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("message", "full_body_id")
 
 
-def downgrade():
+def downgrade() -> None:
     pass

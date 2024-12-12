@@ -1,4 +1,5 @@
-"""add message.inbox_uid index
+"""
+add message.inbox_uid index
 
 Revision ID: 569b9d365295
 Revises: 4015edc83ba
@@ -13,9 +14,11 @@ down_revision = "4015edc83ba"
 from alembic import op
 
 
-def upgrade():
-    op.create_index("ix_message_inbox_uid", "message", ["inbox_uid"], unique=False)
+def upgrade() -> None:
+    op.create_index(
+        "ix_message_inbox_uid", "message", ["inbox_uid"], unique=False
+    )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("ix_message_inbox_uid", table_name="message")

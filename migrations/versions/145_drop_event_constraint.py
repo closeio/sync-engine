@@ -1,4 +1,5 @@
-"""drop event constraint
+"""
+drop event constraint
 
 Revision ID: 557378226d9f
 Revises: 1c73ca99c03b
@@ -10,10 +11,12 @@ Create Date: 2015-03-11 02:42:57.477016
 revision = "557378226d9f"
 down_revision = "1c73ca99c03b"
 
+from typing import Never
+
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         """ALTER TABLE event DROP INDEX uuid,
@@ -27,5 +30,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception

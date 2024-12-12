@@ -1,4 +1,5 @@
-"""Add sync_should_run bit to Account
+"""
+Add sync_should_run bit to Account
 
 Revision ID: 2d8a350b4885
 Revises: 3ab34bc85c8d
@@ -14,12 +15,14 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "account",
-        sa.Column("sync_should_run", sa.Boolean(), server_default="1", nullable=True),
+        sa.Column(
+            "sync_should_run", sa.Boolean(), server_default="1", nullable=True
+        ),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("account", "sync_should_run")

@@ -15,14 +15,14 @@ class MailSyncBase(CreatedAtMixin):
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
     @declared_attr
-    def __tablename__(cls):
+    def __tablename__(cls):  # noqa: ANN204, N805
         return cls.__name__.lower()
 
     @declared_attr
-    def __table_args__(cls):
+    def __table_args__(cls):  # noqa: ANN204, N805
         return {"extend_existing": True}
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         try:
             return "<{} (id: {})>".format(
                 self.__module__ + "." + self.__class__.__name__, self.id

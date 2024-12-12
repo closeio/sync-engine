@@ -1,9 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 
 import subprocess
 import sys
-from typing import Optional
 
 import click
 
@@ -13,7 +12,9 @@ from inbox.error_handling import maybe_enable_rollbar
 
 @click.command()
 @click.option("--shard-num", type=int)
-@click.option("-e", "--execute", type=str, help="Execute the statement and quit")
+@click.option(
+    "-e", "--execute", type=str, help="Execute the statement and quit"
+)
 @click.option(
     "-B",
     "--batch",
@@ -21,7 +22,7 @@ from inbox.error_handling import maybe_enable_rollbar
     default=False,
     help="Print results using tab as the column separator",
 )
-def main(shard_num: Optional[int], execute: Optional[str], batch: bool) -> None:
+def main(shard_num: int | None, execute: str | None, batch: bool) -> None:
     maybe_enable_rollbar()
 
     users = config.get_required("DATABASE_USERS")
@@ -34,7 +35,10 @@ def main(shard_num: Optional[int], execute: Optional[str], batch: bool) -> None:
             shard_num = database_hosts[0]["SHARDS"][0]["ID"]
             print("No shard provided, falling back to", shard_num)
         else:
-            print("There are many shards, please provide --shard-num", file=sys.stderr)
+            print(
+                "There are many shards, please provide --shard-num",
+                file=sys.stderr,
+            )
             sys.exit(1)
 
     for database in database_hosts:
@@ -47,7 +51,7 @@ def main(shard_num: Optional[int], execute: Optional[str], batch: bool) -> None:
                 creds["db_name"] = shard["SCHEMA_NAME"]
                 break
 
-    for key in creds.keys():
+    for key in creds.keys():  # noqa: PLC0206
         if creds[key] is None:
             print(f"Error: {key} is None")
             sys.exit(-1)

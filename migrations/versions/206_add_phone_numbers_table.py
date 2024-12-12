@@ -1,4 +1,5 @@
-"""create phone number table
+"""
+create phone number table
 
 Revision ID: 2ac4e3c4e049
 Revises: 3a58d466f61d
@@ -15,7 +16,7 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "phonenumber",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
@@ -25,22 +26,36 @@ def upgrade():
         sa.Column("contact_id", sa.Integer(), nullable=False),
         sa.Column("type", mysql.VARCHAR(length=64), nullable=True),
         sa.Column("number", mysql.VARCHAR(length=64), nullable=False),
-        sa.ForeignKeyConstraint(["contact_id"], ["contact.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["contact_id"], ["contact.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        "ix_phonenumber_created_at", "phonenumber", ["created_at"], unique=False
+        "ix_phonenumber_created_at",
+        "phonenumber",
+        ["created_at"],
+        unique=False,
     )
     op.create_index(
-        "ix_phonenumber_updated_at", "phonenumber", ["updated_at"], unique=False
+        "ix_phonenumber_updated_at",
+        "phonenumber",
+        ["updated_at"],
+        unique=False,
     )
     op.create_index(
-        "ix_phonenumber_contact_id", "phonenumber", ["contact_id"], unique=False
+        "ix_phonenumber_contact_id",
+        "phonenumber",
+        ["contact_id"],
+        unique=False,
     )
     op.create_index(
-        "ix_phonenumber_deleted_at", "phonenumber", ["deleted_at"], unique=False
+        "ix_phonenumber_deleted_at",
+        "phonenumber",
+        ["deleted_at"],
+        unique=False,
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("phonenumber")

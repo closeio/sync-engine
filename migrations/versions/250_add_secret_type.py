@@ -1,4 +1,5 @@
-"""Add "authalligator" secret type.
+"""
+Add "authalligator" secret type.
 
 Revision ID: 1d84676d7731
 Revises: 36ce9c8635ef
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column(
         "secret",
         "type",
@@ -24,7 +25,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column(
         "secret",
         "type",

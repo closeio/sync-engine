@@ -1,4 +1,5 @@
-"""At Thread.deleted_at
+"""
+At Thread.deleted_at
 
 Revision ID: 4a44b06cd53b
 Revises: c48fc8dea1b
@@ -14,8 +15,10 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
-    op.add_column("thread", sa.Column("deleted_at", sa.DateTime(), nullable=True))
+def upgrade() -> None:
+    op.add_column(
+        "thread", sa.Column("deleted_at", sa.DateTime(), nullable=True)
+    )
     op.create_index(
         "ix_thread_namespace_id_deleted_at",
         "thread",
@@ -24,6 +27,6 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("ix_thread_namespace_id_deleted_at", table_name="thread")
     op.drop_column("thread", "deleted_at")

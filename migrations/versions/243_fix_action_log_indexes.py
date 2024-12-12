@@ -1,4 +1,5 @@
-"""fix_action_log_indexes
+"""
+fix_action_log_indexes
 
 Revision ID: 2c47d9226de6
 Revises: 2197bc4a7df5
@@ -10,11 +11,10 @@ Create Date: 2018-04-12 01:16:34.441222
 revision = "2c47d9226de6"
 down_revision = "2197bc4a7df5"
 
-import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "ix_actionlog_status_namespace_id_record_id",
         "actionlog",
@@ -25,11 +25,19 @@ def upgrade():
     op.drop_index("ix_actionlog_status_retries", table_name="actionlog")
 
 
-def downgrade():
+def downgrade() -> None:
     op.create_index(
-        "idx_actionlog_status_type", "actionlog", ["status", "type"], unique=False
+        "idx_actionlog_status_type",
+        "actionlog",
+        ["status", "type"],
+        unique=False,
     )
     op.create_index(
-        "ix_actionlog_status_retries", "actionlog", ["status", "retries"], unique=False
+        "ix_actionlog_status_retries",
+        "actionlog",
+        ["status", "retries"],
+        unique=False,
     )
-    op.drop_index("ix_actionlog_status_namespace_id_record_id", table_name="actionlog")
+    op.drop_index(
+        "ix_actionlog_status_namespace_id_record_id", table_name="actionlog"
+    )

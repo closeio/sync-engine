@@ -1,7 +1,7 @@
 """Utilities for validating user input to the API."""
 
 import contextlib
-from typing import Set
+from typing import Never
 
 import arrow
 from arrow.parser import ParserError
@@ -27,20 +27,20 @@ MAX_LIMIT = 1000
 
 
 class ValidatableArgument(reqparse.Argument):
-    def handle_validation_error(self, error, bundle_errors):
+    def handle_validation_error(self, error, bundle_errors) -> Never:
         raise InputError(str(error))
 
 
 # Custom parameter types
 
 
-def bounded_str(value, key):
+def bounded_str(value, key):  # noqa: ANN201
     if len(value) > 255:
         raise ValueError(f"Value {value} for {key} is too long")
     return value
 
 
-def comma_separated_email_list(value, key):
+def comma_separated_email_list(value, key):  # noqa: ANN201
     addresses = value.split(",")
     # Note that something like "foo,bar"@example.com is technical a valid
     # email address, but in practice nobody does this (and they shouldn't!)
@@ -52,48 +52,54 @@ def comma_separated_email_list(value, key):
     for unvalidated_address in addresses:
         parsed = address.parse(unvalidated_address, addr_spec_only=True)
         if not isinstance(parsed, address.EmailAddress):
-            raise InputError(f"Invalid recipient address {unvalidated_address}")
+            raise InputError(
+                f"Invalid recipient address {unvalidated_address}"
+            )
         good_emails.append(parsed.address)
 
     return good_emails
 
 
-def strict_bool(value, key):
+def strict_bool(value, key):  # noqa: ANN201
     if value.lower() not in ["true", "false"]:
-        raise ValueError(f'Value must be "true" or "false" (not "{value}") for {key}')
+        raise ValueError(
+            f'Value must be "true" or "false" (not "{value}") for {key}'
+        )
     return value.lower() == "true"
 
 
-def view(value, key):
+def view(value, key):  # noqa: ANN201
     allowed_views = ["count", "ids", "expanded"]
     if value not in allowed_views:
         raise ValueError(f"Unknown view type {value}.")
     return value
 
 
-def limit(value):
+def limit(value):  # noqa: ANN201
     try:
         value = int(value)
     except ValueError:
-        raise ValueError("Limit parameter must be an integer.")
+        raise ValueError("Limit parameter must be an integer.")  # noqa: B904
     if value < 0:
         raise ValueError("Limit parameter must be nonnegative.")
     if value > MAX_LIMIT:
-        raise ValueError(f"Cannot request more than {MAX_LIMIT} resources at once.")
+        raise ValueError(
+            f"Cannot request more than {MAX_LIMIT} resources at once."
+        )
     return value
 
 
-def offset(value):
+def offset(value):  # noqa: ANN201
     try:
         value = int(value)
     except ValueError:
-        raise ValueError("Offset parameter must be an integer.")
+        raise ValueError("Offset parameter must be an integer.")  # noqa: B904
     if value < 0:
         raise ValueError("Offset parameter must be nonnegative.")
     return value
 
 
-def valid_public_id(value):
+def valid_public_id(value):  # noqa: ANN201
     if "_" in value:
         raise InputError(f"Invalid id: {value}")
 
@@ -102,18 +108,18 @@ def valid_public_id(value):
         # raise TypeError if an integer is passed in
         int(value, 36)
     except (TypeError, ValueError):
-        raise InputError(f"Invalid id: {value}")
+        raise InputError(f"Invalid id: {value}")  # noqa: B904
     return value
 
 
-def valid_account(namespace):
+def valid_account(namespace) -> None:
     if namespace.account.sync_state == "invalid":
         raise AccountInvalidError()
     if namespace.account.sync_state == "stopped":
         raise AccountStoppedError()
 
 
-def valid_category_type(category_type, rule):
+def valid_category_type(category_type, rule):  # noqa: ANN201
     if category_type not in rule:
         if category_type == "label":
             raise NotFoundError("GMail accounts don't support folders")
@@ -122,24 +128,28 @@ def valid_category_type(category_type, rule):
     return category_type
 
 
-def timestamp(value, key):
+def timestamp(value, key):  # noqa: ANN201
     try:
         with contextlib.suppress(ValueError):
             value = float(value)
 
         return arrow.get(value).datetime
     except ValueError:
-        raise ValueError(f"Invalid timestamp value {value} for {key}")
+        raise ValueError(  # noqa: B904
+            f"Invalid timestamp value {value} for {key}"
+        )
     except ParserError:
-        raise ValueError(f"Invalid datetime value {value} for {key}")
+        raise ValueError(  # noqa: B904
+            f"Invalid datetime value {value} for {key}"
+        )
 
 
-def strict_parse_args(parser, raw_args):
+def strict_parse_args(parser, raw_args):  # noqa: ANN201
     """
     Wrapper around parser.parse_args that raises a ValueError if unexpected
     arguments are present.
 
-    """
+    """  # noqa: D401
     args = parser.parse_args()
     unexpected_params = set(raw_args) - {
         allowed_arg.name for allowed_arg in parser.args
@@ -149,7 +159,9 @@ def strict_parse_args(parser, raw_args):
     return args
 
 
-def get_sending_draft(draft_public_id, namespace_id, db_session):
+def get_sending_draft(  # noqa: ANN201
+    draft_public_id, namespace_id, db_session
+):
     valid_public_id(draft_public_id)
     try:
         draft = (
@@ -161,21 +173,27 @@ def get_sending_draft(draft_public_id, namespace_id, db_session):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find multi-send draft {draft_public_id}")
+        raise NotFoundError(  # noqa: B904
+            f"Couldn't find multi-send draft {draft_public_id}"
+        )
 
     if draft.is_sent or not draft.is_sending:
-        raise InputError(f"Message {draft_public_id} is not a multi-send draft")
+        raise InputError(
+            f"Message {draft_public_id} is not a multi-send draft"
+        )
     return draft
 
 
-def get_draft(draft_public_id, version, namespace_id, db_session):
+def get_draft(  # noqa: ANN201
+    draft_public_id, version, namespace_id, db_session
+):
     valid_public_id(draft_public_id)
     if version is None:
         raise InputError("Must specify draft version")
     try:
         version = int(version)
     except ValueError:
-        raise InputError("Invalid draft version")
+        raise InputError("Invalid draft version")  # noqa: B904
     try:
         draft = (
             db_session.query(Message)
@@ -186,7 +204,9 @@ def get_draft(draft_public_id, version, namespace_id, db_session):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find draft {draft_public_id}")
+        raise NotFoundError(  # noqa: B904
+            f"Couldn't find draft {draft_public_id}"
+        )
 
     if draft.is_sent or not draft.is_draft:
         raise InputError(f"Message {draft_public_id} is not a draft")
@@ -199,8 +219,10 @@ def get_draft(draft_public_id, version, namespace_id, db_session):
     return draft
 
 
-def get_attachments(block_public_ids, namespace_id, db_session):
-    attachments: Set[Block] = set()
+def get_attachments(  # noqa: ANN201
+    block_public_ids, namespace_id, db_session
+):
+    attachments: set[Block] = set()
     if block_public_ids is None:
         return attachments
     if not isinstance(block_public_ids, list):
@@ -221,11 +243,13 @@ def get_attachments(block_public_ids, namespace_id, db_session):
             # data by using #magic.from_buffer(data, mime=True))
             attachments.add(block)
         except NoResultFound:
-            raise InputError(f"Invalid block public id {block_public_id}")
+            raise InputError(  # noqa: B904
+                f"Invalid block public id {block_public_id}"
+            )
     return attachments
 
 
-def get_message(message_public_id, namespace_id, db_session):
+def get_message(message_public_id, namespace_id, db_session):  # noqa: ANN201
     if message_public_id is None:
         return None
     valid_public_id(message_public_id)
@@ -239,10 +263,12 @@ def get_message(message_public_id, namespace_id, db_session):
             .one()
         )
     except NoResultFound:
-        raise InputError(f"Invalid message public id {message_public_id}")
+        raise InputError(  # noqa: B904
+            f"Invalid message public id {message_public_id}"
+        )
 
 
-def get_thread(thread_public_id, namespace_id, db_session):
+def get_thread(thread_public_id, namespace_id, db_session):  # noqa: ANN201
     if thread_public_id is None:
         return None
     valid_public_id(thread_public_id)
@@ -257,17 +283,23 @@ def get_thread(thread_public_id, namespace_id, db_session):
             .one()
         )
     except NoResultFound:
-        raise InputError(f"Invalid thread public id {thread_public_id}")
+        raise InputError(  # noqa: B904
+            f"Invalid thread public id {thread_public_id}"
+        )
 
 
-def get_recipients(recipients, field):
+def get_recipients(recipients, field):  # noqa: ANN201
     if recipients is None:
         return None
     if not isinstance(recipients, list):
         raise InputError(f"Invalid {field} field")
 
     for r in recipients:
-        if not (isinstance(r, dict) and "email" in r and isinstance(r["email"], str)):
+        if not (
+            isinstance(r, dict)
+            and "email" in r
+            and isinstance(r["email"], str)
+        ):
             raise InputError(f"Invalid {field} field")
         if "name" in r and not isinstance(r["name"], str):
             raise InputError(f"Invalid {field} field")
@@ -275,7 +307,7 @@ def get_recipients(recipients, field):
     return [(r.get("name", ""), r.get("email", "")) for r in recipients]
 
 
-def get_calendar(calendar_public_id, namespace, db_session):
+def get_calendar(calendar_public_id, namespace, db_session):  # noqa: ANN201
     valid_public_id(calendar_public_id)
     try:
         return (
@@ -287,17 +319,19 @@ def get_calendar(calendar_public_id, namespace, db_session):
             .one()
         )
     except NoResultFound:
-        raise NotFoundError(f"Calendar {calendar_public_id} not found")
+        raise NotFoundError(  # noqa: B904
+            f"Calendar {calendar_public_id} not found"
+        )
 
 
-def valid_when(when):
+def valid_when(when) -> None:
     try:
         parse_as_when(when)
     except (ValueError, ParserError) as e:
-        raise InputError(str(e))
+        raise InputError(str(e))  # noqa: B904
 
 
-def valid_event(event):
+def valid_event(event) -> None:
     if "when" not in event:
         raise InputError("Must specify 'when' when creating an event.")
 
@@ -321,13 +355,18 @@ def valid_event(event):
         if not valid_email(p["email"]):
             raise InputError("'{}' is not a valid email".format(p["email"]))
 
-        if "status" in p and p["status"] not in ("yes", "no", "maybe", "noreply"):
+        if "status" in p and p["status"] not in (
+            "yes",
+            "no",
+            "maybe",
+            "noreply",
+        ):
             raise InputError(
                 "'participants' status must be one of: yes, no, maybe, noreply"
             )
 
 
-def valid_event_update(event, namespace, db_session):
+def valid_event_update(event, namespace, db_session) -> None:
     if "when" in event:
         valid_when(event["when"])
 
@@ -338,13 +377,18 @@ def valid_event_update(event, namespace, db_session):
     for p in participants:
         if "email" not in p:
             raise InputError("'participants' must have email")
-        if "status" in p and p["status"] not in ("yes", "no", "maybe", "noreply"):
+        if "status" in p and p["status"] not in (
+            "yes",
+            "no",
+            "maybe",
+            "noreply",
+        ):
             raise InputError(
                 "'participants' status must be one of: yes, no, maybe, noreply"
             )
 
 
-def noop_event_update(event, data):
+def noop_event_update(event, data) -> bool:
     # Check whether the update is actually updating fields.
     # We do this by cloning the event, updating the fields and
     # comparing them. This is less cumbersome than having to think
@@ -376,7 +420,7 @@ def noop_event_update(event, data):
     if len(e_participants.keys()) != len(event_participants.keys()):
         return False
 
-    for email in e_participants:
+    for email in e_participants:  # noqa: PLC0206
         if email not in event_participants:
             return False
 
@@ -396,7 +440,7 @@ def noop_event_update(event, data):
     return True
 
 
-def valid_delta_object_types(types_arg):
+def valid_delta_object_types(types_arg):  # noqa: ANN201
     types = [item.strip() for item in types_arg.split(",")]
     allowed_types = (
         "contact",
@@ -415,7 +459,7 @@ def valid_delta_object_types(types_arg):
     return types
 
 
-def validate_draft_recipients(draft):
+def validate_draft_recipients(draft) -> None:
     """
     Check that a draft has at least one recipient, and that all recipient
     emails are at least plausible email addresses, before we try to send it.
@@ -423,15 +467,19 @@ def validate_draft_recipients(draft):
     """
     if not any((draft.to_addr, draft.bcc_addr, draft.cc_addr)):
         raise InputError("No recipients specified")
-    for field in draft.to_addr, draft.bcc_addr, draft.cc_addr:
+    for field in (draft.to_addr, draft.bcc_addr, draft.cc_addr):
         if field is not None:
             for _, email_address in field:
                 parsed = address.parse(email_address, addr_spec_only=True)
                 if not isinstance(parsed, address.EmailAddress):
-                    raise InputError(f"Invalid recipient address {email_address}")
+                    raise InputError(
+                        f"Invalid recipient address {email_address}"
+                    )
 
 
-def valid_display_name(namespace_id, category_type, display_name, db_session):
+def valid_display_name(  # noqa: ANN201
+    namespace_id, category_type, display_name, db_session
+):
     if display_name is None or not isinstance(display_name, str):
         raise InputError('"display_name" must be a valid string')
 
@@ -451,6 +499,8 @@ def valid_display_name(namespace_id, category_type, display_name, db_session):
         .first()
         is not None
     ):
-        raise InputError(f'{category_type} with name "{display_name}" already exists')
+        raise InputError(
+            f'{category_type} with name "{display_name}" already exists'
+        )
 
     return display_name

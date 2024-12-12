@@ -70,7 +70,7 @@ def recurring_event_with_bonkers_tz(make_recurring_event):
     return make_recurring_event(original_start_tz="ThisAint/NoTimeZone")
 
 
-def test_api_expand_recurring(db, api_client, recurring_event):
+def test_api_expand_recurring(db, api_client, recurring_event) -> None:
     event = recurring_event
 
     events = api_client.get_data("/events?expand_recurring=false")
@@ -83,7 +83,8 @@ def test_api_expand_recurring(db, api_client, recurring_event):
     thirty_weeks = event.start.shift(weeks=+30).isoformat()
     starts_after = event.start.shift(days=-1).isoformat()
     recur = "expand_recurring=true&starts_after={}&ends_before={}".format(
-        urllib.parse.quote_plus(starts_after), urllib.parse.quote_plus(thirty_weeks)
+        urllib.parse.quote_plus(starts_after),
+        urllib.parse.quote_plus(thirty_weeks),
     )
     all_events = api_client.get_data("/events?" + recur)
 
@@ -130,7 +131,9 @@ def urlsafe(dt):
     return urllib.parse.quote_plus(dt.isoformat())
 
 
-def test_api_expand_recurring_before_after(db, api_client, recurring_event):
+def test_api_expand_recurring_before_after(
+    db, api_client, recurring_event
+) -> None:
     event = recurring_event
     starts_after = event.start.shift(weeks=+15)
     ends_before = starts_after.shift(days=+1)
@@ -160,7 +163,9 @@ def test_api_expand_recurring_before_after(db, api_client, recurring_event):
     assert len(all_events) == 1
 
 
-def test_api_override_serialization(db, api_client, default_namespace, recurring_event):
+def test_api_override_serialization(
+    db, api_client, default_namespace, recurring_event
+) -> None:
     event = recurring_event
 
     override = Event.create(
@@ -177,8 +182,9 @@ def test_api_override_serialization(db, api_client, default_namespace, recurring
     db.session.add(override)
     db.session.commit()
 
-    filter = "starts_after={}&ends_before={}".format(
-        urlsafe(event.start.shift(hours=-1)), urlsafe(event.start.shift(weeks=+1))
+    filter = "starts_after={}&ends_before={}".format(  # noqa: A001
+        urlsafe(event.start.shift(hours=-1)),
+        urlsafe(event.start.shift(weeks=+1)),
     )
     events = api_client.get_data("/events?" + filter)
     # We should have the base event and the override back, but no extras;
@@ -191,7 +197,9 @@ def test_api_override_serialization(db, api_client, default_namespace, recurring
     assert events[1].get("status") == "cancelled"
 
 
-def test_api_expand_recurring_message(db, api_client, message, recurring_event):
+def test_api_expand_recurring_message(
+    db, api_client, message, recurring_event
+) -> None:
     # This is a regression test for https://phab.nylas.com/T3556
     # ("InflatedEvent should not be committed" exception in API").
     event = recurring_event
@@ -218,7 +226,7 @@ def test_api_expand_recurring_message(db, api_client, message, recurring_event):
         assert "message_id" not in event
 
 
-def test_api_get_specific_event(db, api_client, recurring_event):
+def test_api_get_specific_event(db, api_client, recurring_event) -> None:
     event = api_client.get_data(f"/events/{recurring_event.public_id}")
     assert event["calendar_id"] == recurring_event.calendar.public_id
     assert event["title"] == "recurring-weekly"
@@ -227,17 +235,27 @@ def test_api_get_specific_event(db, api_client, recurring_event):
 
 def test_get_specific_event_invalid_tz_fixed(
     db, api_client, recurring_event_with_invalid_tz
-):
-    event = api_client.get_data(f"/events/{recurring_event_with_invalid_tz.public_id}")
-    assert event["calendar_id"] == recurring_event_with_invalid_tz.calendar.public_id
+) -> None:
+    event = api_client.get_data(
+        f"/events/{recurring_event_with_invalid_tz.public_id}"
+    )
+    assert (
+        event["calendar_id"]
+        == recurring_event_with_invalid_tz.calendar.public_id
+    )
     assert event["title"] == "recurring-weekly"
     assert event["recurrence"]["timezone"] == "Etc/GMT+9"
 
 
 def test_get_specific_event_with_bonkers_tz(
     db, api_client, recurring_event_with_bonkers_tz
-):
-    event = api_client.get_data(f"/events/{recurring_event_with_bonkers_tz.public_id}")
-    assert event["calendar_id"] == recurring_event_with_bonkers_tz.calendar.public_id
+) -> None:
+    event = api_client.get_data(
+        f"/events/{recurring_event_with_bonkers_tz.public_id}"
+    )
+    assert (
+        event["calendar_id"]
+        == recurring_event_with_bonkers_tz.calendar.public_id
+    )
     assert event["title"] == "recurring-weekly"
     assert event["recurrence"]["timezone"] == "ThisAint/NoTimeZone"

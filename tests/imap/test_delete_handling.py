@@ -1,4 +1,3 @@
-# flake8: noqa: F401, F811
 import time
 from datetime import datetime, timedelta
 from threading import Semaphore
@@ -8,16 +7,18 @@ from sqlalchemy import desc
 from sqlalchemy.orm.exc import ObjectDeletedError
 
 from inbox.crispin import GmailFlags
-from inbox.mailsync.backends.imap.common import remove_deleted_uids, update_metadata
+from inbox.mailsync.backends.imap.common import (
+    remove_deleted_uids,
+    update_metadata,
+)
 from inbox.mailsync.gc import DeleteHandler, LabelRenameHandler
 from inbox.models import Folder, Message, Transaction
 from inbox.models.label import Label
-from inbox.util.testutils import MockIMAPClient, mock_imapclient
-
+from inbox.util.testutils import MockIMAPClient
 from tests.util.base import add_fake_imapuid, add_fake_message
 
 
-@pytest.fixture()
+@pytest.fixture
 def marked_deleted_message(db, message):
     deleted_timestamp = datetime(2015, 2, 22, 22, 22, 22)
     message.deleted_at = deleted_timestamp
@@ -27,7 +28,7 @@ def marked_deleted_message(db, message):
 
 def test_messages_deleted_asynchronously(
     db, default_account, thread, message, imapuid, folder
-):
+) -> None:
     msg_uid = imapuid.msg_uid
     update_metadata(
         default_account.id,
@@ -46,29 +47,38 @@ def test_messages_deleted_asynchronously(
 
 def test_drafts_deleted_synchronously(
     db, default_account, thread, message, imapuid, folder
-):
+) -> None:
     message.is_draft = True
     db.session.commit()
     msg_uid = imapuid.msg_uid
     remove_deleted_uids(default_account.id, folder.id, [msg_uid])
     db.session.expire_all()
     with pytest.raises(ObjectDeletedError):
-        message.id
+        message.id  # noqa: B018
     with pytest.raises(ObjectDeletedError):
-        thread.id
+        thread.id  # noqa: B018
 
 
 def test_deleting_from_a_message_with_multiple_uids(
     db, default_account, message, thread
-):
-    """Check that deleting a imapuid from a message with
+) -> None:
+    """
+    Check that deleting a imapuid from a message with
     multiple uids doesn't mark the message for deletion.
     """
-    inbox_folder = Folder.find_or_create(db.session, default_account, "inbox", "inbox")
-    sent_folder = Folder.find_or_create(db.session, default_account, "sent", "sent")
+    inbox_folder = Folder.find_or_create(
+        db.session, default_account, "inbox", "inbox"
+    )
+    sent_folder = Folder.find_or_create(
+        db.session, default_account, "sent", "sent"
+    )
 
-    add_fake_imapuid(db.session, default_account.id, message, sent_folder, 1337)
-    add_fake_imapuid(db.session, default_account.id, message, inbox_folder, 2222)
+    add_fake_imapuid(
+        db.session, default_account.id, message, sent_folder, 1337
+    )
+    add_fake_imapuid(
+        db.session, default_account.id, message, inbox_folder, 2222
+    )
 
     assert len(message.imapuids) == 2
 
@@ -79,12 +89,19 @@ def test_deleting_from_a_message_with_multiple_uids(
         message.deleted_at is None
     ), "The associated message should not have been marked for deletion."
 
-    assert len(message.imapuids) == 1, "The message should have only one imapuid."
+    assert (
+        len(message.imapuids) == 1
+    ), "The message should have only one imapuid."
 
 
 def test_deletion_with_short_ttl(
-    db, default_account, default_namespace, marked_deleted_message, thread, folder
-):
+    db,
+    default_account,
+    default_namespace,
+    marked_deleted_message,
+    thread,
+    folder,
+) -> None:
     handler = DeleteHandler(
         account_id=default_account.id,
         namespace_id=default_namespace.id,
@@ -98,14 +115,19 @@ def test_deletion_with_short_ttl(
     db.session.expire_all()
     # Check that objects were actually deleted
     with pytest.raises(ObjectDeletedError):
-        marked_deleted_message.id
+        marked_deleted_message.id  # noqa: B018
     with pytest.raises(ObjectDeletedError):
-        thread.id
+        thread.id  # noqa: B018
 
 
 def test_thread_deletion_with_short_ttl(
-    db, default_account, default_namespace, marked_deleted_message, thread, folder
-):
+    db,
+    default_account,
+    default_namespace,
+    marked_deleted_message,
+    thread,
+    folder,
+) -> None:
     handler = DeleteHandler(
         account_id=default_account.id,
         namespace_id=default_namespace.id,
@@ -121,8 +143,8 @@ def test_thread_deletion_with_short_ttl(
     db.session.expire_all()
 
     with pytest.raises(ObjectDeletedError):
-        marked_deleted_message.id
-    thread.id
+        marked_deleted_message.id  # noqa: B018
+    thread.id  # noqa: B018
     assert thread.deleted_at is not None
 
     handler.check(thread.deleted_at + timedelta(seconds=121))
@@ -130,9 +152,9 @@ def test_thread_deletion_with_short_ttl(
     db.session.expire_all()
 
     with pytest.raises(ObjectDeletedError):
-        marked_deleted_message.id
+        marked_deleted_message.id  # noqa: B018
     with pytest.raises(ObjectDeletedError):
-        thread.id
+        thread.id  # noqa: B018
 
 
 def test_non_orphaned_messages_get_unmarked(
@@ -143,7 +165,7 @@ def test_non_orphaned_messages_get_unmarked(
     thread,
     folder,
     imapuid,
-):
+) -> None:
     handler = DeleteHandler(
         account_id=default_account.id,
         namespace_id=default_namespace.id,
@@ -159,8 +181,13 @@ def test_non_orphaned_messages_get_unmarked(
 
 
 def test_threads_only_deleted_when_no_messages_left(
-    db, default_account, default_namespace, marked_deleted_message, thread, folder
-):
+    db,
+    default_account,
+    default_namespace,
+    marked_deleted_message,
+    thread,
+    folder,
+) -> None:
     handler = DeleteHandler(
         account_id=default_account.id,
         namespace_id=default_namespace.id,
@@ -175,14 +202,19 @@ def test_threads_only_deleted_when_no_messages_left(
     db.session.expire_all()
     # Check that the orphaned message was deleted.
     with pytest.raises(ObjectDeletedError):
-        marked_deleted_message.id
+        marked_deleted_message.id  # noqa: B018
     # Would raise ObjectDeletedError if thread was deleted.
-    thread.id
+    thread.id  # noqa: B018
 
 
 def test_deletion_deferred_with_longer_ttl(
-    db, default_account, default_namespace, marked_deleted_message, thread, folder
-):
+    db,
+    default_account,
+    default_namespace,
+    marked_deleted_message,
+    thread,
+    folder,
+) -> None:
     handler = DeleteHandler(
         account_id=default_account.id,
         namespace_id=default_namespace.id,
@@ -194,13 +226,18 @@ def test_deletion_deferred_with_longer_ttl(
 
     handler.check(marked_deleted_message.deleted_at + timedelta(seconds=1))
     # Would raise ObjectDeletedError if objects were deleted
-    marked_deleted_message.id
-    thread.id
+    marked_deleted_message.id  # noqa: B018
+    thread.id  # noqa: B018
 
 
 def test_deletion_creates_revision(
-    db, default_account, default_namespace, marked_deleted_message, thread, folder
-):
+    db,
+    default_account,
+    default_namespace,
+    marked_deleted_message,
+    thread,
+    folder,
+) -> None:
     message_id = marked_deleted_message.id
     thread_id = thread.id
     handler = DeleteHandler(
@@ -239,13 +276,15 @@ def test_deletion_creates_revision(
 
 def test_deleted_labels_get_gced(
     empty_db, default_account, thread, message, imapuid, folder
-):
+) -> None:
     # Check that only the labels without messages attached to them
     # get deleted.
     default_namespace = default_account.namespace
 
     # Create a label w/ no messages attached.
-    label = Label.find_or_create(empty_db.session, default_account, "dangling label")
+    label = Label.find_or_create(
+        empty_db.session, default_account, "dangling label"
+    )
     label.deleted_at = datetime.utcnow()
     label.category.deleted_at = datetime.utcnow()
     label_id = label.id
@@ -286,15 +325,26 @@ def test_deleted_labels_get_gced(
 
 
 def test_renamed_label_refresh(
-    db, default_account, thread, message, imapuid, folder, mock_imapclient, monkeypatch
-):
+    db,
+    default_account,
+    thread,
+    message,
+    imapuid,
+    folder,
+    mock_imapclient,
+    monkeypatch,
+) -> None:
     # Check that imapuids see their labels refreshed after running
     # the LabelRenameHandler.
     msg_uid = imapuid.msg_uid
     uid_dict = {msg_uid: GmailFlags((), ("stale label",), ("23",))}
 
     update_metadata(
-        default_account.id, folder.id, folder.canonical_name, uid_dict, db.session
+        default_account.id,
+        folder.id,
+        folder.canonical_name,
+        uid_dict,
+        db.session,
     )
 
     new_flags = {
@@ -313,7 +363,10 @@ def test_renamed_label_refresh(
     semaphore = Semaphore(value=1)
 
     rename_handler = LabelRenameHandler(
-        default_account.id, default_account.namespace.id, "new label", semaphore
+        default_account.id,
+        default_account.namespace.id,
+        "new label",
+        semaphore,
     )
 
     # Acquire the semaphore to check that LabelRenameHandlers block if
@@ -336,7 +389,9 @@ def test_renamed_label_refresh(
     assert labels[0].name == "new label"
 
 
-def test_reply_to_message_cascade(db, default_namespace, thread, message):
+def test_reply_to_message_cascade(
+    db, default_namespace, thread, message
+) -> None:
     reply = add_fake_message(db.session, default_namespace.id, thread)
     reply.reply_to_message = message
     db.session.commit()
@@ -345,5 +400,9 @@ def test_reply_to_message_cascade(db, default_namespace, thread, message):
     db.session.delete(message)
     db.session.commit()
 
-    assert db.session.query(Message).filter(Message.id == message.id).all() == []
-    assert db.session.query(Message).filter(Message.id == reply.id).all() == [reply]
+    assert (
+        db.session.query(Message).filter(Message.id == message.id).all() == []
+    )
+    assert db.session.query(Message).filter(Message.id == reply.id).all() == [
+        reply
+    ]

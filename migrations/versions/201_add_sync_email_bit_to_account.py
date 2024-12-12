@@ -1,4 +1,5 @@
-"""add sync_email bit to Account
+"""
+add sync_email bit to Account
 
 Revision ID: 527bbdc2b0fa
 Revises: dbf45fac873
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "account",
         sa.Column(
@@ -26,5 +27,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("account", "sync_email")

@@ -14,7 +14,7 @@ class HasRevisions(ABCMixin):
     """Mixin for tables that should be versioned in the transaction log."""
 
     @property
-    def versioned_relationships(self):
+    def versioned_relationships(self):  # noqa: ANN201
         """
         May be overriden by subclasses. This should be the list of
         relationship attribute names that should trigger an update revision
@@ -25,7 +25,7 @@ class HasRevisions(ABCMixin):
         return []
 
     @property
-    def propagated_attributes(self):
+    def propagated_attributes(self):  # noqa: ANN201
         """
         May be overridden by subclasses. This is the list of attribute names
         that should trigger an update revision for a /related/ object -
@@ -40,7 +40,7 @@ class HasRevisions(ABCMixin):
         return []
 
     @property
-    def should_suppress_transaction_creation(self):
+    def should_suppress_transaction_creation(self) -> bool:
         """
         May be overridden by subclasses. We don't want to version certain
         specific objects - for example, Block instances that are just raw
@@ -55,7 +55,7 @@ class HasRevisions(ABCMixin):
     # Must be defined by subclasses
     API_OBJECT_NAME = abc.abstractproperty()
 
-    def has_versioned_changes(self):
+    def has_versioned_changes(self) -> bool:
         """
         Return True if the object has changes on any of its column properties
         or any relationship attributes named in self.versioned_relationships,
@@ -84,20 +84,20 @@ class HasPublicID:
 
 
 class AddressComparator(Comparator):
-    def __eq__(self, other):
+    def __eq__(self, other):  # noqa: ANN204
         return self.__clause_element__() == canonicalize_address(other)
 
-    def like(self, term, escape=None):
+    def like(self, term, escape=None):  # noqa: ANN201
         return self.__clause_element__().like(term, escape=escape)
 
-    def in_(self, addresses):
+    def in_(self, addresses):  # noqa: ANN201
         return self.__clause_element__().in_(
             [canonicalize_address(address) for address in addresses]
         )
 
 
 class CaseInsensitiveComparator(Comparator):
-    def __eq__(self, other):
+    def __eq__(self, other):  # noqa: ANN204
         return func.lower(self.__clause_element__()) == func.lower(other)
 
 
@@ -115,17 +115,19 @@ class HasEmailAddress:
 
     """
 
-    _raw_address = Column(String(MAX_INDEXABLE_LENGTH), nullable=True, index=True)
+    _raw_address = Column(
+        String(MAX_INDEXABLE_LENGTH), nullable=True, index=True
+    )
     _canonicalized_address = Column(
         String(MAX_INDEXABLE_LENGTH), nullable=True, index=True
     )
 
     @hybrid_property
-    def email_address(self):
+    def email_address(self):  # noqa: ANN201
         return self._raw_address
 
     @email_address.comparator
-    def email_address(cls):
+    def email_address(cls):  # noqa: ANN201, N805
         return AddressComparator(cls._canonicalized_address)
 
     @email_address.setter
@@ -140,7 +142,9 @@ class HasEmailAddress:
 
 
 class CreatedAtMixin:
-    created_at = Column(DateTime, server_default=func.now(), nullable=False, index=True)
+    created_at = Column(
+        DateTime, server_default=func.now(), nullable=False, index=True
+    )
 
 
 class UpdatedAtMixin:
@@ -171,5 +175,8 @@ class HasRunState(ABCMixin):
 
     # Database-level tracking of whether the sync should be running.
     sync_should_run = Column(
-        Boolean, default=True, nullable=False, server_default=sql.expression.true()
+        Boolean,
+        default=True,
+        nullable=False,
+        server_default=sql.expression.true(),
     )

@@ -1,4 +1,5 @@
-"""migrate event descriptions
+"""
+migrate event descriptions
 
 Revision ID: ea9dc8742ee
 Revises: 56500282e024
@@ -13,7 +14,7 @@ down_revision = "56500282e024"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     while True:
         res = conn.execute(
@@ -25,5 +26,5 @@ def upgrade():
             return
 
 
-def downgrade():
+def downgrade() -> None:
     pass

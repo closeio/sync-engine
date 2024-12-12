@@ -1,6 +1,6 @@
-# flake8: noqa: F401, F811
 from hashlib import sha256
 from threading import BoundedSemaphore
+from typing import Never
 
 import pytest
 from sqlalchemy.orm.exc import ObjectDeletedError
@@ -13,10 +13,12 @@ from inbox.mailsync.backends.imap.generic import (
     UidInvalid,
 )
 from inbox.models import Folder, Message
-from inbox.models.backends.imap import ImapFolderInfo, ImapFolderSyncStatus, ImapUid
-from inbox.util.testutils import mock_imapclient  # noqa
-
-from tests.imap.data import uid_data, uids  # noqa
+from inbox.models.backends.imap import (
+    ImapFolderInfo,
+    ImapFolderSyncStatus,
+    ImapUid,
+)
+from tests.imap.data import uid_data, uids
 
 
 def create_folder_with_syncstatus(account, name, canonical_name, db_session):
@@ -28,12 +30,16 @@ def create_folder_with_syncstatus(account, name, canonical_name, db_session):
 
 @pytest.fixture
 def inbox_folder(db, generic_account):
-    return create_folder_with_syncstatus(generic_account, "Inbox", "inbox", db.session)
+    return create_folder_with_syncstatus(
+        generic_account, "Inbox", "inbox", db.session
+    )
 
 
 @pytest.fixture
 def generic_trash_folder(db, generic_account):
-    return create_folder_with_syncstatus(generic_account, "/Trash", "trash", db.session)
+    return create_folder_with_syncstatus(
+        generic_account, "/Trash", "trash", db.session
+    )
 
 
 @pytest.fixture
@@ -50,7 +56,9 @@ def trash_folder(db, default_account):
     )
 
 
-def test_initial_sync(db, generic_account, inbox_folder, mock_imapclient):
+def test_initial_sync(
+    db, generic_account, inbox_folder, mock_imapclient
+) -> None:
     # We should really be using hypothesis.given() to generate lots of
     # different uid sets, but it's not trivial to ensure that no state is
     # carried over between runs. This will have to suffice for now as a way to
@@ -68,7 +76,9 @@ def test_initial_sync(db, generic_account, inbox_folder, mock_imapclient):
     )
     folder_sync_engine.initial_sync()
 
-    saved_uids = db.session.query(ImapUid).filter(ImapUid.folder_id == inbox_folder.id)
+    saved_uids = db.session.query(ImapUid).filter(
+        ImapUid.folder_id == inbox_folder.id
+    )
     assert {u.msg_uid for u in saved_uids} == set(uid_dict)
 
     saved_message_hashes = {u.message.data_sha256 for u in saved_uids}
@@ -79,7 +89,7 @@ def test_initial_sync(db, generic_account, inbox_folder, mock_imapclient):
 
 def test_new_uids_synced_when_polling(
     db, generic_account, inbox_folder, mock_imapclient
-):
+) -> None:
     uid_dict = uids.example()
     mock_imapclient.add_folder_data(inbox_folder.name, uid_dict)
     inbox_folder.imapfolderinfo = ImapFolderInfo(
@@ -98,15 +108,18 @@ def test_new_uids_synced_when_polling(
     folder_sync_engine.poll_frequency = 0
     folder_sync_engine.poll_impl()
 
-    saved_uids = db.session.query(ImapUid).filter(ImapUid.folder_id == inbox_folder.id)
+    saved_uids = db.session.query(ImapUid).filter(
+        ImapUid.folder_id == inbox_folder.id
+    )
     assert {u.msg_uid for u in saved_uids} == set(uid_dict)
 
 
 def test_condstore_flags_refresh(
     db, default_account, all_mail_folder, mock_imapclient, monkeypatch
-):
+) -> None:
     monkeypatch.setattr(
-        "inbox.mailsync.backends.imap.generic.CONDSTORE_FLAGS_REFRESH_BATCH_SIZE", 10
+        "inbox.mailsync.backends.imap.generic.CONDSTORE_FLAGS_REFRESH_BATCH_SIZE",
+        10,
     )
     uid_dict = uids.example()
     mock_imapclient.add_folder_data(all_mail_folder.name, uid_dict)
@@ -134,21 +147,23 @@ def test_condstore_flags_refresh(
     # Don't sleep at the end of poll_impl before returning.
     folder_sync_engine.poll_frequency = 0
     folder_sync_engine.poll_impl()
-    imapuids = db.session.query(ImapUid).filter_by(folder_id=all_mail_folder.id).all()
+    imapuids = (
+        db.session.query(ImapUid).filter_by(folder_id=all_mail_folder.id).all()
+    )
     for imapuid in imapuids:
         assert "newlabel" in [l.name for l in imapuid.labels]
 
     assert (
         folder_sync_engine.highestmodseq
-        == mock_imapclient.folder_status(all_mail_folder.name, ["HIGHESTMODSEQ"])[
-            b"HIGHESTMODSEQ"
-        ]
+        == mock_imapclient.folder_status(
+            all_mail_folder.name, ["HIGHESTMODSEQ"]
+        )[b"HIGHESTMODSEQ"]
     )
 
 
 def test_generic_flags_refresh_expunges_transient_uids(
     db, generic_account, inbox_folder, mock_imapclient, monkeypatch
-):
+) -> None:
     # Check that we delete UIDs which are synced but quickly deleted, so never
     # show up in flags refresh.
     uid_dict = uids.example()
@@ -185,10 +200,12 @@ def test_generic_flags_refresh_expunges_transient_uids(
     folder_sync_engine.last_slow_refresh = None
     folder_sync_engine.poll_impl()
     with pytest.raises(ObjectDeletedError):
-        transient_uid.id
+        transient_uid.id  # noqa: B018
 
 
-def test_handle_uidinvalid(db, generic_account, inbox_folder, mock_imapclient):
+def test_handle_uidinvalid(
+    db, generic_account, inbox_folder, mock_imapclient
+) -> None:
     uid_dict = uids.example()
     mock_imapclient.add_folder_data(inbox_folder.name, uid_dict)
     inbox_folder.imapfolderinfo = ImapFolderInfo(
@@ -212,14 +229,16 @@ def test_handle_uidinvalid(db, generic_account, inbox_folder, mock_imapclient):
 
     assert new_state == "initial"
     assert (
-        db.session.query(ImapUid).filter(ImapUid.folder_id == inbox_folder.id).all()
+        db.session.query(ImapUid)
+        .filter(ImapUid.folder_id == inbox_folder.id)
+        .all()
         == []
     )
 
 
 def test_handle_uidinvalid_loops(
     db, generic_account, inbox_folder, mock_imapclient, monkeypatch
-):
+) -> None:
     import inbox.mailsync.backends.imap.generic as generic_import
 
     mock_imapclient.uidvalidity = 1
@@ -232,7 +251,8 @@ def test_handle_uidinvalid_loops(
         raise UidInvalid
 
     monkeypatch.setattr(
-        "inbox.mailsync.backends.imap.generic.FolderSyncEngine.poll", fake_poll_function
+        "inbox.mailsync.backends.imap.generic.FolderSyncEngine.poll",
+        fake_poll_function,
     )
 
     uid_dict = uids.example()
@@ -260,7 +280,7 @@ def test_handle_uidinvalid_loops(
     assert len(uidinvalid_count) == MAX_UIDINVALID_RESYNCS + 1
 
 
-def raise_imap_error(self):
+def raise_imap_error(self) -> Never:
     from imaplib import IMAP4
 
     raise IMAP4.error("Unexpected IDLE response")
@@ -268,7 +288,9 @@ def raise_imap_error(self):
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_gmail_initial_sync(db, default_account, all_mail_folder, mock_imapclient):
+def test_gmail_initial_sync(
+    db, default_account, all_mail_folder, mock_imapclient
+) -> None:
     uid_dict = uids.example()
     mock_imapclient.add_folder_data(all_mail_folder.name, uid_dict)
     mock_imapclient.list_folders = lambda: [
@@ -296,7 +318,7 @@ def test_gmail_initial_sync(db, default_account, all_mail_folder, mock_imapclien
 @pytest.mark.skipif(True, reason="Need to investigate")
 def test_gmail_message_deduplication(
     db, default_account, all_mail_folder, trash_folder, mock_imapclient
-):
+) -> None:
     uid = 22
     uid_values = uid_data.example()
 
@@ -351,7 +373,7 @@ def test_gmail_message_deduplication(
 
 def test_imap_message_deduplication(
     db, generic_account, inbox_folder, generic_trash_folder, mock_imapclient
-):
+) -> None:
     uid = 22
     uid_values = uid_data.example()
 
@@ -361,7 +383,9 @@ def test_imap_message_deduplication(
     ]
     mock_imapclient.idle = lambda: None
     mock_imapclient.add_folder_data(inbox_folder.name, {uid: uid_values})
-    mock_imapclient.add_folder_data(generic_trash_folder.name, {uid: uid_values})
+    mock_imapclient.add_folder_data(
+        generic_trash_folder.name, {uid: uid_values}
+    )
 
     folder_sync_engine = FolderSyncEngine(
         generic_account.id,

@@ -9,7 +9,6 @@ from inbox.mailsync.frontend import SyncHTTPFrontend
 from inbox.mailsync.service import SyncService
 from inbox.models import Account
 from inbox.models.session import session_scope_by_shard_id
-
 from tests.util.base import add_generic_imap_account
 
 host = platform.node()
@@ -17,7 +16,8 @@ host = platform.node()
 
 def patched_sync_service(db, host=host, process_number=0):
     s = SyncService(
-        process_identifier=f"{host}:{process_number}", process_number=process_number
+        process_identifier=f"{host}:{process_number}",
+        process_number=process_number,
     )
 
     def start_sync(aid):
@@ -32,7 +32,7 @@ def patched_sync_service(db, host=host, process_number=0):
     return s
 
 
-def purge_other_accounts(default_account=None):
+def purge_other_accounts(default_account=None) -> None:
     for key in engine_manager.engines:
         with session_scope_by_shard_id(key) as db_session:
             q = db_session.query(Account)
@@ -42,7 +42,9 @@ def purge_other_accounts(default_account=None):
             db_session.commit()
 
 
-def test_accounts_started_when_process_previously_assigned(db, default_account, config):
+def test_accounts_started_when_process_previously_assigned(
+    db, default_account, config
+) -> None:
     config["SYNC_STEAL_ACCOUNTS"] = False
     default_account.desired_sync_host = f"{host}:0"
     db.session.commit()
@@ -52,7 +54,7 @@ def test_accounts_started_when_process_previously_assigned(db, default_account, 
 
 def test_start_new_accounts_when_stealing_enabled(
     monkeypatch, db, default_account, config
-):
+) -> None:
     config["SYNC_STEAL_ACCOUNTS"] = True
 
     purge_other_accounts(default_account)
@@ -60,14 +62,16 @@ def test_start_new_accounts_when_stealing_enabled(
     default_account.sync_host = None
     db.session.commit()
 
-    s.handle_shared_queue_event({"queue_name": "foo", "id": default_account.id})
+    s.handle_shared_queue_event(
+        {"queue_name": "foo", "id": default_account.id}
+    )
     assert s.start_sync.call_count == 1
     assert s.start_sync.call_args == mock.call(default_account.id)
 
 
 def test_dont_start_accounts_if_over_ppa_limit(
     monkeypatch, db, default_account, config
-):
+) -> None:
     config["SYNC_STEAL_ACCOUNTS"] = True
 
     purge_other_accounts(default_account)
@@ -77,20 +81,26 @@ def test_dont_start_accounts_if_over_ppa_limit(
     s._pending_avgs_provider = mock.Mock()
     s._pending_avgs_provider.get_pending_avgs = lambda *args: {15: 11}
 
-    s.handle_shared_queue_event({"queue_name": "foo", "id": default_account.id})
+    s.handle_shared_queue_event(
+        {"queue_name": "foo", "id": default_account.id}
+    )
     assert s.start_sync.call_count == 0
 
 
-def test_dont_start_new_accounts_when_stealing_disabled(db, config, default_account):
+def test_dont_start_new_accounts_when_stealing_disabled(
+    db, config, default_account
+) -> None:
     config["SYNC_STEAL_ACCOUNTS"] = False
     s = patched_sync_service(db)
     default_account.sync_host = None
     db.session.commit()
-    s.handle_shared_queue_event({"queue_name": "foo", "id": default_account.id})
+    s.handle_shared_queue_event(
+        {"queue_name": "foo", "id": default_account.id}
+    )
     assert s.start_sync.call_count == 0
 
 
-def test_concurrent_syncs(monkeypatch, db, default_account, config):
+def test_concurrent_syncs(monkeypatch, db, default_account, config) -> None:
     config["SYNC_STEAL_ACCOUNTS"] = True
 
     purge_other_accounts(default_account)
@@ -106,7 +116,9 @@ def test_concurrent_syncs(monkeypatch, db, default_account, config):
     assert s2.start_sync.call_count == 0
 
 
-def test_twice_queued_accounts_started_once(monkeypatch, db, default_account):
+def test_twice_queued_accounts_started_once(
+    monkeypatch, db, default_account
+) -> None:
     purge_other_accounts(default_account)
     s = patched_sync_service(db)
     default_account.desired_sync_host = s.process_identifier
@@ -117,9 +129,11 @@ def test_twice_queued_accounts_started_once(monkeypatch, db, default_account):
     assert s.start_sync.call_count == 1
 
 
-def test_external_sync_disabling(monkeypatch, db):
+def test_external_sync_disabling(monkeypatch, db) -> None:
     purge_other_accounts()
-    account = add_generic_imap_account(db.session, email_address="test@example.com")
+    account = add_generic_imap_account(
+        db.session, email_address="test@example.com"
+    )
     other_account = add_generic_imap_account(
         db.session, email_address="test2@example.com"
     )
@@ -143,13 +157,15 @@ def test_external_sync_disabling(monkeypatch, db):
     db.session.commit()
     assert account.sync_should_run is False
     assert account.sync_state == "invalid"
-    assert account._sync_status["sync_disabled_reason"] == "invalid credentials"
+    assert (
+        account._sync_status["sync_disabled_reason"] == "invalid credentials"
+    )
 
     s.poll()
     assert s.syncing_accounts == {other_account.id}
 
 
-def test_http_frontend(db, default_account, monkeypatch):
+def test_http_frontend(db, default_account, monkeypatch) -> None:
     s = patched_sync_service(db)
     s.poll()
 
@@ -169,13 +185,15 @@ def test_http_frontend(db, default_account, monkeypatch):
     monkeypatch.undo()
 
 
-def test_http_unassignment(db, default_account):
+def test_http_unassignment(db, default_account) -> None:
     purge_other_accounts(default_account)
     s = patched_sync_service(db)
     default_account.desired_sync_host = None
     default_account.sync_host = None
     db.session.commit()
-    s.handle_shared_queue_event({"queue_name": "foo", "id": default_account.id})
+    s.handle_shared_queue_event(
+        {"queue_name": "foo", "id": default_account.id}
+    )
 
     frontend = SyncHTTPFrontend(s, 16384, False)
     app = frontend._create_app()
@@ -204,7 +222,7 @@ def test_http_unassignment(db, default_account):
 @pytest.mark.parametrize("sync_state", ["running", "stopped", "invalid", None])
 def test_start_accounts_w_sync_should_run_set(
     monkeypatch, db, default_account, config, sync_state
-):
+) -> None:
     purge_other_accounts(default_account)
     config["SYNC_STEAL_ACCOUNTS"] = True
     default_account.sync_should_run = True
@@ -214,5 +232,7 @@ def test_start_accounts_w_sync_should_run_set(
     db.session.commit()
 
     s = patched_sync_service(db)
-    s.handle_shared_queue_event({"queue_name": "foo", "id": default_account.id})
+    s.handle_shared_queue_event(
+        {"queue_name": "foo", "id": default_account.id}
+    )
     assert s.start_sync.call_count == 1

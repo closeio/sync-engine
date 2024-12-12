@@ -10,10 +10,12 @@ from inbox.logging import get_logger
 
 log = get_logger("inbox.util.url")
 
-from inbox.providers import providers
+from inbox.providers import providers  # noqa: E402
 
 # http://www.regular-expressions.info/email.html
-EMAIL_REGEX = re.compile(r"[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,4}", re.IGNORECASE)
+EMAIL_REGEX = re.compile(
+    r"[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,4}", re.IGNORECASE
+)
 
 # Use Google's Public DNS server (8.8.8.8)
 GOOGLE_DNS_IP = "8.8.8.8"
@@ -44,7 +46,7 @@ def _fallback_get_mx_domains(domain):
         return []
 
 
-def get_mx_domains(domain, dns_resolver=_dns_resolver):
+def get_mx_domains(domain, dns_resolver=_dns_resolver):  # noqa: ANN201
     """Retrieve and return the MX records for a domain."""
     mx_records = []
     try:
@@ -63,7 +65,7 @@ def get_mx_domains(domain, dns_resolver=_dns_resolver):
     return [str(rdata.exchange).lower() for rdata in mx_records]
 
 
-def mx_match(mx_domains, match_domains):
+def mx_match(mx_domains, match_domains) -> bool:
     """
     Return True if any of the `mx_domains` matches an mx_domain
     in `match_domains`.
@@ -89,7 +91,9 @@ def mx_match(mx_domains, match_domains):
     return False
 
 
-def provider_from_address(email_address, dns_resolver=_dns_resolver):
+def provider_from_address(  # noqa: ANN201
+    email_address, dns_resolver=_dns_resolver
+):
     if not EMAIL_REGEX.match(email_address):
         raise InvalidEmailAddressError("Invalid email address")
 
@@ -137,7 +141,7 @@ def provider_from_address(email_address, dns_resolver=_dns_resolver):
 
 
 # From tornado.httputil
-def url_concat(url, args, fragments=None):
+def url_concat(url, args, fragments=None):  # noqa: ANN201
     """
     Concatenate url and argument dictionary regardless of whether
     url has existing query parameters.
@@ -166,18 +170,18 @@ def url_concat(url, args, fragments=None):
     return url + args_tail + fragment_tail
 
 
-def resolve_hostname(addr):
+def resolve_hostname(addr):  # noqa: ANN201
     try:
         return socket.gethostbyname(addr)
     except OSError:
         return None
 
 
-def parent_domain(domain):
+def parent_domain(domain):  # noqa: ANN201
     return tld_extract(domain).registered_domain
 
 
-def naked_domain(url):
+def naked_domain(url):  # noqa: ANN201
     # This function extracts the domain name part of an URL.
     # It works indiscriminately on URLs or plain domains.
     res = tld_extract(url)
@@ -188,7 +192,7 @@ def naked_domain(url):
         return ".".join([res.subdomain, res.registered_domain])
 
 
-def matching_subdomains(new_value, old_value):
+def matching_subdomains(new_value, old_value) -> bool:
     """
     We allow our customers to update their server addresses,
     provided that the new server has:
@@ -212,16 +216,26 @@ def matching_subdomains(new_value, old_value):
     old_parent_domain = parent_domain(old_value)
 
     if old_parent_domain is None:
-        log.error("old_parent_domain is None", old_value=old_value, new_value=new_value)
+        log.error(
+            "old_parent_domain is None",
+            old_value=old_value,
+            new_value=new_value,
+        )
         # Shouldn't actually happen.
         return False
 
     if new_parent_domain is None:
-        log.error("new_parent_domain is None", old_value=old_value, new_value=new_value)
+        log.error(
+            "new_parent_domain is None",
+            old_value=old_value,
+            new_value=new_value,
+        )
         return False
 
     if new_parent_domain != old_parent_domain:
-        log.error("Domains aren't matching", new_value=new_value, old_value=old_value)
+        log.error(
+            "Domains aren't matching", new_value=new_value, old_value=old_value
+        )
         return False
 
     new_ip = resolve_hostname(new_value)
@@ -229,7 +243,9 @@ def matching_subdomains(new_value, old_value):
 
     if new_ip is None or old_ip is None or new_ip != old_ip:
         log.error(
-            "IP addresses aren't matching", new_value=new_value, old_Value=old_value
+            "IP addresses aren't matching",
+            new_value=new_value,
+            old_Value=old_value,
         )
         return False
 

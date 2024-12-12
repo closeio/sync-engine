@@ -1,4 +1,5 @@
-"""update eas schema
+"""
+update eas schema
 
 Revision ID: 281b07fa75bb
 Revises:1740b45aa815
@@ -13,7 +14,7 @@ down_revision = "1740b45aa815"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -32,5 +33,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     pass

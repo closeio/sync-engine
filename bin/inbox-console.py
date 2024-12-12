@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 
 from setproctitle import setproctitle
@@ -22,8 +22,10 @@ from inbox.error_handling import maybe_enable_rollbar
     default=None,
     help="Initialize a crispin client for a particular account.",
 )
-@click.option("-c", "--client", is_flag=True, help="Start a repl with an APIClient")
-def console(email_address, client):
+@click.option(
+    "-c", "--client", is_flag=True, help="Start a repl with an APIClient"
+)
+def console(email_address, client) -> None:
     """REPL for Nylas."""
     maybe_enable_rollbar()
 

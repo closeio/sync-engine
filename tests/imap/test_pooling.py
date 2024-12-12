@@ -2,7 +2,7 @@ import imaplib
 import queue
 import socket
 import ssl
-from typing import Any, List
+from typing import Any, Never
 from unittest import mock
 
 import pytest
@@ -18,14 +18,14 @@ class TestableConnectionPool(CrispinConnectionPool):
         return mock.Mock()
 
 
-def get_all(queue: "queue.Queue[Any]") -> List[Any]:
+def get_all(queue: "queue.Queue[Any]") -> list[Any]:
     items = []
     while not queue.empty():
         items.append(queue.get())
     return items
 
 
-def test_pool():
+def test_pool() -> None:
     pool = TestableConnectionPool(1, num_connections=3, readonly=True)
     with pool.get() as conn:
         pass
@@ -33,15 +33,19 @@ def test_pool():
     assert conn in get_all(pool._queue)
 
 
-def test_timeout_on_depleted_pool():
+def test_timeout_on_depleted_pool() -> None:
     pool = TestableConnectionPool(1, num_connections=1, readonly=True)
     # Test that getting a connection when the pool is empty times out
-    with pytest.raises(ConnectionPoolTimeoutError), pool.get(), pool.get(timeout=0.1):
+    with (
+        pytest.raises(ConnectionPoolTimeoutError),
+        pool.get(),
+        pool.get(timeout=0.1),
+    ):
         pass
 
 
 @pytest.mark.parametrize(
-    "error_class,expect_logout_called",
+    ("error_class", "expect_logout_called"),
     [
         (imaplib.IMAP4.error, True),
         (imaplib.IMAP4.abort, False),
@@ -51,7 +55,7 @@ def test_timeout_on_depleted_pool():
         (ssl.CertificateError, False),
     ],
 )
-def test_imap_and_network_errors(error_class, expect_logout_called):
+def test_imap_and_network_errors(error_class, expect_logout_called) -> Never:
     pool = TestableConnectionPool(1, num_connections=3, readonly=True)
     with pytest.raises(error_class), pool.get() as conn:
         raise error_class
@@ -63,7 +67,7 @@ def test_imap_and_network_errors(error_class, expect_logout_called):
     assert conn.logout.called is expect_logout_called
 
 
-def test_connection_retained_on_other_errors():
+def test_connection_retained_on_other_errors() -> Never:
     pool = TestableConnectionPool(1, num_connections=3, readonly=True)
     with pytest.raises(ValueError), pool.get() as conn:
         raise ValueError

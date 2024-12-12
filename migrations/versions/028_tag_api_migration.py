@@ -1,4 +1,5 @@
-"""tag API migration
+"""
+tag API migration
 
 Revision ID: 40629415951c
 Revises: 924ffd092832
@@ -12,6 +13,7 @@ down_revision = "924ffd092832"
 
 from contextlib import contextmanager
 from datetime import datetime
+from typing import Never
 
 import sqlalchemy as sa
 from alembic import op
@@ -20,12 +22,12 @@ from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
 
-    Session = sessionmaker(bind=engine)
+    Session = sessionmaker(bind=engine)  # noqa: N806
 
     @contextmanager
     def basic_session():
@@ -50,25 +52,31 @@ def upgrade():
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
-        sa.ForeignKeyConstraint(["thread_id"], ["thread.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["usertag_id"], ["usertag.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["thread_id"], ["thread.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["usertag_id"], ["usertag.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.add_column(
-        "folder", sa.Column("exposed_name", sa.String(length=255), nullable=True)
+        "folder",
+        sa.Column("exposed_name", sa.String(length=255), nullable=True),
     )
     op.add_column(
         "folder", sa.Column("public_id", sa.String(length=191), nullable=True)
     )
 
     op.add_column(
-        "account", sa.Column("provider_prefix", sa.String(length=64), nullable=False)
+        "account",
+        sa.Column("provider_prefix", sa.String(length=64), nullable=False),
     )
     op.add_column(
         "account", sa.Column("important_folder_id", sa.Integer, nullable=True)
     )
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Folder(Base):
@@ -114,7 +122,9 @@ def upgrade():
                 try:
                     dest = (
                         db_session.query(Folder)
-                        .filter(Folder.account == account, Folder.name == alias)
+                        .filter(
+                            Folder.account == account, Folder.name == alias
+                        )
                         .one()
                     )
                 except NoResultFound:
@@ -178,5 +188,5 @@ def upgrade():
         db_session.commit()
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Not supported.")

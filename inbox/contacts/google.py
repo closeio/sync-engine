@@ -2,17 +2,8 @@
 
 import posixpath
 import random
-import sys
 import time
 from datetime import datetime
-
-if sys.version_info < (3,):
-    # This library does not work on Python 3 and was not released since 2013.
-    # I need to figure out what to do with it. This is temporary for the sake of running tests
-    # on Python 3.
-    import gdata.auth
-    import gdata.client
-    import gdata.contacts.client
 
 from inbox.contacts.abc import AbstractContactsProvider
 from inbox.logging import get_logger
@@ -50,7 +41,7 @@ class GoogleContactsProvider(AbstractContactsProvider):
 
     PROVIDER_NAME = "google"
 
-    def __init__(self, account_id, namespace_id):
+    def __init__(self, account_id, namespace_id) -> None:
         self.account_id = account_id
         self.namespace_id = namespace_id
         self.log = logger.new(
@@ -65,13 +56,16 @@ class GoogleContactsProvider(AbstractContactsProvider):
             account = db_session.query(GmailAccount).get(self.account_id)
             db_session.expunge(account)
         access_token = token_manager.get_token(account)
-        token = gdata.gauth.AuthSubToken(access_token)
-        google_client = gdata.contacts.client.ContactsClient(source=SOURCE_APP_NAME)
+        token = gdata.gauth.AuthSubToken(access_token)  # noqa: F821
+        google_client = gdata.contacts.client.ContactsClient(  # noqa: F821
+            source=SOURCE_APP_NAME
+        )
         google_client.auth_token = token
         return google_client
 
     def _parse_contact_result(self, google_contact):
-        """Constructs a Contact object from a Google contact entry.
+        """
+        Constructs a Contact object from a Google contact entry.
 
         Parameters
         ----------
@@ -87,8 +81,11 @@ class GoogleContactsProvider(AbstractContactsProvider):
         ------
         AttributeError
            If the contact data could not be parsed correctly.
-        """
-        email_addresses = [email for email in google_contact.email if email.primary]
+
+        """  # noqa: D401
+        email_addresses = [
+            email for email in google_contact.email if email.primary
+        ]
         if email_addresses and len(email_addresses) > 1:
             self.log.error(
                 "Should not have more than one email per entry!",
@@ -106,14 +103,18 @@ class GoogleContactsProvider(AbstractContactsProvider):
                 if (google_contact.name and google_contact.name.full_name)
                 else None
             )
-            email_address = email_addresses[0].address if email_addresses else None
+            email_address = (
+                email_addresses[0].address if email_addresses else None
+            )
 
             # The entirety of the raw contact data in XML string
             # representation.
             raw_data = google_contact.to_string()
-        except AttributeError as e:
-            self.log.error("Something is wrong with contact", contact=google_contact)
-            raise e
+        except AttributeError as e:  # noqa: F841
+            self.log.error(
+                "Something is wrong with contact", contact=google_contact
+            )
+            raise
 
         deleted = google_contact.deleted is not None
 
@@ -127,7 +128,7 @@ class GoogleContactsProvider(AbstractContactsProvider):
             raw_data=raw_data,
         )
 
-    def get_items(self, sync_from_dt=None, max_results=100000):
+    def get_items(self, sync_from_dt=None, max_results=100000):  # noqa: ANN201
         """
         Fetches and parses fresh contact data.
 
@@ -150,8 +151,8 @@ class GoogleContactsProvider(AbstractContactsProvider):
             If no data could be fetched because of invalid credentials or
             insufficient permissions, respectively.
 
-        """
-        query = gdata.contacts.client.ContactsQuery()
+        """  # noqa: D401
+        query = gdata.contacts.client.ContactsQuery()  # noqa: F821
         # TODO(emfree): Implement batch fetching
         # Note: The Google contacts API will only return 25 results if
         # query.max_results is not explicitly set, so have to set it to a large
@@ -164,17 +165,27 @@ class GoogleContactsProvider(AbstractContactsProvider):
             try:
                 google_client = self._get_google_client()
                 results = google_client.GetContacts(q=query).entry
-                return [self._parse_contact_result(result) for result in results]
-            except gdata.client.RequestError as e:
+                return [
+                    self._parse_contact_result(result) for result in results
+                ]
+            except gdata.client.RequestError as e:  # noqa: F821
                 if e.status == 503:
-                    self.log.info("Ran into Google bot detection. Sleeping.", message=e)
+                    self.log.info(
+                        "Ran into Google bot detection. Sleeping.", message=e
+                    )
                     time.sleep(5 * 60 + random.randrange(0, 60))
                 else:
-                    self.log.info("contact sync request failure; retrying", message=e)
+                    self.log.info(
+                        "contact sync request failure; retrying", message=e
+                    )
                     time.sleep(30 + random.randrange(0, 60))
-            except gdata.client.Unauthorized:
-                self.log.warning("Invalid access token; refreshing and retrying")
+            except gdata.client.Unauthorized:  # noqa: F821
+                self.log.warning(
+                    "Invalid access token; refreshing and retrying"
+                )
                 # Raises an OAuth error if no valid token exists
                 with session_scope(self.namespace_id) as db_session:
-                    account = db_session.query(GmailAccount).get(self.account_id)
+                    account = db_session.query(GmailAccount).get(
+                        self.account_id
+                    )
                     token_manager.get_token(account, force_refresh=True)

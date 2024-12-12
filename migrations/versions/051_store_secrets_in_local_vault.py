@@ -1,4 +1,5 @@
-"""store secrets in local vault
+"""
+store secrets in local vault
 
 Revision ID: 1925c535a52d
 Revises: 29217fad3f46
@@ -16,7 +17,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from sqlalchemy.ext.declarative import declarative_base
 
     from inbox.ignition import main_engine
@@ -35,10 +36,11 @@ def upgrade():
         sa.PrimaryKeyConstraint("id"),
     )
     op.add_column(
-        "gmailaccount", sa.Column("refresh_token_id", sa.Integer(), nullable=True)
+        "gmailaccount",
+        sa.Column("refresh_token_id", sa.Integer(), nullable=True),
     )
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Account(Base):
@@ -87,14 +89,14 @@ def upgrade():
     op.drop_column("gmailaccount", "refresh_token")
 
 
-def downgrade():
+def downgrade() -> None:
     from sqlalchemy.ext.declarative import declarative_base
 
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Account(Base):
@@ -110,12 +112,17 @@ def downgrade():
         __table__ = Base.metadata.tables["secret"]
 
     op.add_column(
-        "gmailaccount", sa.Column("refresh_token", sa.String(length=512), nullable=True)
+        "gmailaccount",
+        sa.Column("refresh_token", sa.String(length=512), nullable=True),
     )
 
     with session_scope(versioned=False) as db_session:
         for acct in db_session.query(GmailAccount):
-            secret = db_session.query(Secret).filter_by(id=acct.refresh_token_id).one()
+            secret = (
+                db_session.query(Secret)
+                .filter_by(id=acct.refresh_token_id)
+                .one()
+            )
             acct.refresh_token = secret.secret
             db_session.add(acct)
         db_session.commit()

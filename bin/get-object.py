@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 # Query the id corresponding to a public id and vice-versa.
 
 
@@ -10,20 +10,16 @@ import IPython
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.models import (
     Account,
-    ActionLog,
     Block,
     Calendar,
-    Category,
     Event,
-    Folder,
-    Label,
     Message,
     Namespace,
     Part,
     Thread,
     Transaction,
 )
-from inbox.models.session import global_session_scope, session_scope
+from inbox.models.session import global_session_scope
 
 cls_for_type = dict(
     account=Account,
@@ -52,10 +48,10 @@ except ImportError:
 @click.option("--account-id", type=str, default=None)
 @click.option("--namespace-id", type=str, default=None)
 @click.option("--readwrite", is_flag=True, default=False)
-def main(type, id, public_id, account_id, namespace_id, readwrite):
+def main(type, id, public_id, account_id, namespace_id, readwrite) -> None:
     maybe_enable_rollbar()
 
-    type = type.lower()
+    type = type.lower()  # noqa: A001
 
     if type not in cls_for_type:
         print(f"Error: unknown type '{type}'")

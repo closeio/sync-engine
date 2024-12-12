@@ -2,7 +2,6 @@
 
 import contextlib
 from imaplib import IMAP4
-from typing import Dict, List
 
 import imapclient
 
@@ -23,7 +22,7 @@ def _encode_labels(labels):
 def remote_change_labels(
     crispin_client, account_id, message_ids, removed_labels, added_labels
 ):
-    uids_for_message: Dict[str, List[str]] = {}
+    uids_for_message: dict[str, list[str]] = {}
     with session_scope(account_id) as db_session:
         for message_id in message_ids:
             folder_uids_map = uids_by_folder(message_id, db_session)
@@ -44,7 +43,7 @@ def remote_change_labels(
             )
 
 
-def remote_create_label(crispin_client, account_id, category_id):
+def remote_create_label(crispin_client, account_id, category_id) -> None:
     with session_scope(account_id) as db_session:
         category = db_session.query(Category).get(category_id)
         if category is None:
@@ -53,11 +52,13 @@ def remote_create_label(crispin_client, account_id, category_id):
     crispin_client.conn.create_folder(display_name)
 
 
-def remote_update_label(crispin_client, account_id, category_id, old_name, new_name):
+def remote_update_label(
+    crispin_client, account_id, category_id, old_name, new_name
+) -> None:
     crispin_client.conn.rename_folder(old_name, new_name)
 
 
-def remote_delete_label(crispin_client, account_id, category_id):
+def remote_delete_label(crispin_client, account_id, category_id) -> None:
     with session_scope(account_id) as db_session:
         category = db_session.query(Category).get(category_id)
         if category is None:

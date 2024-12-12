@@ -1,13 +1,11 @@
-# flake8: noqa: F401,F811
-
-from tests.util.base import event
-
-
-def test_invite_generation(event, default_account):
+def test_invite_generation(event, default_account) -> None:
     from inbox.events.ical import generate_icalendar_invite
 
     event.sequence_number = 1
-    event.participants = [{"email": "helena@nylas.com"}, {"email": "myles@nylas.com"}]
+    event.participants = [
+        {"email": "helena@nylas.com"},
+        {"email": "myles@nylas.com"},
+    ]
     cal = generate_icalendar_invite(event)
     assert cal["method"] == "REQUEST"
 
@@ -33,7 +31,7 @@ def test_invite_generation(event, default_account):
                 assert email in ["helena@nylas.com", "myles@nylas.com"]
 
 
-def test_message_generation(event, default_account):
+def test_message_generation(event, default_account) -> None:
     from inbox.events.ical import generate_invite_message
 
     event.title = "A long walk on the beach"
@@ -60,7 +58,7 @@ def test_message_generation(event, default_account):
     assert count == 3
 
 
-def test_unicode_message_generation(event, default_account):
+def test_unicode_message_generation(event, default_account) -> None:
     from inbox.events.ical import generate_invite_message
 
     event.title = "Dîner chez François et Hélène"

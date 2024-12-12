@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 # Duplicate categories were created because of an inadequate unique constraint
 # in MySQL. This script deletes duplicate categories with no messages
 # associated. If two or more duplicate categories exist with associated
@@ -20,7 +20,7 @@ configure_logging()
 log = get_logger(purpose="duplicate-category-backfill")
 
 
-def backfix_shard(shard_id, dry_run):
+def backfix_shard(shard_id, dry_run) -> None:
     categories_to_fix = []
     with session_scope_by_shard_id(shard_id) as db_session:
         # 'SELECT id FROM <table> GROUP BY <x>' does not select _all_ of the
@@ -84,7 +84,8 @@ def backfix_shard(shard_id, dry_run):
                 # and consolidated
                 if associated_messages:
                     log.info(
-                        "Category has associated messages", category_id=category_id
+                        "Category has associated messages",
+                        category_id=category_id,
                     )
                     categories_with_messages.append(category_id)
 
@@ -97,7 +98,9 @@ def backfix_shard(shard_id, dry_run):
                     )
 
         if len(categories_with_messages) > 0:
-            log.info("Consolidating messages into category", category_id=master_id)
+            log.info(
+                "Consolidating messages into category", category_id=master_id
+            )
 
             for category_id in categories_with_messages:
                 try:
@@ -120,8 +123,10 @@ def backfix_shard(shard_id, dry_run):
                             mc_exists = db_session.query(
                                 exists().where(
                                     and_(
-                                        MessageCategory.category_id == master_id,
-                                        MessageCategory.message_id == mc.message_id,
+                                        MessageCategory.category_id
+                                        == master_id,
+                                        MessageCategory.message_id
+                                        == mc.message_id,
                                     )
                                 )
                             ).scalar()
@@ -132,9 +137,9 @@ def backfix_shard(shard_id, dry_run):
                                 # and the current category, so we can delete
                                 # the current category
                                 if mc_exists:
-                                    db_session.query(MessageCategory).filter_by(
-                                        id=mc.id
-                                    ).delete()
+                                    db_session.query(
+                                        MessageCategory
+                                    ).filter_by(id=mc.id).delete()
                                 else:
                                     # Master does not have a MessageCategory
                                     # for this message. Update this one to
@@ -156,7 +161,7 @@ def backfix_shard(shard_id, dry_run):
                         " messagecategories",
                         e=str(e),
                     )
-                    raise e
+                    raise
 
             # We REALLY don't want to delete the category we consolidated all
             # of the messagecategories into
@@ -183,7 +188,7 @@ def backfix_shard(shard_id, dry_run):
 @click.command()
 @click.option("--shard-id", type=int, default=None)
 @click.option("--dry-run", is_flag=True)
-def main(shard_id, dry_run):
+def main(shard_id, dry_run) -> None:
     maybe_enable_rollbar()
 
     if shard_id is not None:

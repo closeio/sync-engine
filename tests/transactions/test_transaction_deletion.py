@@ -44,7 +44,7 @@ class TestTransactionDeletion:
     """
 
     @pytest.fixture
-    def clear_redis(self):
+    def clear_redis(self) -> None:
         redis_txn.flushdb()
 
     @pytest.fixture
@@ -53,10 +53,11 @@ class TestTransactionDeletion:
 
     @pytest.fixture
     def transactions(self, clear_redis, now, db, default_namespace):
-        """Creates transactions, some new and some old.
+        """
+        Creates transactions, some new and some old.
 
         Yields the newest transaction
-        """
+        """  # noqa: D401
         # Transactions created less than 30 days ago should not be deleted
         t0 = create_transaction(db, now, default_namespace.id)
         create_transaction(db, now - timedelta(days=29), default_namespace.id)
@@ -64,13 +65,17 @@ class TestTransactionDeletion:
 
         # Transactions older than 30 days should be deleted
         for i in range(10):
-            create_transaction(db, now - timedelta(days=31 + i), default_namespace.id)
+            create_transaction(
+                db, now - timedelta(days=31 + i), default_namespace.id
+            )
 
         return t0
 
-    def test_transaction_deletion_dry_run(self, now, db, default_namespace):
+    def test_transaction_deletion_dry_run(
+        self, now, db, default_namespace
+    ) -> None:
         shard_id = default_namespace.id >> 48
-        query = "SELECT count(id) FROM transaction WHERE namespace_id={}".format(
+        query = "SELECT count(id) FROM transaction WHERE namespace_id={}".format(  # noqa: S608
             default_namespace.id
         )
         all_transactions = db.session.execute(query).scalar()
@@ -79,14 +84,16 @@ class TestTransactionDeletion:
         purge_transactions(shard_id, days_ago=30, dry_run=True, now=now)
         assert db.session.execute(query).scalar() == all_transactions
 
-    def test_transaction_deletion_30_days(self, now, db, default_namespace):
+    def test_transaction_deletion_30_days(
+        self, now, db, default_namespace
+    ) -> None:
         shard_id = default_namespace.id >> 48
-        query = "SELECT count(id) FROM transaction WHERE namespace_id={}".format(
+        query = "SELECT count(id) FROM transaction WHERE namespace_id={}".format(  # noqa: S608
             default_namespace.id
         )
         all_transactions = db.session.execute(query).scalar()
         date_query = (
-            "SELECT count(id) FROM transaction WHERE created_at < "
+            "SELECT count(id) FROM transaction WHERE created_at < "  # noqa: S608
             f"DATE_SUB({format_datetime(now)}, INTERVAL 30 day)"
         )
         older_than_thirty_days = db.session.execute(date_query).scalar()
@@ -100,33 +107,40 @@ class TestTransactionDeletion:
 
     def test_transaction_deletion_one_day(
         self, now, transactions, db, default_namespace
-    ):
+    ) -> None:
         shard_id = default_namespace.id >> 48
-        query = "SELECT count(id) FROM transaction WHERE namespace_id={}".format(
+        query = "SELECT count(id) FROM transaction WHERE namespace_id={}".format(  # noqa: S608
             default_namespace.id
         )
         all_transactions = db.session.execute(query).scalar()
 
         date_query = (
-            "SELECT count(id) FROM transaction WHERE created_at < "
+            "SELECT count(id) FROM transaction WHERE created_at < "  # noqa: S608
             f"DATE_SUB({format_datetime(now)}, INTERVAL 1 day)"
         )
         older_than_one_day = db.session.execute(date_query).scalar()
         # Delete all transactions older than 1 day
         purge_transactions(shard_id, days_ago=1, dry_run=False, now=now)
         assert (
-            all_transactions - older_than_one_day == db.session.execute(query).scalar()
+            all_transactions - older_than_one_day
+            == db.session.execute(query).scalar()
         )
 
-        latest_transaction = get_latest_transaction(db.session, default_namespace.id)
+        latest_transaction = get_latest_transaction(
+            db.session, default_namespace.id
+        )
         assert latest_transaction.id == transactions.id
 
     def test_transaction_deletion_purges_redis(
         self, now, transactions, db, default_namespace
-    ):
+    ) -> None:
         def _get_redis_transactions():
             return redis_txn.zrangebyscore(
-                TXN_REDIS_KEY, "-inf", "+inf", withscores=True, score_cast_func=int
+                TXN_REDIS_KEY,
+                "-inf",
+                "+inf",
+                withscores=True,
+                score_cast_func=int,
             )
 
         assert db.session.query(Transaction).count()

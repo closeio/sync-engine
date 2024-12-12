@@ -1,4 +1,5 @@
-"""update folder unique constraint
+"""
+update folder unique constraint
 
 Revision ID: 2235895f313b
 Revises: 365071c47fa7
@@ -13,13 +14,17 @@ down_revision = "365071c47fa7"
 from alembic import op
 
 
-def upgrade():
-    op.create_unique_constraint("account_id_2", "folder", ["account_id", "name"])
+def upgrade() -> None:
+    op.create_unique_constraint(
+        "account_id_2", "folder", ["account_id", "name"]
+    )
     op.drop_constraint("account_id", "folder", type_="unique")
 
 
-def downgrade():
+def downgrade() -> None:
     op.create_unique_constraint(
-        "account_id", "folder", ["account_id", "name", "canonical_name", "identifier"]
+        "account_id",
+        "folder",
+        ["account_id", "name", "canonical_name", "identifier"],
     )
     op.drop_constraint("account_id_2", "folder", type_="unique")

@@ -3,7 +3,7 @@
 from datetime import datetime
 
 
-def test_mutable_json_type(db, config, default_account, folder):
+def test_mutable_json_type(db, config, default_account, folder) -> None:
     """
     Test that FolderSync._sync_status which is a mutable JSON column is
     updated as expected.
@@ -11,7 +11,9 @@ def test_mutable_json_type(db, config, default_account, folder):
     """
     from inbox.models.backends.imap import ImapFolderSyncStatus
 
-    sync_status = ImapFolderSyncStatus(account_id=default_account.id, folder=folder)
+    sync_status = ImapFolderSyncStatus(
+        account_id=default_account.id, folder=folder
+    )
     db.session.add(sync_status)
     db.session.commit()
 
@@ -23,13 +25,15 @@ def test_mutable_json_type(db, config, default_account, folder):
     updated_metrics = sync_status.metrics
 
     metrics.update(original_metrics)
-    assert (
+    assert (  # noqa: PT018
         updated_metrics != original_metrics and updated_metrics == metrics
     ), "metrics not updated correctly"
 
     # Reupdate status
     new_metrics = dict(
-        delete_uid_count=50, download_uid_count=100, queue_checked_at=datetime.utcnow()
+        delete_uid_count=50,
+        download_uid_count=100,
+        queue_checked_at=datetime.utcnow(),
     )
     sync_status.update_metrics(new_metrics)
 

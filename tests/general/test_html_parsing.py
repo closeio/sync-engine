@@ -5,7 +5,7 @@ import pytest
 from inbox.util.html import HTMLParseError, strip_tags
 
 
-def test_strip_tags():
+def test_strip_tags() -> None:
     text = (
         "<div><script> AAH JAVASCRIPT</script><style> AAH CSS AHH</style>"
         'check out this <a href="http://example.com">link</a> yo!</div>'
@@ -24,8 +24,9 @@ def test_strip_tags():
         strip_tags(text)
 
 
-def test_preserve_refs():
-    """Test that HTML character/entity references are preserved when we strip
+def test_preserve_refs() -> None:
+    """
+    Test that HTML character/entity references are preserved when we strip
     tags.
     """
     text = "la philologie m&#x00e8;ne au pire"

@@ -1,4 +1,5 @@
-"""add emailed events calendar
+"""
+add emailed events calendar
 
 Revision ID: 2493281d621
 Revises: 54dcea22a268
@@ -14,7 +15,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("SET FOREIGN_KEY_CHECKS=0;"))
     conn.execute(text("set @@lock_wait_timeout = 20;"))
@@ -36,11 +37,13 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("SET FOREIGN_KEY_CHECKS=0;"))
     conn.execute(text("set @@lock_wait_timeout = 20;"))
-    conn.execute(text("ALTER TABLE account DROP FOREIGN KEY emailed_events_fk"))
+    conn.execute(
+        text("ALTER TABLE account DROP FOREIGN KEY emailed_events_fk")
+    )
     conn.execute(
         text(
             "ALTER TABLE account CHANGE COLUMN emailed_events_calendar_id default_calendar_id INTEGER"

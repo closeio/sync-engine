@@ -1,4 +1,5 @@
-"""event_contact_association
+"""
+event_contact_association
 
 Revision ID: 203ae9bf0ddd
 Revises: 53b532fda984
@@ -14,11 +15,14 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "eventcontactassociation",
         sa.Column(
-            "created_at", sa.DateTime(), nullable=False, server_default=sa.text("now()")
+            "created_at",
+            sa.DateTime(),
+            nullable=False,
+            server_default=sa.text("now()"),
         ),
         sa.Column("id", sa.BigInteger(), nullable=False, autoincrement=True),
         sa.Column("contact_id", sa.BigInteger(), nullable=False),
@@ -46,5 +50,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("eventcontactassociation")

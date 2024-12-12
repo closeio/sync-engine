@@ -1,4 +1,5 @@
-"""add calendar default
+"""
+add calendar default
 
 Revision ID: 52783469ee6c
 Revises: 32df3d8ff73e
@@ -15,7 +16,7 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "calendar",
         sa.Column(
@@ -27,5 +28,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("calendar", "default")

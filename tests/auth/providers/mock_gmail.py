@@ -11,6 +11,8 @@ foobar+no_all_mail@gmail.com.
 
 """
 
+from typing import Never
+
 from inbox.auth.gmail import GmailAuthHandler
 from inbox.exceptions import (
     GmailSettingError,
@@ -28,15 +30,15 @@ PROVIDER = "gmail"  # Uses the default gmail provider info from providers.py
 AUTH_HANDLER_CLS = "MockGmailAuthHandler"
 
 
-def raise_setting_error(folder):
+def raise_setting_error(folder) -> Never:
     raise GmailSettingError(folder)
 
 
-def raise_imap_disabled_error(*args):
+def raise_imap_disabled_error(*args) -> Never:
     raise ImapSupportDisabledError()
 
 
-def raise_oauth_error(e):
+def raise_oauth_error(e) -> Never:
     raise OAuthError(e)
 
 
@@ -65,8 +67,8 @@ class MockGmailAuthHandler(GmailAuthHandler):
         try:
             self.verify_config(account)
         except GmailSettingError as e:
-            print(e)
-            raise UserRecoverableConfigError(e)
+            print(e)  # noqa: T201
+            raise UserRecoverableConfigError(e)  # noqa: B904
 
         return account
 

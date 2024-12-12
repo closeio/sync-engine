@@ -10,16 +10,22 @@ from inbox.models import Account, Message, Namespace, Thread, Transaction
 from inbox.models.session import session_scope
 from inbox.models.util import transaction_objects
 
-EVENT_NAME_FOR_COMMAND = {"insert": "create", "update": "modify", "delete": "delete"}
+EVENT_NAME_FOR_COMMAND = {
+    "insert": "create",
+    "update": "modify",
+    "delete": "delete",
+}
 
 
-def get_transaction_cursor_near_timestamp(namespace_id, timestamp, db_session):
+def get_transaction_cursor_near_timestamp(  # noqa: ANN201
+    namespace_id, timestamp, db_session
+):
     """
     Exchange a timestamp for a 'cursor' into the transaction log entry near
     to that timestamp in age. The cursor is the public_id of that transaction
     (or '0' if there are no such transactions).
 
-    Arguments
+    Arguments:
     ---------
     namespace_id: int
         Id of the namespace for which to get a cursor.
@@ -28,7 +34,7 @@ def get_transaction_cursor_near_timestamp(namespace_id, timestamp, db_session):
     db_session: new_session
         database session
 
-    Returns
+    Returns:
     -------
     string
         A transaction public_id that can be passed as a 'cursor' parameter by
@@ -54,7 +60,10 @@ def get_transaction_cursor_near_timestamp(namespace_id, timestamp, db_session):
     latest_timestamp = (
         db_session.query(Transaction.created_at)
         .order_by(desc(Transaction.created_at))
-        .filter(Transaction.created_at < dt, Transaction.namespace_id == namespace_id)
+        .filter(
+            Transaction.created_at < dt,
+            Transaction.namespace_id == namespace_id,
+        )
         .limit(1)
         .subquery()
     )
@@ -79,11 +88,15 @@ def get_transaction_cursor_near_timestamp(namespace_id, timestamp, db_session):
 def _get_last_trx_id_for_namespace(namespace_id, db_session):
     q = db_session.query(Transaction.id)
     q = q.filter(Transaction.namespace_id == bindparam("namespace_id"))
-    q = q.order_by(desc(Transaction.created_at)).order_by(desc(Transaction.id)).limit(1)
+    q = (
+        q.order_by(desc(Transaction.created_at))
+        .order_by(desc(Transaction.id))
+        .limit(1)
+    )
     return q.params(namespace_id=namespace_id).one()[0]
 
 
-def format_transactions_after_pointer(
+def format_transactions_after_pointer(  # noqa: ANN201, D417
     namespace,
     pointer,
     db_session,
@@ -108,7 +121,7 @@ def format_transactions_after_pointer(
 
     and new_pointer is the integer id of the last included transaction
 
-    Arguments
+    Arguments:
     ---------
     namespace_id: int
         Id of the namespace for which to get changes.
@@ -165,7 +178,9 @@ def format_transactions_after_pointer(
             )
 
         transactions = (
-            transactions.order_by(asc(Transaction.id)).limit(result_limit).all()
+            transactions.order_by(asc(Transaction.id))
+            .limit(result_limit)
+            .all()
         )
 
         if not transactions:
@@ -184,13 +199,18 @@ def format_transactions_after_pointer(
             # in the list of transactions, this will only keep the latest
             # one (which is what we want).
             sorted_trxs = sorted(trxs, key=lambda t: t.id)
-            latest_trxs = {(trx.record_id, trx.command): trx for trx in sorted_trxs}
+            latest_trxs = {
+                (trx.record_id, trx.command): trx for trx in sorted_trxs
+            }
             oldest_trxs = {
-                (trx.record_id, trx.command): trx for trx in reversed(sorted_trxs)
+                (trx.record_id, trx.command): trx
+                for trx in reversed(sorted_trxs)
             }
             # Load all referenced not-deleted objects.
             ids_to_query = [
-                trx.record_id for trx in latest_trxs.values() if trx.command != "delete"
+                trx.record_id
+                for trx in latest_trxs.values()
+                if trx.command != "delete"
             ]
 
             object_cls = transaction_objects()[obj_type]
@@ -202,7 +222,10 @@ def format_transactions_after_pointer(
                 query = (
                     db_session.query(Namespace)
                     .join(Account)
-                    .filter(Account.id.in_(ids_to_query), Namespace.id == namespace.id)
+                    .filter(
+                        Account.id.in_(ids_to_query),
+                        Namespace.id == namespace.id,
+                    )
                 )
 
                 # Key by /namespace.account_id/ --
@@ -220,7 +243,9 @@ def format_transactions_after_pointer(
                 if object_cls == Message:
                     query = query.options(*Message.api_loading_options(expand))
                     # T7045: Workaround for some SQLAlchemy bugs.
-                    objects = {obj.id: obj for obj in query if obj.thread is not None}
+                    objects = {
+                        obj.id: obj for obj in query if obj.thread is not None
+                    }
                 else:
                     objects = {obj.id: obj for obj in query}
 
@@ -260,7 +285,7 @@ def format_transactions_after_pointer(
             pointer = transactions[-1].id
 
 
-def streaming_change_generator(
+def streaming_change_generator(  # noqa: ANN201, D417
     namespace,
     poll_interval,
     timeout,
@@ -277,7 +302,7 @@ def streaming_change_generator(
     Poll the transaction log for the given `namespace_id` until `timeout`
     expires, and yield each time new entries are detected.
 
-    Arguments
+    Arguments:
     ---------
     namespace_id: int
         Id of the namespace for which to check changes.

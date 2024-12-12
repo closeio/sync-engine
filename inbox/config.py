@@ -5,7 +5,7 @@ import urllib3
 import yaml
 
 urllib3.disable_warnings()
-from urllib3.exceptions import InsecureRequestWarning
+from urllib3.exceptions import InsecureRequestWarning  # noqa: E402
 
 urllib3.disable_warnings(InsecureRequestWarning)
 
@@ -29,19 +29,19 @@ def is_live_env():
 
 
 class ConfigError(Exception):
-    def __init__(self, error=None, help=None):
+    def __init__(self, error=None, help=None) -> None:
         self.error = error or ""
         self.help = (
             help
             or "Run `sudo cp etc/config-dev.json /etc/inboxapp/config.json` and retry."
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.error} {self.help}"
 
 
 class Configuration(dict):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         dict.__init__(self, *args, **kwargs)
 
     def get_required(self, key):
@@ -76,10 +76,15 @@ def _update_config_from_env(config, env):
     Missing files in the path will be ignored.
 
     """
-    srcdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
+    srcdir = os.path.join(  # noqa: PTH118
+        os.path.dirname(os.path.realpath(__file__)), ".."  # noqa: PTH120
+    )
 
     if env in ["prod", "staging"]:
-        base_cfg_path = ["/etc/inboxapp/secrets.yml", "/etc/inboxapp/config.json"]
+        base_cfg_path = [
+            "/etc/inboxapp/secrets.yml",
+            "/etc/inboxapp/config.json",
+        ]
     else:
         v = {"env": env, "srcdir": srcdir}
         base_cfg_path = [
@@ -88,7 +93,9 @@ def _update_config_from_env(config, env):
         ]
 
     if "SYNC_ENGINE_CFG_PATH" in os.environ:
-        cfg_path = os.environ.get("SYNC_ENGINE_CFG_PATH", "").split(os.path.pathsep)
+        cfg_path = os.environ.get("SYNC_ENGINE_CFG_PATH", "").split(
+            os.path.pathsep
+        )
         cfg_path = list(p.strip() for p in cfg_path if p.strip())
     else:
         cfg_path = []
@@ -97,10 +104,10 @@ def _update_config_from_env(config, env):
 
     for filename in reversed(path):
         try:
-            with open(filename) as f:
+            with open(filename) as f:  # noqa: PTH123
                 # this also parses json, which is a subset of yaml
                 config.update(yaml.safe_load(f))
-        except OSError as e:  # noqa: B014
+        except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
 

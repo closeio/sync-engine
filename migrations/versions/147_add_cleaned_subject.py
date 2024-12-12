@@ -1,4 +1,5 @@
-"""add cleaned subject
+"""
+add cleaned subject
 
 Revision ID: 486c7fa5b533
 Revises: 1d7a72222b7c
@@ -15,12 +16,13 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
 
     op.add_column(
-        "thread", sa.Column("_cleaned_subject", sa.String(length=255), nullable=True)
+        "thread",
+        sa.Column("_cleaned_subject", sa.String(length=255), nullable=True),
     )
     op.create_index(
         "ix_cleaned_subject",
@@ -31,7 +33,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
 

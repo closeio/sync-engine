@@ -1,4 +1,5 @@
-"""Add the [_]sync_{contacts|events} cols to the Account tbl.
+"""
+Add the [_]sync_{contacts|events} cols to the Account tbl.
 
 Revision ID: 262436681c4
 Revises: 955792afd00
@@ -15,12 +16,14 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
-        "account", sa.Column("sync_contacts", sa.Boolean, nullable=False, default=False)
+        "account",
+        sa.Column("sync_contacts", sa.Boolean, nullable=False, default=False),
     )
     op.add_column(
-        "account", sa.Column("sync_events", sa.Boolean, nullable=False, default=False)
+        "account",
+        sa.Column("sync_events", sa.Boolean, nullable=False, default=False),
     )
     connection = op.get_bind()
     connection.execute(
@@ -44,6 +47,6 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("account", "sync_contacts")
     op.drop_column("account", "sync_events")

@@ -1,4 +1,5 @@
-"""add message index
+"""
+add message index
 
 Revision ID: 4270a032b943
 Revises:13faec74da45
@@ -13,7 +14,7 @@ down_revision = "13faec74da45"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "ix_message_namespace_id_deleted_at",
         "message",
@@ -22,5 +23,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("ix_message_namespace_id_deleted_at", table_name="message")

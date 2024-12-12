@@ -1,4 +1,5 @@
-"""Add action log
+"""
+Add action log
 
 Revision ID: 15dfc756a1b0
 Revises:4af5952e8a5b
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "actionlog",
         sa.Column("created_at", sa.DateTime(), nullable=False),
@@ -35,14 +36,17 @@ def upgrade():
         "ix_actionlog_deleted_at", "actionlog", ["deleted_at"], unique=False
     )
     op.create_index(
-        "ix_actionlog_namespace_id", "actionlog", ["namespace_id"], unique=False
+        "ix_actionlog_namespace_id",
+        "actionlog",
+        ["namespace_id"],
+        unique=False,
     )
     op.create_index(
         "ix_actionlog_updated_at", "actionlog", ["updated_at"], unique=False
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_constraint("actionlog_ibfk_1", "actionlog", type_="foreignkey")
     op.drop_index("ix_actionlog_updated_at", table_name="actionlog")
     op.drop_index("ix_actionlog_namespace_id", table_name="actionlog")

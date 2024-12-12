@@ -1,4 +1,5 @@
-"""drop messagecategory foreign keys
+"""
+drop messagecategory foreign keys
 
 Revision ID: 25129e0316d4
 Revises: 29a1f2ef5653
@@ -14,18 +15,22 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(
-        text("ALTER TABLE messagecategory DROP FOREIGN KEY messagecategory_ibfk_1")
+        text(
+            "ALTER TABLE messagecategory DROP FOREIGN KEY messagecategory_ibfk_1"
+        )
     )
 
     conn.execute(
-        text("ALTER TABLE messagecategory DROP FOREIGN KEY messagecategory_ibfk_2")
+        text(
+            "ALTER TABLE messagecategory DROP FOREIGN KEY messagecategory_ibfk_2"
+        )
     )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         text(

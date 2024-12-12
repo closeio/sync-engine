@@ -1,4 +1,5 @@
-"""Store g_msgid and g_thrid as integers, not strings. For more efficiency.
+"""
+Store g_msgid and g_thrid as integers, not strings. For more efficiency.
 
 Revision ID: 2605b23e1fe6
 Revises: None
@@ -14,7 +15,7 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column("message", "g_msgid", type_=mysql.BIGINT)
     op.alter_column("message", "g_thrid", type_=mysql.BIGINT)
 
@@ -22,7 +23,7 @@ def upgrade():
     op.create_index("ix_message_g_thrid", "message", ["g_thrid"], unique=False)
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column("message", "g_msgid", type_=mysql.VARCHAR(40))
     op.alter_column("message", "g_thrid", type_=mysql.VARCHAR(40))
 

@@ -1,4 +1,5 @@
-"""remove storage of access_token
+"""
+remove storage of access_token
 
 Revision ID: 4e44216e9830
 Revises: 161b88c17615
@@ -14,17 +15,21 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("gmailaccount", "access_token")
     op.drop_column("gmailaccount", "expires_in")
     op.drop_column("gmailaccount", "token_type")
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
-        "gmailaccount", sa.Column("access_token", sa.String(length=512), nullable=True)
+        "gmailaccount",
+        sa.Column("access_token", sa.String(length=512), nullable=True),
     )
-    op.add_column("gmailaccount", sa.Column("expires_in", sa.Integer(), nullable=True))
     op.add_column(
-        "gmailaccount", sa.Column("token_type", sa.String(length=64), nullable=True)
+        "gmailaccount", sa.Column("expires_in", sa.Integer(), nullable=True)
+    )
+    op.add_column(
+        "gmailaccount",
+        sa.Column("token_type", sa.String(length=64), nullable=True),
     )

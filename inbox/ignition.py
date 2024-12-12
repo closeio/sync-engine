@@ -1,7 +1,8 @@
 import time
 import weakref
+from collections.abc import MutableMapping
 from socket import gethostname
-from typing import Any, Dict, MutableMapping
+from typing import Any
 from urllib.parse import quote_plus as urlquote
 from warnings import filterwarnings
 
@@ -27,10 +28,12 @@ DB_POOL_MAX_OVERFLOW = config.get("DB_POOL_MAX_OVERFLOW") or 5
 DB_POOL_TIMEOUT = config.get("DB_POOL_TIMEOUT") or 60
 
 
-pool_tracker: MutableMapping[Any, Dict[str, Any]] = weakref.WeakKeyDictionary()
+pool_tracker: MutableMapping[Any, dict[str, Any]] = weakref.WeakKeyDictionary()
 
 
-def build_uri(username, password, hostname, port, database_name):
+def build_uri(  # noqa: ANN201
+    username, password, hostname, port, database_name
+):
     uri_template = (
         "mysql+mysqldb://{username}:{password}@{hostname}"
         ":{port}/{database_name}?charset=utf8mb4"
@@ -44,7 +47,7 @@ def build_uri(username, password, hostname, port, database_name):
     )
 
 
-def engine(
+def engine(  # noqa: ANN201
     database_name,
     database_uri,
     pool_size=DB_POOL_SIZE,
@@ -52,7 +55,11 @@ def engine(
     pool_timeout=DB_POOL_TIMEOUT,
     echo=False,
 ):
-    connect_args = {"binary_prefix": True, "charset": "utf8mb4", "connect_timeout": 60}
+    connect_args = {
+        "binary_prefix": True,
+        "charset": "utf8mb4",
+        "connect_timeout": 60,
+    }
 
     engine = create_engine(
         database_uri,
@@ -67,7 +74,9 @@ def engine(
     )
 
     @event.listens_for(engine, "checkout")
-    def receive_checkout(dbapi_connection, connection_record, connection_proxy):
+    def receive_checkout(
+        dbapi_connection, connection_record, connection_proxy
+    ):
         """Log checkedout and overflow when a connection is checked out"""
         hostname = gethostname().replace(".", "-")
         process_name = str(config.get("PROCESS_NAME", "main_process"))
@@ -75,13 +84,27 @@ def engine(
         if config.get("ENABLE_DB_TXN_METRICS", False):
             statsd_client.gauge(
                 ".".join(
-                    ["dbconn", database_name, hostname, process_name, "checkedout"]
+                    [
+                        "dbconn",
+                        database_name,
+                        hostname,
+                        process_name,
+                        "checkedout",
+                    ]
                 ),
                 connection_proxy._pool.checkedout(),
             )
 
             statsd_client.gauge(
-                ".".join(["dbconn", database_name, hostname, process_name, "overflow"]),
+                ".".join(
+                    [
+                        "dbconn",
+                        database_name,
+                        hostname,
+                        process_name,
+                        "overflow",
+                    ]
+                ),
                 connection_proxy._pool.overflow(),
             )
 
@@ -108,7 +131,7 @@ def engine(
 
 
 class EngineManager:
-    def __init__(self, databases, users, include_disabled=False):
+    def __init__(self, databases, users, include_disabled=False) -> None:
         self.engines = {}
         self._engine_zones = {}
         keys = set()
@@ -126,7 +149,9 @@ class EngineManager:
 
                 # Perform some sanity checks on the configuration.
                 assert isinstance(key, int)
-                assert key not in keys, f"Shard key collision: key {key} is repeated"
+                assert (
+                    key not in keys
+                ), f"Shard key collision: key {key} is repeated"
                 assert (
                     schema_name not in schema_names
                 ), f"Shard name collision: {schema_name} is repeated"
@@ -152,25 +177,26 @@ class EngineManager:
                 self.engines[key] = engine(schema_name, uri)
                 self._engine_zones[key] = zone
 
-    def shard_key_for_id(self, id_):
+    def shard_key_for_id(self, id_) -> int:
         return 0
 
-    def get_for_id(self, id_):
+    def get_for_id(self, id_):  # noqa: ANN201
         return self.engines[self.shard_key_for_id(id_)]
 
-    def zone_for_id(self, id_):
+    def zone_for_id(self, id_):  # noqa: ANN201
         return self._engine_zones[self.shard_key_for_id(id_)]
 
-    def shards_for_zone(self, zone):
+    def shards_for_zone(self, zone):  # noqa: ANN201
         return [k for k, z in self._engine_zones.items() if z == zone]
 
 
 engine_manager = EngineManager(
-    config.get_required("DATABASE_HOSTS"), config.get_required("DATABASE_USERS")
+    config.get_required("DATABASE_HOSTS"),
+    config.get_required("DATABASE_USERS"),
 )
 
 
-def init_db(engine, key=0):
+def init_db(engine, key=0) -> None:
     """
     Make the tables.
 
@@ -199,7 +225,7 @@ def init_db(engine, key=0):
         MailSyncBase.metadata.create_all(engine)
 
 
-def verify_db(engine, schema, key):
+def verify_db(engine, schema, key) -> None:
     from inbox.models.base import MailSyncBase
 
     query = """SELECT AUTO_INCREMENT from information_schema.TABLES where
@@ -214,7 +240,9 @@ def verify_db(engine, schema, key):
 
         increment = engine.execute(query.format(schema, table)).scalar()
         if increment is not None:
-            assert (increment >> 48) == key, "table: {}, increment: {}, key: {}".format(
+            assert (
+                increment >> 48
+            ) == key, "table: {}, increment: {}, key: {}".format(
                 table, increment, key
             )
         else:
@@ -232,7 +260,9 @@ def verify_db(engine, schema, key):
         verified.add(table)
 
 
-def reset_invalid_autoincrements(engine, schema, key, dry_run=True):
+def reset_invalid_autoincrements(  # noqa: ANN201
+    engine, schema, key, dry_run=True
+):
     from inbox.models.base import MailSyncBase
 
     query = """SELECT AUTO_INCREMENT from information_schema.TABLES where
@@ -243,7 +273,9 @@ def reset_invalid_autoincrements(engine, schema, key, dry_run=True):
         increment = engine.execute(query.format(schema, table)).scalar()
         if increment is not None and (increment >> 48) != key:
             if not dry_run:
-                reset_query = f"ALTER TABLE {table} AUTO_INCREMENT={(key << 48) + 1}"
+                reset_query = (
+                    f"ALTER TABLE {table} AUTO_INCREMENT={(key << 48) + 1}"
+                )
                 engine.execute(reset_query)
             reset.add(str(table))
     return reset
@@ -262,5 +294,7 @@ limitlion.throttle_configure(redis_limitlion)
 
 # these are _required_. nylas shouldn't start if these aren't present.
 redis_txn = redis.Redis(
-    config["TXN_REDIS_HOSTNAME"], int(config["REDIS_PORT"]), db=config["TXN_REDIS_DB"]
+    config["TXN_REDIS_HOSTNAME"],
+    int(config["REDIS_PORT"]),
+    db=config["TXN_REDIS_DB"],
 )

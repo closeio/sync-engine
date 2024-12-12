@@ -1,4 +1,5 @@
-"""Remove Transaction ForeignKeys
+"""
+Remove Transaction ForeignKeys
 
 Revision ID: 23ff7f0b506d
 Revises: 3df39f4fbdec
@@ -14,9 +15,11 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
-    conn.execute(text("ALTER TABLE transaction DROP FOREIGN KEY transaction_ibfk_1"))
+    conn.execute(
+        text("ALTER TABLE transaction DROP FOREIGN KEY transaction_ibfk_1")
+    )
     conn.execute(
         text(
             "ALTER TABLE accounttransaction"
@@ -25,7 +28,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         text(

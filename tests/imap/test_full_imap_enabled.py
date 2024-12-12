@@ -2,16 +2,13 @@ from unittest.mock import Mock
 
 from imapclient import IMAPClient
 
-from inbox.auth.generic import GenericAuthHandler
-from inbox.exceptions import UserRecoverableConfigError
-
 
 class MockIMAPClient(IMAPClient):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("randomhost")
 
-    def _create_IMAP4(self):
+    def _create_IMAP4(self):  # noqa: N802
         return Mock()
 
-    def logout(self):
+    def logout(self) -> None:
         pass

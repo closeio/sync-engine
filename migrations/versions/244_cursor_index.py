@@ -1,4 +1,5 @@
-"""Add index for cursor queries
+"""
+Add index for cursor queries
 
 Revision ID: 2c67046c548d
 Revises: 2c47d9226de6
@@ -13,7 +14,7 @@ down_revision = "2c47d9226de6"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "ix_transaction_namespace_id_object_type_id",
         "transaction",
@@ -22,7 +23,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index(
         "ix_transaction_namespace_id_object_type_id", table_name="transaction"
     )

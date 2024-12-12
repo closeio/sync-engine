@@ -1,4 +1,5 @@
-"""Add Message.categories_change_counter
+"""
+Add Message.categories_change_counter
 
 Revision ID: 3cf51fb0e76a
 Revises: 691fa97024d
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column(
         "message",
         "state",
@@ -45,5 +46,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     pass

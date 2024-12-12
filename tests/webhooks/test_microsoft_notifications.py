@@ -10,11 +10,13 @@ from inbox.models.event import Event
 
 @pytest.fixture(autouse=True)
 def populate_microsoft_subscrtipion_secret():
-    with mock.patch.dict(config, {"MICROSOFT_SUBSCRIPTION_SECRET": "good_s3cr3t"}):
+    with mock.patch.dict(
+        config, {"MICROSOFT_SUBSCRIPTION_SECRET": "good_s3cr3t"}
+    ):
         yield
 
 
-def test_handle_initial_validation_response(test_client):
+def test_handle_initial_validation_response(test_client) -> None:
     response = test_client.post(
         "/w/microsoft/calendar_list_update/fake_id",
         query_string={"validationToken": "asd"},
@@ -25,7 +27,7 @@ def test_handle_initial_validation_response(test_client):
     assert response.status_code == 200
 
 
-def test_validate_webhook_payload_malformed(test_client):
+def test_validate_webhook_payload_malformed(test_client) -> None:
     response = test_client.post(
         "/w/microsoft/calendar_list_update/fake_id", data="something"
     )
@@ -34,7 +36,7 @@ def test_validate_webhook_payload_malformed(test_client):
     assert response.status_code == 415
 
 
-def test_validate_webhook_payload_missing_content_type(test_client):
+def test_validate_webhook_payload_missing_content_type(test_client) -> None:
     response = test_client.post(
         "/w/microsoft/calendar_list_update/fake_id", data='{"value": []}'
     )
@@ -43,7 +45,7 @@ def test_validate_webhook_payload_missing_content_type(test_client):
     assert response.status_code == 415
 
 
-def test_validate_webhook_payload_with_content_type(test_client):
+def test_validate_webhook_payload_with_content_type(test_client) -> None:
     response = test_client.post(
         "/w/microsoft/calendar_list_update/fake_id",
         data='{"value": []}',
@@ -71,7 +73,10 @@ bad_type_payload = {
     "value": [
         {
             "changeType": "updated",
-            "resourceData": {"@odata.type": "#Microsoft.Graph.Event", "id": "fake_id"},
+            "resourceData": {
+                "@odata.type": "#Microsoft.Graph.Event",
+                "id": "fake_id",
+            },
             "clientState": "good_s3cr3t",
         }
     ]
@@ -79,16 +84,19 @@ bad_type_payload = {
 
 
 @pytest.mark.parametrize(
-    "payload,data",
+    ("payload", "data"),
     [
         (
             bad_client_state_payload,
             "'clientState' did not match one provided when creating subscription",
         ),
-        (bad_type_payload, "Expected '@odata.type' to be '#Microsoft.Graph.Calendar'"),
+        (
+            bad_type_payload,
+            "Expected '@odata.type' to be '#Microsoft.Graph.Calendar'",
+        ),
     ],
 )
-def test_validate_webhook_payload(test_client, payload, data):
+def test_validate_webhook_payload(test_client, payload, data) -> None:
     response = test_client.post(
         "/w/microsoft/calendar_list_update/fake_id", json=payload
     )
@@ -97,7 +105,7 @@ def test_validate_webhook_payload(test_client, payload, data):
     assert response.status_code == 400
 
 
-def test_calendar_update_404(test_client):
+def test_calendar_update_404(test_client) -> None:
     response = test_client.post(
         "/w/microsoft/calendar_list_update/does_not_exist",
         json={
@@ -117,7 +125,7 @@ def test_calendar_update_404(test_client):
     assert response.status_code == 404
 
 
-def test_calendar_update(db, test_client, outlook_account):
+def test_calendar_update(db, test_client, outlook_account) -> None:
     assert outlook_account.webhook_calendar_list_last_ping is None
 
     response = test_client.post(
@@ -142,7 +150,7 @@ def test_calendar_update(db, test_client, outlook_account):
     assert response.status_code == 200
 
 
-def test_subscription_removed(test_client, outlook_account):
+def test_subscription_removed(test_client, outlook_account) -> None:
     response = test_client.post(
         f"/w/microsoft/calendar_list_update/{outlook_account.public_id}",
         json={
@@ -160,7 +168,7 @@ def test_subscription_removed(test_client, outlook_account):
     assert response.status_code == 200
 
 
-def test_event_update_404(test_client):
+def test_event_update_404(test_client) -> None:
     response = test_client.post(
         "/w/microsoft/calendar_update/does_not_exist",
         json={
@@ -180,7 +188,7 @@ def test_event_update_404(test_client):
     assert response.status_code == 404
 
 
-def test_event_update(db, test_client, outlook_account):
+def test_event_update(db, test_client, outlook_account) -> None:
     calendar = Calendar(
         name="Calendar",
         uid="uid",
@@ -215,7 +223,7 @@ def test_event_update(db, test_client, outlook_account):
     assert response.status_code == 200
 
 
-def test_event_delete(db, test_client, outlook_account):
+def test_event_delete(db, test_client, outlook_account) -> None:
     calendar = Calendar(
         name="Calendar",
         uid="uid",

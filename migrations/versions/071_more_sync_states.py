@@ -1,4 +1,5 @@
-"""more sync states
+"""
+more sync states
 
 Revision ID: 3bb5d61c895c
 Revises: 2525c5245cc2
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column(
         "account",
         "sync_state",
@@ -24,11 +25,13 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column(
         "account",
         "sync_state",
         type_=sa.Enum("running", "stopped", "killed"),
-        existing_type=sa.Enum("running", "stopped", "killed", "invalid", "connerror"),
+        existing_type=sa.Enum(
+            "running", "stopped", "killed", "invalid", "connerror"
+        ),
         existing_nullable=True,
     )

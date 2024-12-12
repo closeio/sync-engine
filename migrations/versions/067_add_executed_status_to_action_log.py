@@ -1,4 +1,5 @@
-"""add executed status to action log
+"""
+add executed status to action log
 
 Revision ID: 322c2800c401
 Revises: 4f3a1f6eaee3
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     # Purge any existing entries.
     op.drop_table("actionlog")
     op.create_table(
@@ -43,12 +44,15 @@ def upgrade():
         "ix_actionlog_deleted_at", "actionlog", ["deleted_at"], unique=False
     )
     op.create_index(
-        "ix_actionlog_namespace_id", "actionlog", ["namespace_id"], unique=False
+        "ix_actionlog_namespace_id",
+        "actionlog",
+        ["namespace_id"],
+        unique=False,
     )
     op.create_index(
         "ix_actionlog_updated_at", "actionlog", ["updated_at"], unique=False
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("actionlog", "executed")

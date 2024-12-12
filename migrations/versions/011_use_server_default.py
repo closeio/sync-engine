@@ -1,4 +1,5 @@
-"""Use server_default
+"""
+Use server_default
 
 Revision ID: 3237b6b1ee03
 Revises: 193802835c33
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     # Base tables
     op.alter_column(
         "account",
@@ -103,7 +104,11 @@ def upgrade():
         "state",
         server_default="initial",
         existing_type=sa.Enum(
-            "initial", "initial uidinvalid", "poll", "poll uidinvalid", "finish"
+            "initial",
+            "initial uidinvalid",
+            "poll",
+            "poll uidinvalid",
+            "finish",
         ),
         existing_server_default=sa.sql.expression.null(),
         existing_nullable=False,
@@ -158,7 +163,11 @@ def upgrade():
         "state",
         server_default="initial",
         existing_type=sa.Enum(
-            "initial", "initial uidinvalid", "poll", "poll uidinvalid", "finish"
+            "initial",
+            "initial uidinvalid",
+            "poll",
+            "poll uidinvalid",
+            "finish",
         ),
         existing_server_default=sa.sql.expression.null(),
         existing_nullable=False,
@@ -174,7 +183,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     # Only downgrade those that can be nullable
     op.alter_column(
         "account",

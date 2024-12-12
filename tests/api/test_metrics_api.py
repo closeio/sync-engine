@@ -5,13 +5,12 @@ import pytest
 
 from inbox.ignition import redis_txn
 from inbox.models.namespace import Namespace
-
 from tests.util.base import add_fake_message
 
 
 class TestGlobalDeltas:
     @pytest.fixture(autouse=True)
-    def clear_redis(self):
+    def clear_redis(self) -> None:
         redis_txn.flushdb()
 
     @pytest.fixture
@@ -22,7 +21,9 @@ class TestGlobalDeltas:
         with app.test_client() as c:
             yield c
 
-    def test_global_deltas(self, db, unauthed_api_client, default_namespace, thread):
+    def test_global_deltas(
+        self, db, unauthed_api_client, default_namespace, thread
+    ) -> None:
         deltas_base_url = "/metrics/global-deltas/"
 
         # add a fake message
@@ -40,7 +41,9 @@ class TestGlobalDeltas:
         txnid = deltas["txnid_end"]
 
         # pull again, but with a cursor this time. nothing should be returned
-        response = unauthed_api_client.get(f"/metrics/global-deltas?txnid={txnid}")
+        response = unauthed_api_client.get(
+            f"/metrics/global-deltas?txnid={txnid}"
+        )
         deltas = json.loads(response.data)
         assert not deltas["deltas"]
         assert txnid == deltas["txnid_end"]
@@ -54,7 +57,9 @@ class TestGlobalDeltas:
         )
 
         # pull for global deltas again with a txnid
-        response = unauthed_api_client.get(f"/metrics/global-deltas?txnid={txnid}")
+        response = unauthed_api_client.get(
+            f"/metrics/global-deltas?txnid={txnid}"
+        )
         deltas = json.loads(response.data)
 
         # the default namespace should be returned again
@@ -62,21 +67,24 @@ class TestGlobalDeltas:
         assert deltas["txnid_end"] > txnid
 
 
-def test_metrics_index(test_client, outlook_account):
+def test_metrics_index(test_client, outlook_account) -> None:
     metrics = test_client.get("/metrics")
 
     (outlook_account_metrics,) = metrics.json
     assert outlook_account_metrics["account_private_id"] == outlook_account.id
     assert (
-        outlook_account_metrics["namespace_private_id"] == outlook_account.namespace.id
+        outlook_account_metrics["namespace_private_id"]
+        == outlook_account.namespace.id
     )
 
 
 def test_metrics_index_busted_account(
     db, test_client, outlook_account, default_account
-):
+) -> None:
     # Bust outlook_account by deleting its namespace
-    db.session.query(Namespace).filter_by(id=outlook_account.namespace.id).delete()
+    db.session.query(Namespace).filter_by(
+        id=outlook_account.namespace.id
+    ).delete()
     db.session.commit()
 
     with mock.patch("inbox.api.metrics_api.log") as log_mock:
@@ -92,5 +100,6 @@ def test_metrics_index_busted_account(
     (default_account_metrics,) = metrics.json
     assert default_account_metrics["account_private_id"] == default_account.id
     assert (
-        default_account_metrics["namespace_private_id"] == default_account.namespace.id
+        default_account_metrics["namespace_private_id"]
+        == default_account.namespace.id
     )

@@ -1,4 +1,5 @@
-"""add searchindexcursor.
+"""
+add searchindexcursor.
 
 Revision ID: 526eefc1d600
 Revises: 8c2406df6f8
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "searchindexcursor",
         sa.Column("created_at", sa.DateTime(), nullable=False),
@@ -52,7 +53,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_constraint(
         "searchindexcursor_ibfk_1", "searchindexcursor", type_="foreignkey"
     )

@@ -3,7 +3,7 @@ import statsd
 from inbox.config import config
 
 
-def get_statsd_client():
+def get_statsd_client():  # noqa: ANN201
     return statsd.StatsClient(
         str(config.get("STATSD_HOST", "localhost")),
         config.get("STATSD_PORT", 8125),

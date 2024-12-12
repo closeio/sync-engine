@@ -1,4 +1,5 @@
-"""remove easeventuid
+"""
+remove easeventuid
 
 Revision ID: 581e91bd7141
 Revises: 262436681c4
@@ -10,10 +11,12 @@ Create Date: 2015-01-10 00:57:50.944460
 revision = "581e91bd7141"
 down_revision = "262436681c4"
 
+from typing import Never
+
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine()
@@ -28,5 +31,5 @@ def upgrade():
     op.drop_table("easeventuid")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("No going back.")

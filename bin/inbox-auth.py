@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 
 import sys
@@ -29,14 +29,17 @@ configure_logging(config.get("LOGLEVEL"))
     help="Re-authenticate an account even if it already exists",
 )
 @click.option(
-    "--target", type=int, default=0, help="Database shard id to target for the account"
+    "--target",
+    type=int,
+    default=0,
+    help="Database shard id to target for the account",
 )
 @click.option(
     "--provider",
     is_flag=False,
     help="Manually specify the provider instead of trying to detect it",
 )
-def main(email_address, reauth, target, provider):
+def main(email_address, reauth, target, provider) -> None:
     """Auth an email account."""
     preflight()
 
@@ -46,7 +49,9 @@ def main(email_address, reauth, target, provider):
 
     with session_scope(shard_id) as db_session:
         account = (
-            db_session.query(Account).filter_by(email_address=email_address).first()
+            db_session.query(Account)
+            .filter_by(email_address=email_address)
+            .first()
         )
         if account is not None and not reauth:
             sys.exit("Already have this account!")

@@ -1,4 +1,5 @@
-"""migrate_secret_data
+"""
+migrate_secret_data
 
 Revision ID: 38c29430efeb
 Revises: 1683790906cf
@@ -13,7 +14,7 @@ down_revision = "1683790906cf"
 import sqlalchemy as sa
 
 
-def upgrade():
+def upgrade() -> None:
     import nacl.secret
     import nacl.utils
 
@@ -22,7 +23,7 @@ def upgrade():
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = sa.ext.declarative.declarative_base()
+    Base = sa.ext.declarative.declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Secret(Base):
@@ -32,7 +33,9 @@ def upgrade():
         __table__ = Base.metadata.tables["genericaccount"]
 
     with session_scope(versioned=False) as db_session:
-        secrets = db_session.query(Secret).filter(Secret.secret.isnot(None)).all()
+        secrets = (
+            db_session.query(Secret).filter(Secret.secret.isnot(None)).all()
+        )
 
         # Join on the genericaccount and optionally easaccount tables to
         # determine which secrets should have type 'password'.
@@ -56,7 +59,9 @@ def upgrade():
 
         for s in secrets:
             plain = (
-                s.secret.encode("utf-8") if isinstance(s.secret, unicode) else s.secret
+                s.secret.encode("utf-8")
+                if isinstance(s.secret, unicode)  # noqa: F821
+                else s.secret
             )
             if config.get_required("ENCRYPT_SECRETS"):
                 s._secret = nacl.secret.SecretBox(
@@ -82,5 +87,5 @@ def upgrade():
         db_session.commit()
 
 
-def downgrade():
+def downgrade() -> None:
     pass

@@ -25,7 +25,7 @@ log = get_logger()
 EPOCH = datetime.utcfromtimestamp(0)
 
 
-def sanitize_name(name):
+def sanitize_name(name):  # noqa: ANN201
     return unicode_safe_truncate(name, MAX_INDEXABLE_LENGTH)
 
 
@@ -42,13 +42,17 @@ class CategoryNameString(StringWithTransform):
     type match the values that we are actually storing in the database.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(sanitize_name, MAX_INDEXABLE_LENGTH, collation="utf8mb4_bin")
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(
+            sanitize_name, MAX_INDEXABLE_LENGTH, collation="utf8mb4_bin"
+        )
 
 
-class Category(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin):
+class Category(
+    MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin
+):
     @property
-    def API_OBJECT_NAME(self):
+    def API_OBJECT_NAME(self):  # noqa: ANN201, N802
         return self.type_
 
     # Override the default `deleted_at` column with one that is NOT NULL --
@@ -61,7 +65,10 @@ class Category(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedA
     # Need `use_alter` here to avoid circular dependencies
     namespace_id = Column(
         ForeignKey(
-            "namespace.id", use_alter=True, name="category_fk1", ondelete="CASCADE"
+            "namespace.id",
+            use_alter=True,
+            name="category_fk1",
+            ondelete="CASCADE",
         ),
         nullable=False,
     )
@@ -74,7 +81,7 @@ class Category(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedA
     type_ = Column(Enum("folder", "label"), nullable=False, default="folder")
 
     @validates("display_name")
-    def validate_display_name(self, key, display_name):
+    def validate_display_name(self, key, display_name):  # noqa: ANN201
         sanitized_name = sanitize_name(display_name)
         if sanitized_name != display_name:
             log.warning(
@@ -85,12 +92,17 @@ class Category(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedA
         return sanitized_name
 
     @classmethod
-    def find_or_create(cls, session, namespace_id, name, display_name, type_):
+    def find_or_create(  # noqa: ANN206
+        cls, session, namespace_id, name, display_name, type_
+    ):
         name = name or ""
 
         objects = (
             session.query(cls)
-            .filter(cls.namespace_id == namespace_id, cls.display_name == display_name)
+            .filter(
+                cls.namespace_id == namespace_id,
+                cls.display_name == display_name,
+            )
             .all()
         )
 
@@ -126,7 +138,9 @@ class Category(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedA
         return obj
 
     @classmethod
-    def create(cls, session, namespace_id, name, display_name, type_):
+    def create(  # noqa: ANN206
+        cls, session, namespace_id, name, display_name, type_
+    ):
         name = name or ""
         obj = cls(
             namespace_id=namespace_id,
@@ -139,23 +153,23 @@ class Category(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedA
         return obj
 
     @property
-    def account(self):
+    def account(self):  # noqa: ANN201
         return self.namespace.account
 
     @property
-    def type(self):
+    def type(self):  # noqa: ANN201
         return self.account.category_type
 
     @hybrid_property
-    def lowercase_name(self):
+    def lowercase_name(self):  # noqa: ANN201
         return self.display_name.lower()
 
     @lowercase_name.comparator
-    def lowercase_name(cls):
+    def lowercase_name(cls):  # noqa: ANN201, N805
         return CaseInsensitiveComparator(cls.display_name)
 
     @property
-    def api_display_name(self):
+    def api_display_name(self):  # noqa: ANN201
         if self.namespace.account.provider == "gmail":
             if self.display_name.startswith("[Gmail]/"):
                 return self.display_name[8:]
@@ -172,7 +186,7 @@ class Category(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedA
         return self.display_name
 
     @property
-    def is_deleted(self):
+    def is_deleted(self):  # noqa: ANN201
         return self.deleted_at > EPOCH
 
     __table_args__ = (

@@ -12,7 +12,7 @@ class CalendarSyncAccountMixin:
         self.webhook_calendar_list_expiration = expiration
         self.webhook_calendar_list_last_ping = datetime.utcnow()
 
-    def handle_webhook_notification(self):
+    def handle_webhook_notification(self) -> None:
         self.webhook_calendar_list_last_ping = datetime.utcnow()
 
     def should_update_calendars(
@@ -25,6 +25,7 @@ class CalendarSyncAccountMixin:
 
             poll_frequency: Amount of time we should wait until
                 we sync if we don't have working push notifications.
+
         """
         now = datetime.utcnow()
         return (
@@ -44,7 +45,8 @@ class CalendarSyncAccountMixin:
             (
                 self.webhook_calendar_list_last_ping is not None
                 and (
-                    self.last_calendar_list_sync < self.webhook_calendar_list_last_ping
+                    self.last_calendar_list_sync
+                    < self.webhook_calendar_list_last_ping
                 )
             )
         )

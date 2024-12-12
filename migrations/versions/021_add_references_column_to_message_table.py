@@ -1,4 +1,5 @@
-"""Add references column to message table
+"""
+Add references column to message table
 
 Revision ID: 4fd291c6940c
 Revises: 10ef1d46f016
@@ -14,11 +15,11 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.sqlalchemy_ext.util import JSON
 
     op.add_column("message", sa.Column("references", JSON, nullable=True))
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("message", "references")

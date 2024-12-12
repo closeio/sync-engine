@@ -1,4 +1,5 @@
-"""create_message_actionlog_indexes
+"""
+create_message_actionlog_indexes
 
 Revision ID: 69c4b13c806
 Revises: 1449eededf1
@@ -10,11 +11,10 @@ Create Date: 2018-06-19 14:11:06.448247
 revision = "69c4b13c806"
 down_revision = "1449eededf1"
 
-import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "ix_message_namespace_id_received_date",
         "message",
@@ -28,7 +28,11 @@ def upgrade():
     )
 
 
-def downgrade():
-    op.drop_index("ix_message_namespace_id_received_date", table_name="message")
+def downgrade() -> None:
+    op.drop_index(
+        "ix_message_namespace_id_received_date", table_name="message"
+    )
 
-    op.drop_index("ix_actionlog_namespace_id_status_type", table_name="actionlog")
+    op.drop_index(
+        "ix_actionlog_namespace_id_status_type", table_name="actionlog"
+    )

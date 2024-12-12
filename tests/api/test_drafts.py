@@ -1,4 +1,5 @@
-"""Test local behavior for the drafts API. Doesn't test syncback or actual
+"""
+Test local behavior for the drafts API. Doesn't test syncback or actual
 sending.
 """
 
@@ -18,7 +19,10 @@ def example_draft(db, default_account):
         "subject": f"Draft test at {datetime.utcnow()}",
         "body": "<html><body><h2>Sea, birds and sand.</h2></body></html>",
         "to": [
-            {"name": "The red-haired mermaid", "email": default_account.email_address}
+            {
+                "name": "The red-haired mermaid",
+                "email": default_account.email_address,
+            }
         ],
     }
 
@@ -40,13 +44,16 @@ def example_bad_recipient_drafts():
     return [empty_email, bad_email]
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def attachments(db):
     filenames = ["muir.jpg", "LetMeSendYouEmail.wav", "piece-jointe.jpg"]
     data = []
     for filename in filenames:
-        path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "..", "data", filename
+        path = os.path.join(  # noqa: PTH118
+            os.path.dirname(os.path.abspath(__file__)),  # noqa: PTH100, PTH120
+            "..",
+            "data",
+            filename,
         ).encode("utf-8")
         # Mac and linux fight over filesystem encodings if we store this
         # filename on the fs. Work around by changing the filename we upload
@@ -72,7 +79,7 @@ def patch_remote_save_draft(monkeypatch):
 
 def test_save_update_bad_recipient_draft(
     db, patch_remote_save_draft, default_account, example_bad_recipient_drafts
-):
+) -> None:
     # You should be able to save a draft, even if
     # the recipient's email is invalid.
     from inbox.actions.base import save_draft
@@ -88,7 +95,7 @@ def test_save_update_bad_recipient_draft(
     assert len(patch_remote_save_draft) == 2
 
 
-def test_create_and_get_draft(api_client, example_draft):
+def test_create_and_get_draft(api_client, example_draft) -> None:
     r = api_client.post_data("/drafts", example_draft)
     assert r.status_code == 200
 
@@ -104,7 +111,7 @@ def test_create_and_get_draft(api_client, example_draft):
     assert all(saved_draft[k] == v for k, v in example_draft.items())
 
 
-def test_create_draft_replying_to_thread(api_client, thread, message):
+def test_create_draft_replying_to_thread(api_client, thread, message) -> None:
     thread = api_client.get_data("/threads")[0]
     thread_id = thread["id"]
     latest_message_id = thread["message_ids"][-1]
@@ -127,7 +134,7 @@ def test_create_draft_replying_to_thread(api_client, thread, message):
     assert draft_id in thread_data["draft_ids"]
 
 
-def test_create_draft_replying_to_message(api_client, message):
+def test_create_draft_replying_to_message(api_client, message) -> None:
     message = api_client.get_data("/messages")[0]
     reply_draft = {
         "subject": "test reply",
@@ -142,7 +149,7 @@ def test_create_draft_replying_to_message(api_client, message):
 
 def test_reject_incompatible_reply_thread_and_message(
     db, api_client, message, thread, default_namespace
-):
+) -> None:
     alt_thread = add_fake_thread(db.session, default_namespace.id)
     add_fake_message(db.session, default_namespace.id, alt_thread)
 
@@ -159,7 +166,7 @@ def test_reject_incompatible_reply_thread_and_message(
     assert r.status_code == 400
 
 
-def test_drafts_filter(api_client, example_draft):
+def test_drafts_filter(api_client, example_draft) -> None:
     r = api_client.post_data("/drafts", example_draft)
     thread_id = json.loads(r.data)["thread_id"]
 
@@ -183,11 +190,13 @@ def test_drafts_filter(api_client, example_draft):
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_create_draft_with_attachments(api_client, attachments, example_draft):
+def test_create_draft_with_attachments(
+    api_client, attachments, example_draft
+) -> None:
     attachment_ids = []
     upload_path = "/files"
     for filename, path in attachments:
-        with open(path, "rb") as fp:
+        with open(path, "rb") as fp:  # noqa: PTH123
             data = {"file": (fp, filename)}
             r = api_client.post_raw(upload_path, data=data)
         assert r.status_code == 200
@@ -241,7 +250,7 @@ def test_create_draft_with_attachments(api_client, attachments, example_draft):
         assert r.status_code == 200
 
 
-def test_get_all_drafts(api_client, example_draft):
+def test_get_all_drafts(api_client, example_draft) -> None:
     r = api_client.post_data("/drafts", example_draft)
     first_public_id = json.loads(r.data)["id"]
 
@@ -251,11 +260,13 @@ def test_get_all_drafts(api_client, example_draft):
     drafts = api_client.get_data("/drafts")
     assert len(drafts) == 2
     assert first_public_id != second_public_id
-    assert {first_public_id, second_public_id} == {draft["id"] for draft in drafts}
+    assert {first_public_id, second_public_id} == {
+        draft["id"] for draft in drafts
+    }
     assert all(item["object"] == "draft" for item in drafts)
 
 
-def test_update_draft(api_client):
+def test_update_draft(api_client) -> None:
     with freeze_time(datetime.now()) as freezer:
         original_draft = {"subject": "original draft", "body": "parent draft"}
         r = api_client.post_data("/drafts", original_draft)
@@ -283,13 +294,15 @@ def test_update_draft(api_client):
         assert drafts[0]["id"] == updated_public_id
 
         # Check that the thread is updated too.
-        thread = api_client.get_data("/threads/{}".format(drafts[0]["thread_id"]))
+        thread = api_client.get_data(
+            "/threads/{}".format(drafts[0]["thread_id"])
+        )
         assert thread["subject"] == "updated draft"
         assert thread["first_message_timestamp"] == drafts[0]["date"]
         assert thread["last_message_timestamp"] == drafts[0]["date"]
 
 
-def test_delete_draft(api_client, thread, message):
+def test_delete_draft(api_client, thread, message) -> None:
     original_draft = {"subject": "parent draft", "body": "parent draft"}
     r = api_client.post_data("/drafts", original_draft)
     draft_public_id = json.loads(r.data)["id"]
@@ -304,7 +317,9 @@ def test_delete_draft(api_client, thread, message):
     updated_public_id = json.loads(r.data)["id"]
     updated_version = json.loads(r.data)["version"]
 
-    r = api_client.delete(f"/drafts/{updated_public_id}", {"version": updated_version})
+    r = api_client.delete(
+        f"/drafts/{updated_public_id}", {"version": updated_version}
+    )
 
     # Check that drafts were deleted
     drafts = api_client.get_data("/drafts")
@@ -335,7 +350,7 @@ def test_delete_draft(api_client, thread, message):
     assert len(thread["draft_ids"]) == 0
 
 
-def test_delete_remote_draft(db, api_client, message):
+def test_delete_remote_draft(db, api_client, message) -> None:
     message.is_draft = True
     db.session.commit()
 
@@ -345,7 +360,8 @@ def test_delete_remote_draft(db, api_client, message):
     public_id = drafts[0]["id"]
     version = drafts[0]["version"]
 
-    assert public_id == message.public_id and version == message.version
+    assert public_id == message.public_id
+    assert version == message.version
 
     api_client.delete(f"/drafts/{public_id}", {"version": version})
 
@@ -354,7 +370,7 @@ def test_delete_remote_draft(db, api_client, message):
     assert not drafts
 
 
-def test_conflicting_updates(api_client):
+def test_conflicting_updates(api_client) -> None:
     original_draft = {"subject": "parent draft", "body": "parent draft"}
     r = api_client.post_data("/drafts", original_draft)
     original_public_id = json.loads(r.data)["id"]
@@ -384,8 +400,12 @@ def test_conflicting_updates(api_client):
     assert drafts[0]["id"] == updated_public_id
 
 
-def test_update_to_nonexistent_draft(api_client):
-    updated_draft = {"subject": "updated draft", "body": "updated draft", "version": 22}
+def test_update_to_nonexistent_draft(api_client) -> None:
+    updated_draft = {
+        "subject": "updated draft",
+        "body": "updated draft",
+        "version": 22,
+    }
 
     r = api_client.put_data("/drafts/{}".format("notarealid"), updated_draft)
     assert r.status_code == 404
@@ -393,11 +413,14 @@ def test_update_to_nonexistent_draft(api_client):
     assert len(drafts) == 0
 
 
-def test_contacts_updated(api_client):
-    """Tests that draft-contact associations are properly created and
+def test_contacts_updated(api_client) -> None:
+    """
+    Tests that draft-contact associations are properly created and
     updated.
     """
-    draft = {"to": [{"email": "alice@example.com"}, {"email": "bob@example.com"}]}
+    draft = {
+        "to": [{"email": "alice@example.com"}, {"email": "bob@example.com"}]
+    }
 
     r = api_client.post_data("/drafts", draft)
     assert r.status_code == 200
@@ -425,7 +448,9 @@ def test_contacts_updated(api_client):
     assert len(r) == 1
 
     # Check that contacts aren't created for garbage recipients.
-    r = api_client.post_data("/drafts", {"to": [{"name": "who", "email": "nope"}]})
+    r = api_client.post_data(
+        "/drafts", {"to": [{"name": "who", "email": "nope"}]}
+    )
     assert r.status_code == 200
     r = api_client.get_data("/threads?to=nope")
     assert len(r) == 0

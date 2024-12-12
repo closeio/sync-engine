@@ -1,4 +1,5 @@
-"""easaccount.username and easaccount.auth
+"""
+easaccount.username and easaccount.auth
 
 Revision ID: 2f97277cd86d
 Revises: 3cea90bfcdea
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine()
@@ -26,14 +27,16 @@ def upgrade():
     # Furthermore, we won't always get a username.
     from inbox.models.constants import MAX_INDEXABLE_LENGTH
 
-    op.add_column("easaccount", sa.Column("username", sa.String(255), nullable=True))
+    op.add_column(
+        "easaccount", sa.Column("username", sa.String(255), nullable=True)
+    )
 
     op.add_column(
         "easaccount",
         sa.Column("eas_auth", sa.String(MAX_INDEXABLE_LENGTH), nullable=True),
     )
 
-    Base = sa.ext.declarative.declarative_base()
+    Base = sa.ext.declarative.declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
     from inbox.models.session import session_scope
 
@@ -57,7 +60,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine()

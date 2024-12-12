@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 
 import click
@@ -10,7 +10,7 @@ from inbox.ignition import EngineManager, reset_invalid_autoincrements
 
 @click.command()
 @click.option("--dry-run", is_flag=True)
-def reset_db(dry_run):
+def reset_db(dry_run) -> None:
     maybe_enable_rollbar()
 
     database_hosts = config.get_required("DATABASE_HOSTS")
@@ -29,7 +29,9 @@ def reset_db(dry_run):
             schema = shard["SCHEMA_NAME"]
 
             print(f"Resetting invalid autoincrements for database: {schema}")
-            reset_tables = reset_invalid_autoincrements(engine, schema, key, dry_run)
+            reset_tables = reset_invalid_autoincrements(
+                engine, schema, key, dry_run
+            )
             if dry_run:
                 print("dry_run=True")
             if reset_tables:

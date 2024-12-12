@@ -1,4 +1,5 @@
-"""add last_modified column for events
+"""
+add last_modified column for events
 
 Revision ID: 54dcea22a268
 Revises: 486c7fa5b533
@@ -14,13 +15,13 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
     conn.execute(text("ALTER TABLE event ADD COLUMN last_modified DATETIME"))
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
     conn.execute(text("ALTER TABLE event DROP COLUMN last_modified"))

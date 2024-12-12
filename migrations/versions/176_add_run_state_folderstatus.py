@@ -1,4 +1,5 @@
-"""add run state to non-eas folders
+"""
+add run state to non-eas folders
 
 Revision ID: 48a1991e5dbd
 Revises: 6e5b154d917
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "imapfoldersyncstatus",
         sa.Column(
@@ -26,5 +27,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("imapfoldersyncstatus", "sync_should_run")

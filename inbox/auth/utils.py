@@ -1,5 +1,4 @@
 import ssl
-from typing import Union
 
 from imapclient import IMAPClient
 
@@ -9,17 +8,17 @@ from inbox.logging import get_logger
 log = get_logger()
 
 
-def safe_decode(message: Union[str, bytes]) -> str:
+def safe_decode(message: str | bytes) -> str:
     if isinstance(message, bytes):
         return message.decode("utf-8", errors="replace")
 
     return message
 
 
-def auth_requires_app_password(exc):
+def auth_requires_app_password(exc):  # noqa: ANN201
     # Some servers require an application specific password, token, or
     # authorization code to login
-    PREFIXES = (
+    PREFIXES = (  # noqa: N806
         "Please using authorized code to login.",  # http://service.mail.qq.com/cgi-bin/help?subtype=1&&id=28&&no=1001256
         "Authorized code is incorrect",  # http://service.mail.qq.com/cgi-bin/help?subtype=1&&id=28&&no=1001256
         "Login fail. Please using weixin token",  # http://service.exmail.qq.com/cgi-bin/help?subtype=1&no=1001023&id=23.
@@ -28,12 +27,12 @@ def auth_requires_app_password(exc):
     return any(message.lower().startswith(msg.lower()) for msg in PREFIXES)
 
 
-def auth_is_invalid(exc):
+def auth_is_invalid(exc):  # noqa: ANN201
     # IMAP doesn't really have error semantics, so we have to match the error
     # message against a list of known response strings to determine whether we
     # couldn't log in because the credentials are invalid, or because of some
     # temporary server error.
-    AUTH_INVALID_PREFIXES = (
+    AUTH_INVALID_PREFIXES = (  # noqa: N806
         "[authenticationfailed]",
         "incorrect username or password",
         "invalid login or password",
@@ -55,10 +54,13 @@ def auth_is_invalid(exc):
         "incorrect password",
     )
     message = safe_decode(exc.args[0]) if exc.args else ""
-    return any(message.lower().startswith(msg.lower()) for msg in AUTH_INVALID_PREFIXES)
+    return any(
+        message.lower().startswith(msg.lower())
+        for msg in AUTH_INVALID_PREFIXES
+    )
 
 
-def create_imap_connection(host, port, use_timeout=True):
+def create_imap_connection(host, port, use_timeout=True):  # noqa: ANN201
     """
     Return a connection to the IMAP server.
 
@@ -68,6 +70,7 @@ def create_imap_connection(host, port, use_timeout=True):
     Raises:
         SSLNotSupportedError: If an encrypted connection is not supported by
             the IMAP server.
+
     """
     is_ssl_port = port == 993
     timeout = 300 if use_timeout else None
@@ -97,7 +100,7 @@ def create_imap_connection(host, port, use_timeout=True):
     return conn
 
 
-def create_default_context():
+def create_default_context():  # noqa: ANN201
     """
     Return a backports.ssl.SSLContext object configured with sensible
     default settings. This was adapted from imapclient.create_default_context

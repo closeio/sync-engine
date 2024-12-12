@@ -1,13 +1,13 @@
 import json
 
 from inbox.models import Category, Message, MessageCategory, Thread
-
 from tests.api.base import new_api_client
 from tests.util.base import add_fake_message, add_fake_thread
 
 
-def test_category_delete(db, gmail_account):
-    """Ensure that all associated MessageCategories are deleted
+def test_category_delete(db, gmail_account) -> None:
+    """
+    Ensure that all associated MessageCategories are deleted
     when a Category is deleted
     """
     api_client = new_api_client(db, gmail_account.namespace)
@@ -23,7 +23,9 @@ def test_category_delete(db, gmail_account):
     category_id = category.id
 
     for _ in range(10):
-        generic_thread = add_fake_thread(db.session, gmail_account.namespace.id)
+        generic_thread = add_fake_thread(
+            db.session, gmail_account.namespace.id
+        )
         gen_message = add_fake_message(
             db.session, gmail_account.namespace.id, generic_thread
         )
@@ -49,8 +51,9 @@ def test_category_delete(db, gmail_account):
     )
 
 
-def test_message_delete(db, gmail_account):
-    """Ensure that all associated MessageCategories are deleted
+def test_message_delete(db, gmail_account) -> None:
+    """
+    Ensure that all associated MessageCategories are deleted
     when a Message is deleted
     """
     api_client = new_api_client(db, gmail_account.namespace)
@@ -89,25 +92,32 @@ def test_message_delete(db, gmail_account):
     )
 
 
-def test_thread_delete(db, gmail_account):
-    """Ensure that all associated Messages are deleted
+def test_thread_delete(db, gmail_account) -> None:
+    """
+    Ensure that all associated Messages are deleted
     when a Thread is deleted.
     """
     generic_thread = add_fake_thread(db.session, gmail_account.namespace.id)
     generic_message = add_fake_message(
         db.session, gmail_account.namespace.id, generic_thread
     )
-    assert db.session.query(Thread).filter(Thread.id == generic_thread.id).all() == [
-        generic_thread
-    ]
-    assert db.session.query(Message).filter(Message.id == generic_message.id).all() == [
-        generic_message
-    ]
+    assert db.session.query(Thread).filter(
+        Thread.id == generic_thread.id
+    ).all() == [generic_thread]
+    assert db.session.query(Message).filter(
+        Message.id == generic_message.id
+    ).all() == [generic_message]
 
     db.session.delete(generic_thread)
     db.session.commit()
 
-    assert db.session.query(Thread).filter(Thread.id == generic_thread.id).all() == []
     assert (
-        db.session.query(Message).filter(Message.id == generic_message.id).all() == []
+        db.session.query(Thread).filter(Thread.id == generic_thread.id).all()
+        == []
+    )
+    assert (
+        db.session.query(Message)
+        .filter(Message.id == generic_message.id)
+        .all()
+        == []
     )

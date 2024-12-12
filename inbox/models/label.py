@@ -18,7 +18,9 @@ class Label(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     # from inbox.models.account import Account
     # `use_alter` required here to avoid circular dependency w/Account
     account_id = Column(
-        ForeignKey("account.id", use_alter=True, name="label_fk1", ondelete="CASCADE"),
+        ForeignKey(
+            "account.id", use_alter=True, name="label_fk1", ondelete="CASCADE"
+        ),
         nullable=False,
     )
     account = relationship(
@@ -33,7 +35,9 @@ class Label(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     )
 
     name = Column(CategoryNameString(), nullable=False)
-    canonical_name = Column(String(MAX_INDEXABLE_LENGTH), nullable=False, default="")
+    canonical_name = Column(
+        String(MAX_INDEXABLE_LENGTH), nullable=False, default=""
+    )
 
     category_id = Column(ForeignKey(Category.id, ondelete="CASCADE"))
     category = relationship(
@@ -41,7 +45,7 @@ class Label(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     )
 
     @validates("name")
-    def validate_name(self, key, name):
+    def validate_name(self, key, name):  # noqa: ANN201
         sanitized_name = sanitize_name(name)
         if sanitized_name != name:
             log.warning(
@@ -52,7 +56,7 @@ class Label(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         return sanitized_name
 
     @classmethod
-    def find_or_create(cls, session, account, name, role=None):
+    def find_or_create(cls, session, account, name, role=None):  # noqa: ANN206
         q = session.query(cls).filter(cls.account_id == account.id)
 
         role = role or ""
@@ -74,4 +78,6 @@ class Label(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             session.add(obj)
         return obj
 
-    __table_args__ = (UniqueConstraint("account_id", "name", "canonical_name"),)
+    __table_args__ = (
+        UniqueConstraint("account_id", "name", "canonical_name"),
+    )

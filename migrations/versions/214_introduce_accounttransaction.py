@@ -1,4 +1,5 @@
-"""Introduce AccountTransaction.
+"""
+Introduce AccountTransaction.
 
 Revision ID: 4b83e064dd49
 Revises: 31aae1ecb374
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import context, op
 
 
-def upgrade():
+def upgrade() -> None:
     shard_id = int(context.config.get_main_option("shard_id"))
     namespace_id_type = sa.Integer() if shard_id == 0 else sa.BigInteger()
 
@@ -29,7 +30,9 @@ def upgrade():
         sa.Column("object_type", sa.String(20), nullable=False),
         sa.Column("record_id", sa.BigInteger(), nullable=False),
         sa.Column("object_public_id", sa.String(191), nullable=False),
-        sa.Column("command", sa.Enum("insert", "update", "delete"), nullable=False),
+        sa.Column(
+            "command", sa.Enum("insert", "update", "delete"), nullable=False
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(["namespace_id"], ["namespace.id"]),
     )
@@ -58,7 +61,10 @@ def upgrade():
         unique=False,
     )
     op.create_index(
-        "ix_accounttransaction_command", "accounttransaction", ["command"], unique=False
+        "ix_accounttransaction_command",
+        "accounttransaction",
+        ["command"],
+        unique=False,
     )
     op.create_index(
         "ix_accounttransaction_object_type_record_id",
@@ -78,5 +84,5 @@ def upgrade():
     conn.execute(f"ALTER TABLE accounttransaction AUTO_INCREMENT={increment}")
 
 
-def downgrade():
+def downgrade() -> None:
     pass

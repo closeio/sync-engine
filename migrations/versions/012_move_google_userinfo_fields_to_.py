@@ -1,4 +1,5 @@
-"""Move Google UserInfo fields to ImapAccount table
+"""
+Move Google UserInfo fields to ImapAccount table
 
 Revision ID: 193802835c33
 Revises: 169cac0cd87e
@@ -16,38 +17,45 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import column, table
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
     # ADD:
     op.add_column(
-        "imapaccount", sa.Column("family_name", sa.String(length=255), nullable=True)
+        "imapaccount",
+        sa.Column("family_name", sa.String(length=255), nullable=True),
     )
     op.add_column(
-        "imapaccount", sa.Column("g_gender", sa.String(length=16), nullable=True)
+        "imapaccount",
+        sa.Column("g_gender", sa.String(length=16), nullable=True),
     )
     op.add_column(
-        "imapaccount", sa.Column("g_locale", sa.String(length=16), nullable=True)
+        "imapaccount",
+        sa.Column("g_locale", sa.String(length=16), nullable=True),
     )
     op.add_column(
-        "imapaccount", sa.Column("g_picture_url", sa.String(length=255), nullable=True)
+        "imapaccount",
+        sa.Column("g_picture_url", sa.String(length=255), nullable=True),
     )
     op.add_column(
-        "imapaccount", sa.Column("g_plus_url", sa.String(length=255), nullable=True)
+        "imapaccount",
+        sa.Column("g_plus_url", sa.String(length=255), nullable=True),
     )
     op.add_column(
-        "imapaccount", sa.Column("given_name", sa.String(length=255), nullable=True)
+        "imapaccount",
+        sa.Column("given_name", sa.String(length=255), nullable=True),
     )
     op.add_column(
-        "imapaccount", sa.Column("google_id", sa.String(length=255), nullable=True)
+        "imapaccount",
+        sa.Column("google_id", sa.String(length=255), nullable=True),
     )
 
     # MOVE:
-    class Account_(Base):
+    class Account_(Base):  # noqa: N801
         __table__ = Base.metadata.tables["account"]
 
     with session_scope() as db_session:
@@ -101,34 +109,42 @@ def upgrade():
     op.drop_column("account", "g_locale")
 
 
-def downgrade():
+def downgrade() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
     # ADD:
     op.add_column(
-        "account", sa.Column("family_name", sa.String(length=255), nullable=True)
-    )
-    op.add_column("account", sa.Column("g_gender", sa.String(length=16), nullable=True))
-    op.add_column("account", sa.Column("g_locale", sa.String(length=16), nullable=True))
-    op.add_column(
-        "account", sa.Column("g_picture_url", sa.String(length=255), nullable=True)
+        "account",
+        sa.Column("family_name", sa.String(length=255), nullable=True),
     )
     op.add_column(
-        "account", sa.Column("g_plus_url", sa.String(length=255), nullable=True)
+        "account", sa.Column("g_gender", sa.String(length=16), nullable=True)
     )
     op.add_column(
-        "account", sa.Column("given_name", sa.String(length=255), nullable=True)
+        "account", sa.Column("g_locale", sa.String(length=16), nullable=True)
+    )
+    op.add_column(
+        "account",
+        sa.Column("g_picture_url", sa.String(length=255), nullable=True),
+    )
+    op.add_column(
+        "account",
+        sa.Column("g_plus_url", sa.String(length=255), nullable=True),
+    )
+    op.add_column(
+        "account",
+        sa.Column("given_name", sa.String(length=255), nullable=True),
     )
     op.add_column(
         "account", sa.Column("google_id", sa.String(length=255), nullable=True)
     )
 
     # MOVE:
-    class ImapAccount_(Base):
+    class ImapAccount_(Base):  # noqa: N801
         __table__ = Base.metadata.tables["imapaccount"]
 
     with session_scope() as db_session:

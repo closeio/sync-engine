@@ -1,5 +1,3 @@
-from typing import Union
-
 from sqlalchemy import Boolean, Column, ForeignKey, String
 from sqlalchemy.orm import relationship
 
@@ -11,7 +9,9 @@ PROVIDER = "generic"
 
 
 class GenericAccount(ImapAccount):
-    id = Column(ForeignKey(ImapAccount.id, ondelete="CASCADE"), primary_key=True)
+    id = Column(
+        ForeignKey(ImapAccount.id, ondelete="CASCADE"), primary_key=True
+    )
 
     provider = Column(String(64))
     imap_username = Column(String(255), nullable=True)
@@ -46,7 +46,9 @@ class GenericAccount(ImapAccount):
 
     # Old Secret
     # TODO[logan]: delete once IMAP and SMTP secret are in production.
-    password_id = Column(ForeignKey(Secret.id, ondelete="CASCADE"), nullable=True)
+    password_id = Column(
+        ForeignKey(Secret.id, ondelete="CASCADE"), nullable=True
+    )
     old_secret = relationship(
         "Secret",
         cascade="all, delete-orphan",
@@ -59,12 +61,12 @@ class GenericAccount(ImapAccount):
     __mapper_args__ = {"polymorphic_identity": "genericaccount"}
 
     @property
-    def verbose_provider(self):
+    def verbose_provider(self):  # noqa: ANN201
         if self.provider == "custom":
             return "imap"
         return self.provider
 
-    def valid_password(self, value: Union[str, bytes]) -> bytes:
+    def valid_password(self, value: str | bytes) -> bytes:
         # Must be a valid UTF-8 byte sequence without NULL bytes.
         if not isinstance(value, bytes):
             value = value.encode("utf-8")
@@ -72,7 +74,7 @@ class GenericAccount(ImapAccount):
         try:
             value.decode("utf-8")
         except UnicodeDecodeError:
-            raise ValueError("Invalid password")
+            raise ValueError("Invalid password")  # noqa: B904
 
         if b"\x00" in value:
             raise ValueError("Invalid password")
@@ -84,7 +86,7 @@ class GenericAccount(ImapAccount):
         return self.imap_secret.secret.decode("utf-8")
 
     @imap_password.setter
-    def imap_password(self, value: Union[str, bytes]) -> None:
+    def imap_password(self, value: str | bytes) -> None:
         value: bytes = self.valid_password(value)
         if not self.imap_secret:
             self.imap_secret = Secret()
@@ -96,7 +98,7 @@ class GenericAccount(ImapAccount):
         return self.smtp_secret.secret.decode("utf-8")
 
     @smtp_password.setter
-    def smtp_password(self, value: Union[str, bytes]) -> None:
+    def smtp_password(self, value: str | bytes) -> None:
         value: bytes = self.valid_password(value)
         if not self.smtp_secret:
             self.smtp_secret = Secret()
@@ -111,19 +113,19 @@ class GenericAccount(ImapAccount):
             return "folder"
 
     @property
-    def thread_cls(self):
+    def thread_cls(self):  # noqa: ANN201
         from inbox.models.backends.imap import ImapThread
 
         return ImapThread
 
     @property
-    def actionlog_cls(self):
+    def actionlog_cls(self):  # noqa: ANN201
         from inbox.models.action_log import ActionLog
 
         return ActionLog
 
     @property
-    def server_settings(self):
+    def server_settings(self):  # noqa: ANN201
         settings = {}
         settings["imap_host"], settings["imap_port"] = self.imap_endpoint
         settings["smtp_host"], settings["smtp_port"] = self.smtp_endpoint
@@ -136,13 +138,13 @@ class GenericAccount(ImapAccount):
     # provider attribute to "gmail" to use the Gmail sync engine.
 
     @property
-    def provider_info(self):
+    def provider_info(self):  # noqa: ANN201
         provider_info = super().provider_info
         provider_info["auth"] = "password"
         return provider_info
 
     @property
-    def auth_handler(self):
+    def auth_handler(self):  # noqa: ANN201
         from inbox.auth.base import handler_from_provider
 
         return handler_from_provider("custom")

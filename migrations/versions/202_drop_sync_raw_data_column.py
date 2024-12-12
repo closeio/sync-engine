@@ -1,4 +1,5 @@
-"""drop_sync_raw_data_column
+"""
+drop_sync_raw_data_column
 
 Revision ID: 2e515548043b
 Revises: 527bbdc2b0fa
@@ -15,11 +16,11 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("account", "save_raw_messages")
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         "account",
         sa.Column(

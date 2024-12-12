@@ -1,4 +1,5 @@
-"""create outlook_account column
+"""
+create outlook_account column
 
 Revision ID: 4fa0540482f8
 Revises: 691fa97024d
@@ -15,29 +16,33 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
 
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     if "easaccount" in Base.metadata.tables:
-        conn.execute(text("ALTER TABLE easaccount ADD COLUMN outlook_account BOOL;"))
+        conn.execute(
+            text("ALTER TABLE easaccount ADD COLUMN outlook_account BOOL;")
+        )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
 
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     if "easaccount" in Base.metadata.tables:
-        conn.execute(text("ALTER TABLE easaccount DROP COLUMN outlook_account;"))
+        conn.execute(
+            text("ALTER TABLE easaccount DROP COLUMN outlook_account;")
+        )

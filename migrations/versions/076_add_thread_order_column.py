@@ -1,4 +1,5 @@
-"""add thread order column
+"""
+add thread order column
 
 Revision ID: 3de3979f94bd
 Revises: 322c2800c401
@@ -14,9 +15,11 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
-    op.add_column("message", sa.Column("thread_order", sa.Integer, nullable=False))
+def upgrade() -> None:
+    op.add_column(
+        "message", sa.Column("thread_order", sa.Integer, nullable=False)
+    )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("message", "thread_order")

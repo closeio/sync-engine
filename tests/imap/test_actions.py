@@ -1,4 +1,3 @@
-# flake8: noqa: F401, F811
 import time
 from unittest import mock
 
@@ -22,17 +21,13 @@ from inbox.actions.base import (
 from inbox.crispin import writable_connection_pool
 from inbox.models import ActionLog, Category
 from inbox.models.action_log import schedule_action
-from inbox.sendmail.base import (
-    create_message_from_json,
-    update_draft as sendmail_update_draft,
-)
+from inbox.sendmail.base import create_message_from_json
+from inbox.sendmail.base import update_draft as sendmail_update_draft
 from inbox.transactions.actions import SyncbackService
-from inbox.util.testutils import mock_imapclient  # noqa
-
 from tests.util.base import add_fake_category, add_fake_imapuid
 
 
-def test_draft_updates(db, default_account, mock_imapclient):
+def test_draft_updates(db, default_account, mock_imapclient) -> None:
     # Set up folder list
     mock_imapclient._data["Drafts"] = {}
     mock_imapclient._data["Trash"] = {}
@@ -80,7 +75,9 @@ def test_draft_updates(db, default_account, mock_imapclient):
         assert len(all_uids) == 1
         data = conn.uids(all_uids)[0]
         parsed = mime.from_string(data.body)
-        expected_message_id = f"<{draft.public_id}-{draft.version}@mailer.nylas.com>"
+        expected_message_id = (
+            f"<{draft.public_id}-{draft.version}@mailer.nylas.com>"
+        )
         assert parsed.headers.get("Message-Id") == expected_message_id
 
         # We're testing the draft deletion with Gmail here. However,
@@ -88,7 +85,9 @@ def test_draft_updates(db, default_account, mock_imapclient):
         # we need to check if the sent mail has been created in the sent
         # folder. Since we're mocking everything, we have to create it
         # ourselves.
-        mock_imapclient.append("Sent Mail", data.body, None, None, x_gm_msgid=4323)
+        mock_imapclient.append(
+            "Sent Mail", data.body, None, None, x_gm_msgid=4323
+        )
 
         delete_draft(
             conn,
@@ -106,28 +105,46 @@ def test_draft_updates(db, default_account, mock_imapclient):
         assert len(all_uids) == 0
 
 
-def test_change_flags(db, default_account, message, folder, mock_imapclient):
+def test_change_flags(
+    db, default_account, message, folder, mock_imapclient
+) -> None:
     mock_imapclient.add_folder_data(folder.name, {})
     mock_imapclient.add_flags = mock.Mock()
     mock_imapclient.remove_flags = mock.Mock()
     add_fake_imapuid(db.session, default_account.id, message, folder, 22)
     with writable_connection_pool(default_account.id).get() as crispin_client:
-        mark_unread(crispin_client, default_account.id, message.id, {"unread": False})
-        mock_imapclient.add_flags.assert_called_with([22], ["\\Seen"], silent=True)
+        mark_unread(
+            crispin_client, default_account.id, message.id, {"unread": False}
+        )
+        mock_imapclient.add_flags.assert_called_with(
+            [22], ["\\Seen"], silent=True
+        )
 
-        mark_unread(crispin_client, default_account.id, message.id, {"unread": True})
-        mock_imapclient.remove_flags.assert_called_with([22], ["\\Seen"], silent=True)
+        mark_unread(
+            crispin_client, default_account.id, message.id, {"unread": True}
+        )
+        mock_imapclient.remove_flags.assert_called_with(
+            [22], ["\\Seen"], silent=True
+        )
 
-        mark_starred(crispin_client, default_account.id, message.id, {"starred": True})
-        mock_imapclient.add_flags.assert_called_with([22], ["\\Flagged"], silent=True)
+        mark_starred(
+            crispin_client, default_account.id, message.id, {"starred": True}
+        )
+        mock_imapclient.add_flags.assert_called_with(
+            [22], ["\\Flagged"], silent=True
+        )
 
-        mark_starred(crispin_client, default_account.id, message.id, {"starred": False})
+        mark_starred(
+            crispin_client, default_account.id, message.id, {"starred": False}
+        )
         mock_imapclient.remove_flags.assert_called_with(
             [22], ["\\Flagged"], silent=True
         )
 
 
-def test_change_labels(db, default_account, message, folder, mock_imapclient):
+def test_change_labels(
+    db, default_account, message, folder, mock_imapclient
+) -> None:
     mock_imapclient.add_folder_data(folder.name, {})
     mock_imapclient.add_gmail_labels = mock.Mock()
     mock_imapclient.remove_gmail_labels = mock.Mock()
@@ -138,7 +155,10 @@ def test_change_labels(db, default_account, message, folder, mock_imapclient):
             crispin_client,
             default_account.id,
             [message.id],
-            {"removed_labels": ["\\Inbox"], "added_labels": ["motörhead", "μετάνοια"]},
+            {
+                "removed_labels": ["\\Inbox"],
+                "added_labels": ["motörhead", "μετάνοια"],
+            },
         )
         mock_imapclient.add_gmail_labels.assert_called_with(
             [22], [b"mot&APY-rhead", b"&A7wDtQPEA6wDvQO,A7kDsQ-"], silent=True
@@ -149,11 +169,13 @@ def test_change_labels(db, default_account, message, folder, mock_imapclient):
 
 
 @pytest.mark.parametrize("obj_type", ["folder", "label"])
-def test_folder_crud(db, default_account, mock_imapclient, obj_type):
+def test_folder_crud(db, default_account, mock_imapclient, obj_type) -> None:
     mock_imapclient.create_folder = mock.Mock()
     mock_imapclient.rename_folder = mock.Mock()
     mock_imapclient.delete_folder = mock.Mock()
-    cat = add_fake_category(db.session, default_account.namespace.id, "MyFolder")
+    cat = add_fake_category(
+        db.session, default_account.namespace.id, "MyFolder"
+    )
     with writable_connection_pool(default_account.id).get() as crispin_client:
         if obj_type == "folder":
             create_folder(crispin_client, default_account.id, cat.id)
@@ -177,7 +199,9 @@ def test_folder_crud(db, default_account, mock_imapclient, obj_type):
                 cat.id,
                 {"old_name": "MyFolder", "new_name": "MyRenamedFolder"},
             )
-        mock_imapclient.rename_folder.assert_called_with("MyFolder", "MyRenamedFolder")
+        mock_imapclient.rename_folder.assert_called_with(
+            "MyFolder", "MyRenamedFolder"
+        )
 
         category_id = cat.id
         if obj_type == "folder":
@@ -202,21 +226,33 @@ def patched_syncback_task(monkeypatch):
     monkeypatch.setattr(
         "inbox.transactions.actions.function_for_action", function_for_action
     )
-    monkeypatch.setattr("inbox.transactions.actions.ACTION_MAX_NR_OF_RETRIES", 1)
+    monkeypatch.setattr(
+        "inbox.transactions.actions.ACTION_MAX_NR_OF_RETRIES", 1
+    )
     yield
     monkeypatch.undo()
 
 
 # Test that failing to create a remote copy of an event marks all pending actions
 # for that event as failed.
-def test_failed_event_creation(db, patched_syncback_task, default_account, event):
-    schedule_action("create_event", event, default_account.namespace.id, db.session)
-    schedule_action("update_event", event, default_account.namespace.id, db.session)
-    schedule_action("update_event", event, default_account.namespace.id, db.session)
-    schedule_action("delete_event", event, default_account.namespace.id, db.session)
+def test_failed_event_creation(
+    db, patched_syncback_task, default_account, event
+) -> None:
+    schedule_action(
+        "create_event", event, default_account.namespace.id, db.session
+    )
+    schedule_action(
+        "update_event", event, default_account.namespace.id, db.session
+    )
+    schedule_action(
+        "update_event", event, default_account.namespace.id, db.session
+    )
+    schedule_action(
+        "delete_event", event, default_account.namespace.id, db.session
+    )
     db.session.commit()
 
-    NUM_WORKERS = 2
+    NUM_WORKERS = 2  # noqa: N806
     service = SyncbackService(
         syncback_id=0,
         process_number=0,

@@ -15,7 +15,9 @@ def test_api_create(db, api_client, calendar):
         "title": "Friday Office Party",
         "when": {"time": 1407542195},
         "calendar_id": calendar.public_id,
-        "participants": [{"name": "alyssa p. hacker", "email": "alyssa@example.com"}],
+        "participants": [
+            {"name": "alyssa p. hacker", "email": "alyssa@example.com"}
+        ],
     }
 
     e_resp = api_client.post_data("/events", e_data)
@@ -70,7 +72,11 @@ def test_api_create_multiple(db, api_client, calendar):
 
     assert len(e_resp_data["participants"]) == 2
     for participant in e_resp_data["participants"]:
-        res = [e for e in e_data["participants"] if e["email"] == participant["email"]]
+        res = [
+            e
+            for e in e_data["participants"]
+            if e["email"] == participant["email"]
+        ]
         assert len(res) == 1
 
     participant0 = e_resp_data["participants"][0]
@@ -173,7 +179,11 @@ def test_api_create_bad_status(db, api_client, calendar):
         "when": {"time": 1407542195},
         "calendar_id": calendar.public_id,
         "participants": [
-            {"name": "alyssa p. hacker", "email": "alyssa@example.com", "status": "bad"}
+            {
+                "name": "alyssa p. hacker",
+                "email": "alyssa@example.com",
+                "status": "bad",
+            }
         ],
     }
 
@@ -201,7 +211,9 @@ def test_api_add_participant(db, api_client, calendar):
     e_resp_data = json.loads(e_resp.data)
     assert len(e_resp_data["participants"]) == 5
     for _, p in enumerate(e_resp_data["participants"]):
-        res = [e for e in e_resp_data["participants"] if e["email"] == p["email"]]
+        res = [
+            e for e in e_resp_data["participants"] if e["email"] == p["email"]
+        ]
         assert len(res) == 1
         assert res[0]["name"] is None
 
@@ -212,7 +224,9 @@ def test_api_add_participant(db, api_client, calendar):
 
     assert len(e_resp_data["participants"]) == 6
     for _, p in enumerate(e_resp_data["participants"]):
-        res = [e for e in e_resp_data["participants"] if e["email"] == p["email"]]
+        res = [
+            e for e in e_resp_data["participants"] if e["email"] == p["email"]
+        ]
         assert len(res) == 1
         assert res[0]["name"] is None
 
@@ -235,7 +249,9 @@ def test_api_remove_participant(db, api_client, calendar):
     e_resp_data = json.loads(e_resp.data)
     assert len(e_resp_data["participants"]) == 5
     for _, p in enumerate(e_resp_data["participants"]):
-        res = [e for e in e_resp_data["participants"] if e["email"] == p["email"]]
+        res = [
+            e for e in e_resp_data["participants"] if e["email"] == p["email"]
+        ]
         assert len(res) == 1
         assert res[0]["name"] is None
 
@@ -245,7 +261,9 @@ def test_api_remove_participant(db, api_client, calendar):
     e_resp_data = json.loads(e_resp.data)
     assert len(e_resp_data["participants"]) == 4
     for _, p in enumerate(e_resp_data["participants"]):
-        res = [e for e in e_resp_data["participants"] if e["email"] == p["email"]]
+        res = [
+            e for e in e_resp_data["participants"] if e["email"] == p["email"]
+        ]
         assert len(res) == 1
         assert p["name"] is None
 

@@ -1,4 +1,5 @@
-"""outlook
+"""
+outlook
 
 Revision ID: 1ceff61ec112
 Revises: 2e6120c97485
@@ -14,11 +15,13 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "outlookaccount",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(["id"], ["imapaccount.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["id"], ["imapaccount.id"], ondelete="CASCADE"
+        ),
         sa.Column("refresh_token_id", sa.Integer(), nullable=True),
         sa.Column("scope", sa.String(length=512), nullable=True),
         sa.Column("locale", sa.String(length=8), nullable=True),
@@ -36,5 +39,5 @@ def upgrade():
     op.alter_column("secret", "secret", type_=sa.String(length=2048))
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("outlookaccount")

@@ -1,4 +1,5 @@
-"""add_throttling_support
+"""
+add_throttling_support
 
 Revision ID: 40b533a6f3e1
 Revises: 248ec24a39f
@@ -14,12 +15,14 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "account",
-        sa.Column("throttled", sa.Boolean(), server_default="0", nullable=True),
+        sa.Column(
+            "throttled", sa.Boolean(), server_default="0", nullable=True
+        ),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("account", "throttled")

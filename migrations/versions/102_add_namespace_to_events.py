@@ -1,4 +1,5 @@
-"""add_namespace_to_events
+"""
+add_namespace_to_events
 
 Revision ID: 4d10bc835f44
 Revises: 3bb01fcc755e
@@ -10,11 +11,13 @@ Create Date: 2014-09-22 03:28:18.437679
 revision = "4d10bc835f44"
 down_revision = "3bb01fcc755e"
 
+from typing import Never
+
 from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         text(
@@ -47,5 +50,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception()

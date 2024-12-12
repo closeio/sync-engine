@@ -17,12 +17,12 @@ class AccountStub:
     def new_token(self):
         return ("foo", 22)
 
-    def validate_token(self, new_token):
+    def validate_token(self, new_token) -> bool:
         return True
 
 
 class ConnectionStub:
-    def logout(self):
+    def logout(self) -> None:
         pass
 
 
@@ -37,7 +37,7 @@ def get_auth_handler(monkeypatch, folders):
     return g
 
 
-def test_all_mail_missing(monkeypatch):
+def test_all_mail_missing(monkeypatch) -> None:
     """
     Test that validate_folders throws a GmailSettingError if All Mail
     is not in the list of folders.
@@ -48,7 +48,7 @@ def test_all_mail_missing(monkeypatch):
         g.verify_account(AccountStub())
 
 
-def test_all_mail_present(monkeypatch):
+def test_all_mail_present(monkeypatch) -> None:
     """
     Test that the validate_folders passes if All Mail is present.
 

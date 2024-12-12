@@ -1,4 +1,5 @@
-"""save_imap_uidnext
+"""
+save_imap_uidnext
 
 Revision ID: 3583211a4838
 Revises: 301d22aa96b8
@@ -14,9 +15,11 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
-    op.add_column("imapfolderinfo", sa.Column("uidnext", sa.Integer(), nullable=True))
+def upgrade() -> None:
+    op.add_column(
+        "imapfolderinfo", sa.Column("uidnext", sa.Integer(), nullable=True)
+    )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("imapfolderinfo", "uidnext")

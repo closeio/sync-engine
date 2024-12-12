@@ -4,7 +4,7 @@ import os
 
 os.environ["NYLAS_ENV"] = "test"
 
-from pytest import fixture
+from pytest import fixture  # noqa: PT013
 
 from tests.api.base import TestAPIClient
 
@@ -30,7 +30,7 @@ def api_client(db, default_namespace, make_api_client):
 
 
 @fixture
-def blockstore_backend(monkeypatch, request):
+def blockstore_backend(monkeypatch, request) -> None:
     if request.param == "disk":
         monkeypatch.setattr("inbox.util.blockstore.STORE_MSG_ON_S3", False)
     elif request.param == "s3":

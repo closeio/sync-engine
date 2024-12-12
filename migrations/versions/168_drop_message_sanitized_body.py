@@ -1,4 +1,5 @@
-"""drop message.sanitized_body
+"""
+drop message.sanitized_body
 
 Revision ID: 1740b45aa815
 Revises:576f5310e8fc
@@ -10,12 +11,14 @@ Create Date: 2015-05-14 21:19:36.519124
 revision = "1740b45aa815"
 down_revision = "576f5310e8fc"
 
+from typing import Never
+
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("message", "sanitized_body")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception()

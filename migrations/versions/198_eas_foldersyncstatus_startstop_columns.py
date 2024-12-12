@@ -1,4 +1,5 @@
-"""eas foldersyncstatus startstop columns
+"""
+eas foldersyncstatus startstop columns
 
 Revision ID: 301d22aa96b8
 Revises: 3cf51fb0e76a
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -30,7 +31,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)

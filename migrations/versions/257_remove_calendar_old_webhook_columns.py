@@ -1,4 +1,5 @@
-"""Remove calendar old webhook columns
+"""
+Remove calendar old webhook columns
 
 Revision ID: 4af0d2f17967
 Revises: 93cc6f4ce113
@@ -15,15 +16,17 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("calendar", "gpush_expiration")
     op.drop_column("calendar", "gpush_last_ping")
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
-        "calendar", sa.Column("gpush_last_ping", mysql.DATETIME(), nullable=True)
+        "calendar",
+        sa.Column("gpush_last_ping", mysql.DATETIME(), nullable=True),
     )
     op.add_column(
-        "calendar", sa.Column("gpush_expiration", mysql.DATETIME(), nullable=True)
+        "calendar",
+        sa.Column("gpush_expiration", mysql.DATETIME(), nullable=True),
     )

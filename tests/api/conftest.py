@@ -1,4 +1,4 @@
-from pytest import fixture
+from pytest import fixture  # noqa: PT013
 
 from tests.api.base import new_api_client
 

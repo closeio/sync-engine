@@ -1,4 +1,5 @@
-"""Add calendar webhook columns
+"""
+Add calendar webhook columns
 
 Revision ID: 9ea81ca0f64b
 Revises: 7bb5c0ca93de
@@ -14,13 +15,16 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
-        "calendar", sa.Column("webhook_last_ping", sa.DateTime(), nullable=True)
+        "calendar",
+        sa.Column("webhook_last_ping", sa.DateTime(), nullable=True),
     )
     op.add_column(
         "calendar",
-        sa.Column("webhook_subscription_expiration", sa.DateTime(), nullable=True),
+        sa.Column(
+            "webhook_subscription_expiration", sa.DateTime(), nullable=True
+        ),
     )
 
     op.execute(
@@ -31,6 +35,6 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("calendar", "webhook_subscription_expiration")
     op.drop_column("calendar", "webhook_last_ping")

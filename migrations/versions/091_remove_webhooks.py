@@ -1,4 +1,5 @@
-"""remove webhooks
+"""
+remove webhooks
 
 Revision ID: 4b07b67498e1
 Revises: 2b89164aa9cd
@@ -15,12 +16,12 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_table("webhook")
     op.drop_table("lens")
 
 
-def downgrade():
+def downgrade() -> None:
     op.create_table(
         "lens",
         sa.Column("public_id", sa.BINARY(length=16), nullable=False),
@@ -48,7 +49,10 @@ def downgrade():
         sa.Column("filename", mysql.VARCHAR(length=255), nullable=True),
         sa.Column("tag", mysql.VARCHAR(length=255), nullable=True),
         sa.ForeignKeyConstraint(
-            ["namespace_id"], ["namespace.id"], name="lens_ibfk_1", ondelete="CASCADE"
+            ["namespace_id"],
+            ["namespace.id"],
+            name="lens_ibfk_1",
+            ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id"),
         mysql_default_charset="utf8mb4",

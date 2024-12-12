@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 
 import os
@@ -63,14 +63,16 @@ banner = rf"""{esc}[1;95m
     default=False,
     help="Enables the CPU profiler web API",
 )
-@click.option("-c", "--config", default=None, help="Path to JSON configuration file.")
+@click.option(
+    "-c", "--config", default=None, help="Path to JSON configuration file."
+)
 @click.option(
     "--process_num",
     default=0,
     help="This process's number in the process group: a unique "
     "number satisfying 0 <= process_num < total_processes.",
 )
-def main(prod, enable_profiler, config, process_num):
+def main(prod, enable_profiler, config, process_num) -> None:
     """Launch the Nylas sync service."""
     level = os.environ.get("LOGLEVEL", inbox_config.get("LOGLEVEL"))
     configure_logging(log_level=level)
@@ -81,13 +83,15 @@ def main(prod, enable_profiler, config, process_num):
     if config is not None:
         from inbox.util.startup import load_overrides
 
-        config_path = os.path.abspath(config)
+        config_path = os.path.abspath(config)  # noqa: PTH100
         load_overrides(config_path)
 
     if not prod:
         preflight()
 
-    total_processes = int(os.environ.get("MAILSYNC_PROCESSES", 1))
+    total_processes = int(
+        os.environ.get("MAILSYNC_PROCESSES", 1)  # noqa: PLW1508
+    )
 
     setproctitle.setproctitle(f"sync-engine-{process_num}")
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 # We previously didn't store IMAP path separators for generic imap accounts.
 # This script backfixes the accounts.
 
@@ -23,7 +23,7 @@ log = get_logger(purpose="separator-backfix")
 @click.option("--min-id", type=int, default=None)
 @click.option("--max-id", type=int, default=None)
 @click.option("--shard-id", type=int, default=None)
-def main(min_id, max_id, shard_id):
+def main(min_id, max_id, shard_id) -> None:
     maybe_enable_rollbar()
 
     generic_accounts = []
@@ -37,10 +37,14 @@ def main(min_id, max_id, shard_id):
             )
 
             if min_id is not None:
-                generic_accounts = generic_accounts.filter(GenericAccount.id > min_id)
+                generic_accounts = generic_accounts.filter(
+                    GenericAccount.id > min_id
+                )
 
             if max_id is not None:
-                generic_accounts = generic_accounts.filter(GenericAccount.id <= max_id)
+                generic_accounts = generic_accounts.filter(
+                    GenericAccount.id <= max_id
+                )
 
             generic_accounts = [acc.id for acc in generic_accounts]
 

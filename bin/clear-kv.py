@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 from sys import exit
 
@@ -16,7 +16,7 @@ from inbox.heartbeat.config import (
 @click.command()
 @click.option("--host", "-h", type=str)
 @click.option("--port", "-p", type=int, default=6379)
-def main(host, port):
+def main(host, port) -> None:
     maybe_enable_rollbar()
 
     if host:

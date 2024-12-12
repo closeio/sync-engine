@@ -6,11 +6,11 @@ from inbox.api.validation import valid_public_id
 from inbox.logging import get_logger
 
 log = get_logger()
-import limitlion
+import limitlion  # noqa: E402
 
-from inbox.models import Calendar
-from inbox.models.backends.gmail import GmailAccount
-from inbox.models.session import global_session_scope
+from inbox.models import Calendar  # noqa: E402
+from inbox.models.backends.gmail import GmailAccount  # noqa: E402
+from inbox.models.session import global_session_scope  # noqa: E402
 
 app = Blueprint("google_webhooks", "google_webhooks_api", url_prefix="/w")
 
@@ -19,7 +19,7 @@ GOOGLE_RESOURCE_STATE_STRING = "X-Goog-Resource-State"
 GOOGLE_RESOURCE_ID_STRING = "X-Goog-Resource-ID"
 
 
-def resp(http_code, message=None, **kwargs):
+def resp(http_code, message=None, **kwargs):  # noqa: ANN201
     resp = kwargs
     if message:
         resp["message"] = message
@@ -31,13 +31,13 @@ def resp(http_code, message=None, **kwargs):
 
 
 @app.before_request
-def start():
+def start():  # noqa: ANN201
     try:
         watch_state = request.headers[GOOGLE_RESOURCE_STATE_STRING]
         g.watch_channel_id = request.headers[GOOGLE_CHANNEL_ID_STRING]
         g.watch_resource_id = request.headers[GOOGLE_RESOURCE_ID_STRING]
     except KeyError:
-        raise InputError("Malformed headers")
+        raise InputError("Malformed headers")  # noqa: B904
 
     request.environ.setdefault("log_context", {}).update(
         {
@@ -49,21 +49,22 @@ def start():
 
     if watch_state == "sync":
         return resp(204)
+    return None
 
 
 @app.errorhandler(APIException)
-def handle_input_error(error):
+def handle_input_error(error):  # noqa: ANN201
     response = jsonify(message=error.message, type="invalid_request_error")
     response.status_code = error.status_code
     return response
 
 
 @app.route("/calendar_list_update/<account_public_id>", methods=["POST"])
-def calendar_update(account_public_id):
+def calendar_update(account_public_id):  # noqa: ANN201
     request.environ["log_context"]["account_public_id"] = account_public_id
     try:
         valid_public_id(account_public_id)
-        allowed, tokens, sleep = limitlion.throttle(
+        allowed, tokens, sleep = limitlion.throttle(  # noqa: F841
             f"gcal_account:{account_public_id}", rps=0.5
         )
         if allowed:
@@ -77,17 +78,19 @@ def calendar_update(account_public_id):
                 db_session.commit()
         return resp(200)
     except ValueError:
-        raise InputError("Invalid public ID")
+        raise InputError("Invalid public ID")  # noqa: B904
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find account `{account_public_id}`")
+        raise NotFoundError(  # noqa: B904
+            f"Couldn't find account `{account_public_id}`"
+        )
 
 
 @app.route("/calendar_update/<calendar_public_id>", methods=["POST"])
-def event_update(calendar_public_id):
+def event_update(calendar_public_id):  # noqa: ANN201
     request.environ["log_context"]["calendar_public_id"] = calendar_public_id
     try:
         valid_public_id(calendar_public_id)
-        allowed, tokens, sleep = limitlion.throttle(
+        allowed, tokens, sleep = limitlion.throttle(  # noqa: F841
             f"gcal_calendar:{calendar_public_id}", rps=0.5
         )
         if allowed:
@@ -102,6 +105,8 @@ def event_update(calendar_public_id):
                 db_session.commit()
         return resp(200)
     except ValueError:
-        raise InputError("Invalid public ID")
+        raise InputError("Invalid public ID")  # noqa: B904
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find calendar `{calendar_public_id}`")
+        raise NotFoundError(  # noqa: B904
+            f"Couldn't find calendar `{calendar_public_id}`"
+        )

@@ -42,8 +42,12 @@ def main(exit_after: str, terminate_timeout: int, command: list[str]) -> int:
     process = subprocess.Popen(command)
 
     prepare_exit_after(process, exit_after)
-    signal.signal(signal.SIGTERM, lambda *_: terminate(process, terminate_timeout))
-    signal.signal(signal.SIGINT, lambda *_: terminate(process, terminate_timeout))
+    signal.signal(
+        signal.SIGTERM, lambda *_: terminate(process, terminate_timeout)
+    )
+    signal.signal(
+        signal.SIGINT, lambda *_: terminate(process, terminate_timeout)
+    )
 
     return_code = process.wait()
 
@@ -66,10 +70,14 @@ def prepare_exit_after(
 
     exit_after = exit_after.split(":")
     exit_after_min, exit_after_max = int(exit_after[0]), int(exit_after[1])
-    exit_after_seconds = random.randint(exit_after_min * 60, exit_after_max * 60)
+    exit_after_seconds = random.randint(
+        exit_after_min * 60, exit_after_max * 60
+    )
 
     exit_after_thread = threading.Thread(
-        target=perform_exit_after, args=(process, exit_after_seconds), daemon=True
+        target=perform_exit_after,
+        args=(process, exit_after_seconds),
+        daemon=True,
     )
     exit_after_thread.start()
 
@@ -93,7 +101,9 @@ def terminate(process: subprocess.Popen[bytes], timeout: int = 30) -> int:
     try:
         return process.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
-        print(f"Grace period of {timeout} seconds expired, sending SIGKILL to child")
+        print(
+            f"Grace period of {timeout} seconds expired, sending SIGKILL to child"
+        )
         process.kill()
 
 

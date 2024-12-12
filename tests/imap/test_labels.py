@@ -3,7 +3,6 @@ import json
 import pytest
 
 from inbox.mailsync.backends.imap.common import update_message_metadata
-
 from tests.util.base import (
     add_fake_folder,
     add_fake_imapuid,
@@ -18,7 +17,9 @@ __all__ = ["default_account"]
 def add_fake_label(db_session, default_account, display_name, name):
     from inbox.models.label import Label
 
-    return Label.find_or_create(db_session, default_account, display_name, name)
+    return Label.find_or_create(
+        db_session, default_account, display_name, name
+    )
 
 
 @pytest.fixture
@@ -27,10 +28,14 @@ def folder_and_message_maps(db, default_account):
     for name in ("all", "trash", "spam"):
         # Create a folder
         display_name = name.capitalize() if name != "all" else "All Mail"
-        folder = add_fake_folder(db.session, default_account, display_name, name)
+        folder = add_fake_folder(
+            db.session, default_account, display_name, name
+        )
         thread = add_fake_thread(db.session, default_account.namespace.id)
         # Create a message in the folder
-        message = add_fake_message(db.session, default_account.namespace.id, thread)
+        message = add_fake_message(
+            db.session, default_account.namespace.id, thread
+        )
         add_fake_imapuid(db.session, default_account.id, message, folder, 13)
         update_message_metadata(db.session, default_account, message, False)
         db.session.commit()
@@ -64,7 +69,9 @@ def add_custom_label(db, default_account, message):
 
 
 @pytest.mark.parametrize("label", ["all", "trash", "spam"])
-def test_validation(db, api_client, default_account, folder_and_message_maps, label):
+def test_validation(
+    db, api_client, default_account, folder_and_message_maps, label
+):
     folder_map, message_map = folder_and_message_maps
 
     message = message_map[label]
@@ -100,7 +107,9 @@ def test_validation(db, api_client, default_account, folder_and_message_maps, la
 
     # Removing all labels is not allowed, because this will remove
     # the required label (one of 'all'/ 'trash'/ 'spam') too.
-    response = api_client.put_data(f"/messages/{message.public_id}", {"label_ids": []})
+    response = api_client.put_data(
+        f"/messages/{message.public_id}", {"label_ids": []}
+    )
     resp_data = json.loads(response.data)
     assert response.status_code == 400
     assert resp_data.get("type") == "invalid_request_error"
@@ -210,7 +219,7 @@ def test_adding_inbox_adds_all_and_removes_trash_spam(
     # Verify a Gmail message in 'trash', 'spam' cannot have 'inbox'.
     # This time we test that adding 'inbox' to a message in the 'trash'/ 'spam'
     # moves it to 'all' in addition to adding 'inbox'.
-    folder_map, message_map = folder_and_message_maps
+    folder_map, message_map = folder_and_message_maps  # noqa: F841
 
     message = message_map[label]
     resp_data = api_client.get_data(f"/messages/{message.public_id}")
@@ -237,7 +246,7 @@ def test_adding_inbox_adds_all_and_removes_trash_spam(
 def test_adding_a_custom_label_preserves_other_labels(
     db, api_client, default_account, folder_and_message_maps, label
 ):
-    folder_map, message_map = folder_and_message_maps
+    folder_map, message_map = folder_and_message_maps  # noqa: F841
 
     message = message_map[label]
     resp_data = api_client.get_data(f"/messages/{message.public_id}")
@@ -265,7 +274,7 @@ def test_adding_a_custom_label_preserves_other_labels(
 def test_removing_a_mutually_exclusive_label_does_not_orphan_a_message(
     db, api_client, default_account, folder_and_message_maps, label
 ):
-    folder_map, message_map = folder_and_message_maps
+    folder_map, message_map = folder_and_message_maps  # noqa: F841
 
     message = message_map[label]
     resp_data = api_client.get_data(f"/messages/{message.public_id}")

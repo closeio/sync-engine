@@ -1,4 +1,5 @@
-"""create sequence_number column
+"""
+create sequence_number column
 
 Revision ID: 606447e78e7
 Revises: 41f957b595fc
@@ -14,7 +15,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
     conn.execute(
@@ -24,9 +25,11 @@ def upgrade():
         )
     )
     conn.execute(
-        text("UPDATE event SET sequence_number='0' WHERE sequence_number is NULL")
+        text(
+            "UPDATE event SET sequence_number='0' WHERE sequence_number is NULL"
+        )
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("event", "sequence_number")

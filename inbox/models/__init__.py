@@ -66,4 +66,5 @@ __all__ = [
     "MessageCategory",
     "Metadata",
     "AccountTransaction",
+    "backend_module_registry",
 ]

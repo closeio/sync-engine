@@ -1,5 +1,6 @@
 import datetime
-from typing import Iterable, List, Optional, Tuple, cast
+from collections.abc import Iterable
+from typing import cast
 
 import ciso8601
 import pytz
@@ -68,13 +69,13 @@ EVENT_FIELDS = [
 
 
 class MicrosoftEventsProvider(AbstractEventsProvider):
-    def __init__(self, account_id: int, namespace_id: int):
+    def __init__(self, account_id: int, namespace_id: int) -> None:
         super().__init__(account_id, namespace_id)
 
         self.client = MicrosoftGraphClient(
             lambda: self._get_access_token(scopes=MICROSOFT_CALENDAR_SCOPES)
         )
-        self._webhook_notifications_enabled: Optional[bool] = None
+        self._webhook_notifications_enabled: bool | None = None
 
     def sync_calendars(self) -> CalendarSyncResponse:
         """
@@ -109,8 +110,10 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         return CalendarSyncResponse(deleted_uids, updates)
 
     def sync_events(
-        self, calendar_uid: str, sync_from_time: Optional[datetime.datetime] = None
-    ) -> List[Event]:
+        self,
+        calendar_uid: str,
+        sync_from_time: datetime.datetime | None = None,
+    ) -> list[Event]:
         """
         Fetch event data for an individual calendar.
 
@@ -121,6 +124,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         Returns:
             A list of uncommited Event instances
+
         """
         if sync_from_time:
             # this got here from the database, we store them as naive
@@ -132,11 +136,15 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         raw_events = cast(
             Iterable[MsGraphEvent],
             self.client.iter_events(
-                calendar_uid, modified_after=sync_from_time, fields=EVENT_FIELDS
+                calendar_uid,
+                modified_after=sync_from_time,
+                fields=EVENT_FIELDS,
             ),
         )
         read_only = self.calendars_table.get(calendar_uid, True)
-        for raw_event in iterate_and_periodically_check_interrupted(raw_events):
+        for raw_event in iterate_and_periodically_check_interrupted(
+            raw_events
+        ):
             if not validate_event(raw_event):
                 self.log.warning("Invalid event", raw_event=raw_event)
                 continue
@@ -154,8 +162,12 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         return updates
 
     def _get_event_overrides(
-        self, raw_master_event: MsGraphEvent, master_event: RecurringEvent, *, read_only
-    ) -> Tuple[List[MsGraphEvent], List[MsGraphEvent]]:
+        self,
+        raw_master_event: MsGraphEvent,
+        master_event: RecurringEvent,
+        *,
+        read_only,
+    ) -> tuple[list[MsGraphEvent], list[MsGraphEvent]]:
         """
         Fetch recurring event instances and determine exceptions and cancellations.
 
@@ -166,6 +178,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         Returns:
             Tuple of exceptions and cancellations
+
         """
         assert raw_master_event["type"] == "seriesMaster"
 
@@ -173,7 +186,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         end = start + MAX_RECURRING_EVENT_WINDOW
 
         raw_occurrences = cast(
-            List[MsGraphEvent],
+            list[MsGraphEvent],
             list(
                 self.client.iter_event_instances(
                     master_event.uid, start=start, end=end, fields=EVENT_FIELDS
@@ -188,13 +201,17 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         exceptions = [
             parse_event(
-                exception, read_only=read_only, master_event_uid=master_event.uid
+                exception,
+                read_only=read_only,
+                master_event_uid=master_event.uid,
             )
             for exception in raw_exceptions
         ]
         cancellations = [
             parse_event(
-                cancellation, read_only=read_only, master_event_uid=master_event.uid
+                cancellation,
+                read_only=read_only,
+                master_event_uid=master_event.uid,
             )
             for cancellation in raw_cancellations
         ]
@@ -224,7 +241,9 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         try:
             dummy_subscription = self.client.subscribe_to_calendar_changes(
-                webhook_url=CALENDAR_LIST_WEBHOOK_URL.format(account.public_id),
+                webhook_url=CALENDAR_LIST_WEBHOOK_URL.format(
+                    account.public_id
+                ),
                 secret=config["MICROSOFT_SUBSCRIPTION_SECRET"],
             )
         except MicrosoftGraphClientException as e:
@@ -244,7 +263,9 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         self._webhook_notifications_enabled = True
         return True
 
-    def watch_calendar_list(self, account: Account) -> Optional[datetime.datetime]:
+    def watch_calendar_list(
+        self, account: Account
+    ) -> datetime.datetime | None:
         """
         Subscribe to webhook notifications for changes to calendar list.
 
@@ -253,6 +274,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         Returns:
             The expiration of the notification channel
+
         """
         response = self.client.subscribe_to_calendar_changes(
             webhook_url=CALENDAR_LIST_WEBHOOK_URL.format(account.public_id),
@@ -265,7 +287,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
     def watch_calendar(
         self, account: Account, calendar: Calendar
-    ) -> Optional[datetime.datetime]:
+    ) -> datetime.datetime | None:
         """
         Subscribe to webhook notifications for changes to events in a calendar.
 
@@ -275,6 +297,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         Returns:
             The expiration of the notification channel
+
         """
         try:
             response = self.client.subscribe_to_event_changes(
@@ -284,7 +307,10 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
             )
         except MicrosoftGraphClientException as e:
             error, description = e.args
-            if error == "ExtensionError" and "'Resource' is invalid" in description:
+            if (
+                error == "ExtensionError"
+                and "'Resource' is invalid" in description
+            ):
                 raise CalendarGoneException(calendar.uid) from e
 
             raise

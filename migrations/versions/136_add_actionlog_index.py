@@ -1,4 +1,5 @@
-"""add actionlog index
+"""
+add actionlog index
 
 Revision ID: 39fa82d3168e
 Revises: 4ee8aab06ee
@@ -13,11 +14,14 @@ down_revision = "4ee8aab06ee"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
-        "ix_actionlog_status_retries", "actionlog", ["status", "retries"], unique=False
+        "ix_actionlog_status_retries",
+        "actionlog",
+        ["status", "retries"],
+        unique=False,
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("ix_actionlog_status_retries", table_name="actionlog")

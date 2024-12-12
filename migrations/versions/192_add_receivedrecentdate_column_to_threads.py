@@ -1,4 +1,5 @@
-"""add receivedrecentdate column to threads
+"""
+add receivedrecentdate column to threads
 
 Revision ID: 2758cefad87d
 Revises: 246a6bf050bc
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -37,11 +38,13 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
     if not engine.has_table("thread"):
         return
     op.drop_column("thread", "receivedrecentdate")
-    op.drop_index("ix_thread_namespace_id_receivedrecentdate", table_name="thread")
+    op.drop_index(
+        "ix_thread_namespace_id_receivedrecentdate", table_name="thread"
+    )

@@ -1,19 +1,18 @@
-# flake8: noqa: F401, F811
 import time
 from unittest import mock
-
-from inbox.util.testutils import mock_imapclient  # noqa
 
 from tests.util.base import add_fake_category, add_fake_folder
 
 
 # Check that folders of the form INBOX.A.B get converted by the API
 # to A/B.
-def test_folder_stripping(db, generic_account, imap_api_client):
+def test_folder_stripping(db, generic_account, imap_api_client) -> None:
     # Check that regular IMAP paths get converted to unix-style paths
     generic_account.folder_separator = "."
     folder = add_fake_folder(db.session, generic_account)
-    add_fake_category(db.session, generic_account.namespace.id, "INBOX.Red.Carpet")
+    add_fake_category(
+        db.session, generic_account.namespace.id, "INBOX.Red.Carpet"
+    )
 
     r = imap_api_client.get_data("/folders")
     for folder in r:
@@ -46,7 +45,7 @@ def test_folder_stripping(db, generic_account, imap_api_client):
 # paths.
 def test_folder_name_translation(
     empty_db, generic_account, imap_api_client, mock_imapclient, monkeypatch
-):
+) -> None:
     from inbox.transactions.actions import SyncbackService
 
     syncback = SyncbackService(

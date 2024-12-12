@@ -1,5 +1,4 @@
 import enum
-from typing import Union
 
 from sqlalchemy import Column, Enum, Integer
 from sqlalchemy.orm import validates
@@ -37,7 +36,7 @@ class Secret(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             )
 
     @secret.setter
-    def secret(self, plaintext: Union[str, bytes]) -> None:
+    def secret(self, plaintext: str | bytes) -> None:
         if not isinstance(plaintext, bytes):
             plaintext = plaintext.encode("utf-8")
         if not isinstance(plaintext, bytes):
@@ -47,7 +46,7 @@ class Secret(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             self._secret, self.encryption_scheme = e_oracle.encrypt(plaintext)
 
     @validates("type")
-    def validate_type(self, k, type):
+    def validate_type(self, k, type):  # noqa: ANN201
         if type not in [x.value for x in SecretType]:
             raise TypeError("Invalid secret type.")
 

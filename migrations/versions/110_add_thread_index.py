@@ -1,4 +1,5 @@
-"""add thread index
+"""
+add thread index
 
 Revision ID: 4011b943a24d
 Revises: 5709063bff01
@@ -13,7 +14,7 @@ down_revision = "5709063bff01"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "ix_thread_namespace_id_recentdate_deleted_at",
         "thread",
@@ -22,5 +23,7 @@ def upgrade():
     )
 
 
-def downgrade():
-    op.drop_index("ix_thread_namespace_id_recentdate_deleted_at", table_name="thread")
+def downgrade() -> None:
+    op.drop_index(
+        "ix_thread_namespace_id_recentdate_deleted_at", table_name="thread"
+    )

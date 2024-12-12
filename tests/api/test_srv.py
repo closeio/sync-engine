@@ -1,7 +1,7 @@
 import json
 
 
-def test_create_generic_account(db, api_client):
+def test_create_generic_account(db, api_client) -> None:
     resp = api_client.post_data(
         "/accounts/",
         {
@@ -22,7 +22,7 @@ def test_create_generic_account(db, api_client):
     assert account["sync_state"] == "running"
 
 
-def test_create_gmail_account(db, api_client):
+def test_create_gmail_account(db, api_client) -> None:
     resp = api_client.post_data(
         "/accounts/",
         {
@@ -44,7 +44,7 @@ def test_create_gmail_account(db, api_client):
     assert account["sync_state"] == "running"
 
 
-def test_create_microsoft_account(db, api_client):
+def test_create_microsoft_account(db, api_client) -> None:
     resp = api_client.post_data(
         "/accounts/",
         {

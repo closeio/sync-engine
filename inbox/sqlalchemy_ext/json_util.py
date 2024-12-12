@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tools for using Python's :mod:`json` module with BSON documents.
+"""
+Tools for using Python's :mod:`json` module with BSON documents.
 
 This module provides two helper methods `dumps` and `loads` that wrap the
 native :mod:`json` methods and provide explicit datetime.datetime conversion to and from
@@ -32,35 +33,37 @@ import json
 EPOCH_NAIVE = datetime.datetime.utcfromtimestamp(0)
 
 
-def dumps(obj, *args, **kwargs):
-    """Helper function that wraps :class:`json.dumps`.
+def dumps(obj, *args, **kwargs):  # noqa: ANN201
+    """
+    Helper function that wraps :class:`json.dumps`.
 
     Recursive function that handles all datetime.datetime type.
-    """
+    """  # noqa: D401
     return json.dumps(_json_convert(obj), *args, **kwargs)
 
 
-def loads(s, *args, **kwargs):
-    """Helper function that wraps :class:`json.loads`."""
+def loads(s, *args, **kwargs):  # noqa: ANN201
+    """Helper function that wraps :class:`json.loads`."""  # noqa: D401
     kwargs["object_hook"] = lambda dct: object_hook(dct)
     return json.loads(s, *args, **kwargs)
 
 
 def _json_convert(obj):
-    """Recursive helper method that converts datetime.datetime type so it can be
+    """
+    Recursive helper method that converts datetime.datetime type so it can be
     converted into json.
     """
     if hasattr(obj, "items"):
         return dict(((k, _json_convert(v)) for k, v in obj.items()))
-    elif hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes)):
-        return list((_json_convert(v) for v in obj))
+    elif hasattr(obj, "__iter__") and not isinstance(obj, str | bytes):
+        return list(_json_convert(v) for v in obj)
     try:
         return default(obj)
     except TypeError:
         return obj
 
 
-def object_hook(dct):
+def object_hook(dct):  # noqa: ANN201
     if "$date" in dct:
         dtm = dct["$date"]
         secs = float(dtm) / 1000.0
@@ -68,10 +71,12 @@ def object_hook(dct):
     return dct
 
 
-def default(obj):
+def default(obj):  # noqa: ANN201
     if isinstance(obj, datetime.datetime):
         if obj.utcoffset() is not None:
             obj = obj - obj.utcoffset()
-        millis = int(calendar.timegm(obj.timetuple()) * 1000 + obj.microsecond / 1000)
+        millis = int(
+            calendar.timegm(obj.timetuple()) * 1000 + obj.microsecond / 1000
+        )
         return {"$date": millis}
     raise TypeError(f"{obj!r} is not JSON serializable")

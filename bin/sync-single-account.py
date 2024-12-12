@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 import logging
 from threading import BoundedSemaphore
@@ -12,7 +12,9 @@ from inbox.models.session import global_session_scope
 
 
 @click.command()
-@click.option("--account-id", required=True, type=int, help="Account ID to sync.")
+@click.option(
+    "--account-id", required=True, type=int, help="Account ID to sync."
+)
 @click.option(
     "--folder-name",
     default=None,

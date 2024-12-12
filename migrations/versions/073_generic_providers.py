@@ -1,6 +1,7 @@
 # Not 100% sure where Secret is, but it may have been refactored away.
 
-"""generic_imap
+"""
+generic_imap
 
 Revision ID: 43cd2de5ad85
 Revises: 2525c5245cc2
@@ -18,7 +19,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from sqlalchemy.ext.declarative import declarative_base
 
     from inbox.ignition import main_engine
@@ -28,13 +29,15 @@ def upgrade():
     op.create_table(
         "genericaccount",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(["id"], ["imapaccount.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["id"], ["imapaccount.id"], ondelete="CASCADE"
+        ),
         sa.Column("password_id", sa.Integer(), nullable=True),
         sa.Column("provider", sa.String(length=64), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Account(Base):
@@ -96,7 +99,7 @@ def upgrade():
     op.drop_column("imapaccount", "imap_host")
 
 
-def downgrade():
+def downgrade() -> None:
     from sqlalchemy.ext.declarative import declarative_base
 
     from inbox.ignition import main_engine
@@ -106,7 +109,9 @@ def downgrade():
     op.create_table(
         "aolaccount",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(["id"], ["imapaccount.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["id"], ["imapaccount.id"], ondelete="CASCADE"
+        ),
         sa.Column("password", sa.String(256)),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -114,12 +119,14 @@ def downgrade():
     op.create_table(
         "yahooaccount",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(["id"], ["imapaccount.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["id"], ["imapaccount.id"], ondelete="CASCADE"
+        ),
         sa.Column("password", sa.String(256)),
         sa.PrimaryKeyConstraint("id"),
     )
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Account(Base):
@@ -139,7 +146,11 @@ def downgrade():
 
     with session_scope(versioned=False) as db_session:
         for acct in db_session.query(GenericAccount):
-            secret = db_session.query(Secret).filter_by(id=acct.password_id).one()
+            secret = (
+                db_session.query(Secret)  # noqa: F821
+                .filter_by(id=acct.password_id)
+                .one()
+            )
 
             if acct.provider == "yahoo":
                 new_acct = YahooAccount(
@@ -147,7 +158,9 @@ def downgrade():
                 )
                 db_session.add(new_acct)
             elif acct.provider == "aol":
-                new_acct = AOLAccount(namespace=acct.namespace, password=secret.secret)
+                new_acct = AOLAccount(
+                    namespace=acct.namespace, password=secret.secret
+                )
                 db_session.add(new_acct)
         db_session.commit()
 

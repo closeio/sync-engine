@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, List, Tuple, Type
+from typing import Any
 
 import more_itertools
 from requests.exceptions import HTTPError
@@ -45,13 +45,15 @@ class EventSync(BaseSyncMonitor):
         provider_name: str,
         account_id: int,
         namespace_id: int,
-        provider_class: Type[AbstractEventsProvider],
+        provider_class: type[AbstractEventsProvider],
         poll_frequency: int = POLL_FREQUENCY,
-    ):
+    ) -> None:
         bind_context(self, "eventsync", account_id)
         self.provider = provider_class(account_id, namespace_id)
         self.log = logger.new(
-            account_id=account_id, component="calendar sync", provider=provider_name
+            account_id=account_id,
+            component="calendar sync",
+            provider=provider_name,
         )
 
         super().__init__(
@@ -66,7 +68,8 @@ class EventSync(BaseSyncMonitor):
         )
 
     def sync(self) -> None:
-        """Query a remote provider for updates and persist them to the
+        """
+        Query a remote provider for updates and persist them to the
         database. This function runs every `self.poll_frequency`.
         """
         self.log.debug("syncing events")
@@ -98,7 +101,9 @@ class EventSync(BaseSyncMonitor):
                     .scalar()
                 )
 
-            event_changes = self.provider.sync_events(uid, sync_from_time=last_sync)
+            event_changes = self.provider.sync_events(
+                uid, sync_from_time=last_sync
+            )
 
             with session_scope(self.namespace_id) as db_session:
                 handle_event_updates(
@@ -110,7 +115,10 @@ class EventSync(BaseSyncMonitor):
 
 
 def handle_calendar_deletes(
-    namespace_id: int, deleted_calendar_uids: List[str], log: Any, db_session: Any
+    namespace_id: int,
+    deleted_calendar_uids: list[str],
+    log: Any,
+    db_session: Any,
 ) -> None:
     """
     Delete any local Calendar rows with uid in `deleted_calendar_uids`. This
@@ -133,8 +141,8 @@ def handle_calendar_deletes(
 
 def handle_calendar_updates(
     namespace_id: int, calendars, log: Any, db_session: Any
-) -> List[Tuple[str, int]]:
-    """Persists new or updated Calendar objects to the database."""
+) -> list[tuple[str, int]]:
+    """Persists new or updated Calendar objects to the database."""  # noqa: D401
     ids_ = []
     added_count = 0
     updated_count = 0
@@ -143,7 +151,10 @@ def handle_calendar_updates(
 
         local_calendar = (
             db_session.query(Calendar)
-            .filter(Calendar.namespace_id == namespace_id, Calendar.uid == calendar.uid)
+            .filter(
+                Calendar.namespace_id == namespace_id,
+                Calendar.uid == calendar.uid,
+            )
             .first()
         )
 
@@ -160,20 +171,29 @@ def handle_calendar_updates(
         ids_.append((local_calendar.uid, local_calendar.id))
 
     log.info(
-        "synced added and updated calendars", added=added_count, updated=updated_count
+        "synced added and updated calendars",
+        added=added_count,
+        updated=updated_count,
     )
     return ids_
 
 
 def handle_event_updates(
-    namespace_id: int, calendar_id: int, events: List[Event], log: Any, db_session: Any
+    namespace_id: int,
+    calendar_id: int,
+    events: list[Event],
+    log: Any,
+    db_session: Any,
 ) -> None:
-    """Persists new or updated Event objects to the database."""
+    """Persists new or updated Event objects to the database."""  # noqa: D401
     added_count = 0
     updated_count = 0
     existing_event_query = (
         db_session.query(Event)
-        .filter(Event.namespace_id == namespace_id, Event.calendar_id == calendar_id)
+        .filter(
+            Event.namespace_id == namespace_id,
+            Event.calendar_id == calendar_id,
+        )
         .exists()
     )
     events_exist = db_session.query(existing_event_query).scalar()
@@ -223,7 +243,7 @@ def handle_event_updates(
 
         # If we just updated/added a recurring event or override, make sure
         # we link it to the right master event.
-        if isinstance(event, (RecurringEvent, RecurringEventOverride)):
+        if isinstance(event, RecurringEvent | RecurringEventOverride):
             link_events(db_session, event)
 
         # Batch commits to avoid long transactions that may lock calendar rows.
@@ -239,7 +259,7 @@ def handle_event_updates(
 
 
 class WebhookEventSync(EventSync):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(Account).get(self.account_id)
@@ -254,7 +274,8 @@ class WebhookEventSync(EventSync):
                 self.poll_frequency = PUSH_NOTIFICATION_POLL_FREQUENCY
 
     def sync(self) -> None:
-        """Query a remote provider for updates and persist them to the
+        """
+        Query a remote provider for updates and persist them to the
         database. This function runs every `self.poll_frequency`.
 
         This function also handles refreshing google's push notifications
@@ -300,7 +321,9 @@ class WebhookEventSync(EventSync):
                 return
 
             if account.needs_new_calendar_list_watch():
-                calendar_list_expiration = self.provider.watch_calendar_list(account)
+                calendar_list_expiration = self.provider.watch_calendar_list(
+                    account
+                )
                 if calendar_list_expiration is not None:
                     account.new_calendar_list_watch(calendar_list_expiration)
 
@@ -357,7 +380,7 @@ class WebhookEventSync(EventSync):
                 try:
                     self._sync_calendar(calendar, db_session)
                 except HTTPError as exc:
-                    assert exc.response is not None
+                    assert exc.response is not None  # noqa: PT017
                     if exc.response.status_code == 404:
                         self.log.warning(
                             "Tried to sync a deleted calendar."
@@ -373,13 +396,15 @@ class WebhookEventSync(EventSync):
                             calendar_uid=calendar.uid,
                             status_code=exc.response.status_code,
                         )
-                        raise exc
+                        raise
 
     def _sync_calendar_list(self, account: Account, db_session: Any) -> None:
         sync_timestamp = datetime.utcnow()
         deleted_uids, calendar_changes = self.provider.sync_calendars()
 
-        handle_calendar_deletes(self.namespace_id, deleted_uids, self.log, db_session)
+        handle_calendar_deletes(
+            self.namespace_id, deleted_uids, self.log, db_session
+        )
         handle_calendar_updates(
             self.namespace_id, calendar_changes, self.log, db_session
         )

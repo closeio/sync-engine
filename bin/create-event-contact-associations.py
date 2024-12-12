@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 """
 Create event contact associations for events that don't have any.
 """
@@ -19,7 +19,7 @@ configure_logging()
 log = get_logger(purpose="create-event-contact-associations")
 
 
-def process_shard(shard_id, dry_run, id_start=0):
+def process_shard(shard_id, dry_run, id_start=0) -> None:
     # At 500K events, we need to process 6 events per second to finish within a day.
     batch_size = 100
     rps = 6 / batch_size
@@ -66,7 +66,9 @@ def process_shard(shard_id, dry_run, id_start=0):
                     continue
 
                 if not dry_run:
-                    update_contacts_from_event(db_session, event, event.namespace_id)
+                    update_contacts_from_event(
+                        db_session, event, event.namespace_id
+                    )
                     n_updated += 1
 
                     if n_updated % batch_size == 0:
@@ -81,7 +83,11 @@ def process_shard(shard_id, dry_run, id_start=0):
                         throttle()
 
     log.info(
-        "finished", shard_id=shard_id, n=n, n_skipped=n_skipped, n_updated=n_updated
+        "finished",
+        shard_id=shard_id,
+        n=n,
+        n_skipped=n_skipped,
+        n_updated=n_updated,
     )
 
 
@@ -89,7 +95,7 @@ def process_shard(shard_id, dry_run, id_start=0):
 @click.option("--shard-id", type=int, default=None)
 @click.option("--id-start", type=int, default=0)
 @click.option("--dry-run", is_flag=True)
-def main(shard_id, id_start, dry_run):
+def main(shard_id, id_start, dry_run) -> None:
     maybe_enable_rollbar()
 
     if shard_id is not None:

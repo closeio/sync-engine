@@ -1,6 +1,6 @@
 from collections import defaultdict
 from operator import itemgetter
-from typing import Any, DefaultDict, Dict
+from typing import Any
 
 from flask import Blueprint, request
 from sqlalchemy.orm import joinedload
@@ -71,10 +71,14 @@ def _get_folder_data(db_session, accounts):
         ImapFolderSyncStatus._metrics,
     )
 
-    folder_data: DefaultDict[int, Dict[int, Dict[str, Any]]] = defaultdict(dict)
+    folder_data: defaultdict[int, dict[int, dict[str, Any]]] = defaultdict(
+        dict
+    )
 
     for folder_sync_status in folder_sync_statuses:
-        account_id, folder_id, folder_name, state, metrics = folder_sync_status
+        (account_id, folder_id, folder_name, state, metrics) = (
+            folder_sync_status
+        )
         folder_data[account_id][folder_id] = {
             "remote_uid_count": metrics.get("remote_uid_count"),
             "download_uid_count": metrics.get("download_uid_count"),
@@ -89,13 +93,15 @@ def _get_folder_data(db_session, accounts):
 
 
 @app.route("/")
-def index():
+def index():  # noqa: ANN201
     with global_session_scope() as db_session:
         if "namespace_id" in request.args:
             try:
                 namespace = (
                     db_session.query(Namespace)
-                    .filter(Namespace.public_id == request.args["namespace_id"])
+                    .filter(
+                        Namespace.public_id == request.args["namespace_id"]
+                    )
                     .one()
                 )
             except NoResultFound:
@@ -103,7 +109,9 @@ def index():
         else:
             namespace = None
 
-        accounts = db_session.query(ImapAccount).with_polymorphic([GenericAccount])
+        accounts = db_session.query(ImapAccount).with_polymorphic(
+            [GenericAccount]
+        )
 
         if namespace:
             accounts = accounts.filter(Account.namespace == namespace)
@@ -111,7 +119,9 @@ def index():
             # Get all account IDs that aren't deleted
             account_ids = [
                 result[0]
-                for result in db_session.query(ImapAccount.id, ImapAccount._sync_status)
+                for result in db_session.query(
+                    ImapAccount.id, ImapAccount._sync_status
+                )
                 if result[1].get("sync_disabled_reason") != "account deleted"
             ]
 
@@ -146,7 +156,9 @@ def index():
                     elif folder_status_id == EVENT_SYNC_FOLDER_ID:
                         events_alive = folder_status.alive
 
-                email_alive = all(f["alive"] for f in account_folder_data.values())
+                email_alive = all(
+                    f["alive"] for f in account_folder_data.values()
+                )
 
                 alive = True
                 if account.sync_email and not email_alive:
@@ -155,7 +167,8 @@ def index():
                     alive = False
 
                 email_initial_sync = any(
-                    f["state"] == "initial" for f in account_folder_data.values()
+                    f["state"] == "initial"
+                    for f in account_folder_data.values()
                 )
                 events_initial_sync = any(
                     c["state"] == "initial" for c in account_calendar_data
@@ -163,13 +176,17 @@ def index():
                 initial_sync = email_initial_sync or events_initial_sync
 
                 total_uids = sum(
-                    f["remote_uid_count"] or 0 for f in account_folder_data.values()
+                    f["remote_uid_count"] or 0
+                    for f in account_folder_data.values()
                 )
                 remaining_uids = sum(
-                    f["download_uid_count"] or 0 for f in account_folder_data.values()
+                    f["download_uid_count"] or 0
+                    for f in account_folder_data.values()
                 )
                 if total_uids:
-                    progress = 100.0 / total_uids * (total_uids - remaining_uids)
+                    progress = (
+                        100.0 / total_uids * (total_uids - remaining_uids)
+                    )
                 else:
                     progress = None
             else:
@@ -215,7 +232,8 @@ def index():
                         "provider_name": account.provider,
                         "email_address": account.email_address,
                         "folders": sorted(
-                            folder_data[account.id].values(), key=itemgetter("name")
+                            folder_data[account.id].values(),
+                            key=itemgetter("name"),
                         ),
                         "calendars": sorted(
                             calendar_data[account.id], key=itemgetter("name")
@@ -225,7 +243,9 @@ def index():
                         "sync_status": sync_status_str,
                         "sync_error": sync_status.get("sync_error"),
                         "sync_end_time": sync_status.get("sync_end_time"),
-                        "sync_disabled_reason": sync_status.get("sync_disabled_reason"),
+                        "sync_disabled_reason": sync_status.get(
+                            "sync_disabled_reason"
+                        ),
                         "sync_host": account.sync_host,
                         "progress": progress,
                         "throttled": account.throttled,
@@ -234,7 +254,7 @@ def index():
                     }
                 )
             except Exception:
-                log.error(
+                log.error(  # noqa: G201
                     "Error while serializing account metrics",
                     account_id=account.id,
                     exc_info=True,
@@ -244,7 +264,7 @@ def index():
 
 
 @app.route("/global-deltas")
-def global_deltas():
+def global_deltas():  # noqa: ANN201
     """
     Return the namespaces with recent transactions.
 
@@ -260,7 +280,7 @@ def global_deltas():
     try:
         start_pointer = int(txnid)
     except ValueError:
-        raise InputError("Invalid cursor parameter")
+        raise InputError("Invalid cursor parameter")  # noqa: B904
 
     txns = redis_txn.zrangebyscore(
         TXN_REDIS_KEY,

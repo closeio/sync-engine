@@ -1,4 +1,5 @@
-"""Revert encryption
+"""
+Revert encryption
 
 Revision ID: 2c577a8a01b7
 Revises: 2b89164aa9cd
@@ -15,7 +16,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     # Block table
     op.drop_column("block", "encryption_scheme")
 
@@ -30,7 +31,9 @@ def upgrade():
         existing_nullable=False,
     )
 
-    op.add_column("secret", sa.Column("secret", sa.String(length=512), nullable=True))
+    op.add_column(
+        "secret", sa.Column("secret", sa.String(length=512), nullable=True)
+    )
 
     import nacl.secret
     import nacl.utils
@@ -40,7 +43,7 @@ def upgrade():
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = sa.ext.declarative.declarative_base()
+    Base = sa.ext.declarative.declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     key = config.get_required("SECRET_ENCRYPTION_KEY")
@@ -75,5 +78,5 @@ def upgrade():
     op.drop_column("secret", "encryption_scheme")
 
 
-def downgrade():
+def downgrade() -> None:
     pass

@@ -13,10 +13,12 @@ def new_api_client(db, namespace):
 class TestAPIClient:
     """Provide more convenient access to the API for testing purposes."""
 
-    def __init__(self, test_client, default_namespace_public_id):
+    def __init__(self, test_client, default_namespace_public_id) -> None:
         self.client = test_client
         credential = f"{default_namespace_public_id}:".encode()
-        self.auth_header = {"Authorization": f"Basic {b64encode(credential).decode()}"}
+        self.auth_header = {
+            "Authorization": f"Basic {b64encode(credential).decode()}"
+        }
 
     def get_raw(self, path, headers=None):
         headers = headers or {}

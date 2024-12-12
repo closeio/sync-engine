@@ -1,4 +1,5 @@
-"""make address fields non-null.
+"""
+make address fields non-null.
 
 Revision ID: 2d05e116bdb7
 Revises: 5143154fb1a2
@@ -15,7 +16,7 @@ from sqlalchemy import func, or_
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -23,7 +24,7 @@ def upgrade():
 
     from inbox.models.session import session_scope
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Message(Base):
@@ -53,14 +54,30 @@ def upgrade():
 
     print("making addrs non-nullable")
 
-    op.alter_column("message", "bcc_addr", existing_type=mysql.TEXT(), nullable=False)
-    op.alter_column("message", "cc_addr", existing_type=mysql.TEXT(), nullable=False)
-    op.alter_column("message", "from_addr", existing_type=mysql.TEXT(), nullable=False)
-    op.alter_column("message", "to_addr", existing_type=mysql.TEXT(), nullable=False)
+    op.alter_column(
+        "message", "bcc_addr", existing_type=mysql.TEXT(), nullable=False
+    )
+    op.alter_column(
+        "message", "cc_addr", existing_type=mysql.TEXT(), nullable=False
+    )
+    op.alter_column(
+        "message", "from_addr", existing_type=mysql.TEXT(), nullable=False
+    )
+    op.alter_column(
+        "message", "to_addr", existing_type=mysql.TEXT(), nullable=False
+    )
 
 
-def downgrade():
-    op.alter_column("message", "to_addr", existing_type=mysql.TEXT(), nullable=True)
-    op.alter_column("message", "from_addr", existing_type=mysql.TEXT(), nullable=True)
-    op.alter_column("message", "cc_addr", existing_type=mysql.TEXT(), nullable=True)
-    op.alter_column("message", "bcc_addr", existing_type=mysql.TEXT(), nullable=True)
+def downgrade() -> None:
+    op.alter_column(
+        "message", "to_addr", existing_type=mysql.TEXT(), nullable=True
+    )
+    op.alter_column(
+        "message", "from_addr", existing_type=mysql.TEXT(), nullable=True
+    )
+    op.alter_column(
+        "message", "cc_addr", existing_type=mysql.TEXT(), nullable=True
+    )
+    op.alter_column(
+        "message", "bcc_addr", existing_type=mysql.TEXT(), nullable=True
+    )

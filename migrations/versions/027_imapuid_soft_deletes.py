@@ -1,4 +1,5 @@
-"""remove erroneous soft-deleted imapuids
+"""
+remove erroneous soft-deleted imapuids
 
 We are no longer using soft deletes on this table. All soft-deleted uids
 should be hard-deleted instead.
@@ -18,12 +19,12 @@ from alembic import op
 from sqlalchemy.sql import column, table
 
 
-def upgrade():
+def upgrade() -> None:
     t = table("imapuid", column("deleted_at", sa.DateTime()))
 
     op.execute(t.delete().where(t.c.deleted_at.is_(None)))
 
 
-def downgrade():
+def downgrade() -> None:
     # this was fixing a mistake
     pass

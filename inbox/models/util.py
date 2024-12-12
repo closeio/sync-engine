@@ -2,7 +2,6 @@ import math
 import time
 from collections import OrderedDict
 from collections.abc import Iterable
-from typing import Optional
 
 import limitlion
 from sqlalchemy import desc, func
@@ -30,7 +29,9 @@ log = get_logger()
 bulk_throttle = limitlion.throttle_wait("bulk", rps=0.75, window=5)
 
 
-def reconcile_message(new_message: Message, session: Session) -> Optional[Message]:
+def reconcile_message(
+    new_message: Message, session: Session
+) -> Message | None:
     """
     Check to see if the (synced) Message instance new_message was originally
     created/sent via the Nylas API (based on the X-Inbox-Uid header. If so,
@@ -87,7 +88,7 @@ def reconcile_message(new_message: Message, session: Session) -> Optional[Messag
     return existing_message
 
 
-def transaction_objects():
+def transaction_objects():  # noqa: ANN201
     """
     Return the mapping from API object name - which becomes the
     Transaction.object_type - for models that generate Transactions (i.e.
@@ -120,7 +121,7 @@ def transaction_objects():
     }
 
 
-def get_accounts_to_delete(shard_id):
+def get_accounts_to_delete(shard_id):  # noqa: ANN201
     ids_to_delete = []
     with session_scope_by_shard_id(shard_id) as db_session:
         ids_to_delete = [
@@ -135,7 +136,9 @@ class AccountDeletionErrror(Exception):
     pass
 
 
-def batch_delete_namespaces(ids_to_delete, throttle=False, dry_run=False):
+def batch_delete_namespaces(
+    ids_to_delete, throttle=False, dry_run=False
+) -> None:
     start = time.time()
 
     for account_id, namespace_id in ids_to_delete:
@@ -157,7 +160,7 @@ def batch_delete_namespaces(ids_to_delete, throttle=False, dry_run=False):
     )
 
 
-def delete_namespace(namespace_id, throttle=False, dry_run=False):
+def delete_namespace(namespace_id, throttle=False, dry_run=False) -> None:
     """
     Delete all the data associated with a namespace from the database.
     USE WITH CAUTION.
@@ -176,7 +179,9 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False):
                 .one()
             )
         except NoResultFound:
-            raise AccountDeletionErrror("Could not find account in database")
+            raise AccountDeletionErrror(  # noqa: B904
+                "Could not find account in database"
+            )
 
         if not account.is_marked_for_deletion:
             raise AccountDeletionErrror(
@@ -225,7 +230,12 @@ def delete_namespace(namespace_id, throttle=False, dry_run=False):
 
     for cls in filters:
         _batch_delete(
-            engine, cls, filters[cls], account_id, throttle=throttle, dry_run=dry_run
+            engine,
+            cls,
+            filters[cls],
+            account_id,
+            throttle=throttle,
+            dry_run=dry_run,
         )
 
     # Use a single delete for the other tables. Rows from tables which contain
@@ -281,7 +291,7 @@ def _batch_delete(
 ):
     (column, id_) = column_id_filters
     count = engine.execute(
-        f"SELECT COUNT(*) FROM {table} WHERE {column}={id_};"
+        f"SELECT COUNT(*) FROM {table} WHERE {column}={id_};"  # noqa: S608
     ).scalar()
 
     if count == 0:
@@ -290,13 +300,15 @@ def _batch_delete(
 
     batches = int(math.ceil(float(count) / CHUNK_SIZE))
 
-    log.info("Starting batch deletion", table=table, count=count, batches=batches)
+    log.info(
+        "Starting batch deletion", table=table, count=count, batches=batches
+    )
     start = time.time()
 
     if table in ("message", "block"):
         query = ""
     else:
-        query = f"DELETE FROM {table} WHERE {column}={id_} LIMIT {CHUNK_SIZE};"
+        query = f"DELETE FROM {table} WHERE {column}={id_} LIMIT {CHUNK_SIZE};"  # noqa: S608
 
     log.info("deleting", account_id=account_id, table=table)
 
@@ -320,7 +332,9 @@ def _batch_delete(
                 delete_from_blockstore(*block_hashes)
 
             with session_scope(account_id) as db_session:
-                block_query = db_session.query(Block).filter(Block.id.in_(block_ids))
+                block_query = db_session.query(Block).filter(
+                    Block.id.in_(block_ids)
+                )
                 if dry_run is False:
                     block_query.delete(synchronize_session=False)
 
@@ -335,14 +349,17 @@ def _batch_delete(
                     .order_by(desc(Message.received_date))
                     .limit(CHUNK_SIZE)
                     .with_hint(
-                        Message, "use index (ix_message_namespace_id_received_date)"
+                        Message,
+                        "use index (ix_message_namespace_id_received_date)",
                     )
                 )
 
             message_ids = [m[0] for m in messages]
             message_hashes = [m[1] for m in messages]
 
-            delete_message_hashes(id_, account_id, message_hashes, dry_run=dry_run)
+            delete_message_hashes(
+                id_, account_id, message_hashes, dry_run=dry_run
+            )
 
             with session_scope(account_id) as db_session:
                 message_query = db_session.query(Message).filter(
@@ -361,27 +378,27 @@ def _batch_delete(
     log.info("Completed batch deletion", time=end - start, table=table)
 
     count = engine.execute(
-        f"SELECT COUNT(*) FROM {table} WHERE {column}={id_};"
+        f"SELECT COUNT(*) FROM {table} WHERE {column}={id_};"  # noqa: S608
     ).scalar()
 
     if dry_run is False:
         assert count == 0
 
 
-def check_throttle():
+def check_throttle() -> bool:
     """
     Returns True if deletions should be throttled and False otherwise.
 
     check_throttle is ignored entirely if the separate `throttle` flag is False
     (meaning that throttling is not done at all), but if throttling is enabled,
     this method determines when.
-    """
+    """  # noqa: D401
     return True
 
 
 def purge_transactions(
     shard_id, days_ago=60, limit=1000, throttle=False, dry_run=False, now=None
-):
+) -> None:
     start = "now()"
     if now is not None:
         start = "'{}'".format(now.strftime("%Y-%m-%d %H:%M:%S"))
@@ -391,12 +408,12 @@ def purge_transactions(
     if dry_run:
         offset = 0
         query = (
-            "SELECT id FROM transaction where created_at < "
+            "SELECT id FROM transaction where created_at < "  # noqa: S608
             f"DATE_SUB({start}, INTERVAL {days_ago} day) LIMIT {limit}"
         )
     else:
         query = (
-            f"DELETE FROM transaction where created_at < DATE_SUB({start},"
+            f"DELETE FROM transaction where created_at < DATE_SUB({start},"  # noqa: S608
             f" INTERVAL {days_ago} day) LIMIT {limit}"
         )
     try:
@@ -406,9 +423,13 @@ def purge_transactions(
             if throttle:
                 bulk_throttle()
 
-            with session_scope_by_shard_id(shard_id, versioned=False) as db_session:
+            with session_scope_by_shard_id(
+                shard_id, versioned=False
+            ) as db_session:
                 if dry_run:
-                    rowcount = db_session.execute(f"{query} OFFSET {offset}").rowcount
+                    rowcount = db_session.execute(
+                        f"{query} OFFSET {offset}"
+                    ).rowcount
                     offset += rowcount
                 else:
                     rowcount = db_session.execute(query).rowcount
@@ -430,12 +451,14 @@ def purge_transactions(
         # no dry run for removing things from a redis zset
         return
     try:
-        with session_scope_by_shard_id(shard_id, versioned=False) as db_session:
+        with session_scope_by_shard_id(
+            shard_id, versioned=False
+        ) as db_session:
             (min_txn_id,) = db_session.query(func.min(Transaction.id)).one()
         redis_txn.zremrangebyscore(
             TXN_REDIS_KEY,
             "-inf",
-            f"({min_txn_id}" if min_txn_id is not None else "+inf",
+            (f"({min_txn_id}" if min_txn_id is not None else "+inf"),
         )
         log.info(
             "Finished purging transaction entries from redis",
@@ -460,6 +483,7 @@ def delete_message_hashes(
         account_id: The account_id of the messages.
         message_hashes: The data_sha256 hashes of the messages.
         dry_run: If True, don't actually delete the data.
+
     """
     if not message_hashes:
         return

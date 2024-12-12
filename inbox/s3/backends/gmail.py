@@ -12,7 +12,7 @@ log = get_logger()
 
 # We use the Google API so we don't have to worry about
 # the Gmail max IMAP connection limit.
-def get_gmail_raw_contents(message):
+def get_gmail_raw_contents(message):  # noqa: ANN201
     account = message.namespace.account
     auth_token = token_manager.get_token(account)
 
@@ -33,7 +33,9 @@ def get_gmail_raw_contents(message):
     r = requests.get(url, auth=OAuthRequestsWrapper(auth_token))
 
     if r.status_code != 200:
-        log.error("Got an error when fetching raw email", r.status_code, r.text)
+        log.error(  # noqa: PLE1205
+            "Got an error when fetching raw email", r.status_code, r.text
+        )
 
     if r.status_code in [403, 429]:
         raise TemporaryEmailFetchException(

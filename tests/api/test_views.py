@@ -32,7 +32,8 @@ def test_resource_views(
     contact,
     folder,
 ):
-    """Exercises various tests for views, mostly related to
+    """
+    Exercises various tests for views, mostly related to
     filtering. Note: this only tests views, it assumes the
     resources are working as expected.
     """

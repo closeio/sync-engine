@@ -1,4 +1,5 @@
-"""longer event descriptions
+"""
+longer event descriptions
 
 Revision ID: 56500282e024
 Revises: 41f957b595fc
@@ -15,9 +16,11 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
-    op.add_column("event", sa.Column("_description", mysql.LONGTEXT(), nullable=True))
+def upgrade() -> None:
+    op.add_column(
+        "event", sa.Column("_description", mysql.LONGTEXT(), nullable=True)
+    )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("event", "_description")

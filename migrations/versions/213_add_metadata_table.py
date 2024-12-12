@@ -1,4 +1,5 @@
-"""Add metadata table
+"""
+Add metadata table
 
 Revision ID: bc1119471fe
 Revises: 31aae1ecb374
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import context, op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.sqlalchemy_ext.util import JSON
 
     shard_id = int(context.get_x_argument(as_dictionary=True).get("shard_id"))
@@ -36,14 +37,22 @@ def upgrade():
         sa.Column("object_id", sa.BigInteger(), nullable=False),
         sa.Column("value", JSON(), nullable=True),
         sa.Column("version", sa.Integer(), server_default="0", nullable=True),
-        sa.ForeignKeyConstraint(["namespace_id"], ["namespace.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["namespace_id"], ["namespace.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        op.f("ix_metadata_created_at"), "metadata", ["created_at"], unique=False
+        op.f("ix_metadata_created_at"),
+        "metadata",
+        ["created_at"],
+        unique=False,
     )
     op.create_index(
-        op.f("ix_metadata_deleted_at"), "metadata", ["deleted_at"], unique=False
+        op.f("ix_metadata_deleted_at"),
+        "metadata",
+        ["deleted_at"],
+        unique=False,
     )
     op.create_index(
         op.f("ix_metadata_object_id"), "metadata", ["object_id"], unique=False
@@ -58,7 +67,10 @@ def upgrade():
         op.f("ix_metadata_public_id"), "metadata", ["public_id"], unique=False
     )
     op.create_index(
-        op.f("ix_metadata_updated_at"), "metadata", ["updated_at"], unique=False
+        op.f("ix_metadata_updated_at"),
+        "metadata",
+        ["updated_at"],
+        unique=False,
     )
     op.create_index(
         "ix_obj_public_id_app_id",
@@ -72,7 +84,7 @@ def upgrade():
     conn.execute(f"ALTER TABLE metadata AUTO_INCREMENT={increment}")
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("ix_obj_public_id_app_id", table_name="metadata")
     op.drop_index(op.f("ix_metadata_updated_at"), table_name="metadata")
     op.drop_index(op.f("ix_metadata_public_id"), table_name="metadata")

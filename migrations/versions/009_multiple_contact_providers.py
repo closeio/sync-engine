@@ -1,4 +1,5 @@
-"""multiple contact providers
+"""
+multiple contact providers
 
 Revision ID: 169cac0cd87e
 Revises: 3c11391b5eb0
@@ -14,9 +15,10 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
-        "contact", sa.Column("provider_name", sa.String(length=64), nullable=False)
+        "contact",
+        sa.Column("provider_name", sa.String(length=64), nullable=False),
     )
     op.alter_column(
         "contact",
@@ -33,7 +35,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column(
         "contact",
         "uid",
@@ -43,4 +45,6 @@ def downgrade():
     )
     op.drop_column("contact", "provider_name")
     op.drop_constraint("uid", "contact", type_="unique")
-    op.create_unique_constraint("g_id", "contact", ["g_id", "source", "account_id"])
+    op.create_unique_constraint(
+        "g_id", "contact", ["g_id", "source", "account_id"]
+    )

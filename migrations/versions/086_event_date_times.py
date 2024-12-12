@@ -1,4 +1,5 @@
-"""event date times
+"""
+event date times
 
 Revision ID: 1ac03cab7a24
 Revises: 294200d809c8
@@ -15,11 +16,11 @@ from alembic import op
 from sqlalchemy.ext.declarative import declarative_base
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     # The model previously didn't reflect the migration, therefore
@@ -31,5 +32,5 @@ def upgrade():
         op.drop_column("event", "end_date")
 
 
-def downgrade():
+def downgrade() -> None:
     pass

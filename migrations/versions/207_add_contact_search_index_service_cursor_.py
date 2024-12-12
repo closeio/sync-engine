@@ -1,4 +1,5 @@
-"""add contact search index service cursor pointer table
+"""
+add contact search index service cursor pointer table
 
 Revision ID: 4b225df49747
 Revises: gu8eqpm6f2x1n0fg
@@ -15,7 +16,7 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "contactsearchindexcursor",
         sa.Column("created_at", sa.DateTime(), nullable=False),
@@ -53,7 +54,7 @@ def upgrade():
     op.drop_table("searchindexcursor")
 
 
-def downgrade():
+def downgrade() -> None:
     op.create_table(
         "searchindexcursor",
         sa.Column("created_at", mysql.DATETIME(), nullable=False),
@@ -67,7 +68,9 @@ def downgrade():
             nullable=True,
         ),
         sa.ForeignKeyConstraint(
-            ["transaction_id"], ["transaction.id"], name="searchindexcursor_ibfk_1"
+            ["transaction_id"],
+            ["transaction.id"],
+            name="searchindexcursor_ibfk_1",
         ),
         sa.PrimaryKeyConstraint("id"),
         mysql_default_charset="utf8mb4",

@@ -4,7 +4,8 @@ import re
 import struct
 import uuid
 import weakref
-from typing import Any, MutableMapping, Optional, Tuple
+from collections.abc import MutableMapping
+from typing import Any
 
 from sqlalchemy import String, Text, event
 from sqlalchemy.engine import Engine
@@ -36,7 +37,7 @@ should_log_dubiously_many_queries = True
 # that. Don't use this to silence any warnings in application code because
 # these warnings are an indicator of excessive lazy loading from the DB.
 @contextlib.contextmanager
-def disabled_dubiously_many_queries_warning():
+def disabled_dubiously_many_queries_warning():  # noqa: ANN201
     global should_log_dubiously_many_queries
     should_log_dubiously_many_queries = False
     yield
@@ -44,7 +45,9 @@ def disabled_dubiously_many_queries_warning():
 
 
 @event.listens_for(Engine, "before_cursor_execute")
-def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+def before_cursor_execute(
+    conn, cursor, statement, parameters, context, executemany
+) -> None:
     if conn not in query_counts:
         query_counts[conn] = 1
     else:
@@ -52,17 +55,19 @@ def before_cursor_execute(conn, cursor, statement, parameters, context, executem
 
 
 @event.listens_for(Engine, "commit")
-def before_commit(conn):
+def before_commit(conn) -> None:
     if not should_log_dubiously_many_queries:
         return
     if query_counts.get(conn, 0) > MAX_SANE_QUERIES_PER_SESSION:
         log.warning(
-            "Dubiously many queries per session!", query_count=query_counts.get(conn)
+            "Dubiously many queries per session!",
+            query_count=query_counts.get(conn),
         )
 
 
 class ABCMixin:
-    """Use this if you want a mixin class which is actually an abstract base
+    """
+    Use this if you want a mixin class which is actually an abstract base
     class, for example in order to enforce that concrete subclasses define
     particular methods or properties.
     """
@@ -91,7 +96,7 @@ class StringWithTransform(TypeDecorator):
 
     impl = String
 
-    def __init__(self, string_transform, *args, **kwargs):
+    def __init__(self, string_transform, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if string_transform is None:
             raise ValueError("Must provide a string_transform")
@@ -99,11 +104,11 @@ class StringWithTransform(TypeDecorator):
             raise TypeError("`string_transform` must be callable")
         self._string_transform = string_transform
 
-    def process_bind_param(self, value, dialect):
+    def process_bind_param(self, value, dialect):  # noqa: ANN201
         return self._string_transform(value)
 
-    class comparator_factory(String.Comparator):
-        def __eq__(self, other):
+    class comparator_factory(String.Comparator):  # noqa: N801
+        def __eq__(self, other):  # noqa: ANN204
             other = self.type._string_transform(other)
             return self.operate(operators.eq, other)
 
@@ -114,13 +119,13 @@ class JSON(TypeDecorator):
 
     impl = Text
 
-    def process_bind_param(self, value, dialect):
+    def process_bind_param(self, value, dialect):  # noqa: ANN201
         if value is None:
             return None
 
         return json_util.dumps(value)
 
-    def process_result_value(self, value, dialect):
+    def process_result_value(self, value, dialect):  # noqa: ANN201
         if not value:
             return None
 
@@ -134,7 +139,7 @@ class JSON(TypeDecorator):
             log.error("ValueError on decoding JSON", value=value)
 
 
-def json_field_too_long(value):
+def json_field_too_long(value):  # noqa: ANN201
     return len(json_util.dumps(value)) > MAX_TEXT_CHARS
 
 
@@ -152,14 +157,16 @@ class Base36UID(TypeDecorator):
 
     impl = BINARY(16)  # 128 bit unsigned integer
 
-    def process_bind_param(self, value: Optional[str], dialect: Any) -> Optional[bytes]:
+    def process_bind_param(
+        self, value: str | None, dialect: Any
+    ) -> bytes | None:
         if not value:
             return None
         return b36_to_bin(value)
 
     def process_result_value(
-        self, value: Optional[bytes], dialect: Any
-    ) -> Optional[str]:
+        self, value: bytes | None, dialect: Any
+    ) -> str | None:
         return int128_to_b36(value)
 
 
@@ -169,7 +176,7 @@ class Base36UID(TypeDecorator):
 # (because these are simply called under the hood)
 class MutableDict(Mutable, dict):
     @classmethod
-    def coerce(cls, key, value):
+    def coerce(cls, key, value):  # noqa: ANN206
         """Convert plain dictionaries to MutableDict."""
         if not isinstance(value, MutableDict):
             if isinstance(value, dict):
@@ -180,31 +187,31 @@ class MutableDict(Mutable, dict):
         else:
             return value
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value) -> None:
         """Detect dictionary set events and emit change events."""
         dict.__setitem__(self, key, value)
         self.changed()
 
-    def __delitem__(self, key):
+    def __delitem__(self, key) -> None:
         """Detect dictionary del events and emit change events."""
         dict.__delitem__(self, key)
         self.changed()
 
-    def update(self, *args, **kwargs):
+    def update(self, *args, **kwargs) -> None:
         for k, v in dict(*args, **kwargs).items():
             self[k] = v
 
     # To support pickling:
-    def __getstate__(self):
+    def __getstate__(self):  # noqa: ANN204
         return dict(self)
 
-    def __setstate__(self, state):
+    def __setstate__(self, state):  # noqa: ANN204
         self.update(state)
 
 
 class MutableList(Mutable, list):
     @classmethod
-    def coerce(cls, key, value):
+    def coerce(cls, key, value):  # noqa: ANN206
         """Convert plain list to MutableList"""
         if not isinstance(value, MutableList):
             if isinstance(value, list):
@@ -215,38 +222,39 @@ class MutableList(Mutable, list):
         else:
             return value
 
-    def __setitem__(self, idx, value):
+    def __setitem__(self, idx, value) -> None:
         list.__setitem__(self, idx, value)
         self.changed()
 
-    def __delitem__(self, idx):
+    def __delitem__(self, idx) -> None:
         list.__delitem__(self, idx)
         self.changed()
 
-    def append(self, value):
+    def append(self, value) -> None:
         list.append(self, value)
         self.changed()
 
-    def insert(self, idx, value):
+    def insert(self, idx, value) -> None:
         list.insert(self, idx, value)
         self.changed()
 
-    def extend(self, values):
+    def extend(self, values) -> None:
         list.extend(self, values)
         self.changed()
 
-    def pop(self, *args, **kw):
+    def pop(self, *args, **kw):  # noqa: ANN201
         value = list.pop(self, *args, **kw)
         self.changed()
         return value
 
-    def remove(self, value):
+    def remove(self, value) -> None:
         list.remove(self, value)
         self.changed()
 
 
-def int128_to_b36(int128: Optional[bytes]) -> Optional[str]:
-    """int128: a 128 bit unsigned integer
+def int128_to_b36(int128: bytes | None) -> str | None:
+    """
+    int128: a 128 bit unsigned integer
     returns a base-36 string representation
     """
     if not int128:
@@ -258,16 +266,17 @@ def int128_to_b36(int128: Optional[bytes]) -> Optional[str]:
 
 
 def b36_to_bin(b36_string: str) -> bytes:
-    """b36_string: a base-36 encoded string
+    """
+    b36_string: a base-36 encoded string
     returns binary 128 bit unsigned integer
     """
     int128 = base36decode(b36_string)
-    MAX_INT64 = 0xFFFFFFFFFFFFFFFF
+    MAX_INT64 = 0xFFFFFFFFFFFFFFFF  # noqa: N806
     return struct.pack(">QQ", (int128 >> 64) & MAX_INT64, int128 & MAX_INT64)
 
 
 def generate_public_id() -> str:
-    """Returns a base-36 string UUID"""
+    """Returns a base-36 string UUID"""  # noqa: D401
     u = uuid.uuid4().bytes
     result = int128_to_b36(u)
     assert result
@@ -280,13 +289,13 @@ RE_SURROGATE_CHARACTER = re.compile(r"[\ud800-\udfff]")
 RE_SURROGATE_PAIR = re.compile(r"[\ud800-\udbff][\udc00-\udfff]")
 
 
-def utf8_encode(text: str, errors: str = "strict") -> Tuple[bytes, int]:
+def utf8_encode(text: str, errors: str = "strict") -> tuple[bytes, int]:
     return text.encode("utf-8", errors), len(text)
 
 
 def utf8_surrogate_fix_decode(
     memory: memoryview, errors: str = "strict"
-) -> Tuple[str, int]:
+) -> tuple[str, int]:
     binary = memory.tobytes()
 
     with contextlib.suppress(UnicodeDecodeError):
@@ -328,7 +337,7 @@ class ForceStrictModePool(QueuePool):
 #
 # Without this, MySQL will silently insert invalid values in the database if
 @event.listens_for(ForceStrictModePool, "connect")
-def receive_connect(dbapi_connection, connection_record):
+def receive_connect(dbapi_connection, connection_record) -> None:
     cur = dbapi_connection.cursor()
     cur.execute(
         "SET SESSION sql_mode='STRICT_TRANS_TABLES,STRICT_ALL_TABLES,"
@@ -341,8 +350,9 @@ def receive_connect(dbapi_connection, connection_record):
     dbapi_connection.encoding = "utf8-surrogate-fix"
 
 
-def safer_yield_per(query, id_field, start_id, count):
-    """Incautious execution of 'for result in query.yield_per(N):' may cause
+def safer_yield_per(query, id_field, start_id, count):  # noqa: ANN201, D417
+    """
+    Incautious execution of 'for result in query.yield_per(N):' may cause
     slowness or OOMing over large tables. This is a less general but less
     dangerous alternative.
 
@@ -355,15 +365,21 @@ def safer_yield_per(query, id_field, start_id, count):
     start_id: The value of id_field at which to start iterating.
     count: int
         The number of results to fetch at a time.
+
     """
     cur_id = start_id
     while True:
-        results = query.filter(id_field >= cur_id).order_by(id_field).limit(count).all()
+        results = (
+            query.filter(id_field >= cur_id)
+            .order_by(id_field)
+            .limit(count)
+            .all()
+        )
         yield from results
         cur_id = results[-1].id + 1
 
 
-def get_db_api_cursor_with_query(session, query):
+def get_db_api_cursor_with_query(session, query):  # noqa: ANN201
     """
     Return a DB-API cursor with the given SQLAlchemy query executed.
 
@@ -377,6 +393,8 @@ def get_db_api_cursor_with_query(session, query):
     compiled_query = query.statement.compile(dialect=dialect)
 
     db_api_cursor = session.connection().connection.cursor()
-    db_api_cursor.execute(compiled_query.string, compiled_query.params.values())
+    db_api_cursor.execute(
+        compiled_query.string, compiled_query.params.values()
+    )
 
     return db_api_cursor

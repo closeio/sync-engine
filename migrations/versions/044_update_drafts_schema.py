@@ -1,4 +1,5 @@
-"""update drafts schema
+"""
+update drafts schema
 
 Revision ID: 247cd689758c
 Revises:5a136610b50b
@@ -15,7 +16,7 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "spoolmessage",
         sa.Column(
@@ -26,21 +27,29 @@ def upgrade():
         ),
     )
     # Drop draft_copied_from and replyto_thread_id foreign key constraints.
-    op.drop_constraint("spoolmessage_ibfk_4", "spoolmessage", type_="foreignkey")
-    op.drop_constraint("spoolmessage_ibfk_5", "spoolmessage", type_="foreignkey")
+    op.drop_constraint(
+        "spoolmessage_ibfk_4", "spoolmessage", type_="foreignkey"
+    )
+    op.drop_constraint(
+        "spoolmessage_ibfk_5", "spoolmessage", type_="foreignkey"
+    )
     op.drop_column("spoolmessage", "draft_copied_from")
     op.drop_column("spoolmessage", "replyto_thread_id")
     op.drop_table("draftthread")
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         "spoolmessage",
-        sa.Column("replyto_thread_id", mysql.INTEGER(display_width=11), nullable=True),
+        sa.Column(
+            "replyto_thread_id", mysql.INTEGER(display_width=11), nullable=True
+        ),
     )
     op.add_column(
         "spoolmessage",
-        sa.Column("draft_copied_from", mysql.INTEGER(display_width=11), nullable=True),
+        sa.Column(
+            "draft_copied_from", mysql.INTEGER(display_width=11), nullable=True
+        ),
     )
     op.drop_column("spoolmessage", "is_reply")
     op.create_table(

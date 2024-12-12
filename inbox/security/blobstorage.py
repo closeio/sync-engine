@@ -11,7 +11,7 @@ The "scheme" byte can be used to version the data format. Currently the only
 values are 0 (no encryption) and 1 (encryption with a static key). The key
 version bytes can be used to rotate encryption keys. (Right now these are
 always just null bytes.)
-"""
+"""  # noqa: D404
 
 import struct
 import zlib

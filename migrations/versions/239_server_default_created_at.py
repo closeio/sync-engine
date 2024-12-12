@@ -1,4 +1,5 @@
-"""switch to server-side creation timestamps
+"""
+switch to server-side creation timestamps
 
 Revision ID: 1dfc65e583bf
 Revises: 1b0b4e6fdf96
@@ -45,7 +46,7 @@ TABLES = [
 ]
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     for table in TABLES:
         conn.execute(
@@ -55,9 +56,11 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     for table in TABLES:
         conn.execute(
-            text(f"ALTER TABLE `{table}` MODIFY COLUMN `created_at` DATETIME NOT NULL")
+            text(
+                f"ALTER TABLE `{table}` MODIFY COLUMN `created_at` DATETIME NOT NULL"
+            )
         )

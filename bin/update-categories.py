@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 
 import click
@@ -9,7 +9,7 @@ from inbox.ignition import engine_manager
 
 @click.command()
 @click.option("--shard_id", type=int)
-def main(shard_id):
+def main(shard_id) -> None:
     maybe_enable_rollbar()
 
     if shard_id is not None:
@@ -21,7 +21,7 @@ def main(shard_id):
             update_folders_and_labels_for_shard(key)
 
 
-def update_categories_for_shard(shard_id):
+def update_categories_for_shard(shard_id) -> None:
     print(f"Updating categories for shard {shard_id}")
 
     engine = engine_manager.engines[shard_id]
@@ -31,13 +31,11 @@ def update_categories_for_shard(shard_id):
 
     print(f"Updated names, updating deleted_at for shard {shard_id}")
 
-    query = (
-        "UPDATE category SET deleted_at='1970-01-01 00:00:00' WHERE deleted_at is NULL;"
-    )
+    query = "UPDATE category SET deleted_at='1970-01-01 00:00:00' WHERE deleted_at is NULL;"
     engine.execute(query)
 
 
-def update_folders_and_labels_for_shard(shard_id):
+def update_folders_and_labels_for_shard(shard_id) -> None:
     print(f"Updating folders for shard {shard_id}")
 
     engine = engine_manager.engines[shard_id]

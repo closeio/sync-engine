@@ -1,4 +1,5 @@
-"""Add initial_sync_start/end to Folder
+"""
+Add initial_sync_start/end to Folder
 
 Revision ID: 3b093f2d7419
 Revises: 606447e78e7
@@ -14,13 +15,15 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
-    op.add_column("folder", sa.Column("initial_sync_end", sa.DateTime(), nullable=True))
+def upgrade() -> None:
+    op.add_column(
+        "folder", sa.Column("initial_sync_end", sa.DateTime(), nullable=True)
+    )
     op.add_column(
         "folder", sa.Column("initial_sync_start", sa.DateTime(), nullable=True)
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("folder", "initial_sync_start")
     op.drop_column("folder", "initial_sync_end")

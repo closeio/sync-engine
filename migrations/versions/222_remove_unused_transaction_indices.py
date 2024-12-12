@@ -1,4 +1,5 @@
-"""Remove unused indices on transaction table
+"""
+Remove unused indices on transaction table
 
 Revision ID: 361972a1de3e
 Revises: 516024977fc5
@@ -13,12 +14,12 @@ down_revision = "516024977fc5"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_index("ix_transaction_table_name", table_name="transaction")
     op.drop_index("namespace_id_deleted_at", table_name="transaction")
 
 
-def downgrade():
+def downgrade() -> None:
     op.create_index(
         "namespace_id_deleted_at",
         "transaction",
@@ -26,5 +27,8 @@ def downgrade():
         unique=False,
     )
     op.create_index(
-        "ix_transaction_table_name", "transaction", ["object_type"], unique=False
+        "ix_transaction_table_name",
+        "transaction",
+        ["object_type"],
+        unique=False,
     )

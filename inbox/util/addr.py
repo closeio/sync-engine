@@ -1,6 +1,5 @@
 import email.utils
 import re
-from typing import List, Optional, Set, Tuple
 
 from flanker.addresslib import address
 from flanker.mime.message.headers.encodedword import decode
@@ -11,24 +10,26 @@ from inbox.sqlalchemy_ext.util import MAX_TEXT_BYTES
 
 
 class HeaderTooBigException(Exception):
-    def __init__(self, header):
+    def __init__(self, header) -> None:
         super().__init__(f"header {header!r} length is over the parsing limit")
 
 
 # Note that technically `'` is also allowed in the local part, but nobody
 # uses it in practice, so we'd rather extract <a href='email@example.com'>
 # from HTML.
-EMAIL_FIND_RE = re.compile(r"[\w.!#$%&*+-/=?^_`{|}~]{1,64}@[\w.-]{1,254}\w", re.UNICODE)
+EMAIL_FIND_RE = re.compile(
+    r"[\w.!#$%&*+-/=?^_`{|}~]{1,64}@[\w.-]{1,254}\w", re.UNICODE
+)
 
 
-def valid_email(email_address):
+def valid_email(email_address) -> bool:
     parsed = address.parse(email_address, addr_spec_only=True)
     if isinstance(parsed, address.EmailAddress):
         return True
     return False
 
 
-def canonicalize_address(addr: Optional[str]) -> Optional[str]:
+def canonicalize_address(addr: str | None) -> str | None:
     """Gmail addresses with and without periods are the same."""
     parsed_address = address.parse(addr, addr_spec_only=True)
     if not isinstance(parsed_address, address.EmailAddress):
@@ -42,7 +43,7 @@ def canonicalize_address(addr: Optional[str]) -> Optional[str]:
 
 def parse_mimepart_address_header(
     mimepart: MimePart, header_name: str
-) -> List[List[str]]:
+) -> list[list[str]]:
     # Header parsing is complicated by the fact that:
     # (1) You can have multiple occurrences of the same header;
     # (2) Phrases or comments can be RFC2047-style encoded words;
@@ -56,7 +57,7 @@ def parse_mimepart_address_header(
     # you can end up parsing 'FooCorp, Inc. <info@foocorp.com> (note lack of
     # quoting) into two separate addresses.
     # Consult RFC822 Section 6.1 and RFC2047 section 5 for details.
-    addresses: Set[Tuple[str, str]] = set()
+    addresses: set[tuple[str, str]] = set()
     total_byte_length = 0
     for section in mimepart.headers._v.getall(normalize(header_name)):
         total_byte_length += len(section.encode())
@@ -73,6 +74,6 @@ def parse_mimepart_address_header(
     return sorted(list(elem) for elem in addresses)
 
 
-def extract_emails_from_text(text):
+def extract_emails_from_text(text):  # noqa: ANN201
     emails = EMAIL_FIND_RE.findall(text)
     return [email for email in emails if valid_email(email)]

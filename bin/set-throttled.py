@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: EXE001, N999
 # throttle or unthrottle an account
 
 
@@ -10,17 +10,21 @@ from inbox.models.account import Account
 from inbox.models.session import session_scope
 
 
-def print_usage():
+def print_usage() -> None:
     print("usage:   set-throttled [--throttled|--unthrottled] --id 1000")
     print("example: set-throttled --throttled --id 1000")
-    print("batch usage: set-throttled also accepts tab-separated input on stdin.")
-    print("             echo 'karim@nylas.com	account_id' | set-throttled --throttled")
+    print(
+        "batch usage: set-throttled also accepts tab-separated input on stdin."
+    )
+    print(
+        "             echo 'karim@nylas.com	account_id' | set-throttled --throttled"
+    )
     print(
         "             bin/list-accounts --host precise64 --paying | set-throttled --unthrottled"
     )
 
 
-def throttle(options):
+def throttle(options) -> None:
     account_id = int(options.account_id)
     with session_scope(account_id) as db_session:
         if options.account_id:
@@ -39,13 +43,13 @@ def throttle(options):
         db_session.commit()
 
 
-def main():
+def main() -> None:
     parser = optparse.OptionParser()
     parser.add_option("--throttled", action="store_true", default=False)
     parser.add_option("--unthrottled", action="store_true", default=False)
     parser.add_option("--id", action="store", dest="account_id", default=None)
     parser.add_option("--stdin", action="store_true", default=False)
-    options, remainder = parser.parse_args(sys.argv[1:])
+    options, remainder = parser.parse_args(sys.argv[1:])  # noqa: F841
     if all(opt is False for opt in [options.throttled, options.unthrottled]):
         print_usage()
         sys.exit(-1)
@@ -63,7 +67,7 @@ def main():
             if len(splat) < 2:
                 continue
 
-            email, id = splat[:2]
+            email, id = splat[:2]  # noqa: A001, F841
             options.account_id = id
             throttle(options)
 

@@ -1,7 +1,7 @@
 import os
 import traceback
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Never
 
 from sqlalchemy import (
     BigInteger,
@@ -60,7 +60,7 @@ class Account(
     API_OBJECT_NAME = "account"
 
     @property
-    def provider(self):
+    def provider(self) -> Never:
         """
         A constant, unique lowercase identifier for the account provider
         (e.g., 'gmail', 'eas'). Subclasses should override this.
@@ -69,7 +69,7 @@ class Account(
         raise NotImplementedError
 
     @property
-    def verbose_provider(self):
+    def verbose_provider(self):  # noqa: ANN201
         """
         A detailed identifier for the account provider
         (e.g., 'gmail', 'office365', 'outlook').
@@ -89,17 +89,17 @@ class Account(
         raise NotImplementedError
 
     @property
-    def auth_handler(self):
+    def auth_handler(self):  # noqa: ANN201
         from inbox.auth.base import handler_from_provider
 
         return handler_from_provider(self.provider)
 
     @property
-    def provider_info(self):
+    def provider_info(self):  # noqa: ANN201
         return provider_info(self.provider)
 
     @property
-    def thread_cls(self):
+    def thread_cls(self):  # noqa: ANN201
         from inbox.models.thread import Thread
 
         return Thread
@@ -136,7 +136,7 @@ class Account(
         "Calendar", post_update=True, foreign_keys=[emailed_events_calendar_id]
     )
 
-    def create_emailed_events_calendar(self):
+    def create_emailed_events_calendar(self) -> None:
         if not self._emailed_events_calendar:
             calname = "Emailed events"
             cal = Calendar(
@@ -149,7 +149,7 @@ class Account(
             self._emailed_events_calendar = cal
 
     @property
-    def emailed_events_calendar(self):
+    def emailed_events_calendar(self):  # noqa: ANN201
         self.create_emailed_events_calendar()
         return self._emailed_events_calendar
 
@@ -172,17 +172,20 @@ class Account(
     # folders and heartbeats.
 
     @property
-    def sync_enabled(self):
+    def sync_enabled(self):  # noqa: ANN201
         return self.sync_should_run
 
     sync_state = Column(
-        Enum("running", "stopped", "killed", "invalid", "connerror"), nullable=True
+        Enum("running", "stopped", "killed", "invalid", "connerror"),
+        nullable=True,
     )
 
-    _sync_status = Column(MutableDict.as_mutable(JSON), default={}, nullable=True)
+    _sync_status = Column(
+        MutableDict.as_mutable(JSON), default={}, nullable=True
+    )
 
     @property
-    def sync_status(self):
+    def sync_status(self):  # noqa: ANN201
         d = dict(
             id=self.id,
             email=self.email_address,
@@ -197,11 +200,11 @@ class Account(
         return d
 
     @property
-    def sync_error(self):
+    def sync_error(self):  # noqa: ANN201
         return self._sync_status.get("sync_error")
 
     @property
-    def initial_sync_start(self):
+    def initial_sync_start(self):  # noqa: ANN201
         if len(self.folders) == 0 or any(
             [f.initial_sync_start is None for f in self.folders]
         ):
@@ -209,7 +212,7 @@ class Account(
         return min(f.initial_sync_start for f in self.folders)
 
     @property
-    def initial_sync_end(self):
+    def initial_sync_end(self):  # noqa: ANN201
         if len(self.folders) == 0 or any(
             [f.initial_sync_end is None for f in self.folders]
         ):
@@ -217,12 +220,12 @@ class Account(
         return max(f.initial_sync_end for f in self.folders)
 
     @property
-    def initial_sync_duration(self):
+    def initial_sync_duration(self):  # noqa: ANN201
         if not self.initial_sync_start or not self.initial_sync_end:
             return None
         return (self.initial_sync_end - self.initial_sync_end).total_seconds()
 
-    def update_sync_error(self, error=None):
+    def update_sync_error(self, error=None) -> None:
         if error is None:
             self._sync_status["sync_error"] = None
         else:
@@ -237,7 +240,7 @@ class Account(
 
             self._sync_status["sync_error"] = error_obj
 
-    def sync_started(self):
+    def sync_started(self) -> None:
         """
         Record transition to started state. Should be called after the
         sync is actually started, not when the request to start it is made.
@@ -247,7 +250,8 @@ class Account(
 
         # Never run before (vs restarting stopped/killed)
         if self.sync_state is None and (
-            not self._sync_status or self._sync_status.get("sync_end_time") is None
+            not self._sync_status
+            or self._sync_status.get("sync_end_time") is None
         ):
             self._sync_status["original_start_time"] = current_time
 
@@ -260,20 +264,22 @@ class Account(
 
         self.sync_state = "running"
 
-    def enable_sync(self, sync_host=None):
+    def enable_sync(self, sync_host=None) -> None:
         """Tell the monitor that this account should be syncing."""
         self.sync_should_run = True
         if sync_host is not None:
             self.desired_sync_host = sync_host
 
-    def disable_sync(self, reason):
+    def disable_sync(self, reason) -> None:
         """Tell the monitor that this account should stop syncing."""
         self.sync_should_run = False
         self._sync_status["sync_disabled_reason"] = reason
         self._sync_status["sync_disabled_on"] = datetime.utcnow()
-        self._sync_status["sync_disabled_by"] = os.environ.get("USER", "unknown")
+        self._sync_status["sync_disabled_by"] = os.environ.get(
+            "USER", "unknown"
+        )
 
-    def mark_invalid(self, reason="invalid credentials", scope="mail"):
+    def mark_invalid(self, reason="invalid credentials", scope="mail") -> None:
         """
         In the event that the credentials for this account are invalid,
         update the status and sync flag accordingly. Should only be called
@@ -283,7 +289,7 @@ class Account(
         self.disable_sync(reason)
         self.sync_state = "invalid"
 
-    def mark_for_deletion(self):
+    def mark_for_deletion(self) -> None:
         """
         Mark account for deletion
         """
@@ -292,13 +298,13 @@ class Account(
         # Commit this to prevent race conditions
         inspect(self).session.commit()
 
-    def unmark_for_deletion(self):
+    def unmark_for_deletion(self) -> None:
         self.enable_sync()
         self._sync_status = {}
         self.sync_state = "running"
         inspect(self).session.commit()
 
-    def sync_stopped(self, requesting_host):
+    def sync_stopped(self, requesting_host) -> bool:
         """
         Record transition to stopped state. Should be called after the
         sync is actually stopped, not when the request to stop it is made.
@@ -317,40 +323,42 @@ class Account(
         return False
 
     @classmethod
-    def get(cls, id_, session):
+    def get(cls, id_, session):  # noqa: ANN206
         q = session.query(cls)
         q = q.filter(cls.id == bindparam("id_"))
         return q.params(id_=id_).first()
 
     @property
-    def is_killed(self):
+    def is_killed(self):  # noqa: ANN201
         return self.sync_state == "killed"
 
     @property
-    def is_running(self):
+    def is_running(self):  # noqa: ANN201
         return self.sync_state == "running"
 
     @property
-    def is_marked_for_deletion(self):
+    def is_marked_for_deletion(self):  # noqa: ANN201
         return (
             self.sync_state in ("stopped", "killed", "invalid")
             and self.sync_should_run is False
-            and self._sync_status.get("sync_disabled_reason") == "account deleted"
+            and self._sync_status.get("sync_disabled_reason")
+            == "account deleted"
         )
 
     @property
-    def should_suppress_transaction_creation(self):
+    def should_suppress_transaction_creation(self) -> bool:
         # Only version if new or the `sync_state` has changed.
         obj_state = inspect(self)
         return not (
-            obj_state.pending or inspect(self).attrs.sync_state.history.has_changes()
+            obj_state.pending
+            or inspect(self).attrs.sync_state.history.has_changes()
         )
 
     @property
-    def server_settings(self):
+    def server_settings(self) -> None:
         return None
 
-    def get_raw_message_contents(self, message):
+    def get_raw_message_contents(self, message) -> Never:
         # Get the raw contents of a message. We do this differently
         # for every backend (Gmail, IMAP, EAS), and the best way
         # to do this across repos is to make it a method of the
@@ -364,7 +372,7 @@ class Account(
     }
 
 
-def should_send_event(obj):
+def should_send_event(obj):  # noqa: ANN201
     if not isinstance(obj, Account):
         return False
     inspected_obj = inspect(obj)
@@ -378,11 +386,11 @@ def should_send_event(obj):
     return hist.has_changes()
 
 
-def already_registered_listener(obj):
+def already_registered_listener(obj):  # noqa: ANN201
     return getattr(obj, "_listener_state", None) is not None
 
 
-def update_listener_state(obj):
+def update_listener_state(obj) -> None:
     obj._listener_state["sync_should_run"] = obj.sync_should_run
     obj._listener_state["sync_host"] = obj.sync_host
     obj._listener_state["desired_sync_host"] = obj.desired_sync_host
@@ -390,7 +398,7 @@ def update_listener_state(obj):
 
 
 @event.listens_for(Session, "after_flush")
-def after_flush(session, flush_context):
+def after_flush(session, flush_context) -> None:
     from inbox.mailsync.service import (
         SYNC_EVENT_QUEUE_NAME,
         shared_sync_event_queue_for_zone,
@@ -401,7 +409,7 @@ def after_flush(session, flush_context):
             if obj_state["sent_event"]:
                 return
 
-            id = obj_state["id"]
+            id = obj_state["id"]  # noqa: A001
             sync_should_run = obj_state["sync_should_run"]
             sync_host = obj_state["sync_host"]
             desired_sync_host = obj_state["desired_sync_host"]
@@ -411,7 +419,8 @@ def after_flush(session, flush_context):
                     # Somebody is actively syncing this Account, so notify them if
                     # they should give up the Account.
                     if not sync_should_run or (
-                        sync_host != desired_sync_host and desired_sync_host is not None
+                        sync_host != desired_sync_host
+                        and desired_sync_host is not None
                     ):
                         queue_name = SYNC_EVENT_QUEUE_NAME.format(sync_host)
                         log.info(
@@ -433,18 +442,24 @@ def after_flush(session, flush_context):
                 if desired_sync_host is not None:
                     # Nobody is actively syncing the Account, and we have somebody
                     # who wants to sync this Account, so notify them.
-                    queue_name = SYNC_EVENT_QUEUE_NAME.format(desired_sync_host)
+                    queue_name = SYNC_EVENT_QUEUE_NAME.format(
+                        desired_sync_host
+                    )
                     log.info(
                         "Sending 'migrate_to' event for Account",
                         account_id=id,
                         queue_name=queue_name,
                     )
-                    EventQueue(queue_name).send_event({"event": "migrate_to", "id": id})
+                    EventQueue(queue_name).send_event(
+                        {"event": "migrate_to", "id": id}
+                    )
                     return
 
                 # Nobody is actively syncing the Account, and nobody in particular
                 # wants to sync the Account so notify the shared queue.
-                shared_queue = shared_sync_event_queue_for_zone(config.get("ZONE"))
+                shared_queue = shared_sync_event_queue_for_zone(
+                    config.get("ZONE")
+                )
                 log.info(
                     "Sending 'migrate' event for Account",
                     account_id=id,
@@ -470,7 +485,9 @@ def after_flush(session, flush_context):
                 obj._listener_state = {"id": obj.id}
                 update_listener_state(obj)
                 event.listen(
-                    session, "after_commit", send_migration_events(obj._listener_state)
+                    session,
+                    "after_commit",
+                    send_migration_events(obj._listener_state),
                 )
 
     for obj in session.dirty:
@@ -483,7 +500,9 @@ def after_flush(session, flush_context):
                 obj._listener_state = {"id": obj.id}
                 update_listener_state(obj)
                 event.listen(
-                    session, "after_commit", send_migration_events(obj._listener_state)
+                    session,
+                    "after_commit",
+                    send_migration_events(obj._listener_state),
                 )
 
 

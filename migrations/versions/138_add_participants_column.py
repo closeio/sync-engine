@@ -1,4 +1,5 @@
-"""add participants column
+"""
+add participants column
 
 Revision ID: 5305d4ae30b4
 Revises: 1f746c93e8fd
@@ -14,11 +15,11 @@ revision = "5305d4ae30b4"
 down_revision = "1f746c93e8fd"
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("ALTER TABLE event ADD COLUMN participants LONGTEXT;"))
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("ALTER TABLE event DROP COLUMN participants"))

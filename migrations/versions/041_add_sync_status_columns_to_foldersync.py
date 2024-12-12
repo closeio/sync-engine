@@ -1,4 +1,5 @@
-"""Add sync status columns to foldersync
+"""
+Add sync status columns to foldersync
 
 Revision ID: 159609404baf
 Revises: 1d7374c286c5
@@ -15,32 +16,36 @@ from alembic import op
 from sqlalchemy.ext.declarative import declarative_base
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
     from inbox.sqlalchemy_ext.util import JSON, MutableDict
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     op.add_column(
         "foldersync",
-        sa.Column("_sync_status", MutableDict.as_mutable(JSON()), nullable=True),
+        sa.Column(
+            "_sync_status", MutableDict.as_mutable(JSON()), nullable=True
+        ),
     )
 
     if "easfoldersync" in Base.metadata.tables:
         op.add_column(
             "easfoldersync",
-            sa.Column("_sync_status", MutableDict.as_mutable(JSON()), nullable=True),
+            sa.Column(
+                "_sync_status", MutableDict.as_mutable(JSON()), nullable=True
+            ),
         )
 
 
-def downgrade():
+def downgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     op.drop_column("foldersync", "_sync_status")

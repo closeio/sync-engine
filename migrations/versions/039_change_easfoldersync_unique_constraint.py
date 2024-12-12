@@ -1,4 +1,5 @@
-"""Change EASFolderSync unique constraint
+"""
+Change EASFolderSync unique constraint
 
 Revision ID: 1c72d8a0120e
 Revises: 1edbd63582c2
@@ -14,11 +15,11 @@ from alembic import op
 from sqlalchemy.ext.declarative import declarative_base
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     if "easfoldersync" in Base.metadata.tables:
@@ -30,11 +31,11 @@ def upgrade():
         op.drop_constraint("account_id", "easfoldersync", type_="unique")
 
 
-def downgrade():
+def downgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     if "easfoldersync" in Base.metadata.tables:

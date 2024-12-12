@@ -1,4 +1,5 @@
-"""Revert "Drop Block and Part ForeignKeys"
+"""
+Revert "Drop Block and Part ForeignKeys"
 
 Revision ID: 569ebe8e383d
 Revises: 4a44b06cd53b
@@ -14,7 +15,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         text(
@@ -39,7 +40,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("ALTER TABLE part DROP FOREIGN KEY part_ibfk_1"))
     conn.execute(text("ALTER TABLE part DROP FOREIGN KEY part_ibfk_2"))

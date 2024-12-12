@@ -1,4 +1,5 @@
-"""add more indexes
+"""
+add more indexes
 
 Revision ID: 118b3cdd0185
 Revises: 37cd05edd433
@@ -13,15 +14,19 @@ down_revision = "37cd05edd433"
 from alembic import op
 
 
-def upgrade():
-    op.create_index("ix_thread_recentdate", "thread", ["recentdate"], unique=False)
-    op.create_index("ix_thread_subjectdate", "thread", ["subjectdate"], unique=False)
+def upgrade() -> None:
+    op.create_index(
+        "ix_thread_recentdate", "thread", ["recentdate"], unique=False
+    )
+    op.create_index(
+        "ix_thread_subjectdate", "thread", ["subjectdate"], unique=False
+    )
     op.create_index(
         "ix_message_received_date", "message", ["received_date"], unique=False
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("ix_thread_subjectdate", table_name="thread")
     op.drop_index("ix_thread_recentdate", table_name="thread")
     op.drop_index("ix_message_received_date", table_name="message")

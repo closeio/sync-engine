@@ -1,4 +1,3 @@
-# flake8: noqa: F401
 from datetime import datetime
 
 from inbox.events.google import GoogleEventsProvider
@@ -28,10 +27,14 @@ def calendar_response():
         [],
         [
             Calendar(
-                name="Important Meetings", uid="first_calendar_uid", read_only=False
+                name="Important Meetings",
+                uid="first_calendar_uid",
+                read_only=False,
             ),
             Calendar(
-                name="Nefarious Schemes", uid="second_calendar_uid", read_only=False
+                name="Nefarious Schemes",
+                uid="second_calendar_uid",
+                read_only=False,
             ),
         ],
     )
@@ -73,22 +76,32 @@ def event_response(calendar_uid, sync_from_time):
     if calendar_uid == "first_calendar_uid":
         return [
             Event.create(
-                uid="first_event_uid", title="Plotting Meeting", **default_params
+                uid="first_event_uid",
+                title="Plotting Meeting",
+                **default_params,
             ),
             Event.create(
-                uid="second_event_uid", title="Scheming meeting", **default_params
+                uid="second_event_uid",
+                title="Scheming meeting",
+                **default_params,
             ),
             Event.create(
-                uid="third_event_uid", title="Innocent Meeting", **default_params
+                uid="third_event_uid",
+                title="Innocent Meeting",
+                **default_params,
             ),
         ]
     else:
         return [
             Event.create(
-                uid="second_event_uid", title="Plotting Meeting", **default_params
+                uid="second_event_uid",
+                title="Plotting Meeting",
+                **default_params,
             ),
             Event.create(
-                uid="third_event_uid", title="Scheming meeting", **default_params
+                uid="third_event_uid",
+                title="Scheming meeting",
+                **default_params,
             ),
         ]
 
@@ -99,9 +112,10 @@ def event_response_with_update(calendar_uid, sync_from_time):
             Event.create(
                 uid="first_event_uid",
                 title="Top Secret Plotting Meeting",
-                **default_params
+                **default_params,
             )
         ]
+    return None
 
 
 def event_response_with_participants_update(calendar_uid, sync_from_time):
@@ -111,16 +125,20 @@ def event_response_with_participants_update(calendar_uid, sync_from_time):
             {"name": "Johnny Thunders", "email": "johnny@thunde.rs"}
         ]
         return new_events
+    return None
 
 
 def event_response_with_delete(calendar_uid, sync_from_time):
     if calendar_uid == "first_calendar_uid":
         return [
-            Event.create(uid="first_event_uid", status="cancelled", **default_params)
+            Event.create(
+                uid="first_event_uid", status="cancelled", **default_params
+            )
         ]
+    return None
 
 
-def test_handle_changes(db, generic_account):
+def test_handle_changes(db, generic_account) -> None:
     namespace_id = generic_account.namespace.id
     event_sync = EventSync(
         generic_account.email_address,
@@ -138,7 +156,8 @@ def test_handle_changes(db, generic_account):
     assert (
         db.session.query(Calendar)
         .filter(
-            Calendar.namespace_id == namespace_id, Calendar.name != "Emailed events"
+            Calendar.namespace_id == namespace_id,
+            Calendar.name != "Emailed events",
         )
         .count()
         == 2
@@ -148,7 +167,8 @@ def test_handle_changes(db, generic_account):
         db.session.query(Event)
         .join(Calendar)
         .filter(
-            Event.namespace_id == namespace_id, Calendar.uid == "first_calendar_uid"
+            Event.namespace_id == namespace_id,
+            Calendar.uid == "first_calendar_uid",
         )
         .count()
         == 3
@@ -158,7 +178,8 @@ def test_handle_changes(db, generic_account):
         db.session.query(Event)
         .join(Calendar)
         .filter(
-            Event.namespace_id == namespace_id, Calendar.uid == "second_calendar_uid"
+            Event.namespace_id == namespace_id,
+            Calendar.uid == "second_calendar_uid",
         )
         .count()
         == 2
@@ -171,7 +192,8 @@ def test_handle_changes(db, generic_account):
     long_calendar = (
         db.session.query(Calendar)
         .filter(
-            Calendar.namespace_id == namespace_id, Calendar.uid == "long_calendar_uid"
+            Calendar.namespace_id == namespace_id,
+            Calendar.uid == "long_calendar_uid",
         )
         .one()
     )
@@ -187,7 +209,8 @@ def test_handle_changes(db, generic_account):
     assert (
         db.session.query(Calendar)
         .filter(
-            Calendar.namespace_id == namespace_id, Calendar.name != "Emailed events"
+            Calendar.namespace_id == namespace_id,
+            Calendar.name != "Emailed events",
         )
         .count()
         == 3
@@ -197,7 +220,8 @@ def test_handle_changes(db, generic_account):
         db.session.query(Event)
         .join(Calendar)
         .filter(
-            Event.namespace_id == namespace_id, Calendar.uid == "first_calendar_uid"
+            Event.namespace_id == namespace_id,
+            Calendar.uid == "first_calendar_uid",
         )
         .count()
         == 3
@@ -207,7 +231,8 @@ def test_handle_changes(db, generic_account):
         db.session.query(Event)
         .join(Calendar)
         .filter(
-            Event.namespace_id == namespace_id, Calendar.uid == "second_calendar_uid"
+            Event.namespace_id == namespace_id,
+            Calendar.uid == "second_calendar_uid",
         )
         .count()
         == 2
@@ -216,7 +241,10 @@ def test_handle_changes(db, generic_account):
     assert (
         db.session.query(Event)
         .join(Calendar)
-        .filter(Event.namespace_id == namespace_id, Calendar.uid == "long_calendar_uid")
+        .filter(
+            Event.namespace_id == namespace_id,
+            Calendar.uid == "long_calendar_uid",
+        )
         .count()
         == 2
     )
@@ -225,7 +253,8 @@ def test_handle_changes(db, generic_account):
     first_calendar = (
         db.session.query(Calendar)
         .filter(
-            Calendar.namespace_id == namespace_id, Calendar.uid == "first_calendar_uid"
+            Calendar.namespace_id == namespace_id,
+            Calendar.uid == "first_calendar_uid",
         )
         .one()
     )
@@ -287,7 +316,8 @@ def test_handle_changes(db, generic_account):
     event_public_ids = [
         id_
         for id_, in db.session.query(Event.public_id).filter(
-            Event.namespace_id == namespace_id, Event.calendar_id == first_calendar.id
+            Event.namespace_id == namespace_id,
+            Event.calendar_id == first_calendar.id,
         )
     ]
     event_sync.provider.sync_calendars = calendar_response_with_delete
@@ -295,7 +325,8 @@ def test_handle_changes(db, generic_account):
     assert (
         db.session.query(Calendar)
         .filter(
-            Calendar.namespace_id == namespace_id, Calendar.uid == "first_calendar_uid"
+            Calendar.namespace_id == namespace_id,
+            Calendar.uid == "first_calendar_uid",
         )
         .first()
         is None
@@ -318,5 +349,8 @@ def test_handle_changes(db, generic_account):
     # Check that events with the same uid but associated to a different
     # calendar still survive.
     assert (
-        db.session.query(Event).filter(Event.namespace_id == namespace_id).count() == 4
+        db.session.query(Event)
+        .filter(Event.namespace_id == namespace_id)
+        .count()
+        == 4
     )

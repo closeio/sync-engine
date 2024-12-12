@@ -20,6 +20,7 @@ from inbox.sqlalchemy_ext.util import generate_public_id
 class SendMailException(Exception):
     """
     Raised when sending fails.
+
     Parameters
     ----------
     message: string
@@ -31,9 +32,12 @@ class SendMailException(Exception):
     failures: dict, optional
         If sending only failed for some recipients, information on the specific
         failures.
+
     """
 
-    def __init__(self, message, http_code, server_error=None, failures=None):
+    def __init__(
+        self, message, http_code, server_error=None, failures=None
+    ) -> None:
         self.message = message
         self.http_code = http_code
         self.server_error = server_error
@@ -41,7 +45,7 @@ class SendMailException(Exception):
         super().__init__(message, http_code, server_error, failures)
 
 
-def get_sendmail_client(account):
+def get_sendmail_client(account):  # noqa: ANN201
     from inbox.sendmail import module_registry
 
     sendmail_mod = module_registry.get(account.provider)
@@ -62,7 +66,9 @@ def create_draft_from_mime(
     new_body = new_headers + raw_mime
 
     with db_session.no_autoflush:
-        msg = Message.create_from_synced(account, "", "", datetime.utcnow(), new_body)
+        msg = Message.create_from_synced(
+            account, "", "", datetime.utcnow(), new_body
+        )
 
         if msg.from_addr and len(msg.from_addr) > 1:
             raise InputError("from_addr field can have at most one item")
@@ -95,7 +101,7 @@ def create_draft_from_mime(
     return msg
 
 
-def block_to_part(block, message, namespace):
+def block_to_part(block, message, namespace):  # noqa: ANN201
     inline_image_uri = rf"cid:{block.public_id}"
     is_inline = re.search(inline_image_uri, message.body) is not None
     # Create a new Part object to associate to the message object.
@@ -110,8 +116,11 @@ def block_to_part(block, message, namespace):
     return part
 
 
-def create_message_from_json(data, namespace, db_session, is_draft):
-    """Construct a Message instance from `data`, a dictionary representing the
+def create_message_from_json(  # noqa: ANN201
+    data, namespace, db_session, is_draft
+):
+    """
+    Construct a Message instance from `data`, a dictionary representing the
     POST body of an API request. All new objects are added to the session, but
     not committed.
     """
@@ -135,7 +144,9 @@ def create_message_from_json(data, namespace, db_session, is_draft):
     if not isinstance(body, str):
         raise InputError('"body" should be a string')
     blocks = get_attachments(data.get("file_ids"), namespace.id, db_session)
-    reply_to_thread = get_thread(data.get("thread_id"), namespace.id, db_session)
+    reply_to_thread = get_thread(
+        data.get("thread_id"), namespace.id, db_session
+    )
     reply_to_message = get_message(
         data.get("reply_to_message_id"), namespace.id, db_session
     )
@@ -238,13 +249,17 @@ def create_message_from_json(data, namespace, db_session, is_draft):
     db_session.add(message)
     if is_draft:
         schedule_action(
-            "save_draft", message, namespace.id, db_session, version=message.version
+            "save_draft",
+            message,
+            namespace.id,
+            db_session,
+            version=message.version,
         )
     db_session.flush()
     return message
 
 
-def update_draft(
+def update_draft(  # noqa: ANN201
     db_session,
     account,
     draft,
@@ -331,7 +346,7 @@ def update_draft(
     return draft
 
 
-def delete_draft(db_session, account, draft):
+def delete_draft(db_session, account, draft) -> None:
     """Delete the given draft."""
     thread = draft.thread
     assert draft.is_draft
@@ -355,12 +370,15 @@ def delete_draft(db_session, account, draft):
     db_session.commit()
 
 
-def generate_attachments(message, blocks):
+def generate_attachments(message, blocks):  # noqa: ANN201
     attachment_dicts = []
     for block in blocks:
         content_disposition = "attachment"
         for part in block.parts:
-            if part.message_id == message.id and part.content_disposition == "inline":
+            if (
+                part.message_id == message.id
+                and part.content_disposition == "inline"
+            ):
                 content_disposition = "inline"
                 break
 
@@ -377,7 +395,8 @@ def generate_attachments(message, blocks):
 
 
 def _set_reply_headers(new_message, previous_message):
-    """When creating a draft in reply to a thread, set the In-Reply-To and
+    """
+    When creating a draft in reply to a thread, set the In-Reply-To and
     References headers appropriately, if possible.
     """
     if previous_message.message_id_header:

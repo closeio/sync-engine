@@ -1,4 +1,5 @@
-"""increase gmailaccount token length
+"""
+increase gmailaccount token length
 
 Revision ID: 3df39f4fbdec
 Revises: 17b147c1d53c
@@ -14,11 +15,15 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column("gmailaccount", "g_id_token", type_=sa.String(length=2048))
-    op.alter_column("gmailauthcredentials", "g_id_token", type_=sa.String(length=2048))
+    op.alter_column(
+        "gmailauthcredentials", "g_id_token", type_=sa.String(length=2048)
+    )
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column("gmailaccount", "g_id_token", type_=sa.String(length=1024))
-    op.alter_column("gmailauthcredentials", "g_id_token", type_=sa.String(length=1024))
+    op.alter_column(
+        "gmailauthcredentials", "g_id_token", type_=sa.String(length=1024)
+    )

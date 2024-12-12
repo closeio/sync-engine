@@ -13,7 +13,7 @@ import sys
 import threading
 import traceback
 from types import TracebackType
-from typing import Any, Dict, Optional, Tuple, Type
+from typing import Any
 
 import colorlog
 import structlog
@@ -22,7 +22,7 @@ from structlog.threadlocal import wrap_dict
 MAX_EXCEPTION_LENGTH = 10000
 
 
-def find_first_app_frame_and_name(ignores=None):
+def find_first_app_frame_and_name(ignores=None):  # noqa: ANN201
     """
     Remove ignorable calls and return the relevant app frame. Borrowed from
     structlog, but fixes an issue when the stack includes an 'exec' statement
@@ -36,6 +36,7 @@ def find_first_app_frame_and_name(ignores=None):
     Returns
     -------
     tuple of (frame, name)
+
     """
     ignores = ignores or []
     f = sys._getframe()
@@ -51,7 +52,8 @@ def find_first_app_frame_and_name(ignores=None):
 
 
 def _record_level(logger, name, event_dict):
-    """Processor that records the log level ('info', 'warning', etc.) in the
+    """
+    Processor that records the log level ('info', 'warning', etc.) in the
     structlog event dictionary.
     """
     event_dict["level"] = name
@@ -59,7 +61,8 @@ def _record_level(logger, name, event_dict):
 
 
 def _record_module(logger, name, event_dict):
-    """Processor that records the module and line where the logging call was
+    """
+    Processor that records the module and line where the logging call was
     invoked.
     """
     f, name = find_first_app_frame_and_name(
@@ -76,16 +79,17 @@ def _record_module(logger, name, event_dict):
     return event_dict
 
 
-def safe_format_exception(etype, value, tb, limit=None):
-    """Similar to structlog._format_exception, but truncate the exception part.
+def safe_format_exception(etype, value, tb, limit=None):  # noqa: ANN201
+    """
+    Similar to structlog._format_exception, but truncate the exception part.
     This is because SQLAlchemy exceptions can sometimes have ludicrously large
     exception strings.
     """
     if tb:
-        list = ["Traceback (most recent call last):\n"]
-        list = list + traceback.format_tb(tb, limit)
+        list = ["Traceback (most recent call last):\n"]  # noqa: A001
+        list = list + traceback.format_tb(tb, limit)  # noqa: A001
     elif etype and value:
-        list = []
+        list = []  # noqa: A001
     else:
         return None
     exc_only = traceback.format_exception_only(etype, value)
@@ -93,7 +97,7 @@ def safe_format_exception(etype, value, tb, limit=None):
     # errors it may contain multiple elements, but we don't really need to
     # worry about that here.
     exc_only[0] = exc_only[0][:MAX_EXCEPTION_LENGTH]
-    list = list + exc_only
+    list = list + exc_only  # noqa: A001
     return "".join(list)
 
 
@@ -123,10 +127,7 @@ def _is_log_in_same_fn_scope(exc_tb):
             break
 
     exc_tb_stack = traceback.extract_tb(exc_tb)
-    for _, _, fn_name, _ in exc_tb_stack:
-        if fn_name == calling_fn:
-            return True
-    return False
+    return any(fn_name == calling_fn for _, _, fn_name, _ in exc_tb_stack)
 
 
 def _get_exc_info_if_in_scope():
@@ -194,7 +195,8 @@ def _safe_exc_info_renderer(_, __, event_dict):
 
 
 def _safe_encoding_renderer(_, __, event_dict):
-    """Processor that converts all strings to unicode.
+    """
+    Processor that converts all strings to unicode.
     Note that we ignore conversion errors.
     """
     for key in event_dict:
@@ -216,7 +218,9 @@ class BoundLogger(structlog.stdlib.BoundLogger):
         if env is not None:
             event_kw["env"] = env
 
-        return super()._proxy_to_logger(method_name, event, *event_args, **event_kw)
+        return super()._proxy_to_logger(
+            method_name, event, *event_args, **event_kw
+        )
 
 
 structlog.configure(
@@ -247,16 +251,15 @@ LOG_LEVELS = {
 }
 
 
-def json_excepthook(etype, value, tb):
+def json_excepthook(etype, value, tb) -> None:
     log = get_logger()
     log.error(**create_error_log_context((etype, value, tb)))
 
 
 class ConditionalFormatter(logging.Formatter):
-    def format(self, record):
+    def format(self, record):  # noqa: ANN201
         if (
-            record.name == "__main__"
-            or record.name == "inbox"
+            record.name in ("__main__", "inbox")
             or record.name.startswith("inbox.")
             or record.name == "gunicorn"
             or record.name.startswith("gunicorn.")
@@ -271,8 +274,9 @@ class ConditionalFormatter(logging.Formatter):
         return super().format(record)
 
 
-def configure_logging(log_level=None):
-    """Idempotently configure logging.
+def configure_logging(log_level=None) -> None:
+    """
+    Idempotently configure logging.
 
     Infers options based on whether or not the output is a TTY.
 
@@ -332,10 +336,10 @@ MAX_ERROR_MESSAGE_LENGTH = 1024
 
 
 def create_error_log_context(
-    exc_info: Tuple[Optional[Type], Any, Optional[TracebackType]]
-) -> Dict[str, Any]:
+    exc_info: tuple[type | None, Any, TracebackType | None]
+) -> dict[str, Any]:
     exc_type, exc_value, exc_tb = exc_info
-    out: Dict[str, Any] = {}
+    out: dict[str, Any] = {}
 
     if exc_type is None and exc_value is None and exc_tb is None:
         return out

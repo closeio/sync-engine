@@ -1,4 +1,5 @@
-"""Import old accounts
+"""
+Import old accounts
 
 Revision ID: adc646e1f11
 Revises: 41a7e825d108
@@ -18,7 +19,7 @@ from sqlalchemy.ext.declarative import declarative_base
 SQL_DUMP_FILENAME = "alphasync_rds_inbox_imapaccount.sql"
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
@@ -27,24 +28,24 @@ def upgrade():
     from inbox.models.backends.imap import ImapAccount
 
     # Assert we have the dump file
-    if not os.path.isfile(SQL_DUMP_FILENAME):
+    if not os.path.isfile(SQL_DUMP_FILENAME):  # noqa: PTH113
         print(
-            "Can't find old user SQL dump at {0}...\nMigration no users.".format(
+            "Can't find old user SQL dump at {}...\nMigration no users.".format(
                 SQL_DUMP_FILENAME
             )
         )
         return
 
     # Imports to `imapaccount_old` table
-    with open(SQL_DUMP_FILENAME) as f:
+    with open(SQL_DUMP_FILENAME) as f:  # noqa: PTH123
         print("Importing old account data..."),
         op.execute(f.read())
         print("OK!")
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class ImapAccount_Old(Base):
+    class ImapAccount_Old(Base):  # noqa: N801
         __table__ = Base.metadata.tables["imapaccount_old"]
 
     with session_scope() as db_session:
@@ -98,10 +99,12 @@ def upgrade():
             else:
                 print("FAILED!")
 
-        print(f"Done! Verified {len(verified_accounts)} of {len(migrated_accounts)}")
+        print(
+            f"Done! Verified {len(verified_accounts)} of {len(migrated_accounts)}"
+        )
 
     op.drop_table("imapaccount_old")
 
 
-def downgrade():
+def downgrade() -> None:
     print("Not removing any accounts!")

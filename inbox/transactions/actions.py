@@ -14,7 +14,6 @@ import threading
 import weakref
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import DefaultDict, Optional, Set
 
 from sqlalchemy import desc
 
@@ -77,11 +76,11 @@ EVENT_ACTION_FUNCTION_MAP = {
 }
 
 
-def action_uses_crispin_client(action):
+def action_uses_crispin_client(action):  # noqa: ANN201
     return action in MAIL_ACTION_FUNCTION_MAP
 
 
-def function_for_action(action):
+def function_for_action(action):  # noqa: ANN201
     if action in MAIL_ACTION_FUNCTION_MAP:
         return MAIL_ACTION_FUNCTION_MAP[action]
     return EVENT_ACTION_FUNCTION_MAP[action]
@@ -109,7 +108,7 @@ class SyncbackService(InterruptibleThread):
         num_workers=NUM_PARALLEL_ACCOUNTS,
         batch_size=20,
         fetch_batch_size=100,
-    ):
+    ) -> None:
         self.process_number = process_number
         self.total_processes = total_processes
         self.poll_interval = poll_interval
@@ -130,15 +129,16 @@ class SyncbackService(InterruptibleThread):
         # on any given object. But IMAP actions are already effectively
         # serialized by using an IMAP connection pool of size 1, so it doesn't
         # matter too much.
-        self.account_semaphores: DefaultDict[int, threading.BoundedSemaphore] = (
-            defaultdict(lambda: threading.BoundedSemaphore(1))
-        )
+        self.account_semaphores: defaultdict[
+            int, threading.BoundedSemaphore
+        ] = defaultdict(lambda: threading.BoundedSemaphore(1))
         # This SyncbackService performs syncback for only and all the accounts
         # on shards it is reponsible for; shards are divided up between
         # running SyncbackServices.
         self.log = logger.new(component="syncback")
         syncback_assignments = {
-            int(k): v for k, v in config.get("SYNCBACK_ASSIGNMENTS", {}).items()
+            int(k): v
+            for k, v in config.get("SYNCBACK_ASSIGNMENTS", {}).items()
         }
         if syncback_id in syncback_assignments:
             self.keys = [
@@ -149,7 +149,8 @@ class SyncbackService(InterruptibleThread):
             ]
         else:
             self.log.warning(
-                "No shards assigned to syncback server", syncback_id=syncback_id
+                "No shards assigned to syncback server",
+                syncback_id=syncback_id,
             )
             self.keys = []
 
@@ -167,7 +168,7 @@ class SyncbackService(InterruptibleThread):
         Determines if we recently completed a move action. Since Nylas doesn't
         update local UID state after completing an action, we space
         non-optimistic actions apart so the sync process can catch up.
-        """
+        """  # noqa: D401
         if not log_entries:
             return False
 
@@ -222,7 +223,9 @@ class SyncbackService(InterruptibleThread):
 
         # XXX: Don't do this for change_labels because we use optimistic
         # updates.
-        if action == "move" and self._has_recent_move_action(db_session, log_entries):
+        if action == "move" and self._has_recent_move_action(
+            db_session, log_entries
+        ):
             return []
 
         if has_more and action in ("move", "mark_unread", "change_labels"):
@@ -254,8 +257,8 @@ class SyncbackService(InterruptibleThread):
         if action in ("move", "mark_unread"):
             extra_args = log_entries[-1].extra_args
         elif action == "change_labels":
-            added_labels: Set[str] = set()
-            removed_labels: Set[str] = set()
+            added_labels: set[str] = set()
+            removed_labels: set[str] = set()
             for log_entry in log_entries:
                 for label in log_entry.extra_args["added_labels"]:
                     if label in removed_labels:
@@ -306,7 +309,7 @@ class SyncbackService(InterruptibleThread):
         """
         Helper for _batch_log_entries that returns the batch task for the given
         valid log entries.
-        """
+        """  # noqa: D401
         if not log_entries:
             return None
         namespace = log_entries[0].namespace
@@ -336,7 +339,10 @@ class SyncbackService(InterruptibleThread):
             if len(tasks) > self.batch_size:
                 break
         if tasks:
-            return SyncbackBatchTask(semaphore, tasks[: self.batch_size], account_id)
+            return SyncbackBatchTask(
+                semaphore, tasks[: self.batch_size], account_id
+            )
+        return None
 
     def _batch_log_entries(self, db_session, log_entries):
         """
@@ -345,7 +351,7 @@ class SyncbackService(InterruptibleThread):
         account.
         """
         valid_log_entries = []
-        account_id: Optional[int] = None
+        account_id: int | None = None
 
         has_more = len(log_entries) == self.fetch_batch_size
 
@@ -356,7 +362,8 @@ class SyncbackService(InterruptibleThread):
 
             if log_entry.id in self.running_action_ids:
                 self.log.debug(
-                    "Skipping already running action", action_log_id=log_entry.id
+                    "Skipping already running action",
+                    action_log_id=log_entry.id,
                 )
                 # We're already running an action for this account, so don't
                 # queue up any additional actions for this account until the
@@ -380,13 +387,15 @@ class SyncbackService(InterruptibleThread):
                     action=log_entry.action,
                 )
 
-                action_age = (datetime.utcnow() - log_entry.created_at).total_seconds()
+                action_age = (
+                    datetime.utcnow() - log_entry.created_at
+                ).total_seconds()
 
                 if action_age > INVALID_ACCOUNT_GRACE_PERIOD:
                     log_entry.status = "failed"
                     db_session.commit()
                     self.log.warning(
-                        "Marking action as failed for {} account, older than grace period".format(
+                        "Marking action as failed for {} account, older than grace period".format(  # noqa: G001
                             sync_state
                         ),
                         account_id=account_id,
@@ -394,7 +403,9 @@ class SyncbackService(InterruptibleThread):
                         action=log_entry.action,
                     )
                     statsd_client.incr(f"syncback.{sync_state}_failed.total")
-                    statsd_client.incr(f"syncback.{sync_state}_failed.{account_id}")
+                    statsd_client.incr(
+                        f"syncback.{sync_state}_failed.{account_id}"
+                    )
                 continue
 
             # If there is a recently failed action, don't execute any actions
@@ -419,7 +430,9 @@ class SyncbackService(InterruptibleThread):
 
             valid_log_entries.append(log_entry)
 
-        batch_task = self._get_batch_task(db_session, valid_log_entries, has_more)
+        batch_task = self._get_batch_task(
+            db_session, valid_log_entries, has_more
+        )
         if not batch_task:
             return None
         for task in batch_task.tasks:
@@ -496,7 +509,7 @@ class SyncbackService(InterruptibleThread):
         self.worker_did_finish.clear()
         self.worker_did_finish.wait(timeout=timeout)
 
-    def stop(self):
+    def stop(self) -> None:
         self.keep_running = False
         kill_all(self.workers)
 
@@ -511,22 +524,22 @@ class SyncbackService(InterruptibleThread):
             interruptible_threading.check_interrupted()
             retry_with_logging(self._run_impl, self.log)
 
-    def notify_worker_active(self):
+    def notify_worker_active(self) -> None:
         self.num_idle_workers -= 1
 
-    def notify_worker_finished(self, action_ids):
+    def notify_worker_finished(self, action_ids) -> None:
         self.num_idle_workers += 1
         self.worker_did_finish.set()
         for action_id in action_ids:
             self.running_action_ids.remove(action_id)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self.keep_running:
             self.stop()
 
 
 class SyncbackBatchTask:
-    def __init__(self, semaphore, tasks, account_id):
+    def __init__(self, semaphore, tasks, account_id) -> None:
         self.semaphore = semaphore
         self.tasks = tasks
         self.account_id = account_id
@@ -537,7 +550,7 @@ class SyncbackBatchTask:
         else:
             return DummyContextManager()
 
-    def execute(self):
+    def execute(self) -> None:
         log = logger.new()
         with self.semaphore, self._crispin_client_or_none() as crispin_client:
             log.debug(
@@ -557,14 +570,14 @@ class SyncbackBatchTask:
                     # failed.
                     break
 
-    def uses_crispin_client(self):
+    def uses_crispin_client(self):  # noqa: ANN201
         return any([task.uses_crispin_client() for task in self.tasks])
 
-    def timeout(self, per_task_timeout):
+    def timeout(self, per_task_timeout):  # noqa: ANN201
         return len(self.tasks) * per_task_timeout
 
     @property
-    def action_log_ids(self):
+    def action_log_ids(self):  # noqa: ANN201
         return [entry for task in self.tasks for entry in task.action_log_ids]
 
 
@@ -595,7 +608,7 @@ class SyncbackTask:
         service,
         retry_interval=30,
         extra_args=None,
-    ):
+    ) -> None:
         self.parent_service = weakref.ref(service)
         self.action_name = action_name
         self.semaphore = semaphore
@@ -608,7 +621,7 @@ class SyncbackTask:
         self.retry_interval = retry_interval
         self.crispin_client = None
 
-    def try_merge_with(self, other):
+    def try_merge_with(self, other):  # noqa: ANN201
         if self.func != other.func:
             return None
 
@@ -656,7 +669,7 @@ class SyncbackTask:
             if latency:
                 statsd_client.timing(metric, latency * 1000)
 
-    def execute_with_lock(self):
+    def execute_with_lock(self) -> bool | None:
         """
         Process a task and return whether it executed successfully.
         """
@@ -683,7 +696,9 @@ class SyncbackTask:
 
         try:
             before, after = self._execute_timed_action(records_to_process)
-            self.log.debug("executing action", action_log_ids=action_ids_to_process)
+            self.log.debug(
+                "executing action", action_log_ids=action_ids_to_process
+            )
 
             with session_scope(self.account_id) as db_session:
                 action_log_entries = db_session.query(ActionLog).filter(
@@ -695,10 +710,8 @@ class SyncbackTask:
                     latency, func_latency = self._mark_action_as_successful(
                         action_log_entry, before, after, db_session
                     )
-                    if latency > max_latency:
-                        max_latency = latency
-                    if func_latency > max_func_latency:
-                        max_func_latency = func_latency
+                    max_latency = max(latency, max_latency)
+                    max_func_latency = max(func_latency, max_func_latency)
                 parent_service = self.parent_service()
                 assert parent_service
                 self.log.info(
@@ -730,7 +743,9 @@ class SyncbackTask:
                     )
                     # If we merged actions, fail them all at the same time.
                     for action_log_entry in action_log_entries:
-                        self._mark_action_as_failed(action_log_entry, db_session)
+                        self._mark_action_as_failed(
+                            action_log_entry, db_session
+                        )
                 db_session.commit()
 
                 return False
@@ -745,10 +760,14 @@ class SyncbackTask:
             )
             for action_log_entry in action_log_entries:
                 if action_log_entry.status != "pending":
-                    self.log.info("Skipping SyncbackTask, action is no longer pending")
+                    self.log.info(
+                        "Skipping SyncbackTask, action is no longer pending"
+                    )
                     continue
                 action_ids_to_process.append(action_log_entry.id)
-                records_to_process.append(action_log_record_map[action_log_entry.id])
+                records_to_process.append(
+                    action_log_record_map[action_log_entry.id]
+                )
         return records_to_process, action_ids_to_process
 
     def _execute_timed_action(self, records_to_process):
@@ -769,11 +788,14 @@ class SyncbackTask:
         after_func = datetime.utcnow()
         return before_func, after_func
 
-    def _mark_action_as_successful(self, action_log_entry, before, after, db_session):
+    def _mark_action_as_successful(
+        self, action_log_entry, before, after, db_session
+    ):
         action_log_entry.status = "successful"
         db_session.commit()
         latency = round(
-            (datetime.utcnow() - action_log_entry.created_at).total_seconds(), 2
+            (datetime.utcnow() - action_log_entry.created_at).total_seconds(),
+            2,
         )
         func_latency = round((after - before).total_seconds(), 2)
         self._log_to_statsd(action_log_entry.status, latency)
@@ -806,19 +828,19 @@ class SyncbackTask:
             event.deleted_at = datetime.now()
         db_session.commit()
 
-    def uses_crispin_client(self):
+    def uses_crispin_client(self):  # noqa: ANN201
         return action_uses_crispin_client(self.action_name)
 
-    def timeout(self, per_task_timeout):
+    def timeout(self, per_task_timeout):  # noqa: ANN201
         return per_task_timeout
 
-    def execute(self):
+    def execute(self) -> None:
         with self.semaphore:
             self.execute_with_lock()
 
 
 class SyncbackWorker(InterruptibleThread):
-    def __init__(self, parent_service, task_timeout=60):
+    def __init__(self, parent_service, task_timeout=60) -> None:
         self.parent_service = weakref.ref(parent_service)
         self.task_timeout = task_timeout
         self.log = logger.new(component="syncback-worker")
@@ -826,17 +848,23 @@ class SyncbackWorker(InterruptibleThread):
 
     def _run(self):
         while self.parent_service().keep_running:
-            task = interruptible_threading.queue_get(self.parent_service().task_queue)
+            task = interruptible_threading.queue_get(
+                self.parent_service().task_queue
+            )
 
             try:
                 self.parent_service().notify_worker_active()
-                with interruptible_threading.timeout(task.timeout(self.task_timeout)):
+                with interruptible_threading.timeout(
+                    task.timeout(self.task_timeout)
+                ):
                     task.execute()
             except Exception:
-                self.log.error(
+                self.log.error(  # noqa: G201
                     "SyncbackWorker caught exception",
                     exc_info=True,
                     account_id=task.account_id,
                 )
             finally:
-                self.parent_service().notify_worker_finished(task.action_log_ids)
+                self.parent_service().notify_worker_finished(
+                    task.action_log_ids
+                )

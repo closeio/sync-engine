@@ -1,4 +1,5 @@
 import threading
+from typing import Never
 
 from inbox import interruptible_threading
 from inbox.exceptions import ConnectionError, ValidationError
@@ -36,7 +37,7 @@ class BaseSyncMonitor(InterruptibleThread):
         provider_name,
         poll_frequency=1,
         scope=None,
-    ):
+    ) -> None:
         self.account_id = account_id
         self.namespace_id = namespace_id
         self.provider_name = provider_name
@@ -47,7 +48,11 @@ class BaseSyncMonitor(InterruptibleThread):
 
         self.shutdown = threading.Event()
         self.heartbeat_status = HeartbeatStatusProxy(
-            self.account_id, folder_id, folder_name, email_address, provider_name
+            self.account_id,
+            folder_id,
+            folder_name,
+            email_address,
+            provider_name,
         )
 
         super().__init__()
@@ -69,7 +74,7 @@ class BaseSyncMonitor(InterruptibleThread):
                 )
         except ValidationError:
             # Bad account credentials; exit.
-            self.log.error(
+            self.log.error(  # noqa: G201
                 "Credential validation error; exiting",
                 exc_info=True,
                 logstash_tag="mark_invalid",
@@ -86,12 +91,14 @@ class BaseSyncMonitor(InterruptibleThread):
         # If we get a connection or API permissions error, then sleep
         # 2x poll frequency.
         except ConnectionError:
-            self.log.error("Error while polling", exc_info=True)
-            interruptible_threading.sleep(introduce_jitter(self.poll_frequency))
+            self.log.error("Error while polling", exc_info=True)  # noqa: G201
+            interruptible_threading.sleep(
+                introduce_jitter(self.poll_frequency)
+            )
         interruptible_threading.sleep(introduce_jitter(self.poll_frequency))
 
-    def sync(self):
-        """Subclasses should override this to do work"""
+    def sync(self) -> Never:
+        """Subclasses should override this to do work"""  # noqa: D401
         raise NotImplementedError
 
     def __repr__(self) -> str:

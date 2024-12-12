@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 
 from sys import exit
@@ -12,7 +12,6 @@ from inbox.heartbeat.config import (
     SOCKET_TIMEOUT,
     STATUS_DATABASE,
     WAIT_TIMEOUT,
-    get_redis_client,
 )
 
 
@@ -20,7 +19,7 @@ from inbox.heartbeat.config import (
 @click.option("--host", "-h", type=str, default="localhost")
 @click.option("--port", "-p", type=int, default=6379)
 @click.option("--database", "-d", type=int, default=STATUS_DATABASE)
-def main(host, port, database):
+def main(host, port, database) -> None:
     maybe_enable_rollbar()
 
     connection_pool = BlockingConnectionPool(

@@ -1,4 +1,5 @@
-"""canonicalize addresses
+"""
+canonicalize addresses
 
 Revision ID: 3795b2a97af1
 Revises:358d0320397f
@@ -15,13 +16,16 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "account",
-        sa.Column("_canonicalized_address", sa.String(length=191), nullable=True),
+        sa.Column(
+            "_canonicalized_address", sa.String(length=191), nullable=True
+        ),
     )
     op.add_column(
-        "account", sa.Column("_raw_address", sa.String(length=191), nullable=True)
+        "account",
+        sa.Column("_raw_address", sa.String(length=191), nullable=True),
     )
     op.create_index(
         "ix_account__canonicalized_address",
@@ -35,10 +39,13 @@ def upgrade():
 
     op.add_column(
         "contact",
-        sa.Column("_canonicalized_address", sa.String(length=191), nullable=True),
+        sa.Column(
+            "_canonicalized_address", sa.String(length=191), nullable=True
+        ),
     )
     op.add_column(
-        "contact", sa.Column("_raw_address", sa.String(length=191), nullable=True)
+        "contact",
+        sa.Column("_raw_address", sa.String(length=191), nullable=True),
     )
     op.create_index(
         "ix_contact__canonicalized_address",
@@ -59,7 +66,7 @@ def upgrade():
 
     from inbox.models.session import session_scope
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     def canonicalize_address(addr):
@@ -81,7 +88,9 @@ def upgrade():
     with session_scope(versioned=False) as db_session:
         for acct in db_session.query(Account):
             acct._raw_address = acct.email_address
-            acct._canonicalized_address = canonicalize_address(acct.email_address)
+            acct._canonicalized_address = canonicalize_address(
+                acct.email_address
+            )
         db_session.commit()
 
         for contact in db_session.query(Contact):
@@ -98,12 +107,14 @@ def upgrade():
     op.drop_column("contact", "email_address")
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
-        "account", sa.Column("email_address", mysql.VARCHAR(length=191), nullable=True)
+        "account",
+        sa.Column("email_address", mysql.VARCHAR(length=191), nullable=True),
     )
     op.add_column(
-        "contact", sa.Column("email_address", mysql.VARCHAR(length=191), nullable=True)
+        "contact",
+        sa.Column("email_address", mysql.VARCHAR(length=191), nullable=True),
     )
     op.create_index(
         "ix_account_email_address", "account", ["email_address"], unique=False
@@ -118,7 +129,7 @@ def downgrade():
 
     from inbox.models.session import session_scope
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Account(Base):

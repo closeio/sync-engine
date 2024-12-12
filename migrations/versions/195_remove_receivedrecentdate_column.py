@@ -1,4 +1,5 @@
-"""Remove receivedrecentdate column
+"""
+Remove receivedrecentdate column
 
 Revision ID: 51ad0922ad8e
 Revises: 69e93aef3e9
@@ -14,12 +15,14 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("thread", "receivedrecentdate")
-    op.drop_index("ix_thread_namespace_id_receivedrecentdate", table_name="thread")
+    op.drop_index(
+        "ix_thread_namespace_id_receivedrecentdate", table_name="thread"
+    )
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         "thread",
         sa.Column(

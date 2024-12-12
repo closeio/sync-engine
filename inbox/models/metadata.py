@@ -12,7 +12,9 @@ from inbox.models.namespace import Namespace
 from inbox.sqlalchemy_ext.util import JSON, Base36UID
 
 
-class Metadata(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtMixin):
+class Metadata(
+    MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtMixin
+):
     """
     Key-value store for applications to store arbitrary data associated with
     mail. API object public_id's are used as the keys, and values are JSON.
@@ -38,7 +40,9 @@ class Metadata(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
     app_client_id = Column(Base36UID, nullable=False)
     app_type = Column(String(20), nullable=False)
 
-    namespace_id = Column(ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False)
+    namespace_id = Column(
+        ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False
+    )
     namespace = relationship(Namespace)
 
     # Reference to the object that this metadata is about. Public ID is the
@@ -55,6 +59,9 @@ class Metadata(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedA
 
 
 Index(
-    "ix_obj_public_id_app_id", Metadata.object_public_id, Metadata.app_id, unique=True
+    "ix_obj_public_id_app_id",
+    Metadata.object_public_id,
+    Metadata.app_id,
+    unique=True,
 )
 Index("ix_namespace_id_app_id", Metadata.namespace_id, Metadata.app_id)

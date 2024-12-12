@@ -1,4 +1,5 @@
-"""Drop EASUid UniqueConstraint
+"""
+Drop EASUid UniqueConstraint
 
 Revision ID: 1962d17d1c0a
 Revises: 4b225df49747
@@ -14,7 +15,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     if not conn.engine.has_table("easuid"):
         return
@@ -23,5 +24,5 @@ def upgrade():
     op.drop_constraint("easaccount_id_2", "easuid", type_="unique")
 
 
-def downgrade():
+def downgrade() -> None:
     pass

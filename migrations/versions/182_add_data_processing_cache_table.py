@@ -1,4 +1,5 @@
-"""add data processing cache table
+"""
+add data processing cache table
 
 Revision ID: 3857f395fb1d
 Revises: 10da2e0bc3bb
@@ -15,7 +16,7 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "dataprocessingcache",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
@@ -24,14 +25,18 @@ def upgrade():
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
         sa.Column("namespace_id", sa.Integer(), nullable=False),
         sa.Column("contact_rankings", mysql.MEDIUMBLOB(), nullable=True),
-        sa.Column("contact_rankings_last_updated", sa.DateTime(), nullable=True),
+        sa.Column(
+            "contact_rankings_last_updated", sa.DateTime(), nullable=True
+        ),
         sa.Column("contact_groups", mysql.MEDIUMBLOB(), nullable=True),
         sa.Column("contact_groups_last_updated", sa.DateTime(), nullable=True),
-        sa.ForeignKeyConstraint(["namespace_id"], ["namespace.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["namespace_id"], ["namespace.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("namespace_id"),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("dataprocessingcache")

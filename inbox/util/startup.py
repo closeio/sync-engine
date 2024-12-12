@@ -12,10 +12,13 @@ log = get_logger()
 
 
 def _absolute_path(relative_path):
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), relative_path)
+    return os.path.join(  # noqa: PTH118
+        os.path.dirname(os.path.abspath(__file__)),  # noqa: PTH100, PTH120
+        relative_path,
+    )
 
 
-def check_sudo():
+def check_sudo() -> None:
     if os.getuid() == 0:
         raise Exception("Don't run the Nylas Sync Engine as root!")
 
@@ -46,19 +49,19 @@ $ sudo dpkg-reconfigure --frontend noninteractive tzdata
 """
 
 
-def check_tz():
+def check_tz() -> None:
     if time.tzname[time.daylight] not in ["UTC", "GMT"]:
         sys.exit(_TZ_ERROR_TEXT)
 
 
-def load_overrides(file_path, loaded_config=config):
+def load_overrides(file_path, loaded_config=config) -> None:
     """
     Convenience function for overriding default configuration.
 
     file_path : <string> the full path to a file containing valid
                 JSON for configuration overrides
-    """
-    with open(file_path) as data_file:
+    """  # noqa: D401
+    with open(file_path) as data_file:  # noqa: PTH123
         try:
             overrides = json.load(data_file)
         except ValueError:
@@ -71,7 +74,7 @@ def load_overrides(file_path, loaded_config=config):
         log.debug(f"Imported config overrides {list(overrides)}")
 
 
-def preflight():
+def preflight() -> None:
     check_sudo()
     check_tz()
 

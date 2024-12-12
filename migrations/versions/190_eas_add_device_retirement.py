@@ -1,4 +1,5 @@
-"""eas_add_device_retirement
+"""
+eas_add_device_retirement
 
 Revision ID: 246a6bf050bc
 Revises: 3b093f2d7419
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -31,7 +32,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)

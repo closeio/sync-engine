@@ -27,7 +27,7 @@ from inbox.crispin import (
 
 
 class MockedIMAPClient(imapclient.IMAPClient):
-    def _create_IMAP4(self):
+    def _create_IMAP4(self):  # noqa: N802
         return mock.Mock()
 
 
@@ -136,7 +136,9 @@ def constants():
 
 
 def patch_gmail_client(monkeypatch, folders):
-    monkeypatch.setattr(GmailCrispinClient, "_fetch_folder_list", lambda x: folders)
+    monkeypatch.setattr(
+        GmailCrispinClient, "_fetch_folder_list", lambda x: folders
+    )
 
     conn = MockedIMAPClient(host="somehost")
     return GmailCrispinClient(
@@ -159,12 +161,15 @@ def patch_generic_client(monkeypatch, folders):
     )
 
 
-def patch_imap4(crispin_client, resp):
-    crispin_client.conn._imap._command_complete.return_value = ("OK", ["Success"])
+def patch_imap4(crispin_client, resp) -> None:
+    crispin_client.conn._imap._command_complete.return_value = (
+        "OK",
+        ["Success"],
+    )
     crispin_client.conn._imap._untagged_response.return_value = ("OK", resp)
 
 
-def test_g_metadata(gmail_client, constants):
+def test_g_metadata(gmail_client, constants) -> None:
     expected_resp = (
         "{seq} (X-GM-THRID {g_thrid} X-GM-MSGID {g_msgid} "
         "RFC822.SIZE {size} UID {uid} MODSEQ ({modseq}))".format(**constants)
@@ -175,10 +180,12 @@ def test_g_metadata(gmail_client, constants):
     g_msgid = constants["g_msgid"]
     g_thrid = constants["g_thrid"]
     size = constants["size"]
-    assert gmail_client.g_metadata([uid]) == {uid: GMetadata(g_msgid, g_thrid, size)}
+    assert gmail_client.g_metadata([uid]) == {
+        uid: GMetadata(g_msgid, g_thrid, size)
+    }
 
 
-def test_gmail_flags(gmail_client, constants):
+def test_gmail_flags(gmail_client, constants) -> None:
     expected_resp = (
         "{seq} (FLAGS {flags} X-GM-LABELS {raw_g_labels} "
         "UID {uid} MODSEQ ({modseq}))".format(**constants)
@@ -189,10 +196,12 @@ def test_gmail_flags(gmail_client, constants):
     flags = constants["flags"]
     modseq = constants["modseq"]
     g_labels = constants["unicode_g_labels"]
-    assert gmail_client.flags([uid]) == {uid: GmailFlags(flags, g_labels, modseq)}
+    assert gmail_client.flags([uid]) == {
+        uid: GmailFlags(flags, g_labels, modseq)
+    }
 
 
-def test_gmail_bogus_integer_flags(gmail_client, constants):
+def test_gmail_bogus_integer_flags(gmail_client, constants) -> None:
     expected_resp = (
         "{seq} (FLAGS (123 asd) X-GM-LABELS () "
         "UID {uid} MODSEQ ({modseq}))".format(**constants)
@@ -200,10 +209,12 @@ def test_gmail_bogus_integer_flags(gmail_client, constants):
     patch_imap4(gmail_client, [expected_resp])
     uid = constants["uid"]
     modseq = constants["modseq"]
-    assert gmail_client.flags([uid]) == {uid: GmailFlags((b"asd",), [], modseq)}
+    assert gmail_client.flags([uid]) == {
+        uid: GmailFlags((b"asd",), [], modseq)
+    }
 
 
-def test_g_msgids(gmail_client, constants):
+def test_g_msgids(gmail_client, constants) -> None:
     expected_resp = (
         "{seq} (X-GM-MSGID {g_msgid} "
         "UID {uid} MODSEQ ({modseq}))".format(**constants)
@@ -215,7 +226,7 @@ def test_g_msgids(gmail_client, constants):
     assert gmail_client.g_msgids([uid]) == {uid: g_msgid}
 
 
-def test_gmail_body(gmail_client, constants):
+def test_gmail_body(gmail_client, constants) -> None:
     expected_resp = (
         "{seq} (X-GM-MSGID {g_msgid} X-GM-THRID {g_thrid} "
         "X-GM-LABELS {raw_g_labels} UID {uid} MODSEQ ({modseq}) "
@@ -245,7 +256,7 @@ def test_gmail_body(gmail_client, constants):
     ]
 
 
-def test_flags(generic_client, constants):
+def test_flags(generic_client, constants) -> None:
     expected_resp = (
         "{seq} (FLAGS {flags} "
         "UID {uid} MODSEQ ({modseq}))".format(**constants).encode()
@@ -257,7 +268,7 @@ def test_flags(generic_client, constants):
     assert generic_client.flags([uid]) == {uid: Flags(flags, None)}
 
 
-def test_body(generic_client, constants):
+def test_body(generic_client, constants) -> None:
     expected_resp = (
         "{seq} (UID {uid} MODSEQ ({modseq}) "
         'INTERNALDATE "{internaldate}" FLAGS {flags} '
@@ -284,7 +295,7 @@ def test_body(generic_client, constants):
     ]
 
 
-def test_internaldate(generic_client, constants):
+def test_internaldate(generic_client, constants) -> None:
     """Test that our monkeypatched imaplib works through imapclient"""
     dates_to_test = [
         ("6-Mar-2015 10:02:32 +0900", datetime(2015, 3, 6, 1, 2, 32)),
@@ -319,7 +330,7 @@ def test_internaldate(generic_client, constants):
         ]
 
 
-def test_missing_flags(generic_client, constants):
+def test_missing_flags(generic_client, constants) -> None:
     expected_resp = (
         "{seq} (UID {uid} MODSEQ ({modseq}) "
         'INTERNALDATE "{internaldate}" '
@@ -333,8 +344,11 @@ def test_missing_flags(generic_client, constants):
     assert generic_client.uids([uid]) == []
 
 
-def test_deleted_folder_on_select(monkeypatch, generic_client, constants):
-    """Test that a 'select failed EXAMINE' error specifying that a folder
+def test_deleted_folder_on_select(
+    monkeypatch, generic_client, constants
+) -> None:
+    """
+    Test that a 'select failed EXAMINE' error specifying that a folder
     doesn't exist is converted into a FolderMissingError. (Yahoo style)
     """
 
@@ -345,14 +359,19 @@ def test_deleted_folder_on_select(monkeypatch, generic_client, constants):
             " server encountered an error"
         )
 
-    monkeypatch.setattr("imapclient.IMAPClient.select_folder", raise_invalid_folder_exc)
+    monkeypatch.setattr(
+        "imapclient.IMAPClient.select_folder", raise_invalid_folder_exc
+    )
 
     with pytest.raises(FolderMissingError):
         generic_client.select_folder("missing_folder", lambda: True)
 
 
-def test_deleted_folder_on_fetch(monkeypatch, generic_client, constants):
-    """Test that a 'select failed EXAMINE' error specifying that a folder
+def test_deleted_folder_on_fetch(
+    monkeypatch, generic_client, constants
+) -> None:
+    """
+    Test that a 'select failed EXAMINE' error specifying that a folder
     doesn't exist is converted into a FolderMissingError. (Yahoo style)
     """
 
@@ -367,7 +386,7 @@ def test_deleted_folder_on_fetch(monkeypatch, generic_client, constants):
     generic_client.uids(["125"])
 
 
-def test_gmail_folders(monkeypatch, constants):
+def test_gmail_folders(monkeypatch, constants) -> None:
     folders = constants["gmail_folders"]
     role_map = constants["gmail_role_map"]
 
@@ -377,7 +396,7 @@ def test_gmail_folders(monkeypatch, constants):
     generic_folder_checks(raw_folders, role_map, client, "gmail")
 
 
-def generic_folder_checks(raw_folders, role_map, client, provider):
+def generic_folder_checks(raw_folders, role_map, client, provider) -> None:
     # Should not contain the `\\Noselect' folder
     assert [y for y in raw_folders if "\\Noselect" in y[0]] == []
     if provider == "gmail":
@@ -405,7 +424,8 @@ def generic_folder_checks(raw_folders, role_map, client, provider):
             assert role in folder_names
 
             names = folder_names[role]
-            assert isinstance(names, list) and len(names) == 1
+            assert isinstance(names, list)
+            assert len(names) == 1
     elif provider == "imap":
         for role in ["inbox", "trash", "drafts", "sent", "spam"]:
             assert role in folder_names
@@ -421,7 +441,7 @@ def generic_folder_checks(raw_folders, role_map, client, provider):
                 assert client.sync_folders()[0] == "INBOX"
 
 
-def test_gmail_missing_trash(constants, monkeypatch):
+def test_gmail_missing_trash(constants, monkeypatch) -> None:
     """
     Test that we can label their folder when they
     don't have a folder labeled trash. This test will go through a list
@@ -450,7 +470,7 @@ def test_gmail_missing_trash(constants, monkeypatch):
     )
 
 
-def test_imap_missing_trash(constants, monkeypatch):
+def test_imap_missing_trash(constants, monkeypatch) -> None:
     """
     Same strategy as test_gmail_missing_trash, except with imap as a provider
     """
@@ -473,7 +493,7 @@ def test_imap_missing_trash(constants, monkeypatch):
     )
 
 
-def test_gmail_missing_spam(constants, monkeypatch):
+def test_gmail_missing_spam(constants, monkeypatch) -> None:
     """
     Same strategy as test_gmail_missing_trash, except with spam folder aliases
     """
@@ -499,7 +519,7 @@ def test_gmail_missing_spam(constants, monkeypatch):
     )
 
 
-def test_imap_missing_spam(constants, monkeypatch):
+def test_imap_missing_spam(constants, monkeypatch) -> None:
     """
     Same strategy as test_gmail_missing_spam, except with imap as a provider
     """
@@ -522,7 +542,7 @@ def test_imap_missing_spam(constants, monkeypatch):
     )
 
 
-def test_gmail_missing_sent(constants, monkeypatch):
+def test_gmail_missing_sent(constants, monkeypatch) -> None:
     """
     Same strategy as test_gmail_missing_trash, except with sent folder aliases
     """
@@ -548,7 +568,7 @@ def test_gmail_missing_sent(constants, monkeypatch):
     )
 
 
-def test_imap_missing_sent(constants, monkeypatch):
+def test_imap_missing_sent(constants, monkeypatch) -> None:
     """
     Almost same strategy as test_gmail_missing_sent,
     except with imap as a provider
@@ -600,7 +620,7 @@ def test_imap_missing_sent(constants, monkeypatch):
 
 def check_missing_generic(
     role, folder_base, generic_role_names, provider, constants, monkeypatch
-):
+) -> None:
     """
     check clients label every folder in generic_role_names as input role
 
@@ -637,7 +657,7 @@ def check_missing_generic(
         del role_map[role_alias]
 
 
-def test_gmail_folders_no_flags(monkeypatch):
+def test_gmail_folders_no_flags(monkeypatch) -> None:
     """
     Tests that system folders (trash, inbox, sent) without flags can be labeled
     """
@@ -671,7 +691,7 @@ def test_gmail_folders_no_flags(monkeypatch):
     generic_folder_checks(raw_folders, gmail_role_map, client, "gmail")
 
 
-def test_gmail_many_folders_one_role(monkeypatch, constants):
+def test_gmail_many_folders_one_role(monkeypatch, constants) -> None:
     """
     Tests that accounts with many folders with
     similar system folders have only one role.
@@ -714,7 +734,7 @@ def test_gmail_many_folders_one_role(monkeypatch, constants):
         assert len(names) == 1, f"assign same role to {len(names)} folders"
 
 
-def test_imap_folders(monkeypatch, constants):
+def test_imap_folders(monkeypatch, constants) -> None:
     folders = constants["imap_folders"]
     role_map = constants["imap_role_map"]
 
@@ -724,7 +744,7 @@ def test_imap_folders(monkeypatch, constants):
     generic_folder_checks(raw_folders, role_map, client, "imap")
 
 
-def test_imap_folders_no_flags(monkeypatch, constants):
+def test_imap_folders_no_flags(monkeypatch, constants) -> None:
     """
     Tests that system folders (trash, inbox, sent) without flags can be labeled
     """
@@ -756,7 +776,7 @@ def test_imap_folders_no_flags(monkeypatch, constants):
     generic_folder_checks(raw_folders, role_map, client, "imap")
 
 
-def test_imap_many_folders_one_role(monkeypatch, constants):
+def test_imap_many_folders_one_role(monkeypatch, constants) -> None:
     """
     Tests that accounts with many folders with
     similar system folders have only one role.
@@ -783,15 +803,25 @@ def test_imap_many_folders_one_role(monkeypatch, constants):
         assert role in folder_names
         number_roles = 2 if (role in ["sent", "trash"]) else 1
         test_set = [x for x in raw_folders if x.role == role]
-        assert len(test_set) == number_roles, f"assigned wrong number of {role}"
+        assert (
+            len(test_set) == number_roles
+        ), f"assigned wrong number of {role}"
 
 
-def test_german_outlook(monkeypatch):
+def test_german_outlook(monkeypatch) -> None:
     folders = [
         ((b"\\Marked", b"\\HasNoChildren"), b"/", "Archiv"),
         ((b"\\HasNoChildren", b"\\Drafts"), b"/", "Entwürfe"),
-        ((b"\\Marked", b"\\HasChildren", b"\\Trash"), b"/", "Gelöschte Elemente"),
-        ((b"\\Marked", b"\\HasNoChildren", b"\\Sent"), b"/", "Gesendete Elemente"),
+        (
+            (b"\\Marked", b"\\HasChildren", b"\\Trash"),
+            b"/",
+            "Gelöschte Elemente",
+        ),
+        (
+            (b"\\Marked", b"\\HasNoChildren", b"\\Sent"),
+            b"/",
+            "Gesendete Elemente",
+        ),
         ((b"\\Marked", b"\\HasNoChildren", b"\\Junk"), b"/", "Junk-E-Mail"),
         ((b"\\Marked", b"\\HasNoChildren"), b"/", "INBOX"),
     ]
@@ -812,20 +842,20 @@ def test_german_outlook(monkeypatch):
 @pytest.mark.parametrize(
     "callee", [fixed_parse_message_list, original_parse_message_list]
 )
-def test_parse_message_list(callee):
+def test_parse_message_list(callee) -> None:
     assert list(callee([b"1 123 124 1024"])) == [1, 123, 124, 1024]
 
 
 @pytest.mark.parametrize(
     "callee", [fixed_parse_message_list, original_parse_message_list]
 )
-def test_parse_message_list_large_list(callee):
+def test_parse_message_list_large_list(callee) -> None:
     large_list = [" ".join(str(uid) for uid in range(1, 6_000_000)).encode()]
 
     assert list(callee(large_list)) == list(range(1, 6_000_000))
 
 
-def test_fixed_parse_message_list_multiple_elements():
+def test_fixed_parse_message_list_multiple_elements() -> None:
     assert set(fixed_parse_message_list([b"1 2", b"1 123 124 1024"])) == {
         1,
         2,

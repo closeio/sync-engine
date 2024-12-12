@@ -6,9 +6,9 @@ from unittest import mock
 
 from flanker import mime
 from mockredis import mock_strict_redis_client
-from pytest import fixture
+from pytest import fixture  # noqa: PT013
 
-from inbox.util.testutils import MockIMAPClient, setup_test_db  # noqa
+from inbox.util.testutils import setup_test_db
 
 
 def absolute_path(path):
@@ -16,16 +16,20 @@ def absolute_path(path):
     Returns the absolute path for a path specified as relative to the
     tests/ directory, needed for the dump file name in config.cfg
 
-    """
-    return os.path.abspath(
-        os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", path)
+    """  # noqa: D401
+    return os.path.abspath(  # noqa: PTH100
+        os.path.join(  # noqa: PTH118
+            os.path.dirname(os.path.realpath(__file__)),  # noqa: PTH120
+            "..",
+            path,
+        )
     )
 
 
 def make_config(tmpdir_factory):
     from inbox.config import config
 
-    assert (
+    assert (  # noqa: PT018
         "NYLAS_ENV" in os.environ and os.environ["NYLAS_ENV"] == "test"
     ), "NYLAS_ENV must be 'test' to run tests"
     # don't try to write test data to the module tree
@@ -39,11 +43,11 @@ def config(tmpdir_factory):
 
 
 @fixture(scope="session")
-def dbloader(config):
+def dbloader(config) -> None:
     setup_test_db()
 
 
-@fixture(scope="function")
+@fixture
 def db(dbloader):
     from inbox.ignition import engine_manager
     from inbox.models.session import new_session
@@ -56,7 +60,7 @@ def db(dbloader):
     engine.session.close()
 
 
-@fixture(scope="function")
+@fixture
 def empty_db(config):
     from inbox.ignition import engine_manager
     from inbox.models.session import new_session
@@ -87,7 +91,7 @@ def webhooks_client(db):
 
 
 class TestWebhooksClient:
-    def __init__(self, test_client):
+    def __init__(self, test_client) -> None:
         self.client = test_client
 
     def post_data(self, path, data, headers=None):
@@ -97,7 +101,7 @@ class TestWebhooksClient:
 
 
 @fixture
-def patch_network_functions(monkeypatch):
+def patch_network_functions(monkeypatch) -> None:
     """
     Monkeypatch syncback functions that actually talk to Gmail so that the
     tests can run faster.
@@ -108,7 +112,8 @@ def patch_network_functions(monkeypatch):
     for backend in inbox.actions.backends.module_registry.values():
         for method_name in backend.__all__:
             monkeypatch.setattr(
-                backend.__name__ + "." + method_name, lambda *args, **kwargs: None
+                backend.__name__ + "." + method_name,
+                lambda *args, **kwargs: None,
             )
 
 
@@ -119,7 +124,8 @@ def make_account(db, config, *, cls):
 
     ns = Namespace()
     account = cls(
-        sync_host=f"{platform.node()}:0", email_address="inboxapptest@gmail.com"
+        sync_host=f"{platform.node()}:0",
+        email_address="inboxapptest@gmail.com",
     )
     account.namespace = ns
     account.client_id = config.get_required("GOOGLE_OAUTH_CLIENT_ID")
@@ -131,7 +137,7 @@ def make_account(db, config, *, cls):
     return account
 
 
-def delete_default_accounts(db):
+def delete_default_accounts(db) -> None:
     from inbox.models import Namespace
     from inbox.models.account import Account
 
@@ -142,7 +148,7 @@ def delete_default_accounts(db):
     db.session.commit()
 
 
-@fixture(scope="function")
+@fixture
 def default_account(db, config, redis_mock):
     from inbox.models.backends.gmail import GmailAccount
 
@@ -150,7 +156,7 @@ def default_account(db, config, redis_mock):
     delete_default_accounts(db)
 
 
-@fixture(scope="function")
+@fixture
 def default_namespace(db, default_account):
     return default_account.namespace
 
@@ -168,7 +174,7 @@ def outlook_namespace(db, outlook_account):
     return outlook_account.namespace
 
 
-@fixture(scope="function")
+@fixture
 def default_accounts(db, config, redis_mock):
     from inbox.models.backends.gmail import GmailAccount
 
@@ -176,17 +182,17 @@ def default_accounts(db, config, redis_mock):
     delete_default_accounts(db)
 
 
-@fixture(scope="function")
+@fixture
 def default_namespaces(db, default_accounts):
     return [account.namespace for account in default_accounts]
 
 
-@fixture(scope="function")
+@fixture
 def generic_account(db):
     return add_generic_imap_account(db.session)
 
 
-@fixture(scope="function")
+@fixture
 def gmail_account(db):
     yield add_fake_gmail_account(
         db.session,
@@ -197,7 +203,7 @@ def gmail_account(db):
     delete_gmail_accounts(db.session)
 
 
-@fixture(scope="function")
+@fixture
 def contact_sync(config, db, default_account):
     from inbox.contacts.remote_sync import ContactSync
 
@@ -209,7 +215,7 @@ def contact_sync(config, db, default_account):
     )
 
 
-@fixture(scope="function")
+@fixture
 def contacts_provider(config, db):
     return ContactsProviderStub()
 
@@ -223,13 +229,13 @@ class ContactsProviderStub:
 
     """
 
-    def __init__(self, provider_name="test_provider"):
+    def __init__(self, provider_name="test_provider") -> None:
         self._contacts = []
         self._next_uid = 1
         self.PROVIDER_NAME = provider_name
         self._get_next_uid = lambda current: current + 1
 
-    def supply_contact(self, name, email_address, deleted=False):
+    def supply_contact(self, name, email_address, deleted=False) -> None:
         from inbox.models import Contact
 
         self._contacts.append(
@@ -248,16 +254,24 @@ class ContactsProviderStub:
         return self._contacts
 
 
-def add_fake_folder(db_session, default_account, display_name="All Mail", name="all"):
+def add_fake_folder(
+    db_session, default_account, display_name="All Mail", name="all"
+):
     from inbox.models.folder import Folder
 
-    return Folder.find_or_create(db_session, default_account, display_name, name)
+    return Folder.find_or_create(
+        db_session, default_account, display_name, name
+    )
 
 
-def add_fake_label(db_session, default_account, display_name="My Label", name=None):
+def add_fake_label(
+    db_session, default_account, display_name="My Label", name=None
+):
     from inbox.models.label import Label
 
-    return Label.find_or_create(db_session, default_account, display_name, name)
+    return Label.find_or_create(
+        db_session, default_account, display_name, name
+    )
 
 
 def add_generic_imap_account(db_session, email_address="test@nylas.com"):
@@ -267,7 +281,9 @@ def add_generic_imap_account(db_session, email_address="test@nylas.com"):
     from inbox.models.backends.generic import GenericAccount
 
     account = GenericAccount(
-        email_address=email_address, sync_host=platform.node(), provider="custom"
+        email_address=email_address,
+        sync_host=platform.node(),
+        provider="custom",
     )
     account.imap_endpoint = ("imap.custom.com", 993)
     account.smtp_endpoint = ("smtp.custom.com", 587)
@@ -279,7 +295,7 @@ def add_generic_imap_account(db_session, email_address="test@nylas.com"):
     return account
 
 
-def delete_generic_imap_accounts(db_session):
+def delete_generic_imap_accounts(db_session) -> None:
     from inbox.models import Namespace
     from inbox.models.backends.generic import GenericAccount
 
@@ -296,7 +312,9 @@ def add_fake_yahoo_account(db_session, email_address="cypresstest@yahoo.com"):
     from inbox.models.backends.generic import GenericAccount
 
     account = GenericAccount(
-        email_address=email_address, sync_host=platform.node(), provider="yahoo"
+        email_address=email_address,
+        sync_host=platform.node(),
+        provider="yahoo",
     )
     account.imap_password = "bananagrams"
     account.smtp_password = "bananagrams"
@@ -334,7 +352,7 @@ def add_fake_gmail_account(
         return account
 
 
-def delete_gmail_accounts(db_session):
+def delete_gmail_accounts(db_session) -> None:
     from inbox.models import Namespace
     from inbox.models.backends.gmail import GmailAccount
 
@@ -395,7 +413,7 @@ def add_fake_message(
     return m
 
 
-def delete_messages(db_session):
+def delete_messages(db_session) -> None:
     from inbox.models import Message
 
     db_session.rollback()
@@ -404,7 +422,7 @@ def delete_messages(db_session):
     db_session.commit()
 
 
-def delete_categories(db_session):
+def delete_categories(db_session) -> None:
     from inbox.models import Category
 
     db_session.rollback()
@@ -422,7 +440,7 @@ def add_fake_thread(db_session, namespace_id):
     return thr
 
 
-def delete_threads(db_session):
+def delete_threads(db_session) -> None:
     from inbox.models import Thread
 
     delete_messages(db_session)
@@ -442,7 +460,7 @@ def add_fake_imapuid(db_session, account_id, message, folder, msg_uid):
     return imapuid
 
 
-def delete_imapuids(db_session):
+def delete_imapuids(db_session) -> None:
     from inbox.models.backends.imap import ImapUid
 
     db_session.rollback()
@@ -472,7 +490,7 @@ def add_fake_calendar(
     return calendar
 
 
-def delete_calendars(db_session):
+def delete_calendars(db_session) -> None:
     from inbox.models import Calendar
 
     db_session.rollback()
@@ -522,7 +540,7 @@ def add_fake_event(
     return event
 
 
-def delete_events(db_session):
+def delete_events(db_session) -> None:
     from inbox.models import Event
 
     db_session.rollback()
@@ -540,7 +558,10 @@ def add_fake_contact(
     from inbox.models import Contact
 
     contact = Contact(
-        namespace_id=namespace_id, name=name, email_address=email_address, uid=uid
+        namespace_id=namespace_id,
+        name=name,
+        email_address=email_address,
+        uid=uid,
     )
 
     db_session.add(contact)
@@ -548,7 +569,7 @@ def add_fake_contact(
     return contact
 
 
-def delete_contacts(db_session):
+def delete_contacts(db_session) -> None:
     from inbox.models import Contact
 
     db_session.rollback()
@@ -559,7 +580,9 @@ def delete_contacts(db_session):
 def add_fake_category(db_session, namespace_id, display_name, name=None):
     from inbox.models import Category
 
-    category = Category(namespace_id=namespace_id, display_name=display_name, name=name)
+    category = Category(
+        namespace_id=namespace_id, display_name=display_name, name=name
+    )
     db_session.add(category)
     db_session.commit()
     return category
@@ -581,7 +604,9 @@ def message(db, default_namespace, thread):
 def folder(db, default_account):
     from inbox.models.folder import Folder
 
-    return Folder.find_or_create(db.session, default_account, "[Gmail]/All Mail", "all")
+    return Folder.find_or_create(
+        db.session, default_account, "[Gmail]/All Mail", "all"
+    )
 
 
 @fixture
@@ -606,17 +631,19 @@ def contact(db, default_account):
 
 @fixture
 def imapuid(db, default_account, message, folder):
-    yield add_fake_imapuid(db.session, default_account.id, message, folder, 2222)
+    yield add_fake_imapuid(
+        db.session, default_account.id, message, folder, 2222
+    )
     delete_imapuids(db.session)
 
 
-@fixture(scope="function")
+@fixture
 def calendar(db, default_account):
     yield add_fake_calendar(db.session, default_account.namespace.id)
     delete_calendars(db.session)
 
 
-@fixture(scope="function")
+@fixture
 def other_calendar(db, default_account):
     yield add_fake_calendar(
         db.session, default_account.namespace.id, uid="uid2", name="Calendar 2"
@@ -624,14 +651,14 @@ def other_calendar(db, default_account):
     delete_calendars(db.session)
 
 
-@fixture(scope="function")
+@fixture
 def event(db, default_account):
     yield add_fake_event(db.session, default_account.namespace.id)
     delete_events(db.session)
     delete_calendars(db.session)
 
 
-@fixture(scope="function")
+@fixture
 def imported_event(db, default_account, message):
     ev = add_fake_event(db.session, default_account.namespace.id)
     ev.message = message
@@ -685,9 +712,15 @@ def add_fake_msg_with_calendar_part(db_session, account, ics_str, thread=None):
     from inbox.models import Message
 
     parsed = mime.create.multipart("mixed")
-    parsed.append(mime.create.attachment("text/calendar", ics_str, disposition=None))
+    parsed.append(
+        mime.create.attachment("text/calendar", ics_str, disposition=None)
+    )
     msg = Message.create_from_synced(
-        account, 22, "[Gmail]/All Mail", datetime.utcnow(), parsed.to_string().encode()
+        account,
+        22,
+        "[Gmail]/All Mail",
+        datetime.utcnow(),
+        parsed.to_string().encode(),
     )
     msg.from_addr = [("Ben Bitdiddle", "ben@inboxapp.com")]
 
@@ -721,7 +754,9 @@ def mock_client():
 
     def zscan_iter_patch(key, match=None):
         match = str(match).replace("*", "")
-        return [k for k in mock_client.zrange(key, 0, -1) if k.startswith(match)]
+        return [
+            k for k in mock_client.zrange(key, 0, -1) if k.startswith(match)
+        ]
 
     mock_client.zscan_iter = zscan_iter_patch
 
@@ -729,7 +764,9 @@ def mock_client():
         # as of pyredis 3.0, Redis.zadd takes a mapping of {member: score} instead of
         # the old Redis.zadd method that takes *args of score, member, score,
         # member or a kwarg mapping of {member: score}
-        return mock_client.zadd_orig(key, **{str(k): v for k, v in mapping.items()})
+        return mock_client.zadd_orig(
+            key, **{str(k): v for k, v in mapping.items()}
+        )
 
     mock_client.zadd_orig = mock_client.zadd
     mock_client.zadd = zadd_patch
@@ -737,7 +774,7 @@ def mock_client():
     return mock_client
 
 
-@fixture(scope="function")
+@fixture
 def redis_client(monkeypatch):
     client = mock_client()
     yield client
@@ -745,7 +782,7 @@ def redis_client(monkeypatch):
     client.flushdb()
 
 
-@fixture(scope="function", autouse=True)
+@fixture(autouse=True)
 def redis_mock(redis_client, monkeypatch):
     def set_self_client(self, *args, **kwargs):
         # Ensure the same 'redis' client is returned across HeartbeatStore
@@ -757,13 +794,17 @@ def redis_mock(redis_client, monkeypatch):
     def fake_redis_client(host=None, port=6379, db=1):
         return redis_client
 
-    monkeypatch.setattr("inbox.heartbeat.config.get_redis_client", fake_redis_client)
+    monkeypatch.setattr(
+        "inbox.heartbeat.config.get_redis_client", fake_redis_client
+    )
     monkeypatch.setattr(
         "inbox.heartbeat.store.HeartbeatStore.__init__", set_self_client
     )
     monkeypatch.setattr(
         "inbox.scheduling.event_queue._get_redis_client", fake_redis_client
     )
-    monkeypatch.setattr("inbox.mailsync.service.SHARED_SYNC_EVENT_QUEUE_ZONE_MAP", {})
+    monkeypatch.setattr(
+        "inbox.mailsync.service.SHARED_SYNC_EVENT_QUEUE_ZONE_MAP", {}
+    )
     yield
     monkeypatch.undo()

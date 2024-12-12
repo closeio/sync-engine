@@ -1,4 +1,5 @@
-"""update easuid schema 2
+"""
+update easuid schema 2
 
 Revision ID: 3ee78a8b1ac6
 Revises: 281b07fa75bb
@@ -13,7 +14,7 @@ down_revision = "281b07fa75bb"
 import sqlalchemy as sa
 
 
-def upgrade():
+def upgrade() -> None:
     from sqlalchemy.ext.declarative import declarative_base
 
     from inbox.ignition import main_engine
@@ -22,7 +23,7 @@ def upgrade():
     engine = main_engine(pool_size=1, max_overflow=0)
     if not engine.has_table("easuid"):
         return
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class EASUid(Base):
@@ -57,5 +58,5 @@ def upgrade():
             db_session.commit()
 
 
-def downgrade():
+def downgrade() -> None:
     pass

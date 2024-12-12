@@ -1,4 +1,5 @@
-"""Drop Message.full_body_id
+"""
+Drop Message.full_body_id
 
 Revision ID: 3613ca83ea40
 Revises: 3618838f5bc6
@@ -13,9 +14,9 @@ down_revision = "3618838f5bc6"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_constraint("full_body_id_fk", "message", type_="foreignkey")
 
 
-def downgrade():
+def downgrade() -> None:
     pass

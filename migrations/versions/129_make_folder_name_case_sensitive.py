@@ -1,4 +1,5 @@
-"""Make folder.name case sensitive.
+"""
+Make folder.name case sensitive.
 
 Revision ID: 5349c1a03fde
 Revises: 284227d72f51
@@ -13,7 +14,7 @@ down_revision = "284227d72f51"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     connection = op.get_bind()
     connection.execute(
         """
@@ -22,7 +23,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     connection = op.get_bind()
     connection.execute(
         """

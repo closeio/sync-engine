@@ -1,4 +1,5 @@
-"""set inbox folder exposed name
+"""
+set inbox folder exposed name
 
 Revision ID: 52a9a976a2e0
 Revises: 40629415951c
@@ -13,12 +14,12 @@ down_revision = "40629415951c"
 from sqlalchemy.ext.declarative import declarative_base
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Folder(Base):
@@ -31,5 +32,5 @@ def upgrade():
         db_session.commit()
 
 
-def downgrade():
+def downgrade() -> None:
     pass

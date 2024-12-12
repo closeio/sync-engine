@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 import click
 from sqlalchemy import func
@@ -11,8 +11,9 @@ from inbox.models.session import session_scope_by_shard_id
 
 
 @click.command()
-def main():
-    """Generate per-shard and per-namespace breakdowns of syncback queue
+def main() -> None:
+    """
+    Generate per-shard and per-namespace breakdowns of syncback queue
     lengths.
 
     """
@@ -38,7 +39,9 @@ def main():
                     f"{c} (pending actions), {key} (shard), {namespace_id} (namespace)"
                 )
                 total_pending_actions += c
-            print(f"total pending actions for shard {key}: {total_pending_actions}")
+            print(
+                f"total pending actions for shard {key}: {total_pending_actions}"
+            )
 
 
 if __name__ == "__main__":

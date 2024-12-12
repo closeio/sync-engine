@@ -9,7 +9,7 @@ from inbox.sendmail.smtp.postel import SMTPConnection
 
 
 @pytest.mark.networkrequired
-def test_use_smtp_over_ssl():
+def test_use_smtp_over_ssl() -> None:
     # Auth won't actually work but we just want to test connection
     # initialization here and below.
     SMTPConnection.smtp_password = mock.Mock()
@@ -26,7 +26,7 @@ def test_use_smtp_over_ssl():
 
 
 @pytest.mark.networkrequired
-def test_use_starttls():
+def test_use_starttls() -> None:
     conn = SMTPConnection(
         account_id=1,
         email_address="inboxapptest@gmail.com",
@@ -41,7 +41,7 @@ def test_use_starttls():
 
 @pytest.mark.skipif(True, reason="Need to investigate")
 @pytest.mark.networkrequired
-def test_use_plain():
+def test_use_plain() -> None:
     # ssl = True
     with pytest.raises(SendMailException):
         conn = SMTPConnection(
@@ -69,14 +69,15 @@ def test_use_plain():
 
 @pytest.mark.parametrize("smtp_port", [465, 587])
 @pytest.mark.networkrequired
-def test_handle_disconnect(monkeypatch, smtp_port):
+def test_handle_disconnect(monkeypatch, smtp_port) -> None:
     def simulate_disconnect(self):
         raise smtplib.SMTPServerDisconnected()
 
     monkeypatch.setattr("smtplib.SMTP.rset", simulate_disconnect)
     monkeypatch.setattr("smtplib.SMTP.mail", lambda *args: (550, "NOPE"))
     monkeypatch.setattr(
-        "inbox.sendmail.smtp.postel.SMTPConnection.smtp_password", lambda *args: None
+        "inbox.sendmail.smtp.postel.SMTPConnection.smtp_password",
+        lambda *args: None,
     )
     conn = SMTPConnection(
         account_id=1,

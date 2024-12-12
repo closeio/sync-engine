@@ -1,4 +1,5 @@
-"""Add reply_to to MessageContactAssociation
+"""
+Add reply_to to MessageContactAssociation
 
 Revision ID: 41f957b595fc
 Revises: 2b9dd6f7593a
@@ -14,16 +15,18 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column(
         "messagecontactassociation",
         "field",
         existing_type=sa.Enum("from_addr", "to_addr", "cc_addr", "bcc_addr"),
-        type_=sa.Enum("from_addr", "to_addr", "cc_addr", "bcc_addr", "reply_to"),
+        type_=sa.Enum(
+            "from_addr", "to_addr", "cc_addr", "bcc_addr", "reply_to"
+        ),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column(
         "messagecontactassociation",
         "field",

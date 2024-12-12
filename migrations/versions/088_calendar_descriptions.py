@@ -1,4 +1,5 @@
-"""calendars
+"""
+calendars
 
 Revision ID: 24e9afe91349
 Revises: 1ac03cab7a24
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from sqlalchemy.ext.declarative import declarative_base
 
     from inbox.ignition import main_engine
@@ -30,7 +31,8 @@ def upgrade():
         existing_nullable=True,
     )
     op.add_column(
-        "calendar", sa.Column("provider_name", sa.String(length=64), nullable=False)
+        "calendar",
+        sa.Column("provider_name", sa.String(length=64), nullable=False),
     )
 
     op.alter_column(
@@ -58,7 +60,7 @@ def upgrade():
     #
     # Also, any already synced events are read only as nobody has created
     # events yet.
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Calendar(Base):
@@ -91,11 +93,16 @@ def upgrade():
 
     op.drop_constraint("event_ibfk_2", "event", type_="foreignkey")
     op.create_foreign_key(
-        "event_ibfk_2", "event", "calendar", ["calendar_id"], ["id"], ondelete="CASCADE"
+        "event_ibfk_2",
+        "event",
+        "calendar",
+        ["calendar_id"],
+        ["id"],
+        ondelete="CASCADE",
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column(
         "calendar",
         "description",

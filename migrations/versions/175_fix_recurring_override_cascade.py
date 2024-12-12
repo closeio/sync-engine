@@ -1,4 +1,5 @@
-"""fix recurring override cascade
+"""
+fix recurring override cascade
 
 Revision ID: 6e5b154d917
 Revises: 41f957b595fc
@@ -14,7 +15,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     # Check this migration is needed
     fk_name, fk_delete = conn.execute(
@@ -27,7 +28,9 @@ def upgrade():
     ).fetchone()
 
     if fk_delete == "CASCADE":
-        print(f"Checked fk: {fk_name}. This migration is not needed, skipping.")
+        print(
+            f"Checked fk: {fk_name}. This migration is not needed, skipping."
+        )
         return
 
     conn.execute(text("set @@lock_wait_timeout = 20;"))
@@ -46,7 +49,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
     conn.execute(text("SET FOREIGN_KEY_CHECKS=0;"))

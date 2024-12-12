@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union
+from typing import Any
 
 from flask import Flask, g, jsonify, make_response, request
 from flask_restful import reqparse
@@ -26,10 +26,13 @@ from inbox.models.secret import SecretType
 from inbox.models.session import global_session_scope
 from inbox.util.logging_helper import reconfigure_logging
 from inbox.webhooks.google_notifications import app as google_webhooks_api
-from inbox.webhooks.microsoft_notifications import app as microsoft_webhooks_api
+from inbox.webhooks.microsoft_notifications import (
+    app as microsoft_webhooks_api,
+)
 
 from .metrics_api import app as metrics_api
-from .ns_api import DEFAULT_LIMIT, app as ns_api
+from .ns_api import DEFAULT_LIMIT
+from .ns_api import app as ns_api
 
 app = Flask(__name__)
 app.config["JSON_SORT_KEYS"] = False
@@ -41,13 +44,13 @@ reconfigure_logging()
 
 
 @app.errorhandler(APIException)
-def handle_input_error(error):
+def handle_input_error(error):  # noqa: ANN201
     response = jsonify(message=error.message, type="invalid_request_error")
     response.status_code = error.status_code
     return response
 
 
-def default_json_error(ex):
+def default_json_error(ex):  # noqa: ANN201
     """Exception -> flask JSON responder"""
     logger = get_logger()
     logger.error("Uncaught error thrown by Flask/Werkzeug", exc_info=ex)
@@ -62,7 +65,7 @@ for code in default_exceptions:
 
 
 @app.before_request
-def auth():
+def auth():  # noqa: ANN201
     """Check for account ID on all non-root URLS"""
     if (
         request.path == "/"
@@ -73,7 +76,7 @@ def auth():
         return None
 
     if not request.authorization or not request.authorization.username:
-        AUTH_ERROR_MSG = (
+        AUTH_ERROR_MSG = (  # noqa: N806
             "Could not verify access credential.",
             401,
             {"WWW-Authenticate": 'Basic realm="API Access Token Required"'},
@@ -108,17 +111,21 @@ def auth():
                 (
                     "Could not verify access credential.",
                     401,
-                    {"WWW-Authenticate": 'Basic realm="API Access Token Required"'},
+                    {
+                        "WWW-Authenticate": 'Basic realm="API Access Token Required"'
+                    },
                 )
             )
 
 
 @app.after_request
-def finish(response):
+def finish(response):  # noqa: ANN201
     origin = request.headers.get("origin")
     if origin:  # means it's just a regular request
         response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Headers"] = "Authorization,Content-Type"
+        response.headers["Access-Control-Allow-Headers"] = (
+            "Authorization,Content-Type"
+        )
         response.headers["Access-Control-Allow-Methods"] = (
             "GET,PUT,POST,DELETE,OPTIONS,PATCH"
         )
@@ -127,14 +134,16 @@ def finish(response):
 
 
 @app.route("/accounts/", methods=["GET"])
-def ns_all():
+def ns_all():  # noqa: ANN201
     """Return all namespaces"""
     # We do this outside the blueprint to support the case of an empty
     # public_id.  However, this means the before_request isn't run, so we need
     # to make our own session
     with global_session_scope() as db_session:
         parser = reqparse.RequestParser(argument_class=ValidatableArgument)
-        parser.add_argument("limit", default=DEFAULT_LIMIT, type=limit, location="args")
+        parser.add_argument(
+            "limit", default=DEFAULT_LIMIT, type=limit, location="args"
+        )
         parser.add_argument("offset", default=0, type=int, location="args")
         parser.add_argument("email_address", type=bounded_str, location="args")
         args = strict_parse_args(parser, request.args)
@@ -175,7 +184,9 @@ def _get_account_data_for_generic_account(data):
     )
 
 
-def _get_account_data_for_google_account(data: Dict[str, Any]) -> GoogleAccountData:
+def _get_account_data_for_google_account(
+    data: dict[str, Any]
+) -> GoogleAccountData:
     email_address = data["email_address"]
     scopes = data.get("scopes", " ".join(GOOGLE_EMAIL_SCOPES))
     client_id = data.get("client_id")
@@ -209,7 +220,7 @@ def _get_account_data_for_google_account(data: Dict[str, Any]) -> GoogleAccountD
 
 
 def _get_account_data_for_microsoft_account(
-    data: Dict[str, Any]
+    data: dict[str, Any]
 ) -> MicrosoftAccountData:
     email_address = data["email_address"]
     scopes = data["scopes"]
@@ -242,11 +253,11 @@ def _get_account_data_for_microsoft_account(
 
 
 @app.route("/accounts/", methods=["POST"])
-def create_account():
+def create_account():  # noqa: ANN201
     """Create a new account"""
     data = request.get_json(force=True)
 
-    auth_handler: Union[GenericAuthHandler, GoogleAuthHandler, MicrosoftAuthHandler]
+    auth_handler: GenericAuthHandler | GoogleAuthHandler | MicrosoftAuthHandler
     if data["type"] == "generic":
         auth_handler = GenericAuthHandler()
         account_data = _get_account_data_for_generic_account(data)
@@ -269,7 +280,7 @@ def create_account():
 
 
 @app.route("/accounts/<namespace_public_id>/", methods=["PUT"])
-def modify_account(namespace_public_id):
+def modify_account(namespace_public_id):  # noqa: ANN201
     """
     Modify an existing account
 
@@ -285,7 +296,9 @@ def modify_account(namespace_public_id):
         )
         account = namespace.account
 
-        auth_handler: Union[GenericAuthHandler, GoogleAuthHandler, MicrosoftAuthHandler]
+        auth_handler: (
+            GenericAuthHandler | GoogleAuthHandler | MicrosoftAuthHandler
+        )
         if isinstance(account, GenericAccount):
             auth_handler = GenericAuthHandler()
             account_data = _get_account_data_for_generic_account(data)
@@ -307,7 +320,7 @@ def modify_account(namespace_public_id):
 
 
 @app.route("/accounts/<namespace_public_id>/", methods=["DELETE"])
-def delete_account(namespace_public_id):
+def delete_account(namespace_public_id):  # noqa: ANN201
     """Mark an existing account for deletion."""
     try:
         with global_session_scope() as db_session:
@@ -320,22 +333,25 @@ def delete_account(namespace_public_id):
             account.mark_for_deletion()
             db_session.commit()
     except NoResultFound:
-        raise NotFoundError(f"Couldn't find account `{namespace_public_id}` ")
+        raise NotFoundError(  # noqa: B904
+            f"Couldn't find account `{namespace_public_id}` "
+        )
 
     encoder = APIEncoder()
     return encoder.jsonify({})
 
 
 @app.route("/")
-def home():
+def home() -> str:
     return "Nylas ready.\n"
 
 
 @app.route("/logout")
-def logout():
-    """Utility function used to force browsers to reset cached HTTP Basic Auth
-    credentials
+def logout():  # noqa: ANN201
     """
+    Utility function used to force browsers to reset cached HTTP Basic Auth
+    credentials
+    """  # noqa: D401
     return make_response(
         (
             "<meta http-equiv='refresh' content='0; url=/''>.",

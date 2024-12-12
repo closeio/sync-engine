@@ -1,4 +1,4 @@
-import datetime
+import datetime  # noqa: INP001
 import json
 import unittest.mock
 
@@ -15,9 +15,11 @@ from inbox.events.microsoft.graph_client import (
 )
 
 
-def test_format_datetime():
+def test_format_datetime() -> None:
     assert (
-        format_datetime(datetime.datetime(2022, 10, 1, 3, 4, 5, tzinfo=pytz.UTC))
+        format_datetime(
+            datetime.datetime(2022, 10, 1, 3, 4, 5, tzinfo=pytz.UTC)
+        )
         == "2022-10-01T03:04:05Z"
     )
 
@@ -45,7 +47,7 @@ calendars_json = {
 
 
 @responses.activate
-def test_request(client):
+def test_request(client) -> None:
     def request_callback(request):
         assert request.method == "GET"
         assert request.url == BASE_URL + "/me/calendars"
@@ -64,9 +66,13 @@ def test_request(client):
 
 
 @responses.activate(registry=OrderedRegistry)
-def test_request_retry_429(client):
-    responses.get(BASE_URL + "/me/calendars", status=429, headers={"Retry-After": "12"})
-    responses.get(BASE_URL + "/me/calendars", status=429, headers={"Retry-After": "3"})
+def test_request_retry_429(client) -> None:
+    responses.get(
+        BASE_URL + "/me/calendars", status=429, headers={"Retry-After": "12"}
+    )
+    responses.get(
+        BASE_URL + "/me/calendars", status=429, headers={"Retry-After": "3"}
+    )
     responses.get(BASE_URL + "/me/calendars", json=calendars_json)
 
     with unittest.mock.patch("time.sleep") as sleep_mock:
@@ -78,7 +84,7 @@ def test_request_retry_429(client):
 
 
 @responses.activate(registry=OrderedRegistry)
-def test_request_retry_503(client):
+def test_request_retry_503(client) -> None:
     responses.get(BASE_URL + "/me/calendars", status=503)
     responses.get(BASE_URL + "/me/calendars", json=calendars_json)
 
@@ -103,18 +109,23 @@ bad_id_json = {
 
 
 @responses.activate
-def test_request_exception(client):
-    responses.get(BASE_URL + "/me/calendars/bad_id", status=400, json=bad_id_json)
+def test_request_exception(client) -> None:
+    responses.get(
+        BASE_URL + "/me/calendars/bad_id", status=400, json=bad_id_json
+    )
 
     with pytest.raises(MicrosoftGraphClientException) as exc_info:
         client.request("GET", "/me/calendars/bad_id")
 
-    assert exc_info.value.args == ("ErrorInvalidIdMalformed", "Id is malformed.")
+    assert exc_info.value.args == (
+        "ErrorInvalidIdMalformed",
+        "Id is malformed.",
+    )
     assert exc_info.value.response.status_code == 400
 
 
 @responses.activate
-def test_iter_calendars(client):
+def test_iter_calendars(client) -> None:
     responses.get(BASE_URL + "/me/calendars", json=calendars_json)
 
     calendars = client.iter_calendars()
@@ -127,7 +138,7 @@ def test_iter_calendars(client):
 
 
 @responses.activate
-def test_get_calendar(client):
+def test_get_calendar(client) -> None:
     responses.get(
         BASE_URL + f"/me/calendars/{calendars_json['value'][0]['id']}",
         json=calendars_json["value"][0],
@@ -164,8 +175,10 @@ events_json = {
 
 
 @responses.activate
-def test_iter_events(client):
-    responses.get(BASE_URL + "/me/calendars/fake_calendar_id/events", json=events_json)
+def test_iter_events(client) -> None:
+    responses.get(
+        BASE_URL + "/me/calendars/fake_calendar_id/events", json=events_json
+    )
 
     events = client.iter_events("fake_calendar_id")
     assert {event["subject"] for event in events} == {
@@ -178,16 +191,19 @@ def test_iter_events(client):
 
 @responses.activate
 @pytest.mark.parametrize(
-    "modified_after,subjects",
+    ("modified_after", "subjects"),
     [
-        (datetime.datetime(2022, 9, 9, 12, tzinfo=pytz.UTC), {"Business meeting"}),
+        (
+            datetime.datetime(2022, 9, 9, 12, tzinfo=pytz.UTC),
+            {"Business meeting"},
+        ),
         (
             datetime.datetime(2022, 9, 8, 12, tzinfo=pytz.UTC),
             {"Business meeting", "Contract negotations"},
         ),
     ],
 )
-def test_iter_events_modified_after(client, modified_after, subjects):
+def test_iter_events_modified_after(client, modified_after, subjects) -> None:
     def request_callback(request):
         odata_filter = request.params["$filter"]
         _, _, modified_after = odata_filter.split()
@@ -196,7 +212,8 @@ def test_iter_events_modified_after(client, modified_after, subjects):
         events = [
             event
             for event in events_json["value"]
-            if ciso8601.parse_datetime(event["lastModifiedDateTime"]) > modified_after
+            if ciso8601.parse_datetime(event["lastModifiedDateTime"])
+            > modified_after
         ]
 
         return (200, {}, json.dumps({"value": events}))
@@ -208,13 +225,15 @@ def test_iter_events_modified_after(client, modified_after, subjects):
         content_type="application/json",
     )
 
-    events = client.iter_events("fake_calendar_id", modified_after=modified_after)
+    events = client.iter_events(
+        "fake_calendar_id", modified_after=modified_after
+    )
 
     assert {event["subject"] for event in events} == subjects
 
 
 @responses.activate
-def test_get_event(client):
+def test_get_event(client) -> None:
     responses.get(
         BASE_URL + f"/me/events/{events_json['value'][0]['id']}",
         json=events_json["value"][0],
@@ -249,13 +268,15 @@ event_instances_second_page = {
 
 
 @responses.activate(registry=OrderedRegistry)
-def test_iter_event_instances(client):
+def test_iter_event_instances(client) -> None:
     responses.get(
-        BASE_URL + "/me/events/fake_event_id/instances", json=event_instances_first_page
+        BASE_URL + "/me/events/fake_event_id/instances",
+        json=event_instances_first_page,
     )
 
     responses.get(
-        event_instances_first_page["@odata.nextLink"], json=event_instances_second_page
+        event_instances_first_page["@odata.nextLink"],
+        json=event_instances_second_page,
     )
 
     instances = client.iter_event_instances(
@@ -272,7 +293,7 @@ def test_iter_event_instances(client):
 
 
 @responses.activate(registry=OrderedRegistry)
-def test_subscribe_connection_closed_retries(client):
+def test_subscribe_connection_closed_retries(client) -> None:
     responses.post(
         BASE_URL + "/subscriptions",
         json={
@@ -295,7 +316,7 @@ def test_subscribe_connection_closed_retries(client):
 
 
 @responses.activate
-def test_subscribe_connection_closed_max_retries(client):
+def test_subscribe_connection_closed_max_retries(client) -> None:
     responses.post(
         BASE_URL + "/subscriptions",
         json={
@@ -307,8 +328,11 @@ def test_subscribe_connection_closed_max_retries(client):
         status=400,
     )
 
-    with unittest.mock.patch("time.sleep"), pytest.raises(
-        MicrosoftGraphClientException, match="Max retries reached"
+    with (
+        unittest.mock.patch("time.sleep"),
+        pytest.raises(
+            MicrosoftGraphClientException, match="Max retries reached"
+        ),
     ):
         client.subscribe(
             resource_url="/me/calendars",
@@ -319,7 +343,7 @@ def test_subscribe_connection_closed_max_retries(client):
 
 
 @responses.activate
-def test_subscribe_to_calendar_changes(client):
+def test_subscribe_to_calendar_changes(client) -> None:
     def request_callback(request):
         return (200, {}, request.body)
 
@@ -341,7 +365,7 @@ def test_subscribe_to_calendar_changes(client):
 
 
 @responses.activate
-def test_subscribe_to_event_changes(client):
+def test_subscribe_to_event_changes(client) -> None:
     def request_callback(request):
         return (200, {}, request.body)
 
@@ -381,19 +405,18 @@ subscriptions_json = {
 
 
 @responses.activate(registry=OrderedRegistry)
-def test_iter_subscriptions(client):
+def test_iter_subscriptions(client) -> None:
     responses.get(BASE_URL + "/subscriptions", json=subscriptions_json)
 
     subscriptions = client.iter_subscriptions()
 
-    assert {subscription["notificationUrl"] for subscription in subscriptions} == {
-        "https://example.com/1",
-        "https://example.com/2",
-    }
+    assert {
+        subscription["notificationUrl"] for subscription in subscriptions
+    } == {"https://example.com/1", "https://example.com/2"}
 
 
 @responses.activate
-def test_unsubscribe(client):
+def test_unsubscribe(client) -> None:
     responses.delete(BASE_URL + "/subscriptions/fake_subscription_id", body="")
 
     assert client.unsubscribe("fake_subscription_id") == {}

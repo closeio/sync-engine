@@ -1,4 +1,5 @@
-"""Cascade delete secrets
+"""
+Cascade delete secrets
 
 Revision ID: 1449eededf1
 Revises: 2c67046c548d
@@ -10,11 +11,10 @@ Create Date: 2018-06-15 19:57:58.139979
 revision = "1449eededf1"
 down_revision = "2c67046c548d"
 
-import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         """
@@ -26,7 +26,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         """

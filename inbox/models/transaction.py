@@ -1,7 +1,6 @@
 from sqlalchemy import BigInteger, Column, Enum, Index, String, func, inspect
 from sqlalchemy.orm import relationship
 
-from inbox.config import config
 from inbox.ignition import redis_txn
 from inbox.models.base import MailSyncBase
 from inbox.models.category import EPOCH
@@ -28,7 +27,9 @@ class Transaction(MailSyncBase, HasPublicID):
 
 
 Index("object_type_record_id", Transaction.object_type, Transaction.record_id)
-Index("namespace_id_created_at", Transaction.namespace_id, Transaction.created_at)
+Index(
+    "namespace_id_created_at", Transaction.namespace_id, Transaction.created_at
+)
 Index(
     "ix_transaction_namespace_id_object_type_id",
     Transaction.namespace_id,
@@ -64,7 +65,7 @@ Index(
 )
 
 
-def is_dirty(session, obj):
+def is_dirty(session, obj) -> bool:
     if obj in session.dirty and obj.has_versioned_changes():
         return True
     if hasattr(obj, "dirty") and obj.dirty:
@@ -72,7 +73,7 @@ def is_dirty(session, obj):
     return False
 
 
-def create_revisions(session):
+def create_revisions(session) -> None:
     for obj in session:
         if (
             not isinstance(obj, HasRevisions)
@@ -93,7 +94,7 @@ def create_revisions(session):
             create_revision(obj, session, "delete")
 
 
-def create_revision(obj, session, revision_type):
+def create_revision(obj, session, revision_type) -> None:
     assert revision_type in ("insert", "update", "delete")
 
     # If available use object dates for the transaction timestamp
@@ -139,7 +140,7 @@ def create_revision(obj, session, revision_type):
         session.add(revision)
 
 
-def propagate_changes(session):
+def propagate_changes(session) -> None:
     """
     Mark an object's related object as dirty when certain attributes of the
     object (its `propagated_attributes`) change.
@@ -153,11 +154,14 @@ def propagate_changes(session):
         if isinstance(obj, Message):
             obj_state = inspect(obj)
             for attr in obj.propagated_attributes:
-                if getattr(obj_state.attrs, attr).history.has_changes() and obj.thread:
+                if (
+                    getattr(obj_state.attrs, attr).history.has_changes()
+                    and obj.thread
+                ):
                     obj.thread.dirty = True
 
 
-def increment_versions(session):
+def increment_versions(session) -> None:
     from inbox.models.metadata import Metadata
     from inbox.models.thread import Thread
 
@@ -170,10 +174,10 @@ def increment_versions(session):
             obj.version = Metadata.version + 1  # TODO what's going on here?
 
 
-def bump_redis_txn_id(session):
+def bump_redis_txn_id(session) -> None:
     """
     Called from post-flush hook to bump the latest id stored in redis
-    """
+    """  # noqa: D401
 
     def get_namespace_public_id(namespace_id):
         # the namespace was just used to create the transaction, so it should

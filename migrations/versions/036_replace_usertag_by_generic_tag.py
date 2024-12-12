@@ -1,4 +1,5 @@
-"""replace usertag by generic tag
+"""
+replace usertag by generic tag
 
 Revision ID: 21878b1b3d4b
 Revises: 24e085e152c0
@@ -10,11 +11,13 @@ Create Date: 2014-05-21 03:36:26.834916
 revision = "21878b1b3d4b"
 down_revision = "24e085e152c0"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "tag",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -36,7 +39,9 @@ def upgrade():
             nullable=False,
             server_default=sa.sql.expression.true(),
         ),
-        sa.ForeignKeyConstraint(["namespace_id"], ["namespace.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["namespace_id"], ["namespace.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("namespace_id", "name"),
         sa.UniqueConstraint("namespace_id", "public_id"),
@@ -56,9 +61,15 @@ def upgrade():
         sa.ForeignKeyConstraint(["thread_id"], ["thread.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index("ix_tagitem_created_at", "tagitem", ["created_at"], unique=False)
-    op.create_index("ix_tagitem_deleted_at", "tagitem", ["deleted_at"], unique=False)
-    op.create_index("ix_tagitem_updated_at", "tagitem", ["updated_at"], unique=False)
+    op.create_index(
+        "ix_tagitem_created_at", "tagitem", ["created_at"], unique=False
+    )
+    op.create_index(
+        "ix_tagitem_deleted_at", "tagitem", ["deleted_at"], unique=False
+    )
+    op.create_index(
+        "ix_tagitem_updated_at", "tagitem", ["updated_at"], unique=False
+    )
     op.drop_table("usertagitem")
     op.drop_table("usertag")
 
@@ -81,7 +92,7 @@ def upgrade():
 
     with session_scope(versioned=False) as db_session:
         # create canonical tags that don't already exist.
-        CANONICAL_TAG_NAMES = [
+        CANONICAL_TAG_NAMES = [  # noqa: N806
             "inbox",
             "all",
             "archive",
@@ -102,7 +113,8 @@ def upgrade():
             existing_canonical_tags = (
                 db_session.query(Tag)
                 .filter(
-                    Tag.namespace == namespace, Tag.public_id.in_(CANONICAL_TAG_NAMES)
+                    Tag.namespace == namespace,
+                    Tag.public_id.in_(CANONICAL_TAG_NAMES),
                 )
                 .all()
             )
@@ -123,13 +135,13 @@ def upgrade():
         count = 0
         for folderitem in db_session.query(FolderItem).yield_per(500):
             folderitem.thread.also_set_tag(None, folderitem, False)
-            count += 1
+            count += 1  # noqa: SIM113
             if not count % 500:
                 db_session.commit()
 
         db_session.commit()
 
 
-def downgrade():
+def downgrade() -> Never:
     # TOO HARD
     raise Exception("Not supported.")

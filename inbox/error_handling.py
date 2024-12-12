@@ -15,7 +15,7 @@ ROLLBAR_API_KEY = os.getenv("ROLLBAR_API_KEY", "")
 
 
 class SyncEngineRollbarHandler(RollbarHandler):
-    def emit(self, record):
+    def emit(self, record):  # noqa: ANN201
         try:
             data = json.loads(record.msg)
         except ValueError:
@@ -38,7 +38,7 @@ class SyncEngineRollbarHandler(RollbarHandler):
         return super().emit(record)
 
 
-def log_uncaught_errors(logger=None, **kwargs):
+def log_uncaught_errors(logger=None, **kwargs) -> None:  # noqa: D417
     """
     Helper to log uncaught exceptions.
 
@@ -47,7 +47,7 @@ def log_uncaught_errors(logger=None, **kwargs):
     logger: structlog.BoundLogger, optional
         The logging object to write to.
 
-    """
+    """  # noqa: D401
     logger = logger or get_logger()
     kwargs.update(create_error_log_context(sys.exc_info()))
     logger.error("Uncaught error", **kwargs)
@@ -77,9 +77,11 @@ GROUP_EXCEPTION_CLASSES = [
 ]
 
 
-def payload_handler(payload, **kw):
+def payload_handler(payload, **kw):  # noqa: ANN201
     title = payload["data"].get("title")
-    exception = payload["data"].get("body", {}).get("trace", {}).get("exception", {})
+    exception = (
+        payload["data"].get("body", {}).get("trace", {}).get("exception", {})
+    )
     # On Python 3 exceptions are organized in chains
     if not exception:
         trace_chain = payload["data"].get("body", {}).get("trace_chain")
@@ -97,9 +99,11 @@ def payload_handler(payload, **kw):
     return payload
 
 
-def maybe_enable_rollbar():
+def maybe_enable_rollbar() -> None:
     if not ROLLBAR_API_KEY:
-        log.info("ROLLBAR_API_KEY environment variable empty, rollbar disabled")
+        log.info(
+            "ROLLBAR_API_KEY environment variable empty, rollbar disabled"
+        )
         return
 
     application_environment = (
@@ -107,7 +111,9 @@ def maybe_enable_rollbar():
     )
 
     rollbar.init(
-        ROLLBAR_API_KEY, application_environment, allow_logging_basic_config=False
+        ROLLBAR_API_KEY,
+        application_environment,
+        allow_logging_basic_config=False,
     )
 
     rollbar_handler = SyncEngineRollbarHandler()

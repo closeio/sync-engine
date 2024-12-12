@@ -8,15 +8,16 @@ from inbox.logging import create_error_log_context, get_logger
 
 log = get_logger()
 
-from inbox.config import is_live_env
+from inbox.config import is_live_env  # noqa: E402
 
 
-def get_request_uid(headers):
+def get_request_uid(headers):  # noqa: ANN201
     return headers.get("X-Unique-ID")
 
 
-def log_exception(exc_info, **kwargs):
-    """Add exception info to the log context for the request.
+def log_exception(exc_info, **kwargs) -> None:
+    """
+    Add exception info to the log context for the request.
 
     We do not log in a separate log statement in order to make debugging
     easier. As a bonus, this reduces log volume somewhat.
@@ -25,9 +26,9 @@ def log_exception(exc_info, **kwargs):
     rollbar.report_exc_info(exc_info)
 
     if not is_live_env():
-        print()
+        print()  # noqa: T201
         traceback.print_exc()
-        print()
+        print()  # noqa: T201
 
     new_log_context = create_error_log_context(exc_info)
     new_log_context.update(kwargs)
@@ -39,7 +40,7 @@ def log_exception(exc_info, **kwargs):
         log.warning(
             "attempt to log more than one error to HTTP request",
             request_uid=get_request_uid(request.headers),
-            **new_log_context
+            **new_log_context,
         )
     else:
         request.environ.setdefault("log_context", {}).update(new_log_context)
@@ -50,13 +51,14 @@ class APIException(Exception):
 
 
 class InputError(APIException):
-    """Raised on invalid user input (missing required parameter, value too
+    """
+    Raised on invalid user input (missing required parameter, value too
     long, etc.)
     """
 
     status_code = 400
 
-    def __init__(self, message):
+    def __init__(self, message) -> None:
         self.message = message
         super().__init__(message)
 
@@ -66,7 +68,7 @@ class NotFoundError(APIException):
 
     status_code = 404
 
-    def __init__(self, message):
+    def __init__(self, message) -> None:
         self.message = message
         super().__init__(message)
 
@@ -74,7 +76,7 @@ class NotFoundError(APIException):
 class ConflictError(APIException):
     status_code = 409
 
-    def __init__(self, message):
+    def __init__(self, message) -> None:
         self.message = message
         super().__init__(message)
 
@@ -108,7 +110,7 @@ class AccountDoesNotExistError(APIException):
     message = "The account does not exist."
 
 
-def err(http_code, message, **kwargs):
+def err(http_code, message, **kwargs):  # noqa: ANN201
     """Handle unexpected errors, including sending the traceback to Rollbar."""
     log_exception(sys.exc_info(), user_error_message=message, **kwargs)
     resp = {"type": "api_error", "message": message}

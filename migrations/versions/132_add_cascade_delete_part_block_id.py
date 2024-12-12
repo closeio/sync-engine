@@ -1,4 +1,5 @@
-"""Add ON DELETE CASCADE to part.block_id.
+"""
+Add ON DELETE CASCADE to part.block_id.
 
 Revision ID: 1d93c9f9f506
 Revises: 3bb4a941639c
@@ -13,7 +14,7 @@ down_revision = "3bb4a941639c"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     connection = op.get_bind()
     connection.execute(
         """
@@ -23,7 +24,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     # NOTE: there is no going back since it would be a mismatch between the
     # code and the db! -siro
     pass

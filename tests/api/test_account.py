@@ -3,9 +3,13 @@ import json
 import pytest
 
 from inbox.models.account import Account
-
 from tests.api.base import new_api_client
-from tests.util.base import add_fake_yahoo_account, db, generic_account, gmail_account
+from tests.util.base import (
+    add_fake_yahoo_account,
+    db,
+    generic_account,
+    gmail_account,
+)
 
 __all__ = ["db", "generic_account", "gmail_account"]
 

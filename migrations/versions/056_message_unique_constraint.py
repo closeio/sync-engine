@@ -1,4 +1,5 @@
-"""Remove duplicated Gmail Message objects and tighten constraints for Gmail messages.
+"""
+Remove duplicated Gmail Message objects and tighten constraints for Gmail messages.
 
 Revision ID: 4b4c5579c083
 Revises: 1925c535a52d
@@ -14,7 +15,7 @@ from alembic import op
 from sqlalchemy import func
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_constraint(
         "messagecontactassociation_ibfk_1",
         "messagecontactassociation",
@@ -77,5 +78,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     pass

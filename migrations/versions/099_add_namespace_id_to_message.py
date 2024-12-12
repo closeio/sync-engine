@@ -1,4 +1,5 @@
-"""add_namespace_id_to_message
+"""
+add_namespace_id_to_message
 
 Revision ID: e27104acb25
 Revises:40b533a6f3e1
@@ -14,7 +15,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         text(
@@ -35,6 +36,6 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_constraint("message_ibfk_3", "message", type_="foreignkey")
     op.drop_column("message", "namespace_id")

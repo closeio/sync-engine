@@ -1,4 +1,5 @@
-"""empty Change imapfolderinfo uidnext to bigint from int
+"""
+empty Change imapfolderinfo uidnext to bigint from int
 
 Revision ID: 34815f9e639c
 Revises: 53e6a7446c45
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column(
         "imapfolderinfo",
         "uidnext",
@@ -25,7 +26,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column(
         "imapfolderinfo",
         "uidnext",

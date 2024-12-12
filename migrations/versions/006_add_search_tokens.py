@@ -1,4 +1,5 @@
-"""Add search tokens.
+"""
+Add search tokens.
 
 Revision ID: 482338e7a7d6
 Revises: 41a7e825d108
@@ -14,17 +15,19 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "searchtoken",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("token", sa.String(length=255), nullable=True),
         sa.Column("source", sa.Enum("name", "email_address"), nullable=True),
         sa.Column("contact_id", sa.Integer(), nullable=True),
-        sa.ForeignKeyConstraint(["contact_id"], ["contact.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["contact_id"], ["contact.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("searchtoken")

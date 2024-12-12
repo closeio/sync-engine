@@ -1,4 +1,5 @@
-"""calculate receivedrecentdate for threads
+"""
+calculate receivedrecentdate for threads
 
 Revision ID: 691fa97024d
 Revises: 2758cefad87d
@@ -12,8 +13,8 @@ down_revision = "2758cefad87d"
 
 
 # solution from http://stackoverflow.com/a/1217947
-def page_query(q):
-    CHUNK_SIZE = 500
+def page_query(q):  # noqa: ANN201
+    CHUNK_SIZE = 500  # noqa: N806
     offset = 0
     while True:
         r = False
@@ -25,7 +26,7 @@ def page_query(q):
             break
 
 
-def upgrade():
+def upgrade() -> None:
     from sqlalchemy import desc
     from sqlalchemy.sql import not_
 
@@ -49,5 +50,5 @@ def upgrade():
     db_session.commit()
 
 
-def downgrade():
+def downgrade() -> None:
     pass

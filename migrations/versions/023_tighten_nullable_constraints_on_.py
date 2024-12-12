@@ -1,4 +1,5 @@
-"""Tighten nullable constraints on ImapUids.
+"""
+Tighten nullable constraints on ImapUids.
 
 Will help prevent future heisenbugs.
 
@@ -18,13 +19,13 @@ from alembic import op
 from sqlalchemy.ext.declarative import declarative_base
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class ImapUid(Base):
@@ -38,11 +39,15 @@ def upgrade():
 
     print("Tightening NULL constraints...")
 
-    op.alter_column("imapuid", "message_id", existing_type=sa.Integer(), nullable=False)
+    op.alter_column(
+        "imapuid", "message_id", existing_type=sa.Integer(), nullable=False
+    )
     # unrelated to current bugs, but no reason this should be NULLable either
-    op.alter_column("imapuid", "msg_uid", existing_type=sa.BigInteger(), nullable=False)
+    op.alter_column(
+        "imapuid", "msg_uid", existing_type=sa.BigInteger(), nullable=False
+    )
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column("imapuid", "message_id", nullable=True)
     op.alter_column("imapuid", "msg_uid", nullable=True)

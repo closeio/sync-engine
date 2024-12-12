@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 # Query the id corresponding to a public id and vice-versa.
 
 
@@ -37,10 +37,10 @@ cls_for_type = dict(
 @click.option("--type", "-t", type=str, required=True)
 @click.option("--id", type=str, default=None)
 @click.option("--public-id", type=str, default=None)
-def main(type, id, public_id):
+def main(type, id, public_id) -> None:
     maybe_enable_rollbar()
 
-    type = type.lower()
+    type = type.lower()  # noqa: A001
 
     if type not in cls_for_type:
         print(f"Error: unknown type '{type}'")
@@ -54,7 +54,9 @@ def main(type, id, public_id):
 
     with global_session_scope() as db_session:
         if public_id:
-            obj = db_session.query(cls).filter(cls.public_id == public_id).one()
+            obj = (
+                db_session.query(cls).filter(cls.public_id == public_id).one()
+            )
             print(obj.id)
         elif id:
             obj = db_session.query(cls).filter(cls.id == id).one()

@@ -1,4 +1,5 @@
-"""Add eas_thrid index
+"""
+Add eas_thrid index
 
 Revision ID: 3c02d8204335
 Revises:43cd2de5ad85
@@ -14,11 +15,11 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine()
-    Base = sa.ext.declarative.declarative_base()
+    Base = sa.ext.declarative.declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     if "easthread" in Base.metadata.tables:
@@ -31,11 +32,11 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine()
-    Base = sa.ext.declarative.declarative_base()
+    Base = sa.ext.declarative.declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     if "easthread" in Base.metadata.tables:

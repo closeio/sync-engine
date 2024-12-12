@@ -1,4 +1,5 @@
-"""Add namespace_id index on transaction table
+"""
+Add namespace_id index on transaction table
 
 Revision ID: 29a1f2ef5653
 Revises: 539ce0291298
@@ -13,9 +14,11 @@ down_revision = "539ce0291298"
 from alembic import op
 
 
-def upgrade():
-    op.create_index("idx_namespace", "transaction", ["namespace_id"], unique=False)
+def upgrade() -> None:
+    op.create_index(
+        "idx_namespace", "transaction", ["namespace_id"], unique=False
+    )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("idx_namespace", table_name="transaction")

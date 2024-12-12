@@ -1,4 +1,5 @@
-"""store google client id and secret on gmailaccounts.
+"""
+store google client id and secret on gmailaccounts.
 
 Revision ID: 358d0320397f
 Revises: 1925c535a52d
@@ -14,15 +15,17 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
-        "gmailaccount", sa.Column("client_id", sa.String(length=256), nullable=True)
+        "gmailaccount",
+        sa.Column("client_id", sa.String(length=256), nullable=True),
     )
     op.add_column(
-        "gmailaccount", sa.Column("client_secret", sa.String(length=256), nullable=True)
+        "gmailaccount",
+        sa.Column("client_secret", sa.String(length=256), nullable=True),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("gmailaccount", "client_secret")
     op.drop_column("gmailaccount", "client_id")

@@ -1,4 +1,5 @@
-"""aol
+"""
+aol
 
 Revision ID: 479b3b84a73e
 Revises: 1ceff61ec112
@@ -14,15 +15,17 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "aolaccount",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(["id"], ["imapaccount.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["id"], ["imapaccount.id"], ondelete="CASCADE"
+        ),
         sa.Column("password", sa.String(256)),
         sa.PrimaryKeyConstraint("id"),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("aolaccount")

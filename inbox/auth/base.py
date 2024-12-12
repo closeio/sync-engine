@@ -1,4 +1,5 @@
 import socket
+from typing import Never
 
 from imapclient import IMAPClient
 
@@ -12,7 +13,7 @@ from .utils import create_imap_connection
 log = get_logger()
 
 
-def handler_from_provider(provider_name):
+def handler_from_provider(provider_name):  # noqa: ANN201
     """
     Return an authentication handler for the given provider.
 
@@ -22,6 +23,7 @@ def handler_from_provider(provider_name):
 
     Returns:
         An object that implements the AuthHandler interface.
+
     """
     if provider_name == "custom":
         from .generic import GenericAuthHandler
@@ -42,7 +44,7 @@ def handler_from_provider(provider_name):
 
 
 class AuthHandler:
-    def create_account(self, account_data):
+    def create_account(self, account_data) -> Never:
         """
         Create a new account with the given subclass-specific account data.
 
@@ -51,7 +53,7 @@ class AuthHandler:
         """
         raise NotImplementedError()
 
-    def update_account(self, account, account_data):
+    def update_account(self, account, account_data) -> Never:
         """
         Update an existing account with the given subclass-specific account
         data.
@@ -60,7 +62,7 @@ class AuthHandler:
         """
         raise NotImplementedError()
 
-    def get_imap_connection(self, account, use_timeout=True):
+    def get_imap_connection(self, account, use_timeout=True):  # noqa: ANN201
         host, port = account.imap_endpoint
         try:
             return create_imap_connection(host, port, use_timeout)
@@ -74,18 +76,20 @@ class AuthHandler:
             )
             raise
 
-    def authenticate_imap_connection(self, account, conn):
+    def authenticate_imap_connection(self, account, conn) -> Never:
         raise NotImplementedError()
 
-    def get_authenticated_imap_connection(self, account, use_timeout=True):
+    def get_authenticated_imap_connection(  # noqa: ANN201
+        self, account, use_timeout=True
+    ):
         conn = self.get_imap_connection(account, use_timeout=use_timeout)
         self.authenticate_imap_connection(account, conn)
         return conn
 
-    def interactive_auth(self, email_address):
+    def interactive_auth(self, email_address) -> Never:
         raise NotImplementedError()
 
-    def verify_account(self, account):
+    def verify_account(self, account) -> bool:
         """
         Verifies a generic IMAP account by logging in and logging out to both
         the IMAP/ SMTP servers.
@@ -94,11 +98,11 @@ class AuthHandler:
         Raises exceptions from connect_account(), SMTPClient._get_connection()
         on error.
 
-        Returns
+        Returns:
         -------
         True: If the client can successfully connect to both.
 
-        """
+        """  # noqa: D401
         # Verify IMAP login
         conn = self.get_authenticated_imap_connection(account)
         crispin = CrispinClient(
@@ -112,14 +116,16 @@ class AuthHandler:
         except Exception as e:
             message = e.args[0] if e.args else ""
             log.error(
-                "account_folder_list_failed", account_id=account.id, error=message
+                "account_folder_list_failed",
+                account_id=account.id,
+                error=message,
             )
             error_message = (
                 "Full IMAP support is not enabled for this account. "
                 "Please contact your domain "
                 "administrator and try again."
             )
-            raise UserRecoverableConfigError(error_message)
+            raise UserRecoverableConfigError(error_message)  # noqa: B904
         finally:
             conn.logout()
 
@@ -132,15 +138,17 @@ class AuthHandler:
                 pass
         except socket.gaierror as exc:
             log.error(
-                "Failed to resolve SMTP server domain", account_id=account.id, error=exc
+                "Failed to resolve SMTP server domain",
+                account_id=account.id,
+                error=exc,
             )
             error_message = (
                 "Couldn't resolve the SMTP server domain name. "
                 "Please check that your SMTP settings are correct."
             )
-            raise UserRecoverableConfigError(error_message)
+            raise UserRecoverableConfigError(error_message)  # noqa: B904
 
-        except socket.timeout as exc:
+        except TimeoutError as exc:
             log.error(
                 "TCP timeout when connecting to SMTP server",
                 account_id=account.id,
@@ -151,7 +159,7 @@ class AuthHandler:
                 "Connection timeout when connecting to SMTP server. "
                 "Please check that your SMTP settings are correct."
             )
-            raise UserRecoverableConfigError(error_message)
+            raise UserRecoverableConfigError(error_message)  # noqa: B904
 
         except Exception as exc:
             log.error(
@@ -160,7 +168,7 @@ class AuthHandler:
                 account_id=account.id,
                 error=exc,
             )
-            raise UserRecoverableConfigError(
+            raise UserRecoverableConfigError(  # noqa: B904
                 "Please check that your SMTP settings are correct."
             )
 
@@ -169,5 +177,7 @@ class AuthHandler:
         # be returned to delta/ streaming clients.
         # NOTE: Setting this does not restart the sync. Sync scheduling occurs
         # via the sync_should_run bit (set to True in update_account() above).
-        account.sync_state = "running" if account.sync_state else account.sync_state
+        account.sync_state = (
+            "running" if account.sync_state else account.sync_state
+        )
         return True

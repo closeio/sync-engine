@@ -3,7 +3,7 @@ import sys
 import traceback
 from datetime import date, datetime
 from email.utils import formataddr
-from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Union
+from typing import TYPE_CHECKING, Literal
 
 import arrow
 import icalendar
@@ -42,12 +42,12 @@ INVERTED_STATUS_MAP = {value: key for key, value in STATUS_MAP.items()}
 
 
 def normalize_repeated_component(
-    component: Union[List[str], Optional[str]]
-) -> Optional[str]:
+    component: list[str] | str | None,
+) -> str | None:
     """
     Some software can repeat components several times.
     We can safely recover from it if all of them have the same value.
-    """
+    """  # noqa: D401
     if component is None:
         return None
     elif isinstance(component, str):
@@ -58,20 +58,24 @@ def normalize_repeated_component(
         raise MalformedEventError("Cannot normalize component", component)
 
 
-def events_from_ics(namespace, calendar, ics_str):
+def events_from_ics(namespace, calendar, ics_str):  # noqa: ANN201
     try:
         cal = iCalendar.from_ical(ics_str)
     except (ValueError, IndexError, KeyError, TypeError) as e:
         raise MalformedEventError("Error while parsing ICS file") from e
 
-    events: Dict[Literal["invites", "rsvps"], List[Event]] = dict(invites=[], rsvps=[])
+    events: dict[Literal["invites", "rsvps"], list[Event]] = dict(
+        invites=[], rsvps=[]
+    )
 
     # See: https://tools.ietf.org/html/rfc5546#section-3.2
     calendar_method = None
 
     for component in cal.walk():
         if component.name == "VCALENDAR":
-            calendar_method = normalize_repeated_component(component.get("method"))
+            calendar_method = normalize_repeated_component(
+                component.get("method")
+            )
             # Return early if we see calendar_method we don't care about
             if calendar_method not in ["REQUEST", "CANCEL", "REPLY"]:
                 return events
@@ -79,14 +83,18 @@ def events_from_ics(namespace, calendar, ics_str):
         if component.name == "VTIMEZONE":
             tzname = component.get("TZID")
             if tzname not in timezones_table:
-                raise MalformedEventError("Non-UTC timezone should be in table", tzname)
+                raise MalformedEventError(
+                    "Non-UTC timezone should be in table", tzname
+                )
 
         if component.name == "VEVENT":
             # Make sure the times are in UTC.
             try:
                 original_start = component.get("dtstart").dt
             except AttributeError:
-                raise MalformedEventError("Event lacks one of DTSTART")
+                raise MalformedEventError(  # noqa: B904
+                    "Event lacks one of DTSTART"
+                )
 
             if component.get("dtend"):
                 original_end = component["dtend"].dt
@@ -178,14 +186,16 @@ def events_from_ics(namespace, calendar, ics_str):
             if description is not None:
                 description = str(description)
 
-            event_status = normalize_repeated_component(component.get("status"))
+            event_status = normalize_repeated_component(
+                component.get("status")
+            )
             if event_status is not None:
                 event_status = event_status.lower()
             else:
                 # Some providers (e.g: iCloud) don't use the status field.
                 # Instead they use the METHOD field to signal cancellations.
                 method = component.get("method")
-                if method and method.lower() == "cancel":  # noqa: SIM114
+                if method and method.lower() == "cancel":
                     event_status = "cancelled"
                 elif calendar_method and calendar_method.lower() == "cancel":
                     # So, this particular event was not cancelled. Maybe the
@@ -222,7 +232,8 @@ def events_from_ics(namespace, calendar, ics_str):
 
             is_owner = False
             if owner is not None and (
-                namespace.account.email_address == canonicalize_address(organizer_email)
+                namespace.account.email_address
+                == canonicalize_address(organizer_email)
             ):
                 is_owner = True
 
@@ -292,8 +303,7 @@ def events_from_ics(namespace, calendar, ics_str):
             # don't follow the spec and generate icalendar files with
             # ridiculously big sequence numbers. Truncate them to fit in
             # our db.
-            if sequence_number > 2147483647:
-                sequence_number = 2147483647
+            sequence_number = min(sequence_number, 2147483647)
 
             event = Event.create(
                 namespace=namespace,
@@ -331,7 +341,7 @@ def events_from_ics(namespace, calendar, ics_str):
     return events
 
 
-def process_invites(db_session, message, account, invites):
+def process_invites(db_session, message, account, invites) -> None:
     new_uids = [event.uid for event in invites]
 
     # Get the list of events which share a uid with those we received.
@@ -370,7 +380,9 @@ def process_invites(db_session, message, account, invites):
             existing_event = existing_events_table[event.uid]
 
             if existing_event.sequence_number <= event.sequence_number:
-                merged_participants = existing_event._partial_participants_merge(event)
+                merged_participants = (
+                    existing_event._partial_participants_merge(event)
+                )
 
                 existing_event.update(event)
                 existing_event.message = message
@@ -398,13 +410,15 @@ def _cleanup_nylas_uid(uid):
     return uid
 
 
-def process_nylas_rsvps(db_session, message, account, rsvps):
+def process_nylas_rsvps(db_session, message, account, rsvps) -> None:
     # The invite sending code generates invites with uids of the form
     # `public_id@nylas.com`. We couldn't use Event.uid for this because
     # it wouldn't work with Exchange (Exchange uids are of the form
     # 1:2323 and aren't guaranteed to be unique).
     new_uids = [
-        _cleanup_nylas_uid(event.uid) for event in rsvps if "@nylas.com" in event.uid
+        _cleanup_nylas_uid(event.uid)
+        for event in rsvps
+        if "@nylas.com" in event.uid
     ]
 
     # Drop uids which aren't base36 uids.
@@ -423,7 +437,9 @@ def process_nylas_rsvps(db_session, message, account, rsvps):
         .all()
     )
 
-    existing_events_table = {event.public_id: event for event in existing_events}
+    existing_events_table = {
+        event.public_id: event for event in existing_events
+    }
 
     for event in rsvps:
         event_uid = _cleanup_nylas_uid(event.uid)
@@ -437,7 +453,9 @@ def process_nylas_rsvps(db_session, message, account, rsvps):
 
             # Is the current event an update?
             if existing_event.sequence_number == event.sequence_number:
-                merged_participants = existing_event._partial_participants_merge(event)
+                merged_participants = (
+                    existing_event._partial_participants_merge(event)
+                )
 
                 # We have to do this mumbo-jumbo because MutableList does
                 # not register changes to nested elements.
@@ -518,10 +536,12 @@ def import_attached_events(
         # ourselves.
         # - karim
         if account.provider != "gmail":
-            process_nylas_rsvps(db_session, message, account, new_events["rsvps"])
+            process_nylas_rsvps(
+                db_session, message, account, new_events["rsvps"]
+            )
 
 
-def generate_icalendar_invite(event, invite_type="request"):
+def generate_icalendar_invite(event, invite_type="request"):  # noqa: ANN201
     # Generates an iCalendar invite from an event.
     assert invite_type in ["request", "cancel"]
 
@@ -545,7 +565,9 @@ def generate_icalendar_invite(event, invite_type="request"):
 
     icalendar_event["organizer"] = organizer
     icalendar_event["sequence"] = str(event.sequence_number)
-    icalendar_event["X-MICROSOFT-CDO-APPT-SEQUENCE"] = icalendar_event["sequence"]
+    icalendar_event["X-MICROSOFT-CDO-APPT-SEQUENCE"] = icalendar_event[
+        "sequence"
+    ]
 
     if invite_type == "cancel":
         icalendar_event["status"] = "CANCELLED"
@@ -569,7 +591,8 @@ def generate_icalendar_invite(event, invite_type="request"):
 
         # FIXME @karim: handle the case where a participant has no address.
         # We may have to patch the iCalendar module for this.
-        assert email is not None and email != ""
+        assert email is not None
+        assert email != ""
 
         attendee = icalendar.vCalAddress(f"MAILTO:{email}")
         name = participant.get("name", None)
@@ -591,7 +614,9 @@ def generate_icalendar_invite(event, invite_type="request"):
     return cal
 
 
-def generate_invite_message(ical_txt, event, account, invite_type="request"):
+def generate_invite_message(  # noqa: ANN201
+    ical_txt, event, account, invite_type="request"
+):
     assert invite_type in ["request", "update", "cancel"]
     html_body = event.description or ""
 
@@ -604,14 +629,18 @@ def generate_invite_message(ical_txt, event, account, invite_type="request"):
         body.append(
             mime.create.text("plain", text_body),
             mime.create.text("html", html_body),
-            mime.create.text("calendar; method=REQUEST", ical_txt, charset="utf8"),
+            mime.create.text(
+                "calendar; method=REQUEST", ical_txt, charset="utf8"
+            ),
         )
         msg.append(body)
     elif invite_type == "cancel":
         body.append(
             mime.create.text("plain", text_body),
             mime.create.text("html", html_body),
-            mime.create.text("calendar; method=CANCEL", ical_txt, charset="utf8"),
+            mime.create.text(
+                "calendar; method=CANCEL", ical_txt, charset="utf8"
+            ),
         )
         msg.append(body)
 
@@ -630,11 +659,12 @@ def generate_invite_message(ical_txt, event, account, invite_type="request"):
     return msg
 
 
-def send_invite(ical_txt, event, account, invite_type="request"):
+def send_invite(ical_txt, event, account, invite_type="request") -> None:
     # We send those transactional emails through a separate domain.
-    MAILGUN_API_KEY = config.get("NOTIFICATIONS_MAILGUN_API_KEY")
-    MAILGUN_DOMAIN = config.get("NOTIFICATIONS_MAILGUN_DOMAIN")
-    assert MAILGUN_DOMAIN is not None and MAILGUN_API_KEY is not None
+    MAILGUN_API_KEY = config.get("NOTIFICATIONS_MAILGUN_API_KEY")  # noqa: N806
+    MAILGUN_DOMAIN = config.get("NOTIFICATIONS_MAILGUN_DOMAIN")  # noqa: N806
+    assert MAILGUN_DOMAIN is not None
+    assert MAILGUN_API_KEY is not None
 
     for participant in event.participants:
         email = participant.get("email", None)
@@ -718,7 +748,7 @@ def _generate_rsvp(status, account, event):
     return {"cal": cal}
 
 
-def generate_rsvp(event, participant, account):
+def generate_rsvp(event, participant, account):  # noqa: ANN201
     # Generates an iCalendar file to RSVP to an invite.
     status = INVERTED_STATUS_MAP.get(participant["status"])
     return _generate_rsvp(status, account, event)
@@ -728,7 +758,7 @@ def generate_rsvp(event, participant, account):
 # We try to find the organizer address from the iCal file.
 # If it's not defined, we try to return the invite sender's
 # email address.
-def rsvp_recipient(event):
+def rsvp_recipient(event):  # noqa: ANN201
     if event is None:
         return None
 
@@ -749,7 +779,7 @@ def rsvp_recipient(event):
     return None
 
 
-def send_rsvp(ical_data, event, body_text, status, account):
+def send_rsvp(ical_data, event, body_text, status, account) -> None:
     from inbox.sendmail.base import SendMailException, get_sendmail_client
 
     ical_file = ical_data["cal"]
@@ -780,7 +810,9 @@ def send_rsvp(ical_data, event, body_text, status, account):
     if status == "yes":
         msg.headers["Subject"] = f"Accepted: {event.message.subject}"
     elif status == "maybe":
-        msg.headers["Subject"] = f"Tentatively accepted: {event.message.subject}"
+        msg.headers["Subject"] = (
+            f"Tentatively accepted: {event.message.subject}"
+        )
     elif status == "no":
         msg.headers["Subject"] = f"Declined: {event.message.subject}"
 

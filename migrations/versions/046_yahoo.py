@@ -1,4 +1,5 @@
-"""yahoo
+"""
+yahoo
 
 Revision ID: 38d78543f8be
 Revises: 247cd689758c
@@ -14,15 +15,17 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "yahooaccount",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(["id"], ["imapaccount.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["id"], ["imapaccount.id"], ondelete="CASCADE"
+        ),
         sa.Column("password", sa.String(256)),
         sa.PrimaryKeyConstraint("id"),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("yahooaccount")

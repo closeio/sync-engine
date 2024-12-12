@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 """
 Searches for accounts that are marked for deletion and deletes
 all of their data
@@ -29,18 +29,20 @@ log = get_logger()
 @click.command()
 @click.option("--throttle", is_flag=True)
 @click.option("--dry-run", is_flag=True)
-def run(throttle, dry_run):
+def run(throttle, dry_run) -> None:
     maybe_enable_rollbar()
 
     print("Python", sys.version, file=sys.stderr)
 
-    with ThreadPoolExecutor(max_workers=len(config["DATABASE_HOSTS"])) as executor:
+    with ThreadPoolExecutor(
+        max_workers=len(config["DATABASE_HOSTS"])
+    ) as executor:
         for host in config["DATABASE_HOSTS"]:
             log.info("Spawning delete process for host", host=host["HOSTNAME"])
             executor.submit(delete_account_data, host, throttle, dry_run)
 
 
-def delete_account_data(host, throttle, dry_run):
+def delete_account_data(host, throttle, dry_run) -> None:
     while True:
         for shard in host["SHARDS"]:
             # Ensure shard is explicitly not marked as disabled

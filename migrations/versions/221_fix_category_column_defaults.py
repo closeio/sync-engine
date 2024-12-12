@@ -1,4 +1,5 @@
-"""Fix Category column defaults.
+"""
+Fix Category column defaults.
 
 Revision ID: 516024977fc5
 Revises: 59e1cc690da9
@@ -14,7 +15,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
 
@@ -44,5 +45,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     pass

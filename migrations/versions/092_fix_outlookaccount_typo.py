@@ -1,4 +1,5 @@
-"""fix outlookaccount typo
+"""
+fix outlookaccount typo
 
 Revision ID: 63dc7f205da
 Revises: 4b07b67498e1
@@ -14,7 +15,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         text(
@@ -25,7 +26,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         text(

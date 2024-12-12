@@ -1,4 +1,5 @@
-"""EAS two-devices turn
+"""
+EAS two-devices turn
 
 Revision ID: 17dc9c049f8b
 Revises: ad7b856bcc0
@@ -11,13 +12,14 @@ revision = "17dc9c049f8b"
 down_revision = "ad7b856bcc0"
 
 from datetime import datetime
+from typing import Never
 
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine()
@@ -27,7 +29,7 @@ def upgrade():
 
     from inbox.models.session import session_scope
 
-    Base = sa.ext.declarative.declarative_base()
+    Base = sa.ext.declarative.declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class EASAccount(Base):
@@ -117,5 +119,5 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("!")

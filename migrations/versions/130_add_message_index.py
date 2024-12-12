@@ -1,4 +1,5 @@
-"""add message index
+"""
+add message index
 
 Revision ID: 2b288dc444f
 Revises:5349c1a03fde
@@ -13,7 +14,7 @@ down_revision = "5349c1a03fde"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "ix_message_ns_id_is_draft_received_date",
         "message",
@@ -22,5 +23,7 @@ def upgrade():
     )
 
 
-def downgrade():
-    op.drop_index("ix_message_ns_id_is_draft_received_date", table_name="message")
+def downgrade() -> None:
+    op.drop_index(
+        "ix_message_ns_id_is_draft_received_date", table_name="message"
+    )

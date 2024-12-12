@@ -1,4 +1,5 @@
-"""Save "Blocks" (attachments) as "Parts" since now
+"""
+Save "Blocks" (attachments) as "Parts" since now
   "Blocks" are general uploaded files
 
 Revision ID: 5a787816e2bc
@@ -11,6 +12,8 @@ Create Date: 2014-04-28 22:09:00.652851
 revision = "5a787816e2bc"
 down_revision = "223041bb858b"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.ext.declarative import declarative_base
@@ -18,7 +21,7 @@ from sqlalchemy.ext.declarative import declarative_base
 chunk_size = 250
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import Session, session_scope
 
@@ -34,7 +37,9 @@ def upgrade():
         sa.Column("message_id", sa.Integer(), nullable=True),
         sa.Column("walk_index", sa.Integer(), nullable=True),
         sa.Column(
-            "content_disposition", sa.Enum("inline", "attachment"), nullable=True
+            "content_disposition",
+            sa.Enum("inline", "attachment"),
+            nullable=True,
         ),
         sa.Column("content_id", sa.String(length=255), nullable=True),
         sa.Column("misc_keyval", JSON(), nullable=True),
@@ -45,20 +50,26 @@ def upgrade():
             nullable=True,
         ),
         sa.ForeignKeyConstraint(["id"], ["block.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["message_id"], ["message.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["message_id"], ["message.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("message_id", "walk_index"),
     )
 
     print("Reflecting old block table schema")
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Block_(Base):  # old schema, reflected from database table
+    class Block_(  # noqa: N801
+        Base
+    ):  # old schema, reflected from database table
         __table__ = Base.metadata.tables["block"]
 
     print("Adding namespace_id column to blocks ", end=" ")
-    op.add_column("block", sa.Column("namespace_id", sa.Integer(), nullable=False))
+    op.add_column(
+        "block", sa.Column("namespace_id", sa.Integer(), nullable=False)
+    )
 
     print("Migrating from blocks to parts")
     new_parts = []
@@ -73,7 +84,7 @@ def upgrade():
             p.content_disposition = block.content_disposition
             p.content_id = block.content_id
             p.misc_keyval = block.misc_keyval
-            p.is_inboxapp_attachment
+            p.is_inboxapp_attachment  # noqa: B018
 
             old_namespace = (
                 db_session.query(Namespace)
@@ -124,5 +135,5 @@ def upgrade():
     print("Done migration blocks to parts!")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("This will lose data!")

@@ -1,4 +1,5 @@
-"""per-provider table split
+"""
+per-provider table split
 
 Revision ID: 1c3f1812f2d9
 Revises: 482338e7a7d6
@@ -16,33 +17,35 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import column, table
 
 
-def upgrade():
+def upgrade() -> None:
     genericize_imapaccount()
     genericize_thread()
     genericize_namespace_contact_foldersync()
 
 
-def downgrade():
+def downgrade() -> None:
     downgrade_imapaccount()
     downgrade_imapthread()
     downgrade_namespace_contact_foldersync()
 
 
 # Upgrade funtions:
-def genericize_imapaccount():
+def genericize_imapaccount() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class ImapAccount_(Base):
+    class ImapAccount_(Base):  # noqa: N801
         __table__ = Base.metadata.tables["imapaccount"]
 
     # Get data from columns-to-be-dropped
     with session_scope() as db_session:
-        results = db_session.query(ImapAccount_.id, ImapAccount_.imap_host).all()
+        results = db_session.query(
+            ImapAccount_.id, ImapAccount_.imap_host
+        ).all()
 
     to_insert = [dict(id=r[0], imap_host=r[1]) for r in results]
 
@@ -62,7 +65,9 @@ def genericize_imapaccount():
 
     # The ad-hoc table for insert
     table_ = table(
-        "imapaccount", column("imap_host", sa.String()), column("id", sa.Integer)
+        "imapaccount",
+        column("imap_host", sa.String()),
+        column("id", sa.Integer),
     )
     if to_insert:
         op.bulk_insert(table_, to_insert)
@@ -71,15 +76,15 @@ def genericize_imapaccount():
     op.drop_column("account", "imap_host")
 
 
-def genericize_thread():
+def genericize_thread() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Thread_(Base):
+    class Thread_(Base):  # noqa: N801
         __table__ = Base.metadata.tables["thread"]
 
     # Get data from columns-to-be-dropped
@@ -103,7 +108,9 @@ def genericize_thread():
 
     # The ad-hoc table for insert
     table_ = table(
-        "imapthread", column("g_thrid", sa.BigInteger), column("id", sa.Integer)
+        "imapthread",
+        column("g_thrid", sa.BigInteger),
+        column("id", sa.Integer),
     )
     if to_insert:
         op.bulk_insert(table_, to_insert)
@@ -112,7 +119,7 @@ def genericize_thread():
     op.drop_column("thread", "g_thrid")
 
 
-def genericize_namespace_contact_foldersync():
+def genericize_namespace_contact_foldersync() -> None:
     # Namespace
     op.drop_constraint("namespace_ibfk_1", "namespace", type_="foreignkey")
     op.alter_column(
@@ -171,20 +178,22 @@ def genericize_namespace_contact_foldersync():
 
 
 # Downgrade functions:
-def downgrade_imapaccount():
+def downgrade_imapaccount() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class ImapAccount_(Base):
+    class ImapAccount_(Base):  # noqa: N801
         __table__ = Base.metadata.tables["imapaccount"]
 
     # Get data from table-to-be-dropped
     with session_scope() as db_session:
-        results = db_session.query(ImapAccount_.id, ImapAccount_.imap_host).all()
+        results = db_session.query(
+            ImapAccount_.id, ImapAccount_.imap_host
+        ).all()
     to_insert = [dict(id=r[0], imap_host=r[1]) for r in results]
 
     # Drop columns, add new columns + insert data
@@ -192,7 +201,9 @@ def downgrade_imapaccount():
     op.add_column("account", sa.Column("imap_host", sa.String(512)))
 
     table_ = table(
-        "account", column("imap_host", sa.String(512)), column("id", sa.Integer)
+        "account",
+        column("imap_host", sa.String(512)),
+        column("id", sa.Integer),
     )
 
     for r in to_insert:
@@ -236,15 +247,15 @@ def downgrade_imapaccount():
     )
 
 
-def downgrade_imapthread():
+def downgrade_imapthread() -> None:
     from inbox.ignition import main_engine
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class ImapThread_(Base):
+    class ImapThread_(Base):  # noqa: N801
         __table__ = Base.metadata.tables["imapthread"]
 
     # Get data from table-to-be-dropped
@@ -255,9 +266,12 @@ def downgrade_imapthread():
     # Drop columns, add new columns + insert data
     op.drop_column("thread", "type")
     op.add_column(
-        "thread", sa.Column("g_thrid", sa.BigInteger(), nullable=True, index=True)
+        "thread",
+        sa.Column("g_thrid", sa.BigInteger(), nullable=True, index=True),
     )
-    table_ = table("thread", column("g_thrid", sa.BigInteger), column("id", sa.Integer))
+    table_ = table(
+        "thread", column("g_thrid", sa.BigInteger), column("id", sa.Integer)
+    )
 
     for r in to_insert:
         op.execute(
@@ -270,7 +284,7 @@ def downgrade_imapthread():
     op.drop_table("imapthread")
 
 
-def downgrade_namespace_contact_foldersync():
+def downgrade_namespace_contact_foldersync() -> None:
     # Namespace
     op.drop_constraint("namespace_ibfk_1", "namespace", type_="foreignkey")
     op.alter_column(

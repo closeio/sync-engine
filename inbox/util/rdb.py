@@ -15,16 +15,16 @@ Happy hacking!
 
 
 class RemoteConsole(InteractiveConsole):
-    def __init__(self, socket, locals=None):
+    def __init__(self, socket, locals=None) -> None:
         self.socket = socket
         self.handle = socket.makefile("rw")
         InteractiveConsole.__init__(self, locals=locals)
         self.handle.write(doc)
 
-    def write(self, data):
+    def write(self, data) -> None:
         self.handle.write(data)
 
-    def runcode(self, code):
+    def runcode(self, code) -> None:
         # preserve stdout/stderr
         oldstdout = sys.stdout
         oldstderr = sys.stderr
@@ -36,8 +36,9 @@ class RemoteConsole(InteractiveConsole):
         sys.stdout = oldstdout
         sys.stderr = oldstderr
 
-    def interact(self, banner=None):
-        """Closely emulate the interactive Python console.
+    def interact(self, banner=None) -> None:
+        """
+        Closely emulate the interactive Python console.
 
         The optional banner argument specify the banner to print
         before the first interaction; by default it prints a banner
@@ -46,13 +47,13 @@ class RemoteConsole(InteractiveConsole):
         to confuse this with the real interpreter -- since it's so
         close!).
 
-        """
+        """  # noqa: D401
         try:
-            sys.ps1
+            sys.ps1  # noqa: B018
         except AttributeError:
             sys.ps1 = ">>> "
         try:
-            sys.ps2
+            sys.ps2  # noqa: B018
         except AttributeError:
             sys.ps2 = "... "
         cprt = 'Type "help", "copyright", "credits" or "license" for more information.'
@@ -91,20 +92,20 @@ class RemoteConsole(InteractiveConsole):
                 self.resetbuffer()
                 more = 0
 
-    def terminate(self):
+    def terminate(self) -> None:
         try:
             self.handle.close()
             self.socket.close()
         except OSError:
             return
 
-    def raw_input(self, prompt=""):
+    def raw_input(self, prompt=""):  # noqa: ANN201
         self.handle.write(prompt)
         self.handle.flush()
         return self.handle.readline()
 
 
-def break_to_interpreter(host="localhost", port=None):
+def break_to_interpreter(host="localhost", port=None) -> None:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 

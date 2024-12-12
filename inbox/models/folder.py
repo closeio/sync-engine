@@ -19,7 +19,9 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     # from inbox.models.account import Account
     # `use_alter` required here to avoid circular dependency w/Account
     account_id = Column(
-        ForeignKey("account.id", use_alter=True, name="folder_fk1", ondelete="CASCADE"),
+        ForeignKey(
+            "account.id", use_alter=True, name="folder_fk1", ondelete="CASCADE"
+        ),
         nullable=False,
     )
     account = relationship(
@@ -42,11 +44,14 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     # https://msdn.microsoft.com/en-us/library/ee624913(v=exchg.80).aspx
     name = Column(CategoryNameString(), nullable=False)
     _canonical_name = Column(
-        String(MAX_INDEXABLE_LENGTH), nullable=False, default="", name="canonical_name"
+        String(MAX_INDEXABLE_LENGTH),
+        nullable=False,
+        default="",
+        name="canonical_name",
     )
 
     @property
-    def canonical_name(self):
+    def canonical_name(self):  # noqa: ANN201
         return self._canonical_name
 
     @canonical_name.setter
@@ -67,7 +72,7 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     initial_sync_end = Column(DateTime, nullable=True)
 
     @validates("name")
-    def validate_name(self, key, name):
+    def validate_name(self, key, name):  # noqa: ANN201
         sanitized_name = sanitize_name(name)
         if sanitized_name != name:
             log.warning(
@@ -78,7 +83,7 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         return sanitized_name
 
     @classmethod
-    def find_or_create(cls, session, account, name, role=None):
+    def find_or_create(cls, session, account, name, role=None):  # noqa: ANN206
         q = (
             session.query(cls)
             .filter(cls.account_id == account.id)
@@ -99,15 +104,19 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             )
             session.add(obj)
         except MultipleResultsFound:
-            log.info(f"Duplicate folder rows for name {name}, account_id {account.id}")
+            log.info(
+                f"Duplicate folder rows for name {name}, account_id {account.id}"
+            )
             raise
 
         return obj
 
     @classmethod
-    def get(cls, id_, session):
+    def get(cls, id_, session):  # noqa: ANN206
         q = session.query(cls)
         q = q.filter(cls.id == bindparam("id_"))
         return q.params(id_=id_).first()
 
-    __table_args__ = (UniqueConstraint("account_id", "name", "canonical_name"),)
+    __table_args__ = (
+        UniqueConstraint("account_id", "name", "canonical_name"),
+    )

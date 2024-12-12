@@ -1,4 +1,5 @@
-"""Kill SpoolMessage
+"""
+Kill SpoolMessage
 
 Revision ID: 4f3a1f6eaee3
 Revises: 2e6120c97485
@@ -10,11 +11,13 @@ Create Date: 2014-07-21 17:35:46.026443
 revision = "4f3a1f6eaee3"
 down_revision = "2e6120c97485"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from sqlalchemy.ext.declarative import declarative_base
 
     from inbox.ignition import main_engine
@@ -41,22 +44,27 @@ def upgrade():
     )
     op.add_column(
         "message",
-        sa.Column("state", sa.Enum("draft", "sending", "sending failed", "sent")),
+        sa.Column(
+            "state", sa.Enum("draft", "sending", "sending failed", "sent")
+        ),
     )
     op.add_column("message", sa.Column("is_reply", sa.Boolean()))
     op.add_column(
-        "message", sa.Column("resolved_message_id", sa.Integer(), nullable=True)
+        "message",
+        sa.Column("resolved_message_id", sa.Integer(), nullable=True),
     )
     op.create_foreign_key(
         "message_ibfk_2", "message", "message", ["resolved_message_id"], ["id"]
     )
 
-    op.add_column("message", sa.Column("parent_draft_id", sa.Integer(), nullable=True))
+    op.add_column(
+        "message", sa.Column("parent_draft_id", sa.Integer(), nullable=True)
+    )
     op.create_foreign_key(
         "message_ibfk_3", "message", "message", ["parent_draft_id"], ["id"]
     )
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Message(Base):
@@ -80,5 +88,5 @@ def upgrade():
     op.drop_table("spoolmessage")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("No going back.")

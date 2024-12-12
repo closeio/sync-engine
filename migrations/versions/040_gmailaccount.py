@@ -1,4 +1,5 @@
-"""gmailaccount
+"""
+gmailaccount
 
 Revision ID: 4085dd542739
 Revises: 1c72d8a0120e
@@ -10,11 +11,13 @@ Create Date: 2014-06-17 22:48:01.928601
 revision = "4085dd542739"
 down_revision = "1c72d8a0120e"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     print("Creating new table gmailaccount")
 
     op.create_table(
@@ -37,7 +40,9 @@ def upgrade():
         sa.Column("locale", sa.String(length=8), nullable=True),
         sa.Column("picture", sa.String(length=1024), nullable=True),
         sa.Column("home_domain", sa.String(length=256), nullable=True),
-        sa.ForeignKeyConstraint(["id"], ["imapaccount.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["id"], ["imapaccount.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
 
@@ -48,7 +53,7 @@ def upgrade():
     engine = main_engine(pool_size=1, max_overflow=0)
     from inbox.models.session import session_scope
 
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Account(Base):
@@ -63,7 +68,9 @@ def upgrade():
     with session_scope(versioned=False) as db_session:
         for acct in db_session.query(Account):
             if acct.provider == "Gmail":
-                imap_acct = db_session.query(ImapAccount).filter_by(id=acct.id).one()
+                imap_acct = (
+                    db_session.query(ImapAccount).filter_by(id=acct.id).one()
+                )
                 gmail_acct = GmailAccount(
                     id=acct.id,
                     access_token=acct.o_access_token,
@@ -111,5 +118,5 @@ def upgrade():
     op.drop_column("imapaccount", "g_locale")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Only roll forward!")

@@ -1,4 +1,5 @@
-"""add visibility to event
+"""
+add visibility to event
 
 Revision ID: 53b532fda984
 Revises: 69c4b13c806
@@ -14,11 +15,12 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
-        "event", sa.Column("visibility", sa.Enum("private", "public"), nullable=True)
+        "event",
+        sa.Column("visibility", sa.Enum("private", "public"), nullable=True),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("event", "visibility")

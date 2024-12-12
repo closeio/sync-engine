@@ -1,4 +1,5 @@
-"""extra transaction data
+"""
+extra transaction data
 
 Revision ID: 5093433b073
 Revises: 3fee2f161614
@@ -14,11 +15,12 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
-        "transaction", sa.Column("additional_data", sa.Text(4194304), nullable=True)
+        "transaction",
+        sa.Column("additional_data", sa.Text(4194304), nullable=True),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("transaction", "additional_data")

@@ -7,17 +7,20 @@ import ssl
 from inbox.logging import get_logger
 
 log = get_logger()
-from inbox.exceptions import OAuthError
-from inbox.models.backends.generic import GenericAccount
-from inbox.models.backends.imap import ImapAccount
-from inbox.models.backends.oauth import token_manager
-from inbox.models.session import session_scope
-from inbox.providers import provider_info
-from inbox.sendmail.base import SendMailException, generate_attachments
-from inbox.sendmail.message import create_email
-from inbox.util.blockstore import get_from_blockstore
+from inbox.exceptions import OAuthError  # noqa: E402
+from inbox.models.backends.generic import GenericAccount  # noqa: E402
+from inbox.models.backends.imap import ImapAccount  # noqa: E402
+from inbox.models.backends.oauth import token_manager  # noqa: E402
+from inbox.models.session import session_scope  # noqa: E402
+from inbox.providers import provider_info  # noqa: E402
+from inbox.sendmail.base import (  # noqa: E402
+    SendMailException,
+    generate_attachments,
+)
+from inbox.sendmail.message import create_email  # noqa: E402
+from inbox.util.blockstore import get_from_blockstore  # noqa: E402
 
-from .util import SMTP_ERRORS
+from .util import SMTP_ERRORS  # noqa: E402
 
 # TODO[k]: Other types (LOGIN, XOAUTH, PLAIN-CLIENTTOKEN, CRAM-MD5)
 AUTH_EXTNS = {"oauth2": "XOAUTH2", "password": "PLAIN"}
@@ -37,13 +40,14 @@ SMTP_AUTH_CHALLENGE = 334
 SMTP_TEMP_AUTH_FAIL_CODES = (421, 454)
 
 
-class SMTP_SSL(smtplib.SMTP_SSL):
+class SMTP_SSL(smtplib.SMTP_SSL):  # noqa: N801
     """
     Derived class which correctly surfaces SMTP errors.
     """
 
-    def rset(self):
-        """Wrap rset() in order to correctly surface SMTP exceptions.
+    def rset(self) -> None:
+        """
+        Wrap rset() in order to correctly surface SMTP exceptions.
         SMTP.sendmail() does e.g.:
             # ...
             (code, resp) = self.data(msg)
@@ -56,7 +60,7 @@ class SMTP_SSL(smtplib.SMTP_SSL):
         basically obfuscates the actual server error.
 
         See also http://bugs.python.org/issue16005
-        """
+        """  # noqa: D402
         try:
             smtplib.SMTP_SSL.rset(self)
         except smtplib.SMTPServerDisconnected:
@@ -68,8 +72,9 @@ class SMTP(smtplib.SMTP):
     Derived class which correctly surfaces SMTP errors.
     """
 
-    def rset(self):
-        """Wrap rset() in order to correctly surface SMTP exceptions.
+    def rset(self) -> None:
+        """
+        Wrap rset() in order to correctly surface SMTP exceptions.
         SMTP.sendmail() does e.g.:
             # ...
             (code, resp) = self.data(msg)
@@ -82,7 +87,7 @@ class SMTP(smtplib.SMTP):
         basically obfuscates the actual server error.
 
         See also http://bugs.python.org/issue16005
-        """
+        """  # noqa: D402
         try:
             smtplib.SMTP.rset(self)
         except smtplib.SMTPServerDisconnected:
@@ -107,7 +112,9 @@ def _substitute_bcc(raw_message: bytes) -> bytes:
     """
     Substitute BCC in raw message.
     """
-    bcc_regexp = re.compile(rb"^Bcc: [^\r\n]*\r\n", re.IGNORECASE | re.MULTILINE)
+    bcc_regexp = re.compile(
+        rb"^Bcc: [^\r\n]*\r\n", re.IGNORECASE | re.MULTILINE
+    )
     return bcc_regexp.sub(b"", raw_message)
 
 
@@ -121,7 +128,7 @@ class SMTPConnection:
         auth_token,
         smtp_endpoint,
         log,
-    ):
+    ) -> None:
         self.account_id = account_id
         self.email_address = email_address
         self.smtp_username = smtp_username
@@ -136,10 +143,10 @@ class SMTPConnection:
         }
         self.setup()
 
-    def __enter__(self):
+    def __enter__(self):  # noqa: ANN204
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type, value, traceback):  # noqa: ANN204
         try:
             self.connection.quit()
         except smtplib.SMTPServerDisconnected:
@@ -151,11 +158,13 @@ class SMTPConnection:
             self.connection.connect(host, port)
         except OSError as e:
             # 'Connection refused', SSL errors for non-TLS connections, etc.
-            log.error("SMTP connection error", exc_info=True, server_error=e.strerror)
+            log.error(  # noqa: G201
+                "SMTP connection error", exc_info=True, server_error=e.strerror
+            )
             msg = _transform_ssl_error(e.strerror)
-            raise SendMailException(msg, 503)
+            raise SendMailException(msg, 503)  # noqa: B904
 
-    def setup(self):
+    def setup(self) -> None:
         host, port = self.smtp_endpoint
         self.connection: smtplib.SMTP
         if port in (SMTP_OVER_SSL_PORT, SMTP_OVER_SSL_TEST_PORT):
@@ -187,9 +196,11 @@ class SMTPConnection:
             except ssl.SSLError as e:
                 log.warning("STARTTLS supported but failed.", exc_info=True)
                 msg = _transform_ssl_error(e.strerror)
-                raise SendMailException(msg, 503)
+                raise SendMailException(msg, 503)  # noqa: B904
         else:
-            raise SendMailException("Required SMTP STARTTLS not supported.", 403)
+            raise SendMailException(
+                "Required SMTP STARTTLS not supported.", 403
+            )
 
     # OAuth2 authentication
     def _smtp_oauth2_try_refresh(self):
@@ -200,9 +211,7 @@ class SMTPConnection:
             )
 
     def _try_xoauth2(self):
-        auth_string = (
-            f"user={self.email_address}\1auth=Bearer {self.auth_token}\1\1".encode()
-        )
+        auth_string = f"user={self.email_address}\1auth=Bearer {self.auth_token}\1\1".encode()
         code, resp = self.connection.docmd(
             "AUTH", f"XOAUTH2 {base64.b64encode(auth_string).decode()}"
         )
@@ -217,11 +226,13 @@ class SMTPConnection:
             code, resp = self.connection.noop()
         if code != SMTP_AUTH_SUCCESS:
             log.error(
-                "SMTP XOAUTH2 error response", response_code=code, response_line=resp
+                "SMTP XOAUTH2 error response",
+                response_code=code,
+                response_line=resp,
             )
         return code, resp
 
-    def smtp_oauth2(self):
+    def smtp_oauth2(self) -> None:
         code, resp = self._try_xoauth2()
         if code in SMTP_TEMP_AUTH_FAIL_CODES and resp.startswith("4.7.0"):
             # If we're getting 'too many login attempt errors', tell the client
@@ -240,26 +251,32 @@ class SMTPConnection:
         self.log.info("SMTP Auth(OAuth2) success", account_id=self.account_id)
 
     # Password authentication
-    def smtp_password(self):
+    def smtp_password(self) -> None:
         c = self.connection
 
         try:
             c.login(self.smtp_username, self.auth_token)
         except smtplib.SMTPAuthenticationError as e:
             self.log.error("SMTP login refused", exc=e)
-            raise SendMailException("Could not authenticate with the SMTP server.", 403)
+            raise SendMailException(  # noqa: B904
+                "Could not authenticate with the SMTP server.", 403
+            )
         except smtplib.SMTPException as e:
             # Raised by smtplib if the server doesn't support the AUTH
             # extension or doesn't support any of the implemented mechanisms.
             # Shouldn't really happen normally.
-            self.log.error("SMTP auth failed due to unsupported mechanism", exc=e)
-            raise SendMailException(str(e), 403)
+            self.log.error(
+                "SMTP auth failed due to unsupported mechanism", exc=e
+            )
+            raise SendMailException(str(e), 403)  # noqa: B904
 
         self.log.info("SMTP Auth(Password) success")
 
-    def sendmail(self, recipients, msg):
+    def sendmail(self, recipients, msg):  # noqa: ANN201
         try:
-            return self.connection.sendmail(self.email_address, recipients, msg)
+            return self.connection.sendmail(
+                self.email_address, recipients, msg
+            )
         except UnicodeEncodeError:
             self.log.error(
                 "Unicode error when trying to decode email",
@@ -267,13 +284,15 @@ class SMTPConnection:
                 account_id=self.account_id,
                 recipients=recipients,
             )
-            raise SendMailException("Invalid character in recipient address", 402)
+            raise SendMailException(  # noqa: B904
+                "Invalid character in recipient address", 402
+            )
 
 
 class SMTPClient:
     """SMTPClient for Gmail and other IMAP providers."""
 
-    def __init__(self, account):
+    def __init__(self, account) -> None:
         self.account_id = account.id
         self.log = get_logger()
         self.log.bind(account_id=account.id)
@@ -294,7 +313,7 @@ class SMTPClient:
                     account, force_refresh=False, scopes=account.email_scopes
                 )
             except OAuthError:
-                raise SendMailException(
+                raise SendMailException(  # noqa: B904
                     "Could not authenticate with the SMTP server.", 403
                 )
         else:
@@ -306,7 +325,8 @@ class SMTPClient:
                 self.auth_token = account.password
 
     def _send(self, recipients, msg):
-        """Send the email message. Retries up to SMTP_MAX_RETRIES times if the
+        """
+        Send the email message. Retries up to SMTP_MAX_RETRIES times if the
         message couldn't be submitted to any recipient.
 
         Parameters
@@ -320,6 +340,7 @@ class SMTPClient:
         ------
         SendMailException
             If the message couldn't be sent to all recipients successfully.
+
         """
         last_error = None
         for _ in range(SMTP_MAX_RETRIES + 1):
@@ -340,10 +361,14 @@ class SMTPClient:
                         )
             except smtplib.SMTPException as err:
                 last_error = err
-                self.log.error("Error sending", error=err, exc_info=True)
+                self.log.error(  # noqa: G201
+                    "Error sending", error=err, exc_info=True
+                )
 
         assert last_error is not None
-        self.log.error("Max retries reached; failing to client", error=last_error)
+        self.log.error(
+            "Max retries reached; failing to client", error=last_error
+        )
         self._handle_sending_exception(last_error)
 
     def _handle_sending_exception(self, err):
@@ -388,12 +413,12 @@ class SMTPClient:
                 "Sending failed", http_code=503, server_error=str(err)
             )
 
-    def send_generated_email(self, recipients, raw_message):
+    def send_generated_email(self, recipients, raw_message):  # noqa: ANN201
         # A tiny wrapper over _send because the API differs
         # between SMTP and EAS.
         return self._send(recipients, raw_message)
 
-    def send_custom(self, draft, body, recipients):
+    def send_custom(self, draft, body, recipients) -> None:  # noqa: D417
         """
         Turn a draft object into a MIME message, replacing the body with
         the provided body, and send it only to the provided recipients.
@@ -406,6 +431,7 @@ class SMTPClient:
             message body to send in place of the existing body attribute in
             the draft.
         recipient_emails: email addresses to send copies of this message to.
+
         """
         blocks = [p.block for p in draft.attachments]
         attachments = generate_attachments(draft, blocks)
@@ -432,7 +458,7 @@ class SMTPClient:
         # Sent successfully
         self.log.info("Sending successful", draft_id=draft.id)
 
-    def send(self, draft):
+    def send(self, draft) -> None:
         """
         Turn a draft object into a MIME message and send it.
 
@@ -440,6 +466,7 @@ class SMTPClient:
         ----------
         draft : models.message.Message object
             the draft message to send.
+
         """
         blocks = [p.block for p in draft.attachments]
         attachments = generate_attachments(draft, blocks)
@@ -488,10 +515,12 @@ class SMTPClient:
         # Sent to all successfully
         self.log.info("Sending successful", draft_id=draft.id)
 
-    def send_raw(self, msg):
+    def send_raw(self, msg) -> None:
         recipient_emails = [
             email
-            for name, email in itertools.chain(msg.bcc_addr, msg.cc_addr, msg.to_addr)
+            for name, email in itertools.chain(
+                msg.bcc_addr, msg.cc_addr, msg.to_addr
+            )
         ]
 
         raw_message = get_from_blockstore(msg.data_sha256)
@@ -502,7 +531,9 @@ class SMTPClient:
         # Sent to all successfully
         sender_email = msg.from_addr[0][1]
         self.log.info(
-            "Sending successful", sender=sender_email, recipients=recipient_emails
+            "Sending successful",
+            sender=sender_email,
+            recipients=recipient_emails,
         )
 
     def _get_connection(self):

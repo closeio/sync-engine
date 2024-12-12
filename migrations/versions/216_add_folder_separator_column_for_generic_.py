@@ -1,4 +1,5 @@
-"""add folder_separator column for generic imap
+"""
+add folder_separator column for generic imap
 
 Revision ID: 4f8e995d1dba
 Revises: 31aae1ecb374
@@ -14,19 +15,25 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
     conn.execute(
-        text("ALTER TABLE genericaccount ADD COLUMN folder_separator varchar(16)")
+        text(
+            "ALTER TABLE genericaccount ADD COLUMN folder_separator varchar(16)"
+        )
     )
     conn.execute(
-        text("ALTER TABLE genericaccount ADD COLUMN folder_prefix varchar(191)")
+        text(
+            "ALTER TABLE genericaccount ADD COLUMN folder_prefix varchar(191)"
+        )
     )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
-    conn.execute(text("ALTER TABLE genericaccount DROP COLUMN folder_separator"))
+    conn.execute(
+        text("ALTER TABLE genericaccount DROP COLUMN folder_separator")
+    )
     conn.execute(text("ALTER TABLE genericaccount DROP COLUMN folder_prefix"))

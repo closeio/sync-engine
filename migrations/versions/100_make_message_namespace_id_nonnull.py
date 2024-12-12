@@ -1,4 +1,5 @@
-"""make message.namespace_id nonnull
+"""
+make message.namespace_id nonnull
 
 Revision ID: 5a68ac0e3e9
 Revises: e27104acb25
@@ -14,13 +15,13 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column(
         "message", "namespace_id", existing_type=sa.Integer(), nullable=False
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column(
         "message", "namespace_id", existing_type=sa.Integer(), nullable=True
     )

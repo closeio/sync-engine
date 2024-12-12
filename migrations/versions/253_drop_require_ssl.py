@@ -1,4 +1,5 @@
-"""drop ssl_required field
+"""
+drop ssl_required field
 
 Revision ID: 52783469ee6c
 Revises: 32df3d8ff73e
@@ -15,11 +16,11 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("genericaccount", "ssl_required")
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         "genericaccount",
         sa.Column(

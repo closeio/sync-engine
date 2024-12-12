@@ -1,4 +1,5 @@
-"""Remove EASFolderSyncStatus + Folder rows for folders we never sync
+"""
+Remove EASFolderSyncStatus + Folder rows for folders we never sync
 
 Revision ID: 2a748760ac63
 Revises: 4af5952e8a5b
@@ -7,12 +8,14 @@ Create Date: 2014-07-19 00:28:08.258857
 """
 
 # revision identifiers, used by Alembic.
+from typing import Never
+
 revision = "bb4f204f192"
 down_revision = "2a748760ac63"
 
 
-def upgrade():
-    if "easfoldersyncstatus" in Base.metadata.tables:
+def upgrade() -> None:
+    if "easfoldersyncstatus" in Base.metadata.tables:  # noqa: F821
         from inbox.ignition import main_engine
 
         engine = main_engine(pool_size=1, max_overflow=0)
@@ -21,7 +24,7 @@ def upgrade():
 
         from inbox.models.session import session_scope
 
-        Base = declarative_base()
+        Base = declarative_base()  # noqa: N806
         Base.metadata.reflect(engine)
         from inbox.models import Folder
         from inbox.models.backends.eas import EASFolderSyncStatus
@@ -52,5 +55,5 @@ def upgrade():
             db_session.commit()
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Nope, not needed.")

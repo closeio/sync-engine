@@ -1,6 +1,5 @@
 import itertools
 import time
-from typing import Dict, Optional
 
 # We're doing this weird rename import to make it easier to monkeypatch
 # get_redis_client. That's the only way we have to test our very brittle
@@ -13,47 +12,52 @@ from inbox.util.itert import chunk
 log = get_logger()
 
 
-def safe_failure(f):
+def safe_failure(f):  # noqa: ANN201
     def wrapper(*args, **kwargs):
         try:
             return f(*args, **kwargs)
         except Exception:
-            log.error("Error interacting with heartbeats", exc_info=True)
+            log.error(  # noqa: G201
+                "Error interacting with heartbeats", exc_info=True
+            )
 
     return wrapper
 
 
 class HeartbeatStatusKey:
-    def __init__(self, account_id, folder_id):
+    def __init__(self, account_id, folder_id) -> None:
         self.account_id = account_id
         self.folder_id = folder_id
         self.key = f"{self.account_id}:{self.folder_id}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.key
 
-    def __lt__(self, other):
+    def __lt__(self, other):  # noqa: ANN204
         if self.account_id != other.account_id:
             return self.account_id < other.account_id
         return self.folder_id < other.folder_id
 
-    def __eq__(self, other):
-        return self.account_id == other.account_id and self.folder_id == other.folder_id
+    def __eq__(self, other):  # noqa: ANN204
+        return (
+            self.account_id == other.account_id
+            and self.folder_id == other.folder_id
+        )
 
     @classmethod
-    def all_folders(cls, account_id):
+    def all_folders(cls, account_id):  # noqa: ANN206
         return cls(account_id, "*")
 
     @classmethod
-    def contacts(cls, account_id):
+    def contacts(cls, account_id):  # noqa: ANN206
         return cls(account_id, CONTACTS_FOLDER_ID)
 
     @classmethod
-    def events(cls, account_id):
+    def events(cls, account_id):  # noqa: ANN206
         return cls(account_id, EVENTS_FOLDER_ID)
 
     @classmethod
-    def from_string(cls, string_key):
+    def from_string(cls, string_key):  # noqa: ANN206
         account_id, folder_id = (int(part) for part in string_key.split(":"))
         return cls(account_id, folder_id)
 
@@ -67,7 +71,7 @@ class HeartbeatStatusProxy:
         email_address=None,
         provider_name=None,
         device_id=0,
-    ):
+    ) -> None:
         self.key = HeartbeatStatusKey(account_id, folder_id)
         self.account_id = account_id
         self.folder_id = folder_id
@@ -75,13 +79,13 @@ class HeartbeatStatusProxy:
         self.store = HeartbeatStore.store()
 
     @safe_failure
-    def publish(self, **kwargs):
+    def publish(self, **kwargs) -> None:
         try:
             self.heartbeat_at = time.time()
             self.store.publish(self.key, self.heartbeat_at)
         except Exception:
             log = get_logger()
-            log.error(
+            log.error(  # noqa: G201
                 "Error while writing the heartbeat status",
                 account_id=self.key.account_id,
                 folder_id=self.key.folder_id,
@@ -90,34 +94,37 @@ class HeartbeatStatusProxy:
             )
 
     @safe_failure
-    def clear(self):
-        self.store.remove_folders(self.account_id, self.folder_id, self.device_id)
+    def clear(self) -> None:
+        self.store.remove_folders(
+            self.account_id, self.folder_id, self.device_id
+        )
 
 
 class HeartbeatStore:
-    """Store that proxies requests to Redis with handlers that also
+    """
+    Store that proxies requests to Redis with handlers that also
     update indexes and handle scanning through results.
     """
 
-    _instances: Dict[Optional[str], "HeartbeatStore"] = {}
+    _instances: dict[str | None, "HeartbeatStore"] = {}
 
-    def __init__(self, host=None, port=6379):
+    def __init__(self, host=None, port=6379) -> None:
         self.host = host
         self.port = port
 
     @classmethod
-    def store(cls, host=None, port=None):
+    def store(cls, host=None, port=None):  # noqa: ANN206
         # Allow singleton access to the store, keyed by host.
         if cls._instances.get(host) is None:
             cls._instances[host] = cls(host, port)
         return cls._instances.get(host)
 
     @safe_failure
-    def publish(self, key, timestamp):
+    def publish(self, key, timestamp) -> None:
         # Update indexes
         self.update_folder_index(key, float(timestamp))
 
-    def remove(self, key, device_id=None, client=None):
+    def remove(self, key, device_id=None, client=None) -> None:
         # Remove a key from the store, or device entry from a key.
         if not client:
             client = heartbeat_config.get_redis_client(key.account_id)
@@ -133,7 +140,9 @@ class HeartbeatStore:
             self.remove_from_folder_index(key, client)
 
     @safe_failure
-    def remove_folders(self, account_id, folder_id=None, device_id=None):
+    def remove_folders(  # noqa: ANN201
+        self, account_id, folder_id=None, device_id=None
+    ):
         # Remove heartbeats for the given account, folder and/or device.
         if folder_id:
             key = HeartbeatStatusKey(account_id, folder_id)
@@ -150,47 +159,47 @@ class HeartbeatStore:
             n = 0
             for key in client.scan_iter(match, 100):
                 self.remove(key, device_id, pipeline)
-                n += 1  # noqa: SIM113
+                n += 1
             if not device_id:
                 self.remove_from_account_index(account_id, pipeline)
             pipeline.execute()
             pipeline.reset()
             return n
 
-    def update_folder_index(self, key, timestamp):
+    def update_folder_index(self, key, timestamp) -> None:
         assert isinstance(timestamp, float)
         # Update the folder timestamp index for this specific account, too
         client = heartbeat_config.get_redis_client(key.account_id)
         client.zadd(key.account_id, {key.folder_id: timestamp})
 
-    def update_accounts_index(self, key):
+    def update_accounts_index(self, key) -> None:
         # Find the oldest heartbeat from the account-folder index
         try:
             client = heartbeat_config.get_redis_client(key.account_id)
-            f, oldest_heartbeat = client.zrange(
+            f, oldest_heartbeat = client.zrange(  # noqa: F841
                 key.account_id, 0, 0, withscores=True
             ).pop()
             client.zadd("account_index", {key.account_id: oldest_heartbeat})
-        except Exception:
+        except Exception:  # noqa: S110
             # If all heartbeats were deleted at the same time as this, the pop
             # will fail -- ignore it.
             pass
 
-    def remove_from_folder_index(self, key, client):
+    def remove_from_folder_index(self, key, client) -> None:
         client.zrem("folder_index", key)
         if isinstance(key, str):
             key = HeartbeatStatusKey.from_string(key)
         client.zrem(key.account_id, key.folder_id)
 
-    def remove_from_account_index(self, account_id, client):
+    def remove_from_account_index(self, account_id, client) -> None:
         client.delete(account_id)
         client.zrem("account_index", account_id)
 
-    def get_account_folders(self, account_id):
+    def get_account_folders(self, account_id):  # noqa: ANN201
         client = heartbeat_config.get_redis_client(account_id)
         return client.zrange(account_id, 0, -1, withscores=True)
 
-    def get_accounts_folders(self, account_ids):
+    def get_accounts_folders(self, account_ids):  # noqa: ANN201
         # This is where things get interesting --- we need to make queries
         # to multiple shards and return the results to a single caller.
         # Preferred method of querying for multiple accounts. Uses pipelining

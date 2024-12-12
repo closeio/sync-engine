@@ -4,7 +4,6 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import List, Optional, Tuple
 
 import pytz
 import requests
@@ -14,7 +13,11 @@ from authalligator_client.exceptions import AccountError
 from imapclient import IMAPClient
 
 from inbox.config import config
-from inbox.exceptions import ConnectionError, ImapSupportDisabledError, OAuthError
+from inbox.exceptions import (
+    ConnectionError,
+    ImapSupportDisabledError,
+    OAuthError,
+)
 from inbox.logging import get_logger
 from inbox.models.backends.oauth import OAuthAccount, token_manager
 from inbox.models.secret import SecretType
@@ -26,27 +29,29 @@ log = get_logger()
 
 class OAuthAuthHandler(AuthHandler):
     # Defined by subclasses
-    OAUTH_CLIENT_ID: Optional[str] = None
-    OAUTH_CLIENT_SECRET: Optional[str] = None
-    OAUTH_REDIRECT_URI: Optional[str] = None
+    OAUTH_CLIENT_ID: str | None = None
+    OAUTH_CLIENT_SECRET: str | None = None
+    OAUTH_REDIRECT_URI: str | None = None
 
-    OAUTH_AUTHENTICATE_URL: Optional[str] = None
-    OAUTH_ACCESS_TOKEN_URL: Optional[str] = None
-    OAUTH_USER_INFO_URL: Optional[str] = None
+    OAUTH_AUTHENTICATE_URL: str | None = None
+    OAUTH_ACCESS_TOKEN_URL: str | None = None
+    OAUTH_USER_INFO_URL: str | None = None
 
     AUTHALLIGATOR_AUTH_KEY = config.get("AUTHALLIGATOR_AUTH_KEY")
     AUTHALLIGATOR_SERVICE_URL = config.get("AUTHALLIGATOR_SERVICE_URL")
 
     def _new_access_token_from_refresh_token(
         self, account: OAuthAccount
-    ) -> Tuple[str, int]:
+    ) -> tuple[str, int]:
         refresh_token = account.refresh_token
         if not refresh_token:
             raise OAuthError("refresh_token required")
 
         client_id, client_secret = account.get_client_info()
 
-        assert self.OAUTH_ACCESS_TOKEN_URL, "OAUTH_ACCESS_TOKEN_URL is not defined"
+        assert (
+            self.OAUTH_ACCESS_TOKEN_URL
+        ), "OAUTH_ACCESS_TOKEN_URL is not defined"
         access_token_url = self.OAUTH_ACCESS_TOKEN_URL
 
         data = urllib.parse.urlencode(
@@ -65,18 +70,25 @@ class OAuthAuthHandler(AuthHandler):
         account_logger = log.bind(account_id=account.id)
 
         try:
-            response = requests.post(access_token_url, data=data, headers=headers)
+            response = requests.post(
+                access_token_url, data=data, headers=headers
+            )
         except requests.exceptions.ConnectionError as e:
-            account_logger.error("Network error renewing access token", error=e)
-            raise ConnectionError()
+            account_logger.error(
+                "Network error renewing access token", error=e
+            )
+            raise ConnectionError()  # noqa: B904
 
         try:
             session_dict = response.json()
         except ValueError:
             account_logger.error(
-                "Invalid JSON renewing on renewing token", response=response.text
+                "Invalid JSON renewing on renewing token",
+                response=response.text,
             )
-            raise ConnectionError("Invalid JSON response on renewing token")
+            raise ConnectionError(  # noqa: B904
+                "Invalid JSON response on renewing token"
+            )
 
         if "error" in session_dict:
             if session_dict["error"] == "invalid_grant":
@@ -94,11 +106,14 @@ class OAuthAuthHandler(AuthHandler):
                 )
                 raise ConnectionError("Server error renewing access token")
 
-        return session_dict["access_token"], session_dict["expires_in"]
+        return (session_dict["access_token"], session_dict["expires_in"])
 
     def _new_access_token_from_authalligator(
-        self, account: OAuthAccount, force_refresh: bool, scopes: Optional[List[str]]
-    ) -> Tuple[str, int]:
+        self,
+        account: OAuthAccount,
+        force_refresh: bool,
+        scopes: list[str] | None,
+    ) -> tuple[str, int]:
         """
         Return the access token based on an account created in AuthAlligator.
         """
@@ -137,7 +152,7 @@ class OAuthAuthHandler(AuthHandler):
                     "AccountError during AuthAlligator account query",
                     account_id=account.id,
                     error_code=exc.code and exc.code.value,
-                    error_message=exc.message,  # noqa: B306
+                    error_message=exc.message,
                     retry_in=exc.retry_in,
                 )
                 if exc.code in (
@@ -171,12 +186,12 @@ class OAuthAuthHandler(AuthHandler):
             "Max retries reached"
         )
 
-    def acquire_access_token(
+    def acquire_access_token(  # noqa: D417
         self,
         account: OAuthAccount,
         force_refresh: bool = False,
-        scopes: Optional[List[str]] = None,
-    ) -> Tuple[str, int]:
+        scopes: list[str] | None = None,
+    ) -> tuple[str, int]:
         """
         Acquire a new access token for the given account.
 
@@ -190,6 +205,7 @@ class OAuthAuthHandler(AuthHandler):
             OAuthError: If the token is no longer valid and syncing should stop.
             ConnectionError: If there was a temporary/connection error renewing
                 the auth token.
+
         """
         if account.secret.type == SecretType.AuthAlligator.value:
             return self._new_access_token_from_authalligator(
@@ -201,7 +217,9 @@ class OAuthAuthHandler(AuthHandler):
         else:
             raise OAuthError("No supported secret found.")
 
-    def authenticate_imap_connection(self, account: OAuthAccount, conn: IMAPClient):
+    def authenticate_imap_connection(
+        self, account: OAuthAccount, conn: IMAPClient
+    ) -> None:
         token = token_manager.get_token(
             account, force_refresh=False, scopes=account.email_scopes
         )
@@ -219,7 +237,9 @@ class OAuthAuthHandler(AuthHandler):
                 raise exc from original_exc
 
             log.warning(
-                "Error during IMAP XOAUTH2 login", account_id=account.id, error=exc
+                "Error during IMAP XOAUTH2 login",
+                account_id=account.id,
+                error=exc,
             )
             if not isinstance(exc, ImapSupportDisabledError):
                 raise  # Unknown IMAPClient error, reraise
@@ -256,12 +276,12 @@ class OAuthAuthHandler(AuthHandler):
             response = urllib.request.urlopen(request)
         except urllib.error.HTTPError as e:
             if e.code == 401:
-                raise OAuthError("Could not retrieve user info.")
+                raise OAuthError("Could not retrieve user info.")  # noqa: B904
             log.error("user_info_fetch_failed", error_code=e.code, error=e)
-            raise ConnectionError()
+            raise ConnectionError()  # noqa: B904
         except urllib.error.URLError as e:
             log.error("user_info_fetch_failed", error=e)
-            raise ConnectionError()
+            raise ConnectionError()  # noqa: B904
 
         userinfo_dict = json.loads(response.read())
 
@@ -281,8 +301,12 @@ class OAuthAuthHandler(AuthHandler):
             "Accept": "text/plain",
         }
         data = urllib.parse.urlencode(args)
-        assert self.OAUTH_ACCESS_TOKEN_URL, "OAUTH_ACCESS_TOKEN_URL is not defined"
-        resp = requests.post(self.OAUTH_ACCESS_TOKEN_URL, data=data, headers=headers)
+        assert (
+            self.OAUTH_ACCESS_TOKEN_URL
+        ), "OAUTH_ACCESS_TOKEN_URL is not defined"
+        resp = requests.post(
+            self.OAUTH_ACCESS_TOKEN_URL, data=data, headers=headers
+        )
 
         session_dict = resp.json()
 
@@ -300,10 +324,10 @@ class OAuthAuthHandler(AuthHandler):
 class OAuthRequestsWrapper(requests.auth.AuthBase):
     """Helper class for setting the Authorization header on HTTP requests."""
 
-    def __init__(self, token):
+    def __init__(self, token) -> None:
         self.token = token
 
-    def __call__(self, r):
+    def __call__(self, r):  # noqa: ANN204
         r.headers["Authorization"] = f"Bearer {self.token}"
         return r
 
@@ -316,7 +340,7 @@ def _process_imap_exception(exc):
     elif "IMAP access is disabled for your domain." in message:
         # IMAP is disabled for this domain
         return ImapSupportDisabledError("imap_disabled_for_domain")
-    elif message.startswith(  # noqa: SIM114
+    elif message.startswith(
         "[AUTHENTICATIONFAILED] Invalid credentials (Failure)"
     ):
         # Google

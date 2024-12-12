@@ -1,4 +1,5 @@
-"""fix owner column length --- it's a varchar(255) on our prod db
+"""
+fix owner column length --- it's a varchar(255) on our prod db
 when it should be a varchar(1024)
 
 Revision ID: fd32a69381a
@@ -15,13 +16,15 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
-    conn.execute(text("ALTER TABLE event ADD COLUMN owner2 varchar(1024) DEFAULT NULL"))
+    conn.execute(
+        text("ALTER TABLE event ADD COLUMN owner2 varchar(1024) DEFAULT NULL")
+    )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
     conn.execute(text("ALTER TABLE event DROP COLUMN owner2"))

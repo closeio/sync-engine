@@ -16,14 +16,17 @@ def draft(db, default_account):
         "subject": f"Draft test at {datetime.utcnow()}",
         "body": "<html><body><h2>Sea, birds and sand.</h2></body></html>",
         "to": [
-            {"name": "The red-haired mermaid", "email": default_account.email_address}
+            {
+                "name": "The red-haired mermaid",
+                "email": default_account.email_address,
+            }
         ],
     }
 
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_file_filtering(api_client, uploaded_file_ids, draft):
+def test_file_filtering(api_client, uploaded_file_ids, draft) -> None:
     # Attach the files to a draft and search there
     draft["file_ids"] = uploaded_file_ids
     r = api_client.post_data("/drafts", draft)
@@ -56,7 +59,9 @@ def test_file_filtering(api_client, uploaded_file_ids, draft):
     results = api_client.get_data("/files?content_type=image%2Fjpeg")
     assert len(results) == 2
 
-    results = api_client.get_data("/files?content_type=image%2Fjpeg&view=count")
+    results = api_client.get_data(
+        "/files?content_type=image%2Fjpeg&view=count"
+    )
     assert results["count"] == 2
 
     results = api_client.get_data("/files?content_type=image%2Fjpeg&view=ids")
@@ -65,7 +70,7 @@ def test_file_filtering(api_client, uploaded_file_ids, draft):
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_attachment_has_same_id(api_client, uploaded_file_ids, draft):
+def test_attachment_has_same_id(api_client, uploaded_file_ids, draft) -> None:
     attachment_id = uploaded_file_ids.pop()
     draft["file_ids"] = [attachment_id]
     r = api_client.post_data("/drafts", draft)
@@ -76,7 +81,7 @@ def test_attachment_has_same_id(api_client, uploaded_file_ids, draft):
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_delete(api_client, uploaded_file_ids, draft):
+def test_delete(api_client, uploaded_file_ids, draft) -> None:
     non_attachment_id = uploaded_file_ids.pop()
     attachment_id = uploaded_file_ids.pop()
     draft["file_ids"] = [attachment_id]
@@ -101,7 +106,7 @@ def test_delete(api_client, uploaded_file_ids, draft):
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 @pytest.mark.parametrize("filename", FILENAMES)
-def test_get_with_id(api_client, uploaded_file_ids, filename):
+def test_get_with_id(api_client, uploaded_file_ids, filename) -> None:
     # See comment in uploaded_file_ids()
     if filename == "piece-jointe.jpg":
         filename = "pièce-jointe.jpg"
@@ -114,7 +119,7 @@ def test_get_with_id(api_client, uploaded_file_ids, filename):
     assert data["filename"] == filename
 
 
-def test_get_invalid(api_client, uploaded_file_ids):
+def test_get_invalid(api_client, uploaded_file_ids) -> None:
     data = api_client.get_data("/files/0000000000000000000000000")
     assert data["message"].startswith("Couldn't find file")
     data = api_client.get_data("/files/!")
@@ -134,7 +139,7 @@ def test_get_invalid(api_client, uploaded_file_ids):
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 @pytest.mark.parametrize("filename", FILENAMES)
-def test_download(api_client, uploaded_file_ids, filename):
+def test_download(api_client, uploaded_file_ids, filename) -> None:
     # See comment in uploaded_file_ids()
     original_filename = filename
     if filename == "piece-jointe.jpg":
@@ -147,17 +152,20 @@ def test_download(api_client, uploaded_file_ids, filename):
     in_file = api_client.get_data(f"/files?filename={filename}")[0]
     data = api_client.get_raw("/files/{}/download".format(in_file["id"])).data
 
-    path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "data", original_filename
+    path = os.path.join(  # noqa: PTH118
+        os.path.dirname(os.path.abspath(__file__)),  # noqa: PTH100, PTH120
+        "..",
+        "data",
+        original_filename,
     )
-    with open(path, "rb") as fp:
+    with open(path, "rb") as fp:  # noqa: PTH123
         local_data = fp.read()
     local_md5 = md5(local_data).digest()
     dl_md5 = md5(data).digest()
     assert local_md5 == dl_md5
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def fake_attachment(db, default_account, message):
     block = Block()
     namespace_id = default_account.namespace.id
@@ -175,7 +183,9 @@ def fake_attachment(db, default_account, message):
     return p
 
 
-def test_direct_fetching(api_client, db, message, fake_attachment, monkeypatch):
+def test_direct_fetching(
+    api_client, db, message, fake_attachment, monkeypatch
+) -> None:
     # Mark a file as missing and check that we try to
     # fetch it from the remote provider.
     get_mock = mock.Mock(return_value=None)
@@ -185,24 +195,31 @@ def test_direct_fetching(api_client, db, message, fake_attachment, monkeypatch):
     monkeypatch.setattr("inbox.util.blockstore.save_to_blockstore", save_mock)
 
     # Mock the request to return the contents of an actual email.
-    path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
+    path = os.path.join(  # noqa: PTH118
+        os.path.dirname(os.path.abspath(__file__)),  # noqa: PTH100, PTH120
         "..",
         "data",
         "raw_message_with_filename_attachment.txt",
     )
     data = ""
-    with open(path, "rb") as fd:
+    with open(path, "rb") as fd:  # noqa: PTH123
         data = fd.read()
 
     raw_mock = mock.Mock(return_value=data)
-    monkeypatch.setattr("inbox.s3.backends.gmail.get_gmail_raw_contents", raw_mock)
+    monkeypatch.setattr(
+        "inbox.s3.backends.gmail.get_gmail_raw_contents", raw_mock
+    )
 
-    resp = api_client.get_raw(f"/files/{fake_attachment.block.public_id}/download")
+    resp = api_client.get_raw(
+        f"/files/{fake_attachment.block.public_id}/download"
+    )
 
     for m in [get_mock, save_mock, raw_mock]:
         assert m.called
 
     # Check that we got back the right data, with the right headers.
-    assert resp.headers["Content-Disposition"] == "attachment; filename=zambla.txt"
+    assert (
+        resp.headers["Content-Disposition"]
+        == "attachment; filename=zambla.txt"
+    )
     assert resp.data.decode("utf8") == "Chuis pas rassur\xe9"

@@ -1,4 +1,5 @@
-"""add ix_imapuid_account_id_folder_id_msg_uid_desc
+"""
+add ix_imapuid_account_id_folder_id_msg_uid_desc
 
 Revision ID: e3cf974d07a5
 Revises: fe0488decbd1
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "ix_imapuid_account_id_folder_id_msg_uid_desc",
         "imapuid",
@@ -23,5 +24,7 @@ def upgrade():
     )
 
 
-def downgrade():
-    op.drop_index("ix_imapuid_account_id_folder_id_msg_uid_desc", table_name="imapuid")
+def downgrade() -> None:
+    op.drop_index(
+        "ix_imapuid_account_id_folder_id_msg_uid_desc", table_name="imapuid"
+    )

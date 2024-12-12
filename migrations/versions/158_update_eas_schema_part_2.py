@@ -1,4 +1,5 @@
-"""update_eas_schema_part_2
+"""
+update_eas_schema_part_2
 
 Revision ID: 5aa3f27457c
 Revises: 18064f5205dd
@@ -10,10 +11,12 @@ Create Date: 2015-04-06 23:22:23.038022
 revision = "5aa3f27457c"
 down_revision = "18064f5205dd"
 
+from typing import Never
+
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -58,5 +61,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception()

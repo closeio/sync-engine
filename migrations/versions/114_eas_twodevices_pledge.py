@@ -1,4 +1,5 @@
-"""EAS two-devices pledge
+"""
+EAS two-devices pledge
 
 Revision ID: ad7b856bcc0
 Revises: 22d076f48b88
@@ -10,11 +11,13 @@ Create Date: 2014-10-20 17:31:52.121360
 revision = "ad7b856bcc0"
 down_revision = "26bfb2e45c47"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine()
@@ -33,7 +36,10 @@ def upgrade():
         sa.Column("eas_device_type", sa.String(length=32), nullable=False),
         sa.Column("eas_policy_key", sa.String(length=64), nullable=True),
         sa.Column(
-            "eas_sync_key", sa.String(length=64), server_default="0", nullable=False
+            "eas_sync_key",
+            sa.String(length=64),
+            server_default="0",
+            nullable=False,
         ),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -47,7 +53,10 @@ def upgrade():
         "ix_easdevice_deleted_at", "easdevice", ["deleted_at"], unique=False
     )
     op.create_index(
-        "ix_easdevice_eas_device_id", "easdevice", ["eas_device_id"], unique=False
+        "ix_easdevice_eas_device_id",
+        "easdevice",
+        ["eas_device_id"],
+        unique=False,
     )
 
     op.add_column(
@@ -104,7 +113,9 @@ def upgrade():
         ["id"],
     )
     op.create_unique_constraint(
-        None, "easfoldersyncstatus", ["account_id", "device_id", "eas_folder_id"]
+        None,
+        "easfoldersyncstatus",
+        ["account_id", "device_id", "eas_folder_id"],
     )
 
     op.add_column(
@@ -118,11 +129,13 @@ def upgrade():
     )
     op.drop_constraint("easuid_ibfk_3", "easuid", type_="foreignkey")
     op.drop_constraint("folder_id", "easuid", type_="unique")
-    op.create_foreign_key("easuid_ibfk_3", "easuid", "folder", ["folder_id"], ["id"])
+    op.create_foreign_key(
+        "easuid_ibfk_3", "easuid", "folder", ["folder_id"], ["id"]
+    )
     op.create_unique_constraint(
         None, "easuid", ["folder_id", "msg_uid", "easaccount_id", "device_id"]
     )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("!")

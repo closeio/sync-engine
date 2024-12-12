@@ -10,18 +10,18 @@ from inbox.util.concurrency import retry_with_logging
 
 
 class MockLogger:
-    def __init__(self):
+    def __init__(self) -> None:
         self.call_count = 0
         self._context = {}
 
-    def error(self, *args, **kwargs):
+    def error(self, *args, **kwargs) -> None:
         self.call_count += 1
 
 
 class FailingFunction:
     __name__ = "FailingFunction"
 
-    def __init__(self, exc_type, max_executions=3, delay=0):
+    def __init__(self, exc_type, max_executions=3, delay=0) -> None:
         self.exc_type = exc_type
         self.max_executions = max_executions
         self.delay = delay
@@ -35,7 +35,7 @@ class FailingFunction:
 
 
 @pytest.mark.usefixtures("mock_time_sleep")
-def test_retry_with_logging():
+def test_retry_with_logging() -> None:
     logger = MockLogger()
     failing_function = FailingFunction(ValueError)
     retry_with_logging(failing_function, logger=logger, backoff_delay=0)
@@ -43,7 +43,7 @@ def test_retry_with_logging():
     assert failing_function.call_count == failing_function.max_executions
 
 
-def test_no_logging_on_interruptible_thread_exit():
+def test_no_logging_on_interruptible_thread_exit() -> None:
     logger = MockLogger()
     failing_function = FailingFunction(InterruptibleThreadExit)
     with pytest.raises(InterruptibleThreadExit):
@@ -52,17 +52,19 @@ def test_no_logging_on_interruptible_thread_exit():
     assert failing_function.call_count == 1
 
 
-def test_selective_retry():
+def test_selective_retry() -> None:
     logger = MockLogger()
     failing_function = FailingFunction(ValueError)
     with pytest.raises(ValueError):
-        retry_with_logging(failing_function, logger=logger, fail_classes=[ValueError])
+        retry_with_logging(
+            failing_function, logger=logger, fail_classes=[ValueError]
+        )
     assert logger.call_count == 0
     assert failing_function.call_count == 1
 
 
 @pytest.mark.usefixtures("mock_time_sleep")
-def test_no_logging_until_many_transient_error():
+def test_no_logging_until_many_transient_error() -> None:
     transient = [
         socket.timeout,
         socket.error,
@@ -113,10 +115,12 @@ def test_no_logging_until_many_transient_error():
 
 
 @pytest.mark.usefixtures("mock_time_sleep")
-def test_logging_on_critical_error():
+def test_logging_on_critical_error() -> None:
     critical = [
         TypeError("Example TypeError"),
-        StatementError(message="?", statement="SELECT *", params={}, orig=None),
+        StatementError(
+            message="?", statement="SELECT *", params={}, orig=None
+        ),
         StatementError(
             message="?",
             statement="SELECT *",

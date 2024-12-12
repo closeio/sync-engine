@@ -1,13 +1,11 @@
-# flake8: noqa: F401
 import pytest
 
 from inbox.ignition import init_db, reset_invalid_autoincrements, verify_db
-from inbox.models.session import session_scope_by_shard_id
 from inbox.util.sharding import get_shard_schemas
 from inbox.util.testutils import create_test_db, setup_test_db
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def base_db(config):
     from inbox.ignition import engine_manager
 
@@ -16,7 +14,7 @@ def base_db(config):
     setup_test_db()
 
 
-def test_verify_db(base_db):
+def test_verify_db(base_db) -> None:
     engines = base_db.engines
     shard_schemas = get_shard_schemas()
 
@@ -32,7 +30,7 @@ def test_verify_db(base_db):
         verify_db(engines[key], shard_schemas[key], key)
 
 
-def test_reset_autoincrements(base_db):
+def test_reset_autoincrements(base_db) -> None:
     engines = base_db.engines
     shard_schemas = get_shard_schemas()
 

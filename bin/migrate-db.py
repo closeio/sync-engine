@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 
 
 import os
@@ -11,11 +11,11 @@ from inbox.config import config
 from inbox.error_handling import maybe_enable_rollbar
 
 
-def main():
+def main() -> None:
     maybe_enable_rollbar()
 
     alembic_ini_filename = os.environ.get("ALEMBIC_INI_PATH", "alembic.ini")
-    assert os.path.isfile(
+    assert os.path.isfile(  # noqa: PTH113
         alembic_ini_filename
     ), f"Missing alembic.ini file at {alembic_ini_filename}"
 
@@ -39,7 +39,7 @@ def main():
                 alembic.command.upgrade(alembic_cfg, "head")
                 print(f"Upgraded shard_id {key}\n")
             except alembic.util.CommandError as e:
-                print(f"FAILED to upgrade shard_id {key} with error: {str(e)}")
+                print(f"FAILED to upgrade shard_id {key} with error: {e!s}")
                 continue
 
 

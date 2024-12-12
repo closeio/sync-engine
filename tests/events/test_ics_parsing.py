@@ -7,7 +7,6 @@ import pytz
 from inbox.events.ical import events_from_ics, import_attached_events
 from inbox.events.util import MalformedEventError
 from inbox.models.event import Event, RecurringEvent
-
 from tests.util.base import (
     absolute_path,
     add_fake_calendar,
@@ -17,20 +16,26 @@ from tests.util.base import (
 FIXTURES = "./events/fixtures/"
 
 
-def test_invalid_ical(db, default_account):
+def test_invalid_ical(db, default_account) -> None:
     with pytest.raises(MalformedEventError):
         events_from_ics(
-            default_account.namespace, default_account.emailed_events_calendar, "asdf"
+            default_account.namespace,
+            default_account.emailed_events_calendar,
+            "asdf",
         )
 
 
-def test_windows_tz_ical(db, default_account):
+def test_windows_tz_ical(db, default_account) -> None:
     data = None
-    with open(absolute_path(FIXTURES + "windows_event.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "windows_event.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     events = events["invites"]
     assert len(events) == 1, "There should be only one event in the test file"
@@ -43,13 +48,17 @@ def test_windows_tz_ical(db, default_account):
     assert ev.participants[0]["email"] == "karim@nilas.com"
 
 
-def test_icloud_allday_event(db, default_account):
+def test_icloud_allday_event(db, default_account) -> None:
     data = None
-    with open(absolute_path(FIXTURES + "icloud_oneday_event.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "icloud_oneday_event.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     events = events["invites"]
     assert len(events) == 1, "There should be only one event in the test file"
@@ -63,13 +72,17 @@ def test_icloud_allday_event(db, default_account):
     assert ev.participants[0]["email"] == "karim@nilas.com"
 
 
-def test_iphone_through_exchange(db, default_account):
+def test_iphone_through_exchange(db, default_account) -> None:
     data = None
-    with open(absolute_path(FIXTURES + "iphone_through_exchange.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "iphone_through_exchange.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     events = events["invites"]
     assert len(events) == 1, "There should be only one event in the test file"
@@ -81,15 +94,20 @@ def test_iphone_through_exchange(db, default_account):
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_event_update(db, default_account, message):
+def test_event_update(db, default_account, message) -> None:
     add_fake_calendar(
-        db.session, default_account.namespace.id, name="Emailed events", read_only=True
+        db.session,
+        default_account.namespace.id,
+        name="Emailed events",
+        read_only=True,
     )
 
-    with open(absolute_path(FIXTURES + "gcal_v1.ics")) as fd:
+    with open(absolute_path(FIXTURES + "gcal_v1.ics")) as fd:  # noqa: PTH123
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
 
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
@@ -104,10 +122,12 @@ def test_event_update(db, default_account, message):
         "Olympia Hall, 28 Boulevard des Capucines, 75009 Paris, France"
     )
 
-    with open(absolute_path(FIXTURES + "gcal_v2.ics")) as fd:
+    with open(absolute_path(FIXTURES + "gcal_v2.ics")) as fd:  # noqa: PTH123
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
 
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
@@ -118,32 +138,46 @@ def test_event_update(db, default_account, message):
         .one()
     )
 
-    assert ev.location == ("Le Zenith, 211 Avenue Jean Jaures, 75019 Paris, France")
+    assert ev.location == (
+        "Le Zenith, 211 Avenue Jean Jaures, 75019 Paris, France"
+    )
 
 
 # This test checks that:
 # 1. we're processing invites we've sent to ourselves.
 # 2. update only update events in the "emailed events" calendar.
-def test_self_sent_update(db, default_account, message):
+def test_self_sent_update(db, default_account, message) -> None:
     # Create the calendars
     add_fake_calendar(
-        db.session, default_account.namespace.id, name="Emailed events", read_only=True
+        db.session,
+        default_account.namespace.id,
+        name="Emailed events",
+        read_only=True,
     )
 
     default_calendar = add_fake_calendar(
-        db.session, default_account.namespace.id, name="Calendar", read_only=False
+        db.session,
+        default_account.namespace.id,
+        name="Calendar",
+        read_only=False,
     )
 
     # Import the self-sent event.
-    with open(absolute_path(FIXTURES + "self_sent_v1.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "self_sent_v1.ics")
+    ) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
     msg.from_addr = [(default_account.name, default_account.email_address)]
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
 
-    evs = db.session.query(Event).filter(Event.uid == "burgos@google.com").all()
+    evs = (
+        db.session.query(Event).filter(Event.uid == "burgos@google.com").all()
+    )
 
     assert len(evs) == 1
     ev = evs[0]
@@ -158,15 +192,21 @@ def test_self_sent_update(db, default_account, message):
     db.session.add(event_copy)
     db.session.commit()
 
-    with open(absolute_path(FIXTURES + "self_sent_v2.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "self_sent_v2.ics")
+    ) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
 
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
 
-    evs = db.session.query(Event).filter(Event.uid == "burgos@google.com").all()
+    evs = (
+        db.session.query(Event).filter(Event.uid == "burgos@google.com").all()
+    )
 
     # Check that the event in the default calendar didn't get updated.
     assert len(evs) == 2
@@ -184,11 +224,15 @@ def test_self_sent_update(db, default_account, message):
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_recurring_ical(db, default_account):
-    with open(absolute_path(FIXTURES + "gcal_recur.ics")) as fd:
+def test_recurring_ical(db, default_account) -> None:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "gcal_recur.ics")
+    ) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
 
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
@@ -206,9 +250,11 @@ def test_recurring_ical(db, default_account):
     assert ev.rrule == "RRULE:FREQ=WEEKLY;WKST=SU"
 
 
-def test_event_no_end_time(db, default_account):
+def test_event_no_end_time(db, default_account) -> None:
     # With no end time, import should fail
-    with open(absolute_path(FIXTURES + "meetup_infinite.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "meetup_infinite.ics")
+    ) as fd:
         ics_data = fd.read()
 
     add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
@@ -223,13 +269,17 @@ def test_event_no_end_time(db, default_account):
     assert not ev
 
 
-def test_event_no_participants(db, default_account):
+def test_event_no_participants(db, default_account) -> None:
     data = None
-    with open(absolute_path(FIXTURES + "event_with_no_participants.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "event_with_no_participants.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     events = events["invites"]
     assert len(events) == 1, "There should be only one event in the test file"
@@ -237,13 +287,17 @@ def test_event_no_participants(db, default_account):
     assert len(ev.participants) == 0
 
 
-def test_multiple_events(db, default_account):
+def test_multiple_events(db, default_account) -> None:
     data = None
-    with open(absolute_path(FIXTURES + "multiple_events.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "multiple_events.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     events = events["invites"]
     assert len(events) == 2
@@ -257,15 +311,22 @@ def test_multiple_events(db, default_account):
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_icalendar_import(db, generic_account, message):
+def test_icalendar_import(db, generic_account, message) -> None:
     add_fake_calendar(
-        db.session, generic_account.namespace.id, name="Emailed events", read_only=True
+        db.session,
+        generic_account.namespace.id,
+        name="Emailed events",
+        read_only=True,
     )
 
-    with open(absolute_path(FIXTURES + "invite_w_rsvps1.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "invite_w_rsvps1.ics")
+    ) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, generic_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, generic_account, ics_data
+    )
 
     import_attached_events(db.session, generic_account, msg)
 
@@ -287,23 +348,33 @@ def test_icalendar_import(db, generic_account, message):
         assert participant["status"] == "noreply"
 
 
-def test_rsvp_merging(db, generic_account, message):
+def test_rsvp_merging(db, generic_account, message) -> None:
     # This test checks that RSVPs to invites we sent get merged.
     # It does some funky stuff around calendars because by default
     # autoimported invites end up in the "emailed events" calendar.
     # However, we're simulating invite sending, which supposes using
     # an event from another calendar.
     add_fake_calendar(
-        db.session, generic_account.namespace.id, name="Emailed events", read_only=True
+        db.session,
+        generic_account.namespace.id,
+        name="Emailed events",
+        read_only=True,
     )
     cal2 = add_fake_calendar(
-        db.session, generic_account.namespace.id, name="Random calendar", read_only=True
+        db.session,
+        generic_account.namespace.id,
+        name="Random calendar",
+        read_only=True,
     )
 
-    with open(absolute_path(FIXTURES + "invite_w_rsvps1.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "invite_w_rsvps1.ics")
+    ) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, generic_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, generic_account, ics_data
+    )
 
     import_attached_events(db.session, generic_account, msg)
 
@@ -327,10 +398,14 @@ def test_rsvp_merging(db, generic_account, message):
     ev.public_id = "cccc"
     ev.calendar = cal2
 
-    with open(absolute_path(FIXTURES + "invite_w_rsvps2.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "invite_w_rsvps2.ics")
+    ) as fd:
         ics_data = fd.read()
 
-    msg2 = add_fake_msg_with_calendar_part(db.session, generic_account, ics_data)
+    msg2 = add_fake_msg_with_calendar_part(
+        db.session, generic_account, ics_data
+    )
 
     import_attached_events(db.session, generic_account, msg2)
 
@@ -355,10 +430,14 @@ def test_rsvp_merging(db, generic_account, message):
         elif participant["email"] == "karim@example.com":
             assert participant["status"] == "noreply"
 
-    with open(absolute_path(FIXTURES + "invite_w_rsvps3.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "invite_w_rsvps3.ics")
+    ) as fd:
         ics_data = fd.read()
 
-    msg3 = add_fake_msg_with_calendar_part(db.session, generic_account, ics_data)
+    msg3 = add_fake_msg_with_calendar_part(
+        db.session, generic_account, ics_data
+    )
 
     import_attached_events(db.session, generic_account, msg3)
 
@@ -390,7 +469,9 @@ def test_rsvp_merging(db, generic_account, message):
     # discarded.
     ev.sequence_number += 1
 
-    with open(absolute_path(FIXTURES + "invite_w_rsvps_4.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "invite_w_rsvps_4.ics")
+    ) as fd:
         ics_data = fd.read()
 
     add_fake_msg_with_calendar_part(db.session, generic_account, ics_data)
@@ -420,11 +501,15 @@ def test_rsvp_merging(db, generic_account, message):
             assert participant["status"] == "yes"
 
 
-def test_cancelled_event(db, default_account):
-    with open(absolute_path(FIXTURES + "google_cancelled1.ics")) as fd:
+def test_cancelled_event(db, default_account) -> None:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "google_cancelled1.ics")
+    ) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
 
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
@@ -437,10 +522,14 @@ def test_cancelled_event(db, default_account):
 
     assert ev.status == "confirmed"
 
-    with open(absolute_path(FIXTURES + "google_cancelled2.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "google_cancelled2.ics")
+    ) as fd:
         ics_data = fd.read()
 
-    msg2 = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg2 = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
 
     import_attached_events(db.session, default_account, msg2)
     db.session.commit()
@@ -454,11 +543,15 @@ def test_cancelled_event(db, default_account):
     assert ev.status == "cancelled"
 
 
-def test_icloud_cancelled_event(db, default_account):
-    with open(absolute_path(FIXTURES + "icloud_cancelled1.ics")) as fd:
+def test_icloud_cancelled_event(db, default_account) -> None:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "icloud_cancelled1.ics")
+    ) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
 
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
@@ -471,10 +564,14 @@ def test_icloud_cancelled_event(db, default_account):
 
     assert ev.status == "confirmed"
 
-    with open(absolute_path(FIXTURES + "icloud_cancelled2.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "icloud_cancelled2.ics")
+    ) as fd:
         ics_data = fd.read()
 
-    msg = add_fake_msg_with_calendar_part(db.session, default_account, ics_data)
+    msg = add_fake_msg_with_calendar_part(
+        db.session, default_account, ics_data
+    )
 
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
@@ -488,23 +585,29 @@ def test_icloud_cancelled_event(db, default_account):
     assert ev.status == "cancelled"
 
 
-def test_multiple_summaries(db, default_account):
+def test_multiple_summaries(db, default_account) -> None:
     data = None
-    with open(absolute_path(FIXTURES + "multiple_summaries.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "multiple_summaries.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     events = events["invites"]
     assert len(events) == 1
     assert events[0].title == "The Strokes - Is this it?"
 
 
-def test_invalid_rsvp(db, default_account):
+def test_invalid_rsvp(db, default_account) -> None:
     # Test that we don't save an RSVP reply with an invalid id.
     data = None
-    with open(absolute_path(FIXTURES + "invalid_rsvp.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "invalid_rsvp.ics")
+    ) as fd:
         data = fd.read()
 
     msg = add_fake_msg_with_calendar_part(db.session, default_account, data)
@@ -512,16 +615,22 @@ def test_invalid_rsvp(db, default_account):
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
 
-    ev = db.session.query(Event).filter(Event.uid == "234252$cccc@nylas.com").all()
+    ev = (
+        db.session.query(Event)
+        .filter(Event.uid == "234252$cccc@nylas.com")
+        .all()
+    )
 
     assert len(ev) == 0
 
 
-def test_rsvp_for_other_provider(db, default_account):
+def test_rsvp_for_other_provider(db, default_account) -> None:
     # Test that we don't save RSVP replies which aren't replies to a Nylas
     # invite.
     data = None
-    with open(absolute_path(FIXTURES + "invalid_rsvp2.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "invalid_rsvp2.ics")
+    ) as fd:
         data = fd.read()
 
     msg = add_fake_msg_with_calendar_part(db.session, default_account, data)
@@ -529,14 +638,20 @@ def test_rsvp_for_other_provider(db, default_account):
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
 
-    ev = db.session.query(Event).filter(Event.uid == "234252cccc@google.com").all()
+    ev = (
+        db.session.query(Event)
+        .filter(Event.uid == "234252cccc@google.com")
+        .all()
+    )
 
     assert len(ev) == 0
 
 
-def test_truncate_bogus_sequence_numbers(db, default_account):
+def test_truncate_bogus_sequence_numbers(db, default_account) -> None:
     data = None
-    with open(absolute_path(FIXTURES + "bogus_sequence_number.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "bogus_sequence_number.ics")
+    ) as fd:
         data = fd.read()
 
     msg = add_fake_msg_with_calendar_part(db.session, default_account, data)
@@ -544,19 +659,27 @@ def test_truncate_bogus_sequence_numbers(db, default_account):
     import_attached_events(db.session, default_account, msg)
     db.session.commit()
 
-    ev = db.session.query(Event).filter(Event.uid == "234252cccc@google.com").one()
+    ev = (
+        db.session.query(Event)
+        .filter(Event.uid == "234252cccc@google.com")
+        .one()
+    )
 
     # Check that the sequence number got truncated to the biggest possible
     # number.
     assert ev.sequence_number == 2147483647
 
 
-def test_handle_missing_sequence_number(db, default_account):
-    with open(absolute_path(FIXTURES + "event_without_sequence.ics")) as fd:
+def test_handle_missing_sequence_number(db, default_account) -> None:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "event_without_sequence.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     events = events["invites"]
     assert len(events) == 1
@@ -564,40 +687,56 @@ def test_handle_missing_sequence_number(db, default_account):
     assert ev.sequence_number == 0
 
 
-def test_event_without_dtend_with_duration(db, default_account):
-    with open(absolute_path(FIXTURES + "event_without_dtend_with_duration.ics")) as fd:
+def test_event_without_dtend_with_duration(db, default_account) -> None:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "event_without_dtend_with_duration.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
 
     (event,) = events["invites"]
-    assert event.start == datetime.datetime(2022, 10, 9, 11, 0, tzinfo=pytz.UTC)
+    assert event.start == datetime.datetime(
+        2022, 10, 9, 11, 0, tzinfo=pytz.UTC
+    )
     assert event.end == datetime.datetime(2022, 10, 9, 11, 30, tzinfo=pytz.UTC)
 
 
-def test_event_with_windows_timezone(db, default_account):
-    with open(absolute_path(FIXTURES + "event_with_windows_timezone.ics")) as fd:
+def test_event_with_windows_timezone(db, default_account) -> None:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "event_with_windows_timezone.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
 
     (event,) = events["rsvps"]
-    assert event.start == datetime.datetime(2022, 10, 11, 15, 0, tzinfo=pytz.UTC)
-    assert event.end == datetime.datetime(2022, 10, 11, 15, 30, tzinfo=pytz.UTC)
+    assert event.start == datetime.datetime(
+        2022, 10, 11, 15, 0, tzinfo=pytz.UTC
+    )
+    assert event.end == datetime.datetime(
+        2022, 10, 11, 15, 30, tzinfo=pytz.UTC
+    )
 
 
-def test_event_with_dtstamp_without_timezone(db, default_account):
-    with open(
+def test_event_with_dtstamp_without_timezone(db, default_account) -> None:
+    with open(  # noqa: PTH123
         absolute_path(FIXTURES + "event_with_dtstamp_without_timezone.ics")
     ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     (event,) = events["rsvps"]
 
@@ -606,36 +745,48 @@ def test_event_with_dtstamp_without_timezone(db, default_account):
     )
 
 
-def test_event_with_status_repeated(db, default_account):
-    with open(absolute_path(FIXTURES + "event_with_status_repeated.ics")) as fd:
+def test_event_with_status_repeated(db, default_account) -> None:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "event_with_status_repeated.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
 
     (event,) = events["rsvps"]
     assert event.status == "confirmed"
 
 
-def test_event_with_method_repeated(db, default_account):
-    with open(absolute_path(FIXTURES + "event_with_method_repeated.ics")) as fd:
+def test_event_with_method_repeated(db, default_account) -> None:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "event_with_method_repeated.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
 
     (event,) = events["rsvps"]
     assert event.description == "Appointment with Apple Support"
 
 
-def test_event_with_dstart_only(db, default_account):
-    with open(absolute_path(FIXTURES + "event_with_dtstart_only.ics")) as fd:
+def test_event_with_dstart_only(db, default_account) -> None:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "event_with_dtstart_only.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
 
     (event,) = events["rsvps"]
@@ -643,39 +794,51 @@ def test_event_with_dstart_only(db, default_account):
     assert event.start == event.end
 
 
-def test_event_malformed_publish(db, default_account):
+def test_event_malformed_publish(db, default_account) -> None:
     # The event is missing timezone specifier on dtstart and dtend
     # and so is malformed, but the calendar method is PUBLISH
     # so we don't need to process it at all because it does not contain
     # rsvps or invites.
-    with open(absolute_path(FIXTURES + "event_malformed_publish.ics")) as fd:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "event_malformed_publish.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
 
     assert events == {"invites": [], "rsvps": []}
 
 
-def test_event_with_organizer_list(db, default_account):
-    with open(absolute_path(FIXTURES + "event_with_organizer_list.ics")) as fd:
+def test_event_with_organizer_list(db, default_account) -> None:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "event_with_organizer_list.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     (event,) = events["rsvps"]
 
     assert event.owner == '"Example1, Example2" <example@example.com>'
 
 
-def test_event_with_non_ascii_uid(db, default_account):
-    with open(absolute_path(FIXTURES + "event_with_non_ascii_uid.ics")) as fd:
+def test_event_with_non_ascii_uid(db, default_account) -> None:
+    with open(  # noqa: PTH123
+        absolute_path(FIXTURES + "event_with_non_ascii_uid.ics")
+    ) as fd:
         data = fd.read()
 
     events = events_from_ics(
-        default_account.namespace, default_account.emailed_events_calendar, data
+        default_account.namespace,
+        default_account.emailed_events_calendar,
+        data,
     )
     (event,) = events["rsvps"]
 

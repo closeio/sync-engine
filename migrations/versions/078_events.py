@@ -1,4 +1,5 @@
-"""events
+"""
+events
 
 Revision ID: 1c2253a0e997
 Revises: 3c02d8204335
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "event",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -38,14 +39,17 @@ def upgrade():
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
-        sa.ForeignKeyConstraint(["account_id"], ["account.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["account_id"], ["account.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.add_column(
-        "account", sa.Column("last_synced_events", sa.DateTime(), nullable=True)
+        "account",
+        sa.Column("last_synced_events", sa.DateTime(), nullable=True),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("event")
     op.drop_column("account", "last_synced_events")

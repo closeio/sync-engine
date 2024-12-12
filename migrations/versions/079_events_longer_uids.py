@@ -1,4 +1,5 @@
-"""events longer uids
+"""
+events longer uids
 
 Revision ID: 5901bf556d83
 Revises: 1c2253a0e997
@@ -15,11 +16,11 @@ from alembic import op
 from sqlalchemy.ext.declarative import declarative_base
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     # The model previously didn't reflect the migration, therefore
@@ -32,10 +33,12 @@ def upgrade():
     op.create_unique_constraint(
         "uuid", "event", ["uid", "source", "account_id", "provider_name"]
     )
-    op.alter_column("event", "uid", type_=sa.String(767, collation="ascii_general_ci"))
+    op.alter_column(
+        "event", "uid", type_=sa.String(767, collation="ascii_general_ci")
+    )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_constraint("uuid", "event", type_="unique")
     op.alter_column("event", "uid", type_=sa.String(64))
     op.create_unique_constraint(

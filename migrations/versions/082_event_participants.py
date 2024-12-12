@@ -1,4 +1,5 @@
-"""event participants
+"""
+event participants
 
 Revision ID: 1322d3787305
 Revises: 4e3e8abea884
@@ -14,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "eventparticipant",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -22,7 +23,9 @@ def upgrade():
         sa.Column("event_id", sa.Integer(), nullable=False),
         sa.Column("name", sa.String(length=255), nullable=True),
         sa.Column("_raw_address", sa.String(length=191), nullable=True),
-        sa.Column("_canonicalized_address", sa.String(length=191), nullable=True),
+        sa.Column(
+            "_canonicalized_address", sa.String(length=191), nullable=True
+        ),
         sa.Column(
             "status",
             sa.Enum("yes", "no", "maybe", "awaiting"),
@@ -33,11 +36,13 @@ def upgrade():
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
-        sa.ForeignKeyConstraint(["event_id"], ["event.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["event_id"], ["event.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("_raw_address", "event_id", name="uid"),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("eventparticipant")

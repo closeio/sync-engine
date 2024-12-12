@@ -1,8 +1,15 @@
 from hashlib import sha256
-from typing import Optional
 
 from flanker import mime
-from sqlalchemy import Boolean, Column, Enum, ForeignKey, Integer, String, event
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+    event,
+)
 from sqlalchemy.orm import backref, reconstructor, relationship
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.sql.expression import false
@@ -48,13 +55,15 @@ COMMON_CONTENT_TYPES = [
 ]
 
 
-class Block(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin):
+class Block(
+    MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin
+):
     """Metadata for any file that we store"""
 
     API_OBJECT_NAME = "file"
 
     @property
-    def should_suppress_transaction_creation(self):
+    def should_suppress_transaction_creation(self) -> bool:
         # Only version attachments
         return not any(part.is_attachment for part in self.parts)
 
@@ -69,28 +78,32 @@ class Block(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
     filename = Column(String(255))
 
     # TODO: create a constructor that allows the 'content_type' keyword
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         self.content_type = None
         self.size = 0
         MailSyncBase.__init__(self, *args, **kwargs)
 
-    namespace_id = Column(ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False)
+    namespace_id = Column(
+        ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False
+    )
     namespace = relationship(
         "Namespace",
-        backref=backref("blocks", passive_deletes=True, cascade="all,delete-orphan"),
+        backref=backref(
+            "blocks", passive_deletes=True, cascade="all,delete-orphan"
+        ),
         load_on_pending=True,
     )
 
     @reconstructor
-    def init_on_load(self):
+    def init_on_load(self) -> None:
         if self._content_type_common:
             self.content_type = self._content_type_common
         else:
             self.content_type = self._content_type_other
 
     @property
-    def data(self):
-        value: Optional[bytes]
+    def data(self):  # noqa: ANN201
+        value: bytes | None
         if self.size == 0:
             log.warning("Block size is 0")
             return ""
@@ -101,7 +114,9 @@ class Block(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
             value = blockstore.get_from_blockstore(self.data_sha256)
 
         if value is None:
-            log.warning("Couldn't find data on S3 for block", sha_hash=self.data_sha256)
+            log.warning(
+                "Couldn't find data on S3 for block", sha_hash=self.data_sha256
+            )
 
             from inbox.models.block import Block
 
@@ -113,17 +128,23 @@ class Block(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
                 message = self.parts[0].message  # only grab one
                 account = message.namespace.account
 
-                statsd_string = f"api.direct_fetching.{account.provider}.{account.id}"
+                statsd_string = (
+                    f"api.direct_fetching.{account.provider}.{account.id}"
+                )
 
                 # Try to fetch the message from S3 first.
-                with statsd_client.timer(f"{statsd_string}.blockstore_latency"):
+                with statsd_client.timer(
+                    f"{statsd_string}.blockstore_latency"
+                ):
                     raw_mime = blockstore.get_raw_mime(message.data_sha256)
 
                 # If it's not there, get it from the provider.
                 if raw_mime is None:
                     statsd_client.incr(f"{statsd_string}.cache_misses")
 
-                    with statsd_client.timer(f"{statsd_string}.provider_latency"):
+                    with statsd_client.timer(
+                        f"{statsd_string}.provider_latency"
+                    ):
                         raw_mime = get_raw_from_provider(message)
 
                     msg_sha256 = sha256(raw_mime).hexdigest()
@@ -141,7 +162,9 @@ class Block(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
 
                 # If we couldn't find it there, give up.
                 if raw_mime is None:
-                    log.error(f"Don't have raw message for hash {message.data_sha256}")
+                    log.error(
+                        f"Don't have raw message for hash {message.data_sha256}"
+                    )
                     return None
 
                 parsed = mime.from_string(raw_mime)
@@ -162,12 +185,16 @@ class Block(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
 
                         # Found it!
                         if sha256(data).hexdigest() == self.data_sha256:
-                            log.info(f"Found subpart with hash {self.data_sha256}")
+                            log.info(
+                                f"Found subpart with hash {self.data_sha256}"
+                            )
 
                             with statsd_client.timer(
                                 f"{statsd_string}.blockstore_save_latency"
                             ):
-                                blockstore.save_to_blockstore(self.data_sha256, data)
+                                blockstore.save_to_blockstore(
+                                    self.data_sha256, data
+                                )
                                 return data
                 log.error(
                     "Couldn't find the attachment in the raw message",
@@ -203,7 +230,7 @@ class Block(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMi
 
 
 @event.listens_for(Block, "before_insert", propagate=True)
-def serialize_before_insert(mapper, connection, target):
+def serialize_before_insert(mapper, connection, target) -> None:
     if target.content_type in COMMON_CONTENT_TYPES:
         target._content_type_common = target.content_type
         target._content_type_other = None
@@ -213,7 +240,8 @@ def serialize_before_insert(mapper, connection, target):
 
 
 class Part(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
-    """Part is a section of a specific message. This includes message bodies
+    """
+    Part is a section of a specific message. This includes message bodies
     as well as attachments.
     """
 
@@ -245,17 +273,17 @@ class Part(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     __table_args__ = (UniqueConstraint("message_id", "walk_index"),)
 
     @property
-    def thread_id(self):
+    def thread_id(self):  # noqa: ANN201
         if not self.message:
             return None
         return self.message.thread_id
 
     @property
-    def is_attachment(self):
+    def is_attachment(self):  # noqa: ANN201
         return self.content_disposition is not None
 
     @property
-    def is_embedded(self):
+    def is_embedded(self):  # noqa: ANN201
         return (
             self.content_disposition is not None
             and self.content_disposition.lower() == "inline"

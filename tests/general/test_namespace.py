@@ -2,11 +2,10 @@ import random
 
 import pytest
 from freezegun import freeze_time
-from pytest import fixture
+from pytest import fixture  # noqa: PT013
 from requests import Response
 
 from inbox.models.namespace import Namespace
-
 from tests.util.base import (
     add_fake_calendar,
     add_fake_contact,
@@ -22,7 +21,7 @@ from tests.util.base import (
 
 
 @fixture
-def patch_requests_throttle(monkeypatch):
+def patch_requests_throttle(monkeypatch) -> None:
     def get(*args, **kwargs):
         resp = Response()
         resp.status_code = 500
@@ -31,7 +30,7 @@ def patch_requests_throttle(monkeypatch):
 
 
 @fixture
-def patch_requests_no_throttle(monkeypatch):
+def patch_requests_no_throttle(monkeypatch) -> None:
     def get(*args, **kwargs):
         resp = Response()
         resp.status_code = 500
@@ -48,7 +47,10 @@ def add_completely_fake_account(db, email="test@nylas.com"):
     calendar = add_fake_calendar(db.session, fake_account.namespace.id)
     for i in random_range(1, 10):
         add_fake_event(
-            db.session, fake_account.namespace.id, calendar=calendar, title=str(i)
+            db.session,
+            fake_account.namespace.id,
+            calendar=calendar,
+            title=str(i),
         )
 
     # Add fake Threads, Messages and ImapUids.
@@ -65,7 +67,11 @@ def add_completely_fake_account(db, email="test@nylas.com"):
 
             for k in random_range(1, 2):
                 add_fake_imapuid(
-                    db.session, fake_account.id, msg, folder, int(str(msg.id) + str(k))
+                    db.session,
+                    fake_account.id,
+                    msg,
+                    folder,
+                    int(str(msg.id) + str(k)),
                 )
     # Add fake contacts
     for i in random_range(1, 5):
@@ -76,7 +82,7 @@ def add_completely_fake_account(db, email="test@nylas.com"):
     return fake_account
 
 
-def test_get_accounts_to_delete(db):
+def test_get_accounts_to_delete(db) -> None:
     from inbox.models import Account
     from inbox.models.util import get_accounts_to_delete
 
@@ -113,9 +119,12 @@ def test_get_accounts_to_delete(db):
 
 @pytest.mark.usefixtures("blockstore_backend")
 @pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
-def test_bulk_namespace_deletion(db):
+def test_bulk_namespace_deletion(db) -> None:
     from inbox.models import Account
-    from inbox.models.util import batch_delete_namespaces, get_accounts_to_delete
+    from inbox.models.util import (
+        batch_delete_namespaces,
+        get_accounts_to_delete,
+    )
 
     db.session.query(Account).delete(synchronize_session=False)
     db.session.commit()
@@ -172,9 +181,12 @@ def test_bulk_namespace_deletion(db):
 
 
 @freeze_time("2016-02-02 11:01:34")
-def test_deletion_no_throttle(db, patch_requests_no_throttle):
+def test_deletion_no_throttle(db, patch_requests_no_throttle) -> None:
     from inbox.models import Account
-    from inbox.models.util import batch_delete_namespaces, get_accounts_to_delete
+    from inbox.models.util import (
+        batch_delete_namespaces,
+        get_accounts_to_delete,
+    )
 
     new_accounts = set()
     account_1 = add_completely_fake_account(db)
@@ -197,9 +209,12 @@ def test_deletion_no_throttle(db, patch_requests_no_throttle):
 
 
 @freeze_time("2016-02-02 11:01:34")
-def test_deletion_metric_throttle(db, patch_requests_throttle):
+def test_deletion_metric_throttle(db, patch_requests_throttle) -> None:
     from inbox.models import Account
-    from inbox.models.util import batch_delete_namespaces, get_accounts_to_delete
+    from inbox.models.util import (
+        batch_delete_namespaces,
+        get_accounts_to_delete,
+    )
 
     account_1 = add_completely_fake_account(db)
     account_1_id = account_1.id
@@ -222,9 +237,12 @@ def test_deletion_metric_throttle(db, patch_requests_throttle):
 
 
 @freeze_time("2016-02-02 01:01:34")
-def test_deletion_time_throttle(db, patch_requests_no_throttle):
+def test_deletion_time_throttle(db, patch_requests_no_throttle) -> None:
     from inbox.models import Account
-    from inbox.models.util import batch_delete_namespaces, get_accounts_to_delete
+    from inbox.models.util import (
+        batch_delete_namespaces,
+        get_accounts_to_delete,
+    )
 
     account_1 = add_completely_fake_account(db, "test5@nylas.com")
     account_1_id = account_1.id
@@ -246,7 +264,7 @@ def test_deletion_time_throttle(db, patch_requests_no_throttle):
     assert account_2_id in alive_accounts
 
 
-def test_namespace_deletion(db, default_account):
+def test_namespace_deletion(db, default_account) -> None:
     from inbox.models import Account, Message, Thread
     from inbox.models.util import delete_namespace
 
@@ -265,13 +283,14 @@ def test_namespace_deletion(db, default_account):
 
     for m in models:
         c = db.session.query(m).filter(m.namespace_id == namespace_id).count()
-        print("count for", m, ":", c)
+        print("count for", m, ":", c)  # noqa: T201
         assert c != 0
 
     fake_account = add_generic_imap_account(db.session)
     fake_account_id = fake_account.id
 
-    assert fake_account_id != account.id and fake_account.namespace.id != namespace_id
+    assert fake_account_id != account.id
+    assert fake_account.namespace.id != namespace_id
 
     thread = add_fake_thread(db.session, fake_account.namespace.id)
     thread_id = thread.id
@@ -280,7 +299,12 @@ def test_namespace_deletion(db, default_account):
     message_id = message.id
 
     assert (
-        len(db.session.query(Namespace).filter(Namespace.id == namespace_id).all()) > 0
+        len(
+            db.session.query(Namespace)
+            .filter(Namespace.id == namespace_id)
+            .all()
+        )
+        > 0
     )
 
     # Delete namespace, verify data corresponding to this namespace /only/
@@ -298,24 +322,33 @@ def test_namespace_deletion(db, default_account):
     db.session.commit()
 
     assert (
-        len(db.session.query(Namespace).filter(Namespace.id == namespace_id).all()) == 0
+        len(
+            db.session.query(Namespace)
+            .filter(Namespace.id == namespace_id)
+            .all()
+        )
+        == 0
     )
 
     account = db.session.query(Account).get(account_id)
     assert not account
 
     for m in models:
-        assert db.session.query(m).filter(m.namespace_id == namespace_id).count() == 0
+        assert (
+            db.session.query(m).filter(m.namespace_id == namespace_id).count()
+            == 0
+        )
 
     fake_account = db.session.query(Account).get(fake_account_id)
     assert fake_account
 
     thread = db.session.query(Thread).get(thread_id)
     message = db.session.query(Message).get(message_id)
-    assert thread and message
+    assert thread
+    assert message
 
 
-def test_namespace_delete_cascade(db, default_account):
+def test_namespace_delete_cascade(db, default_account) -> None:
     from inbox.models import Account, Message, Thread
 
     models = [Thread, Message]
@@ -333,20 +366,26 @@ def test_namespace_delete_cascade(db, default_account):
 
     for m in models:
         c = db.session.query(m).filter(m.namespace_id == namespace_id).count()
-        print("count for", m, ":", c)
+        print("count for", m, ":", c)  # noqa: T201
         assert c != 0
 
     fake_account = add_generic_imap_account(db.session)
     fake_account_id = fake_account.id
 
-    assert fake_account_id != account.id and fake_account.namespace.id != namespace_id
+    assert fake_account_id != account.id
+    assert fake_account.namespace.id != namespace_id
 
     thread = add_fake_thread(db.session, fake_account.namespace.id)
 
     add_fake_message(db.session, fake_account.namespace.id, thread)
 
     assert (
-        len(db.session.query(Namespace).filter(Namespace.id == namespace_id).all()) > 0
+        len(
+            db.session.query(Namespace)
+            .filter(Namespace.id == namespace_id)
+            .all()
+        )
+        > 0
     )
 
     # This test is separate from test_namespace_deletion because we want to
@@ -357,11 +396,16 @@ def test_namespace_delete_cascade(db, default_account):
     db.session.commit()
 
     assert (
-        len(db.session.query(Namespace).filter(Namespace.id == namespace_id).all()) == 0
+        len(
+            db.session.query(Namespace)
+            .filter(Namespace.id == namespace_id)
+            .all()
+        )
+        == 0
     )
 
 
-def test_fake_accounts(empty_db):
+def test_fake_accounts(empty_db) -> None:
     from inbox.models import (
         Account,
         Block,
@@ -381,22 +425,34 @@ def test_fake_accounts(empty_db):
     account = add_completely_fake_account(db)
 
     for m in models:
-        c = db.session.query(m).filter(m.namespace_id == account.namespace.id).count()
+        c = (
+            db.session.query(m)
+            .filter(m.namespace_id == account.namespace.id)
+            .count()
+        )
         assert c != 0
 
     assert db.session.query(ImapUid).count() != 0
     assert db.session.query(Secret).count() != 0
-    assert db.session.query(Account).filter(Account.id == account.id).count() == 1
+    assert (
+        db.session.query(Account).filter(Account.id == account.id).count() == 1
+    )
 
     # Try the dry-run mode:
     account.mark_for_deletion()
     delete_namespace(account.namespace.id, dry_run=True)
 
     for m in models:
-        c = db.session.query(m).filter(m.namespace_id == account.namespace.id).count()
+        c = (
+            db.session.query(m)
+            .filter(m.namespace_id == account.namespace.id)
+            .count()
+        )
         assert c != 0
 
-    assert db.session.query(Account).filter(Account.id == account.id).count() != 0
+    assert (
+        db.session.query(Account).filter(Account.id == account.id).count() != 0
+    )
 
     assert db.session.query(Secret).count() != 0
     assert db.session.query(ImapUid).count() != 0
@@ -405,19 +461,33 @@ def test_fake_accounts(empty_db):
     delete_namespace(account.namespace.id)
 
     for m in models:
-        c = db.session.query(m).filter(m.namespace_id == account.namespace.id).count()
+        c = (
+            db.session.query(m)
+            .filter(m.namespace_id == account.namespace.id)
+            .count()
+        )
         assert c == 0
 
-    assert db.session.query(Account).filter(Account.id == account.id).count() == 0
+    assert (
+        db.session.query(Account).filter(Account.id == account.id).count() == 0
+    )
 
     assert db.session.query(Secret).count() == 0
     assert db.session.query(ImapUid).count() == 0
 
 
-def test_multiple_fake_accounts(empty_db):
+def test_multiple_fake_accounts(empty_db) -> None:
     # Add three fake accounts, check that removing one doesn't affect
     # the two others.
-    from inbox.models import Block, Contact, Event, Message, Secret, Thread, Transaction
+    from inbox.models import (
+        Block,
+        Contact,
+        Event,
+        Message,
+        Secret,
+        Thread,
+        Transaction,
+    )
     from inbox.models.util import delete_namespace
 
     db = empty_db

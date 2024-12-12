@@ -1,4 +1,4 @@
-import pytest
+import pytest  # noqa: INP001
 
 from inbox.events.microsoft.graph_client import MicrosoftGraphClient
 

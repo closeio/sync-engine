@@ -61,7 +61,9 @@ class GoogleAuthHandler(OAuthAuthHandler):
         account.email_address = account_data.email
 
         if account_data.secret_type:
-            account.set_secret(account_data.secret_type, account_data.secret_value)
+            account.set_secret(
+                account_data.secret_type, account_data.secret_value
+            )
 
         if not account.secret:
             raise OAuthError("No valid auth info.")
@@ -75,7 +77,7 @@ class GoogleAuthHandler(OAuthAuthHandler):
 
         return account
 
-    def interactive_auth(self, email_address=None):
+    def interactive_auth(self, email_address=None):  # noqa: ANN201
         url_args = {
             "redirect_uri": self.OAUTH_REDIRECT_URI,
             "client_id": self.OAUTH_CLIENT_ID,
@@ -88,8 +90,10 @@ class GoogleAuthHandler(OAuthAuthHandler):
             url_args["login_hint"] = email_address
         url = url_concat(self.OAUTH_AUTHENTICATE_URL, url_args)
 
-        print("To authorize Nylas, visit this URL and follow the directions:")
-        print(f"\n{url}")
+        print(  # noqa: T201
+            "To authorize Nylas, visit this URL and follow the directions:"
+        )
+        print(f"\n{url}")  # noqa: T201
 
         while True:
             auth_code = input("Enter authorization code: ").strip()
@@ -106,9 +110,11 @@ class GoogleAuthHandler(OAuthAuthHandler):
                     sync_events=True,
                 )
             except OAuthError:
-                print("\nInvalid authorization code, try again...\n")
+                print(  # noqa: T201
+                    "\nInvalid authorization code, try again...\n"
+                )
 
-    def verify_account(self, account):
+    def verify_account(self, account) -> bool:
         """
         Verify the credentials provided by logging in.
         Verify the account configuration -- specifically checks for the presence
@@ -118,6 +124,7 @@ class GoogleAuthHandler(OAuthAuthHandler):
         ------
         An inbox.crispin.GmailSettingError if the 'All Mail' folder is
         not present and is required (account.sync_email == True).
+
         """
         try:
             # Verify login.
@@ -141,5 +148,7 @@ class GoogleAuthHandler(OAuthAuthHandler):
         # be returned to delta/ streaming clients.
         # NOTE: Setting this does not restart the sync. Sync scheduling occurs
         # via the sync_should_run bit (set to True in update_account() above).
-        account.sync_state = "running" if account.sync_state else account.sync_state
+        account.sync_state = (
+            "running" if account.sync_state else account.sync_state
+        )
         return True

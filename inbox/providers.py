@@ -1,11 +1,11 @@
-from typing import Any, Dict
+from typing import Any
 
 from inbox.exceptions import NotSupportedError
 
 __all__ = ["provider_info", "providers"]
 
 
-def provider_info(provider_name):
+def provider_info(provider_name):  # noqa: ANN201
     """
     Like providers[provider_name] except raises
     inbox.basicauth.NotSupportedError instead of KeyError when the provider is
@@ -18,7 +18,7 @@ def provider_info(provider_name):
     return providers[provider_name]
 
 
-providers: Dict[str, Dict[str, Any]] = {
+providers: dict[str, dict[str, Any]] = {
     "aol": {
         "type": "generic",
         "imap": ("imap.aol.com", 993),

@@ -6,7 +6,6 @@ from sqlalchemy import desc
 
 from inbox.models import Block, Category, Message, Namespace, Thread
 from inbox.util.misc import dt_to_timestamp
-
 from tests.util.base import add_fake_message, add_fake_thread, test_client
 
 __all__ = ["test_client"]
@@ -207,7 +206,9 @@ def test_filtering(db, api_client, default_namespace):
     assert len(results) == 1
 
     results = api_client.get_data(
-        "/messages?to={}&limit={}&offset={}".format("inboxapptest@gmail.com", 2, 1)
+        "/messages?to={}&limit={}&offset={}".format(
+            "inboxapptest@gmail.com", 2, 1
+        )
     )
     assert len(results) == 2
 
@@ -284,7 +285,8 @@ def test_strict_argument_parsing(api_client):
 
 
 def test_distinct_results(api_client, db, default_namespace):
-    """Test that limit and offset parameters work correctly when joining on
+    """
+    Test that limit and offset parameters work correctly when joining on
     multiple matching messages per thread.
     """
     # Create a thread with multiple messages on it.
@@ -363,7 +365,9 @@ def test_filtering_accounts(db, test_client, default_namespace):
     all_accounts = json.loads(test_client.get("/accounts/?limit=100").data)
     email = all_accounts[0]["email_address"]
 
-    some_accounts = json.loads(test_client.get("/accounts/?offset=1&limit=99").data)
+    some_accounts = json.loads(
+        test_client.get("/accounts/?offset=1&limit=99").data
+    )
     assert len(some_accounts) == len(all_accounts) - 1
 
     no_all_accounts = json.loads(test_client.get("/accounts/?limit=0").data)
@@ -387,8 +391,12 @@ def test_namespace_limiting(db, api_client, default_namespaces):
     namespaces = db.session.query(Namespace).all()
     assert len(namespaces) > 1
     for ns in namespaces:
-        thread = Thread(namespace=ns, subjectdate=dt, recentdate=dt, subject=subject)
-        add_fake_message(db.session, ns.id, thread, received_date=dt, subject=subject)
+        thread = Thread(
+            namespace=ns, subjectdate=dt, recentdate=dt, subject=subject
+        )
+        add_fake_message(
+            db.session, ns.id, thread, received_date=dt, subject=subject
+        )
         db.session.add(Block(namespace=ns, filename=subject))
     db.session.commit()
 

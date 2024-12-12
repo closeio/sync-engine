@@ -1,4 +1,5 @@
-"""create gmail account to refresh token id table
+"""
+create gmail account to refresh token id table
 
 Revision ID: 2ac4e3c4e049
 Revises: 3a58d466f61d
@@ -15,7 +16,7 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "gmailauthcredentials",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
@@ -45,5 +46,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("gmailauthcredentials")

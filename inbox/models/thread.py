@@ -1,7 +1,6 @@
 import datetime
 import itertools
 from collections import defaultdict
-from typing import Optional
 
 from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import (
@@ -26,7 +25,9 @@ from inbox.util.misc import cleanup_subject
 log = get_logger()
 
 
-class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtMixin):
+class Thread(
+    MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtMixin
+):
     """
     Threads are a first-class object in Nylas. This thread aggregates
     the relevant thread metadata from elsewhere so that clients can only
@@ -41,7 +42,9 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
 
     API_OBJECT_NAME = "thread"
 
-    namespace_id = Column(ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False)
+    namespace_id = Column(
+        ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False
+    )
     namespace = relationship(
         "Namespace",
         backref=backref("threads", passive_deletes=True),
@@ -58,12 +61,12 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
     version = Column(Integer, nullable=True, server_default="0")
 
     @validates("subject")
-    def compute_cleaned_up_subject(self, key, value):
+    def compute_cleaned_up_subject(self, key, value):  # noqa: ANN201
         self._cleaned_subject = cleanup_subject(value)
         return value
 
     @validates("messages")
-    def update_from_message(self, k, message):
+    def update_from_message(self, k, message):  # noqa: ANN201
         with object_session(self).no_autoflush:
             if message.is_draft:
                 # Don't change subjectdate, recentdate, or unread/unseen based
@@ -81,8 +84,8 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
             return message
 
     @property
-    def most_recent_received_date(self):
-        received_recent_date: Optional[datetime.datetime] = None
+    def most_recent_received_date(self):  # noqa: ANN201
+        received_recent_date: datetime.datetime | None = None
         for m in self.messages:
             if (
                 all(
@@ -92,15 +95,21 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
                 )
                 and not m.is_draft
                 and not m.is_sent
-                and (not received_recent_date or m.received_date > received_recent_date)
+                and (
+                    not received_recent_date
+                    or m.received_date > received_recent_date
+                )
             ):
                 received_recent_date = m.received_date
 
         if not received_recent_date:
-            sorted_messages = sorted(self.messages, key=lambda m: m.received_date)
+            sorted_messages = sorted(
+                self.messages, key=lambda m: m.received_date
+            )
             if not sorted_messages:
                 log.warning(
-                    "Thread does not have associated messages", thread_id=self.id
+                    "Thread does not have associated messages",
+                    thread_id=self.id,
                 )
                 return None
             received_recent_date = sorted_messages[-1].received_date
@@ -108,11 +117,12 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
         return received_recent_date
 
     @property
-    def most_recent_sent_date(self):
-        """This is the timestamp of the most recently *sent* message on this
+    def most_recent_sent_date(self):  # noqa: ANN201
+        """
+        This is the timestamp of the most recently *sent* message on this
         thread, as decided by whether the message is in the sent folder or
         not. Clients can use this to properly sort the Sent view.
-        """
+        """  # noqa: D404
         sent_recent_date = None
         sorted_messages = sorted(
             self.messages, key=lambda m: m.received_date, reverse=True
@@ -123,25 +133,26 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
             ] or (message.is_draft and message.is_sent):
                 sent_recent_date = message.received_date
                 return sent_recent_date
+        return None
 
     @property
-    def unread(self):
+    def unread(self) -> bool:
         return not all(m.is_read for m in self.messages if not m.is_draft)
 
     @property
-    def starred(self):
+    def starred(self):  # noqa: ANN201
         return any(m.is_starred for m in self.messages if not m.is_draft)
 
     @property
-    def has_attachments(self):
+    def has_attachments(self):  # noqa: ANN201
         return any(m.attachments for m in self.messages if not m.is_draft)
 
     @property
-    def versioned_relationships(self):
+    def versioned_relationships(self):  # noqa: ANN201
         return ["messages"]
 
     @property
-    def participants(self):
+    def participants(self):  # noqa: ANN201
         """
         Different messages in the thread may reference the same email
         address with different phrases. We partially deduplicate: if the same
@@ -166,7 +177,7 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
         return p
 
     @property
-    def drafts(self):
+    def drafts(self):  # noqa: ANN201
         """
         Return all drafts on this thread that don't have later revisions.
 
@@ -174,22 +185,22 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
         return [m for m in self.messages if m.is_draft]
 
     @property
-    def attachments(self):
+    def attachments(self):  # noqa: ANN201
         return any(m.attachments for m in self.messages)
 
     @property
-    def account(self):
+    def account(self):  # noqa: ANN201
         return self.namespace.account
 
     @property
-    def categories(self):
+    def categories(self):  # noqa: ANN201
         categories = set()
         for m in self.messages:
             categories.update(m.categories)
         return categories
 
     @classmethod
-    def api_loading_options(cls, expand=False):
+    def api_loading_options(cls, expand=False):  # noqa: ANN206
         message_columns = [
             "public_id",
             "is_draft",
@@ -218,10 +229,12 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
             .load_only(*message_columns)
             .joinedload("messagecategories")
             .joinedload("category"),
-            subqueryload(Thread.messages).joinedload("parts").joinedload("block"),
+            subqueryload(Thread.messages)
+            .joinedload("parts")
+            .joinedload("block"),
         )
 
-    def mark_for_deletion(self):
+    def mark_for_deletion(self) -> None:
         """
         Mark this message to be deleted by an asynchronous delete
         handler.
@@ -241,7 +254,9 @@ class Thread(MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtM
 Index("ix_thread_subject", Thread.subject, mysql_length=80)
 
 # For async deletion.
-Index("ix_thread_namespace_id_deleted_at", Thread.namespace_id, Thread.deleted_at)
+Index(
+    "ix_thread_namespace_id_deleted_at", Thread.namespace_id, Thread.deleted_at
+)
 
 # For fetch_corresponding_thread.
 Index(

@@ -1,4 +1,5 @@
-"""add account.name column
+"""
+add account.name column
 
 Revision ID: 22d076f48b88
 Revises: 4011b943a24d
@@ -10,14 +11,18 @@ Create Date: 2014-10-14 18:40:50.160707
 revision = "22d076f48b88"
 down_revision = "4011b943a24d"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "account",
-        sa.Column("name", sa.String(length=256), server_default="", nullable=False),
+        sa.Column(
+            "name", sa.String(length=256), server_default="", nullable=False
+        ),
     )
     conn = op.get_bind()
     conn.execute(
@@ -34,5 +39,5 @@ def upgrade():
     op.drop_column("outlookaccount", "name")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception()

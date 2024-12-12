@@ -1,4 +1,5 @@
-"""extend size of eas_folder_id and eas_parent_id
+"""
+extend size of eas_folder_id and eas_parent_id
 
 Revision ID: 211e93aff1e1
 Revises: 2493281d621
@@ -15,14 +16,14 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
 
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     if "easfoldersyncstatus" in Base.metadata.tables:
@@ -34,14 +35,14 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
 
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     if "easfoldersyncstatus" in Base.metadata.tables:

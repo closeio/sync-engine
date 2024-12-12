@@ -10,7 +10,7 @@ class SuccessfulThread(InterruptibleThread):
         pass
 
 
-def test_successful_states():
+def test_successful_states() -> None:
     thread = SuccessfulThread()
 
     assert thread.ready() is False
@@ -30,7 +30,7 @@ class FailingThread(InterruptibleThread):
         raise ValueError("This is a test exception")
 
 
-def test_failing_states():
+def test_failing_states() -> None:
     thread = FailingThread()
 
     assert thread.ready() is False
@@ -51,7 +51,7 @@ class SleepingThread(InterruptibleThread):
             interruptible_threading.sleep(1)
 
 
-def test_sleeping_can_be_interrupted():
+def test_sleeping_can_be_interrupted() -> None:
     thread = SleepingThread()
     thread.start()
     thread.kill()
@@ -67,7 +67,7 @@ class WaitingOnEmptyQueue(InterruptibleThread):
         interruptible_threading.queue_get(empty_queue)
 
 
-def test_waiting_on_empty_queue_can_be_interrupted():
+def test_waiting_on_empty_queue_can_be_interrupted() -> None:
     thread = WaitingOnEmptyQueue()
     thread.start()
     thread.kill()
@@ -83,7 +83,7 @@ class CheckInterruptedThread(InterruptibleThread):
             interruptible_threading.check_interrupted()
 
 
-def test_check_interrupted_can_be_interrupted():
+def test_check_interrupted_can_be_interrupted() -> None:
     thread = CheckInterruptedThread()
     thread.start()
     thread.kill()
@@ -94,7 +94,7 @@ def test_check_interrupted_can_be_interrupted():
 
 
 class TimeoutThread(InterruptibleThread):
-    def __init__(self):
+    def __init__(self) -> None:
         self.executed_to_end = False
 
         super().__init__()
@@ -106,7 +106,7 @@ class TimeoutThread(InterruptibleThread):
         self.executed_to_end = True
 
 
-def test_timeout_interrupts_sleep():
+def test_timeout_interrupts_sleep() -> None:
     thread = TimeoutThread()
 
     start = time.monotonic()
@@ -123,7 +123,7 @@ def test_timeout_interrupts_sleep():
 
 
 class SeveralTimeoutsThread(InterruptibleThread):
-    def __init__(self):
+    def __init__(self) -> None:
         self.executed_to_end = False
 
         super().__init__()
@@ -138,7 +138,7 @@ class SeveralTimeoutsThread(InterruptibleThread):
         self.executed_to_end = True
 
 
-def test_several_timeouts_interrupts_sleep():
+def test_several_timeouts_interrupts_sleep() -> None:
     thread = SeveralTimeoutsThread()
     thread.start()
     thread.join()

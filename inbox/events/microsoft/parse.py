@@ -3,7 +3,7 @@ import email.utils
 import enum
 import itertools
 import json
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, cast
 
 import ciso8601
 import dateutil.rrule
@@ -46,6 +46,7 @@ def convert_microsoft_timezone_to_olson(timezone_id: str) -> str:
 
     Returns:
         Olson timezone id
+
     """
     return windows_timezones.get(timezone_id, timezone_id)
 
@@ -59,6 +60,7 @@ def get_microsoft_tzinfo(timezone_id: str) -> pytz.tzinfo.BaseTzInfo:
 
     Returns:
         TzInfo object
+
     """
     timezone_id = convert_microsoft_timezone_to_olson(timezone_id)
 
@@ -68,7 +70,9 @@ def get_microsoft_tzinfo(timezone_id: str) -> pytz.tzinfo.BaseTzInfo:
 MAX_DATETIME = datetime.datetime(9999, 12, 31, 23, 59, 59)
 
 
-def parse_msgraph_datetime_tz_as_utc(datetime_tz: MsGraphDateTimeTimeZone):
+def parse_msgraph_datetime_tz_as_utc(  # noqa: ANN201
+    datetime_tz: MsGraphDateTimeTimeZone,
+):
     """
     Parse Microsoft Graph DateTimeTimeZone and return UTC datetime.
 
@@ -77,6 +81,7 @@ def parse_msgraph_datetime_tz_as_utc(datetime_tz: MsGraphDateTimeTimeZone):
 
     Returns:
         timezone-aware UTC datetime
+
     """
     tzinfo = get_microsoft_tzinfo(datetime_tz["timeZone"])
 
@@ -96,8 +101,7 @@ def parse_msgraph_datetime_tz_as_utc(datetime_tz: MsGraphDateTimeTimeZone):
     # {'dateTime': '9999-12-31T23:59:59.9999999', 'timeZone': 'UTC'}
     # This cannot be saved in MySQL as it overflows and is not valid anyway.
     # We will truncate it to MAX_DATETIME.
-    if dt > MAX_DATETIME:
-        dt = MAX_DATETIME
+    dt = min(dt, MAX_DATETIME)
 
     return tzinfo.localize(dt).astimezone(pytz.UTC)
 
@@ -109,7 +113,7 @@ def parse_msgraph_datetime_tz_as_utc(datetime_tz: MsGraphDateTimeTimeZone):
 CUSTOM_TIMEZONE = "tzone://Microsoft/Custom"
 
 
-def get_recurrence_timezone(event: MsGraphEvent) -> Optional[str]:
+def get_recurrence_timezone(event: MsGraphEvent) -> str | None:
     """
     Find out recurrence timezone.
 
@@ -125,6 +129,7 @@ def get_recurrence_timezone(event: MsGraphEvent) -> Optional[str]:
 
     Returns:
         Timezone identifier
+
     """
     assert event["recurrence"]
 
@@ -161,12 +166,14 @@ def dump_datetime_as_msgraph_datetime_tz(
 
     Returns:
         Microsoft Graph DateTimeTimeZone value
+
     """
     assert dt.tzinfo == pytz.UTC
 
     # Mimick Microsoft and always return 7 fractional digits
     return {
-        "dateTime": dt.replace(tzinfo=None, microsecond=0).isoformat() + ".0000000",
+        "dateTime": dt.replace(tzinfo=None, microsecond=0).isoformat()
+        + ".0000000",
         "timeZone": "UTC",
     }
 
@@ -189,6 +196,7 @@ def combine_msgraph_recurrence_date_with_time(
 
     Returns:
         Timezone-aware UTC datetime
+
     """
     parsed_date = datetime.date.fromisoformat(date)
     extended_datetime = datetime.datetime.combine(parsed_date, mode.value)
@@ -197,7 +205,7 @@ def combine_msgraph_recurrence_date_with_time(
 
 def parse_msgraph_range_start_and_until(
     event: MsGraphEvent,
-) -> Tuple[datetime.datetime, Optional[datetime.datetime]]:
+) -> tuple[datetime.datetime, datetime.datetime | None]:
     """
     Parse Microsoft Graph Recurrence Range start and end dates.
 
@@ -209,12 +217,13 @@ def parse_msgraph_range_start_and_until(
 
     Returns:
         Tuple of timezone-aware UTC datetimes
+
     """
     assert event["recurrence"]
     recurrence_timezone = get_recurrence_timezone(event)
     assert recurrence_timezone
     tzinfo = get_microsoft_tzinfo(recurrence_timezone)
-    range = event["recurrence"]["range"]
+    range = event["recurrence"]["range"]  # noqa: A001
 
     start_datetime = combine_msgraph_recurrence_date_with_time(
         range["startDate"], tzinfo, CombineMode.START
@@ -232,8 +241,8 @@ def parse_msgraph_range_start_and_until(
     return start_datetime, until_datetime
 
 
-MS_GRAPH_PATTERN_TYPE_TO_ICAL_FREQ_INTERVAL_MULTIPLIER: Dict[
-    MsGraphRecurrencePatternType, Tuple[ICalFreq, int]
+MS_GRAPH_PATTERN_TYPE_TO_ICAL_FREQ_INTERVAL_MULTIPLIER: dict[
+    MsGraphRecurrencePatternType, tuple[ICalFreq, int]
 ] = {
     "daily": ("DAILY", 1),
     "weekly": ("WEEKLY", 1),
@@ -245,7 +254,7 @@ MS_GRAPH_PATTERN_TYPE_TO_ICAL_FREQ_INTERVAL_MULTIPLIER: Dict[
     "relativeYearly": ("MONTHLY", 12),
 }
 
-MS_GRAPH_TO_ICAL_DAY: Dict[MsGraphDayOfWeek, ICalDayOfWeek] = {
+MS_GRAPH_TO_ICAL_DAY: dict[MsGraphDayOfWeek, ICalDayOfWeek] = {
     "sunday": "SU",
     "monday": "MO",
     "tuesday": "TU",
@@ -255,7 +264,7 @@ MS_GRAPH_TO_ICAL_DAY: Dict[MsGraphDayOfWeek, ICalDayOfWeek] = {
     "saturday": "SA",
 }
 
-MS_GRAPH_TO_ICAL_INDEX: Dict[MsGraphWeekIndex, int] = {
+MS_GRAPH_TO_ICAL_INDEX: dict[MsGraphWeekIndex, int] = {
     "first": 1,
     "second": 2,
     "third": 3,
@@ -265,7 +274,14 @@ MS_GRAPH_TO_ICAL_INDEX: Dict[MsGraphWeekIndex, int] = {
 
 # It's not strictly necessary to serialize RRULEs this way but it's common
 # to do it in this order and it also makes testing easier.
-RRULE_SERIALIZATION_ORDER = ["FREQ", "INTERVAL", "WKST", "BYDAY", "UNTIL", "COUNT"]
+RRULE_SERIALIZATION_ORDER = [
+    "FREQ",
+    "INTERVAL",
+    "WKST",
+    "BYDAY",
+    "UNTIL",
+    "COUNT",
+]
 
 
 def convert_msgraph_patterned_recurrence_to_ical_rrule(
@@ -288,10 +304,14 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
 
     Returns:
         iCal RRULE string
+
     """
     assert event["recurrence"]
     patterned_recurrence = event["recurrence"]
-    pattern, range = patterned_recurrence["pattern"], patterned_recurrence["range"]
+    pattern, range = (  # noqa: A001
+        patterned_recurrence["pattern"],
+        patterned_recurrence["range"],
+    )
 
     # first handle FREQ (Frequency), INTERVAL and BYDAY
     freq, multiplier = MS_GRAPH_PATTERN_TYPE_TO_ICAL_FREQ_INTERVAL_MULTIPLIER[
@@ -299,7 +319,7 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
     ]
     interval = pattern["interval"] * multiplier
 
-    rrule: Dict[str, str] = {"FREQ": freq}
+    rrule: dict[str, str] = {"FREQ": freq}
     if interval != 1:
         rrule["INTERVAL"] = str(interval)
 
@@ -307,7 +327,8 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
         pass  # only FREQ and INTERVAL
     elif pattern["type"] == "weekly":
         rrule["BYDAY"] = ",".join(
-            MS_GRAPH_TO_ICAL_DAY[day_of_week] for day_of_week in pattern["daysOfWeek"]
+            MS_GRAPH_TO_ICAL_DAY[day_of_week]
+            for day_of_week in pattern["daysOfWeek"]
         )
     elif pattern["type"] in ["relativeMonthly", "relativeYearly"]:
         rrule["BYDAY"] = ",".join(
@@ -317,7 +338,9 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
         )
     else:
         # Should be unreachable
-        raise ValueError(f"Unexpected value {pattern['type']!r} for pattern type")
+        raise ValueError(
+            f"Unexpected value {pattern['type']!r} for pattern type"
+        )
 
     # WKST (Week start) is only significant when BYDAY is also present.
     # See WKST Rule Notes in
@@ -355,7 +378,9 @@ def convert_msgraph_patterned_recurrence_to_ical_rrule(
         rrule["COUNT"] = str(count)
 
     return "RRULE:" + ";".join(
-        f"{key}={rrule[key]}" for key in RRULE_SERIALIZATION_ORDER if key in rrule
+        f"{key}={rrule[key]}"
+        for key in RRULE_SERIALIZATION_ORDER
+        if key in rrule
     )
 
 
@@ -380,6 +405,7 @@ def synthesize_canceled_occurrence(
 
     Returns:
         Canceled ocurrence
+
     """
     assert master_event["type"] == "seriesMaster"
     assert start_datetime.tzinfo == pytz.UTC
@@ -395,7 +421,9 @@ def synthesize_canceled_occurrence(
     duration = parse_msgraph_datetime_tz_as_utc(
         master_event["end"]
     ) - parse_msgraph_datetime_tz_as_utc(master_event["start"])
-    cancellation_end = dump_datetime_as_msgraph_datetime_tz(start_datetime + duration)
+    cancellation_end = dump_datetime_as_msgraph_datetime_tz(
+        start_datetime + duration
+    )
 
     result = {
         **master_event,
@@ -413,9 +441,9 @@ def synthesize_canceled_occurrence(
 
 def calculate_exception_and_canceled_occurrences(
     master_event: MsGraphEvent,
-    event_occurrences: List[MsGraphEvent],
+    event_occurrences: list[MsGraphEvent],
     end: datetime.datetime,
-) -> Tuple[List[MsGraphEvent], List[MsGraphEvent]]:
+) -> tuple[list[MsGraphEvent], list[MsGraphEvent]]:
     """
     Given master event recurrence rule and occurences find exception occurrences
     and synthesize canceled occurences.
@@ -428,6 +456,7 @@ def calculate_exception_and_canceled_occurrences(
 
     Returns:
         Tuple containing exception occurrences and canceled occurrences
+
     """
     assert master_event["type"] == "seriesMaster"
     assert master_event["recurrence"]
@@ -436,7 +465,9 @@ def calculate_exception_and_canceled_occurrences(
     recurrence_timezone = get_recurrence_timezone(master_event)
     assert recurrence_timezone
     recurrence_tzinfo = get_microsoft_tzinfo(recurrence_timezone)
-    master_start_datetime = parse_msgraph_datetime_tz_as_utc(master_event["start"])
+    master_start_datetime = parse_msgraph_datetime_tz_as_utc(
+        master_event["start"]
+    )
 
     # Note that datetimes need to be expanded in naive datetimes
     # to simulate the way humans normally think. If we expanded in
@@ -473,13 +504,14 @@ def calculate_exception_and_canceled_occurrences(
 
     canceled_datetimes = master_datetimes - occurrence_datetimes
     canceled_occurrences = [
-        synthesize_canceled_occurrence(master_event, dt) for dt in canceled_datetimes
+        synthesize_canceled_occurrence(master_event, dt)
+        for dt in canceled_datetimes
     ]
 
     return exception_occurrences, canceled_occurrences
 
 
-MS_GRAPH_TO_SYNC_ENGINE_STATUS_MAP: Dict[MsGraphResponse, str] = {
+MS_GRAPH_TO_SYNC_ENGINE_STATUS_MAP: dict[MsGraphResponse, str] = {
     "none": "noreply",
     "notResponded": "noreply",
     "declined": "no",
@@ -489,7 +521,7 @@ MS_GRAPH_TO_SYNC_ENGINE_STATUS_MAP: Dict[MsGraphResponse, str] = {
 }
 
 
-def get_event_participant(attendee: MsGraphAttendee) -> Dict[str, Any]:
+def get_event_participant(attendee: MsGraphAttendee) -> dict[str, Any]:
     """
     Convert Microsoft Graph attendee into sync-engine participant.
 
@@ -498,16 +530,19 @@ def get_event_participant(attendee: MsGraphAttendee) -> Dict[str, Any]:
 
     Returns:
         Sync-engine participant dictionary
+
     """
     return {
         "email": attendee["emailAddress"].get("address"),
         "name": attendee["emailAddress"]["name"],
-        "status": MS_GRAPH_TO_SYNC_ENGINE_STATUS_MAP[attendee["status"]["response"]],
+        "status": MS_GRAPH_TO_SYNC_ENGINE_STATUS_MAP[
+            attendee["status"]["response"]
+        ],
         "notes": None,
     }
 
 
-def get_event_location(event: MsGraphEvent) -> Optional[str]:
+def get_event_location(event: MsGraphEvent) -> str | None:
     """
     Figure out event location.
 
@@ -522,6 +557,7 @@ def get_event_location(event: MsGraphEvent) -> Optional[str]:
 
     Returns:
         String representing event location
+
     """
     online_meeting = event.get("onlineMeeting")
     join_url = online_meeting.get("joinUrl") if online_meeting else None
@@ -546,7 +582,7 @@ def get_event_location(event: MsGraphEvent) -> Optional[str]:
     return None
 
 
-def get_event_description(event: MsGraphEvent) -> Optional[str]:
+def get_event_description(event: MsGraphEvent) -> str | None:
     """
     Get event description as plain text.
 
@@ -559,6 +595,7 @@ def get_event_description(event: MsGraphEvent) -> Optional[str]:
 
     Returns:
         Plain text string with all the HTML removed
+
     """
     if not event["body"]:
         return None
@@ -574,14 +611,16 @@ def get_event_description(event: MsGraphEvent) -> Optional[str]:
     return content.strip() or None
 
 
-MS_GRAPH_SENSITIVITY_TO_VISIBILITY_MAP: Dict[MsGraphSensitivity, Optional[str]] = {
+MS_GRAPH_SENSITIVITY_TO_VISIBILITY_MAP: dict[
+    MsGraphSensitivity, str | None
+] = {
     "private": "private",
     "normal": None,
     "personal": "private",
     "confidential": "private",
 }
 
-MS_GRAPH_SHOW_AS_TO_BUSY_MAP: Dict[MsGraphShowAs, bool] = {
+MS_GRAPH_SHOW_AS_TO_BUSY_MAP: dict[MsGraphShowAs, bool] = {
     "free": False,
     "tentative": True,
     "busy": True,
@@ -601,6 +640,7 @@ def validate_event(event: MsGraphEvent) -> bool:
 
     Arguments:
         event: Microsoft Graph event
+
     """
     if not event["recurrence"]:
         return True
@@ -618,7 +658,10 @@ def validate_event(event: MsGraphEvent) -> bool:
 
 
 def parse_event(
-    event: MsGraphEvent, *, read_only: bool, master_event_uid: Optional[str] = None
+    event: MsGraphEvent,
+    *,
+    read_only: bool,
+    master_event_uid: str | None = None,
 ) -> Event:
     """
     Parse event coming from Microsoft Graph API as ORM object.
@@ -632,20 +675,23 @@ def parse_event(
 
     Returns:
         ORM event
+
     """
     assert event["type"] != "occurrence"
 
-    if not master_event_uid or event["type"] in ["singleInstance", "seriesMaster"]:
-        assert not master_event_uid and event["type"] in [
-            "singleInstance",
-            "seriesMaster",
-        ]
+    if not master_event_uid or event["type"] in [
+        "singleInstance",
+        "seriesMaster",
+    ]:
+        assert not master_event_uid
+        assert event["type"] in ["singleInstance", "seriesMaster"]
 
-    if master_event_uid or event["type"] in ["exception", "synthesizedCancellation"]:
-        assert master_event_uid and event["type"] in [
-            "exception",
-            "synthesizedCancellation",
-        ]
+    if master_event_uid or event["type"] in [
+        "exception",
+        "synthesizedCancellation",
+    ]:
+        assert master_event_uid
+        assert event["type"] in ["exception", "synthesizedCancellation"]
 
     uid = event["id"]
     raw_data = json.dumps(event)
@@ -653,9 +699,9 @@ def parse_event(
     start = parse_msgraph_datetime_tz_as_utc(event["start"])
     end = parse_msgraph_datetime_tz_as_utc(event["end"])
     all_day = event["isAllDay"]
-    last_modified = ciso8601.parse_datetime(event["lastModifiedDateTime"]).replace(
-        microsecond=0
-    )
+    last_modified = ciso8601.parse_datetime(
+        event["lastModifiedDateTime"]
+    ).replace(microsecond=0)
     description = get_event_description(event)
     location = get_event_location(event)
     busy = MS_GRAPH_SHOW_AS_TO_BUSY_MAP[event["showAs"]]
@@ -682,7 +728,9 @@ def parse_event(
     visibility = MS_GRAPH_SENSITIVITY_TO_VISIBILITY_MAP[event["sensitivity"]]
     if event["type"] == "seriesMaster":
         assert event["recurrence"]
-        recurrence = [convert_msgraph_patterned_recurrence_to_ical_rrule(event)]
+        recurrence = [
+            convert_msgraph_patterned_recurrence_to_ical_rrule(event)
+        ]
         recurrence_timezone = get_recurrence_timezone(event)
         assert recurrence_timezone
         start_tz = convert_microsoft_timezone_to_olson(recurrence_timezone)
@@ -731,6 +779,7 @@ def parse_calendar(calendar: MsGraphCalendar) -> Calendar:
 
     Returns:
         ORM calendar
+
     """
     uid = calendar["id"]
     name = calendar["name"]

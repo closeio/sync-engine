@@ -20,7 +20,9 @@ from inbox.sqlalchemy_ext.util import JSON
 log = get_logger()
 
 
-def schedule_action(func_name, record, namespace_id, db_session, **kwargs):
+def schedule_action(
+    func_name, record, namespace_id, db_session, **kwargs
+) -> None:
     # Ensure that the record's id is non-null
     db_session.flush()
 
@@ -54,20 +56,26 @@ def schedule_action(func_name, record, namespace_id, db_session, **kwargs):
 
 class ActionLog(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     namespace_id = Column(
-        ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False, index=True
+        ForeignKey(Namespace.id, ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     namespace = relationship("Namespace")
 
     action = Column(Text(40), nullable=False)
     record_id = Column(BigInteger, nullable=False)
     table_name = Column(Text(40), nullable=False)
-    status = Column(Enum("pending", "successful", "failed"), server_default="pending")
+    status = Column(
+        Enum("pending", "successful", "failed"), server_default="pending"
+    )
     retries = Column(Integer, server_default="0", nullable=False)
 
     extra_args = Column(JSON, nullable=True)
 
     @classmethod
-    def create(cls, action, table_name, record_id, namespace_id, extra_args):
+    def create(  # noqa: ANN206
+        cls, action, table_name, record_id, namespace_id, extra_args
+    ):
         return cls(
             action=action,
             table_name=table_name,

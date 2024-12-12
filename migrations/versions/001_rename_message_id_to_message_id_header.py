@@ -1,4 +1,5 @@
-"""rename message_id to message_id_header
+"""
+rename message_id to message_id_header
 
 Revision ID: 217431caacc7
 Revises: 2605b23e1fe6
@@ -13,18 +14,20 @@ down_revision = "2605b23e1fe6"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.execute(
         "ALTER TABLE message CHANGE message_id message_id_header VARCHAR(255) NULL"
     )
 
 
-def downgrade():
+def downgrade() -> None:
     # First make all current NULL values actually 0. This isn't a great solution, but it works.
     print(
         "WARNING: This removes data about messages that do not contain a Message-Id header!"
     )
-    op.execute("UPDATE message SET message_id_header=0 WHERE message_id_header IS NULL")
+    op.execute(
+        "UPDATE message SET message_id_header=0 WHERE message_id_header IS NULL"
+    )
     op.execute(
         "ALTER TABLE message CHANGE message_id_header message_id VARCHAR(255) NOT NULL"
     )

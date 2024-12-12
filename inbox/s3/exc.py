@@ -11,6 +11,7 @@ class EmailDeletedException(EmailFetchException):
 
 
 class TemporaryEmailFetchException(EmailFetchException):
-    """A class for temporary errors when trying to fetch emails.
+    """
+    A class for temporary errors when trying to fetch emails.
     Exchange notably seems to need warming up before fetching data.
     """

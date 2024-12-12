@@ -1,6 +1,4 @@
-from typing import List, Literal, Optional, TypedDict
-
-from typing_extensions import NotRequired
+from typing import Literal, NotRequired, TypedDict
 
 
 class MsGraphDateTimeTimeZone(TypedDict):
@@ -15,7 +13,13 @@ class MsGraphDateTimeTimeZone(TypedDict):
 
 
 MsGraphDayOfWeek = Literal[
-    "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
 ]
 
 ICalDayOfWeek = Literal["SU", "MO", "TU", "WE", "TH", "FR", "SA"]
@@ -44,7 +48,7 @@ class MsGraphRecurrencePattern(TypedDict):
     """
 
     dayOfMonth: int
-    daysOfWeek: List[MsGraphDayOfWeek]
+    daysOfWeek: list[MsGraphDayOfWeek]
     firstDayOfWeek: MsGraphDayOfWeek
     index: MsGraphWeekIndex
     interval: int
@@ -80,7 +84,9 @@ class MsGraphPatternedRecurrence(TypedDict):
     range: MsGraphRecurrenceRange
 
 
-MsGraphEventType = Literal["singleInstance", "occurrence", "exception", "seriesMaster"]
+MsGraphEventType = Literal[
+    "singleInstance", "occurrence", "exception", "seriesMaster"
+]
 
 
 class MsGraphEmailAddress(TypedDict):
@@ -89,7 +95,12 @@ class MsGraphEmailAddress(TypedDict):
 
 
 MsGraphResponse = Literal[
-    "none", "organizer", "tentativelyAccepted", "accepted", "declined", "notResponded"
+    "none",
+    "organizer",
+    "tentativelyAccepted",
+    "accepted",
+    "declined",
+    "notResponded",
 ]
 
 
@@ -121,7 +132,7 @@ class MsGraphOnelineMeetingInfo(TypedDict):
     https://learn.microsoft.com/en-us/graph/api/resources/onlinemeetinginfo
     """
 
-    joinUrl: Optional[str]
+    joinUrl: str | None
 
 
 class MsGraphPhysicalAddress(TypedDict):
@@ -195,17 +206,17 @@ class MsGraphEvent(TypedDict):
     end: MsGraphDateTimeTimeZone
     lastModifiedDateTime: str
     showAs: MsGraphShowAs
-    organizer: Optional[MsGraphRecipient]
+    organizer: MsGraphRecipient | None
     sensitivity: MsGraphSensitivity
-    subject: Optional[str]
+    subject: str | None
     isAllDay: bool
     isCancelled: bool
     isOrganizer: bool
-    recurrence: Optional[MsGraphPatternedRecurrence]
-    attendees: List[MsGraphAttendee]
-    onlineMeeting: Optional[MsGraphOnelineMeetingInfo]
-    locations: List[MsGraphLocation]
-    body: Optional[MsGraphItemBody]
+    recurrence: MsGraphPatternedRecurrence | None
+    attendees: list[MsGraphAttendee]
+    onlineMeeting: MsGraphOnelineMeetingInfo | None
+    locations: list[MsGraphLocation]
+    body: MsGraphItemBody | None
     originalStartTimeZone: str
     originalEndTimeZone: str
 
@@ -252,7 +263,7 @@ class MsGraphChangeNotificationCollection(TypedDict):
     https://learn.microsoft.com/en-us/graph/api/resources/changenotificationcollection
     """
 
-    value: List[MsGraphChangeNotification]
+    value: list[MsGraphChangeNotification]
 
 
 class MsGraphSubscription(TypedDict):

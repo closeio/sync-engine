@@ -1,4 +1,5 @@
-"""add attachment tag
+"""
+add attachment tag
 
 Revision ID: 294200d809c8
 Revises:10db12da2005
@@ -14,7 +15,7 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.models import Namespace
     from inbox.models.session import session_scope
 
@@ -31,7 +32,9 @@ def upgrade():
         [
             (namespace_id, tag_id)
             for namespace_id, tag_id in conn.execute(
-                text("SELECT namespace_id, id FROM tag WHERE name = 'attachment'")
+                text(
+                    "SELECT namespace_id, id FROM tag WHERE name = 'attachment'"
+                )
             )
         ]
     )
@@ -81,6 +84,6 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade() -> None:
     # No actual schema changes, don't need to do anything to roll back.
     pass

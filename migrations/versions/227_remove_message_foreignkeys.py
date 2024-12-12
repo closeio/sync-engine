@@ -1,4 +1,5 @@
-"""Remove Message ForeignKeys
+"""
+Remove Message ForeignKeys
 
 Revision ID: 17b147c1d53c
 Revises: 2dbf6da0775b
@@ -14,14 +15,14 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("ALTER TABLE message DROP FOREIGN KEY message_ibfk_1"))
     conn.execute(text("ALTER TABLE message DROP FOREIGN KEY message_ibfk_2"))
     conn.execute(text("ALTER TABLE message DROP FOREIGN KEY message_ibfk_3"))
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         text(

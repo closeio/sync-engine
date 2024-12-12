@@ -1,4 +1,5 @@
-"""drop_gmailaccount_fields
+"""
+drop_gmailaccount_fields
 
 Revision ID: 32df3d8ff73e
 Revises: 50407c7fe030
@@ -15,7 +16,7 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("gmailaccount", "picture")
     op.drop_column("gmailaccount", "g_id")
     op.drop_column("gmailaccount", "family_name")
@@ -30,13 +31,14 @@ def upgrade():
     op.drop_column("gmailaccount", "g_id_token")
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         "gmailaccount",
         sa.Column("g_id_token", mysql.VARCHAR(length=2048), nullable=True),
     )
     op.add_column(
-        "gmailaccount", sa.Column("link", mysql.VARCHAR(length=256), nullable=True)
+        "gmailaccount",
+        sa.Column("link", mysql.VARCHAR(length=256), nullable=True),
     )
     op.add_column(
         "gmailaccount",
@@ -47,7 +49,8 @@ def downgrade():
         sa.Column("given_name", mysql.VARCHAR(length=256), nullable=True),
     )
     op.add_column(
-        "gmailaccount", sa.Column("g_user_id", mysql.VARCHAR(length=32), nullable=True)
+        "gmailaccount",
+        sa.Column("g_user_id", mysql.VARCHAR(length=32), nullable=True),
     )
     op.add_column(
         "gmailaccount",
@@ -58,18 +61,22 @@ def downgrade():
         sa.Column("home_domain", mysql.VARCHAR(length=256), nullable=True),
     )
     op.add_column(
-        "gmailaccount", sa.Column("gender", mysql.VARCHAR(length=16), nullable=True)
+        "gmailaccount",
+        sa.Column("gender", mysql.VARCHAR(length=16), nullable=True),
     )
     op.add_column(
-        "gmailaccount", sa.Column("locale", mysql.VARCHAR(length=8), nullable=True)
+        "gmailaccount",
+        sa.Column("locale", mysql.VARCHAR(length=8), nullable=True),
     )
     op.add_column(
         "gmailaccount",
         sa.Column("family_name", mysql.VARCHAR(length=256), nullable=True),
     )
     op.add_column(
-        "gmailaccount", sa.Column("g_id", mysql.VARCHAR(length=32), nullable=True)
+        "gmailaccount",
+        sa.Column("g_id", mysql.VARCHAR(length=32), nullable=True),
     )
     op.add_column(
-        "gmailaccount", sa.Column("picture", mysql.VARCHAR(length=1024), nullable=True)
+        "gmailaccount",
+        sa.Column("picture", mysql.VARCHAR(length=1024), nullable=True),
     )

@@ -1,4 +1,5 @@
-"""Add Folder.identifier
+"""
+Add Folder.identifier
 
 Revision ID: 159607944f52
 Revises: 4b07b67498e1
@@ -10,11 +11,13 @@ Create Date: 2014-09-14 08:43:59.410902
 revision = "159607944f52"
 down_revision = "63dc7f205da"
 
+from typing import Never
+
 from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.models.constants import MAX_INDEXABLE_LENGTH
 
     conn = op.get_bind()
@@ -72,5 +75,5 @@ def upgrade():
     # We're not going to back-fix tags on threads.
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("Can't.")

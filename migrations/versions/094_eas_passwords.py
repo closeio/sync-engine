@@ -1,4 +1,5 @@
-"""EAS passwords
+"""
+EAS passwords
 
 Revision ID: 427812c1e849
 Revises:159607944f52
@@ -16,7 +17,7 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -27,9 +28,10 @@ def upgrade():
     # Do not define foreign key constraint here; that's done for all account
     # tables in the next migration.
     op.add_column(
-        "easaccount", sa.Column("password_id", sa.Integer(), sa.ForeignKey("secret.id"))
+        "easaccount",
+        sa.Column("password_id", sa.Integer(), sa.ForeignKey("secret.id")),
     )
-    Base = sa.ext.declarative.declarative_base()
+    Base = sa.ext.declarative.declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
     from inbox.models.session import session_scope
 
@@ -64,7 +66,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)

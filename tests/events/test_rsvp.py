@@ -2,7 +2,7 @@ from inbox.events.ical import rsvp_recipient
 from inbox.models.event import Event
 
 
-def test_rsvp_recipient(default_account, message):
+def test_rsvp_recipient(default_account, message) -> None:
     assert rsvp_recipient(None) is None
 
     event = Event.create()

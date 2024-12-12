@@ -1,4 +1,5 @@
-"""simplify tags schema
+"""
+simplify tags schema
 
 Revision ID: 459dbc29648
 Revises: 159609404baf
@@ -15,11 +16,11 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("tag", "user_mutable")
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         "tag",
         sa.Column(

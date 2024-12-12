@@ -1,4 +1,5 @@
-"""Split ActionLog.
+"""
+Split ActionLog.
 
 Revision ID: 182f2b40fa36
 Revises: 4e6eedda36af
@@ -15,7 +16,7 @@ from alembic import op
 from sqlalchemy.orm import contains_eager
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     op.add_column("actionlog", sa.Column("type", sa.String(16)))
@@ -30,7 +31,8 @@ def upgrade():
             .join(Namespace)
             .join(Account)
             .filter(
-                ActionLog.status == "pending", Account.discriminator != "easaccount"
+                ActionLog.status == "pending",
+                Account.discriminator != "easaccount",
             )
             .options(contains_eager(ActionLog.namespace, Namespace.account))
         )
@@ -55,14 +57,17 @@ def upgrade():
             server_default="pending",
         ),
         sa.Column(
-            "secondary_retries", sa.Integer(), nullable=False, server_default="0"
+            "secondary_retries",
+            sa.Integer(),
+            nullable=False,
+            server_default="0",
         ),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(["id"], ["actionlog.id"], ondelete="CASCADE"),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     from inbox.ignition import main_engine
 
     op.drop_column("actionlog", "type")

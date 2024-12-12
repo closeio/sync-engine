@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  # noqa: N999
 """
 Deletes an account's data permanently.
 
@@ -35,7 +35,7 @@ from inbox.models.util import delete_namespace
 @click.option("--dry-run", is_flag=True)
 @click.option("--yes", is_flag=True)
 @click.option("--throttle", is_flag=True)
-def delete_account_data(account_id, dry_run, yes, throttle):
+def delete_account_data(account_id, dry_run, yes, throttle) -> int | None:
     maybe_enable_rollbar()
 
     with session_scope(account_id) as db_session:
@@ -63,7 +63,7 @@ def delete_account_data(account_id, dry_run, yes, throttle):
             )
         )
 
-        answer = raw_input(question).strip().lower()
+        answer = raw_input(question).strip().lower()  # noqa: F821
 
         if answer != "yes":
             print("Will NOT delete, goodbye.")
@@ -77,7 +77,7 @@ def delete_account_data(account_id, dry_run, yes, throttle):
         print("Deleting database data")
         delete_namespace(namespace_id, dry_run=dry_run, throttle=throttle)
     except Exception as e:
-        print(f"Database data deletion failed! Error: {str(e)}")
+        print(f"Database data deletion failed! Error: {e!s}")
         return -1
 
     database_end = time.time()

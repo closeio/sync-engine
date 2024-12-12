@@ -1,4 +1,5 @@
-"""backfill_gmail_auth_credentials_table
+"""
+backfill_gmail_auth_credentials_table
 
 Revision ID: 14692efd261b
 Revises: 2ac4e3c4e049
@@ -11,7 +12,7 @@ revision = "14692efd261b"
 down_revision = "2ac4e3c4e049"
 
 
-def upgrade():
+def upgrade() -> None:
     import datetime
 
     from sqlalchemy.ext.declarative import declarative_base
@@ -24,7 +25,7 @@ def upgrade():
     engine = main_engine()
 
     now = datetime.datetime.now()
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class GmailAccount(Base):
@@ -77,8 +78,9 @@ def upgrade():
                     "GOOGLE_OAUTH_CLIENT_ID"
                 )
 
-                auth_creds.client_secret = acc.client_secret or config.get_required(
-                    "GOOGLE_OAUTH_CLIENT_SECRET"
+                auth_creds.client_secret = (
+                    acc.client_secret
+                    or config.get_required("GOOGLE_OAUTH_CLIENT_SECRET")
                 )
 
                 db_session.add(auth_creds)
@@ -87,5 +89,5 @@ def upgrade():
         db_session.commit()
 
 
-def downgrade():
+def downgrade() -> None:
     pass

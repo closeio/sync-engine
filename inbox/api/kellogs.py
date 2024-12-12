@@ -21,18 +21,22 @@ from inbox.models import (
     When,
 )
 from inbox.models.calendar import is_default_calendar
-from inbox.models.event import InflatedEvent, RecurringEvent, RecurringEventOverride
+from inbox.models.event import (
+    InflatedEvent,
+    RecurringEvent,
+    RecurringEventOverride,
+)
 
 log = get_logger()
 
 
-def format_address_list(addresses):
+def format_address_list(addresses):  # noqa: ANN201
     if addresses is None:
         return []
     return [{"name": name, "email": email} for name, email in addresses]
 
 
-def format_categories(categories):
+def format_categories(categories):  # noqa: ANN201
     if categories is None:
         return []
     return [
@@ -46,7 +50,7 @@ def format_categories(categories):
     ]
 
 
-def format_messagecategories(messagecategories):
+def format_messagecategories(messagecategories):  # noqa: ANN201
     if messagecategories is None:
         return []
     return [
@@ -61,14 +65,18 @@ def format_messagecategories(messagecategories):
     ]
 
 
-def format_phone_numbers(phone_numbers):
+def format_phone_numbers(phone_numbers):  # noqa: ANN201
     formatted_phone_numbers = []
     for number in phone_numbers:
-        formatted_phone_numbers.append({"type": number.type, "number": number.number})
+        formatted_phone_numbers.append(
+            {"type": number.type, "number": number.number}
+        )
     return formatted_phone_numbers
 
 
-def encode(obj, namespace_public_id=None, expand=False, is_n1=False):
+def encode(  # noqa: ANN201
+    obj, namespace_public_id=None, expand=False, is_n1=False
+):
     try:
         return _encode(obj, namespace_public_id, expand, is_n1=is_n1)
     except Exception as e:
@@ -94,7 +102,9 @@ def _convert_timezone_to_iana_tz(original_tz):
         return original_tz
 
 
-def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
+def _encode(  # noqa: D417
+    obj, namespace_public_id=None, expand=False, is_n1=False
+):
     """
     Returns a dictionary representation of a Nylas model object obj, or
     None if there is no such representation defined. If the optional
@@ -112,13 +122,14 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
     -------
     dictionary or None
 
-    """
+    """  # noqa: D401
 
     def _get_namespace_public_id(obj):
         return namespace_public_id or obj.namespace.public_id
 
     def _format_participant_data(participant):
-        """Event.participants is a JSON blob which may contain internal data.
+        """
+        Event.participants is a JSON blob which may contain internal data.
         This function returns a dict with only the data we want to make
         public.
         """
@@ -154,7 +165,9 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
             "id": obj.public_id,
             "object": "account",
             "account_id": obj.public_id,
-            "email_address": obj.account.email_address if obj.account else "",
+            "email_address": (
+                obj.account.email_address if obj.account else ""
+            ),
             "name": obj.account.name,
             "provider": obj.account.provider,
             "organization_unit": obj.account.category_type,
@@ -243,7 +256,9 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
             base["labels"] = categories
 
         if not expand:
-            base["message_ids"] = [m.public_id for m in obj.messages if not m.is_draft]
+            base["message_ids"] = [
+                m.public_id for m in obj.messages if not m.is_draft
+            ]
             base["draft_ids"] = [m.public_id for m in obj.drafts]
             return base
 
@@ -283,7 +298,9 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
                 resp["object"] = "draft"
                 resp["version"] = msg.version
                 if msg.reply_to_message is not None:
-                    resp["reply_to_message_id"] = msg.reply_to_message.public_id
+                    resp["reply_to_message_id"] = (
+                        msg.reply_to_message.public_id
+                    )
                 else:
                     resp["reply_to_message_id"] = None
                 all_expanded_drafts.append(resp)
@@ -309,8 +326,8 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
             "id": obj.public_id,
             "object": "event",
             "account_id": _get_namespace_public_id(obj),
-            "calendar_id": obj.calendar.public_id if obj.calendar else None,
-            "message_id": obj.message.public_id if obj.message else None,
+            "calendar_id": (obj.calendar.public_id if obj.calendar else None),
+            "message_id": (obj.message.public_id if obj.message else None),
             "title": obj.title,
             "email_addresses_from_title": obj.emails_from_title,
             "description": obj.description,
@@ -381,7 +398,9 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
         if len(obj.parts):
             # if obj is actually a message attachment (and not merely an
             # uploaded file), set additional properties
-            resp.update({"message_ids": [p.message.public_id for p in obj.parts]})
+            resp.update(
+                {"message_ids": [p.message.public_id for p in obj.parts]}
+            )
 
             content_ids = list(
                 {p.content_id for p in obj.parts if p.content_id is not None}
@@ -416,6 +435,7 @@ def _encode(obj, namespace_public_id=None, expand=False, is_n1=False):
             "value": obj.value,
         }
         return resp
+    return None
 
 
 class APIEncoder:
@@ -434,7 +454,9 @@ class APIEncoder:
 
     """
 
-    def __init__(self, namespace_public_id=None, expand=False, is_n1=False):
+    def __init__(
+        self, namespace_public_id=None, expand=False, is_n1=False
+    ) -> None:
         self.encoder_class = self._encoder_factory(
             namespace_public_id, expand, is_n1=is_n1
         )
@@ -452,7 +474,7 @@ class APIEncoder:
 
         return InternalEncoder
 
-    def cereal(self, obj, pretty=False):
+    def cereal(self, obj, pretty=False):  # noqa: ANN201, D417
         """
         Returns the JSON string representation of obj.
 
@@ -467,7 +489,7 @@ class APIEncoder:
         TypeError
             If obj is not serializable.
 
-        """
+        """  # noqa: D401
         if pretty:
             return dumps(
                 obj,
@@ -478,7 +500,7 @@ class APIEncoder:
             )
         return dumps(obj, cls=self.encoder_class)
 
-    def jsonify(self, obj):
+    def jsonify(self, obj):  # noqa: ANN201, D417
         """
         Returns a Flask Response object encapsulating the JSON
         representation of obj.
@@ -492,5 +514,7 @@ class APIEncoder:
         TypeError
             If obj is not serializable.
 
-        """
-        return Response(self.cereal(obj, pretty=True), mimetype="application/json")
+        """  # noqa: D401
+        return Response(
+            self.cereal(obj, pretty=True), mimetype="application/json"
+        )

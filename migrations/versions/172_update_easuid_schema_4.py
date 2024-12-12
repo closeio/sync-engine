@@ -1,4 +1,5 @@
-"""update_easuid_schema_4
+"""
+update_easuid_schema_4
 
 Revision ID: d0427f9f3d1
 Revises: 584356bf23a3
@@ -10,10 +11,12 @@ Create Date: 2015-05-19 21:35:03.342221
 revision = "d0427f9f3d1"
 down_revision = "584356bf23a3"
 
+from typing import Never
+
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     from inbox.ignition import main_engine
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -29,5 +32,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception()

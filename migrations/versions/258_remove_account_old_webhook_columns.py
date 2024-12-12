@@ -1,4 +1,5 @@
-"""Remove account old webhook columns
+"""
+Remove account old webhook columns
 
 Revision ID: e9e932c6c55e
 Revises: 4af0d2f17967
@@ -15,17 +16,21 @@ from alembic import op
 from sqlalchemy.dialects import mysql
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_column("gmailaccount", "gpush_calendar_list_expiration")
     op.drop_column("gmailaccount", "gpush_calendar_list_last_ping")
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         "gmailaccount",
-        sa.Column("gpush_calendar_list_last_ping", mysql.DATETIME(), nullable=True),
+        sa.Column(
+            "gpush_calendar_list_last_ping", mysql.DATETIME(), nullable=True
+        ),
     )
     op.add_column(
         "gmailaccount",
-        sa.Column("gpush_calendar_list_expiration", mysql.DATETIME(), nullable=True),
+        sa.Column(
+            "gpush_calendar_list_expiration", mysql.DATETIME(), nullable=True
+        ),
     )

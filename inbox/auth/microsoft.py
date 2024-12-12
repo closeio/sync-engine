@@ -49,7 +49,9 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
         ]
     )
 
-    def create_account(self, account_data: MicrosoftAccountData) -> OutlookAccount:
+    def create_account(
+        self, account_data: MicrosoftAccountData
+    ) -> OutlookAccount:
         namespace = Namespace()
         account = OutlookAccount(namespace=namespace)
         account.create_emailed_events_calendar()
@@ -62,7 +64,9 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
         account.email_address = account_data.email
 
         if account_data.secret_type:
-            account.set_secret(account_data.secret_type, account_data.secret_value)
+            account.set_secret(
+                account_data.secret_type, account_data.secret_value
+            )
 
         if not account.secret:
             raise OAuthError("No valid auth info.")
@@ -75,7 +79,7 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
 
         return account
 
-    def interactive_auth(self, email_address=None):
+    def interactive_auth(self, email_address=None):  # noqa: ANN201
         url_args = {
             "redirect_uri": self.OAUTH_REDIRECT_URI,
             "client_id": self.OAUTH_CLIENT_ID,
@@ -87,8 +91,10 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
             url_args["login_hint"] = email_address
         url = url_concat(self.OAUTH_AUTHENTICATE_URL, url_args)
 
-        print("To authorize Nylas, visit this URL and follow the directions:")
-        print(f"\n{url}")
+        print(  # noqa: T201
+            "To authorize Nylas, visit this URL and follow the directions:"
+        )
+        print(f"\n{url}")  # noqa: T201
 
         while True:
             auth_code = input("Enter authorization code: ").strip()
@@ -104,4 +110,6 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
                     sync_events=False,
                 )
             except OAuthError:
-                print("\nInvalid authorization code, try again...\n")
+                print(  # noqa: T201
+                    "\nInvalid authorization code, try again...\n"
+                )

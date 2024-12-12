@@ -1,4 +1,5 @@
-"""Make Contact.uid collation case sensitive
+"""
+Make Contact.uid collation case sensitive
 
 Revision ID: 53e6a7446c45
 Revises: 569ebe8e383d
@@ -14,14 +15,16 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(
-        text("ALTER TABLE contact MODIFY uid varchar(64) NOT NULL COLLATE utf8mb4_bin")
+        text(
+            "ALTER TABLE contact MODIFY uid varchar(64) NOT NULL COLLATE utf8mb4_bin"
+        )
     )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         text(

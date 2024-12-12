@@ -1,4 +1,5 @@
-"""Drafts as required folder
+"""
+Drafts as required folder
 
 Revision ID: 41a7e825d108
 Revises: 269247bc37d3
@@ -14,11 +15,12 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
-        "imapaccount", sa.Column("drafts_folder_name", sa.String(255), nullable=True)
+        "imapaccount",
+        sa.Column("drafts_folder_name", sa.String(255), nullable=True),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("imapaccount", "drafts_folder_name")

@@ -1,4 +1,5 @@
-"""Add public ids to transactions
+"""
+Add public ids to transactions
 
 Revision ID: 1edbd63582c2
 Revises: 1d7374c286c5
@@ -19,7 +20,7 @@ from sqlalchemy.dialects import mysql
 from sqlalchemy.ext.declarative import declarative_base
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         "transaction", sa.Column("public_id", mysql.BINARY(16), nullable=True)
     )
@@ -37,7 +38,7 @@ def upgrade():
     from inbox.sqlalchemy_ext.util import b36_to_bin, generate_public_id
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    Base = declarative_base()
+    Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
     class Transaction(Base):
@@ -45,7 +46,9 @@ def upgrade():
 
     with session_scope(versioned=False) as db_session:
         count = 0
-        (num_transactions,) = db_session.query(sa.func.max(Transaction.id)).one()
+        (num_transactions,) = db_session.query(
+            sa.func.max(Transaction.id)
+        ).one()
         print(f"Adding public ids to {num_transactions} transactions")
         for pointer in range(0, num_transactions + 1, 500):
             for entry in db_session.query(Transaction).filter(
@@ -60,7 +63,10 @@ def upgrade():
                     garbage_collect()
 
     op.alter_column(
-        "transaction", "public_id", existing_type=mysql.BINARY(16), nullable=False
+        "transaction",
+        "public_id",
+        existing_type=mysql.BINARY(16),
+        nullable=False,
     )
 
     op.add_column(
@@ -74,12 +80,13 @@ def upgrade():
     op.drop_column("transaction", "additional_data")
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("ix_transaction_public_id", table_name="transaction")
     op.drop_column("transaction", "public_id")
     op.drop_column("transaction", "object_public_id")
     op.add_column(
-        "transaction", sa.Column("additional_data", mysql.LONGTEXT(), nullable=True)
+        "transaction",
+        sa.Column("additional_data", mysql.LONGTEXT(), nullable=True),
     )
     op.drop_column("transaction", "public_snapshot")
     op.drop_column("transaction", "private_snapshot")

@@ -1,4 +1,5 @@
-"""cascade folder deletes to imapuid
+"""
+cascade folder deletes to imapuid
 
 Otherwise, since this fk is NOT NULL, deleting a folder which has associated
 imapuids still existing will cause a database IntegrityError. Only the mail
@@ -19,13 +20,20 @@ Create Date: 2014-05-25 01:40:21.762119
 revision = "350a08df27ee"
 down_revision = "1eab2619cc4f"
 
+import contextlib
+
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_constraint("imapuid_ibfk_3", "imapuid", type_="foreignkey")
     op.create_foreign_key(
-        "imapuid_ibfk_3", "imapuid", "folder", ["folder_id"], ["id"], ondelete="CASCADE"
+        "imapuid_ibfk_3",
+        "imapuid",
+        "folder",
+        ["folder_id"],
+        ["id"],
+        ondelete="CASCADE",
     )
     op.drop_constraint("account_ibfk_2", "account", type_="foreignkey")
     op.create_foreign_key(
@@ -100,10 +108,8 @@ def upgrade():
         ondelete="SET NULL",
     )
     # for some reason this was left out of migration 024, so might not exist
-    try:
+    with contextlib.suppress(Exception):
         op.drop_constraint("account_ibfk_10", "account", type_="foreignkey")
-    except:
-        pass
     op.create_foreign_key(
         "account_ibfk_10",
         "account",
@@ -114,9 +120,11 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_constraint("imapuid_ibfk_3", "imapuid", type_="foreignkey")
-    op.create_foreign_key("imapuid_ibfk_3", "imapuid", "folder", ["folder_id"], ["id"])
+    op.create_foreign_key(
+        "imapuid_ibfk_3", "imapuid", "folder", ["folder_id"], ["id"]
+    )
     op.drop_constraint("account_ibfk_2", "account", type_="foreignkey")
     op.create_foreign_key(
         "account_ibfk_2", "account", "folder", ["inbox_folder_id"], ["id"]

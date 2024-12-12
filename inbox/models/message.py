@@ -5,7 +5,7 @@ import threading
 import typing
 from collections import defaultdict
 from hashlib import sha256
-from typing import Any, DefaultDict, Dict, List, Optional, Set, Tuple, Union
+from typing import Any
 
 from flanker import mime
 from flanker.mime.message.part import MimePart
@@ -47,8 +47,15 @@ from inbox.models.mixins import (
     UpdatedAtMixin,
 )
 from inbox.security.blobstorage import decode_blob, encode_blob
-from inbox.sqlalchemy_ext.util import JSON, MAX_MYSQL_INTEGER, json_field_too_long
-from inbox.util.addr import HeaderTooBigException, parse_mimepart_address_header
+from inbox.sqlalchemy_ext.util import (
+    JSON,
+    MAX_MYSQL_INTEGER,
+    json_field_too_long,
+)
+from inbox.util.addr import (
+    HeaderTooBigException,
+    parse_mimepart_address_header,
+)
 from inbox.util.blockstore import save_raw_mime
 from inbox.util.encoding import unicode_safe_truncate
 from inbox.util.html import HTMLParseError, plaintext2html, strip_tags
@@ -66,8 +73,8 @@ email_parsing_lock = threading.BoundedSemaphore(value=1)
 
 
 def _trim_filename(
-    s: Optional[Union[str, bytes]], namespace_id: int, max_len: int = 255
-) -> Optional[str]:
+    s: str | bytes | None, namespace_id: int, max_len: int = 255
+) -> str | None:
     if s is None:
         return s
 
@@ -96,13 +103,17 @@ def normalize_data(data: str) -> str:
 
 
 class MessageTooBigException(Exception):
-    def __init__(self, body_length):
-        super().__init__(f"message length ({body_length}) is over the parsing limit")
+    def __init__(self, body_length) -> None:
+        super().__init__(
+            f"message length ({body_length}) is over the parsing limit"
+        )
 
 
-class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin):
+class Message(
+    MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin
+):
     @property
-    def API_OBJECT_NAME(self):
+    def API_OBJECT_NAME(self) -> str:  # noqa: N802
         return "message" if not self.is_draft else "draft"
 
     namespace_id = Column(BigInteger, index=True, nullable=False)
@@ -118,12 +129,14 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         "Thread",
         primaryjoin="foreign(Message.thread_id) == remote(Thread.id)",
         backref=backref(
-            "messages", order_by="Message.received_date", cascade="all, delete-orphan"
+            "messages",
+            order_by="Message.received_date",
+            cascade="all, delete-orphan",
         ),
     )
 
     @property
-    def thread(self):
+    def thread(self):  # noqa: ANN201
         return self._thread
 
     @thread.setter
@@ -148,7 +161,9 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     subject = Column(String(255), nullable=True, default="")
     received_date = Column(DateTime, nullable=False, index=True)
     size = Column(Integer, nullable=False)
-    data_sha256 = Column(VARCHAR(64, charset="ascii"), nullable=True, index=True)
+    data_sha256 = Column(
+        VARCHAR(64, charset="ascii"), nullable=True, index=True
+    )
 
     is_read = Column(Boolean, server_default=false(), nullable=False)
     is_starred = Column(Boolean, server_default=false(), nullable=False)
@@ -170,10 +185,10 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     )
 
     @property
-    def is_sending(self):
+    def is_sending(self):  # noqa: ANN201
         return self.version == MAX_MYSQL_INTEGER and not self.is_draft
 
-    def mark_as_sending(self):
+    def mark_as_sending(self) -> None:
         if self.is_sent:
             raise ValueError("Cannot mark a sent message as sending")
         self.version = MAX_MYSQL_INTEGER
@@ -181,7 +196,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         self.regenerate_nylas_uid()
 
     @property
-    def categories_changes(self):
+    def categories_changes(self):  # noqa: ANN201
         return self.state == "actions_pending"
 
     @categories_changes.setter
@@ -195,7 +210,9 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
     snippet = Column(String(191), nullable=False)
 
     # this might be a mail-parsing bug, or just a message from a bad client
-    decode_error = Column(Boolean, server_default=false(), nullable=False, index=True)
+    decode_error = Column(
+        Boolean, server_default=false(), nullable=False, index=True
+    )
 
     # In accordance with JWZ (http://www.jwz.org/doc/threading.html)
     references = Column(JSON, nullable=True)
@@ -226,7 +243,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         concatenated. Because the nylas_uid identifies the draft on the remote
         provider, we regenerate it on each draft revision so that we can delete
         the old draft and add the new one on the remote.
-        """
+        """  # noqa: D401
         from inbox.sendmail.message import generate_message_id_header
 
         self.nylas_uid = f"{self.public_id}-{self.version}"
@@ -263,7 +280,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         self.deleted_at = datetime.datetime.utcnow()
 
     @validates("subject")
-    def sanitize_subject(self, key: Any, value: Optional[str]) -> Optional[str]:
+    def sanitize_subject(self, key: Any, value: str | None) -> str | None:
         # Trim overlong subjects, and remove null bytes. The latter can result
         # when, for example, UTF-8 text decoded from an RFC2047-encoded header
         # contains null bytes.
@@ -274,12 +291,12 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         return value
 
     @classmethod
-    def create_from_synced(
+    def create_from_synced(  # noqa: D417
         cls,
         account: Account,
         imap_uid: int,
         folder_name: str,
-        received_date: Optional[datetime.datetime],
+        received_date: datetime.datetime | None,
         body: bytes,
     ) -> "Message":
         """
@@ -299,7 +316,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         body : bytes
             The full message including headers (encoded).
 
-        """
+        """  # noqa: D401
         # stop trickle-down bugs
         assert account.namespace is not None
         assert isinstance(body, bytes)
@@ -321,7 +338,12 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                     raise MessageTooBigException(body_length)
                 parsed: MimePart = mime.from_string(body)
                 message._parse_metadata(
-                    parsed, body, received_date, account.id, folder_name, imap_uid
+                    parsed,
+                    body,
+                    received_date,
+                    account.id,
+                    folder_name,
+                    imap_uid,
                 )
             except (
                 mime.DecodingError,
@@ -349,8 +371,8 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                 message._mark_error()
 
             if parsed is not None:
-                plain_parts: List[str] = []
-                html_parts: List[str] = []
+                plain_parts: list[str] = []
+                html_parts: list[str] = []
                 for mimepart in parsed.walk(
                     with_self=parsed.content_type.is_singlepart()
                 ):
@@ -392,7 +414,9 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                 del parsed  # free up memory as soon as possible
 
                 store_body: bool = config.get("STORE_MESSAGE_BODIES", True)
-                message.calculate_body(html_parts, plain_parts, store_body=store_body)
+                message.calculate_body(
+                    html_parts, plain_parts, store_body=store_body
+                )
 
                 del html_parts  # free up memory as soon as possible
                 del plain_parts  # free up memory as soon as possible
@@ -400,8 +424,14 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             # Occasionally people try to send messages to way too many
             # recipients. In such cases, empty the field and treat as a parsing
             # error so that we don't break the entire sync.
-            for field in ("to_addr", "cc_addr", "bcc_addr", "references", "reply_to"):
-                value: List[Any] = getattr(message, field)
+            for field in (
+                "to_addr",
+                "cc_addr",
+                "bcc_addr",
+                "references",
+                "reply_to",
+            ):
+                value: list[Any] = getattr(message, field)
                 if json_field_too_long(value):
                     log.warning(
                         "Recipient field too long",
@@ -419,12 +449,12 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         self,
         parsed: MimePart,
         body_string: bytes,
-        received_date: Optional[datetime.datetime],
+        received_date: datetime.datetime | None,
         account_id: int,
         folder_name: str,
         mid: int,
     ) -> None:
-        mime_version: Optional[str] = parsed.headers.get("Mime-Version")
+        mime_version: str | None = parsed.headers.get("Mime-Version")
         # sometimes MIME-Version is '1.0 (1.0)', hence the .startswith()
         if mime_version is not None and not mime_version.startswith("1.0"):
             log.warning(
@@ -435,7 +465,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
                 mime_version=mime_version,
             )
 
-        self.subject: Optional[str] = parsed.subject
+        self.subject: str | None = parsed.subject
         self.from_addr = parse_mimepart_address_header(parsed, "From")
         self.sender_addr = parse_mimepart_address_header(parsed, "Sender")
         self.reply_to = parse_mimepart_address_header(parsed, "Reply-To")
@@ -443,14 +473,14 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         self.cc_addr = parse_mimepart_address_header(parsed, "Cc")
         self.bcc_addr = parse_mimepart_address_header(parsed, "Bcc")
 
-        self.in_reply_to: Optional[str] = parsed.headers.get("In-Reply-To")
+        self.in_reply_to: str | None = parsed.headers.get("In-Reply-To")
 
         # The RFC mandates that the Message-Id header must be at most 998
         # characters. Sadly, not everybody follows specs.
-        self.message_id_header: Optional[str] = parsed.headers.get("Message-Id")
+        self.message_id_header: str | None = parsed.headers.get("Message-Id")
         if self.message_id_header and len(self.message_id_header) > 998:
             self.message_id_header = self.message_id_header[:998]
-            log.warning(
+            log.warning(  # noqa: PLE1205
                 "Message-Id header too long. Truncating",
                 parsed.headers.get("Message-Id"),
                 logstash_tag="truncated_message_id",
@@ -473,11 +503,12 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         self.received_date = self.received_date.replace(microsecond=0)
 
         # Custom Nylas header
-        self.nylas_uid: Optional[str] = parsed.headers.get("X-INBOX-ID")
+        self.nylas_uid: str | None = parsed.headers.get("X-INBOX-ID")
 
         # In accordance with JWZ (http://www.jwz.org/doc/threading.html)
         self.references = parse_references(
-            parsed.headers.get("References", ""), parsed.headers.get("In-Reply-To", "")
+            parsed.headers.get("References", ""),
+            parsed.headers.get("In-Reply-To", ""),
         )
 
         self.size = len(body_string)  # includes headers text
@@ -487,14 +518,14 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         imap_uid: int,
         mimepart: MimePart,
         namespace_id: int,
-        html_parts: List[str],
-        plain_parts: List[str],
+        html_parts: list[str],
+        plain_parts: list[str],
     ) -> None:
         disposition, _ = mimepart.content_disposition
-        content_id: Optional[str] = mimepart.headers.get("Content-Id")
-        content_type, params = mimepart.content_type
+        content_id: str | None = mimepart.headers.get("Content-Id")
+        content_type, params = mimepart.content_type  # noqa: F841
 
-        filename: Optional[str] = mimepart.detected_file_name
+        filename: str | None = mimepart.detected_file_name
         if filename == "":
             filename = None
 
@@ -583,11 +614,11 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
 
     def _save_attachment(
         self,
-        data: Optional[str],
+        data: str | None,
         content_disposition: str,
         content_type: str,
-        filename: Optional[str],
-        content_id: Optional[str],
+        filename: str | None,
+        content_id: str | None,
         namespace_id: int,
     ) -> None:
         from inbox.models import Block, Part
@@ -627,7 +658,10 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
             self.snippet = ""
 
     def calculate_body(
-        self, html_parts: List[str], plain_parts: List[str], store_body: bool = True
+        self,
+        html_parts: list[str],
+        plain_parts: list[str],
+        store_body: bool = True,
     ) -> None:
         """
         Calculate short message snippet and optionally store the entire body.
@@ -657,8 +691,10 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         try:
             text = strip_tags(text)
         except HTMLParseError:
-            log.error(
-                "error stripping tags", message_nylas_uid=self.nylas_uid, exc_info=True
+            log.error(  # noqa: G201
+                "error stripping tags",
+                message_nylas_uid=self.nylas_uid,
+                exc_info=True,
             )
             text = ""
 
@@ -668,20 +704,20 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         return unicode_safe_truncate(" ".join(text.split()), SNIPPET_LENGTH)
 
     @property
-    def body(self) -> Optional[str]:
+    def body(self) -> str | None:
         if self._compacted_body is None:
             return None
         return decode_blob(self._compacted_body).decode("utf-8")
 
     @body.setter
-    def body(self, value: Optional[str]) -> None:
+    def body(self, value: str | None) -> None:
         if value is None:
             self._compacted_body = None
         else:
             self._compacted_body = encode_blob(value.encode("utf-8"))
 
     @property
-    def participants(self) -> List[Tuple[str, str]]:
+    def participants(self) -> list[tuple[str, str]]:
         """
         Different messages in the thread may reference the same email
         address with different phrases. We partially deduplicate: if the same
@@ -689,7 +725,7 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         separately return the (empty phrase, address) pair.
 
         """
-        deduped_participants: DefaultDict[str, Set[str]] = defaultdict(set)
+        deduped_participants: defaultdict[str, set[str]] = defaultdict(set)
         chain = []
         if self.from_addr:
             chain.append(self.from_addr)
@@ -714,11 +750,11 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         return p
 
     @property
-    def attachments(self) -> List["Part"]:
+    def attachments(self) -> list["Part"]:
         return [part for part in self.parts if part.is_attachment]
 
     @property
-    def api_attachment_metadata(self) -> List[Dict[str, Any]]:
+    def api_attachment_metadata(self) -> list[dict[str, Any]]:
         resp = []
         for part in self.parts:
             if not part.is_attachment:
@@ -738,21 +774,23 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         return resp
 
     @property
-    def versioned_relationships(self):
+    def versioned_relationships(self):  # noqa: ANN201
         return ["parts", "messagecategories"]
 
     @property
-    def propagated_attributes(self):
+    def propagated_attributes(self):  # noqa: ANN201
         return ["is_read", "is_starred", "messagecategories"]
 
     @property
-    def has_attached_events(self):
+    def has_attached_events(self):  # noqa: ANN201
         return "text/calendar" in [p.block.content_type for p in self.parts]
 
     @property
-    def attached_event_files(self) -> List["Part"]:
+    def attached_event_files(self) -> list["Part"]:
         return [
-            part for part in self.parts if part.block.content_type == "text/calendar"
+            part
+            for part in self.parts
+            if part.block.content_type == "text/calendar"
         ]
 
     @property
@@ -770,14 +808,16 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         )
         q = q.options(
             joinedload(Message.thread).load_only("discriminator", "public_id"),
-            joinedload(Message.messagecategories).joinedload(MessageCategory.category),
+            joinedload(Message.messagecategories).joinedload(
+                MessageCategory.category
+            ),
             joinedload(Message.parts).joinedload("block"),
             joinedload(Message.events),
         )
         return q.params(public_id=public_id, namespace_id=namespace_id).one()
 
     @classmethod
-    def api_loading_options(cls, expand=False):
+    def api_loading_options(cls, expand=False):  # noqa: ANN206
         columns = [
             "public_id",
             "is_draft",
@@ -804,7 +844,11 @@ class Message(MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAt
         if expand:
             columns += ["message_id_header", "in_reply_to", "references"]
 
-        from inbox.models.event import Event, RecurringEvent, RecurringEventOverride
+        from inbox.models.event import (
+            Event,
+            RecurringEvent,
+            RecurringEventOverride,
+        )
 
         all_event_subclasses = with_polymorphic(
             Event, [RecurringEvent, RecurringEventOverride], flat=True
@@ -832,10 +876,18 @@ Index(
 )
 
 # For async deletion.
-Index("ix_message_namespace_id_deleted_at", Message.namespace_id, Message.deleted_at)
+Index(
+    "ix_message_namespace_id_deleted_at",
+    Message.namespace_id,
+    Message.deleted_at,
+)
 
 # For statistics about messages sent via Nylas
-Index("ix_message_namespace_id_is_created", Message.namespace_id, Message.is_created)
+Index(
+    "ix_message_namespace_id_is_created",
+    Message.namespace_id,
+    Message.is_created,
+)
 
 # For filtering messages by Message-Id via API (with namespace), and for
 # debugging purposes (without namespace).
@@ -848,7 +900,9 @@ Index(
 
 # Used by delete-accounts to find next batch to delete
 Index(
-    "ix_message_namespace_id_received_date", Message.namespace_id, Message.received_date
+    "ix_message_namespace_id_received_date",
+    Message.namespace_id,
+    Message.received_date,
 )
 
 
@@ -860,7 +914,9 @@ class MessageCategory(MailSyncBase):
         "Message",
         primaryjoin="foreign(MessageCategory.message_id) == remote(Message.id)",
         backref=backref(
-            "messagecategories", collection_class=set, cascade="all, delete-orphan"
+            "messagecategories",
+            collection_class=set,
+            cascade="all, delete-orphan",
         ),
     )
 
@@ -874,8 +930,12 @@ class MessageCategory(MailSyncBase):
     )
 
     @property
-    def namespace(self):
+    def namespace(self):  # noqa: ANN201
         return self.message.namespace
 
 
-Index("message_category_ids", MessageCategory.message_id, MessageCategory.category_id)
+Index(
+    "message_category_ids",
+    MessageCategory.message_id,
+    MessageCategory.category_id,
+)

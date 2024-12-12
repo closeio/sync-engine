@@ -1,4 +1,5 @@
-"""change event sync timestamp
+"""
+change event sync timestamp
 
 Revision ID: 3a58d466f61d
 Revises: 3857f395fb1d
@@ -14,8 +15,10 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
-    op.add_column("calendar", sa.Column("last_synced", sa.DateTime(), nullable=True))
+def upgrade() -> None:
+    op.add_column(
+        "calendar", sa.Column("last_synced", sa.DateTime(), nullable=True)
+    )
     conn = op.get_bind()
     conn.execute(
         """UPDATE calendar
@@ -27,5 +30,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("calendar", "last_synced")

@@ -1,4 +1,5 @@
-"""add event.conference_data
+"""
+add event.conference_data
 
 Revision ID: fe0488decbd1
 Revises: f9dab5e44c0f
@@ -14,11 +15,12 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
-        "event", sa.Column("conference_data", sa.Text(length=4194304), nullable=True)
+        "event",
+        sa.Column("conference_data", sa.Text(length=4194304), nullable=True),
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column("event", "conference_data")

@@ -1,6 +1,5 @@
 import datetime
 from collections import defaultdict
-from typing import DefaultDict, Dict
 
 """
 This file currently contains algorithms for the contacts/rankings endpoint
@@ -37,21 +36,27 @@ def _jaccard_similarity(set1, set2):
 
 
 def _get_participants(msg, excluded_emails=None):
-    """Returns an alphabetically sorted list of
-    emails addresses that msg was sent to (including cc and bcc)
     """
+    Returns an alphabetically sorted list of
+    emails addresses that msg was sent to (including cc and bcc)
+    """  # noqa: D401
     excluded_emails = excluded_emails or []
     participants = msg.to_addr + msg.cc_addr + msg.bcc_addr
     return sorted(
         list(
-            {email.lower() for _, email in participants if email not in excluded_emails}
+            {
+                email.lower()
+                for _, email in participants
+                if email not in excluded_emails
+            }
         )
     )
 
 
 # Not really an algorithm, but it seemed reasonable to put this here?
-def is_stale(last_updated, lifespan=14):
-    """last_updated is a datetime.datetime object
+def is_stale(last_updated, lifespan=14):  # noqa: ANN201
+    """
+    last_updated is a datetime.datetime object
     lifespan is measured in days
     """
     if last_updated is None:
@@ -65,9 +70,9 @@ def is_stale(last_updated, lifespan=14):
 ##
 
 
-def calculate_contact_scores(messages, time_dependent=True):
+def calculate_contact_scores(messages, time_dependent=True):  # noqa: ANN201
     now = datetime.datetime.now()
-    res: DefaultDict[str, int] = defaultdict(int)
+    res: defaultdict[str, int] = defaultdict(int)
     for message in messages:
         if time_dependent:
             weight = _get_message_weight(now, message.date)
@@ -79,11 +84,12 @@ def calculate_contact_scores(messages, time_dependent=True):
     return res
 
 
-def calculate_group_counts(messages, user_email):
-    """Strips out most of the logic from calculate_group_scores
-    algorithm and just returns raw counts for each group.
+def calculate_group_counts(messages, user_email):  # noqa: ANN201
     """
-    res: DefaultDict[str, int] = defaultdict(int)
+    Strips out most of the logic from calculate_group_scores
+    algorithm and just returns raw counts for each group.
+    """  # noqa: D401
+    res: defaultdict[str, int] = defaultdict(int)
     for msg in messages:
         participants = _get_participants(msg, [user_email])
         if len(participants) >= MIN_GROUP_SIZE:
@@ -91,8 +97,9 @@ def calculate_group_counts(messages, user_email):
     return res
 
 
-def calculate_group_scores(messages, user_email):
-    """This is a (modified) implementation of the algorithm described
+def calculate_group_scores(messages, user_email):  # noqa: ANN201
+    """
+    This is a (modified) implementation of the algorithm described
     in this paper: http://mobisocial.stanford.edu/papers/iui11g.pdf
 
     messages must have the following properties:
@@ -100,9 +107,9 @@ def calculate_group_scores(messages, user_email):
         cc_addr - [('name1', 'email1@e.com'), ... ]
         bcc_addr - [('name1', 'email1@e.com'), ... ]
         date - datetime.datetime object
-    """
+    """  # noqa: D401, D404
     now = datetime.datetime.now()
-    message_ids_to_scores: Dict[str, float] = {}
+    message_ids_to_scores: dict[str, float] = {}
     molecules_dict = defaultdict(set)  # (emails, ...) -> {message ids, ...}
 
     def get_message_list_weight(message_ids):
@@ -131,13 +138,16 @@ def calculate_group_scores(messages, user_email):
     ]
 
     # Subsets get absorbed by supersets (if minimal info lost)
-    molecules_list = _subsume_molecules(molecules_list, get_message_list_weight)
+    molecules_list = _subsume_molecules(
+        molecules_list, get_message_list_weight
+    )
 
     molecules_list = _combine_similar_molecules(molecules_list)
 
     # Give a score to each group.
     return {
-        ", ".join(sorted(g)): get_message_list_weight(m) for (g, m) in molecules_list
+        ", ".join(sorted(g)): get_message_list_weight(m)
+        for (g, m) in molecules_list
     }
 
 
@@ -161,12 +171,12 @@ def _subsume_molecules(molecules_list, get_message_list_weight):
     mol_weights = [get_message_list_weight(m) for (_, m) in molecules_list]
 
     for i in range(1, len(molecules_list)):
-        g1, m1 = molecules_list[i]  # Smaller group
+        g1, m1 = molecules_list[i]  # Smaller group  # noqa: F841
         m1_size = mol_weights[i]
         for j in range(i):
             if is_subsumed[j]:
                 continue
-            g2, m2 = molecules_list[j]  # Bigger group
+            g2, m2 = molecules_list[j]  # Bigger group  # noqa: F841
             m2_size = mol_weights[j]
             if g1.issubset(g2):
                 sharing_error = ((len(g2) - len(g1)) * (m1_size - m2_size)) / (
@@ -180,7 +190,7 @@ def _subsume_molecules(molecules_list, get_message_list_weight):
 
 
 def _combine_similar_molecules(molecules_list):
-    """Using a greedy approach here for speed"""
+    """Using a greedy approach here for speed"""  # noqa: D401
     new_guys_start_idx = 0
     while new_guys_start_idx < len(molecules_list):
         combined = [False] * len(molecules_list)
@@ -189,7 +199,7 @@ def _combine_similar_molecules(molecules_list):
             for i in range(j):
                 if combined[i]:
                     continue
-                (g1, m1), (g2, m2) = molecules_list[i], molecules_list[j]
+                (g1, m1), (g2, m2) = (molecules_list[i], molecules_list[j])
                 js = _jaccard_similarity(g1, g2)
                 if js > JACCARD_THRESHOLD:
                     new_guys.append((g1.union(g2), m1.union(m2)))

@@ -1,4 +1,5 @@
-"""relax_participants_by_email_constraint
+"""
+relax_participants_by_email_constraint
 
 Revision ID: 3f01a3f1b4cc
 Revises: 5305d4ae30b4
@@ -14,11 +15,13 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("ALTER TABLE event MODIFY participants_by_email TEXT;"))
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
-    conn.execute(text("ALTER TABLE event MODIFY participants_by_email TEXT NOT NULL;"))
+    conn.execute(
+        text("ALTER TABLE event MODIFY participants_by_email TEXT NOT NULL;")
+    )

@@ -1,4 +1,5 @@
-"""Up max length of Message.message_id_header
+"""
+Up max length of Message.message_id_header
 
 From http://tools.ietf.org/html/rfc4130 (section 5.3.3),
 max message_id_header is 998 characters.
@@ -18,13 +19,19 @@ import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column(
-        "message", "message_id_header", type_=sa.String(998), existing_nullable=True
+        "message",
+        "message_id_header",
+        type_=sa.String(998),
+        existing_nullable=True,
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.alter_column(
-        "message", "message_id_header", type_=sa.String(225), existing_nullable=True
+        "message",
+        "message_id_header",
+        type_=sa.String(225),
+        existing_nullable=True,
     )

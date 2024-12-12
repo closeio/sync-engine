@@ -1,4 +1,4 @@
-import sys
+import sys  # noqa: EXE002
 
 import IPython
 
@@ -8,10 +8,12 @@ from inbox.models import Account
 from inbox.models.session import global_session_scope
 
 
-def user_console(user_email_address):
+def user_console(user_email_address) -> None:
     with global_session_scope() as db_session:
         result = (
-            db_session.query(Account).filter_by(email_address=user_email_address).all()
+            db_session.query(Account)
+            .filter_by(email_address=user_email_address)
+            .all()
         )
 
         account = None
@@ -19,16 +21,20 @@ def user_console(user_email_address):
         if len(result) == 1:
             account = result[0]
         elif len(result) > 1:
-            print(f"\n{len(result)} accounts found for that email.\n")
+            print(  # noqa: T201
+                f"\n{len(result)} accounts found for that email.\n"
+            )
             for idx, acc in enumerate(result):
-                print(
+                print(  # noqa: T201
                     f"[{idx}] - {acc.provider} {acc.namespace.email_address} {acc.namespace.public_id}"
                 )
             choice = int(input("\nWhich # do you want to select? "))
             account = result[choice]
 
         if account is None:
-            print(f"No account found with email '{user_email_address}'")
+            print(  # noqa: T201
+                f"No account found with email '{user_email_address}'"
+            )
             return
 
         if account.provider == "eas":
@@ -60,7 +66,7 @@ def user_console(user_email_address):
                 IPython.embed(banner1=banner)
 
 
-def start_console(user_email_address=None):
+def start_console(user_email_address=None) -> None:
     # You can also do this with
     # $ python -m imapclient.interact -H <host> -u <user> ...
     # but we want to use our session and crispin so we're not.
@@ -70,12 +76,18 @@ def start_console(user_email_address=None):
         IPython.embed()
 
 
-def start_client_console(user_email_address=None):
+def start_client_console(user_email_address=None) -> None:
     try:
         from tests.system.client import NylasTestClient
     except ImportError:
-        sys.exit("You need to have the Nylas Python SDK installed to use this option.")
-    client = NylasTestClient(user_email_address)  # noqa: F841
+        sys.exit(
+            "You need to have the Nylas Python SDK installed to use this option."
+        )
+    client = NylasTestClient(  # noqa: F841
+        user_email_address
+    )  # noqa: F841, RUF100
     IPython.embed(
-        banner1=("You can access a Nylas API client using the 'client' variable.")
+        banner1=(
+            "You can access a Nylas API client using the 'client' variable."
+        )
     )

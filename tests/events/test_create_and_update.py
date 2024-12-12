@@ -8,15 +8,16 @@ rrule = "RRULE:FREQ=WEEKLY"
 
 
 @pytest.mark.parametrize(
-    "cls", [Event, partial(RecurringEvent, recurrence=rrule), RecurringEventOverride]
+    "cls",
+    [Event, partial(RecurringEvent, recurrence=rrule), RecurringEventOverride],
 )
-def test_init_explodes(cls):
+def test_init_explodes(cls) -> None:
     with pytest.raises(AssertionError, match="Use Event.create"):
         cls()
 
 
 @pytest.mark.parametrize(
-    "kwargs,cls",
+    ("kwargs", "cls"),
     [
         ({}, Event),
         ({"recurrence": rrule}, RecurringEvent),
@@ -26,11 +27,11 @@ def test_init_explodes(cls):
         ),
     ],
 )
-def test_create_class(kwargs, cls):
+def test_create_class(kwargs, cls) -> None:
     assert isinstance(Event.create(**kwargs), cls)
 
 
-def test_update():
+def test_update() -> None:
     event = Event.create()
     event.update(Event.create(conference_data={"foo": "bar"}))
 

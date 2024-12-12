@@ -1,4 +1,5 @@
-"""Remove gmail inbox syncs
+"""
+Remove gmail inbox syncs
 
 Revision ID: 3c743bd31ee2
 Revises:476c5185121b
@@ -11,7 +12,7 @@ revision = "3c743bd31ee2"
 down_revision = "476c5185121b"
 
 
-def upgrade():
+def upgrade() -> None:
     # Remove UIDs and sync status for inbox IMAP syncs -- otherwise
     # archives/deletes may not be synced correctly.
     from inbox.heartbeat.config import STATUS_DATABASE, get_redis_client
@@ -45,5 +46,5 @@ def upgrade():
             redis_client.delete(key)
 
 
-def downgrade():
+def downgrade() -> None:
     pass

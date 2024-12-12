@@ -1,9 +1,10 @@
-"""This module defines strategies for generating test data for IMAP sync, all
+"""
+This module defines strategies for generating test data for IMAP sync, all
 well as a mock IMAPClient isntance that can be used to deterministically test
 aspects of IMAP sync.
 See https://hypothesis.readthedocs.org/en/latest/data.html for more information
 about how this works.
-"""
+"""  # noqa: D404
 
 import string
 
@@ -86,5 +87,8 @@ uid_data = s.builds(
 
 
 uids = s.dictionaries(
-    s.integers(min_value=22, max_value=MAX_INT_VALUE), uid_data, min_size=5, max_size=10
+    s.integers(min_value=22, max_value=MAX_INT_VALUE),
+    uid_data,
+    min_size=5,
+    max_size=10,
 )

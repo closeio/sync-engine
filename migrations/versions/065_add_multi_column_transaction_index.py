@@ -1,4 +1,5 @@
-"""add multi-column transaction index
+"""
+add multi-column transaction index
 
 Revision ID: 2e6120c97485
 Revises: 2d05e116bdb7
@@ -13,7 +14,7 @@ down_revision = "2d05e116bdb7"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "namespace_id_deleted_at",
         "transaction",
@@ -22,5 +23,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("namespace_id_deleted_at", table_name="transaction")

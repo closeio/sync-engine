@@ -1,4 +1,5 @@
-"""Add GenericAccount.ssl_required
+"""
+Add GenericAccount.ssl_required
 
 Revision ID: 3d8b5977eaa8
 Revises: 4f8e995d1dba
@@ -14,13 +15,15 @@ from alembic import op
 from sqlalchemy.sql import text
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(text("set @@lock_wait_timeout = 20;"))
     conn.execute(text("set @@foreign_key_checks = 0;"))
 
-    conn.execute(text("ALTER TABLE genericaccount ADD COLUMN ssl_required BOOLEAN;"))
+    conn.execute(
+        text("ALTER TABLE genericaccount ADD COLUMN ssl_required BOOLEAN;")
+    )
 
 
-def downgrade():
+def downgrade() -> None:
     pass

@@ -1,4 +1,5 @@
-"""create index for querying messages by namespace and is_created
+"""
+create index for querying messages by namespace and is_created
 
 Revision ID: 576f5310e8fc
 Revises: 3d4f5741e1d7
@@ -13,7 +14,7 @@ down_revision = "3d4f5741e1d7"
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         "ix_message_namespace_id_is_created",
         "message",
@@ -22,5 +23,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index("ix_message_namespace_id_is_created", table_name="message")

@@ -1,11 +1,10 @@
 import json
 from base64 import b64encode
 
-from tests.api.base import new_api_client  # noqa
-from tests.util.base import db, generic_account  # noqa
+from tests.api.base import new_api_client
 
 
-def test_no_auth(db, generic_account):  # noqa
+def test_no_auth(db, generic_account) -> None:
     # Because we're using the generic_account namespace
 
     api_client = new_api_client(db, generic_account.namespace)
@@ -15,7 +14,7 @@ def test_no_auth(db, generic_account):  # noqa
     assert response.status_code == 401
 
 
-def test_basic_auth(db, generic_account):  # noqa
+def test_basic_auth(db, generic_account) -> None:
     api_client = new_api_client(db, generic_account.namespace)
 
     response = api_client.get_raw("/account")
@@ -25,7 +24,7 @@ def test_basic_auth(db, generic_account):  # noqa
     assert resp_data["id"] == generic_account.namespace.public_id
 
 
-def test_bearer_token_auth(db, generic_account):  # noqa
+def test_bearer_token_auth(db, generic_account) -> None:
     api_client = new_api_client(db, generic_account.namespace)
     api_client.auth_header = {
         "Authorization": f"Bearer {generic_account.namespace.public_id}"
@@ -41,7 +40,7 @@ def test_bearer_token_auth(db, generic_account):  # noqa
 BAD_TOKEN = "1234567890abcdefg"
 
 
-def test_invalid_basic_auth(db, generic_account):  # noqa
+def test_invalid_basic_auth(db, generic_account) -> None:
     api_client = new_api_client(db, generic_account.namespace)
     api_client.auth_header = {
         "Authorization": "Basic {}".format(
@@ -53,7 +52,7 @@ def test_invalid_basic_auth(db, generic_account):  # noqa
     assert response.status_code == 401
 
 
-def test_invalid_bearer_token_auth(db, generic_account):  # noqa
+def test_invalid_bearer_token_auth(db, generic_account) -> None:
     api_client = new_api_client(db, generic_account.namespace)
     api_client.auth_header = {"Authorization": f"Bearer {BAD_TOKEN}"}
 

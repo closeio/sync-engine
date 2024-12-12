@@ -1,4 +1,5 @@
-"""EAS two-devices prestige
+"""
+EAS two-devices prestige
 
 Revision ID: 10ecf4841ac3
 Revises: 17dc9c049f8b
@@ -10,11 +11,13 @@ Create Date: 2014-10-21 20:38:17.143065
 revision = "10ecf4841ac3"
 down_revision = "17dc9c049f8b"
 
+from typing import Never
+
 import sqlalchemy as sa
 from alembic import op
 
 
-def upgrade():
+def upgrade() -> None:
     op.alter_column(
         "easdevice", "created_at", existing_type=sa.DateTime(), nullable=False
     )
@@ -22,15 +25,26 @@ def upgrade():
         "easdevice", "updated_at", existing_type=sa.DateTime(), nullable=False
     )
     op.alter_column(
-        "easaccount", "primary_device_id", existing_type=sa.Integer(), nullable=False
+        "easaccount",
+        "primary_device_id",
+        existing_type=sa.Integer(),
+        nullable=False,
     )
     op.alter_column(
-        "easaccount", "secondary_device_id", existing_type=sa.Integer(), nullable=False
+        "easaccount",
+        "secondary_device_id",
+        existing_type=sa.Integer(),
+        nullable=False,
     )
     op.alter_column(
-        "easfoldersyncstatus", "device_id", existing_type=sa.Integer(), nullable=False
+        "easfoldersyncstatus",
+        "device_id",
+        existing_type=sa.Integer(),
+        nullable=False,
     )
-    op.alter_column("easuid", "device_id", existing_type=sa.Integer(), nullable=False)
+    op.alter_column(
+        "easuid", "device_id", existing_type=sa.Integer(), nullable=False
+    )
 
     op.drop_column("easaccount", "_eas_device_type")
     op.drop_column("easaccount", "_eas_device_id")
@@ -38,5 +52,5 @@ def upgrade():
     op.drop_column("easaccount", "eas_account_sync_key")
 
 
-def downgrade():
+def downgrade() -> Never:
     raise Exception("!")

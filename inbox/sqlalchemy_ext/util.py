@@ -350,35 +350,6 @@ def receive_connect(dbapi_connection, connection_record) -> None:
     dbapi_connection.encoding = "utf8-surrogate-fix"
 
 
-def safer_yield_per(query, id_field, start_id, count):  # noqa: ANN201, D417
-    """
-    Incautious execution of 'for result in query.yield_per(N):' may cause
-    slowness or OOMing over large tables. This is a less general but less
-    dangerous alternative.
-
-    Parameters
-    ----------
-    query: sqlalchemy.Query
-        The query to yield windowed results from.
-    id_field: A SQLAlchemy attribute to use for windowing. E.g.,
-        `Transaction.id`
-    start_id: The value of id_field at which to start iterating.
-    count: int
-        The number of results to fetch at a time.
-
-    """
-    cur_id = start_id
-    while True:
-        results = (
-            query.filter(id_field >= cur_id)
-            .order_by(id_field)
-            .limit(count)
-            .all()
-        )
-        yield from results
-        cur_id = results[-1].id + 1
-
-
 def get_db_api_cursor_with_query(session, query):  # noqa: ANN201
     """
     Return a DB-API cursor with the given SQLAlchemy query executed.

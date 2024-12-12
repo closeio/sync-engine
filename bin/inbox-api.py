@@ -28,7 +28,6 @@ from inbox.logging import configure_logging, get_logger
 from inbox.util.startup import load_overrides
 
 syncback = None
-http_server = None
 
 
 @click.command()

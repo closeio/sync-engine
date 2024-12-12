@@ -35,7 +35,7 @@ class BaseSyncMonitor(InterruptibleThread):
         folder_id,
         folder_name,
         provider_name,
-        poll_frequency=1,
+        poll_frequency: int = 1,
         scope=None,
     ) -> None:
         self.account_id = account_id

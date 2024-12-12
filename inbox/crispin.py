@@ -169,7 +169,7 @@ def connection_pool(account_id, pool_size=None):
 _writable_pool_map: dict[int, "CrispinConnectionPool"] = {}
 
 
-def writable_connection_pool(account_id, pool_size=1):
+def writable_connection_pool(account_id, pool_size: int = 1):
     """
     Per-account crispin connection pool, with *read-write* connections.
 

@@ -46,7 +46,7 @@ class BaseMailSyncMonitor(InterruptibleThread):
         How often to check for commands.
     """
 
-    def __init__(self, account, heartbeat=1) -> None:
+    def __init__(self, account, heartbeat: int = 1) -> None:
         bind_context(self, "mailsyncmonitor", account.id)
         self.shutdown = threading.Event()
         # how often to check inbox, in seconds

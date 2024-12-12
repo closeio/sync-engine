@@ -103,11 +103,11 @@ class SyncbackService(InterruptibleThread):
         syncback_id,
         process_number,
         total_processes,
-        poll_interval=1,
-        retry_interval=120,
+        poll_interval: int = 1,
+        retry_interval: int = 120,
         num_workers=NUM_PARALLEL_ACCOUNTS,
-        batch_size=20,
-        fetch_batch_size=100,
+        batch_size: int = 20,
+        fetch_batch_size: int = 100,
     ) -> None:
         self.process_number = process_number
         self.total_processes = total_processes
@@ -606,7 +606,7 @@ class SyncbackTask:
         account_id,
         provider,
         service,
-        retry_interval=30,
+        retry_interval: int = 30,
         extra_args=None,
     ) -> None:
         self.parent_service = weakref.ref(service)
@@ -840,7 +840,7 @@ class SyncbackTask:
 
 
 class SyncbackWorker(InterruptibleThread):
-    def __init__(self, parent_service, task_timeout=60) -> None:
+    def __init__(self, parent_service, task_timeout: int = 60) -> None:
         self.parent_service = weakref.ref(parent_service)
         self.task_timeout = task_timeout
         self.log = logger.new(component="syncback-worker")

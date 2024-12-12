@@ -242,7 +242,13 @@ class MockIMAPClient:
         return resp
 
     def append(
-        self, folder_name, mimemsg, flags, date, x_gm_msgid=0, x_gm_thrid=0
+        self,
+        folder_name,
+        mimemsg,
+        flags,
+        date,
+        x_gm_msgid: int = 0,
+        x_gm_thrid: int = 0,
     ) -> None:
         uid_dict = self._data[folder_name]
         uidnext = max(uid_dict) if uid_dict else 1

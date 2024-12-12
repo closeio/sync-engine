@@ -397,7 +397,12 @@ def check_throttle() -> bool:
 
 
 def purge_transactions(
-    shard_id, days_ago=60, limit=1000, throttle=False, dry_run=False, now=None
+    shard_id,
+    days_ago: int = 60,
+    limit: int = 1000,
+    throttle=False,
+    dry_run=False,
+    now=None,
 ) -> None:
     start = "now()"
     if now is not None:

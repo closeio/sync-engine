@@ -128,7 +128,9 @@ class GoogleContactsProvider(AbstractContactsProvider):
             raw_data=raw_data,
         )
 
-    def get_items(self, sync_from_dt=None, max_results=100000):  # noqa: ANN201
+    def get_items(  # noqa: ANN201
+        self, sync_from_dt=None, max_results: int = 100000
+    ):
         """
         Fetches and parses fresh contact data.
 

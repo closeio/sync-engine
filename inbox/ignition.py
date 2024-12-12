@@ -196,7 +196,7 @@ engine_manager = EngineManager(
 )
 
 
-def init_db(engine, key=0) -> None:
+def init_db(engine, key: int = 0) -> None:
     """
     Make the tables.
 

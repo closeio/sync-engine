@@ -69,7 +69,7 @@ class IMAPSearchClient:
         self.crispin_client.logout()
 
     def search_messages(  # noqa: ANN201
-        self, db_session, search_query, offset=0, limit=40
+        self, db_session, search_query, offset: int = 0, limit: int = 40
     ):
         imap_uids = []
         for uids in self._search(db_session, search_query):
@@ -115,7 +115,7 @@ class IMAPSearchClient:
         return g
 
     def search_threads(  # noqa: ANN201
-        self, db_session, search_query, offset=0, limit=40
+        self, db_session, search_query, offset: int = 0, limit: int = 40
     ):
         imap_uids = []
         for uids in self._search(db_session, search_query):

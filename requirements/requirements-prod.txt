@@ -1098,9 +1098,9 @@ tld==0.12.6 \
     # via
     #   -r requirements-prod.in
     #   flanker
-tldextract==3.1.2 \
-    --hash=sha256:d2034c3558651f7d8fdadea83fb681050b2d662dc67a00d950326dc902029444 \
-    --hash=sha256:f55e05f6bf4cc952a87d13594386d32ad2dd265630a8bdfc3df03bd60425c6b0
+tldextract==5.1.3 \
+    --hash=sha256:78de310cc2ca018692de5ddf320f9d6bd7c5cf857d0fd4f2175f0cdf4440ea75 \
+    --hash=sha256:d43c7284c23f5dc8a42fd0fee2abede2ff74cc622674e4cb07f514ab3330c338
     # via -r requirements-prod.in
 traitlets==5.9.0 \
     --hash=sha256:9e6ec080259b9a5940c797d58b613b5e31441c2257b87c2e795c5228ae80d2d8 \

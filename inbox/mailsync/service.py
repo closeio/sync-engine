@@ -43,7 +43,7 @@ MAX_ACCOUNTS_PER_PROCESS = config.get("MAX_ACCOUNTS_PER_PROCESS", 150)
 SYNC_EVENT_QUEUE_NAME = "sync:event_queue:{}"
 SHARED_SYNC_EVENT_QUEUE_NAME = "sync:shared_event_queue:{}"
 
-SHARED_SYNC_EVENT_QUEUE_ZONE_MAP = {}
+SHARED_SYNC_EVENT_QUEUE_ZONE_MAP: dict[str, EventQueue] = {}
 
 
 def shared_sync_event_queue_for_zone(zone):  # type: ignore[no-untyped-def]  # noqa: ANN201

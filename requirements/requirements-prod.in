@@ -12,7 +12,7 @@ attrs==23.1.0
 authalligator-client @ https://github.com/closeio/authalligator-client/archive/e7cc8e0bc5b1f2285ab5997e2590a8eb056fc627.zip
 async_timeout==4.0.3
 backcall==0.2.0
-jedi==0.18.2
+jedi==0.19.1
 boto3==1.35.50
 botocore==1.35.50
 certifi==2024.8.30

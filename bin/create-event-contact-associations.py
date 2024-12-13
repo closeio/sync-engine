@@ -5,7 +5,7 @@ Create event contact associations for events that don't have any.
 
 
 import click
-from sqlalchemy import asc
+from sqlalchemy import asc  # type: ignore[import-untyped]
 
 from inbox.contacts.processing import update_contacts_from_event
 from inbox.error_handling import maybe_enable_rollbar
@@ -19,7 +19,9 @@ configure_logging()
 log = get_logger(purpose="create-event-contact-associations")
 
 
-def process_shard(shard_id, dry_run, id_start: int = 0) -> None:
+def process_shard(  # type: ignore[no-untyped-def]
+    shard_id, dry_run, id_start: int = 0
+) -> None:
     # At 500K events, we need to process 6 events per second to finish within a day.
     batch_size = 100
     rps = 6 / batch_size
@@ -95,7 +97,7 @@ def process_shard(shard_id, dry_run, id_start: int = 0) -> None:
 @click.option("--shard-id", type=int, default=None)
 @click.option("--id-start", type=int, default=0)
 @click.option("--dry-run", is_flag=True)
-def main(shard_id, id_start, dry_run) -> None:
+def main(shard_id, id_start, dry_run) -> None:  # type: ignore[no-untyped-def]
     maybe_enable_rollbar()
 
     if shard_id is not None:

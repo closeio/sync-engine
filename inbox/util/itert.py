@@ -1,7 +1,7 @@
 import itertools
 
 
-def chunk(iterable, size):  # noqa: ANN201
+def chunk(iterable, size):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Yield chunks of an iterable.
 

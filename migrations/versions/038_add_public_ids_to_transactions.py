@@ -14,10 +14,12 @@ down_revision = "1d7374c286c5"
 import sys
 from gc import collect as garbage_collect
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
-from sqlalchemy.dialects import mysql
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.dialects import mysql  # type: ignore[import-untyped]
+from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+    declarative_base,
+)
 
 
 def upgrade() -> None:
@@ -33,7 +35,7 @@ def upgrade() -> None:
     )
 
     # TODO(emfree) reflect
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
     from inbox.sqlalchemy_ext.util import b36_to_bin, generate_public_id
 
@@ -41,10 +43,12 @@ def upgrade() -> None:
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Transaction(Base):
+    class Transaction(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["transaction"]
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         count = 0
         (num_transactions,) = db_session.query(
             sa.func.max(Transaction.id)

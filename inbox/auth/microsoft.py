@@ -12,16 +12,16 @@ from .oauth import OAuthAuthHandler
 
 @attr.s
 class MicrosoftAccountData:
-    email = attr.ib()
+    email = attr.ib()  # type: ignore[var-annotated]
 
-    secret_type = attr.ib()
-    secret_value = attr.ib()
+    secret_type = attr.ib()  # type: ignore[var-annotated]
+    secret_value = attr.ib()  # type: ignore[var-annotated]
 
-    client_id = attr.ib()
-    scope = attr.ib()
+    client_id = attr.ib()  # type: ignore[var-annotated]
+    scope = attr.ib()  # type: ignore[var-annotated]
 
-    sync_email = attr.ib()
-    sync_events = attr.ib()
+    sync_email = attr.ib()  # type: ignore[var-annotated]
+    sync_events = attr.ib()  # type: ignore[var-annotated]
 
 
 class MicrosoftAuthHandler(OAuthAuthHandler):
@@ -49,19 +49,21 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
         ]
     )
 
-    def create_account(
+    def create_account(  # type: ignore[override]
         self, account_data: MicrosoftAccountData
     ) -> OutlookAccount:
         namespace = Namespace()
-        account = OutlookAccount(namespace=namespace)
+        account = OutlookAccount(namespace=namespace)  # type: ignore[call-arg]
         account.create_emailed_events_calendar()
         account.sync_should_run = False
         return self.update_account(account, account_data)
 
-    def update_account(
+    def update_account(  # type: ignore[override]
         self, account: OutlookAccount, account_data: MicrosoftAccountData
     ) -> OutlookAccount:
-        account.email_address = account_data.email
+        account.email_address = (  # type: ignore[method-assign]
+            account_data.email
+        )
 
         if account_data.secret_type:
             account.set_secret(
@@ -79,7 +81,9 @@ class MicrosoftAuthHandler(OAuthAuthHandler):
 
         return account
 
-    def interactive_auth(self, email_address=None):  # noqa: ANN201
+    def interactive_auth(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, email_address=None
+    ):
         url_args = {
             "redirect_uri": self.OAUTH_REDIRECT_URI,
             "client_id": self.OAUTH_CLIENT_ID,

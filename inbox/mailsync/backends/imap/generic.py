@@ -68,10 +68,10 @@ import time
 from datetime import datetime, timedelta
 from typing import Any, NoReturn
 
-from sqlalchemy import func
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy import func  # type: ignore[import-untyped]
+from sqlalchemy.exc import IntegrityError  # type: ignore[import-untyped]
+from sqlalchemy.orm import Session  # type: ignore[import-untyped]
+from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
 
 from inbox import interruptible_threading
 from inbox.exceptions import ValidationError
@@ -159,7 +159,7 @@ class FolderSyncEngine(InterruptibleThread):
 
     global_lock = threading.BoundedSemaphore(1)
 
-    def __init__(
+    def __init__(  # type: ignore[no-untyped-def]
         self,
         account_id,
         namespace_id,
@@ -204,7 +204,7 @@ class FolderSyncEngine(InterruptibleThread):
         self.state: str | None = None
         self.provider_name = provider_name
         self.last_fast_refresh = None
-        self.flags_fetch_results = {}
+        self.flags_fetch_results = {}  # type: ignore[var-annotated]
         self.conn_pool = connection_pool(self.account_id)
         self.polling_logged_at: float = 0
 
@@ -240,7 +240,7 @@ class FolderSyncEngine(InterruptibleThread):
             self.provider_name,
         )
 
-    def _run(self):
+    def _run(self):  # type: ignore[no-untyped-def]
         # Bind thread-local logging context.
         self.log = log.new(
             account_id=self.account_id,
@@ -250,7 +250,9 @@ class FolderSyncEngine(InterruptibleThread):
         # eagerly signal the sync status
         self.heartbeat_status.publish()
 
-        def start_sync(saved_folder_status) -> None:
+        def start_sync(  # type: ignore[no-untyped-def]
+            saved_folder_status,
+        ) -> None:
             # Ensure we don't cause an error if the folder was deleted.
             sync_end_time = (
                 saved_folder_status.folder
@@ -295,7 +297,7 @@ class FolderSyncEngine(InterruptibleThread):
                 logger=log,
             )
 
-    def _run_impl(self):
+    def _run_impl(self):  # type: ignore[no-untyped-def]
         old_state = self.state
         assert old_state
         try:
@@ -359,7 +361,7 @@ class FolderSyncEngine(InterruptibleThread):
         # killed between the end of the handler and the commit.
         if self.state != old_state:
 
-            def update(status) -> None:
+            def update(status) -> None:  # type: ignore[no-untyped-def]
                 status.state = self.state
 
             self.update_folder_sync_status(update)
@@ -369,7 +371,9 @@ class FolderSyncEngine(InterruptibleThread):
             # error. It's safe to reset the uidvalidity counter.
             self.uidinvalid_count = 0
 
-    def update_folder_sync_status(self, cb) -> None:
+    def update_folder_sync_status(  # type: ignore[no-untyped-def]
+        self, cb
+    ) -> None:
         # Loads the folder sync status and invokes the provided callback to
         # modify it. Commits any changes and updates `self.state` to ensure
         # they are never out of sync.
@@ -384,7 +388,7 @@ class FolderSyncEngine(InterruptibleThread):
                 )
 
             except NoResultFound:
-                saved_folder_status = ImapFolderSyncStatus(
+                saved_folder_status = ImapFolderSyncStatus(  # type: ignore[call-arg]
                     account_id=self.account_id, folder_id=self.folder_id
                 )
                 db_session.add(saved_folder_status)
@@ -394,7 +398,7 @@ class FolderSyncEngine(InterruptibleThread):
 
             self.state = saved_folder_status.state
 
-    def set_stopped(self, db_session) -> None:
+    def set_stopped(self, db_session) -> None:  # type: ignore[no-untyped-def]
         self.update_folder_sync_status(lambda s: s.stop_sync())
 
     def _report_initial_sync_start(self) -> None:
@@ -426,7 +430,7 @@ class FolderSyncEngine(InterruptibleThread):
                         ImapFolderInfo.folder_id == self.folder_id,
                     ).one()
                 except NoResultFound:
-                    imapfolderinfo = ImapFolderInfo(
+                    imapfolderinfo = ImapFolderInfo(  # type: ignore[call-arg]
                         account_id=self.account_id,
                         folder_id=self.folder_id,
                         uidvalidity=crispin_client.selected_uidvalidity,
@@ -523,7 +527,7 @@ class FolderSyncEngine(InterruptibleThread):
                 # schedule change_poller to die
                 change_poller.kill()
 
-    def should_idle(self, crispin_client):  # noqa: ANN201
+    def should_idle(self, crispin_client):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if not hasattr(self, "_should_idle"):
             self._should_idle = (
                 crispin_client.idle_supported()
@@ -611,7 +615,7 @@ class FolderSyncEngine(InterruptibleThread):
         raw_message: RawMessage,
     ) -> ImapUid | None:
         assert account is not None
-        assert account.namespace is not None
+        assert account.namespace is not None  # type: ignore[attr-defined]
 
         # Check if we somehow already saved the imapuid (shouldn't happen, but
         # possible due to race condition). If so, don't commit changes.
@@ -684,7 +688,9 @@ class FolderSyncEngine(InterruptibleThread):
 
         return new_uid
 
-    def _count_thread_messages(self, thread_id, db_session):
+    def _count_thread_messages(  # type: ignore[no-untyped-def]
+        self, thread_id, db_session
+    ):
         (count,) = (
             db_session.query(func.count(Message.id))
             .filter(Message.thread_id == thread_id)
@@ -692,7 +698,7 @@ class FolderSyncEngine(InterruptibleThread):
         )
         return count
 
-    def add_message_to_thread(
+    def add_message_to_thread(  # type: ignore[no-untyped-def]
         self, db_session, message_obj, raw_message
     ) -> None:
         """
@@ -723,7 +729,9 @@ class FolderSyncEngine(InterruptibleThread):
             else:
                 parent_thread.messages.append(message_obj)
 
-    def download_and_commit_uids(self, crispin_client, uids):  # noqa: ANN201
+    def download_and_commit_uids(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, crispin_client, uids
+    ):
         start = datetime.utcnow()
         raw_messages = crispin_client.uids(uids)
         if not raw_messages:
@@ -782,7 +790,9 @@ class FolderSyncEngine(InterruptibleThread):
         for metric in metrics:
             statsd_client.timing(metric, latency)
 
-    def _report_message_velocity(self, timedelta, num_uids) -> None:
+    def _report_message_velocity(  # type: ignore[no-untyped-def]
+        self, timedelta, num_uids
+    ) -> None:
         latency = (timedelta).total_seconds() * 1000
         latency_per_uid = float(latency) / num_uids
         metrics = [
@@ -799,7 +809,9 @@ class FolderSyncEngine(InterruptibleThread):
         for metric in metrics:
             statsd_client.timing(metric, latency_per_uid)
 
-    def update_uid_counts(self, db_session, **kwargs) -> None:
+    def update_uid_counts(  # type: ignore[no-untyped-def]
+        self, db_session, **kwargs
+    ) -> None:
         saved_status = (
             db_session.query(ImapFolderSyncStatus)
             .join(Folder)
@@ -818,7 +830,9 @@ class FolderSyncEngine(InterruptibleThread):
             metrics.update(kwargs)
             saved_status.update_metrics(metrics)
 
-    def get_new_uids(self, crispin_client) -> None:
+    def get_new_uids(  # type: ignore[no-untyped-def]
+        self, crispin_client
+    ) -> None:
         try:
             remote_uidnext = crispin_client.conn.folder_status(
                 self.folder_name, ["UIDNEXT"]
@@ -959,7 +973,9 @@ class FolderSyncEngine(InterruptibleThread):
                 )
         self.highestmodseq = new_highestmodseq
 
-    def generic_refresh_flags(self, crispin_client) -> None:
+    def generic_refresh_flags(  # type: ignore[no-untyped-def]
+        self, crispin_client
+    ) -> None:
         now = datetime.utcnow()
         slow_refresh_due = (
             self.last_slow_refresh is None
@@ -967,14 +983,17 @@ class FolderSyncEngine(InterruptibleThread):
         )
         fast_refresh_due = (
             self.last_fast_refresh is None
-            or now > self.last_fast_refresh + FAST_REFRESH_INTERVAL
+            or now  # type: ignore[unreachable]
+            > self.last_fast_refresh + FAST_REFRESH_INTERVAL
         )
         if slow_refresh_due:
             self.refresh_flags_impl(crispin_client, SLOW_FLAGS_REFRESH_LIMIT)
             self.last_slow_refresh = datetime.utcnow()
         elif fast_refresh_due:
             self.refresh_flags_impl(crispin_client, FAST_FLAGS_REFRESH_LIMIT)
-            self.last_fast_refresh = datetime.utcnow()
+            self.last_fast_refresh = (
+                datetime.utcnow()  # type: ignore[assignment]
+            )
 
     def refresh_flags_impl(
         self, crispin_client: CrispinClient, max_uids: int
@@ -1011,7 +1030,7 @@ class FolderSyncEngine(InterruptibleThread):
                 limit=max_uids,
             )
 
-        flags = crispin_client.flags(local_uids)
+        flags = crispin_client.flags(local_uids)  # type: ignore[arg-type]
         if max_uids in self.flags_fetch_results and self.flags_fetch_results[
             max_uids
         ] == (local_uids, flags):
@@ -1055,29 +1074,29 @@ class FolderSyncEngine(InterruptibleThread):
             self.generic_refresh_flags(crispin_client)
 
     @property
-    def uidvalidity(self):  # noqa: ANN201
+    def uidvalidity(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if not hasattr(self, "_uidvalidity"):
             self._uidvalidity = self._load_imap_folder_info().uidvalidity
         return self._uidvalidity
 
     @uidvalidity.setter
-    def uidvalidity(self, value) -> None:
+    def uidvalidity(self, value) -> None:  # type: ignore[no-untyped-def]
         self._update_imap_folder_info("uidvalidity", value)
         self._uidvalidity = value
 
     @property
-    def uidnext(self):  # noqa: ANN201
+    def uidnext(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if not hasattr(self, "_uidnext"):
             self._uidnext = self._load_imap_folder_info().uidnext
         return self._uidnext
 
     @uidnext.setter
-    def uidnext(self, value) -> None:
+    def uidnext(self, value) -> None:  # type: ignore[no-untyped-def]
         self._update_imap_folder_info("uidnext", value)
         self._uidnext = value
 
     @property
-    def last_slow_refresh(self):  # noqa: ANN201
+    def last_slow_refresh(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         # We persist the last_slow_refresh timestamp so that we don't end up
         # doing a (potentially expensive) full flags refresh for every account
         # on every process restart.
@@ -1088,22 +1107,22 @@ class FolderSyncEngine(InterruptibleThread):
         return self._last_slow_refresh
 
     @last_slow_refresh.setter
-    def last_slow_refresh(self, value) -> None:
+    def last_slow_refresh(self, value) -> None:  # type: ignore[no-untyped-def]
         self._update_imap_folder_info("last_slow_refresh", value)
         self._last_slow_refresh = value
 
     @property
-    def highestmodseq(self):  # noqa: ANN201
+    def highestmodseq(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if not hasattr(self, "_highestmodseq"):
             self._highestmodseq = self._load_imap_folder_info().highestmodseq
         return self._highestmodseq
 
     @highestmodseq.setter
-    def highestmodseq(self, value) -> None:
+    def highestmodseq(self, value) -> None:  # type: ignore[no-untyped-def]
         self._highestmodseq = value
         self._update_imap_folder_info("highestmodseq", value)
 
-    def _load_imap_folder_info(self):
+    def _load_imap_folder_info(self):  # type: ignore[no-untyped-def]
         with session_scope(self.namespace_id) as db_session:
             imapfolderinfo = (
                 db_session.query(ImapFolderInfo)
@@ -1116,7 +1135,9 @@ class FolderSyncEngine(InterruptibleThread):
             db_session.expunge(imapfolderinfo)
             return imapfolderinfo
 
-    def _update_imap_folder_info(self, attrname, value) -> None:
+    def _update_imap_folder_info(  # type: ignore[no-untyped-def]
+        self, attrname, value
+    ) -> None:
         with session_scope(self.namespace_id) as db_session:
             imapfolderinfo = (
                 db_session.query(ImapFolderInfo)
@@ -1129,7 +1150,7 @@ class FolderSyncEngine(InterruptibleThread):
             setattr(imapfolderinfo, attrname, value)
             db_session.commit()
 
-    def uidvalidity_cb(  # noqa: ANN201
+    def uidvalidity_cb(  # type: ignore[no-untyped-def]  # noqa: ANN201
         self, account_id, folder_name, select_info
     ):
         assert folder_name == self.folder_name
@@ -1164,7 +1185,8 @@ def uidvalidity_cb(
     account_id: int, folder_name: str, select_info: dict[bytes, Any]
 ) -> dict[bytes, Any]:
     assert (  # noqa: PT018
-        folder_name is not None and select_info is not None
+        folder_name is not None  # type: ignore[redundant-expr]
+        and select_info is not None
     ), "must start IMAP session before verifying UIDVALIDITY"
     with session_scope(account_id) as db_session:
         saved_folder_info = common.get_folder_info(

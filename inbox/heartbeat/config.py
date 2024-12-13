@@ -21,7 +21,7 @@ connection_pool_map: dict[str, BlockingConnectionPool | None] = {
 }
 
 
-def _get_redis_connection_pool(host, port, db):
+def _get_redis_connection_pool(host, port, db):  # type: ignore[no-untyped-def]
     # This function is called once per sync process at the time of
     # instantiating the singleton HeartBeatStore, so doing this here
     # should be okay for now.
@@ -43,11 +43,11 @@ def _get_redis_connection_pool(host, port, db):
     return connection_pool
 
 
-def account_redis_shard_number(account_id):  # noqa: ANN201
+def account_redis_shard_number(account_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     return account_id % len(REDIS_SHARDS)
 
 
-def get_redis_client(account_id):  # noqa: ANN201
+def get_redis_client(account_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     account_shard_number = account_redis_shard_number(account_id)
     host = REDIS_SHARDS[account_shard_number]
 

@@ -11,10 +11,12 @@ Create Date: 2014-03-19 17:55:44.578515
 revision = "1c3f1812f2d9"
 down_revision = "482338e7a7d6"
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.sql import column, table
+from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+    declarative_base,
+)
+from sqlalchemy.sql import column, table  # type: ignore[import-untyped]
 
 
 def upgrade() -> None:
@@ -31,18 +33,18 @@ def downgrade() -> None:
 
 # Upgrade funtions:
 def genericize_imapaccount() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class ImapAccount_(Base):  # noqa: N801
+    class ImapAccount_(Base):  # type: ignore[misc, valid-type]  # noqa: N801
         __table__ = Base.metadata.tables["imapaccount"]
 
     # Get data from columns-to-be-dropped
-    with session_scope() as db_session:
+    with session_scope() as db_session:  # type: ignore[call-arg]
         results = db_session.query(
             ImapAccount_.id, ImapAccount_.imap_host
         ).all()
@@ -77,18 +79,18 @@ def genericize_imapaccount() -> None:
 
 
 def genericize_thread() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Thread_(Base):  # noqa: N801
+    class Thread_(Base):  # type: ignore[misc, valid-type]  # noqa: N801
         __table__ = Base.metadata.tables["thread"]
 
     # Get data from columns-to-be-dropped
-    with session_scope() as db_session:
+    with session_scope() as db_session:  # type: ignore[call-arg]
         results = db_session.query(Thread_.id, Thread_.g_thrid).all()
 
     to_insert = [dict(id=r[0], g_thrid=r[1]) for r in results]
@@ -179,18 +181,18 @@ def genericize_namespace_contact_foldersync() -> None:
 
 # Downgrade functions:
 def downgrade_imapaccount() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class ImapAccount_(Base):  # noqa: N801
+    class ImapAccount_(Base):  # type: ignore[misc, valid-type]  # noqa: N801
         __table__ = Base.metadata.tables["imapaccount"]
 
     # Get data from table-to-be-dropped
-    with session_scope() as db_session:
+    with session_scope() as db_session:  # type: ignore[call-arg]
         results = db_session.query(
             ImapAccount_.id, ImapAccount_.imap_host
         ).all()
@@ -248,18 +250,18 @@ def downgrade_imapaccount() -> None:
 
 
 def downgrade_imapthread() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class ImapThread_(Base):  # noqa: N801
+    class ImapThread_(Base):  # type: ignore[misc, valid-type]  # noqa: N801
         __table__ = Base.metadata.tables["imapthread"]
 
     # Get data from table-to-be-dropped
-    with session_scope() as db_session:
+    with session_scope() as db_session:  # type: ignore[call-arg]
         results = db_session.query(ImapThread_.id, ImapThread_.g_thrid).all()
     to_insert = [dict(id=r[0], g_thrid=r[1]) for r in results]
 

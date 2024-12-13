@@ -181,7 +181,7 @@ def _interruptible(
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             current_thread = threading.current_thread()
             if not isinstance(current_thread, InterruptibleThread):
-                return blocking_function(*args)
+                return blocking_function(*args)  # type: ignore[call-arg]
 
             return interruptible_function(current_thread, *args, **kwargs)
 
@@ -255,7 +255,7 @@ class InterruptibleThreadTimeout(BaseException):
 
 
 @contextlib.contextmanager
-def timeout(timeout: float):  # noqa: ANN201
+def timeout(timeout: float):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Context manager to set a timeout for the interruptible
     operations run by the current interruptible thread.

@@ -13,18 +13,20 @@ down_revision = "4b4c5579c083"
 
 from typing import Never
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 from inbox.sqlalchemy_ext import json_util
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.sqlalchemy_ext.util import JSON, MutableDict
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    from sqlalchemy.ext.declarative import declarative_base
+    from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+        declarative_base,
+    )
 
     from inbox.models.session import session_scope
 
@@ -41,10 +43,12 @@ def upgrade() -> None:
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Account(Base):
+    class Account(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["account"]
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         for acct in db_session.query(Account):
             d = dict(
                 sync_start_time=str(acct.sync_start_time),

@@ -2,7 +2,7 @@ import calendar
 import datetime
 from json import JSONEncoder, dumps
 
-import arrow
+import arrow  # type: ignore[import-untyped]
 from flask import Response
 
 from inbox.events.timezones import timezones_table
@@ -30,13 +30,13 @@ from inbox.models.event import (
 log = get_logger()
 
 
-def format_address_list(addresses):  # noqa: ANN201
+def format_address_list(addresses):  # type: ignore[no-untyped-def]  # noqa: ANN201
     if addresses is None:
         return []
     return [{"name": name, "email": email} for name, email in addresses]
 
 
-def format_categories(categories):  # noqa: ANN201
+def format_categories(categories):  # type: ignore[no-untyped-def]  # noqa: ANN201
     if categories is None:
         return []
     return [
@@ -50,7 +50,9 @@ def format_categories(categories):  # noqa: ANN201
     ]
 
 
-def format_messagecategories(messagecategories):  # noqa: ANN201
+def format_messagecategories(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    messagecategories,
+):
     if messagecategories is None:
         return []
     return [
@@ -65,7 +67,7 @@ def format_messagecategories(messagecategories):  # noqa: ANN201
     ]
 
 
-def format_phone_numbers(phone_numbers):  # noqa: ANN201
+def format_phone_numbers(phone_numbers):  # type: ignore[no-untyped-def]  # noqa: ANN201
     formatted_phone_numbers = []
     for number in phone_numbers:
         formatted_phone_numbers.append(
@@ -74,7 +76,7 @@ def format_phone_numbers(phone_numbers):  # noqa: ANN201
     return formatted_phone_numbers
 
 
-def encode(  # noqa: ANN201
+def encode(  # type: ignore[no-untyped-def]  # noqa: ANN201
     obj, namespace_public_id=None, expand: bool = False, is_n1: bool = False
 ):
     try:
@@ -91,7 +93,7 @@ def encode(  # noqa: ANN201
         raise
 
 
-def _convert_timezone_to_iana_tz(original_tz):
+def _convert_timezone_to_iana_tz(original_tz):  # type: ignore[no-untyped-def]
     if original_tz is None:
         return None
 
@@ -102,7 +104,7 @@ def _convert_timezone_to_iana_tz(original_tz):
         return original_tz
 
 
-def _encode(  # noqa: D417
+def _encode(  # type: ignore[no-untyped-def]  # noqa: D417
     obj, namespace_public_id=None, expand: bool = False, is_n1: bool = False
 ):
     """
@@ -124,10 +126,10 @@ def _encode(  # noqa: D417
 
     """  # noqa: D401
 
-    def _get_namespace_public_id(obj):
+    def _get_namespace_public_id(obj):  # type: ignore[no-untyped-def]
         return namespace_public_id or obj.namespace.public_id
 
-    def _format_participant_data(participant):
+    def _format_participant_data(participant):  # type: ignore[no-untyped-def]
         """
         Event.participants is a JSON blob which may contain internal data.
         This function returns a dict with only the data we want to make
@@ -139,7 +141,7 @@ def _encode(  # noqa: D417
 
         return dct
 
-    def _get_lowercase_class_name(obj):
+    def _get_lowercase_class_name(obj):  # type: ignore[no-untyped-def]
         return type(obj).__name__.lower()
 
     # Flask's jsonify() doesn't handle datetimes or json arrays as primary
@@ -204,10 +206,14 @@ def _encode(  # noqa: D417
             "unread": not obj.is_read,
             "starred": obj.is_starred,
             "files": obj.api_attachment_metadata,
-            "events": [encode(e) for e in obj.events],
+            "events": [
+                encode(e) for e in obj.events  # type: ignore[attr-defined]
+            ],
         }
 
-        categories = format_messagecategories(obj.messagecategories)
+        categories = format_messagecategories(
+            obj.messagecategories  # type: ignore[attr-defined]
+        )
         if obj.namespace.account.category_type == "folder":
             resp["folder"] = categories[0] if categories else None
         else:
@@ -257,7 +263,9 @@ def _encode(  # noqa: D417
 
         if not expand:
             base["message_ids"] = [
-                m.public_id for m in obj.messages if not m.is_draft
+                m.public_id
+                for m in obj.messages  # type: ignore[attr-defined]
+                if not m.is_draft
             ]
             base["draft_ids"] = [m.public_id for m in obj.drafts]
             return base
@@ -265,7 +273,7 @@ def _encode(  # noqa: D417
         # Expand messages within threads
         all_expanded_messages = []
         all_expanded_drafts = []
-        for msg in obj.messages:
+        for msg in obj.messages:  # type: ignore[attr-defined]
             resp = {
                 "id": msg.public_id,
                 "object": "message",
@@ -318,7 +326,9 @@ def _encode(  # noqa: D417
             "account_id": _get_namespace_public_id(obj),
             "name": obj.name,
             "email": obj.email_address,
-            "phone_numbers": format_phone_numbers(obj.phone_numbers),
+            "phone_numbers": format_phone_numbers(
+                obj.phone_numbers  # type: ignore[attr-defined]
+            ),
         }
 
     elif isinstance(obj, Event):
@@ -395,15 +405,24 @@ def _encode(  # noqa: D417
             "size": obj.size,
             "filename": obj.filename,
         }
-        if len(obj.parts):
+        if len(obj.parts):  # type: ignore[attr-defined]
             # if obj is actually a message attachment (and not merely an
             # uploaded file), set additional properties
             resp.update(
-                {"message_ids": [p.message.public_id for p in obj.parts]}
+                {
+                    "message_ids": [
+                        p.message.public_id
+                        for p in obj.parts  # type: ignore[attr-defined]
+                    ]
+                }
             )
 
             content_ids = list(
-                {p.content_id for p in obj.parts if p.content_id is not None}
+                {
+                    p.content_id
+                    for p in obj.parts  # type: ignore[attr-defined]
+                    if p.content_id is not None
+                }
             )
             content_id = None
             if len(content_ids) > 0:
@@ -454,7 +473,7 @@ class APIEncoder:
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[no-untyped-def]
         self,
         namespace_public_id=None,
         expand: bool = False,
@@ -464,11 +483,11 @@ class APIEncoder:
             namespace_public_id, expand, is_n1=is_n1
         )
 
-    def _encoder_factory(
+    def _encoder_factory(  # type: ignore[no-untyped-def]
         self, namespace_public_id, expand, is_n1: bool = False
     ):
         class InternalEncoder(JSONEncoder):
-            def default(self, obj):
+            def default(self, obj):  # type: ignore[no-untyped-def]
                 custom_representation = encode(
                     obj, namespace_public_id, expand=expand, is_n1=is_n1
                 )
@@ -479,7 +498,9 @@ class APIEncoder:
 
         return InternalEncoder
 
-    def cereal(self, obj, pretty: bool = False):  # noqa: ANN201, D417
+    def cereal(  # type: ignore[no-untyped-def]  # noqa: ANN201, D417
+        self, obj, pretty: bool = False
+    ):
         """
         Returns the JSON string representation of obj.
 
@@ -505,7 +526,7 @@ class APIEncoder:
             )
         return dumps(obj, cls=self.encoder_class)
 
-    def jsonify(self, obj):  # noqa: ANN201, D417
+    def jsonify(self, obj):  # type: ignore[no-untyped-def]  # noqa: ANN201, D417
         """
         Returns a Flask Response object encapsulating the JSON
         representation of obj.

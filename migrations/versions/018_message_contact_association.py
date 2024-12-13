@@ -12,7 +12,7 @@ revision = "223041bb858b"
 down_revision = "2c9f3a06de09"
 
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
@@ -38,7 +38,9 @@ def upgrade() -> None:
     import sys
 
     sys.path.append("./tools")
-    from rerank_contacts import rerank_contacts
+    from rerank_contacts import (  # type: ignore[import-not-found]
+        rerank_contacts,
+    )
 
     rerank_contacts()
 

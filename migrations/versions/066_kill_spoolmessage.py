@@ -13,14 +13,16 @@ down_revision = "2e6120c97485"
 
 from typing import Never
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
 def upgrade() -> None:
-    from sqlalchemy.ext.declarative import declarative_base
+    from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+        declarative_base,
+    )
 
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -67,13 +69,15 @@ def upgrade() -> None:
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Message(Base):
+    class Message(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["message"]
 
-    class SpoolMessage(Base):
+    class SpoolMessage(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["spoolmessage"]
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         for sm in db_session.query(SpoolMessage).yield_per(250):
             m = db_session.query(Message).get(sm.id)
 

@@ -1,5 +1,15 @@
-from sqlalchemy import and_, asc, bindparam, desc, func, or_
-from sqlalchemy.orm import contains_eager, subqueryload
+from sqlalchemy import (  # type: ignore[import-untyped]
+    and_,
+    asc,
+    bindparam,
+    desc,
+    func,
+    or_,
+)
+from sqlalchemy.orm import (  # type: ignore[import-untyped]
+    contains_eager,
+    subqueryload,
+)
 
 from inbox.api.err import InputError
 from inbox.api.validation import valid_public_id
@@ -19,7 +29,7 @@ from inbox.models import (
 from inbox.models.event import RecurringEvent
 
 
-def contact_subquery(  # noqa: ANN201
+def contact_subquery(  # type: ignore[no-untyped-def]  # noqa: ANN201
     db_session, namespace_id, email_address, field
 ):
     return (
@@ -35,7 +45,7 @@ def contact_subquery(  # noqa: ANN201
     )
 
 
-def threads(  # noqa: ANN201
+def threads(  # type: ignore[no-untyped-def]  # noqa: ANN201
     namespace_id,
     subject,
     from_addr,
@@ -119,7 +129,9 @@ def threads(  # noqa: ANN201
             .join(MessageContactAssociation)
             .join(Contact, MessageContactAssociation.contact_id == Contact.id)
             .filter(
-                Contact.email_address.in_(any_email),
+                Contact.email_address.in_(  # type: ignore[attr-defined]
+                    any_email
+                ),
                 Contact.namespace_id == namespace_id,
             )
             .subquery()
@@ -154,7 +166,7 @@ def threads(  # noqa: ANN201
         category_query = (
             db_session.query(Message.thread_id)
             .prefix_with("STRAIGHT_JOIN")
-            .join(Message.messagecategories)
+            .join(Message.messagecategories)  # type: ignore[attr-defined]
             .join(MessageCategory.category)
             .filter(
                 Category.namespace_id == namespace_id, or_(*category_filters)
@@ -205,7 +217,7 @@ def threads(  # noqa: ANN201
     return query.all()
 
 
-def messages_or_drafts(  # noqa: ANN201
+def messages_or_drafts(  # type: ignore[no-untyped-def]  # noqa: ANN201
     namespace_id,
     drafts,
     subject,
@@ -414,7 +426,9 @@ def messages_or_drafts(  # noqa: ANN201
             db_session.query(MessageContactAssociation.message_id)
             .join(Contact, MessageContactAssociation.contact_id == Contact.id)
             .filter(
-                Contact.email_address.in_(any_email),
+                Contact.email_address.in_(  # type: ignore[attr-defined]
+                    any_email
+                ),
                 Contact.namespace_id == bindparam("namespace_id"),
             )
             .subquery()
@@ -451,7 +465,7 @@ def messages_or_drafts(  # noqa: ANN201
             pass
         query = (
             query.prefix_with("STRAIGHT_JOIN")
-            .join(Message.messagecategories)
+            .join(Message.messagecategories)  # type: ignore[attr-defined]
             .join(MessageCategory.category)
             .filter(
                 Category.namespace_id == namespace_id, or_(*category_filters)
@@ -477,18 +491,20 @@ def messages_or_drafts(  # noqa: ANN201
     # thread table. We should eventually try to simplify this.
     query = query.options(
         contains_eager(Message.thread),
-        subqueryload(Message.messagecategories).joinedload(
-            "category", "created_at"
+        subqueryload(
+            Message.messagecategories  # type: ignore[attr-defined]
+        ).joinedload("category", "created_at"),
+        subqueryload(Message.parts).joinedload(  # type: ignore[attr-defined]
+            Part.block
         ),
-        subqueryload(Message.parts).joinedload(Part.block),
-        subqueryload(Message.events),
+        subqueryload(Message.events),  # type: ignore[attr-defined]
     )
 
     prepared = query.params(**param_dict)
     return prepared.all()
 
 
-def files(  # noqa: ANN201
+def files(  # type: ignore[no-untyped-def]  # noqa: ANN201
     namespace_id,
     message_public_id,
     filename,
@@ -545,7 +561,7 @@ def files(  # noqa: ANN201
         return query.all()
 
 
-def filter_event_query(  # noqa: ANN201
+def filter_event_query(  # type: ignore[no-untyped-def]  # noqa: ANN201
     query,
     event_cls,
     namespace_id,
@@ -586,7 +602,7 @@ def filter_event_query(  # noqa: ANN201
     return query
 
 
-def recurring_events(  # noqa: ANN201
+def recurring_events(  # type: ignore[no-untyped-def]  # noqa: ANN201
     filters,
     starts_before,
     starts_after,
@@ -644,7 +660,7 @@ def recurring_events(  # noqa: ANN201
     return recur_instances
 
 
-def events(  # noqa: ANN201
+def events(  # type: ignore[no-untyped-def]  # noqa: ANN201
     namespace_id,
     event_public_id,
     calendar_public_id,
@@ -824,7 +840,7 @@ def events(  # noqa: ANN201
         return all_events
 
 
-def messages_for_contact_scores(  # noqa: ANN201
+def messages_for_contact_scores(  # type: ignore[no-untyped-def]  # noqa: ANN201
     db_session, namespace_id, starts_after=None
 ):
     query = (

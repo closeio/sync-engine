@@ -19,7 +19,7 @@ from inbox.heartbeat.config import (
 @click.option("--host", "-h", type=str, default="localhost")
 @click.option("--port", "-p", type=int, default=6379)
 @click.option("--database", "-d", type=int, default=STATUS_DATABASE)
-def main(host, port, database) -> None:
+def main(host, port, database) -> None:  # type: ignore[no-untyped-def]
     maybe_enable_rollbar()
 
     connection_pool = BlockingConnectionPool(
@@ -36,7 +36,10 @@ def main(host, port, database) -> None:
 
     count = 0
     for name in client.scan_iter(count=100):
-        if name == "ElastiCacheMasterReplicationTimestamp":
+        if (
+            name  # type: ignore[comparison-overlap]
+            == "ElastiCacheMasterReplicationTimestamp"
+        ):
             continue
         batch_client.delete(name)
         count += 1

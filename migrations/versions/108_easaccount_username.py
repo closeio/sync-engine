@@ -11,12 +11,12 @@ Create Date: 2014-10-04 07:59:29.540240
 revision = "2f97277cd86d"
 down_revision = "3cea90bfcdea"
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine()
 
@@ -40,10 +40,12 @@ def upgrade() -> None:
     Base.metadata.reflect(engine)
     from inbox.models.session import session_scope
 
-    class EASAccount(Base):
+    class EASAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["easaccount"]
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         accts = db_session.query(EASAccount).all()
 
         for a in accts:
@@ -61,7 +63,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine()
 

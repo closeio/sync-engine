@@ -1,5 +1,13 @@
-from sqlalchemy import BigInteger, Column, Enum, Index, String, func, inspect
-from sqlalchemy.orm import relationship
+from sqlalchemy import (  # type: ignore[import-untyped]
+    BigInteger,
+    Column,
+    Enum,
+    Index,
+    String,
+    func,
+    inspect,
+)
+from sqlalchemy.orm import relationship  # type: ignore[import-untyped]
 
 from inbox.ignition import redis_txn
 from inbox.models.base import MailSyncBase
@@ -65,7 +73,7 @@ Index(
 )
 
 
-def is_dirty(session, obj) -> bool:
+def is_dirty(session, obj) -> bool:  # type: ignore[no-untyped-def]
     if obj in session.dirty and obj.has_versioned_changes():
         return True
     if hasattr(obj, "dirty") and obj.dirty:
@@ -73,7 +81,7 @@ def is_dirty(session, obj) -> bool:
     return False
 
 
-def create_revisions(session) -> None:
+def create_revisions(session) -> None:  # type: ignore[no-untyped-def]
     for obj in session:
         if (
             not isinstance(obj, HasRevisions)
@@ -88,13 +96,15 @@ def create_revisions(session) -> None:
             # occurs). This emulates what happens to objects in session.dirty,
             # in that they are no longer present in the set during the next
             # invocation of the pre-flush hook.
-            obj.dirty = False
+            obj.dirty = False  # type: ignore[attr-defined]
             create_revision(obj, session, "update")
         elif obj in session.deleted:
             create_revision(obj, session, "delete")
 
 
-def create_revision(obj, session, revision_type) -> None:
+def create_revision(  # type: ignore[no-untyped-def]
+    obj, session, revision_type
+) -> None:
     assert revision_type in ("insert", "update", "delete")
 
     # If available use object dates for the transaction timestamp
@@ -116,7 +126,7 @@ def create_revision(obj, session, revision_type) -> None:
 
     # Always create a Transaction record -- this maintains a total ordering over
     # all events for an account.
-    revision = Transaction(
+    revision = Transaction(  # type: ignore[call-arg]
         command=revision_type,
         record_id=obj.id,
         object_type=obj.API_OBJECT_NAME,
@@ -130,7 +140,7 @@ def create_revision(obj, session, revision_type) -> None:
     # this is an optimization needed so these sparse events can be still be
     # retrieved efficiently for webhooks etc.
     if obj.API_OBJECT_NAME == "account":
-        revision = AccountTransaction(
+        revision = AccountTransaction(  # type: ignore[assignment, call-arg]
             command=revision_type,
             record_id=obj.id,
             object_type=obj.API_OBJECT_NAME,
@@ -140,7 +150,7 @@ def create_revision(obj, session, revision_type) -> None:
         session.add(revision)
 
 
-def propagate_changes(session) -> None:
+def propagate_changes(session) -> None:  # type: ignore[no-untyped-def]
     """
     Mark an object's related object as dirty when certain attributes of the
     object (its `propagated_attributes`) change.
@@ -161,7 +171,7 @@ def propagate_changes(session) -> None:
                     obj.thread.dirty = True
 
 
-def increment_versions(session) -> None:
+def increment_versions(session) -> None:  # type: ignore[no-untyped-def]
     from inbox.models.metadata import Metadata
     from inbox.models.thread import Thread
 
@@ -174,12 +184,12 @@ def increment_versions(session) -> None:
             obj.version = Metadata.version + 1  # TODO what's going on here?
 
 
-def bump_redis_txn_id(session) -> None:
+def bump_redis_txn_id(session) -> None:  # type: ignore[no-untyped-def]
     """
     Called from post-flush hook to bump the latest id stored in redis
     """  # noqa: D401
 
-    def get_namespace_public_id(namespace_id):
+    def get_namespace_public_id(namespace_id):  # type: ignore[no-untyped-def]
         # the namespace was just used to create the transaction, so it should
         # still be in the session. If not, a sql statement will be emitted.
         namespace = session.query(Namespace).get(namespace_id)

@@ -11,7 +11,7 @@ from inbox.logging import get_logger
 log = get_logger()
 
 
-def _absolute_path(relative_path):
+def _absolute_path(relative_path):  # type: ignore[no-untyped-def]
     return os.path.join(  # noqa: PTH118
         os.path.dirname(os.path.abspath(__file__)),  # noqa: PTH100, PTH120
         relative_path,
@@ -54,7 +54,9 @@ def check_tz() -> None:
         sys.exit(_TZ_ERROR_TEXT)
 
 
-def load_overrides(file_path, loaded_config=config) -> None:
+def load_overrides(  # type: ignore[no-untyped-def]
+    file_path, loaded_config=config
+) -> None:
     """
     Convenience function for overriding default configuration.
 

@@ -16,8 +16,8 @@ log = get_logger()
 # TODO: store AWS credentials in a better way.
 STORE_MSG_ON_S3 = config.get("STORE_MESSAGES_ON_S3", None)
 
-import boto3  # noqa: E402
-import botocore.exceptions  # noqa: E402
+import boto3  # type: ignore[import-untyped]  # noqa: E402
+import botocore.exceptions  # type: ignore[import-untyped]  # noqa: E402
 
 # https://github.com/facebook/zstd/blob/dev/doc/zstd_compression_format.md#zstandard-frames
 # > This value was selected to be less probable to find at the beginning of some random file.
@@ -27,7 +27,7 @@ import botocore.exceptions  # noqa: E402
 ZSTD_MAGIC_NUMBER_PREFIX = 0xFD2FB528.to_bytes(4, "little")
 
 
-def _data_file_directory(h):
+def _data_file_directory(h):  # type: ignore[no-untyped-def]
     return os.path.join(  # noqa: PTH118
         config.get_required("MSG_PARTS_DIRECTORY"),
         h[0],
@@ -39,7 +39,7 @@ def _data_file_directory(h):
     )
 
 
-def _data_file_path(h):
+def _data_file_path(h):  # type: ignore[no-untyped-def]
     return os.path.join(_data_file_directory(h), h)  # noqa: PTH118
 
 
@@ -162,7 +162,7 @@ def _save_to_s3(
     )
 
 
-def get_s3_bucket(bucket_name):  # noqa: ANN201
+def get_s3_bucket(bucket_name):  # type: ignore[no-untyped-def]  # noqa: ANN201
     resource = boto3.resource(
         "s3",
         aws_access_key_id=config.get("AWS_ACCESS_KEY_ID"),
@@ -173,7 +173,7 @@ def get_s3_bucket(bucket_name):  # noqa: ANN201
     return resource.Bucket(bucket_name)
 
 
-def _s3_key_exists(bucket, key) -> bool:
+def _s3_key_exists(bucket, key) -> bool:  # type: ignore[no-untyped-def]
     """
     Check if a key exists in an S3 bucket by doing a HEAD request.
     """
@@ -210,7 +210,7 @@ def _save_to_s3_bucket(
     statsd_client.timing("s3_blockstore.save_latency", latency_millis)
 
 
-def get_from_blockstore(
+def get_from_blockstore(  # type: ignore[no-untyped-def]
     data_sha256, *, check_sha: bool = True
 ) -> bytes | None:
     if STORE_MSG_ON_S3:
@@ -278,7 +278,7 @@ def get_raw_mime(data_sha256: str) -> "bytes | None":
     return decompressed_raw_mime
 
 
-def _get_from_s3(data_sha256):
+def _get_from_s3(data_sha256):  # type: ignore[no-untyped-def]
     assert "AWS_ACCESS_KEY_ID" in config, "Need AWS key!"
     assert "AWS_SECRET_ACCESS_KEY" in config, "Need AWS secret!"
 
@@ -289,7 +289,8 @@ def _get_from_s3(data_sha256):
     # Try getting data from our temporary blockstore before
     # trying getting it from the provider.
     data = _get_from_s3_bucket(
-        data_sha256, config.get("TEMP_MESSAGE_STORE_BUCKET_NAME")
+        data_sha256,
+        config.get("TEMP_MESSAGE_STORE_BUCKET_NAME"),  # type: ignore[arg-type]
     )
 
     if data is not None:
@@ -328,7 +329,7 @@ def _get_from_s3_bucket(data_sha256: str, bucket_name: str) -> "bytes | None":
     return file_object.getvalue()
 
 
-def _get_from_disk(data_sha256):
+def _get_from_disk(data_sha256):  # type: ignore[no-untyped-def]
     if not data_sha256:
         return None
 
@@ -369,7 +370,7 @@ def _delete_from_s3_bucket(
     statsd_client.timing("s3_blockstore.delete_latency", latency_millis)
 
 
-def _delete_from_disk(data_sha256) -> None:
+def _delete_from_disk(data_sha256) -> None:  # type: ignore[no-untyped-def]
     if not data_sha256:
         return
 
@@ -379,12 +380,17 @@ def _delete_from_disk(data_sha256) -> None:
         log.warning(f"No file with name: {data_sha256}!")
 
 
-def delete_from_blockstore(*data_sha256_hashes) -> None:
+def delete_from_blockstore(  # type: ignore[no-untyped-def]
+    *data_sha256_hashes,
+) -> None:
     log.info("deleting from blockstore", sha256=data_sha256_hashes)
 
     if STORE_MSG_ON_S3:
         _delete_from_s3_bucket(
-            data_sha256_hashes, config.get("TEMP_MESSAGE_STORE_BUCKET_NAME")
+            data_sha256_hashes,
+            config.get(  # type: ignore[arg-type]
+                "TEMP_MESSAGE_STORE_BUCKET_NAME"
+            ),
         )
     else:
         for data_sha256 in data_sha256_hashes:

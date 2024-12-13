@@ -5,8 +5,8 @@ import datetime
 from collections import defaultdict
 
 import click
-from sqlalchemy import true
-from sqlalchemy.sql.expression import func
+from sqlalchemy import true  # type: ignore[import-untyped]
+from sqlalchemy.sql.expression import func  # type: ignore[import-untyped]
 
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.logging import configure_logging, get_logger
@@ -20,8 +20,8 @@ log = get_logger(purpose="separator-backfix")
 NUM_MESSAGES = 10
 
 
-def process_account(account_id):  # noqa: ANN201
-    ret = defaultdict(int)
+def process_account(account_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
+    ret = defaultdict(int)  # type: ignore[var-annotated]
 
     try:
         with session_scope(account_id) as db_session:
@@ -67,7 +67,7 @@ def process_account(account_id):  # noqa: ANN201
 
 @click.command()
 @click.option("--num-accounts", type=int, default=1500)
-def main(num_accounts) -> None:
+def main(num_accounts) -> None:  # type: ignore[no-untyped-def]
     maybe_enable_rollbar()
 
     with global_session_scope() as db_session:

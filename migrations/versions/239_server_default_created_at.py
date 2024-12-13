@@ -12,7 +12,7 @@ revision = "1dfc65e583bf"
 down_revision = "1b0b4e6fdf96"
 
 from alembic import op
-from sqlalchemy.sql import text
+from sqlalchemy.sql import text  # type: ignore[import-untyped]
 
 # SELECT table_name FROM information_schema.columns WHERE table_schema='inbox' AND column_name='created_at'
 TABLES = [

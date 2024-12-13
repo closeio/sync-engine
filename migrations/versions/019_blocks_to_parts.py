@@ -14,15 +14,17 @@ down_revision = "223041bb858b"
 
 from typing import Never
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+    declarative_base,
+)
 
 chunk_size = 250
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import Session, session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -62,7 +64,7 @@ def upgrade() -> None:
     Base.metadata.reflect(engine)
 
     class Block_(  # noqa: N801
-        Base
+        Base  # type: ignore[misc, valid-type]
     ):  # old schema, reflected from database table
         __table__ = Base.metadata.tables["block"]
 
@@ -73,17 +75,17 @@ def upgrade() -> None:
 
     print("Migrating from blocks to parts")
     new_parts = []
-    with session_scope() as db_session:
+    with session_scope() as db_session:  # type: ignore[call-arg]
         for block in db_session.query(Block_).yield_per(chunk_size):
             # Move relevant fields
             p = Part()
-            p.size = block.size
-            p.data_sha256 = block.data_sha256
+            p.size = block.size  # type: ignore[attr-defined]
+            p.data_sha256 = block.data_sha256  # type: ignore[attr-defined]
             p.message_id = block.message_id
             p.walk_index = block.walk_index
             p.content_disposition = block.content_disposition
             p.content_id = block.content_id
-            p.misc_keyval = block.misc_keyval
+            p.misc_keyval = block.misc_keyval  # type: ignore[attr-defined]
             p.is_inboxapp_attachment  # noqa: B018
 
             old_namespace = (
@@ -92,7 +94,7 @@ def upgrade() -> None:
                 .filter(Message.id == block.message_id)
                 .one()
             )
-            p.namespace_id = old_namespace.id
+            p.namespace_id = old_namespace.id  # type: ignore[attr-defined]
 
             # Commit after column modifications
             new_parts.append(p)

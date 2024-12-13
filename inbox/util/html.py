@@ -14,12 +14,14 @@ class HTMLTagStripper(HTMLParser):
 
     def __init__(self) -> None:
         self.reset()
-        self.fed = []
+        self.fed = []  # type: ignore[var-annotated]
         self.strip_tag_contents_mode = False
 
         HTMLParser.__init__(self)
 
-    def handle_starttag(self, tag, attrs) -> None:
+    def handle_starttag(  # type: ignore[no-untyped-def]
+        self, tag, attrs
+    ) -> None:
         # Replace <br>, <div> tags by spaces
         if tag.lower() in ("br", "div"):
             self.fed.append(" ")
@@ -30,14 +32,14 @@ class HTMLTagStripper(HTMLParser):
         if tag.lower() in HTMLTagStripper.strippedTags:
             self.strip_tag_contents_mode = True
 
-    def handle_endtag(self, tag) -> None:
+    def handle_endtag(self, tag) -> None:  # type: ignore[no-untyped-def]
         self.strip_tag_contents_mode = False
 
-    def handle_data(self, d) -> None:
+    def handle_data(self, d) -> None:  # type: ignore[no-untyped-def]
         if not self.strip_tag_contents_mode:
             self.fed.append(d)
 
-    def handle_entityref(self, d) -> None:
+    def handle_entityref(self, d) -> None:  # type: ignore[no-untyped-def]
         try:
             val = chr(name2codepoint[d])
         except KeyError:
@@ -84,7 +86,7 @@ re_string = re.compile(
 def plaintext2html(text: str, tabstop: int = 4) -> str:
     assert "\r" not in text, "newlines not normalized"
 
-    def do_sub(m):
+    def do_sub(m):  # type: ignore[no-untyped-def]
         c = m.groupdict()
         if c["htmlchars"]:
             return html_escape(c["htmlchars"], quote=False)

@@ -2,7 +2,7 @@ import contextlib
 import datetime
 from typing import Any, Union
 
-import arrow
+import arrow  # type: ignore[import-untyped]
 
 
 def parse_as_when(
@@ -48,7 +48,7 @@ class When:
     spanning = False
 
     @classmethod
-    def parse(cls, raw: dict[str, Any]):  # noqa: ANN206
+    def parse(cls, raw: dict[str, Any]):  # type: ignore[no-untyped-def]  # noqa: ANN206
         parsed_times = cls.parse_keys(raw)
         return cls(*parsed_times)
 
@@ -94,7 +94,7 @@ class SpanningWhen(When):
     singular_cls: type
 
     @classmethod
-    def parse(cls, raw: dict[str, Any]):  # noqa: ANN206
+    def parse(cls, raw: dict[str, Any]):  # type: ignore[no-untyped-def]  # noqa: ANN206
         # If initializing a span, we sanity check the timestamps and initialize
         # the singular form if they are equal.
         start, end = cls.parse_keys(raw)

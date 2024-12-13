@@ -15,16 +15,18 @@ Happy hacking!
 
 
 class RemoteConsole(InteractiveConsole):
-    def __init__(self, socket, locals=None) -> None:
+    def __init__(  # type: ignore[no-untyped-def]
+        self, socket, locals=None
+    ) -> None:
         self.socket = socket
         self.handle = socket.makefile("rw")
         InteractiveConsole.__init__(self, locals=locals)
         self.handle.write(doc)
 
-    def write(self, data) -> None:
+    def write(self, data) -> None:  # type: ignore[no-untyped-def]
         self.handle.write(data)
 
-    def runcode(self, code) -> None:
+    def runcode(self, code) -> None:  # type: ignore[no-untyped-def]
         # preserve stdout/stderr
         oldstdout = sys.stdout
         oldstderr = sys.stderr
@@ -36,7 +38,9 @@ class RemoteConsole(InteractiveConsole):
         sys.stdout = oldstdout
         sys.stderr = oldstderr
 
-    def interact(self, banner=None) -> None:
+    def interact(  # type: ignore[no-untyped-def, override]
+        self, banner=None
+    ) -> None:
         """
         Closely emulate the interactive Python console.
 
@@ -73,7 +77,7 @@ class RemoteConsole(InteractiveConsole):
                 else:
                     prompt = sys.ps1
                 try:
-                    line = self.raw_input(prompt)
+                    line = self.raw_input(prompt)  # type: ignore[arg-type]
                     self.handle.flush()
                     # Can be None if sys.stdin was redefined
                     encoding = getattr(sys.stdin, "encoding", None)
@@ -99,13 +103,15 @@ class RemoteConsole(InteractiveConsole):
         except OSError:
             return
 
-    def raw_input(self, prompt: str = ""):  # noqa: ANN201
+    def raw_input(self, prompt: str = ""):  # type: ignore[no-untyped-def]  # noqa: ANN201
         self.handle.write(prompt)
         self.handle.flush()
         return self.handle.readline()
 
 
-def break_to_interpreter(host: str = "localhost", port=None) -> None:
+def break_to_interpreter(  # type: ignore[no-untyped-def]
+    host: str = "localhost", port=None
+) -> None:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 

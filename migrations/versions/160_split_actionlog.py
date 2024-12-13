@@ -11,13 +11,13 @@ Create Date: 2015-04-20 21:22:20.523261
 revision = "182f2b40fa36"
 down_revision = "4e6eedda36af"
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
-from sqlalchemy.orm import contains_eager
+from sqlalchemy.orm import contains_eager  # type: ignore[import-untyped]
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     op.add_column("actionlog", sa.Column("type", sa.String(16)))
 
@@ -25,7 +25,7 @@ def upgrade() -> None:
     from inbox.models import Account, ActionLog, Namespace
     from inbox.models.session import session_scope
 
-    with session_scope() as db_session:
+    with session_scope() as db_session:  # type: ignore[call-arg]
         q = (
             db_session.query(ActionLog)
             .join(Namespace)
@@ -68,7 +68,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     op.drop_column("actionlog", "type")
 

@@ -1,8 +1,10 @@
 import datetime
 
-from sqlalchemy import func
-from sqlalchemy.orm import load_only
-from sqlalchemy.orm.exc import ObjectDeletedError
+from sqlalchemy import func  # type: ignore[import-untyped]
+from sqlalchemy.orm import load_only  # type: ignore[import-untyped]
+from sqlalchemy.orm.exc import (  # type: ignore[import-untyped]
+    ObjectDeletedError,
+)
 
 from inbox import interruptible_threading
 from inbox.crispin import connection_pool
@@ -54,7 +56,7 @@ class DeleteHandler(InterruptibleThread):
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[no-untyped-def]
         self,
         account_id,
         namespace_id,
@@ -92,7 +94,7 @@ class DeleteHandler(InterruptibleThread):
         self.gc_deleted_threads(current_time)
         interruptible_threading.sleep(self.message_ttl.total_seconds())
 
-    def check(self, current_time) -> None:
+    def check(self, current_time) -> None:  # type: ignore[no-untyped-def]
         dangling_sha256s = set()
 
         with session_scope(self.namespace_id) as db_session:
@@ -201,7 +203,9 @@ class DeleteHandler(InterruptibleThread):
                     db_session.delete(category)
                     db_session.commit()
 
-    def gc_deleted_threads(self, current_time) -> None:
+    def gc_deleted_threads(  # type: ignore[no-untyped-def]
+        self, current_time
+    ) -> None:
         with session_scope(self.namespace_id) as db_session:
             deleted_threads = (
                 db_session.query(Thread)
@@ -236,7 +240,7 @@ class LabelRenameHandler(InterruptibleThread):
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[no-untyped-def]
         self, account_id, namespace_id, label_name, semaphore
     ) -> None:
         bind_context(self, "renamehandler", account_id)
@@ -250,7 +254,7 @@ class LabelRenameHandler(InterruptibleThread):
 
         self.name = f"{self.__class__.__name__}(account_id={account_id!r}, label_name={label_name!r})"
 
-    def _run(self):
+    def _run(self):  # type: ignore[no-untyped-def]
         interruptible_threading.check_interrupted()
         return retry_with_logging(self._run_impl, account_id=self.account_id)
 

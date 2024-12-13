@@ -11,7 +11,7 @@ Create Date: 2015-07-23 22:56:25.945108
 revision = "3cf51fb0e76a"
 down_revision = "4fa0540482f8"
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
@@ -30,7 +30,7 @@ def upgrade() -> None:
         existing_type=sa.Enum("draft", "sending", "sending failed", "sent"),
     )
 
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
     if not engine.has_table("easdevice"):

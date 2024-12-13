@@ -23,7 +23,7 @@ log = get_logger(purpose="separator-backfix")
 @click.option("--min-id", type=int, default=None)
 @click.option("--max-id", type=int, default=None)
 @click.option("--shard-id", type=int, default=None)
-def main(min_id, max_id, shard_id) -> None:
+def main(min_id, max_id, shard_id) -> None:  # type: ignore[no-untyped-def]
     maybe_enable_rollbar()
 
     generic_accounts = []
@@ -37,12 +37,12 @@ def main(min_id, max_id, shard_id) -> None:
             )
 
             if min_id is not None:
-                generic_accounts = generic_accounts.filter(
+                generic_accounts = generic_accounts.filter(  # type: ignore[attr-defined]
                     GenericAccount.id > min_id
                 )
 
             if max_id is not None:
-                generic_accounts = generic_accounts.filter(
+                generic_accounts = generic_accounts.filter(  # type: ignore[attr-defined]
                     GenericAccount.id <= max_id
                 )
 

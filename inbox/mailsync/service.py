@@ -4,8 +4,8 @@ import time
 from functools import cache
 from threading import BoundedSemaphore
 
-from sqlalchemy import and_, or_
-from sqlalchemy.exc import OperationalError
+from sqlalchemy import and_, or_  # type: ignore[import-untyped]
+from sqlalchemy.exc import OperationalError  # type: ignore[import-untyped]
 
 from inbox.config import config
 from inbox.contacts.remote_sync import ContactSync
@@ -46,7 +46,7 @@ SHARED_SYNC_EVENT_QUEUE_NAME = "sync:shared_event_queue:{}"
 SHARED_SYNC_EVENT_QUEUE_ZONE_MAP = {}
 
 
-def shared_sync_event_queue_for_zone(zone):  # noqa: ANN201
+def shared_sync_event_queue_for_zone(zone):  # type: ignore[no-untyped-def]  # noqa: ANN201
     queue_name = SHARED_SYNC_EVENT_QUEUE_NAME.format(zone)
     if queue_name not in SHARED_SYNC_EVENT_QUEUE_ZONE_MAP:
         SHARED_SYNC_EVENT_QUEUE_ZONE_MAP[queue_name] = EventQueue(queue_name)
@@ -86,7 +86,7 @@ class SyncService:
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[no-untyped-def]
         self,
         process_identifier,
         process_number,
@@ -104,10 +104,10 @@ class SyncService:
             supported_providers=list(module_registry),
         )
 
-        self.syncing_accounts = set()
-        self.email_sync_monitors = {}
-        self.contact_sync_monitors = {}
-        self.event_sync_monitors = {}
+        self.syncing_accounts = set()  # type: ignore[var-annotated]
+        self.email_sync_monitors = {}  # type: ignore[var-annotated]
+        self.contact_sync_monitors = {}  # type: ignore[var-annotated]
+        self.event_sync_monitors = {}  # type: ignore[var-annotated]
         # Randomize the poll_interval so we maintain at least a little fairness
         # when using a timeout while blocking on the redis queues.
         min_poll_interval = 5
@@ -189,7 +189,9 @@ class SyncService:
             if event is None:
                 break
 
-    def handle_shared_queue_event(self, event) -> None:
+    def handle_shared_queue_event(  # type: ignore[no-untyped-def]
+        self, event
+    ) -> None:
         # Conservatively, stop accepting accounts if the process pending averages
         # is over PENDING_AVGS_THRESHOLD or if the total of accounts being
         # synced by a single process exceeds the threshold. Excessive
@@ -198,7 +200,9 @@ class SyncService:
         # at the same time.
         pending_avgs_over_threshold = False
         if self._pending_avgs_provider is not None:
-            pending_avgs = self._pending_avgs_provider.get_pending_avgs()
+            pending_avgs = (  # type: ignore[unreachable]
+                self._pending_avgs_provider.get_pending_avgs()
+            )
             pending_avgs_over_threshold = (
                 pending_avgs[15] >= PENDING_AVGS_THRESHOLD
             )
@@ -258,7 +262,7 @@ class SyncService:
                 )
                 log_uncaught_errors()
 
-    def account_ids_to_sync(self):  # noqa: ANN201
+    def account_ids_to_sync(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         with global_session_scope() as db_session:
             return {
                 r[0]
@@ -285,7 +289,7 @@ class SyncService:
                 .all()
             }
 
-    def account_ids_owned(self):  # noqa: ANN201
+    def account_ids_owned(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         with global_session_scope() as db_session:
             return {
                 r[0]
@@ -294,7 +298,9 @@ class SyncService:
                 .all()
             }
 
-    def register_pending_avgs_provider(self, pending_avgs_provider) -> None:
+    def register_pending_avgs_provider(  # type: ignore[no-untyped-def]
+        self, pending_avgs_provider
+    ) -> None:
         self._pending_avgs_provider = pending_avgs_provider
 
     def start_event_sync(self, account: Account) -> None:
@@ -313,7 +319,7 @@ class SyncService:
             account.email_address,
             account.verbose_provider,
             account.id,
-            account.namespace.id,
+            account.namespace.id,  # type: ignore[attr-defined]
             provider_class=provider_class,
         )
         self.log.info(
@@ -403,7 +409,7 @@ class SyncService:
         self.log.info("stopping sync process")
         self.keep_running = False
 
-    def stop_sync(self, account_id) -> bool:
+    def stop_sync(self, account_id) -> bool:  # type: ignore[no-untyped-def]
         """
         Stops the sync for the account with given account_id.
         If that account doesn't exist, does nothing.

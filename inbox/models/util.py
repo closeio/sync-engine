@@ -3,10 +3,10 @@ import time
 from collections import OrderedDict
 from collections.abc import Iterable
 
-import limitlion
-from sqlalchemy import desc, func
-from sqlalchemy.orm import Session
-from sqlalchemy.orm.exc import NoResultFound
+import limitlion  # type: ignore[import-untyped]
+from sqlalchemy import desc, func  # type: ignore[import-untyped]
+from sqlalchemy.orm import Session  # type: ignore[import-untyped]
+from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
 
 from inbox.error_handling import log_uncaught_errors
 from inbox.heartbeat.status import clear_heartbeat_status
@@ -88,7 +88,7 @@ def reconcile_message(
     return existing_message
 
 
-def transaction_objects():  # noqa: ANN201
+def transaction_objects():  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Return the mapping from API object name - which becomes the
     Transaction.object_type - for models that generate Transactions (i.e.
@@ -121,7 +121,7 @@ def transaction_objects():  # noqa: ANN201
     }
 
 
-def get_accounts_to_delete(shard_id):  # noqa: ANN201
+def get_accounts_to_delete(shard_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     ids_to_delete = []
     with session_scope_by_shard_id(shard_id) as db_session:
         ids_to_delete = [
@@ -136,7 +136,7 @@ class AccountDeletionErrror(Exception):
     pass
 
 
-def batch_delete_namespaces(
+def batch_delete_namespaces(  # type: ignore[no-untyped-def]
     ids_to_delete, throttle: bool = False, dry_run: bool = False
 ) -> None:
     start = time.time()
@@ -160,7 +160,7 @@ def batch_delete_namespaces(
     )
 
 
-def delete_namespace(
+def delete_namespace(  # type: ignore[no-untyped-def]
     namespace_id, throttle: bool = False, dry_run: bool = False
 ) -> None:
     """
@@ -288,7 +288,7 @@ def delete_namespace(
     )
 
 
-def _batch_delete(
+def _batch_delete(  # type: ignore[no-untyped-def]
     engine,
     table,
     column_id_filters,
@@ -403,7 +403,7 @@ def check_throttle() -> bool:
     return True
 
 
-def purge_transactions(
+def purge_transactions(  # type: ignore[no-untyped-def]
     shard_id,
     days_ago: int = 60,
     limit: int = 1000,
@@ -440,7 +440,7 @@ def purge_transactions(
             ) as db_session:
                 if dry_run:
                     rowcount = db_session.execute(
-                        f"{query} OFFSET {offset}"
+                        f"{query} OFFSET {offset}"  # type: ignore[possibly-undefined]
                     ).rowcount
                     offset += rowcount
                 else:
@@ -497,7 +497,7 @@ def delete_message_hashes(
         dry_run: If True, don't actually delete the data.
 
     """
-    if not message_hashes:
+    if not message_hashes:  # type: ignore[truthy-iterable]
         return
 
     # First check if the messagea still exists in another namespace

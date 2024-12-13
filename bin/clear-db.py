@@ -16,7 +16,10 @@ def main() -> None:
         default=False,
     )
     args = parser.parse_args()
-    from inbox.ignition import init_db, main_engine
+    from inbox.ignition import (  # type: ignore[attr-defined]
+        init_db,
+        main_engine,
+    )
 
     maybe_enable_rollbar()
 

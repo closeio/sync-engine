@@ -11,7 +11,7 @@ from inbox.error_handling import maybe_enable_rollbar
 
 
 def main() -> None:
-    from inbox.config import config, secrets_path
+    from inbox.config import config, secrets_path  # type: ignore[attr-defined]
 
     maybe_enable_rollbar()
 

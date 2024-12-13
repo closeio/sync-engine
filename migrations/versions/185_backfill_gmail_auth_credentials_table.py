@@ -15,11 +15,13 @@ down_revision = "2ac4e3c4e049"
 def upgrade() -> None:
     import datetime
 
-    from sqlalchemy.ext.declarative import declarative_base
-    from sqlalchemy.orm import relationship
+    from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+        declarative_base,
+    )
+    from sqlalchemy.orm import relationship  # type: ignore[import-untyped]
 
     from inbox.config import config
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
 
     engine = main_engine()
@@ -28,17 +30,19 @@ def upgrade() -> None:
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class GmailAccount(Base):
+    class GmailAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["gmailaccount"]
 
-    class Secret(Base):
+    class Secret(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["secret"]
 
-    class GmailAuthCredentials(Base):
+    class GmailAuthCredentials(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["gmailauthcredentials"]
         secret = relationship(Secret)
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         for acc, sec in (
             db_session.query(GmailAccount, Secret)
             .filter(

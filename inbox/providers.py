@@ -5,7 +5,7 @@ from inbox.exceptions import NotSupportedError
 __all__ = ["provider_info", "providers"]
 
 
-def provider_info(provider_name):  # noqa: ANN201
+def provider_info(provider_name):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Like providers[provider_name] except raises
     inbox.basicauth.NotSupportedError instead of KeyError when the provider is

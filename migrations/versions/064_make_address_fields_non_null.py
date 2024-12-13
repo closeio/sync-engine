@@ -12,25 +12,29 @@ revision = "2d05e116bdb7"
 down_revision = "4fd3fcd46a3b"
 
 from alembic import op
-from sqlalchemy import func, or_
-from sqlalchemy.dialects import mysql
+from sqlalchemy import func, or_  # type: ignore[import-untyped]
+from sqlalchemy.dialects import mysql  # type: ignore[import-untyped]
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    from sqlalchemy.ext.declarative import declarative_base
+    from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+        declarative_base,
+    )
 
     from inbox.models.session import session_scope
 
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Message(Base):
+    class Message(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["message"]
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         null_field_count = (
             db_session.query(func.count(Message.id))
             .filter(

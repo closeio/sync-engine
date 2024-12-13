@@ -12,7 +12,9 @@ SOCKET_CONNECT_TIMEOUT = 5
 SOCKET_TIMEOUT = 30
 
 
-def _get_redis_client(host=None, port: int = 6379, db: int = 1):
+def _get_redis_client(  # type: ignore[no-untyped-def]
+    host=None, port: int = 6379, db: int = 1
+):
     return StrictRedis(
         host=host,
         port=port,
@@ -29,7 +31,9 @@ class EventQueue:
     """
 
     def __init__(
-        self, queue_name: str, redis: StrictRedis | None = None
+        self,
+        queue_name: str,
+        redis: StrictRedis | None = None,  # type: ignore[type-arg]
     ) -> None:
         self.redis = redis
         if self.redis is None:
@@ -67,7 +71,7 @@ class EventQueue:
             if blpop_result is None:
                 return None
 
-            blpop_queue_name, event_data = blpop_result
+            (blpop_queue_name, event_data) = blpop_result
             queue_name = blpop_queue_name.decode("utf-8")
 
         try:

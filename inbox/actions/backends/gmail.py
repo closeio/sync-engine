@@ -3,7 +3,7 @@
 import contextlib
 from imaplib import IMAP4
 
-import imapclient
+import imapclient  # type: ignore[import-untyped]
 
 from inbox.actions.backends.generic import uids_by_folder
 from inbox.mailsync.backends.imap.generic import uidvalidity_cb
@@ -15,11 +15,11 @@ PROVIDER = "gmail"
 __all__ = ["remote_create_label", "remote_update_label", "remote_delete_label"]
 
 
-def _encode_labels(labels):
+def _encode_labels(labels):  # type: ignore[no-untyped-def]
     return [imapclient.imap_utf7.encode(label) for label in labels]
 
 
-def remote_change_labels(
+def remote_change_labels(  # type: ignore[no-untyped-def]
     crispin_client, account_id, message_ids, removed_labels, added_labels
 ) -> None:
     uids_for_message: dict[str, list[str]] = {}
@@ -43,7 +43,9 @@ def remote_change_labels(
             )
 
 
-def remote_create_label(crispin_client, account_id, category_id) -> None:
+def remote_create_label(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, category_id
+) -> None:
     with session_scope(account_id) as db_session:
         category = db_session.query(Category).get(category_id)
         if category is None:
@@ -52,13 +54,15 @@ def remote_create_label(crispin_client, account_id, category_id) -> None:
     crispin_client.conn.create_folder(display_name)
 
 
-def remote_update_label(
+def remote_update_label(  # type: ignore[no-untyped-def]
     crispin_client, account_id, category_id, old_name, new_name
 ) -> None:
     crispin_client.conn.rename_folder(old_name, new_name)
 
 
-def remote_delete_label(crispin_client, account_id, category_id) -> None:
+def remote_delete_label(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, category_id
+) -> None:
     with session_scope(account_id) as db_session:
         category = db_session.query(Category).get(category_id)
         if category is None:

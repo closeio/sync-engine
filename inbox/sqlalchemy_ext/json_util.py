@@ -33,7 +33,7 @@ import json
 EPOCH_NAIVE = datetime.datetime.utcfromtimestamp(0)
 
 
-def dumps(obj, *args, **kwargs):  # noqa: ANN201
+def dumps(obj, *args, **kwargs):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Helper function that wraps :class:`json.dumps`.
 
@@ -42,13 +42,13 @@ def dumps(obj, *args, **kwargs):  # noqa: ANN201
     return json.dumps(_json_convert(obj), *args, **kwargs)
 
 
-def loads(s, *args, **kwargs):  # noqa: ANN201
+def loads(s, *args, **kwargs):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """Helper function that wraps :class:`json.loads`."""  # noqa: D401
     kwargs["object_hook"] = lambda dct: object_hook(dct)
     return json.loads(s, *args, **kwargs)
 
 
-def _json_convert(obj):
+def _json_convert(obj):  # type: ignore[no-untyped-def]
     """
     Recursive helper method that converts datetime.datetime type so it can be
     converted into json.
@@ -63,7 +63,7 @@ def _json_convert(obj):
         return obj
 
 
-def object_hook(dct):  # noqa: ANN201
+def object_hook(dct):  # type: ignore[no-untyped-def]  # noqa: ANN201
     if "$date" in dct:
         dtm = dct["$date"]
         secs = float(dtm) / 1000.0
@@ -71,10 +71,10 @@ def object_hook(dct):  # noqa: ANN201
     return dct
 
 
-def default(obj):  # noqa: ANN201
+def default(obj):  # type: ignore[no-untyped-def]  # noqa: ANN201
     if isinstance(obj, datetime.datetime):
         if obj.utcoffset() is not None:
-            obj = obj - obj.utcoffset()
+            obj = obj - obj.utcoffset()  # type: ignore[operator]
         millis = int(
             calendar.timegm(obj.timetuple()) * 1000 + obj.microsecond / 1000
         )

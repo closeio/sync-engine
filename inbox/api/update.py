@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
 
 from inbox.api.err import InputError
 from inbox.api.validation import valid_public_id
@@ -13,7 +13,9 @@ log = get_logger()
 # STOPSHIP(emfree): better naming/structure for this module
 
 
-def update_message(message, request_data, db_session, optimistic) -> None:
+def update_message(  # type: ignore[no-untyped-def]
+    message, request_data, db_session, optimistic
+) -> None:
     accept_labels = message.namespace.account.provider == "gmail"
     # Update flags (message.{is_read, is_starred})
     unread, starred = parse_flags(request_data)
@@ -33,7 +35,9 @@ def update_message(message, request_data, db_session, optimistic) -> None:
             update_message_folder(message, db_session, folder, optimistic)
 
 
-def update_thread(thread, request_data, db_session, optimistic) -> None:
+def update_thread(  # type: ignore[no-untyped-def]
+    thread, request_data, db_session, optimistic
+) -> None:
     accept_labels = thread.namespace.account.provider == "gmail"
 
     (unread, starred) = parse_flags(request_data)
@@ -45,7 +49,7 @@ def update_thread(thread, request_data, db_session, optimistic) -> None:
         raise InputError(f"Unexpected attribute: {list(request_data)[0]}")
 
     if accept_labels:
-        if labels is not None:
+        if labels is not None:  # type: ignore[possibly-undefined]
             new_labels = labels - set(thread.categories)
             removed_labels = set(thread.categories) - labels
 
@@ -59,7 +63,7 @@ def update_thread(thread, request_data, db_session, optimistic) -> None:
                         optimistic,
                     )
 
-    elif folder is not None:
+    elif folder is not None:  # type: ignore[possibly-undefined]
         for message in thread.messages:
             # Exclude drafts and sent messages from thread-level moves.
             if (
@@ -79,7 +83,7 @@ def update_thread(thread, request_data, db_session, optimistic) -> None:
 ## FLAG UPDATES ##
 
 
-def parse_flags(request_data):  # noqa: ANN201
+def parse_flags(request_data):  # type: ignore[no-untyped-def]  # noqa: ANN201
     unread = request_data.pop("unread", None)
     if unread is not None and not isinstance(unread, bool):
         raise InputError('"unread" must be true or false')
@@ -90,7 +94,7 @@ def parse_flags(request_data):  # noqa: ANN201
     return unread, starred
 
 
-def update_message_flags(
+def update_message_flags(  # type: ignore[no-untyped-def]
     message, db_session, optimistic, unread=None, starred=None
 ) -> None:
     if unread is not None:
@@ -121,7 +125,9 @@ def update_message_flags(
 ## FOLDER UPDATES ##
 
 
-def parse_folder(request_data, db_session, namespace_id):  # noqa: ANN201
+def parse_folder(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    request_data, db_session, namespace_id
+):
     # TODO deprecate being able to post "folder" and not "folder_id"
     if "folder_id" not in request_data and "folder" not in request_data:
         return None
@@ -149,7 +155,9 @@ def parse_folder(request_data, db_session, namespace_id):  # noqa: ANN201
         )
 
 
-def update_message_folder(message, db_session, category, optimistic) -> None:
+def update_message_folder(  # type: ignore[no-untyped-def]
+    message, db_session, category, optimistic
+) -> None:
     # STOPSHIP(emfree): what about sent/inbox duality?
     if optimistic:
         message.categories = [category]
@@ -167,7 +175,9 @@ def update_message_folder(message, db_session, category, optimistic) -> None:
 ### LABEL UPDATES ###
 
 
-def parse_labels(request_data, db_session, namespace_id):  # noqa: ANN201
+def parse_labels(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    request_data, db_session, namespace_id
+):
     # TODO deprecate being able to post "labels" and not "label_ids"
     if "label_ids" not in request_data and "labels" not in request_data:
         return None
@@ -205,7 +215,7 @@ def parse_labels(request_data, db_session, namespace_id):  # noqa: ANN201
     return labels
 
 
-def update_message_labels(
+def update_message_labels(  # type: ignore[no-untyped-def]
     message, db_session, added_categories, removed_categories, optimistic
 ) -> None:
     special_label_map = {
@@ -248,7 +258,7 @@ def update_message_labels(
         # created_at value. Taken from
         # https://docs.sqlalchemy.org/en/13/orm/extensions/
         # associationproxy.html#simplifying-association-objects
-        MessageCategory(
+        MessageCategory(  # type: ignore[call-arg]
             category=category, message=message, created_at=update_time
         )
 
@@ -292,7 +302,9 @@ def update_message_labels(
         )
 
 
-def validate_labels(db_session, added_categories, removed_categories) -> None:
+def validate_labels(  # type: ignore[no-untyped-def]
+    db_session, added_categories, removed_categories
+) -> None:
     """
     Validate that the labels added and removed obey Gmail's semantics --
     Gmail messages MUST belong to exactly ONE of the '[Gmail]All Mail',
@@ -316,7 +328,7 @@ def validate_labels(db_session, added_categories, removed_categories) -> None:
         raise InputError('"all", "trash" and "spam" cannot all be removed')
 
 
-def apply_gmail_label_rules(
+def apply_gmail_label_rules(  # type: ignore[no-untyped-def]
     db_session, message, added_categories, removed_categories
 ) -> None:
     r"""

@@ -16,7 +16,7 @@ AccountPing = namedtuple("AccountPing", ["id", "folders"])
 FolderPing = namedtuple("FolderPing", ["id", "alive", "timestamp"])
 
 
-def get_ping_status(  # noqa: ANN201
+def get_ping_status(  # type: ignore[no-untyped-def]  # noqa: ANN201
     account_ids, host=None, port: int = 6379, threshold=ALIVE_EXPIRY
 ):
     # Query the indexes and not the per-folder info for faster lookup.
@@ -50,7 +50,7 @@ def get_ping_status(  # noqa: ANN201
         return accounts
 
 
-def clear_heartbeat_status(  # noqa: ANN201
+def clear_heartbeat_status(  # type: ignore[no-untyped-def]  # noqa: ANN201
     account_id, folder_id=None, device_id=None
 ):
     # Clears the status for the account, folder and/or device.

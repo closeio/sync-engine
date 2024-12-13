@@ -11,7 +11,7 @@ Create Date: 2014-08-07 00:12:40.148311
 revision = "1c2253a0e997"
 down_revision = "3c74cbe7882e"
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 

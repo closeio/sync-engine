@@ -11,12 +11,14 @@ Create Date: 2016-01-29 22:31:12.638080
 revision = "4b83e064dd49"
 down_revision = "bc1119471fe"
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import context, op
 
 
 def upgrade() -> None:
-    shard_id = int(context.config.get_main_option("shard_id"))
+    shard_id = int(
+        context.config.get_main_option("shard_id")  # type: ignore[arg-type]
+    )
     namespace_id_type = sa.Integer() if shard_id == 0 else sa.BigInteger()
 
     op.create_table(

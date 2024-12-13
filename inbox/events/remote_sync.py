@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any
 
-import more_itertools
+import more_itertools  # type: ignore[import-not-found]
 from requests.exceptions import HTTPError
 
 from inbox.config import config
@@ -67,7 +67,7 @@ class EventSync(BaseSyncMonitor):
             scope="calendar",
         )
 
-    def sync(self) -> None:
+    def sync(self) -> None:  # type: ignore[override]
         """
         Query a remote provider for updates and persist them to the
         database. This function runs every `self.poll_frequency`.
@@ -75,7 +75,7 @@ class EventSync(BaseSyncMonitor):
         self.log.debug("syncing events")
 
         try:
-            deleted_uids, calendar_changes = self.provider.sync_calendars()
+            (deleted_uids, calendar_changes) = self.provider.sync_calendars()
         except AccessNotEnabledError:
             self.log.warning(
                 "Access to provider calendar API not enabled; bypassing sync"
@@ -139,7 +139,7 @@ def handle_calendar_deletes(
     log.info("deleted calendars", deleted=deleted_count)
 
 
-def handle_calendar_updates(
+def handle_calendar_updates(  # type: ignore[no-untyped-def]
     namespace_id: int, calendars, log: Any, db_session: Any
 ) -> list[tuple[str, int]]:
     """Persists new or updated Calendar objects to the database."""  # noqa: D401
@@ -162,7 +162,9 @@ def handle_calendar_updates(
             local_calendar.update(calendar)
             updated_count += 1
         else:
-            local_calendar = Calendar(namespace_id=namespace_id)
+            local_calendar = Calendar(  # type: ignore[call-arg]
+                namespace_id=namespace_id
+            )
             local_calendar.update(calendar)
             db_session.add(local_calendar)
             added_count += 1
@@ -223,7 +225,9 @@ def handle_event_updates(
                 and event.status == "cancelled"
                 and local_event.status != "cancelled"
             ):
-                for override in local_event.overrides:
+                for (
+                    override
+                ) in local_event.overrides:  # type: ignore[attr-defined]
                     override.status = "cancelled"
 
             local_event.update(event)
@@ -259,7 +263,9 @@ def handle_event_updates(
 
 
 class WebhookEventSync(EventSync):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(  # type: ignore[no-untyped-def]
+        self, *args, **kwargs
+    ) -> None:
         super().__init__(*args, **kwargs)
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(Account).get(self.account_id)
@@ -273,7 +279,7 @@ class WebhookEventSync(EventSync):
                 # too long.
                 self.poll_frequency = PUSH_NOTIFICATION_POLL_FREQUENCY
 
-    def sync(self) -> None:
+    def sync(self) -> None:  # type: ignore[override]
         """
         Query a remote provider for updates and persist them to the
         database. This function runs every `self.poll_frequency`.
@@ -400,7 +406,7 @@ class WebhookEventSync(EventSync):
 
     def _sync_calendar_list(self, account: Account, db_session: Any) -> None:
         sync_timestamp = datetime.utcnow()
-        deleted_uids, calendar_changes = self.provider.sync_calendars()
+        (deleted_uids, calendar_changes) = self.provider.sync_calendars()
 
         handle_calendar_deletes(
             self.namespace_id, deleted_uids, self.log, db_session
@@ -409,7 +415,9 @@ class WebhookEventSync(EventSync):
             self.namespace_id, calendar_changes, self.log, db_session
         )
 
-        account.last_calendar_list_sync = sync_timestamp
+        account.last_calendar_list_sync = (  # type: ignore[attr-defined]
+            sync_timestamp
+        )
         db_session.commit()
 
     def _sync_calendar(self, calendar: Calendar, db_session: Any) -> None:

@@ -4,14 +4,14 @@ from alembic import context
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-fileConfig(context.config.config_file_name)
+fileConfig(context.config.config_file_name)  # type: ignore[arg-type]
 
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
 from inbox.models.base import MailSyncBase
 
-target_metadata = MailSyncBase.metadata
+target_metadata = MailSyncBase.metadata  # type: ignore[attr-defined]
 
 from inbox.config import config
 from inbox.ignition import EngineManager

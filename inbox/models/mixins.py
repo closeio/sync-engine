@@ -1,8 +1,19 @@
 import abc
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, String, func, inspect, sql
-from sqlalchemy.ext.hybrid import Comparator, hybrid_property
+from sqlalchemy import (  # type: ignore[import-untyped]
+    Boolean,
+    Column,
+    DateTime,
+    String,
+    func,
+    inspect,
+    sql,
+)
+from sqlalchemy.ext.hybrid import (  # type: ignore[import-untyped]
+    Comparator,
+    hybrid_property,
+)
 
 from inbox.models.constants import MAX_INDEXABLE_LENGTH
 from inbox.sqlalchemy_ext.util import ABCMixin, Base36UID, generate_public_id
@@ -14,7 +25,7 @@ class HasRevisions(ABCMixin):
     """Mixin for tables that should be versioned in the transaction log."""
 
     @property
-    def versioned_relationships(self):  # noqa: ANN201
+    def versioned_relationships(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         """
         May be overriden by subclasses. This should be the list of
         relationship attribute names that should trigger an update revision
@@ -25,7 +36,7 @@ class HasRevisions(ABCMixin):
         return []
 
     @property
-    def propagated_attributes(self):  # noqa: ANN201
+    def propagated_attributes(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         """
         May be overridden by subclasses. This is the list of attribute names
         that should trigger an update revision for a /related/ object -
@@ -84,20 +95,20 @@ class HasPublicID:
 
 
 class AddressComparator(Comparator):
-    def __eq__(self, other):  # noqa: ANN204
+    def __eq__(self, other):  # type: ignore[no-untyped-def]  # noqa: ANN204
         return self.__clause_element__() == canonicalize_address(other)
 
-    def like(self, term, escape=None):  # noqa: ANN201
+    def like(self, term, escape=None):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self.__clause_element__().like(term, escape=escape)
 
-    def in_(self, addresses):  # noqa: ANN201
+    def in_(self, addresses):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self.__clause_element__().in_(
             [canonicalize_address(address) for address in addresses]
         )
 
 
 class CaseInsensitiveComparator(Comparator):
-    def __eq__(self, other):  # noqa: ANN204
+    def __eq__(self, other):  # type: ignore[no-untyped-def]  # noqa: ANN204
         return func.lower(self.__clause_element__()) == func.lower(other)
 
 
@@ -126,11 +137,11 @@ class HasEmailAddress:
     def email_address(self):  # noqa: ANN201
         return self._raw_address
 
-    @email_address.comparator
+    @email_address.comparator  # type: ignore[no-redef]
     def email_address(cls):  # noqa: ANN201, N805
         return AddressComparator(cls._canonicalized_address)
 
-    @email_address.setter
+    @email_address.setter  # type: ignore[no-redef]
     def email_address(self, value) -> None:
         # Silently truncate if necessary. In practice, this may be too
         # long if somebody put a super-long email into their contacts by

@@ -1,5 +1,5 @@
 import requests
-from sqlalchemy import desc
+from sqlalchemy import desc  # type: ignore[import-untyped]
 
 from inbox.api.kellogs import APIEncoder
 from inbox.auth.oauth import OAuthRequestsWrapper
@@ -17,7 +17,7 @@ SEARCH_CLS = "GmailSearchClient"
 
 
 class GmailSearchClient:
-    def __init__(self, account) -> None:
+    def __init__(self, account) -> None:  # type: ignore[no-untyped-def]
         self.account_id = int(account.id)
         try:
             with session_scope(self.account_id) as db_session:
@@ -32,7 +32,7 @@ class GmailSearchClient:
                 403,
             )
 
-    def search_messages(  # noqa: ANN201
+    def search_messages(  # type: ignore[no-untyped-def]  # noqa: ANN201
         self, db_session, search_query, offset: int = 0, limit: int = 40
     ):
         # We need to get the next limit + offset terms if we want to
@@ -59,8 +59,8 @@ class GmailSearchClient:
 
     # We're only issuing a single request to the Gmail API so there's
     # no need to stream it.
-    def stream_messages(self, search_query):  # noqa: ANN201
-        def g():
+    def stream_messages(self, search_query):  # type: ignore[no-untyped-def]  # noqa: ANN201
+        def g():  # type: ignore[no-untyped-def]
             encoder = APIEncoder()
 
             with session_scope(self.account_id) as db_session:
@@ -70,7 +70,7 @@ class GmailSearchClient:
 
         return g
 
-    def search_threads(  # noqa: ANN201
+    def search_threads(  # type: ignore[no-untyped-def]  # noqa: ANN201
         self, db_session, search_query, offset: int = 0, limit: int = 40
     ):
         # We need to get the next limit + offset terms if we want to
@@ -98,8 +98,8 @@ class GmailSearchClient:
 
         return query.all()
 
-    def stream_threads(self, search_query):  # noqa: ANN201
-        def g():
+    def stream_threads(self, search_query):  # type: ignore[no-untyped-def]  # noqa: ANN201
+        def g():  # type: ignore[no-untyped-def]
             encoder = APIEncoder()
 
             with session_scope(self.account_id) as db_session:
@@ -109,7 +109,7 @@ class GmailSearchClient:
 
         return g
 
-    def _search(self, search_query, limit):
+    def _search(self, search_query, limit):  # type: ignore[no-untyped-def]
         results: list[int] = []
 
         params = dict(q=search_query, maxResults=limit)

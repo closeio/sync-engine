@@ -31,10 +31,10 @@ import logging
 import sys
 from collections import defaultdict
 
-import vobject
+import vobject  # type: ignore[import-untyped]
 
 
-def list_clean(string):  # noqa: ANN201
+def list_clean(string):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Transforms a comma seperated string to a list, stripping whitespaces
     "HOME, WORK,pref" -> ['HOME', 'WORK', 'pref']
@@ -126,8 +126,8 @@ NTEXT = "\x1b[0m"
 BTEXT = "\x1b[1m"
 
 
-def get_names(display_name):  # noqa: ANN201
-    first_name, last_name = "", display_name
+def get_names(display_name):  # type: ignore[no-untyped-def]  # noqa: ANN201
+    first_name, last_name = ("", display_name)
 
     if display_name.find(",") > 0:
         # Parsing something like 'Doe, John Abraham'
@@ -143,7 +143,7 @@ def get_names(display_name):  # noqa: ANN201
     return (first_name.strip().capitalize(), last_name.strip().capitalize())
 
 
-def fix_vobject(vcard):  # noqa: ANN201
+def fix_vobject(vcard):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Trying to fix some more or less common errors in vcards
 
@@ -160,7 +160,7 @@ def fix_vobject(vcard):  # noqa: ANN201
     return vcard
 
 
-def vcard_from_vobject(vcard):  # noqa: ANN201
+def vcard_from_vobject(vcard):  # type: ignore[no-untyped-def]  # noqa: ANN201
     vcard = fix_vobject(vcard)
     vdict = VCard()
     if vcard.name != "VCARD":
@@ -181,7 +181,7 @@ def vcard_from_vobject(vcard):  # noqa: ANN201
     return vdict
 
 
-def vcard_from_string(vcard_string):  # noqa: ANN201
+def vcard_from_string(vcard_string):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     vcard_string: str
     returns VCard()
@@ -193,7 +193,7 @@ def vcard_from_string(vcard_string):  # noqa: ANN201
     return vcard_from_vobject(vcard)
 
 
-def vcard_from_email(display_name, email):  # noqa: ANN201
+def vcard_from_email(display_name, email):  # type: ignore[no-untyped-def]  # noqa: ANN201
     fname, lname = get_names(display_name)
     vcard = vobject.vCard()
     vcard.add("n")
@@ -206,14 +206,14 @@ def vcard_from_email(display_name, email):  # noqa: ANN201
     return vcard_from_vobject(vcard)
 
 
-def cards_from_file(cards_f):  # noqa: ANN201
+def cards_from_file(cards_f):  # type: ignore[no-untyped-def]  # noqa: ANN201
     collector = list()
     for vcard in vobject.readComponents(cards_f):
         collector.append(vcard_from_vobject(vcard))
     return collector
 
 
-class VCard(defaultdict):
+class VCard(defaultdict):  # type: ignore[type-arg]
     """
     internal representation of a VCard. This is dict with some
     associated methods,
@@ -236,41 +236,41 @@ class VCard(defaultdict):
         if ddict == "":
             defaultdict.__init__(self, list)
         else:
-            defaultdict.__init__(self, list, ddict)
+            defaultdict.__init__(self, list, ddict)  # type: ignore[arg-type]
         self.href = ""
         self.account = ""
         self.etag = ""
         self.edited = 0
 
-    def serialize(self):  # noqa: ANN201
+    def serialize(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return repr(list(self.items()))
 
     @property
-    def name(self):  # noqa: ANN201
+    def name(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return str(self["N"][0][0]) if self["N"] else ""
 
     @name.setter
-    def name(self, value) -> None:
+    def name(self, value) -> None:  # type: ignore[no-untyped-def]
         if not self["N"]:
             self["N"] = [("", {})]
         self["N"][0][0] = value
 
     @property
-    def fname(self):  # noqa: ANN201
+    def fname(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return str(self["FN"][0][0]) if self["FN"] else ""
 
     @fname.setter
-    def fname(self, value) -> None:
+    def fname(self, value) -> None:  # type: ignore[no-untyped-def]
         self["FN"][0] = (value, {})
 
-    def alt_keys(self):  # noqa: ANN201
+    def alt_keys(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         keylist = list(self)
         for one in [x for x in ["FN", "N", "VERSION"] if x in keylist]:
             keylist.remove(one)
         keylist.sort()
         return keylist
 
-    def print_email(self):  # noqa: ANN201
+    def print_email(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         """Prints only name, email and type for use with mutt"""  # noqa: D401
         collector = list()
         try:
@@ -284,7 +284,7 @@ class VCard(defaultdict):
         except KeyError:
             return ""
 
-    def print_tel(self):  # noqa: ANN201
+    def print_tel(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         """Prints only name, email and type for use with mutt"""  # noqa: D401
         collector = list()
         try:
@@ -299,14 +299,14 @@ class VCard(defaultdict):
             return ""
 
     @property
-    def pretty(self):  # noqa: ANN201
+    def pretty(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self._pretty_base(self.alt_keys())
 
     @property
-    def pretty_min(self):  # noqa: ANN201
+    def pretty_min(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self._pretty_base(["TEL", "EMAIL"])
 
-    def _pretty_base(self, keylist):
+    def _pretty_base(self, keylist):  # type: ignore[no-untyped-def]
         collector = list()
         if sys.stdout.isatty():
             collector.append("\n" + BTEXT + "Name: " + self.fname + NTEXT)
@@ -322,7 +322,7 @@ class VCard(defaultdict):
                 collector.append(line)
         return "\n".join(collector)
 
-    def _line_helper(self, line):
+    def _line_helper(self, line):  # type: ignore[no-untyped-def]
         collector = list()
         for key in line[1].keys():
             collector.append(key + "=" + ",".join(line[1][key]))
@@ -332,7 +332,7 @@ class VCard(defaultdict):
             return ";" + ";".join(collector)
 
     @property
-    def vcf(self):  # noqa: ANN201
+    def vcf(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         """
         Serialize to VCARD as specified in RFC2426,
         if no UID is specified yet, one will be added (as a UID is mandatory
@@ -342,7 +342,7 @@ class VCard(defaultdict):
         import random
         import string
 
-        def generate_random_uid():
+        def generate_random_uid():  # type: ignore[no-untyped-def]
             """
             Generate a random uid, when random isn't broken, getting a
             random UID from a pool of roughly 10^56 should be good enough

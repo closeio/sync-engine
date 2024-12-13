@@ -153,15 +153,15 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
             updates.append(event)
 
             if isinstance(event, RecurringEvent):
-                exceptions, cancellations = self._get_event_overrides(
+                (exceptions, cancellations) = self._get_event_overrides(
                     raw_event, event, read_only=read_only
                 )
-                updates.extend(exceptions)
-                updates.extend(cancellations)
+                updates.extend(exceptions)  # type: ignore[arg-type]
+                updates.extend(cancellations)  # type: ignore[arg-type]
 
         return updates
 
-    def _get_event_overrides(
+    def _get_event_overrides(  # type: ignore[no-untyped-def]
         self,
         raw_master_event: MsGraphEvent,
         master_event: RecurringEvent,
@@ -216,7 +216,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
             for cancellation in raw_cancellations
         ]
 
-        return exceptions, cancellations
+        return exceptions, cancellations  # type: ignore[return-value]
 
     def webhook_notifications_enabled(self, account: Account) -> bool:
         """

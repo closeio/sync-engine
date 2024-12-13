@@ -46,7 +46,7 @@ class SMTP_SSL(smtplib.SMTP_SSL):  # noqa: N801
     Derived class which correctly surfaces SMTP errors.
     """
 
-    def rset(self) -> None:
+    def rset(self) -> None:  # type: ignore[override]
         """
         Wrap rset() in order to correctly surface SMTP exceptions.
         SMTP.sendmail() does e.g.:
@@ -73,7 +73,7 @@ class SMTP(smtplib.SMTP):
     Derived class which correctly surfaces SMTP errors.
     """
 
-    def rset(self) -> None:
+    def rset(self) -> None:  # type: ignore[override]
         """
         Wrap rset() in order to correctly surface SMTP exceptions.
         SMTP.sendmail() does e.g.:
@@ -95,7 +95,7 @@ class SMTP(smtplib.SMTP):
             log.warning("Server disconnect during SMTP rset", exc_info=True)
 
 
-def _transform_ssl_error(strerror):
+def _transform_ssl_error(strerror):  # type: ignore[no-untyped-def]
     """
     Clean up errors like:
     _ssl.c:510: error:14090086:SSL routines:SSL3_GET_SERVER_CERTIFICATE:certificate verify failed
@@ -120,7 +120,7 @@ def _substitute_bcc(raw_message: bytes) -> bytes:
 
 
 class SMTPConnection:
-    def __init__(
+    def __init__(  # type: ignore[no-untyped-def]
         self,
         account_id,
         email_address,
@@ -144,7 +144,7 @@ class SMTPConnection:
         }
         self.setup()
 
-    def __enter__(self):  # noqa: ANN204
+    def __enter__(self):  # type: ignore[no-untyped-def]  # noqa: ANN204
         return self
 
     def __exit__(
@@ -158,7 +158,7 @@ class SMTPConnection:
         except smtplib.SMTPServerDisconnected:
             return
 
-    def _connect(self, host, port):
+    def _connect(self, host, port):  # type: ignore[no-untyped-def]
         """Connect, with error-handling"""
         try:
             self.connection.connect(host, port)
@@ -179,7 +179,7 @@ class SMTPConnection:
         else:
             self.connection = SMTP(timeout=SMTP_TIMEOUT)
             self._connect(host, port)
-            self.connection._host = host
+            self.connection._host = host  # type: ignore[attr-defined]
             self._upgrade_connection()
 
         # Auth the connection
@@ -187,7 +187,7 @@ class SMTPConnection:
         auth_handler = self.auth_handlers[self.auth_type]
         auth_handler()
 
-    def _upgrade_connection(self):
+    def _upgrade_connection(self):  # type: ignore[no-untyped-def]
         """
         Upgrade the connection if STARTTLS is supported.
         If it's not/ it fails and SSL is not required, do nothing. Otherwise,
@@ -216,7 +216,7 @@ class SMTPConnection:
                 account, force_refresh=True, scopes=account.email_scopes
             )
 
-    def _try_xoauth2(self):
+    def _try_xoauth2(self):  # type: ignore[no-untyped-def]
         auth_string = f"user={self.email_address}\1auth=Bearer {self.auth_token}\1\1".encode()
         code, resp = self.connection.docmd(
             "AUTH", f"XOAUTH2 {base64.b64encode(auth_string).decode()}"
@@ -278,7 +278,7 @@ class SMTPConnection:
 
         self.log.info("SMTP Auth(Password) success")
 
-    def sendmail(self, recipients, msg):  # noqa: ANN201
+    def sendmail(self, recipients, msg):  # type: ignore[no-untyped-def]  # noqa: ANN201
         try:
             return self.connection.sendmail(
                 self.email_address, recipients, msg
@@ -298,7 +298,7 @@ class SMTPConnection:
 class SMTPClient:
     """SMTPClient for Gmail and other IMAP providers."""
 
-    def __init__(self, account) -> None:
+    def __init__(self, account) -> None:  # type: ignore[no-untyped-def]
         self.account_id = account.id
         self.log = get_logger()
         self.log.bind(account_id=account.id)
@@ -330,7 +330,7 @@ class SMTPClient:
                 # non-generic accounts have no smtp password
                 self.auth_token = account.password
 
-    def _send(self, recipients, msg):
+    def _send(self, recipients, msg):  # type: ignore[no-untyped-def]
         """
         Send the email message. Retries up to SMTP_MAX_RETRIES times if the
         message couldn't be submitted to any recipient.
@@ -377,7 +377,7 @@ class SMTPClient:
         )
         self._handle_sending_exception(last_error)
 
-    def _handle_sending_exception(self, err):
+    def _handle_sending_exception(self, err):  # type: ignore[no-untyped-def]
         if isinstance(err, smtplib.SMTPServerDisconnected):
             raise SendMailException(
                 "The server unexpectedly closed the connection", 503
@@ -419,12 +419,16 @@ class SMTPClient:
                 "Sending failed", http_code=503, server_error=str(err)
             )
 
-    def send_generated_email(self, recipients, raw_message):  # noqa: ANN201
+    def send_generated_email(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, recipients, raw_message
+    ):
         # A tiny wrapper over _send because the API differs
         # between SMTP and EAS.
         return self._send(recipients, raw_message)
 
-    def send_custom(self, draft, body, recipients) -> None:  # noqa: D417
+    def send_custom(  # type: ignore[no-untyped-def]  # noqa: D417
+        self, draft, body, recipients
+    ) -> None:
         """
         Turn a draft object into a MIME message, replacing the body with
         the provided body, and send it only to the provided recipients.
@@ -464,7 +468,7 @@ class SMTPClient:
         # Sent successfully
         self.log.info("Sending successful", draft_id=draft.id)
 
-    def send(self, draft) -> None:
+    def send(self, draft) -> None:  # type: ignore[no-untyped-def]
         """
         Turn a draft object into a MIME message and send it.
 
@@ -521,7 +525,7 @@ class SMTPClient:
         # Sent to all successfully
         self.log.info("Sending successful", draft_id=draft.id)
 
-    def send_raw(self, msg) -> None:
+    def send_raw(self, msg) -> None:  # type: ignore[no-untyped-def]
         recipient_emails = [
             email
             for name, email in itertools.chain(
@@ -542,7 +546,7 @@ class SMTPClient:
             recipients=recipient_emails,
         )
 
-    def _get_connection(self):
+    def _get_connection(self):  # type: ignore[no-untyped-def]
         smtp_connection = SMTPConnection(
             account_id=self.account_id,
             email_address=self.email_address,

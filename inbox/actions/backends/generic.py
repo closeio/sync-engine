@@ -37,7 +37,7 @@ __all__ = [
 # * should add support for rolling back message.categories() on failure.
 
 
-def uids_by_folder(message_id, db_session):
+def uids_by_folder(message_id, db_session):  # type: ignore[no-untyped-def]
     results = (
         db_session.query(ImapUid.msg_uid, Folder.name)
         .join(Folder)
@@ -50,7 +50,7 @@ def uids_by_folder(message_id, db_session):
     return mapping
 
 
-def _create_email(account, message):
+def _create_email(account, message):  # type: ignore[no-untyped-def]
     blocks = [p.block for p in message.attachments]
     attachments = generate_attachments(message, blocks)
     from_name, from_email = message.from_addr[0]
@@ -71,7 +71,7 @@ def _create_email(account, message):
     return msg
 
 
-def _set_flag(
+def _set_flag(  # type: ignore[no-untyped-def]
     crispin_client, account_id, message_id, flag_name, is_add
 ) -> None:
     with session_scope(account_id) as db_session:
@@ -88,15 +88,21 @@ def _set_flag(
             crispin_client.conn.remove_flags(uids, [flag_name], silent=True)
 
 
-def set_remote_starred(crispin_client, account, message_id, starred) -> None:
+def set_remote_starred(  # type: ignore[no-untyped-def]
+    crispin_client, account, message_id, starred
+) -> None:
     _set_flag(crispin_client, account, message_id, "\\Flagged", starred)
 
 
-def set_remote_unread(crispin_client, account, message_id, unread) -> None:
+def set_remote_unread(  # type: ignore[no-untyped-def]
+    crispin_client, account, message_id, unread
+) -> None:
     _set_flag(crispin_client, account, message_id, "\\Seen", not unread)
 
 
-def remote_move(crispin_client, account_id, message_id, destination) -> None:
+def remote_move(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, message_id, destination
+) -> None:
     with session_scope(account_id) as db_session:
         uids_for_message = uids_by_folder(message_id, db_session)
     if not uids_for_message:
@@ -109,7 +115,9 @@ def remote_move(crispin_client, account_id, message_id, destination) -> None:
         crispin_client.delete_uids(uids)
 
 
-def remote_create_folder(crispin_client, account_id, category_id) -> None:
+def remote_create_folder(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, category_id
+) -> None:
     with session_scope(account_id) as db_session:
         category = db_session.query(Category).get(category_id)
         if category is None:
@@ -118,7 +126,7 @@ def remote_create_folder(crispin_client, account_id, category_id) -> None:
     crispin_client.conn.create_folder(display_name)
 
 
-def remote_update_folder(
+def remote_update_folder(  # type: ignore[no-untyped-def]
     crispin_client, account_id, category_id, old_name, new_name
 ) -> None:
     with session_scope(account_id) as db_session:
@@ -148,7 +156,9 @@ def remote_update_folder(
                     folder.name = new_display_name
 
 
-def remote_delete_folder(crispin_client, account_id, category_id) -> None:
+def remote_delete_folder(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, category_id
+) -> None:
     with session_scope(account_id) as db_session:
         category = db_session.query(Category).get(category_id)
         if category is None:
@@ -168,7 +178,9 @@ def remote_delete_folder(crispin_client, account_id, category_id) -> None:
         db_session.commit()
 
 
-def remote_save_draft(crispin_client, account_id, message_id) -> None:
+def remote_save_draft(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, message_id
+) -> None:
     with session_scope(account_id) as db_session:
         account = db_session.query(Account).get(account_id)
         message = db_session.query(Message).get(message_id)
@@ -185,7 +197,7 @@ def remote_save_draft(crispin_client, account_id, message_id) -> None:
     crispin_client.save_draft(mimemsg)
 
 
-def remote_update_draft(
+def remote_update_draft(  # type: ignore[no-untyped-def]
     crispin_client, account_id, message_id, old_message_id_header
 ) -> None:
     with session_scope(account_id) as db_session:
@@ -233,7 +245,7 @@ def remote_update_draft(
             )
 
 
-def remote_delete_draft(
+def remote_delete_draft(  # type: ignore[no-untyped-def]
     crispin_client, account_id, nylas_uid, message_id_header
 ) -> None:
     if "drafts" not in crispin_client.folder_names():
@@ -245,7 +257,7 @@ def remote_delete_draft(
     crispin_client.delete_draft(message_id_header)
 
 
-def remote_delete_sent(
+def remote_delete_sent(  # type: ignore[no-untyped-def]
     crispin_client,
     account_id,
     message_id_header,
@@ -260,7 +272,9 @@ def remote_delete_sent(
     crispin_client.delete_sent_message(message_id_header, delete_multiple)
 
 
-def remote_save_sent(crispin_client, account_id, message_id) -> None:
+def remote_save_sent(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, message_id
+) -> None:
     with session_scope(account_id) as db_session:
         account = db_session.query(Account).get(account_id)
         message = db_session.query(Message).get(message_id)

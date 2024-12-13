@@ -4,7 +4,7 @@
 import sys
 
 import click
-from setproctitle import setproctitle
+from setproctitle import setproctitle  # type: ignore[import-not-found]
 
 setproctitle("inbox-auth")
 
@@ -39,7 +39,9 @@ configure_logging(config.get("LOGLEVEL"))
     is_flag=False,
     help="Manually specify the provider instead of trying to detect it",
 )
-def main(email_address, reauth, target, provider) -> None:
+def main(  # type: ignore[no-untyped-def]
+    email_address, reauth, target, provider
+) -> None:
     """Auth an email account."""
     preflight()
 

@@ -1,6 +1,6 @@
 import ssl
 
-from imapclient import IMAPClient
+from imapclient import IMAPClient  # type: ignore[import-untyped]
 
 from inbox.exceptions import SSLNotSupportedError
 from inbox.logging import get_logger
@@ -15,7 +15,7 @@ def safe_decode(message: str | bytes) -> str:
     return message
 
 
-def auth_requires_app_password(exc):  # noqa: ANN201
+def auth_requires_app_password(exc):  # type: ignore[no-untyped-def]  # noqa: ANN201
     # Some servers require an application specific password, token, or
     # authorization code to login
     PREFIXES = (  # noqa: N806
@@ -27,7 +27,7 @@ def auth_requires_app_password(exc):  # noqa: ANN201
     return any(message.lower().startswith(msg.lower()) for msg in PREFIXES)
 
 
-def auth_is_invalid(exc):  # noqa: ANN201
+def auth_is_invalid(exc):  # type: ignore[no-untyped-def]  # noqa: ANN201
     # IMAP doesn't really have error semantics, so we have to match the error
     # message against a list of known response strings to determine whether we
     # couldn't log in because the credentials are invalid, or because of some
@@ -60,7 +60,7 @@ def auth_is_invalid(exc):  # noqa: ANN201
     )
 
 
-def create_imap_connection(  # noqa: ANN201
+def create_imap_connection(  # type: ignore[no-untyped-def]  # noqa: ANN201
     host, port, use_timeout: bool = True
 ):
     """
@@ -102,7 +102,7 @@ def create_imap_connection(  # noqa: ANN201
     return conn
 
 
-def create_default_context():  # noqa: ANN201
+def create_default_context():  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Return a backports.ssl.SSLContext object configured with sensible
     default settings. This was adapted from imapclient.create_default_context

@@ -13,7 +13,7 @@ down_revision = "1c72d8a0120e"
 
 from typing import Never
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
@@ -46,9 +46,11 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
 
-    from sqlalchemy.ext.declarative import declarative_base
+    from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+        declarative_base,
+    )
 
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
     from inbox.models.session import session_scope
@@ -56,16 +58,18 @@ def upgrade() -> None:
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Account(Base):
+    class Account(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["account"]
 
-    class ImapAccount(Base):
+    class ImapAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["imapaccount"]
 
-    class GmailAccount(Base):
+    class GmailAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["gmailaccount"]
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         for acct in db_session.query(Account):
             if acct.provider == "Gmail":
                 imap_acct = (

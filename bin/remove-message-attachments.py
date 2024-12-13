@@ -5,8 +5,8 @@ import logging
 from collections.abc import Iterable
 
 import click
-from sqlalchemy.orm import Query, joinedload
-from sqlalchemy.sql import func
+from sqlalchemy.orm import Query, joinedload  # type: ignore[import-untyped]
+from sqlalchemy.sql import func  # type: ignore[import-untyped]
 
 from inbox.logging import configure_logging, get_logger
 from inbox.models.block import Block
@@ -33,7 +33,7 @@ def find_blocks(
 ) -> "Iterable[tuple[Block, int]]":
     query = (
         Query([Block])
-        .options(joinedload(Block.parts))
+        .options(joinedload(Block.parts))  # type: ignore[attr-defined]
         .filter(Block.size > 0)  # empty blocks are not stored in S3
         .order_by(Block.id)
     )
@@ -102,7 +102,9 @@ def run(
         if check_existence:
             data = blockstore.get_from_blockstore(block.data_sha256)
         else:
-            data = ...  # assume it exists, it's OK to delete non-existent data
+            data = (
+                ...  # type: ignore[assignment]
+            )  # assume it exists, it's OK to delete non-existent data
 
         if data is None:
             resolution = Resolution.NOT_PRESENT
@@ -116,8 +118,8 @@ def run(
             block.created_at.date(),
             resolution.value,
             block.data_sha256,
-            block.size if data else None,
-            len(block.parts),
+            (block.size if data else None),
+            len(block.parts),  # type: ignore[attr-defined]
         )
 
         if resolution is Resolution.DELETE:

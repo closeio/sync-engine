@@ -3,8 +3,8 @@ from operator import itemgetter
 from typing import Any
 
 from flask import Blueprint, request
-from sqlalchemy.orm import joinedload
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm import joinedload  # type: ignore[import-untyped]
+from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
 
 from inbox.api.err import InputError
 from inbox.api.kellogs import APIEncoder
@@ -21,7 +21,7 @@ log = get_logger()
 app = Blueprint("metrics_api", __name__, url_prefix="/metrics")
 
 
-def _get_calendar_data(db_session, namespace):
+def _get_calendar_data(db_session, namespace):  # type: ignore[no-untyped-def]
     calendars = db_session.query(Calendar)
     if namespace:
         calendars = calendars.filter_by(namespace_id=namespace.id)
@@ -55,7 +55,7 @@ def _get_calendar_data(db_session, namespace):
     return calendar_data
 
 
-def _get_folder_data(db_session, accounts):
+def _get_folder_data(db_session, accounts):  # type: ignore[no-untyped-def]
     folder_sync_statuses = db_session.query(ImapFolderSyncStatus)
     # This assumes that the only cases for metrics we have is 1) fetching
     # metrics for a specific account, and 2) fetching metrics for all accounts.
@@ -93,7 +93,7 @@ def _get_folder_data(db_session, accounts):
 
 
 @app.route("/")
-def index():  # noqa: ANN201
+def index():  # type: ignore[no-untyped-def]  # noqa: ANN201
     with global_session_scope() as db_session:
         if "namespace_id" in request.args:
             try:
@@ -114,7 +114,9 @@ def index():  # noqa: ANN201
         )
 
         if namespace:
-            accounts = accounts.filter(Account.namespace == namespace)
+            accounts = accounts.filter(
+                Account.namespace == namespace  # type: ignore[attr-defined]
+            )
         else:
             # Get all account IDs that aren't deleted
             account_ids = [
@@ -223,8 +225,8 @@ def index():  # noqa: ANN201
                         "namespace_private_id": account.namespace.id,
                         "account_id": account.public_id,
                         "namespace_id": account.namespace.public_id,
-                        "events_alive": events_alive,
-                        "email_alive": email_alive,
+                        "events_alive": events_alive,  # type: ignore[possibly-undefined]
+                        "email_alive": email_alive,  # type: ignore[possibly-undefined]
                         "alive": alive,
                         "email_initial_sync": email_initial_sync,
                         "events_initial_sync": events_initial_sync,
@@ -264,7 +266,7 @@ def index():  # noqa: ANN201
 
 
 @app.route("/global-deltas")
-def global_deltas():  # noqa: ANN201
+def global_deltas():  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Return the namespaces with recent transactions.
 

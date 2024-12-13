@@ -37,7 +37,7 @@ cls_for_type = dict(
 @click.option("--type", "-t", type=str, required=True)
 @click.option("--id", type=str, default=None)
 @click.option("--public-id", type=str, default=None)
-def main(type, id, public_id) -> None:
+def main(type, id, public_id) -> None:  # type: ignore[no-untyped-def]
     maybe_enable_rollbar()
 
     type = type.lower()  # noqa: A001
@@ -55,11 +55,19 @@ def main(type, id, public_id) -> None:
     with global_session_scope() as db_session:
         if public_id:
             obj = (
-                db_session.query(cls).filter(cls.public_id == public_id).one()
+                db_session.query(cls)
+                .filter(
+                    cls.public_id == public_id  # type: ignore[attr-defined]
+                )
+                .one()
             )
             print(obj.id)
         elif id:
-            obj = db_session.query(cls).filter(cls.id == id).one()
+            obj = (
+                db_session.query(cls)
+                .filter(cls.id == id)  # type: ignore[attr-defined]
+                .one()
+            )
             print(obj.public_id)
 
 

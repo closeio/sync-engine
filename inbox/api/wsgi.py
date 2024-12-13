@@ -1,8 +1,10 @@
 import logging
 import sys
 
-import json_log_formatter
-from gunicorn.workers.gthread import ThreadWorker
+import json_log_formatter  # type: ignore[import-untyped]
+from gunicorn.workers.gthread import (  # type: ignore[import-untyped]
+    ThreadWorker,
+)
 
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.logging import configure_logging, get_logger
@@ -44,21 +46,33 @@ class JsonRequestFormatter(json_log_formatter.JSONFormatter):
         # Convert the log record to a JSON object.
         # See https://docs.gunicorn.org/en/stable/settings.html#access-log-format
 
-        url = record.args["U"]
-        if record.args["q"]:
-            url += f"?{record.args['q']}"
+        url = record.args["U"]  # type: ignore[call-overload, index]
+        if record.args["q"]:  # type: ignore[call-overload, index]
+            url += (  # type: ignore[operator]
+                f"?{record.args['q']}"  # type: ignore[call-overload, index]
+            )
 
-        method = record.args["m"]
-        log_context = record.args.get("{log_context}e", {})
+        method = record.args["m"]  # type: ignore[call-overload, index]
+        log_context = record.args.get(  # type: ignore[union-attr]
+            "{log_context}e", {}
+        )
 
         return dict(
-            response_bytes=record.args["B"],
-            request_time=float(record.args["L"]),
-            remote_address=record.args["h"],
-            http_status=record.args["s"],
+            response_bytes=record.args[  # type: ignore[call-overload, dict-item, index]
+                "B"
+            ],
+            request_time=float(
+                record.args["L"]  # type: ignore[arg-type, call-overload, index]
+            ),
+            remote_address=record.args[  # type: ignore[call-overload, dict-item, index]
+                "h"
+            ],
+            http_status=record.args[  # type: ignore[call-overload, dict-item, index]
+                "s"
+            ],
             http_request=f"{method} {url}",
-            request_method=method,
-            **log_context,
+            request_method=method,  # type: ignore[dict-item]
+            **log_context,  # type: ignore[dict-item]
         )
 
 

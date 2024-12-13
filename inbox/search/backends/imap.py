@@ -1,7 +1,7 @@
 from imaplib import IMAP4
 
-from imapclient import IMAPClient
-from sqlalchemy import desc
+from imapclient import IMAPClient  # type: ignore[import-untyped]
+from sqlalchemy import desc  # type: ignore[import-untyped]
 
 from inbox.api.kellogs import APIEncoder
 from inbox.crispin import CrispinClient, FolderMissingError
@@ -18,12 +18,14 @@ PROVIDER = "imap"
 
 
 class IMAPSearchClient:
-    def __init__(self, account) -> None:
+    def __init__(self, account) -> None:  # type: ignore[no-untyped-def]
         self.account = account
         self.account_id = account.id
         self.log = get_logger().new(account_id=account.id, component="search")
 
-    def _open_crispin_connection(self, db_session):
+    def _open_crispin_connection(  # type: ignore[no-untyped-def]
+        self, db_session
+    ):
         account = db_session.query(Account).get(self.account_id)
         try:
             conn = account.auth_handler.get_authenticated_imap_connection(
@@ -68,7 +70,7 @@ class IMAPSearchClient:
     def _close_crispin_connection(self) -> None:
         self.crispin_client.logout()
 
-    def search_messages(  # noqa: ANN201
+    def search_messages(  # type: ignore[no-untyped-def]  # noqa: ANN201
         self, db_session, search_query, offset: int = 0, limit: int = 40
     ):
         imap_uids = []
@@ -92,8 +94,8 @@ class IMAPSearchClient:
 
         return query.all()
 
-    def stream_messages(self, search_query):  # noqa: ANN201
-        def g():
+    def stream_messages(self, search_query):  # type: ignore[no-untyped-def]  # noqa: ANN201
+        def g():  # type: ignore[no-untyped-def]
             encoder = APIEncoder()
 
             with session_scope(self.account_id) as db_session:
@@ -114,7 +116,7 @@ class IMAPSearchClient:
 
         return g
 
-    def search_threads(  # noqa: ANN201
+    def search_threads(  # type: ignore[no-untyped-def]  # noqa: ANN201
         self, db_session, search_query, offset: int = 0, limit: int = 40
     ):
         imap_uids = []
@@ -141,8 +143,8 @@ class IMAPSearchClient:
             query = query.limit(limit)
         return query.all()
 
-    def stream_threads(self, search_query):  # noqa: ANN201
-        def g():
+    def stream_threads(self, search_query):  # type: ignore[no-untyped-def]  # noqa: ANN201
+        def g():  # type: ignore[no-untyped-def]
             encoder = APIEncoder()
 
             with session_scope(self.account_id) as db_session:
@@ -163,7 +165,9 @@ class IMAPSearchClient:
 
         return g
 
-    def _search(self, db_session, search_query):
+    def _search(  # type: ignore[no-untyped-def]
+        self, db_session, search_query
+    ):
         self._open_crispin_connection(db_session)
 
         try:
@@ -186,7 +190,8 @@ class IMAPSearchClient:
                 db_session.query(Folder)
                 .filter(
                     Folder.account_id == self.account_id,
-                    Folder.canonical_name == cname,
+                    Folder.canonical_name  # type: ignore[comparison-overlap]
+                    == cname,
                 )
                 .one_or_none()
             )
@@ -206,7 +211,9 @@ class IMAPSearchClient:
 
         self._close_crispin_connection()
 
-    def _search_folder(self, folder, criteria, charset):
+    def _search_folder(  # type: ignore[no-untyped-def]
+        self, folder, criteria, charset
+    ):
         try:
             self.crispin_client.select_folder(folder.name, uidvalidity_cb)
         except FolderMissingError:

@@ -1,5 +1,5 @@
-from sqlalchemy.engine import reflection
-from sqlalchemy.schema import (
+from sqlalchemy.engine import reflection  # type: ignore[import-untyped]
+from sqlalchemy.schema import (  # type: ignore[import-untyped]
     DropConstraint,
     DropTable,
     ForeignKeyConstraint,
@@ -9,7 +9,9 @@ from sqlalchemy.schema import (
 
 
 # http://www.sqlalchemy.org/trac/wiki/UsageRecipes/DropEverything
-def drop_everything(engine, keep_tables=None, reset_columns=None) -> None:
+def drop_everything(  # type: ignore[no-untyped-def]
+    engine, keep_tables=None, reset_columns=None
+) -> None:
     """
     Drops all tables in the db unless their name is in `keep_tables`.
     `reset_columns` is used to specify the columns that should be reset to

@@ -8,7 +8,7 @@ from inbox.sendmail.base import SendMailException, get_sendmail_client
 log = get_logger()
 
 
-def send_draft(account, draft, db_session):  # noqa: ANN201
+def send_draft(account, draft, db_session):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """Send the draft with id = `draft_id`."""
     # Update message state and prepare a response so that we can immediately
     # return it on success, and not potentially have queries fail after
@@ -30,7 +30,9 @@ def send_draft(account, draft, db_session):  # noqa: ANN201
     return response_on_success
 
 
-def send_draft_copy(account, draft, custom_body, recipient):  # noqa: ANN201
+def send_draft_copy(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    account, draft, custom_body, recipient
+):
     """
     Sends a copy of this draft to the recipient, using the specified body
     rather that the one on the draft object, and not marking the draft as
@@ -63,7 +65,9 @@ def send_draft_copy(account, draft, custom_body, recipient):  # noqa: ANN201
     return response_on_success
 
 
-def update_draft_on_send(account, draft, db_session) -> None:
+def update_draft_on_send(  # type: ignore[no-untyped-def]
+    account, draft, db_session
+) -> None:
     # Update message
     draft.is_sent = True
     draft.is_draft = False
@@ -74,7 +78,7 @@ def update_draft_on_send(account, draft, db_session) -> None:
     db_session.flush()
 
 
-def send_raw_mime(account, db_session, msg):  # noqa: ANN201
+def send_raw_mime(account, db_session, msg):  # type: ignore[no-untyped-def]  # noqa: ANN201
     # Prepare a response so that we can immediately return it on success, and
     # not potentially have queries fail after sending.
     response_on_success = APIEncoder().jsonify(msg)

@@ -35,7 +35,7 @@ class SendMailException(Exception):
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[no-untyped-def]
         self, message, http_code, server_error=None, failures=None
     ) -> None:
         self.message = message
@@ -45,7 +45,7 @@ class SendMailException(Exception):
         super().__init__(message, http_code, server_error, failures)
 
 
-def get_sendmail_client(account):  # noqa: ANN201
+def get_sendmail_client(account):  # type: ignore[no-untyped-def]  # noqa: ANN201
     from inbox.sendmail import module_registry
 
     sendmail_mod = module_registry.get(account.provider)
@@ -67,7 +67,11 @@ def create_draft_from_mime(
 
     with db_session.no_autoflush:
         msg = Message.create_from_synced(
-            account, "", "", datetime.utcnow(), new_body
+            account,
+            "",  # type: ignore[arg-type]
+            "",
+            datetime.utcnow(),
+            new_body,
         )
 
         if msg.from_addr and len(msg.from_addr) > 1:
@@ -88,7 +92,7 @@ def create_draft_from_mime(
         msg.thread = thread_cls(
             subject=msg.subject,
             recentdate=msg.received_date,
-            namespace=account.namespace,
+            namespace=account.namespace,  # type: ignore[attr-defined]
             subjectdate=msg.received_date,
         )
 
@@ -101,22 +105,22 @@ def create_draft_from_mime(
     return msg
 
 
-def block_to_part(block, message, namespace):  # noqa: ANN201
+def block_to_part(block, message, namespace):  # type: ignore[no-untyped-def]  # noqa: ANN201
     inline_image_uri = rf"cid:{block.public_id}"
     is_inline = re.search(inline_image_uri, message.body) is not None
     # Create a new Part object to associate to the message object.
     # (You can't just set block.message, because if block is an
     # attachment on an existing message, that would dissociate it from
     # the existing message.)
-    part = Part(block=block)
+    part = Part(block=block)  # type: ignore[call-arg]
     part.content_id = block.public_id if is_inline else None
-    part.namespace_id = namespace.id
+    part.namespace_id = namespace.id  # type: ignore[attr-defined]
     part.content_disposition = "inline" if is_inline else "attachment"
     part.is_inboxapp_attachment = True
     return part
 
 
-def create_message_from_json(  # noqa: ANN201
+def create_message_from_json(  # type: ignore[no-untyped-def]  # noqa: ANN201
     data, namespace, db_session, is_draft
 ):
     """
@@ -211,7 +215,9 @@ def create_message_from_json(  # noqa: ANN201
 
         # Associate attachments to the draft message
         for block in blocks:
-            message.parts.append(block_to_part(block, message, namespace))
+            message.parts.append(  # type: ignore[attr-defined]
+                block_to_part(block, message, namespace)
+            )
 
         update_contacts_from_message(db_session, message, namespace.id)
 
@@ -259,7 +265,7 @@ def create_message_from_json(  # noqa: ANN201
     return message
 
 
-def update_draft(  # noqa: ANN201
+def update_draft(  # type: ignore[no-untyped-def]  # noqa: ANN201
     db_session,
     account,
     draft,
@@ -276,7 +282,7 @@ def update_draft(  # noqa: ANN201
     Update draft with new attributes.
     """
 
-    def update(attr, value=None) -> None:
+    def update(attr, value=None) -> None:  # type: ignore[no-untyped-def]
         if value is not None:
             setattr(draft, attr, value)
 
@@ -346,7 +352,9 @@ def update_draft(  # noqa: ANN201
     return draft
 
 
-def delete_draft(db_session, account, draft) -> None:
+def delete_draft(  # type: ignore[no-untyped-def]
+    db_session, account, draft
+) -> None:
     """Delete the given draft."""
     thread = draft.thread
     assert draft.is_draft
@@ -370,7 +378,7 @@ def delete_draft(db_session, account, draft) -> None:
     db_session.commit()
 
 
-def generate_attachments(message, blocks):  # noqa: ANN201
+def generate_attachments(message, blocks):  # type: ignore[no-untyped-def]  # noqa: ANN201
     attachment_dicts = []
     for block in blocks:
         content_disposition = "attachment"
@@ -394,7 +402,9 @@ def generate_attachments(message, blocks):  # noqa: ANN201
     return attachment_dicts
 
 
-def _set_reply_headers(new_message, previous_message) -> None:
+def _set_reply_headers(  # type: ignore[no-untyped-def]
+    new_message, previous_message
+) -> None:
     """
     When creating a draft in reply to a thread, set the In-Reply-To and
     References headers appropriately, if possible.

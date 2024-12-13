@@ -15,14 +15,16 @@ down_revision = "4e93522b5b62"
 
 from datetime import datetime
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
 def upgrade() -> None:
-    from sqlalchemy.ext.declarative import declarative_base
+    from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+        declarative_base,
+    )
 
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -40,25 +42,27 @@ def upgrade() -> None:
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Account(Base):
+    class Account(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["account"]
 
-    class ImapAccount(Base):
+    class ImapAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["imapaccount"]
 
-    class YahooAccount(Base):
+    class YahooAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["yahooaccount"]
 
-    class AOLAccount(Base):
+    class AOLAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["aolaccount"]
 
-    class GenericAccount(Base):
+    class GenericAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["genericaccount"]
 
-    class Secret(Base):
+    class Secret(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["secret"]
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         for acct in db_session.query(YahooAccount):
             secret = Secret(
                 acl_id=0,
@@ -102,7 +106,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     from sqlalchemy.ext.declarative import declarative_base
 
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -129,25 +133,27 @@ def downgrade() -> None:
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Account(Base):
+    class Account(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["account"]
 
-    class ImapAccount(Base):
+    class ImapAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["imapaccount"]
 
-    class YahooAccount(Base):
+    class YahooAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["yahooaccount"]
 
-    class AOLAccount(Base):
+    class AOLAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["aolaccount"]
 
-    class GenericAccount(Base):
+    class GenericAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["genericaccount"]
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         for acct in db_session.query(GenericAccount):
             secret = (
-                db_session.query(Secret)  # noqa: F821
+                db_session.query(Secret)  # type: ignore[name-defined]  # noqa: F821
                 .filter_by(id=acct.password_id)
                 .one()
             )

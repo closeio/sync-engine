@@ -12,8 +12,8 @@ from inbox.util.itert import chunk
 log = get_logger()
 
 
-def safe_failure(f):  # noqa: ANN201
-    def wrapper(*args, **kwargs):
+def safe_failure(f):  # type: ignore[no-untyped-def]  # noqa: ANN201
+    def wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]
         try:
             return f(*args, **kwargs)
         except Exception:
@@ -25,7 +25,9 @@ def safe_failure(f):  # noqa: ANN201
 
 
 class HeartbeatStatusKey:
-    def __init__(self, account_id, folder_id) -> None:
+    def __init__(  # type: ignore[no-untyped-def]
+        self, account_id, folder_id
+    ) -> None:
         self.account_id = account_id
         self.folder_id = folder_id
         self.key = f"{self.account_id}:{self.folder_id}"
@@ -33,37 +35,37 @@ class HeartbeatStatusKey:
     def __repr__(self) -> str:
         return self.key
 
-    def __lt__(self, other):  # noqa: ANN204
+    def __lt__(self, other):  # type: ignore[no-untyped-def]  # noqa: ANN204
         if self.account_id != other.account_id:
             return self.account_id < other.account_id
         return self.folder_id < other.folder_id
 
-    def __eq__(self, other):  # noqa: ANN204
+    def __eq__(self, other):  # type: ignore[no-untyped-def]  # noqa: ANN204
         return (
             self.account_id == other.account_id
             and self.folder_id == other.folder_id
         )
 
     @classmethod
-    def all_folders(cls, account_id):  # noqa: ANN206
+    def all_folders(cls, account_id):  # type: ignore[no-untyped-def]  # noqa: ANN206
         return cls(account_id, "*")
 
     @classmethod
-    def contacts(cls, account_id):  # noqa: ANN206
+    def contacts(cls, account_id):  # type: ignore[no-untyped-def]  # noqa: ANN206
         return cls(account_id, CONTACTS_FOLDER_ID)
 
     @classmethod
-    def events(cls, account_id):  # noqa: ANN206
+    def events(cls, account_id):  # type: ignore[no-untyped-def]  # noqa: ANN206
         return cls(account_id, EVENTS_FOLDER_ID)
 
     @classmethod
-    def from_string(cls, string_key):  # noqa: ANN206
+    def from_string(cls, string_key):  # type: ignore[no-untyped-def]  # noqa: ANN206
         account_id, folder_id = (int(part) for part in string_key.split(":"))
         return cls(account_id, folder_id)
 
 
 class HeartbeatStatusProxy:
-    def __init__(
+    def __init__(  # type: ignore[no-untyped-def]
         self,
         account_id,
         folder_id,
@@ -79,7 +81,7 @@ class HeartbeatStatusProxy:
         self.store = HeartbeatStore.store()
 
     @safe_failure
-    def publish(self, **kwargs) -> None:
+    def publish(self, **kwargs) -> None:  # type: ignore[no-untyped-def]
         try:
             self.heartbeat_at = time.time()
             self.store.publish(self.key, self.heartbeat_at)
@@ -108,23 +110,27 @@ class HeartbeatStore:
 
     _instances: dict[str | None, "HeartbeatStore"] = {}
 
-    def __init__(self, host=None, port: int = 6379) -> None:
+    def __init__(  # type: ignore[no-untyped-def]
+        self, host=None, port: int = 6379
+    ) -> None:
         self.host = host
         self.port = port
 
     @classmethod
-    def store(cls, host=None, port=None):  # noqa: ANN206
+    def store(cls, host=None, port=None):  # type: ignore[no-untyped-def]  # noqa: ANN206
         # Allow singleton access to the store, keyed by host.
         if cls._instances.get(host) is None:
             cls._instances[host] = cls(host, port)
         return cls._instances.get(host)
 
     @safe_failure
-    def publish(self, key, timestamp) -> None:
+    def publish(self, key, timestamp) -> None:  # type: ignore[no-untyped-def]
         # Update indexes
         self.update_folder_index(key, float(timestamp))
 
-    def remove(self, key, device_id=None, client=None) -> None:
+    def remove(  # type: ignore[no-untyped-def]
+        self, key, device_id=None, client=None
+    ) -> None:
         # Remove a key from the store, or device entry from a key.
         if not client:
             client = heartbeat_config.get_redis_client(key.account_id)
@@ -140,7 +146,7 @@ class HeartbeatStore:
             self.remove_from_folder_index(key, client)
 
     @safe_failure
-    def remove_folders(  # noqa: ANN201
+    def remove_folders(  # type: ignore[no-untyped-def]  # noqa: ANN201
         self, account_id, folder_id=None, device_id=None
     ):
         # Remove heartbeats for the given account, folder and/or device.
@@ -166,13 +172,17 @@ class HeartbeatStore:
             pipeline.reset()
             return n
 
-    def update_folder_index(self, key, timestamp) -> None:
+    def update_folder_index(  # type: ignore[no-untyped-def]
+        self, key, timestamp
+    ) -> None:
         assert isinstance(timestamp, float)
         # Update the folder timestamp index for this specific account, too
         client = heartbeat_config.get_redis_client(key.account_id)
         client.zadd(key.account_id, {key.folder_id: timestamp})
 
-    def update_accounts_index(self, key) -> None:
+    def update_accounts_index(  # type: ignore[no-untyped-def]
+        self, key
+    ) -> None:
         # Find the oldest heartbeat from the account-folder index
         try:
             client = heartbeat_config.get_redis_client(key.account_id)
@@ -185,21 +195,27 @@ class HeartbeatStore:
             # will fail -- ignore it.
             pass
 
-    def remove_from_folder_index(self, key, client) -> None:
+    def remove_from_folder_index(  # type: ignore[no-untyped-def]
+        self, key, client
+    ) -> None:
         client.zrem("folder_index", key)
         if isinstance(key, str):
             key = HeartbeatStatusKey.from_string(key)
         client.zrem(key.account_id, key.folder_id)
 
-    def remove_from_account_index(self, account_id, client) -> None:
+    def remove_from_account_index(  # type: ignore[no-untyped-def]
+        self, account_id, client
+    ) -> None:
         client.delete(account_id)
         client.zrem("account_index", account_id)
 
-    def get_account_folders(self, account_id):  # noqa: ANN201
+    def get_account_folders(self, account_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
         client = heartbeat_config.get_redis_client(account_id)
         return client.zrange(account_id, 0, -1, withscores=True)
 
-    def get_accounts_folders(self, account_ids):  # noqa: ANN201
+    def get_accounts_folders(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, account_ids
+    ):
         # This is where things get interesting --- we need to make queries
         # to multiple shards and return the results to a single caller.
         # Preferred method of querying for multiple accounts. Uses pipelining

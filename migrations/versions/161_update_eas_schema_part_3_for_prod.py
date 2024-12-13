@@ -12,11 +12,11 @@ revision = "365071c47fa7"
 down_revision = "182f2b40fa36"
 
 from alembic import op
-from sqlalchemy.schema import MetaData
+from sqlalchemy.schema import MetaData  # type: ignore[import-untyped]
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
 

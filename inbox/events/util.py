@@ -2,7 +2,7 @@ import string
 from collections import namedtuple
 from typing import NamedTuple
 
-import arrow
+import arrow  # type: ignore[import-untyped]
 from dateutil.parser import parse
 
 from inbox.models.calendar import Calendar
@@ -14,7 +14,7 @@ class MalformedEventError(Exception):
     pass
 
 
-def parse_datetime(datetime):  # noqa: ANN201
+def parse_datetime(datetime):  # type: ignore[no-untyped-def]  # noqa: ANN201
     # returns a UTC-aware datetime as an Arrow object.
     # to access the `datetime` object: `obj.datetime`
     # to convert to a naive datetime: `obj.naive`
@@ -26,7 +26,9 @@ def parse_datetime(datetime):  # noqa: ANN201
     return None
 
 
-def parse_rrule_datetime(datetime, tzinfo=None):  # noqa: ANN201
+def parse_rrule_datetime(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    datetime, tzinfo=None
+):
     # format: 20140904T133000Z (datetimes) or 20140904 (dates)
     if datetime[-1] == "Z":
         tzinfo = "UTC"
@@ -40,19 +42,19 @@ def parse_rrule_datetime(datetime, tzinfo=None):  # noqa: ANN201
     return dt
 
 
-def serialize_datetime(d):  # noqa: ANN201
+def serialize_datetime(d):  # type: ignore[no-untyped-def]  # noqa: ANN201
     return d.strftime("%Y%m%dT%H%M%SZ")
 
 
 EventTime = namedtuple("EventTime", ["start", "end", "all_day"])
 
 
-def when_to_event_time(raw):  # noqa: ANN201
+def when_to_event_time(raw):  # type: ignore[no-untyped-def]  # noqa: ANN201
     when = parse_as_when(raw)
     return EventTime(when.start, when.end, when.all_day)
 
 
-def parse_google_time(d):  # noqa: ANN201
+def parse_google_time(d):  # type: ignore[no-untyped-def]  # noqa: ANN201
     # google dictionaries contain either 'date' or 'dateTime' & 'timeZone'
     # 'dateTime' is in ISO format so is UTC-aware, 'date' is just a date
     for key, dt in d.items():
@@ -80,12 +82,12 @@ def google_to_event_time(start_raw: str, end_raw: str) -> EventTime:
     return event_time
 
 
-def valid_base36(uid):  # noqa: ANN201
+def valid_base36(uid):  # type: ignore[no-untyped-def]  # noqa: ANN201
     # Check that an uid is a base36 element.
     return all(c in (string.ascii_lowercase + string.digits) for c in uid)
 
 
-def removed_participants(  # noqa: ANN201
+def removed_participants(  # type: ignore[no-untyped-def]  # noqa: ANN201
     original_participants, update_participants
 ):
     """

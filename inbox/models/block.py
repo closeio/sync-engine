@@ -1,7 +1,7 @@
 from hashlib import sha256
 
-from flanker import mime
-from sqlalchemy import (
+from flanker import mime  # type: ignore[import-untyped]
+from sqlalchemy import (  # type: ignore[import-untyped]
     Boolean,
     Column,
     Enum,
@@ -10,9 +10,13 @@ from sqlalchemy import (
     String,
     event,
 )
-from sqlalchemy.orm import backref, reconstructor, relationship
-from sqlalchemy.schema import UniqueConstraint
-from sqlalchemy.sql.expression import false
+from sqlalchemy.orm import (  # type: ignore[import-untyped]
+    backref,
+    reconstructor,
+    relationship,
+)
+from sqlalchemy.schema import UniqueConstraint  # type: ignore[import-untyped]
+from sqlalchemy.sql.expression import false  # type: ignore[import-untyped]
 
 from inbox.config import config
 from inbox.logging import get_logger
@@ -60,12 +64,15 @@ class Block(
 ):
     """Metadata for any file that we store"""
 
-    API_OBJECT_NAME = "file"
+    API_OBJECT_NAME = "file"  # type: ignore[assignment]
 
     @property
     def should_suppress_transaction_creation(self) -> bool:
         # Only version attachments
-        return not any(part.is_attachment for part in self.parts)
+        return not any(
+            part.is_attachment
+            for part in self.parts  # type: ignore[attr-defined]
+        )
 
     from inbox.models.namespace import Namespace
 
@@ -78,7 +85,9 @@ class Block(
     filename = Column(String(255))
 
     # TODO: create a constructor that allows the 'content_type' keyword
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(  # type: ignore[no-untyped-def]
+        self, *args, **kwargs
+    ) -> None:
         self.content_type = None
         self.size = 0
         MailSyncBase.__init__(self, *args, **kwargs)
@@ -102,7 +111,7 @@ class Block(
             self.content_type = self._content_type_other
 
     @property
-    def data(self):  # noqa: ANN201
+    def data(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         value: bytes | None
         if self.size == 0:
             log.warning("Block size is 0")
@@ -120,12 +129,17 @@ class Block(
 
             from inbox.models.block import Block
 
-            if isinstance(self, Block) and self.parts:
+            if (
+                isinstance(self, Block)  # type: ignore[redundant-expr]
+                and self.parts  # type: ignore[attr-defined]
+            ):
                 # This block is an attachment of a message that was
                 # deleted. We will attempt to fetch the raw
                 # message and parse out the needed attachment.
 
-                message = self.parts[0].message  # only grab one
+                message = self.parts[  # type: ignore[attr-defined]
+                    0
+                ].message  # only grab one
                 account = message.namespace.account
 
                 statsd_string = (
@@ -210,7 +224,7 @@ class Block(
         return value
 
     @data.setter
-    def data(self, value) -> None:
+    def data(self, value) -> None:  # type: ignore[no-untyped-def]
         assert value is not None
         assert isinstance(value, bytes)
 
@@ -230,7 +244,9 @@ class Block(
 
 
 @event.listens_for(Block, "before_insert", propagate=True)
-def serialize_before_insert(mapper, connection, target) -> None:
+def serialize_before_insert(  # type: ignore[no-untyped-def]
+    mapper, connection, target
+) -> None:
     if target.content_type in COMMON_CONTENT_TYPES:
         target._content_type_common = target.content_type
         target._content_type_other = None
@@ -273,7 +289,7 @@ class Part(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     __table_args__ = (UniqueConstraint("message_id", "walk_index"),)
 
     @property
-    def thread_id(self):  # noqa: ANN201
+    def thread_id(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if not self.message:
             return None
         return self.message.thread_id
@@ -283,7 +299,7 @@ class Part(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         return self.content_disposition is not None
 
     @property
-    def is_embedded(self):  # noqa: ANN201
+    def is_embedded(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return (
             self.content_disposition is not None
             and self.content_disposition.lower() == "inline"

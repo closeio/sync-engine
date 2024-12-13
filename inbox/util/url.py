@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 
 import dns
 from dns.resolver import NXDOMAIN, NoAnswer, NoNameservers, Resolver, Timeout
-from tldextract import extract as tld_extract
+from tldextract import extract as tld_extract  # type: ignore[import-untyped]
 
 from inbox.logging import get_logger
 
@@ -27,11 +27,11 @@ class InvalidEmailAddressError(Exception):
     pass
 
 
-def _dns_resolver():
+def _dns_resolver():  # type: ignore[no-untyped-def]
     return dns_resolver
 
 
-def _fallback_get_mx_domains(domain):
+def _fallback_get_mx_domains(domain):  # type: ignore[no-untyped-def]
     """
     Sometimes dns.resolver.Resolver fails to return what we want. See
     http://stackoverflow.com/questions/18898847. In such cases, try using
@@ -46,7 +46,9 @@ def _fallback_get_mx_domains(domain):
         return []
 
 
-def get_mx_domains(domain, dns_resolver=_dns_resolver):  # noqa: ANN201
+def get_mx_domains(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    domain, dns_resolver=_dns_resolver
+):
     """Retrieve and return the MX records for a domain."""
     mx_records = []
     try:
@@ -65,7 +67,9 @@ def get_mx_domains(domain, dns_resolver=_dns_resolver):  # noqa: ANN201
     return [str(rdata.exchange).lower() for rdata in mx_records]
 
 
-def mx_match(mx_domains, match_domains) -> bool:
+def mx_match(  # type: ignore[no-untyped-def]
+    mx_domains, match_domains
+) -> bool:
     """
     Return True if any of the `mx_domains` matches an mx_domain
     in `match_domains`.
@@ -91,7 +95,7 @@ def mx_match(mx_domains, match_domains) -> bool:
     return False
 
 
-def provider_from_address(  # noqa: ANN201
+def provider_from_address(  # type: ignore[no-untyped-def]  # noqa: ANN201
     email_address, dns_resolver=_dns_resolver
 ):
     if not EMAIL_REGEX.match(email_address):
@@ -141,7 +145,7 @@ def provider_from_address(  # noqa: ANN201
 
 
 # From tornado.httputil
-def url_concat(url, args, fragments=None):  # noqa: ANN201
+def url_concat(url, args, fragments=None):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Concatenate url and argument dictionary regardless of whether
     url has existing query parameters.
@@ -170,18 +174,18 @@ def url_concat(url, args, fragments=None):  # noqa: ANN201
     return url + args_tail + fragment_tail
 
 
-def resolve_hostname(addr):  # noqa: ANN201
+def resolve_hostname(addr):  # type: ignore[no-untyped-def]  # noqa: ANN201
     try:
         return socket.gethostbyname(addr)
     except OSError:
         return None
 
 
-def parent_domain(domain):  # noqa: ANN201
+def parent_domain(domain):  # type: ignore[no-untyped-def]  # noqa: ANN201
     return tld_extract(domain).registered_domain
 
 
-def naked_domain(url):  # noqa: ANN201
+def naked_domain(url):  # type: ignore[no-untyped-def]  # noqa: ANN201
     # This function extracts the domain name part of an URL.
     # It works indiscriminately on URLs or plain domains.
     res = tld_extract(url)
@@ -192,7 +196,9 @@ def naked_domain(url):  # noqa: ANN201
         return ".".join([res.subdomain, res.registered_domain])
 
 
-def matching_subdomains(new_value, old_value) -> bool:
+def matching_subdomains(  # type: ignore[no-untyped-def]
+    new_value, old_value
+) -> bool:
     """
     We allow our customers to update their server addresses,
     provided that the new server has:

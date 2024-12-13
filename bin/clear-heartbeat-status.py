@@ -20,11 +20,15 @@ log = get_logger()
 @click.option("--account-id", "-a", type=int, required=True)
 @click.option("--folder-id", "-f", type=int)
 @click.option("--device-id", "-d", type=int)
-def main(host, port, account_id, folder_id, device_id) -> None:
+def main(  # type: ignore[no-untyped-def]
+    host, port, account_id, folder_id, device_id
+) -> None:
     maybe_enable_rollbar()
 
     print("Clearing heartbeat status...")
-    n = clear_heartbeat_status(account_id, folder_id, device_id, host, port)
+    n = clear_heartbeat_status(  # type: ignore[call-arg]
+        account_id, folder_id, device_id, host, port
+    )
     print(f"{n} folders cleared.")
     exit(0)
 

@@ -9,7 +9,7 @@ import urllib.parse
 import uuid
 from typing import Any
 
-import arrow
+import arrow  # type: ignore[import-untyped]
 import attrs
 import attrs.validators
 import requests
@@ -161,7 +161,9 @@ class GoogleEventsProvider(AbstractEventsProvider):
             else:
                 raise
 
-    def _get_resource_list(self, url: str, **params) -> list[dict[str, Any]]:
+    def _get_resource_list(  # type: ignore[no-untyped-def]
+        self, url: str, **params
+    ) -> list[dict[str, Any]]:
         """Handles response pagination."""  # noqa: D401
         token = self._get_access_token()
         items = []
@@ -192,34 +194,42 @@ class GoogleEventsProvider(AbstractEventsProvider):
             except requests.HTTPError as e:
                 self.log.warning(
                     "HTTP error making Google Calendar API request",
-                    url=r.url,
-                    response=r.content,
-                    status=r.status_code,
+                    url=r.url,  # type: ignore[possibly-undefined]
+                    response=r.content,  # type: ignore[possibly-undefined]
+                    status=r.status_code,  # type: ignore[possibly-undefined]
                 )
-                if r.status_code == 401:
+                if r.status_code == 401:  # type: ignore[possibly-undefined]
                     self.log.warning(
                         "Invalid access token; refreshing and retrying",
-                        url=r.url,
-                        response=r.content,
-                        status=r.status_code,
+                        url=r.url,  # type: ignore[possibly-undefined]
+                        response=r.content,  # type: ignore[possibly-undefined]
+                        status=r.status_code,  # type: ignore[possibly-undefined]
                     )
                     token = self._get_access_token(force_refresh=True)
                     continue
-                elif r.status_code in (500, 503):
+                elif r.status_code in (  # type: ignore[possibly-undefined]
+                    500,
+                    503,
+                ):
                     self.log.warning("Backend error in calendar API; retrying")
                     time.sleep(30 + random.randrange(0, 60))
                     continue
-                elif r.status_code == 403:
+                elif r.status_code == 403:  # type: ignore[possibly-undefined]
                     try:
-                        reason = r.json()["error"]["errors"][0]["reason"]
+                        reason = r.json()[  # type: ignore[possibly-undefined]
+                            "error"
+                        ]["errors"][0]["reason"]
                     except (KeyError, ValueError):
                         self.log.error(
                             "Couldn't parse API error response",
-                            response=r.content,
-                            status=r.status_code,
+                            response=r.content,  # type: ignore[possibly-undefined]
+                            status=r.status_code,  # type: ignore[possibly-undefined]
                         )
-                        r.raise_for_status()
-                    if reason == "userRateLimitExceeded":
+                        r.raise_for_status()  # type: ignore[possibly-undefined]
+                    if (
+                        reason  # type: ignore[possibly-undefined]
+                        == "userRateLimitExceeded"
+                    ):
                         self.log.warning(
                             "API request was rate-limited; retrying"
                         )
@@ -233,7 +243,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
                 # Unexpected error; raise.
                 raise
 
-    def _make_event_request(
+    def _make_event_request(  # type: ignore[no-untyped-def]
         self,
         method: str,
         calendar_uid: str,
@@ -251,7 +261,9 @@ class GoogleEventsProvider(AbstractEventsProvider):
         )
         return response
 
-    def create_remote_event(self, event, **kwargs):  # noqa: ANN201
+    def create_remote_event(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, event, **kwargs
+    ):
         data = _dump_event(event)
         params = {}
 
@@ -268,7 +280,9 @@ class GoogleEventsProvider(AbstractEventsProvider):
         response.raise_for_status()
         return response.json()
 
-    def update_remote_event(self, event, **kwargs) -> None:
+    def update_remote_event(  # type: ignore[no-untyped-def]
+        self, event, **kwargs
+    ) -> None:
         data = _dump_event(event)
         params = {}
 
@@ -284,7 +298,9 @@ class GoogleEventsProvider(AbstractEventsProvider):
         # All non-200 statuses are considered errors
         response.raise_for_status()
 
-    def delete_remote_event(self, calendar_uid, event_uid, **kwargs) -> None:
+    def delete_remote_event(  # type: ignore[no-untyped-def]
+        self, calendar_uid, event_uid, **kwargs
+    ) -> None:
         params = {}
 
         if kwargs.get("notify_participants") is True:
@@ -310,7 +326,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
 
     # -------- logic for push notification subscriptions -------- #
 
-    def _get_access_token_for_push_notifications(
+    def _get_access_token_for_push_notifications(  # type: ignore[no-untyped-def]
         self, account, force_refresh: bool = False
     ):
         if not self.webhook_notifications_enabled(account):
@@ -318,7 +334,10 @@ class GoogleEventsProvider(AbstractEventsProvider):
         return token_manager.get_token(account, force_refresh)
 
     def webhook_notifications_enabled(self, account: Account) -> bool:
-        return account.get_client_info()[0] in WEBHOOK_ENABLED_CLIENT_IDS
+        return (
+            account.get_client_info()[0]  # type: ignore[attr-defined]
+            in WEBHOOK_ENABLED_CLIENT_IDS
+        )
 
     def watch_calendar_list(
         self, account: Account
@@ -481,7 +500,10 @@ class GoogleEventsProvider(AbstractEventsProvider):
                     response=r.content,
                     status=r.status_code,
                 )
-            if reason == "userRateLimitExceeded":
+            if (
+                reason  # type: ignore[possibly-undefined]
+                == "userRateLimitExceeded"
+            ):
                 # Sleep before proceeding (naive backoff)
                 time.sleep(30 + random.randrange(0, 60))
                 self.log.warning("API request was rate-limited")
@@ -528,7 +550,7 @@ def parse_calendar_response(  # noqa: D417
         read_only = False
 
     description = calendar.get("description")
-    return Calendar(
+    return Calendar(  # type: ignore[call-arg]
         uid=uid, name=name, read_only=read_only, description=description
     )
 
@@ -543,12 +565,16 @@ STRING_VALIDATORS = [
 
 @attrs.frozen(kw_only=True)
 class EntryPoint:
-    uri: str = attrs.field(validator=STRING_VALIDATORS)
+    uri: str = attrs.field(
+        validator=STRING_VALIDATORS  # type: ignore[arg-type]
+    )
 
 
 @attrs.frozen(kw_only=True)
 class ConferenceSolution:
-    name: str = attrs.field(validator=STRING_VALIDATORS)
+    name: str = attrs.field(
+        validator=STRING_VALIDATORS  # type: ignore[arg-type]
+    )
 
 
 @attrs.frozen(kw_only=True)
@@ -710,7 +736,7 @@ def parse_event_response(  # noqa: D417
     )
 
 
-def _dump_event(event):
+def _dump_event(event):  # type: ignore[no-untyped-def]
     """Convert an event db object to the Google API JSON format."""
     dump = {
         "summary": event.title,

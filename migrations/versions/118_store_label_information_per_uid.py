@@ -11,9 +11,9 @@ Create Date: 2014-10-14 10:04:58.710015
 revision = "4634999269"
 down_revision = "420bf3422c4f"
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
-from sqlalchemy.sql import text
+from sqlalchemy.sql import text  # type: ignore[import-untyped]
 
 from inbox.sqlalchemy_ext.util import JSON
 

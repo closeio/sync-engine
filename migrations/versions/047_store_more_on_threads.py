@@ -13,7 +13,7 @@ down_revision = "38d78543f8be"
 
 import itertools
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
@@ -31,7 +31,9 @@ def upgrade() -> None:
     from inbox.models import Thread
     from inbox.models.session import session_scope
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         (num_threads,) = db_session.query(sa.func.max(Thread.id)).one()
         if num_threads is None:
             # There aren't actually any threads to update.

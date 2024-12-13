@@ -13,7 +13,9 @@ from inbox.models.session import global_session_scope, session_scope
 @click.option("--number", type=int, help="how many accounts to unschedule")
 @click.argument("hostname")
 @click.argument("process", required=False, default=None)
-def main(dry_run, number, hostname, process) -> None:
+def main(  # type: ignore[no-untyped-def]
+    dry_run, number, hostname, process
+) -> None:
     """
     Unschedule all accounts assigned to a given sync host.
     Intended primarily for use when decomissioning sync instances or for
@@ -27,7 +29,10 @@ def main(dry_run, number, hostname, process) -> None:
             "You have not provided a --number option. This will "
             "unschedule ALL syncs on the host. Proceed? [Y/n] "
         )
-        if raw_input(message).strip().lower() == "n":  # noqa: F821
+        if (
+            raw_input(message).strip().lower()  # type: ignore[name-defined]  # noqa: F821
+            == "n"
+        ):
             print("Will not proceed")
             return
 
@@ -38,7 +43,10 @@ def main(dry_run, number, hostname, process) -> None:
                 hostname
             )
         )
-        if raw_input(message).strip().lower() == "n":  # noqa: F821
+        if (
+            raw_input(message).strip().lower()  # type: ignore[name-defined]  # noqa: F821
+            == "n"
+        ):
             print("Bailing out")
             return
 

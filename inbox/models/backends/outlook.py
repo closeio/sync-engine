@@ -1,4 +1,8 @@
-from sqlalchemy import Column, ForeignKey, String
+from sqlalchemy import (  # type: ignore[import-untyped]
+    Column,
+    ForeignKey,
+    String,
+)
 
 from inbox.config import config
 from inbox.models.account import CategoryType
@@ -45,7 +49,7 @@ class OutlookAccount(CalendarSyncAccountMixin, ImapAccount, OAuthAccount):
     locale = Column(String(8))
 
     @property
-    def email_scopes(self):  # noqa: ANN201
+    def email_scopes(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return MICROSOFT_EMAIL_SCOPES
 
     @property
@@ -53,15 +57,15 @@ class OutlookAccount(CalendarSyncAccountMixin, ImapAccount, OAuthAccount):
         return None
 
     @property
-    def calendar_scopes(self):  # noqa: ANN201
+    def calendar_scopes(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return MICROSOFT_CALENDAR_SCOPES
 
     @property
-    def scopes(self):  # noqa: ANN201
+    def scopes(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self.email_scopes
 
     @property
-    def provider(self):  # noqa: ANN201
+    def provider(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return PROVIDER
 
     @property
@@ -69,13 +73,13 @@ class OutlookAccount(CalendarSyncAccountMixin, ImapAccount, OAuthAccount):
         return "folder"
 
     @property
-    def thread_cls(self):  # noqa: ANN201
+    def thread_cls(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         from inbox.models.backends.imap import ImapThread
 
         return ImapThread
 
     @property
-    def actionlog_cls(self):  # noqa: ANN201
+    def actionlog_cls(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         from inbox.models.action_log import ActionLog
 
         return ActionLog

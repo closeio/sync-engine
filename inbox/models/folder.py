@@ -1,7 +1,21 @@
-from sqlalchemy import Column, DateTime, ForeignKey, String, bindparam
-from sqlalchemy.orm import backref, relationship, synonym, validates
-from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
-from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy import (  # type: ignore[import-untyped]
+    Column,
+    DateTime,
+    ForeignKey,
+    String,
+    bindparam,
+)
+from sqlalchemy.orm import (  # type: ignore[import-untyped]
+    backref,
+    relationship,
+    synonym,
+    validates,
+)
+from sqlalchemy.orm.exc import (  # type: ignore[import-untyped]
+    MultipleResultsFound,
+    NoResultFound,
+)
+from sqlalchemy.schema import UniqueConstraint  # type: ignore[import-untyped]
 
 from inbox.logging import get_logger
 from inbox.models.base import MailSyncBase
@@ -51,11 +65,11 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     )
 
     @property
-    def canonical_name(self):  # noqa: ANN201
+    def canonical_name(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self._canonical_name
 
     @canonical_name.setter
-    def canonical_name(self, value) -> None:
+    def canonical_name(self, value) -> None:  # type: ignore[no-untyped-def]
         value = value or ""
         self._canonical_name = value
         if self.category:
@@ -72,7 +86,7 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     initial_sync_end = Column(DateTime, nullable=True)
 
     @validates("name")
-    def validate_name(self, key, name):  # noqa: ANN201
+    def validate_name(self, key, name):  # type: ignore[no-untyped-def]  # noqa: ANN201
         sanitized_name = sanitize_name(name)
         if sanitized_name != name:
             log.warning(
@@ -83,7 +97,9 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         return sanitized_name
 
     @classmethod
-    def find_or_create(cls, session, account, name, role=None):  # noqa: ANN206
+    def find_or_create(  # type: ignore[no-untyped-def]  # noqa: ANN206
+        cls, session, account, name, role=None
+    ):
         q = (
             session.query(cls)
             .filter(cls.account_id == account.id)
@@ -94,7 +110,9 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         try:
             obj = q.one()
         except NoResultFound:
-            obj = cls(account=account, name=name, canonical_name=role)
+            obj = cls(  # type: ignore[call-arg]
+                account=account, name=name, canonical_name=role
+            )
             obj.category = Category.find_or_create(
                 session,
                 namespace_id=account.namespace.id,
@@ -112,7 +130,7 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         return obj
 
     @classmethod
-    def get(cls, id_, session):  # noqa: ANN206
+    def get(cls, id_, session):  # type: ignore[no-untyped-def]  # noqa: ANN206
         q = session.query(cls)
         q = q.filter(cls.id == bindparam("id_"))
         return q.params(id_=id_).first()

@@ -12,7 +12,7 @@ revision = "2c577a8a01b7"
 down_revision = "24e9afe91349"
 
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
@@ -39,7 +39,7 @@ def upgrade() -> None:
     import nacl.utils
 
     from inbox.config import config
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -48,10 +48,12 @@ def upgrade() -> None:
 
     key = config.get_required("SECRET_ENCRYPTION_KEY")
 
-    class Secret(Base):
+    class Secret(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["secret"]
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         secrets = (
             db_session.query(Secret)
             .filter(Secret.encryption_scheme == 1, Secret._secret.isnot(None))

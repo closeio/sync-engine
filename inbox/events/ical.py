@@ -5,14 +5,14 @@ from datetime import date, datetime
 from email.utils import formataddr
 from typing import TYPE_CHECKING, Literal
 
-import arrow
-import icalendar
+import arrow  # type: ignore[import-untyped]
+import icalendar  # type: ignore[import-untyped]
 import pytz
 import requests
-from flanker import mime
+from flanker import mime  # type: ignore[import-untyped]
 from html2text import html2text
 from icalendar import Calendar as iCalendar
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session  # type: ignore[import-untyped]
 
 from inbox.config import config
 from inbox.contacts.processing import update_contacts_from_event
@@ -52,13 +52,17 @@ def normalize_repeated_component(
         return None
     elif isinstance(component, str):
         return component
-    elif isinstance(component, list) and set(component) == {component[0]}:
+    elif isinstance(component, list) and set(  # type: ignore[redundant-expr]
+        component
+    ) == {component[0]}:
         return component[0]
     else:
         raise MalformedEventError("Cannot normalize component", component)
 
 
-def events_from_ics(namespace, calendar, ics_str):  # noqa: ANN201
+def events_from_ics(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    namespace, calendar, ics_str
+):
     try:
         cal = iCalendar.from_ical(ics_str)
     except (ValueError, IndexError, KeyError, TypeError) as e:
@@ -341,7 +345,9 @@ def events_from_ics(namespace, calendar, ics_str):  # noqa: ANN201
     return events
 
 
-def process_invites(db_session, message, account, invites) -> None:
+def process_invites(  # type: ignore[no-untyped-def]
+    db_session, message, account, invites
+) -> None:
     new_uids = [event.uid for event in invites]
 
     # Get the list of events which share a uid with those we received.
@@ -402,7 +408,7 @@ def process_invites(db_session, message, account, invites) -> None:
                 )
 
 
-def _cleanup_nylas_uid(uid):
+def _cleanup_nylas_uid(uid):  # type: ignore[no-untyped-def]
     uid = uid.lower()
     if "@nylas.com" in uid:
         return uid[:-10]
@@ -410,7 +416,9 @@ def _cleanup_nylas_uid(uid):
     return uid
 
 
-def process_nylas_rsvps(db_session, message, account, rsvps) -> None:
+def process_nylas_rsvps(  # type: ignore[no-untyped-def]
+    db_session, message, account, rsvps
+) -> None:
     # The invite sending code generates invites with uids of the form
     # `public_id@nylas.com`. We couldn't use Event.uid for this because
     # it wouldn't work with Exchange (Exchange uids are of the form
@@ -493,7 +501,9 @@ def import_attached_events(
                 continue
 
             new_events = events_from_ics(
-                account.namespace, account.emailed_events_calendar, part_data
+                account.namespace,  # type: ignore[attr-defined]
+                account.emailed_events_calendar,
+                part_data,
             )
         except MalformedEventError:
             log.error(
@@ -541,7 +551,7 @@ def import_attached_events(
             )
 
 
-def generate_icalendar_invite(  # noqa: ANN201
+def generate_icalendar_invite(  # type: ignore[no-untyped-def]  # noqa: ANN201
     event, invite_type: str = "request"
 ):
     # Generates an iCalendar invite from an event.
@@ -616,7 +626,7 @@ def generate_icalendar_invite(  # noqa: ANN201
     return cal
 
 
-def generate_invite_message(  # noqa: ANN201
+def generate_invite_message(  # type: ignore[no-untyped-def]  # noqa: ANN201
     ical_txt, event, account, invite_type: str = "request"
 ):
     assert invite_type in ["request", "update", "cancel"]
@@ -661,7 +671,7 @@ def generate_invite_message(  # noqa: ANN201
     return msg
 
 
-def send_invite(
+def send_invite(  # type: ignore[no-untyped-def]
     ical_txt, event, account, invite_type: str = "request"
 ) -> None:
     # We send those transactional emails through a separate domain.
@@ -704,7 +714,7 @@ def send_invite(
             )
 
 
-def _generate_rsvp(status, account, event):
+def _generate_rsvp(status, account, event):  # type: ignore[no-untyped-def]
     # It seems that Google Calendar requires us to copy a number of fields
     # in the RVSP reply. I suppose it's for reconciling the reply with the
     # invite. - karim
@@ -752,7 +762,7 @@ def _generate_rsvp(status, account, event):
     return {"cal": cal}
 
 
-def generate_rsvp(event, participant, account):  # noqa: ANN201
+def generate_rsvp(event, participant, account):  # type: ignore[no-untyped-def]  # noqa: ANN201
     # Generates an iCalendar file to RSVP to an invite.
     status = INVERTED_STATUS_MAP.get(participant["status"])
     return _generate_rsvp(status, account, event)
@@ -762,7 +772,7 @@ def generate_rsvp(event, participant, account):  # noqa: ANN201
 # We try to find the organizer address from the iCal file.
 # If it's not defined, we try to return the invite sender's
 # email address.
-def rsvp_recipient(event):  # noqa: ANN201
+def rsvp_recipient(event):  # type: ignore[no-untyped-def]  # noqa: ANN201
     if event is None:
         return None
 
@@ -783,7 +793,9 @@ def rsvp_recipient(event):  # noqa: ANN201
     return None
 
 
-def send_rsvp(ical_data, event, body_text, status, account) -> None:
+def send_rsvp(  # type: ignore[no-untyped-def]
+    ical_data, event, body_text, status, account
+) -> None:
     from inbox.sendmail.base import SendMailException, get_sendmail_client
 
     ical_file = ical_data["cal"]

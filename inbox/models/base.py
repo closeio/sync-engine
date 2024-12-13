@@ -1,6 +1,11 @@
-from sqlalchemy import BigInteger, Column
-from sqlalchemy.ext.declarative import as_declarative, declared_attr
-from sqlalchemy.orm.exc import DetachedInstanceError
+from sqlalchemy import BigInteger, Column  # type: ignore[import-untyped]
+from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+    as_declarative,
+    declared_attr,
+)
+from sqlalchemy.orm.exc import (  # type: ignore[import-untyped]
+    DetachedInstanceError,
+)
 
 from inbox.models.mixins import CreatedAtMixin
 
@@ -15,11 +20,11 @@ class MailSyncBase(CreatedAtMixin):
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
     @declared_attr
-    def __tablename__(cls):  # noqa: ANN204, N805
-        return cls.__name__.lower()
+    def __tablename__(cls):  # type: ignore[no-untyped-def]  # noqa: ANN204, N805
+        return cls.__name__.lower()  # type: ignore[attr-defined]
 
     @declared_attr
-    def __table_args__(cls):  # noqa: ANN204, N805
+    def __table_args__(cls):  # type: ignore[no-untyped-def]  # noqa: ANN204, N805
         return {"extend_existing": True}
 
     def __repr__(self) -> str:

@@ -35,7 +35,9 @@ from inbox.models.util import delete_namespace
 @click.option("--dry-run", is_flag=True)
 @click.option("--yes", is_flag=True)
 @click.option("--throttle", is_flag=True)
-def delete_account_data(account_id, dry_run, yes, throttle) -> int | None:
+def delete_account_data(  # type: ignore[no-untyped-def]
+    account_id, dry_run, yes, throttle
+) -> int | None:
     maybe_enable_rollbar()
 
     with session_scope(account_id) as db_session:
@@ -63,7 +65,9 @@ def delete_account_data(account_id, dry_run, yes, throttle) -> int | None:
             )
         )
 
-        answer = raw_input(question).strip().lower()  # noqa: F821
+        answer = (
+            raw_input(question).strip().lower()  # type: ignore[name-defined]  # noqa: F821
+        )
 
         if answer != "yes":
             print("Will NOT delete, goodbye.")

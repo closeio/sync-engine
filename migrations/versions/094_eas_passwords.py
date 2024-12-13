@@ -13,12 +13,12 @@ down_revision = "159607944f52"
 
 from datetime import datetime
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
     # Do nothing if the affected table isn't present.
@@ -35,16 +35,18 @@ def upgrade() -> None:
     Base.metadata.reflect(engine)
     from inbox.models.session import session_scope
 
-    class EASAccount(Base):
+    class EASAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["easaccount"]
         secret = sa.orm.relationship(
             "Secret", primaryjoin="EASAccount.password_id == Secret.id"
         )
 
-    class Secret(Base):
+    class Secret(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["secret"]
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         accounts = db_session.query(EASAccount).all()
         print("# EAS accounts: ", len(accounts))
 
@@ -67,7 +69,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
     if not engine.has_table("easaccount"):

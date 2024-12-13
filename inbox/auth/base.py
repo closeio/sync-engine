@@ -1,7 +1,7 @@
 import socket
 from typing import Never
 
-from imapclient import IMAPClient
+from imapclient import IMAPClient  # type: ignore[import-untyped]
 
 from inbox.crispin import CrispinClient
 from inbox.exceptions import NotSupportedError, UserRecoverableConfigError
@@ -13,7 +13,7 @@ from .utils import create_imap_connection
 log = get_logger()
 
 
-def handler_from_provider(provider_name):  # noqa: ANN201
+def handler_from_provider(provider_name):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Return an authentication handler for the given provider.
 
@@ -44,7 +44,9 @@ def handler_from_provider(provider_name):  # noqa: ANN201
 
 
 class AuthHandler:
-    def create_account(self, account_data) -> Never:
+    def create_account(  # type: ignore[no-untyped-def]
+        self, account_data
+    ) -> Never:
         """
         Create a new account with the given subclass-specific account data.
 
@@ -53,7 +55,9 @@ class AuthHandler:
         """
         raise NotImplementedError()
 
-    def update_account(self, account, account_data) -> Never:
+    def update_account(  # type: ignore[no-untyped-def]
+        self, account, account_data
+    ) -> Never:
         """
         Update an existing account with the given subclass-specific account
         data.
@@ -62,7 +66,7 @@ class AuthHandler:
         """
         raise NotImplementedError()
 
-    def get_imap_connection(  # noqa: ANN201
+    def get_imap_connection(  # type: ignore[no-untyped-def]  # noqa: ANN201
         self, account, use_timeout: bool = True
     ):
         host, port = account.imap_endpoint
@@ -78,20 +82,24 @@ class AuthHandler:
             )
             raise
 
-    def authenticate_imap_connection(self, account, conn) -> Never:
+    def authenticate_imap_connection(  # type: ignore[no-untyped-def]
+        self, account, conn
+    ) -> Never:
         raise NotImplementedError()
 
-    def get_authenticated_imap_connection(  # noqa: ANN201
+    def get_authenticated_imap_connection(  # type: ignore[no-untyped-def]  # noqa: ANN201
         self, account, use_timeout: bool = True
     ):
         conn = self.get_imap_connection(account, use_timeout=use_timeout)
         self.authenticate_imap_connection(account, conn)
-        return conn
+        return conn  # type: ignore[unreachable]
 
-    def interactive_auth(self, email_address) -> Never:
+    def interactive_auth(  # type: ignore[no-untyped-def]
+        self, email_address
+    ) -> Never:
         raise NotImplementedError()
 
-    def verify_account(self, account) -> bool:
+    def verify_account(self, account) -> bool:  # type: ignore[no-untyped-def]
         """
         Verifies a generic IMAP account by logging in and logging out to both
         the IMAP/ SMTP servers.

@@ -1,4 +1,8 @@
-from sqlalchemy import Column, ForeignKey, String
+from sqlalchemy import (  # type: ignore[import-untyped]
+    Column,
+    ForeignKey,
+    String,
+)
 
 from inbox.config import config
 from inbox.logging import get_logger
@@ -32,19 +36,19 @@ class GmailAccount(CalendarSyncAccountMixin, OAuthAccount, ImapAccount):
     scope = Column(String(512))
 
     @property
-    def email_scopes(self):  # noqa: ANN201
+    def email_scopes(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return GOOGLE_EMAIL_SCOPES
 
     @property
-    def contacts_scopes(self):  # noqa: ANN201
+    def contacts_scopes(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return GOOGLE_CONTACTS_SCOPES
 
     @property
-    def calendar_scopes(self):  # noqa: ANN201
+    def calendar_scopes(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return GOOGLE_CALENDAR_SCOPES
 
     @property
-    def scopes(self):  # noqa: ANN201
+    def scopes(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return [
             *self.calendar_scopes,
             *self.contacts_scopes,
@@ -52,7 +56,7 @@ class GmailAccount(CalendarSyncAccountMixin, OAuthAccount, ImapAccount):
         ]
 
     @property
-    def provider(self):  # noqa: ANN201
+    def provider(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return PROVIDER
 
     @property
@@ -60,18 +64,20 @@ class GmailAccount(CalendarSyncAccountMixin, OAuthAccount, ImapAccount):
         return "label"
 
     @property
-    def thread_cls(self):  # noqa: ANN201
+    def thread_cls(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         from inbox.models.backends.imap import ImapThread
 
         return ImapThread
 
     @property
-    def actionlog_cls(self):  # noqa: ANN201
+    def actionlog_cls(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         from inbox.models.action_log import ActionLog
 
         return ActionLog
 
-    def get_raw_message_contents(self, message):  # noqa: ANN201
+    def get_raw_message_contents(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, message
+    ):
         from inbox.s3.backends.gmail import get_gmail_raw_contents
 
         return get_gmail_raw_contents(message)

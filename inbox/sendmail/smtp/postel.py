@@ -179,7 +179,7 @@ class SMTPConnection:
         else:
             self.connection = SMTP(timeout=SMTP_TIMEOUT)
             self._connect(host, port)
-            self.connection._host = host  # type: ignore
+            self.connection._host = host
             self._upgrade_connection()
 
         # Auth the connection

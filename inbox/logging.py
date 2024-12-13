@@ -312,7 +312,7 @@ def configure_logging(log_level=None) -> None:
     else:
         formatter = ConditionalFormatter()
     tty_handler.setFormatter(formatter)
-    tty_handler._nylas = True  # type: ignore
+    tty_handler._nylas = True
 
     # Configure the root logger.
     root_logger = logging.getLogger()

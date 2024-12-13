@@ -318,7 +318,7 @@ def utf8_surrogate_fix_decode(
 
 def utf8_surrogate_fix_search_function(encoding_name: str) -> codecs.CodecInfo:
     return codecs.CodecInfo(
-        utf8_encode, utf8_surrogate_fix_decode, name="utf8-surrogate-fix"  # type: ignore
+        utf8_encode, utf8_surrogate_fix_decode, name="utf8-surrogate-fix"
     )
 
 

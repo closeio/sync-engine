@@ -19,12 +19,12 @@ from inbox import interruptible_threading
 from inbox.constants import MAX_MESSAGE_BODY_LENGTH
 
 # Prevent "got more than 1000000 bytes" errors for servers that send more data.
-imaplib._MAXLINE = 10000000  # type: ignore
+imaplib._MAXLINE = 10000000
 
 # Even though RFC 2060 says that the date component must have two characters
 # (either two digits or space+digit), it seems that some IMAP servers only
 # return one digit. Fun times.
-imaplib.InternalDate = re.compile(  # type: ignore
+imaplib.InternalDate = re.compile(
     r'.*INTERNALDATE "'
     r"(?P<day>[ 0123]?[0-9])-"  # insert that `?` to make first digit optional
     r"(?P<mon>[A-Z][a-z][a-z])-"

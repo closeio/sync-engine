@@ -23,9 +23,6 @@ from inbox.util.blockstore import get_from_blockstore  # noqa: E402
 
 from .util import SMTP_ERRORS  # noqa: E402
 
-# TODO[k]: Other types (LOGIN, XOAUTH, PLAIN-CLIENTTOKEN, CRAM-MD5)
-AUTH_EXTNS = {"oauth2": "XOAUTH2", "password": "PLAIN"}
-
 SMTP_MAX_RETRIES = 1
 # Timeout in seconds for blocking operations. If no timeout is specified,
 # attempts to, say, connect to the wrong port may hang forever.

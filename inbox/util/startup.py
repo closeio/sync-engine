@@ -11,13 +11,6 @@ from inbox.logging import get_logger
 log = get_logger()
 
 
-def _absolute_path(relative_path):  # type: ignore[no-untyped-def]
-    return os.path.join(  # noqa: PTH118
-        os.path.dirname(os.path.abspath(__file__)),  # noqa: PTH100, PTH120
-        relative_path,
-    )
-
-
 def check_sudo() -> None:
     if os.getuid() == 0:
         raise Exception("Don't run the Nylas Sync Engine as root!")

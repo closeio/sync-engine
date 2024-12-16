@@ -107,37 +107,6 @@ def mock_dns_resolver(monkeypatch):  # type: ignore[no-untyped-def]  # noqa: ANN
     monkeypatch.undo()
 
 
-@pytest.fixture
-def dump_dns_queries(monkeypatch):  # type: ignore[no-untyped-def]  # noqa: ANN201
-    original_query = dns.resolver.Resolver.query
-    query_results: dict[
-        Literal["mx", "ns"], dict[str, dict[Literal["error"], str] | list[str]]
-    ] = {"ns": {}, "mx": {}}
-
-    def mock_query(self, domain, record_type):  # type: ignore[no-untyped-def]
-        try:
-            result = original_query(self, domain, record_type)
-        except Exception as e:
-            query_results[record_type.lower()][domain] = {
-                "error": type(e).__name__
-            }
-            raise
-        record_type = record_type.lower()
-        if record_type == "mx":
-            query_results["mx"][domain] = [
-                str(r.exchange).lower() for r in result
-            ]
-        elif record_type == "ns":
-            query_results["ns"][domain] = [str(rdata) for rdata in result]
-        else:
-            raise RuntimeError(f"Unknown record type: {record_type}")
-        return result
-
-    monkeypatch.setattr("dns.resolver.Resolver.query", mock_query)
-    yield
-    print(json.dumps(query_results, indent=4, sort_keys=True))  # noqa: T201
-
-
 class MockIMAPClient:
     """
     A bare-bones stand-in for an IMAPClient instance, used to test sync

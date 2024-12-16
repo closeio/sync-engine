@@ -33,114 +33,8 @@ from collections import defaultdict
 
 import vobject  # type: ignore[import-untyped]
 
-
-def list_clean(string):  # type: ignore[no-untyped-def]  # noqa: ANN201
-    """
-    Transforms a comma seperated string to a list, stripping whitespaces
-    "HOME, WORK,pref" -> ['HOME', 'WORK', 'pref']
-
-    string: string of comma seperated elements
-    returns: list()
-    """  # noqa: D401
-    string = string.split(",")
-    rstring = list()
-    for element in string:
-        rstring.append(element.strip(" "))
-    return rstring
-
-
-NO_STRINGS = ["n", "no"]
-YES_STRINGS = ["y", "yes"]
-
-PROPERTIES = ["EMAIL", "TEL"]
-PROPS_ALL = [
-    "FN",
-    "N",
-    "VERSION",
-    "NICKNAME",
-    "PHOTO",
-    "BDAY",
-    "ADR",
-    "LABEL",
-    "TEL",
-    "EMAIL",
-    "MAILER",
-    "TZ",
-    "GEO",
-    "TITLE",
-    "ROLE",
-    "LOGO",
-    "AGENT",
-    "ORG",
-    "NOTE",
-    "REV",
-    "SOUND",
-    "URL",
-    "UID",
-    "KEY",
-    "CATEGORIES",
-    "PRODID",
-    "REV",
-    "SORT-STRING",
-    "SOUND",
-    "URL",
-    "VERSION",
-    "UTC-OFFSET",
-]
-PROPS_ALLOWED = [
-    "NICKNAME",
-    "BDAY",
-    "ADR",
-    "LABEL",
-    "TEL",
-    "EMAIL",
-    "MAILER",
-    "TZ",
-    "GEO",
-    "TITLE",
-    "ROLE",
-    "AGENT",
-    "ORG",
-    "NOTE",
-    "REV",
-    "SOUND",
-    "URL",
-    "UID",
-    "KEY",
-    "CATEGORIES",
-    "PRODID",
-    "REV",
-    "SORT-STRING",
-    "SOUND",
-    "URL",
-    "VERSION",
-    "UTC-OFFSET",
-]
-PROPS_ONCE = ["FN", "N", "VERSION"]
-PROPS_LIST = ["NICKNAME", "CATEGORIES"]
-PROPS_BIN = ["PHOTO", "LOGO", "SOUND", "KEY"]
-
-
-RTEXT = "\x1b[7m"
 NTEXT = "\x1b[0m"
 BTEXT = "\x1b[1m"
-
-
-def get_names(display_name):  # type: ignore[no-untyped-def]  # noqa: ANN201
-    first_name, last_name = ("", display_name)
-
-    if display_name.find(",") > 0:
-        # Parsing something like 'Doe, John Abraham'
-        last_name, first_name = display_name.split(",")
-
-    elif display_name.find(" "):
-        # Parsing something like 'John Abraham Doe'
-        # TODO: This fails for compound names. What is the most common case?
-        name_list = display_name.split(" ")
-        last_name = "".join(name_list[-1])
-        first_name = " ".join(name_list[:-1])
-
-    return (first_name.strip().capitalize(), last_name.strip().capitalize())
 
 
 def fix_vobject(vcard):  # type: ignore[no-untyped-def]  # noqa: ANN201
@@ -191,26 +85,6 @@ def vcard_from_string(vcard_string):  # type: ignore[no-untyped-def]  # noqa: AN
     except vobject.base.ParseError as error:
         raise Exception(error)  # TODO proper exception  # noqa: B904
     return vcard_from_vobject(vcard)
-
-
-def vcard_from_email(display_name, email):  # type: ignore[no-untyped-def]  # noqa: ANN201
-    fname, lname = get_names(display_name)
-    vcard = vobject.vCard()
-    vcard.add("n")
-    vcard.n.value = vobject.vcard.Name(family=lname, given=fname)
-    vcard.add("fn")
-    vcard.fn.value = display_name
-    vcard.add("email")
-    vcard.email.value = email
-    vcard.email.type_param = "INTERNET"
-    return vcard_from_vobject(vcard)
-
-
-def cards_from_file(cards_f):  # type: ignore[no-untyped-def]  # noqa: ANN201
-    collector = list()
-    for vcard in vobject.readComponents(cards_f):
-        collector.append(vcard_from_vobject(vcard))
-    return collector
 
 
 class VCard(defaultdict):  # type: ignore[type-arg]

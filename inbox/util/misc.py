@@ -22,32 +22,11 @@ class DummyContextManager:
         return False
 
 
-class ProviderSpecificException(Exception):
-    pass
-
-
 def or_none(value, selector):  # type: ignore[no-untyped-def]  # noqa: ANN201
     if value is None:
         return None
     else:
         return selector(value)
-
-
-def parse_ml_headers(headers):  # type: ignore[no-untyped-def]  # noqa: ANN201
-    """
-    Parse the mailing list headers described in RFC 4021,
-    these headers are optional (RFC 2369).
-
-    """
-    return {
-        "List-Archive": headers.get("List-Archive"),
-        "List-Help": headers.get("List-Help"),
-        "List-Id": headers.get("List-Id"),
-        "List-Owner": headers.get("List-Owner"),
-        "List-Post": headers.get("List-Post"),
-        "List-Subscribe": headers.get("List-Subscribe"),
-        "List-Unsubscribe": headers.get("List-Unsubscribe"),
-    }
 
 
 def parse_references(references: str, in_reply_to: str) -> list[str]:

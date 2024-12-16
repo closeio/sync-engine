@@ -20,29 +20,6 @@ log = get_logger()
 MAX_SANE_TRX_TIME_MS = 30000
 
 
-def two_phase_session(  # type: ignore[no-untyped-def]  # noqa: ANN201, D417
-    engine_map, versioned: bool = True
-):
-    """
-    Returns a session that implements two-phase-commit.
-
-    Parameters
-    ----------
-    engine_map: dict
-    Mapping of Table cls instance: database engine
-
-    versioned: bool
-
-    """  # noqa: D401
-    session = Session(
-        binds=engine_map, twophase=True, autoflush=True, autocommit=False
-    )
-    if versioned:
-        session = configure_versioning(session)
-        # TODO[k]: Metrics for transaction latencies!
-    return session
-
-
 def new_session(  # type: ignore[no-untyped-def]  # noqa: ANN201
     engine, versioned: bool = True
 ):

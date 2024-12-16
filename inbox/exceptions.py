@@ -22,15 +22,7 @@ class OAuthError(ValidationError):
     pass
 
 
-class ConfigurationError(Exception):
-    pass
-
-
 class UserRecoverableConfigError(Exception):
-    pass
-
-
-class SettingUpdateError(Exception):
     pass
 
 

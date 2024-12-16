@@ -29,7 +29,6 @@ from inbox.logging import configure_logging, get_logger
 from inbox.util.startup import load_overrides
 
 syncback: Any = None
-http_server: Any = None
 
 
 @click.command()

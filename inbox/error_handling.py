@@ -4,13 +4,16 @@ import os
 import sys
 
 import rollbar  # type: ignore[import-untyped]
+import sentry_sdk
 import structlog
 from rollbar.logger import RollbarHandler  # type: ignore[import-untyped]
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 from inbox.logging import create_error_log_context, get_logger
 
 log = get_logger()
 
+SENTRY_DSN = os.getenv("SENTRY_DSN", "")
 ROLLBAR_API_KEY = os.getenv("ROLLBAR_API_KEY", "")
 
 
@@ -101,11 +104,14 @@ def payload_handler(payload, **kw):  # type: ignore[no-untyped-def]  # noqa: ANN
     return payload
 
 
+def maybe_enable_error_reporting() -> None:
+    maybe_enable_rollbar()
+    maybe_enable_sentry()
+
+
 def maybe_enable_rollbar() -> None:
     if not ROLLBAR_API_KEY:
-        log.info(
-            "ROLLBAR_API_KEY environment variable empty, rollbar disabled"
-        )
+        log.info("ROLLBAR_API_KEY not configured - Rollbar disabled.")
         return
 
     application_environment = (
@@ -126,3 +132,25 @@ def maybe_enable_rollbar() -> None:
     rollbar.events.add_payload_handler(payload_handler)
 
     log.info("Rollbar enabled")
+
+
+def maybe_enable_sentry() -> None:
+    if not SENTRY_DSN:
+        log.info("SENTRY_DSN not configured - Sentry disabled.")
+        return
+
+    application_environment = (
+        "production" if os.getenv("NYLAS_ENV", "") == "prod" else "dev"
+    )
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        send_default_pii=True,
+        environment=application_environment,
+        integrations=[
+            LoggingIntegration(
+                level=logging.INFO,  # Capture INFO+
+                event_level=logging.ERROR,  # Send ERROR+ to Sentry
+            )
+        ],
+        attach_stacktrace=True,
+    )

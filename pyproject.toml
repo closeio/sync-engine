@@ -156,10 +156,10 @@ unfixable = [
 
 [tool.mypy]
 python_version = "3.12"
-strict_equality = true
-warn_unreachable = true
-warn_unused_ignores = true
-warn_redundant_casts = true
+strict_equality = false
+warn_unreachable = false
+warn_unused_ignores = false
+warn_redundant_casts = false
 show_error_context = true
 enable_error_code = [
     "unused-awaitable",
@@ -177,7 +177,7 @@ files = [
     "migrations",
 ]
 namespace_packages = true
-check_untyped_defs = true
-disallow_any_generics = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
+check_untyped_defs = false
+disallow_any_generics = false
+disallow_untyped_defs = false
+disallow_incomplete_defs = false

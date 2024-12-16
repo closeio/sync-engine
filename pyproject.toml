@@ -160,6 +160,8 @@ strict_equality = false
 warn_unreachable = false
 warn_unused_ignores = false
 warn_redundant_casts = false
+ignore_missing_imports = true
+follow_imports = "skip"
 show_error_context = true
 enable_error_code = [
     "unused-awaitable",

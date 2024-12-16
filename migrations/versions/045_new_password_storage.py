@@ -69,7 +69,7 @@ def upgrade() -> None:
             __table__ = Base.metadata.tables["easaccount"]
 
             @property
-            def _keyfile(self, create_dir: bool = True):  # noqa: PLR0206
+            def _keyfile(self, create_dir=True):  # noqa: PLR0206
                 assert self.key
 
                 assert KEY_DIR

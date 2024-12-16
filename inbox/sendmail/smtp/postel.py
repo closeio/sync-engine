@@ -3,7 +3,6 @@ import itertools
 import re
 import smtplib
 import ssl
-from types import TracebackType
 
 from inbox.logging import get_logger
 
@@ -147,12 +146,7 @@ class SMTPConnection:
     def __enter__(self):  # noqa: ANN204
         return self
 
-    def __exit__(
-        self,
-        type: type[BaseException] | None,
-        value: BaseException | None,
-        traceback: TracebackType | None,
-    ) -> None:
+    def __exit__(self, type, value, traceback):  # noqa: ANN204
         try:
             self.connection.quit()
         except smtplib.SMTPServerDisconnected:
@@ -209,7 +203,7 @@ class SMTPConnection:
             )
 
     # OAuth2 authentication
-    def _smtp_oauth2_try_refresh(self) -> None:
+    def _smtp_oauth2_try_refresh(self):
         with session_scope(self.account_id) as db_session:
             account = db_session.query(ImapAccount).get(self.account_id)
             self.auth_token = token_manager.get_token(

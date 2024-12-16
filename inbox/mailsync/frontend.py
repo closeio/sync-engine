@@ -36,7 +36,7 @@ class ProfilingHTTPFrontend:
             {"request_handler": _QuietHandler},
         )
 
-    def _create_app_impl(self, app) -> None:
+    def _create_app_impl(self, app):
         @app.route("/profile")
         def profile():
             if self.profiler is None:
@@ -47,7 +47,7 @@ class ProfilingHTTPFrontend:
             return resp
 
         @app.route("/load")
-        def load() -> str:
+        def load():
             return "Load tracing disabled\n"
 
         @app.route("/mem")
@@ -66,7 +66,7 @@ class SyncHTTPFrontend(ProfilingHTTPFrontend):
         self.sync_service = sync_service
         super().__init__(port, profile)
 
-    def _create_app_impl(self, app) -> None:
+    def _create_app_impl(self, app):
         super()._create_app_impl(app)
 
         @app.route("/unassign", methods=["POST"])
@@ -93,5 +93,5 @@ class SyncHTTPFrontend(ProfilingHTTPFrontend):
 
 
 class _QuietHandler(WSGIRequestHandler):
-    def log_request(self, *args, **kwargs) -> None:
+    def log_request(self, *args, **kwargs):
         """Suppress request logging so as not to pollute application logs."""

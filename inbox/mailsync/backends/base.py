@@ -46,7 +46,7 @@ class BaseMailSyncMonitor(InterruptibleThread):
         How often to check for commands.
     """
 
-    def __init__(self, account, heartbeat: int = 1) -> None:
+    def __init__(self, account, heartbeat=1) -> None:
         bind_context(self, "mailsyncmonitor", account.id)
         self.shutdown = threading.Event()
         # how often to check inbox, in seconds
@@ -101,7 +101,7 @@ class BaseMailSyncMonitor(InterruptibleThread):
     def sync(self) -> Never:
         raise NotImplementedError
 
-    def _cleanup(self) -> None:
+    def _cleanup(self):
         self.sync_thread.kill()
         with session_scope(self.namespace_id) as mailsync_db_session:
             for x in self.folder_monitors:

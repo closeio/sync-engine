@@ -76,7 +76,7 @@ class DeleteHandler(InterruptibleThread):
 
         self.name = f"{self.__class__.__name__}(account_id={account_id!r})"
 
-    def _run(self) -> None:
+    def _run(self):
         while True:
             interruptible_threading.check_interrupted()
             retry_with_logging(
@@ -85,7 +85,7 @@ class DeleteHandler(InterruptibleThread):
                 provider=self.provider_name,
             )
 
-    def _run_impl(self) -> None:
+    def _run_impl(self):
         current_time = datetime.datetime.utcnow()
         self.check(current_time)
         self.gc_deleted_categories()
@@ -254,7 +254,7 @@ class LabelRenameHandler(InterruptibleThread):
         interruptible_threading.check_interrupted()
         return retry_with_logging(self._run_impl, account_id=self.account_id)
 
-    def _run_impl(self) -> None:
+    def _run_impl(self):
         self.log.info(
             "Starting LabelRenameHandler", label_name=self.label_name
         )

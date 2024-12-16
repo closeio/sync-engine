@@ -12,7 +12,7 @@ SOCKET_CONNECT_TIMEOUT = 5
 SOCKET_TIMEOUT = 30
 
 
-def _get_redis_client(host=None, port: int = 6379, db: int = 1):
+def _get_redis_client(host=None, port=6379, db=1):
     return StrictRedis(
         host=host,
         port=port,

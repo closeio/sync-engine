@@ -17,7 +17,7 @@ FolderPing = namedtuple("FolderPing", ["id", "alive", "timestamp"])
 
 
 def get_ping_status(  # noqa: ANN201
-    account_ids, host=None, port: int = 6379, threshold=ALIVE_EXPIRY
+    account_ids, host=None, port=6379, threshold=ALIVE_EXPIRY
 ):
     # Query the indexes and not the per-folder info for faster lookup.
     store = HeartbeatStore.store(host, port)

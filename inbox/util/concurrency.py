@@ -74,7 +74,7 @@ def retry(  # noqa: ANN201, D417
             "Can't include exception classes in both fail_on and retry_on"
         )
 
-    def should_retry_on(exc) -> bool:
+    def should_retry_on(exc):
         if fail_classes and isinstance(exc, tuple(fail_classes)):
             return False
         if retry_classes and not isinstance(exc, tuple(retry_classes)):
@@ -119,7 +119,7 @@ def retry_with_logging(  # noqa: ANN201
     # http://stackoverflow.com/questions/7935966/python-overwriting-variables-in-nested-functions
     occurrences = [0]
 
-    def callback(e) -> None:
+    def callback(e):
         is_transient = isinstance(e, TRANSIENT_NETWORK_ERRS)
         mysql_error = None
 

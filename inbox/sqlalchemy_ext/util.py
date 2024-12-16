@@ -205,7 +205,7 @@ class MutableDict(Mutable, dict):
     def __getstate__(self):  # noqa: ANN204
         return dict(self)
 
-    def __setstate__(self, state) -> None:
+    def __setstate__(self, state):  # noqa: ANN204
         self.update(state)
 
 

@@ -10,7 +10,7 @@ class ProfileCollector:
     this uses signals, it only works on the main thread.
     """
 
-    def __init__(self, interval: float = 0.005) -> None:
+    def __init__(self, interval=0.005) -> None:
         self.interval = interval
         self._started = None
         self._stack_counts = collections.defaultdict(int)
@@ -26,7 +26,7 @@ class ProfileCollector:
 
         signal.setitimer(signal.ITIMER_VIRTUAL, self.interval, 0)
 
-    def _sample(self, signum, frame) -> None:
+    def _sample(self, signum, frame):
         stack: list[str] = []
         while frame is not None:
             stack.append(self._format_frame(frame))
@@ -36,7 +36,7 @@ class ProfileCollector:
         self._stack_counts[stack_str] += 1
         signal.setitimer(signal.ITIMER_VIRTUAL, self.interval, 0)
 
-    def _format_frame(self, frame) -> str:
+    def _format_frame(self, frame):
         return "{}({})".format(
             frame.f_code.co_name, frame.f_globals.get("__name__")
         )

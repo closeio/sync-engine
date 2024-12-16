@@ -19,7 +19,7 @@ configure_logging()
 log = get_logger(purpose="create-event-contact-associations")
 
 
-def process_shard(shard_id, dry_run, id_start: int = 0) -> None:
+def process_shard(shard_id, dry_run, id_start=0) -> None:
     # At 500K events, we need to process 6 events per second to finish within a day.
     batch_size = 100
     rps = 6 / batch_size

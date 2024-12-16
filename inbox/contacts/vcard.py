@@ -232,7 +232,7 @@ class VCard(defaultdict):
         2: some property was deleted
     """
 
-    def __init__(self, ddict: str = "") -> None:
+    def __init__(self, ddict="") -> None:
         if ddict == "":
             defaultdict.__init__(self, list)
         else:
@@ -250,7 +250,7 @@ class VCard(defaultdict):
         return str(self["N"][0][0]) if self["N"] else ""
 
     @name.setter
-    def name(self, value) -> None:
+    def name(self, value):
         if not self["N"]:
             self["N"] = [("", {})]
         self["N"][0][0] = value
@@ -260,7 +260,7 @@ class VCard(defaultdict):
         return str(self["FN"][0][0]) if self["FN"] else ""
 
     @fname.setter
-    def fname(self, value) -> None:
+    def fname(self, value):
         self["FN"][0] = (value, {})
 
     def alt_keys(self):  # noqa: ANN201

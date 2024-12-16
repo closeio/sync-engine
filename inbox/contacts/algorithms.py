@@ -54,7 +54,7 @@ def _get_participants(msg, excluded_emails=None):
 
 
 # Not really an algorithm, but it seemed reasonable to put this here?
-def is_stale(last_updated, lifespan: int = 14):  # noqa: ANN201
+def is_stale(last_updated, lifespan=14):  # noqa: ANN201
     """
     last_updated is a datetime.datetime object
     lifespan is measured in days
@@ -70,9 +70,7 @@ def is_stale(last_updated, lifespan: int = 14):  # noqa: ANN201
 ##
 
 
-def calculate_contact_scores(  # noqa: ANN201
-    messages, time_dependent: bool = True
-):
+def calculate_contact_scores(messages, time_dependent=True):  # noqa: ANN201
     now = datetime.datetime.now()
     res: defaultdict[str, int] = defaultdict(int)
     for message in messages:
@@ -154,7 +152,7 @@ def calculate_group_scores(messages, user_email):  # noqa: ANN201
 
 
 # Helper functions for calculating group scores
-def _expand_molecule_pool(molecules_dict) -> None:
+def _expand_molecule_pool(molecules_dict):
     mditems = [(set(g), msgs) for (g, msgs) in molecules_dict.items()]
     for i in range(len(mditems)):
         g1, m1 = mditems[i]

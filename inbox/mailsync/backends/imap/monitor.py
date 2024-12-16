@@ -32,9 +32,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
 
     sync_engine_class: ClassVar[type[FolderSyncEngine]] = FolderSyncEngine
 
-    def __init__(
-        self, account, heartbeat: int = 1, refresh_frequency: int = 30
-    ) -> None:
+    def __init__(self, account, heartbeat=1, refresh_frequency=30) -> None:
         self.refresh_frequency = refresh_frequency
         self.syncmanager_lock = BoundedSemaphore(1)
         self.saved_remote_folders = None

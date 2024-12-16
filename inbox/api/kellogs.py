@@ -75,7 +75,7 @@ def format_phone_numbers(phone_numbers):  # noqa: ANN201
 
 
 def encode(  # noqa: ANN201
-    obj, namespace_public_id=None, expand: bool = False, is_n1: bool = False
+    obj, namespace_public_id=None, expand=False, is_n1=False
 ):
     try:
         return _encode(obj, namespace_public_id, expand, is_n1=is_n1)
@@ -103,7 +103,7 @@ def _convert_timezone_to_iana_tz(original_tz):
 
 
 def _encode(  # noqa: D417
-    obj, namespace_public_id=None, expand: bool = False, is_n1: bool = False
+    obj, namespace_public_id=None, expand=False, is_n1=False
 ):
     """
     Returns a dictionary representation of a Nylas model object obj, or
@@ -455,18 +455,13 @@ class APIEncoder:
     """
 
     def __init__(
-        self,
-        namespace_public_id=None,
-        expand: bool = False,
-        is_n1: bool = False,
+        self, namespace_public_id=None, expand=False, is_n1=False
     ) -> None:
         self.encoder_class = self._encoder_factory(
             namespace_public_id, expand, is_n1=is_n1
         )
 
-    def _encoder_factory(
-        self, namespace_public_id, expand, is_n1: bool = False
-    ):
+    def _encoder_factory(self, namespace_public_id, expand, is_n1=False):
         class InternalEncoder(JSONEncoder):
             def default(self, obj):
                 custom_representation = encode(
@@ -479,7 +474,7 @@ class APIEncoder:
 
         return InternalEncoder
 
-    def cereal(self, obj, pretty: bool = False):  # noqa: ANN201, D417
+    def cereal(self, obj, pretty=False):  # noqa: ANN201, D417
         """
         Returns the JSON string representation of obj.
 

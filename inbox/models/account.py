@@ -154,7 +154,7 @@ class Account(
         return self._emailed_events_calendar
 
     @emailed_events_calendar.setter
-    def emailed_events_calendar(self, cal) -> None:
+    def emailed_events_calendar(self, cal):
         self._emailed_events_calendar = cal
 
     sync_host = Column(String(255), nullable=True)
@@ -279,9 +279,7 @@ class Account(
             "USER", "unknown"
         )
 
-    def mark_invalid(
-        self, reason: str = "invalid credentials", scope: str = "mail"
-    ) -> None:
+    def mark_invalid(self, reason="invalid credentials", scope="mail") -> None:
         """
         In the event that the credentials for this account are invalid,
         update the status and sync flag accordingly. Should only be called
@@ -388,7 +386,7 @@ def should_send_event(obj):  # noqa: ANN201
     return hist.has_changes()
 
 
-def already_registered_listener(obj) -> bool:
+def already_registered_listener(obj):  # noqa: ANN201
     return getattr(obj, "_listener_state", None) is not None
 
 
@@ -407,7 +405,7 @@ def after_flush(session, flush_context) -> None:
     )
 
     def send_migration_events(obj_state):
-        def f(session) -> None:
+        def f(session):
             if obj_state["sent_event"]:
                 return
 

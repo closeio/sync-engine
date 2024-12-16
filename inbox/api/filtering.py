@@ -593,7 +593,7 @@ def recurring_events(  # noqa: ANN201
     ends_before,
     ends_after,
     db_session,
-    show_cancelled: bool = False,
+    show_cancelled=False,
 ):
     # Expands individual recurring events into full instances.
     # If neither starts_before or ends_before is given, the recurring range

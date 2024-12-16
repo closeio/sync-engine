@@ -276,7 +276,7 @@ def update_draft(  # noqa: ANN201
     Update draft with new attributes.
     """
 
-    def update(attr, value=None) -> None:
+    def update(attr, value=None):
         if value is not None:
             setattr(draft, attr, value)
 
@@ -394,7 +394,7 @@ def generate_attachments(message, blocks):  # noqa: ANN201
     return attachment_dicts
 
 
-def _set_reply_headers(new_message, previous_message) -> None:
+def _set_reply_headers(new_message, previous_message):
     """
     When creating a draft in reply to a thread, set the In-Reply-To and
     References headers appropriately, if possible.

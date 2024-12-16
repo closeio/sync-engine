@@ -541,9 +541,7 @@ def import_attached_events(
             )
 
 
-def generate_icalendar_invite(  # noqa: ANN201
-    event, invite_type: str = "request"
-):
+def generate_icalendar_invite(event, invite_type="request"):  # noqa: ANN201
     # Generates an iCalendar invite from an event.
     assert invite_type in ["request", "cancel"]
 
@@ -617,7 +615,7 @@ def generate_icalendar_invite(  # noqa: ANN201
 
 
 def generate_invite_message(  # noqa: ANN201
-    ical_txt, event, account, invite_type: str = "request"
+    ical_txt, event, account, invite_type="request"
 ):
     assert invite_type in ["request", "update", "cancel"]
     html_body = event.description or ""
@@ -661,9 +659,7 @@ def generate_invite_message(  # noqa: ANN201
     return msg
 
 
-def send_invite(
-    ical_txt, event, account, invite_type: str = "request"
-) -> None:
+def send_invite(ical_txt, event, account, invite_type="request") -> None:
     # We send those transactional emails through a separate domain.
     MAILGUN_API_KEY = config.get("NOTIFICATIONS_MAILGUN_API_KEY")  # noqa: N806
     MAILGUN_DOMAIN = config.get("NOTIFICATIONS_MAILGUN_DOMAIN")  # noqa: N806

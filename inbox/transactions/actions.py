@@ -76,7 +76,7 @@ EVENT_ACTION_FUNCTION_MAP = {
 }
 
 
-def action_uses_crispin_client(action) -> bool:
+def action_uses_crispin_client(action):  # noqa: ANN201
     return action in MAIL_ACTION_FUNCTION_MAP
 
 
@@ -103,11 +103,11 @@ class SyncbackService(InterruptibleThread):
         syncback_id,
         process_number,
         total_processes,
-        poll_interval: int = 1,
-        retry_interval: int = 120,
+        poll_interval=1,
+        retry_interval=120,
         num_workers=NUM_PARALLEL_ACCOUNTS,
-        batch_size: int = 20,
-        fetch_batch_size: int = 100,
+        batch_size=20,
+        fetch_batch_size=100,
     ) -> None:
         self.process_number = process_number
         self.total_processes = total_processes
@@ -163,7 +163,7 @@ class SyncbackService(InterruptibleThread):
         self.running_action_ids = set()
         super().__init__()
 
-    def _has_recent_move_action(self, db_session, log_entries) -> bool:
+    def _has_recent_move_action(self, db_session, log_entries):
         """
         Determines if we recently completed a move action. Since Nylas doesn't
         update local UID state after completing an action, we space
@@ -449,7 +449,7 @@ class SyncbackService(InterruptibleThread):
             )
         return batch_task
 
-    def _process_log(self) -> None:
+    def _process_log(self):
         for key in self.keys:
             with session_scope_by_shard_id(key) as db_session:
                 # Get the list of namespace ids with pending actions
@@ -491,14 +491,14 @@ class SyncbackService(InterruptibleThread):
                     if task is not None:
                         self.task_queue.put(task)
 
-    def _restart_workers(self) -> None:
+    def _restart_workers(self):
         while len(self.workers) < self.num_workers:
             worker = SyncbackWorker(self)
             self.workers.append(worker)
             self.num_idle_workers += 1
             worker.start()
 
-    def _run_impl(self) -> None:
+    def _run_impl(self):
         self._restart_workers()
         self._process_log()
         # Wait for a worker to finish or for the fixed poll_interval,
@@ -513,7 +513,7 @@ class SyncbackService(InterruptibleThread):
         self.keep_running = False
         kill_all(self.workers)
 
-    def _run(self) -> None:
+    def _run(self):
         self.log.info(
             "Starting syncback service",
             process_num=self.process_number,
@@ -606,7 +606,7 @@ class SyncbackTask:
         account_id,
         provider,
         service,
-        retry_interval: int = 30,
+        retry_interval=30,
         extra_args=None,
     ) -> None:
         self.parent_service = weakref.ref(service)
@@ -658,7 +658,7 @@ class SyncbackTask:
             )
         return None
 
-    def _log_to_statsd(self, action_log_status, latency=None) -> None:
+    def _log_to_statsd(self, action_log_status, latency=None):
         metric_names = [
             f"syncback.overall.{action_log_status}",
             f"syncback.providers.{self.provider}.{action_log_status}",
@@ -801,7 +801,7 @@ class SyncbackTask:
         self._log_to_statsd(action_log_entry.status, latency)
         return (latency, func_latency)
 
-    def _mark_action_as_failed(self, action_log_entry, db_session) -> None:
+    def _mark_action_as_failed(self, action_log_entry, db_session):
         self.log.critical("Max retries reached, giving up.", exc_info=True)
         action_log_entry.status = "failed"
         self._log_to_statsd(action_log_entry.status)
@@ -840,13 +840,13 @@ class SyncbackTask:
 
 
 class SyncbackWorker(InterruptibleThread):
-    def __init__(self, parent_service, task_timeout: int = 60) -> None:
+    def __init__(self, parent_service, task_timeout=60) -> None:
         self.parent_service = weakref.ref(parent_service)
         self.task_timeout = task_timeout
         self.log = logger.new(component="syncback-worker")
         super().__init__()
 
-    def _run(self) -> None:
+    def _run(self):
         while self.parent_service().keep_running:
             task = interruptible_threading.queue_get(
                 self.parent_service().task_queue

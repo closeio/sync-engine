@@ -51,7 +51,7 @@ class ContactSync(BaseSyncMonitor):
         provider_name,
         account_id,
         namespace_id,
-        poll_frequency: int = 300,
+        poll_frequency=300,
     ) -> None:
         bind_context(self, "contactsync", account_id)
         self.provider_name = provider_name

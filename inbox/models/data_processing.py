@@ -30,7 +30,7 @@ class DataProcessingCache(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             return json.loads(zlib.decompress(self._contact_rankings))
 
     @contact_rankings.setter
-    def contact_rankings(self, value) -> None:
+    def contact_rankings(self, value):
         self._contact_rankings = zlib.compress(
             json.dumps(value).encode("utf-8")
         )
@@ -44,7 +44,7 @@ class DataProcessingCache(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             return json.loads(zlib.decompress(self._contact_groups))
 
     @contact_groups.setter
-    def contact_groups(self, value) -> None:
+    def contact_groups(self, value):
         self._contact_groups = zlib.compress(json.dumps(value).encode("utf-8"))
         self.contact_groups_last_updated = datetime.datetime.now()
 

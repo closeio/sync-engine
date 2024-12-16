@@ -352,7 +352,7 @@ def create_imap_message(
     return imapuid
 
 
-def _update_categories(db_session, message, synced_categories) -> None:
+def _update_categories(db_session, message, synced_categories):
     now = datetime.utcnow()
 
     # We make the simplifying assumption that only the latest syncback action

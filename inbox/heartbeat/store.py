@@ -70,7 +70,7 @@ class HeartbeatStatusProxy:
         folder_name=None,
         email_address=None,
         provider_name=None,
-        device_id: int = 0,
+        device_id=0,
     ) -> None:
         self.key = HeartbeatStatusKey(account_id, folder_id)
         self.account_id = account_id
@@ -108,7 +108,7 @@ class HeartbeatStore:
 
     _instances: dict[str | None, "HeartbeatStore"] = {}
 
-    def __init__(self, host=None, port: int = 6379) -> None:
+    def __init__(self, host=None, port=6379) -> None:
         self.host = host
         self.port = port
 

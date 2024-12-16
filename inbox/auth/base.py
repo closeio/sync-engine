@@ -62,9 +62,7 @@ class AuthHandler:
         """
         raise NotImplementedError()
 
-    def get_imap_connection(  # noqa: ANN201
-        self, account, use_timeout: bool = True
-    ):
+    def get_imap_connection(self, account, use_timeout=True):  # noqa: ANN201
         host, port = account.imap_endpoint
         try:
             return create_imap_connection(host, port, use_timeout)
@@ -82,7 +80,7 @@ class AuthHandler:
         raise NotImplementedError()
 
     def get_authenticated_imap_connection(  # noqa: ANN201
-        self, account, use_timeout: bool = True
+        self, account, use_timeout=True
     ):
         conn = self.get_imap_connection(account, use_timeout=use_timeout)
         self.authenticate_imap_connection(account, conn)

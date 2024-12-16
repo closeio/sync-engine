@@ -55,7 +55,7 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         return self._canonical_name
 
     @canonical_name.setter
-    def canonical_name(self, value) -> None:
+    def canonical_name(self, value):
         value = value or ""
         self._canonical_name = value
         if self.category:

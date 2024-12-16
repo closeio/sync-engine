@@ -2,7 +2,7 @@
 
 
 import click
-from sqlalchemy.orm import load_only
+from sqlalchemy.orm import load_only  # type: ignore[import-untyped]
 
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.models.account import Account

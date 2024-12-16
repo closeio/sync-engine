@@ -2,7 +2,7 @@ from functools import wraps
 from typing import cast
 
 from flask import Blueprint, make_response, request
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
 from werkzeug.exceptions import UnsupportedMediaType
 
 from inbox.config import config
@@ -21,9 +21,13 @@ app = Blueprint(
 )
 
 
-def handle_initial_validation_response(view_function):  # noqa: ANN201
+def handle_initial_validation_response(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    view_function,
+):
     @wraps(view_function)
-    def _handle_initial_validation_response(*args, **kwargs):
+    def _handle_initial_validation_response(  # type: ignore[no-untyped-def]
+        *args, **kwargs
+    ):
         """
         Handle initial validation of webhook endpoint.
 
@@ -48,10 +52,16 @@ def handle_initial_validation_response(view_function):  # noqa: ANN201
     return _handle_initial_validation_response
 
 
-def validate_webhook_payload_factory(type: MsGraphType):  # noqa: ANN201
-    def validate_webhook_payload(view_function):
+def validate_webhook_payload_factory(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    type: MsGraphType,
+):
+    def validate_webhook_payload(  # type: ignore[no-untyped-def]
+        view_function,
+    ):
         @wraps(view_function)
-        def _validate_webhook_payload(*args, **kwargs):
+        def _validate_webhook_payload(  # type: ignore[no-untyped-def]
+            *args, **kwargs
+        ):
             """
             Validate webhook payload.
 
@@ -96,7 +106,7 @@ def validate_webhook_payload_factory(type: MsGraphType):  # noqa: ANN201
 @app.route("/calendar_list_update/<account_public_id>", methods=["POST"])
 @handle_initial_validation_response
 @validate_webhook_payload_factory("#Microsoft.Graph.Calendar")
-def calendar_update(account_public_id):  # noqa: ANN201
+def calendar_update(account_public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """Handle calendar list update for given account."""
     with global_session_scope() as db_session:
         try:
@@ -117,7 +127,7 @@ def calendar_update(account_public_id):  # noqa: ANN201
 @app.route("/calendar_update/<calendar_public_id>", methods=["POST"])
 @handle_initial_validation_response
 @validate_webhook_payload_factory("#Microsoft.Graph.Event")
-def event_update(calendar_public_id):  # noqa: ANN201
+def event_update(calendar_public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """Handle events update for given calendar."""
     with global_session_scope() as db_session:
         try:
@@ -168,7 +178,9 @@ def handle_event_deletions(
         for deleted_event in deleted_events:
             deleted_event.status = "cancelled"
             if isinstance(deleted_event, RecurringEvent):
-                for override in deleted_event.overrides:
+                for (
+                    override
+                ) in deleted_event.overrides:  # type: ignore[attr-defined]
                     override.status = "cancelled"
 
         db_session.commit()

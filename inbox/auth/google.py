@@ -17,17 +17,17 @@ log = get_logger()
 
 @attr.s
 class GoogleAccountData:
-    email = attr.ib()
+    email = attr.ib()  # type: ignore[var-annotated]
 
-    secret_type = attr.ib()
-    secret_value = attr.ib()
+    secret_type = attr.ib()  # type: ignore[var-annotated]
+    secret_value = attr.ib()  # type: ignore[var-annotated]
 
-    client_id = attr.ib()
-    scope = attr.ib()
+    client_id = attr.ib()  # type: ignore[var-annotated]
+    scope = attr.ib()  # type: ignore[var-annotated]
 
-    sync_email = attr.ib()
-    sync_contacts = attr.ib()
-    sync_events = attr.ib()
+    sync_email = attr.ib()  # type: ignore[var-annotated]
+    sync_contacts = attr.ib()  # type: ignore[var-annotated]
+    sync_events = attr.ib()  # type: ignore[var-annotated]
 
 
 class GoogleAuthHandler(OAuthAuthHandler):
@@ -48,17 +48,21 @@ class GoogleAuthHandler(OAuthAuthHandler):
         ]
     )
 
-    def create_account(self, account_data: GoogleAccountData) -> GmailAccount:
+    def create_account(  # type: ignore[override]
+        self, account_data: GoogleAccountData
+    ) -> GmailAccount:
         namespace = Namespace()
-        account = GmailAccount(namespace=namespace)
+        account = GmailAccount(namespace=namespace)  # type: ignore[call-arg]
         account.create_emailed_events_calendar()
         account.sync_should_run = False
         return self.update_account(account, account_data)
 
-    def update_account(
+    def update_account(  # type: ignore[override]
         self, account: GmailAccount, account_data: GoogleAccountData
     ) -> GmailAccount:
-        account.email_address = account_data.email
+        account.email_address = (  # type: ignore[method-assign]
+            account_data.email
+        )
 
         if account_data.secret_type:
             account.set_secret(
@@ -77,7 +81,9 @@ class GoogleAuthHandler(OAuthAuthHandler):
 
         return account
 
-    def interactive_auth(self, email_address=None):  # noqa: ANN201
+    def interactive_auth(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, email_address=None
+    ):
         url_args = {
             "redirect_uri": self.OAUTH_REDIRECT_URI,
             "client_id": self.OAUTH_CLIENT_ID,
@@ -114,7 +120,7 @@ class GoogleAuthHandler(OAuthAuthHandler):
                     "\nInvalid authorization code, try again...\n"
                 )
 
-    def verify_account(self, account) -> bool:
+    def verify_account(self, account) -> bool:  # type: ignore[no-untyped-def]
         """
         Verify the credentials provided by logging in.
         Verify the account configuration -- specifically checks for the presence

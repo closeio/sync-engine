@@ -51,26 +51,34 @@ from inbox.models.session import session_scope
 log = get_logger()
 
 
-def can_handle_multiple_records(action_name):  # noqa: ANN201
+def can_handle_multiple_records(action_name):  # type: ignore[no-untyped-def]  # noqa: ANN201
     return action_name == "change_labels"
 
 
-def mark_unread(crispin_client, account_id, message_id, args) -> None:
+def mark_unread(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, message_id, args
+) -> None:
     unread = args["unread"]
     set_remote_unread(crispin_client, account_id, message_id, unread)
 
 
-def mark_starred(crispin_client, account_id, message_id, args) -> None:
+def mark_starred(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, message_id, args
+) -> None:
     starred = args["starred"]
     set_remote_starred(crispin_client, account_id, message_id, starred)
 
 
-def move(crispin_client, account_id, message_id, args) -> None:
+def move(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, message_id, args
+) -> None:
     destination = args["destination"]
     remote_move(crispin_client, account_id, message_id, destination)
 
 
-def change_labels(crispin_client, account_id, message_ids, args) -> None:
+def change_labels(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, message_ids, args
+) -> None:
     added_labels = args["added_labels"]
     removed_labels = args["removed_labels"]
     remote_change_labels(
@@ -78,11 +86,15 @@ def change_labels(crispin_client, account_id, message_ids, args) -> None:
     )
 
 
-def create_folder(crispin_client, account_id, category_id) -> None:
+def create_folder(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, category_id
+) -> None:
     remote_create_folder(crispin_client, account_id, category_id)
 
 
-def update_folder(crispin_client, account_id, category_id, args) -> None:
+def update_folder(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, category_id, args
+) -> None:
     old_name = args["old_name"]
     new_name = args["new_name"]
     remote_update_folder(
@@ -90,15 +102,21 @@ def update_folder(crispin_client, account_id, category_id, args) -> None:
     )
 
 
-def delete_folder(crispin_client, account_id, category_id) -> None:
+def delete_folder(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, category_id
+) -> None:
     remote_delete_folder(crispin_client, account_id, category_id)
 
 
-def create_label(crispin_client, account_id, category_id) -> None:
+def create_label(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, category_id
+) -> None:
     remote_create_label(crispin_client, account_id, category_id)
 
 
-def update_label(crispin_client, account_id, category_id, args) -> None:
+def update_label(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, category_id, args
+) -> None:
     old_name = args["old_name"]
     new_name = args["new_name"]
     remote_update_label(
@@ -106,11 +124,15 @@ def update_label(crispin_client, account_id, category_id, args) -> None:
     )
 
 
-def delete_label(crispin_client, account_id, category_id) -> None:
+def delete_label(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, category_id
+) -> None:
     remote_delete_label(crispin_client, account_id, category_id)
 
 
-def save_draft(crispin_client, account_id, message_id, args) -> None:
+def save_draft(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, message_id, args
+) -> None:
     """Sync a new draft back to the remote backend."""
     with session_scope(account_id) as db_session:
         message = db_session.query(Message).get(message_id)
@@ -136,7 +158,9 @@ def save_draft(crispin_client, account_id, message_id, args) -> None:
     remote_save_draft(crispin_client, account_id, message_id)
 
 
-def update_draft(crispin_client, account_id, message_id, args) -> None:
+def update_draft(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, message_id, args
+) -> None:
     """Sync an updated draft back to the remote backend."""
     with session_scope(account_id) as db_session:
         message = db_session.query(Message).get(message_id)
@@ -166,7 +190,9 @@ def update_draft(crispin_client, account_id, message_id, args) -> None:
     )
 
 
-def delete_draft(crispin_client, account_id, draft_id, args) -> None:
+def delete_draft(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, draft_id, args
+) -> None:
     """
     Delete a draft from the remote backend. `args` should contain an
     `nylas_uid` or a `message_id_header` key. This is used to find the draft on
@@ -181,7 +207,9 @@ def delete_draft(crispin_client, account_id, draft_id, args) -> None:
     )
 
 
-def save_sent_email(crispin_client, account_id, message_id) -> None:
+def save_sent_email(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, message_id
+) -> None:
     """
     Create an email on the remote backend. Generic providers expect
     us to create a copy of the message in the sent folder.
@@ -189,7 +217,9 @@ def save_sent_email(crispin_client, account_id, message_id) -> None:
     remote_save_sent(crispin_client, account_id, message_id)
 
 
-def delete_sent_email(crispin_client, account_id, message_id, args) -> None:
+def delete_sent_email(  # type: ignore[no-untyped-def]
+    crispin_client, account_id, message_id, args
+) -> None:
     """
     Delete an email on the remote backend, in the sent folder.
     """

@@ -12,7 +12,7 @@ log = get_logger()
 
 # We use the Google API so we don't have to worry about
 # the Gmail max IMAP connection limit.
-def get_gmail_raw_contents(message):  # noqa: ANN201
+def get_gmail_raw_contents(message):  # type: ignore[no-untyped-def]  # noqa: ANN201
     account = message.namespace.account
     auth_token = token_manager.get_token(account)
 

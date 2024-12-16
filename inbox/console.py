@@ -8,7 +8,7 @@ from inbox.models import Account
 from inbox.models.session import global_session_scope
 
 
-def user_console(user_email_address) -> None:
+def user_console(user_email_address) -> None:  # type: ignore[no-untyped-def]
     with global_session_scope() as db_session:
         result = (
             db_session.query(Account)
@@ -66,7 +66,9 @@ def user_console(user_email_address) -> None:
                 IPython.embed(banner1=banner)
 
 
-def start_console(user_email_address=None) -> None:
+def start_console(  # type: ignore[no-untyped-def]
+    user_email_address=None,
+) -> None:
     # You can also do this with
     # $ python -m imapclient.interact -H <host> -u <user> ...
     # but we want to use our session and crispin so we're not.
@@ -76,9 +78,13 @@ def start_console(user_email_address=None) -> None:
         IPython.embed()
 
 
-def start_client_console(user_email_address=None) -> None:
+def start_client_console(  # type: ignore[no-untyped-def]
+    user_email_address=None,
+) -> None:
     try:
-        from tests.system.client import NylasTestClient
+        from tests.system.client import (  # type: ignore[import-untyped]
+            NylasTestClient,
+        )
     except ImportError:
         sys.exit(
             "You need to have the Nylas Python SDK installed to use this option."

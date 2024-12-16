@@ -14,10 +14,10 @@ accounts.
 
 from datetime import datetime
 
-from sqlalchemy import bindparam, desc
-from sqlalchemy.orm import Session
-from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.sql.expression import func
+from sqlalchemy import bindparam, desc  # type: ignore[import-untyped]
+from sqlalchemy.orm import Session  # type: ignore[import-untyped]
+from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
+from sqlalchemy.sql.expression import func  # type: ignore[import-untyped]
 
 from inbox.contacts.processing import update_contacts_from_message
 from inbox.crispin import RawMessage
@@ -32,7 +32,7 @@ from inbox.sqlalchemy_ext.util import get_db_api_cursor_with_query
 log = get_logger()
 
 
-def local_uids(
+def local_uids(  # type: ignore[no-untyped-def]
     account_id: int, session, folder_id: int, limit: "int | None" = None
 ) -> "set[int]":
     """
@@ -60,7 +60,9 @@ def local_uids(
     return {uid for uid, in db_api_cursor.fetchall()}
 
 
-def lastseenuid(account_id, session, folder_id):  # noqa: ANN201
+def lastseenuid(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    account_id, session, folder_id
+):
     q = session.query(func.max(ImapUid.msg_uid)).with_hint(
         ImapUid, "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)"
     )
@@ -79,7 +81,8 @@ def update_message_metadata(
     # Sort imapuids in a way that the ones that were added later come last
     now = datetime.utcnow()
     sorted_imapuids: list[ImapUid] = sorted(
-        message.imapuids, key=lambda imapuid: imapuid.updated_at or now
+        message.imapuids,  # type: ignore[attr-defined]
+        key=lambda imapuid: imapuid.updated_at or now,
     )
 
     message.is_read = any(imapuid.is_seen for imapuid in sorted_imapuids)
@@ -136,7 +139,7 @@ def update_message_metadata(
         # created_at value. Taken from
         # https://docs.sqlalchemy.org/en/13/orm/extensions/
         # associationproxy.html#simplifying-association-objects
-        MessageCategory(
+        MessageCategory(  # type: ignore[call-arg]
             category=category, message=message, created_at=update_time
         )
 
@@ -163,7 +166,7 @@ def update_message_metadata(
     """
 
 
-def update_metadata(
+def update_metadata(  # type: ignore[no-untyped-def]
     account_id, folder_id, folder_role, new_flags, session
 ) -> None:
     """
@@ -210,7 +213,9 @@ def update_metadata(
     )
 
 
-def remove_deleted_uids(account_id, folder_id, uids) -> None:
+def remove_deleted_uids(  # type: ignore[no-untyped-def]
+    account_id, folder_id, uids
+) -> None:
     """
     Make sure you're holding a db write lock on the account. (We don't try
     to grab the lock in here in case the caller needs to put higher-level
@@ -278,7 +283,9 @@ def remove_deleted_uids(account_id, folder_id, uids) -> None:
     log.info("Deleted expunged UIDs", count=deleted_uid_count)
 
 
-def get_folder_info(account_id, session, folder_name):  # noqa: ANN201
+def get_folder_info(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    account_id, session, folder_name
+):
     try:
         # using .one() here may catch duplication bugs
         return (
@@ -330,13 +337,13 @@ def create_imap_message(
     if existing_copy is not None:
         new_message = existing_copy
 
-    imapuid = ImapUid(
+    imapuid = ImapUid(  # type: ignore[call-arg]
         account=account,
         folder=folder,
         msg_uid=raw_message.uid,
         message=new_message,
     )
-    imapuid.update_flags(raw_message.flags)
+    imapuid.update_flags(raw_message.flags)  # type: ignore[arg-type]
     if raw_message.g_labels is not None:
         imapuid.update_labels(raw_message.g_labels)
 
@@ -347,12 +354,18 @@ def create_imap_message(
         )
         update_message_metadata(db_session, account, new_message, is_draft)
 
-    update_contacts_from_message(db_session, new_message, account.namespace.id)
+    update_contacts_from_message(
+        db_session,
+        new_message,
+        account.namespace.id,  # type: ignore[attr-defined]
+    )
 
     return imapuid
 
 
-def _update_categories(db_session, message, synced_categories) -> None:
+def _update_categories(  # type: ignore[no-untyped-def]
+    db_session, message, synced_categories
+) -> None:
     now = datetime.utcnow()
 
     # We make the simplifying assumption that only the latest syncback action

@@ -16,13 +16,17 @@ def upgrade() -> None:
     # Remove UIDs and sync status for inbox IMAP syncs -- otherwise
     # archives/deletes may not be synced correctly.
     from inbox.heartbeat.config import STATUS_DATABASE, get_redis_client
-    from inbox.heartbeat.status import HeartbeatStatusKey
+    from inbox.heartbeat.status import (  # type: ignore[attr-defined]
+        HeartbeatStatusKey,
+    )
     from inbox.models.backends.gmail import GmailAccount
     from inbox.models.backends.imap import ImapFolderSyncStatus, ImapUid
     from inbox.models.session import session_scope
 
     redis_client = get_redis_client(STATUS_DATABASE)
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         for account in db_session.query(GmailAccount):
             if account.inbox_folder is None:
                 # May be the case for accounts that we can't sync, e.g. due to

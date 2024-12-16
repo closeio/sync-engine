@@ -11,7 +11,7 @@ import os
 import sys
 
 import click
-from setproctitle import setproctitle
+from setproctitle import setproctitle  # type: ignore[import-not-found]
 
 from inbox.config import config as inbox_config
 from inbox.error_handling import maybe_enable_rollbar
@@ -49,7 +49,9 @@ from inbox.util.startup import load_overrides, preflight
     default=False,
     help="Enables the CPU profiler web API",
 )
-def main(prod, config, process_num, syncback_id, enable_profiler) -> None:
+def main(  # type: ignore[no-untyped-def]
+    prod, config, process_num, syncback_id, enable_profiler
+) -> None:
     """Launch the actions syncback service."""
     setproctitle(f"syncback-{process_num}")
 
@@ -87,7 +89,9 @@ def main(prod, config, process_num, syncback_id, enable_profiler) -> None:
         start()
     else:
         preflight()
-        from werkzeug.serving import run_with_reloader
+        from werkzeug.serving import (  # type: ignore[attr-defined]
+            run_with_reloader,
+        )
 
         run_with_reloader(start)
 

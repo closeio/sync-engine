@@ -11,13 +11,15 @@ Create Date: 2014-08-11 23:06:39.737550
 revision = "5901bf556d83"
 down_revision = "1c2253a0e997"
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+    declarative_base,
+)
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()  # noqa: N806

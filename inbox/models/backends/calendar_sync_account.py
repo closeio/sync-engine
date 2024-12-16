@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from sqlalchemy import Column, DateTime
+from sqlalchemy import Column, DateTime  # type: ignore[import-untyped]
 
 
 class CalendarSyncAccountMixin:

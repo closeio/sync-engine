@@ -1,7 +1,7 @@
 from inbox.config import config
 
 
-def get_shard_schemas():  # noqa: ANN201
+def get_shard_schemas():  # type: ignore[no-untyped-def]  # noqa: ANN201
     # Can't use engine_manager.engines here because it does not track
     # shard schemas.
     shard_schemas = {}

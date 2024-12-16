@@ -9,10 +9,10 @@ Create Date: 2014-03-04 00:34:31.817332
 
 # revision identifiers, used by Alembic.
 revision = "2605b23e1fe6"
-down_revision = None
+down_revision: str | None = None
 
 from alembic import op
-from sqlalchemy.dialects import mysql
+from sqlalchemy.dialects import mysql  # type: ignore[import-untyped]
 
 
 def upgrade() -> None:

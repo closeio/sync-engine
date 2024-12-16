@@ -13,14 +13,16 @@ down_revision = "29217fad3f46"
 
 from datetime import datetime
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
 def upgrade() -> None:
-    from sqlalchemy.ext.declarative import declarative_base
+    from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+        declarative_base,
+    )
 
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -43,19 +45,21 @@ def upgrade() -> None:
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Account(Base):
+    class Account(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["account"]
 
-    class ImapAccount(Base):
+    class ImapAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["imapaccount"]
 
-    class GmailAccount(Base):
+    class GmailAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["gmailaccount"]
 
-    class Secret(Base):
+    class Secret(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["secret"]
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         for acct in db_session.query(GmailAccount):
             secret = Secret(
                 acl_id=0,
@@ -92,23 +96,23 @@ def upgrade() -> None:
 def downgrade() -> None:
     from sqlalchemy.ext.declarative import declarative_base
 
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Account(Base):
+    class Account(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["account"]
 
-    class ImapAccount(Base):
+    class ImapAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["imapaccount"]
 
-    class GmailAccount(Base):
+    class GmailAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["gmailaccount"]
 
-    class Secret(Base):
+    class Secret(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["secret"]
 
     op.add_column(
@@ -116,7 +120,9 @@ def downgrade() -> None:
         sa.Column("refresh_token", sa.String(length=512), nullable=True),
     )
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         for acct in db_session.query(GmailAccount):
             secret = (
                 db_session.query(Secret)

@@ -68,8 +68,8 @@ def prepare_exit_after(
     if not exit_after:
         return
 
-    exit_after = exit_after.split(":")
-    exit_after_min, exit_after_max = int(exit_after[0]), int(exit_after[1])
+    exit_after = exit_after.split(":")  # type: ignore[assignment]
+    exit_after_min, exit_after_max = (int(exit_after[0]), int(exit_after[1]))
     exit_after_seconds = random.randint(
         exit_after_min * 60, exit_after_max * 60
     )
@@ -89,7 +89,9 @@ def perform_exit_after(process: subprocess.Popen[bytes], seconds: int) -> None:
     terminate(process)
 
 
-def terminate(process: subprocess.Popen[bytes], timeout: int = 30) -> int:
+def terminate(  # type: ignore[return]
+    process: subprocess.Popen[bytes], timeout: int = 30
+) -> int:
     """
     Terminate the given process.
 

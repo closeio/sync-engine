@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-from setproctitle import setproctitle
+from setproctitle import setproctitle  # type: ignore[import-not-found]
 
 setproctitle("inbox-console")
 
@@ -25,7 +25,7 @@ from inbox.error_handling import maybe_enable_rollbar
 @click.option(
     "-c", "--client", is_flag=True, help="Start a repl with an APIClient"
 )
-def console(email_address, client) -> None:
+def console(email_address, client) -> None:  # type: ignore[no-untyped-def]
     """REPL for Nylas."""
     maybe_enable_rollbar()
 

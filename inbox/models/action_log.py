@@ -1,4 +1,4 @@
-from sqlalchemy import (
+from sqlalchemy import (  # type: ignore[import-untyped]
     BigInteger,
     Column,
     Enum,
@@ -9,7 +9,7 @@ from sqlalchemy import (
     Text,
     desc,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship  # type: ignore[import-untyped]
 
 from inbox.logging import get_logger
 from inbox.models.base import MailSyncBase
@@ -20,7 +20,7 @@ from inbox.sqlalchemy_ext.util import JSON
 log = get_logger()
 
 
-def schedule_action(
+def schedule_action(  # type: ignore[no-untyped-def]
     func_name, record, namespace_id, db_session, **kwargs
 ) -> None:
     # Ensure that the record's id is non-null
@@ -73,10 +73,10 @@ class ActionLog(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     extra_args = Column(JSON, nullable=True)
 
     @classmethod
-    def create(  # noqa: ANN206
+    def create(  # type: ignore[no-untyped-def]  # noqa: ANN206
         cls, action, table_name, record_id, namespace_id, extra_args
     ):
-        return cls(
+        return cls(  # type: ignore[call-arg]
             action=action,
             table_name=table_name,
             record_id=record_id,

@@ -15,7 +15,7 @@ import ast
 import json
 import sys
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
@@ -75,7 +75,7 @@ def populate() -> None:
     )
     from inbox.models.session import session_scope
 
-    with session_scope() as db:
+    with session_scope() as db:  # type: ignore[call-arg]
         # Redo recurrence rule population, since we extended the column length
         print("Repopulating max-length recurrences...", end=" ")
         for e in db.query(Event).filter(
@@ -113,29 +113,35 @@ def populate() -> None:
         c = 0
         print("Expanding Overrides .", end=" ")
         query = db.query(RecurringEventOverride)
-        for e in query:
+        for e in query:  # type: ignore[misc]
             try:
                 # Some raw data is str(dict), other is json.dumps
-                raw_data = json.loads(e.raw_data)
+                raw_data = json.loads(e.raw_data)  # type: ignore[misc]
             except:  # noqa: E722
                 try:
-                    raw_data = ast.literal_eval(e.raw_data)
+                    raw_data = ast.literal_eval(
+                        e.raw_data  # type: ignore[misc]
+                    )
                 except:  # noqa: E722
-                    print(f"Could not load raw data for event {e.id}")
+                    print(
+                        f"Could not load raw data for event {e.id}"  # type: ignore[misc]
+                    )
                     continue
             rec_uid = raw_data.get("recurringEventId")
             if rec_uid:
-                e.master_event_uid = rec_uid
+                e.master_event_uid = rec_uid  # type: ignore[misc]
                 ost = raw_data.get("originalStartTime")
                 if ost:
                     # this is a dictionary with one value
                     start_time = ost.values().pop()
-                    e.original_start_time = parse_datetime(start_time)
+                    e.original_start_time = parse_datetime(  # type: ignore[misc]
+                        start_time
+                    )
                 # attempt to get the ID for the event, if we can, and
                 # set the relationship appropriately
                 if raw_data.get("status") == "cancelled":
-                    e.cancelled = True
-                link_events(db, e)
+                    e.cancelled = True  # type: ignore[misc]
+                link_events(db, e)  # type: ignore[misc]
                 c += 1
                 if c % 100 == 0:
                     print(".", end=" ")
@@ -156,7 +162,9 @@ def populate() -> None:
         try:
             db.execute(create)
         except Exception as e:
-            print(f"Couldn't insert RecurringEvents: {e}")
+            print(
+                f"Couldn't insert RecurringEvents: {e}"  # type: ignore[misc]
+            )
             sys.exit(2)
         print("done.")
 

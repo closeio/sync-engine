@@ -25,7 +25,10 @@ from datetime import datetime, timedelta
 from threading import Semaphore
 from typing import TYPE_CHECKING, ClassVar
 
-from sqlalchemy.orm import joinedload, load_only
+from sqlalchemy.orm import (  # type: ignore[import-untyped]
+    joinedload,
+    load_only,
+)
 
 from inbox import interruptible_threading
 from inbox.logging import get_logger
@@ -56,11 +59,13 @@ MAX_DOWNLOAD_COUNT = 1
 
 
 class GmailFolderSyncEngine(FolderSyncEngine):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(  # type: ignore[no-untyped-def]
+        self, *args, **kwargs
+    ) -> None:
         FolderSyncEngine.__init__(self, *args, **kwargs)
-        self.saved_uids = set()
+        self.saved_uids = set()  # type: ignore[var-annotated]
 
-    def is_all_mail(self, crispin_client):  # noqa: ANN201
+    def is_all_mail(self, crispin_client):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if not hasattr(self, "_is_all_mail"):
             folder_names = crispin_client.folder_names()
             self._is_all_mail = (
@@ -69,7 +74,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
             )
         return self._is_all_mail
 
-    def should_idle(self, crispin_client):  # noqa: ANN201
+    def should_idle(self, crispin_client):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self.is_all_mail(crispin_client)
 
     def initial_sync_impl(self, crispin_client: "CrispinClient") -> None:
@@ -130,7 +135,12 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                         since = datetime.utcnow() - timedelta(days=30)
                         inbox_uids = set(
                             crispin_client.search_uids(
-                                ["X-GM-LABELS", "inbox", "SINCE", since]
+                                [
+                                    "X-GM-LABELS",
+                                    "inbox",
+                                    "SINCE",
+                                    since,  # type: ignore[list-item]
+                                ]
                             )
                         )
 
@@ -234,7 +244,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
             imap_folder_info_entry.highestmodseq = None
             db_session.commit()
 
-    def __deduplicate_message_object_creation(
+    def __deduplicate_message_object_creation(  # type: ignore[no-untyped-def]
         self, db_session, raw_messages, account
     ):
         """
@@ -293,7 +303,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                         message_id=message_obj.id,
                     )
                     continue
-                uid = ImapUid(
+                uid = ImapUid(  # type: ignore[call-arg]
                     account=account,
                     folder=folder,
                     msg_uid=raw_message.uid,
@@ -308,7 +318,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
 
         return brand_new_messages
 
-    def add_message_to_thread(
+    def add_message_to_thread(  # type: ignore[no-untyped-def]
         self, db_session, message_obj, raw_message
     ) -> None:
         """
@@ -326,7 +336,9 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 db_session, self.namespace_id, message_obj
             )
 
-    def download_and_commit_uids(self, crispin_client, uids) -> int | None:
+    def download_and_commit_uids(  # type: ignore[no-untyped-def]
+        self, crispin_client, uids
+    ) -> int | None:
         start = datetime.utcnow()
         raw_messages = crispin_client.uids(uids)
         if not raw_messages:
@@ -367,7 +379,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
         self.saved_uids.update(new_uids)
         return None
 
-    def expand_uids_to_download(  # noqa: ANN201
+    def expand_uids_to_download(  # type: ignore[no-untyped-def]  # noqa: ANN201
         self, crispin_client, uids, metadata
     ):
         # During Gmail initial sync, we expand threads: given a UID to
@@ -394,7 +406,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 metadata.update(crispin_client.g_metadata(uids))
             yield from sorted(uids, reverse=True)
 
-    def batch_download_uids(
+    def batch_download_uids(  # type: ignore[no-untyped-def]
         self,
         crispin_client,
         uids,
@@ -434,7 +446,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 interruptible_threading.sleep(THROTTLE_WAIT)
 
     @property
-    def throttled(self):  # noqa: ANN201
+    def throttled(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(Account).get(self.account_id)
             throttled = account.throttled
@@ -442,7 +454,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
         return throttled
 
 
-def g_msgids(namespace_id, session, in_):  # noqa: ANN201
+def g_msgids(namespace_id, session, in_):  # type: ignore[no-untyped-def]  # noqa: ANN201
     if not in_:
         return []
     # Easiest way to account-filter Messages is to namespace-filter from
@@ -472,7 +484,9 @@ def g_msgids(namespace_id, session, in_):  # noqa: ANN201
 class GmailSyncMonitor(ImapSyncMonitor):
     sync_engine_class: ClassVar[type[FolderSyncEngine]] = GmailFolderSyncEngine
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(  # type: ignore[no-untyped-def]
+        self, *args, **kwargs
+    ) -> None:
         super().__init__(*args, **kwargs)
 
         # We start a label refresh whenever we find a new labels
@@ -491,7 +505,7 @@ class GmailSyncMonitor(ImapSyncMonitor):
         self.label_rename_semaphore = Semaphore(value=1)
         self.label_rename_handlers: "dict[str, LabelRenameHandler]" = {}
 
-    def handle_raw_folder_change(
+    def handle_raw_folder_change(  # type: ignore[no-untyped-def]
         self, db_session, account, raw_folder
     ) -> None:
         folder = (
@@ -534,7 +548,9 @@ class GmailSyncMonitor(ImapSyncMonitor):
                 db_session, account, raw_folder.display_name, raw_folder.role
             )
 
-    def set_sync_should_run_bit(self, account) -> None:
+    def set_sync_should_run_bit(  # type: ignore[no-untyped-def]
+        self, account
+    ) -> None:
         # Ensure sync_should_run is True for the folders we want to sync (for
         # Gmail, that's just all folders, since we created them above if
         # they didn't exist.)
@@ -542,7 +558,9 @@ class GmailSyncMonitor(ImapSyncMonitor):
             if folder.imapsyncstatus:
                 folder.imapsyncstatus.sync_should_run = True
 
-    def mark_deleted_labels(self, db_session, deleted_labels) -> None:
+    def mark_deleted_labels(  # type: ignore[no-untyped-def]
+        self, db_session, deleted_labels
+    ) -> None:
         # Go through the labels which have been "deleted" (i.e: they don't
         # show up when running LIST) and mark them as such.
         # We can't delete labels directly because Gmail allows users to hide
@@ -555,7 +573,9 @@ class GmailSyncMonitor(ImapSyncMonitor):
                 category = deleted_label.category
                 category.deleted_at = datetime.now()
 
-    def save_folder_names(self, db_session, raw_folders) -> None:
+    def save_folder_names(  # type: ignore[no-untyped-def]
+        self, db_session, raw_folders
+    ) -> None:
         """
         Save the folders, labels present on the remote backend for an account.
 

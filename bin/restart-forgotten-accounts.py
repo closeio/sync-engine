@@ -13,7 +13,7 @@ from inbox.util.concurrency import retry_with_logging
 configure_logging()
 log = get_logger()
 
-accounts_without_sync_host = set()
+accounts_without_sync_host = set()  # type: ignore[var-annotated]
 
 
 def check_accounts() -> None:

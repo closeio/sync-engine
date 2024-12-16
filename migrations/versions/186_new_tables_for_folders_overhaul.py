@@ -13,7 +13,7 @@ down_revision = "14692efd261b"
 
 from typing import Never
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
@@ -166,7 +166,7 @@ def upgrade() -> None:
         "folder_ibfk_2", "folder", "category", ["category_id"], ["id"]
     )
 
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
     if engine.has_table("easfoldersyncstatus"):

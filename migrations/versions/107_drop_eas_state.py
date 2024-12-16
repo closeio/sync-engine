@@ -13,12 +13,12 @@ down_revision = "118b3cdd0185"
 
 from typing import Never
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine()
     Base = sa.ext.declarative.declarative_base()  # noqa: N806

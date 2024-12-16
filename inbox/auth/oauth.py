@@ -7,10 +7,17 @@ import urllib.request
 
 import pytz
 import requests
-from authalligator_client.client import Client as AuthAlligatorApiClient
-from authalligator_client.enums import AccountErrorCode, ProviderType
-from authalligator_client.exceptions import AccountError
-from imapclient import IMAPClient
+from authalligator_client.client import (  # type: ignore[import-untyped]
+    Client as AuthAlligatorApiClient,
+)
+from authalligator_client.enums import (  # type: ignore[import-untyped]
+    AccountErrorCode,
+    ProviderType,
+)
+from authalligator_client.exceptions import (  # type: ignore[import-untyped]
+    AccountError,
+)
+from imapclient import IMAPClient  # type: ignore[import-untyped]
 
 from inbox.config import config
 from inbox.exceptions import (
@@ -67,7 +74,9 @@ class OAuthAuthHandler(AuthHandler):
             "Accept": "text/plain",
         }
 
-        account_logger = log.bind(account_id=account.id)
+        account_logger = log.bind(
+            account_id=account.id  # type: ignore[attr-defined]
+        )
 
         try:
             response = requests.post(
@@ -150,7 +159,7 @@ class OAuthAuthHandler(AuthHandler):
             except AccountError as exc:
                 log.warning(
                     "AccountError during AuthAlligator account query",
-                    account_id=account.id,
+                    account_id=account.id,  # type: ignore[attr-defined]
                     error_code=exc.code and exc.code.value,
                     error_message=exc.message,
                     retry_in=exc.retry_in,
@@ -217,14 +226,16 @@ class OAuthAuthHandler(AuthHandler):
         else:
             raise OAuthError("No supported secret found.")
 
-    def authenticate_imap_connection(
+    def authenticate_imap_connection(  # type: ignore[override]
         self, account: OAuthAccount, conn: IMAPClient
     ) -> None:
         token = token_manager.get_token(
             account, force_refresh=False, scopes=account.email_scopes
         )
         try:
-            conn.oauth2_login(account.email_address, token)
+            conn.oauth2_login(
+                account.email_address, token  # type: ignore[attr-defined]
+            )
         except IMAPClient.Error as original_exc:
             exc = _process_imap_exception(original_exc)
 
@@ -238,7 +249,7 @@ class OAuthAuthHandler(AuthHandler):
 
             log.warning(
                 "Error during IMAP XOAUTH2 login",
-                account_id=account.id,
+                account_id=account.id,  # type: ignore[attr-defined]
                 error=exc,
             )
             if not isinstance(exc, ImapSupportDisabledError):
@@ -251,7 +262,9 @@ class OAuthAuthHandler(AuthHandler):
                 account, force_refresh=True, scopes=account.email_scopes
             )
             try:
-                conn.oauth2_login(account.email_address, token)
+                conn.oauth2_login(
+                    account.email_address, token  # type: ignore[attr-defined]
+                )
             except IMAPClient.Error as original_exc:
                 exc = _process_imap_exception(original_exc)
                 if (
@@ -265,7 +278,7 @@ class OAuthAuthHandler(AuthHandler):
                         "imap_disabled_for_account"
                     ) from original_exc
 
-    def _get_user_info(self, session_dict):
+    def _get_user_info(self, session_dict):  # type: ignore[no-untyped-def]
         access_token = session_dict["access_token"]
         assert self.OAUTH_USER_INFO_URL, "OAUTH_USER_INFO_URL is not defined"
         request = urllib.request.Request(
@@ -287,7 +300,9 @@ class OAuthAuthHandler(AuthHandler):
 
         return {"email": userinfo_dict["EmailAddress"]}
 
-    def _get_authenticated_user(self, authorization_code):
+    def _get_authenticated_user(  # type: ignore[no-untyped-def]
+        self, authorization_code
+    ):
         args = {
             "client_id": self.OAUTH_CLIENT_ID,
             "client_secret": self.OAUTH_CLIENT_SECRET,
@@ -324,15 +339,15 @@ class OAuthAuthHandler(AuthHandler):
 class OAuthRequestsWrapper(requests.auth.AuthBase):
     """Helper class for setting the Authorization header on HTTP requests."""
 
-    def __init__(self, token) -> None:
+    def __init__(self, token) -> None:  # type: ignore[no-untyped-def]
         self.token = token
 
-    def __call__(self, r):  # noqa: ANN204
+    def __call__(self, r):  # type: ignore[no-untyped-def]  # noqa: ANN204
         r.headers["Authorization"] = f"Bearer {self.token}"
         return r
 
 
-def _process_imap_exception(exc):
+def _process_imap_exception(exc):  # type: ignore[no-untyped-def]
     message = exc.args[0] if exc.args else ""
     if "Lookup failed" in message:
         # Gmail is disabled for this apps account

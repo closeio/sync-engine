@@ -14,7 +14,7 @@ down_revision = "247cd689758c"
 import os
 from typing import Never
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 # We're deleting this value from the config, so need to explicitly give it for
@@ -26,15 +26,15 @@ KEY_DIR = "/var/lib/inboxapp/keys"
 
 # Copied from deprecated inbox.util.cryptography module.
 # Needed to port passwords to new storage method.
-def decrypt_aes(ciphertext, key):  # noqa: ANN201
+def decrypt_aes(ciphertext, key):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Decrypts a ciphertext that was AES-encrypted with the given key.
     The function expects the ciphertext as a byte string and it returns the
     decrypted message as a byte string.
     """
-    from Crypto.Cipher import AES
+    from Crypto.Cipher import AES  # type: ignore[import-not-found]
 
-    def unpad(s):
+    def unpad(s):  # type: ignore[no-untyped-def]
         return s[: -ord(s[-1])]
 
     iv = ciphertext[: AES.block_size]
@@ -44,13 +44,13 @@ def decrypt_aes(ciphertext, key):  # noqa: ANN201
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
     from hashlib import sha256
 
-    from inbox.util.file import mkdirp
+    from inbox.util.file import mkdirp  # type: ignore[attr-defined]
 
     OriginalBase = sa.ext.declarative.declarative_base()  # noqa: N806
     OriginalBase.metadata.reflect(engine)
@@ -62,14 +62,16 @@ def upgrade() -> None:
         Base = sa.ext.declarative.declarative_base()  # noqa: N806
         Base.metadata.reflect(engine)
 
-        class Account(Base):
+        class Account(Base):  # type: ignore[misc, valid-type]
             __table__ = Base.metadata.tables["account"]
 
         class EASAccount(Account):
             __table__ = Base.metadata.tables["easaccount"]
 
             @property
-            def _keyfile(self, create_dir: bool = True):  # noqa: PLR0206
+            def _keyfile(  # type: ignore[no-untyped-def]  # noqa: PLR0206
+                self, create_dir: bool = True
+            ):
                 assert self.key
 
                 assert KEY_DIR
@@ -78,7 +80,7 @@ def upgrade() -> None:
                 key_filename = f"{sha256(self.key).hexdigest()}"
                 return os.path.join(KEY_DIR, key_filename)  # noqa: PTH118
 
-            def get_old_password(self):
+            def get_old_password(self):  # type: ignore[no-untyped-def]
                 if self.password_aes is not None:
                     with open(self._keyfile) as f:  # noqa: PTH123
                         key = f.read()
@@ -87,7 +89,7 @@ def upgrade() -> None:
                     return decrypt_aes(self.password_aes, key)
                 return None
 
-        with session_scope() as db_session:
+        with session_scope() as db_session:  # type: ignore[call-arg]
             for account in db_session.query(EASAccount):
                 account.password = account.get_old_password()
                 db_session.add(account)

@@ -1,16 +1,20 @@
 import email.utils
 import re
 
-from flanker.addresslib import address
-from flanker.mime.message.headers.encodedword import decode
-from flanker.mime.message.headers.parsing import normalize
-from flanker.mime.message.part import MimePart
+from flanker.addresslib import address  # type: ignore[import-untyped]
+from flanker.mime.message.headers.encodedword import (  # type: ignore[import-untyped]
+    decode,
+)
+from flanker.mime.message.headers.parsing import (  # type: ignore[import-untyped]
+    normalize,
+)
+from flanker.mime.message.part import MimePart  # type: ignore[import-untyped]
 
 from inbox.sqlalchemy_ext.util import MAX_TEXT_BYTES
 
 
 class HeaderTooBigException(Exception):
-    def __init__(self, header) -> None:
+    def __init__(self, header) -> None:  # type: ignore[no-untyped-def]
         super().__init__(f"header {header!r} length is over the parsing limit")
 
 
@@ -22,7 +26,7 @@ EMAIL_FIND_RE = re.compile(
 )
 
 
-def valid_email(email_address) -> bool:
+def valid_email(email_address) -> bool:  # type: ignore[no-untyped-def]
     parsed = address.parse(email_address, addr_spec_only=True)
     if isinstance(parsed, address.EmailAddress):
         return True
@@ -74,6 +78,6 @@ def parse_mimepart_address_header(
     return sorted(list(elem) for elem in addresses)
 
 
-def extract_emails_from_text(text):  # noqa: ANN201
+def extract_emails_from_text(text):  # type: ignore[no-untyped-def]  # noqa: ANN201
     emails = EMAIL_FIND_RE.findall(text)
     return [email for email in emails if valid_email(email)]

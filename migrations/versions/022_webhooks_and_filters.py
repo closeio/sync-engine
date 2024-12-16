@@ -16,7 +16,7 @@ down_revision = "519e462df171"
 
 from typing import Never
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 

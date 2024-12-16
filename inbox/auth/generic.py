@@ -2,7 +2,7 @@ import datetime
 import getpass
 
 import attr
-from imapclient import IMAPClient
+from imapclient import IMAPClient  # type: ignore[import-untyped]
 
 from inbox.auth.utils import auth_is_invalid, auth_requires_app_password
 from inbox.exceptions import AppPasswordError, ValidationError
@@ -17,31 +17,33 @@ log = get_logger()
 
 @attr.s
 class GenericAccountData:
-    email = attr.ib()
+    email = attr.ib()  # type: ignore[var-annotated]
 
-    imap_server_host = attr.ib()
-    imap_server_port = attr.ib()
-    imap_username = attr.ib()
-    imap_password = attr.ib()
+    imap_server_host = attr.ib()  # type: ignore[var-annotated]
+    imap_server_port = attr.ib()  # type: ignore[var-annotated]
+    imap_username = attr.ib()  # type: ignore[var-annotated]
+    imap_password = attr.ib()  # type: ignore[var-annotated]
 
-    smtp_server_host = attr.ib()
-    smtp_server_port = attr.ib()
-    smtp_username = attr.ib()
-    smtp_password = attr.ib()
+    smtp_server_host = attr.ib()  # type: ignore[var-annotated]
+    smtp_server_port = attr.ib()  # type: ignore[var-annotated]
+    smtp_username = attr.ib()  # type: ignore[var-annotated]
+    smtp_password = attr.ib()  # type: ignore[var-annotated]
 
-    sync_email = attr.ib()
+    sync_email = attr.ib()  # type: ignore[var-annotated]
 
 
 class GenericAuthHandler(AuthHandler):
-    def create_account(self, account_data):  # noqa: ANN201
+    def create_account(self, account_data):  # type: ignore[no-untyped-def]  # noqa: ANN201
         namespace = Namespace()
-        account = GenericAccount(namespace=namespace)
+        account = GenericAccount(namespace=namespace)  # type: ignore[call-arg]
         account.provider = "custom"
         account.create_emailed_events_calendar()
         account.sync_should_run = False
         return self.update_account(account, account_data)
 
-    def update_account(self, account, account_data):  # noqa: ANN201
+    def update_account(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, account, account_data
+    ):
         account.email_address = account_data.email
 
         account.imap_endpoint = (
@@ -66,7 +68,9 @@ class GenericAuthHandler(AuthHandler):
 
         return account
 
-    def authenticate_imap_connection(self, account, conn) -> None:
+    def authenticate_imap_connection(  # type: ignore[no-untyped-def, override]
+        self, account, conn
+    ) -> None:
         try:
             conn.login(account.imap_username, account.imap_password)
         except IMAPClient.Error as exc:
@@ -85,7 +89,7 @@ class GenericAuthHandler(AuthHandler):
                 )
                 raise
 
-    def interactive_auth(self, email_address):  # noqa: ANN201
+    def interactive_auth(self, email_address):  # type: ignore[no-untyped-def]  # noqa: ANN201
         imap_server_host = input("IMAP server host: ").strip()
         imap_server_port = input("IMAP server port: ").strip() or 993
         imap_um = "IMAP username (empty for same as email address): "

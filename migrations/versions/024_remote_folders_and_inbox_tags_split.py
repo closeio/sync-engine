@@ -13,11 +13,16 @@ down_revision = "4e04f752b7ad"
 
 from typing import Never
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
-from sqlalchemy.dialects import mysql
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.dialects import mysql  # type: ignore[import-untyped]
+from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+    declarative_base,
+)
+from sqlalchemy.orm import (  # type: ignore[import-untyped]
+    backref,
+    relationship,
+)
 
 CHUNK_SIZE = 250
 
@@ -137,7 +142,7 @@ def upgrade() -> None:
         "imapuid_ibfk_3", "imapuid", "folder", ["folder_id"], ["id"]
     )
 
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -177,17 +182,17 @@ def upgrade() -> None:
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Folder(Base):
+    class Folder(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["folder"]
         account = relationship(
             "Account", foreign_keys="Folder.account_id", backref="folders"
         )
 
-    class FolderItem(Base):
+    class FolderItem(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["folderitem"]
         folder = relationship("Folder", backref="threads", lazy="joined")
 
-    class Thread(Base):
+    class Thread(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["thread"]
         folderitems = relationship(
             "FolderItem",
@@ -197,13 +202,13 @@ def upgrade() -> None:
         )
         namespace = relationship("Namespace", backref="threads")
 
-    class Namespace(Base):
+    class Namespace(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["namespace"]
         account = relationship(
             "Account", backref=backref("namespace", uselist=False)
         )
 
-    class Account(Base):
+    class Account(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["account"]
         inbox_folder = relationship(
             "Folder", foreign_keys="Account.inbox_folder_id"
@@ -230,13 +235,13 @@ def upgrade() -> None:
             "Folder", foreign_keys="Account.all_folder_id"
         )
 
-    class ImapUid(Base):
+    class ImapUid(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["imapuid"]
         folder = relationship("Folder", backref="imapuids", lazy="joined")
 
     if easupdate:
 
-        class EASUid(Base):
+        class EASUid(Base):  # type: ignore[misc, valid-type]
             __table__ = Base.metadata.tables["easuid"]
             folder = relationship(
                 "Folder",
@@ -247,7 +252,9 @@ def upgrade() -> None:
 
     print("Creating Folder rows and migrating FolderItems...")
     # not many folders per account, so shouldn't grow that big
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         folders = dict(
             [
                 ((i.account_id, i.name), i)
@@ -272,7 +279,10 @@ def upgrade() -> None:
             elif folderitem.thread.namespace.account.provider == "eas":
                 new_folder_name = folderitem.folder_name.title()
 
-            if (account_id, new_folder_name) in folders:
+            if (
+                account_id,
+                new_folder_name,  # type: ignore[possibly-undefined]
+            ) in folders:
                 f = folders[(account_id, new_folder_name)]
             else:
                 f = Folder(account_id=account_id, name=new_folder_name)
@@ -306,7 +316,9 @@ def upgrade() -> None:
         if easupdate:
             print("Migrating EASUids to reference Folder rows...")
 
-            for easuid in db_session.query(EASUid).yield_per(CHUNK_SIZE):
+            for easuid in db_session.query(
+                EASUid  # type: ignore[possibly-undefined]
+            ).yield_per(CHUNK_SIZE):
                 account_id = easuid.easaccount_id
                 new_folder_name = easuid.folder_name
 

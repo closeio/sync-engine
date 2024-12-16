@@ -70,7 +70,7 @@ def get_microsoft_tzinfo(timezone_id: str) -> pytz.tzinfo.BaseTzInfo:
 MAX_DATETIME = datetime.datetime(9999, 12, 31, 23, 59, 59)
 
 
-def parse_msgraph_datetime_tz_as_utc(  # noqa: ANN201
+def parse_msgraph_datetime_tz_as_utc(  # type: ignore[no-untyped-def]  # noqa: ANN201
     datetime_tz: MsGraphDateTimeTimeZone,
 ):
     """
@@ -238,7 +238,7 @@ def parse_msgraph_range_start_and_until(
     else:
         raise NotImplementedError()
 
-    return start_datetime, until_datetime
+    return (start_datetime, until_datetime)
 
 
 MS_GRAPH_PATTERN_TYPE_TO_ICAL_FREQ_INTERVAL_MULTIPLIER: dict[
@@ -508,7 +508,7 @@ def calculate_exception_and_canceled_occurrences(
         for dt in canceled_datetimes
     ]
 
-    return exception_occurrences, canceled_occurrences
+    return (exception_occurrences, canceled_occurrences)
 
 
 MS_GRAPH_TO_SYNC_ENGINE_STATUS_MAP: dict[MsGraphResponse, str] = {
@@ -786,4 +786,6 @@ def parse_calendar(calendar: MsGraphCalendar) -> Calendar:
     read_only = not calendar["canEdit"]
     default = calendar["isDefaultCalendar"]
 
-    return Calendar(uid=uid, name=name, read_only=read_only, default=default)
+    return Calendar(  # type: ignore[call-arg]
+        uid=uid, name=name, read_only=read_only, default=default
+    )

@@ -1,7 +1,7 @@
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session  # type: ignore[import-untyped]
 
 from inbox.contacts.crud import INBOX_PROVIDER_NAME
 from inbox.models import (
@@ -44,10 +44,10 @@ def _get_contact_map(
     contact_map = {c._canonicalized_address: c for c in existing_contacts}
     for name, email_address in all_addresses:
         canonicalized_address = canonicalize(email_address)
-        if isinstance(name, list):
-            name = name[0].strip()
+        if isinstance(name, list):  # type: ignore[unreachable]
+            name = name[0].strip()  # type: ignore[unreachable]
         if canonicalized_address not in contact_map:
-            new_contact = Contact(
+            new_contact = Contact(  # type: ignore[call-arg]
                 name=name,
                 email_address=email_address,
                 namespace_id=namespace_id,
@@ -65,7 +65,7 @@ def _get_contact_from_map(
         return None
 
     canonicalized_address = canonicalize(email_address)
-    contact = contact_map.get(canonicalized_address)
+    contact = contact_map.get(canonicalized_address)  # type: ignore[arg-type]
     assert contact
 
     # Hackily address the condition that you get mail from e.g.
@@ -73,7 +73,10 @@ def _get_contact_from_map(
     # "Christine Spang (via Google Drive) <drive-shares-noreply@google.com"
     # and so on: rather than creating many contacts with
     # varying name, null out the name for the existing contact.
-    if contact.name != name and "noreply" in canonicalized_address:
+    if (
+        contact.name != name
+        and "noreply" in canonicalized_address  # type: ignore[operator]
+    ):
         contact.name = None
 
     return contact
@@ -123,14 +126,16 @@ def update_contacts_from_message(
                 if not contact:
                     continue
 
-                message.contacts.append(
-                    MessageContactAssociation(
+                message.contacts.append(  # type: ignore[attr-defined]
+                    MessageContactAssociation(  # type: ignore[call-arg]
                         contact=contact, field=field_name
                     )
                 )
 
 
-def update_contacts_from_event(db_session, event, namespace_id) -> None:
+def update_contacts_from_event(  # type: ignore[no-untyped-def]
+    db_session, event, namespace_id
+) -> None:
     with db_session.no_autoflush:
         # First create Contact objects for any email addresses that we haven't
         # seen yet. We want to dedupe by canonicalized address, so this part is
@@ -158,7 +163,7 @@ def update_contacts_from_event(db_session, event, namespace_id) -> None:
 
         # delete any previous EventContactAssociation for the event
         db_session.execute(
-            EventContactAssociation.__table__.delete().where(
+            EventContactAssociation.__table__.delete().where(  # type: ignore[attr-defined]
                 EventContactAssociation.event_id == event.id
             )
         )
@@ -193,5 +198,7 @@ def update_contacts_from_event(db_session, event, namespace_id) -> None:
 
         if values:
             db_session.execute(
-                EventContactAssociation.__table__.insert().values(values)
+                EventContactAssociation.__table__.insert().values(  # type: ignore[attr-defined]
+                    values
+                )
             )

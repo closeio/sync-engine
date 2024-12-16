@@ -6,9 +6,9 @@ from typing import Any
 from urllib.parse import quote_plus as urlquote
 from warnings import filterwarnings
 
-import limitlion
+import limitlion  # type: ignore[import-untyped]
 import redis
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event  # type: ignore[import-untyped]
 
 from inbox.config import config
 from inbox.logging import find_first_app_frame_and_name, get_logger
@@ -31,7 +31,7 @@ DB_POOL_TIMEOUT = config.get("DB_POOL_TIMEOUT") or 60
 pool_tracker: MutableMapping[Any, dict[str, Any]] = weakref.WeakKeyDictionary()
 
 
-def build_uri(  # noqa: ANN201
+def build_uri(  # type: ignore[no-untyped-def]  # noqa: ANN201
     username, password, hostname, port, database_name
 ):
     uri_template = (
@@ -47,7 +47,7 @@ def build_uri(  # noqa: ANN201
     )
 
 
-def engine(  # noqa: ANN201
+def engine(  # type: ignore[no-untyped-def]  # noqa: ANN201
     database_name,
     database_uri,
     pool_size=DB_POOL_SIZE,
@@ -74,7 +74,7 @@ def engine(  # noqa: ANN201
     )
 
     @event.listens_for(engine, "checkout")
-    def receive_checkout(
+    def receive_checkout(  # type: ignore[no-untyped-def]
         dbapi_connection, connection_record, connection_proxy
     ) -> None:
         """Log checkedout and overflow when a connection is checked out"""
@@ -123,7 +123,9 @@ def engine(  # noqa: ANN201
         }
 
     @event.listens_for(engine, "checkin")
-    def receive_checkin(dbapi_connection, connection_record) -> None:
+    def receive_checkin(  # type: ignore[no-untyped-def]
+        dbapi_connection, connection_record
+    ) -> None:
         if dbapi_connection in pool_tracker:
             del pool_tracker[dbapi_connection]
 
@@ -131,7 +133,7 @@ def engine(  # noqa: ANN201
 
 
 class EngineManager:
-    def __init__(
+    def __init__(  # type: ignore[no-untyped-def]
         self, databases, users, include_disabled: bool = False
     ) -> None:
         self.engines = {}
@@ -179,16 +181,16 @@ class EngineManager:
                 self.engines[key] = engine(schema_name, uri)
                 self._engine_zones[key] = zone
 
-    def shard_key_for_id(self, id_) -> int:
+    def shard_key_for_id(self, id_) -> int:  # type: ignore[no-untyped-def]
         return 0
 
-    def get_for_id(self, id_):  # noqa: ANN201
+    def get_for_id(self, id_):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self.engines[self.shard_key_for_id(id_)]
 
-    def zone_for_id(self, id_):  # noqa: ANN201
+    def zone_for_id(self, id_):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self._engine_zones[self.shard_key_for_id(id_)]
 
-    def shards_for_zone(self, zone):  # noqa: ANN201
+    def shards_for_zone(self, zone):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return [k for k, z in self._engine_zones.items() if z == zone]
 
 
@@ -198,7 +200,7 @@ engine_manager = EngineManager(
 )
 
 
-def init_db(engine, key: int = 0) -> None:
+def init_db(engine, key: int = 0) -> None:  # type: ignore[no-untyped-def]
     """
     Make the tables.
 
@@ -217,24 +219,28 @@ def init_db(engine, key: int = 0) -> None:
     # to execute this function multiple times.
     # STOPSHIP(emfree): verify
     increment = (key << 48) + 1
-    for table in MailSyncBase.metadata.tables.values():
+    for (
+        table
+    ) in MailSyncBase.metadata.tables.values():  # type: ignore[attr-defined]
         event.listen(
             table,
             "after_create",
             DDL(f"ALTER TABLE {table} AUTO_INCREMENT={increment}"),
         )
     with disabled_dubiously_many_queries_warning():
-        MailSyncBase.metadata.create_all(engine)
+        MailSyncBase.metadata.create_all(engine)  # type: ignore[attr-defined]
 
 
-def verify_db(engine, schema, key) -> None:
+def verify_db(engine, schema, key) -> None:  # type: ignore[no-untyped-def]
     from inbox.models.base import MailSyncBase
 
     query = """SELECT AUTO_INCREMENT from information_schema.TABLES where
     table_schema='{}' AND table_name='{}';"""
 
     verified = set()
-    for table in MailSyncBase.metadata.sorted_tables:
+    for (
+        table
+    ) in MailSyncBase.metadata.sorted_tables:  # type: ignore[attr-defined]
         # ContactSearchIndexCursor does not need to be checked because there's
         # only one row in the table
         if str(table) == "contactsearchindexcursor":
@@ -262,7 +268,7 @@ def verify_db(engine, schema, key) -> None:
         verified.add(table)
 
 
-def reset_invalid_autoincrements(  # noqa: ANN201
+def reset_invalid_autoincrements(  # type: ignore[no-untyped-def]  # noqa: ANN201
     engine, schema, key, dry_run: bool = True
 ):
     from inbox.models.base import MailSyncBase
@@ -271,7 +277,9 @@ def reset_invalid_autoincrements(  # noqa: ANN201
     table_schema='{}' AND table_name='{}';"""
 
     reset = set()
-    for table in MailSyncBase.metadata.sorted_tables:
+    for (
+        table
+    ) in MailSyncBase.metadata.sorted_tables:  # type: ignore[attr-defined]
         increment = engine.execute(query.format(schema, table)).scalar()
         if increment is not None and (increment >> 48) != key:
             if not dry_run:

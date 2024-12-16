@@ -14,7 +14,7 @@ down_revision = "3bb01fcc755e"
 from typing import Never
 
 from alembic import op
-from sqlalchemy.sql import text
+from sqlalchemy.sql import text  # type: ignore[import-untyped]
 
 
 def upgrade() -> None:

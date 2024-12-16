@@ -7,9 +7,9 @@ from collections import defaultdict
 from hashlib import sha256
 from typing import Any
 
-from flanker import mime
-from flanker.mime.message.part import MimePart
-from sqlalchemy import (
+from flanker import mime  # type: ignore[import-untyped]
+from flanker.mime.message.part import MimePart  # type: ignore[import-untyped]
+from sqlalchemy import (  # type: ignore[import-untyped]
     BigInteger,
     Boolean,
     Column,
@@ -20,9 +20,14 @@ from sqlalchemy import (
     String,
     bindparam,
 )
-from sqlalchemy.dialects.mysql import LONGBLOB, VARCHAR
-from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import (
+from sqlalchemy.dialects.mysql import (  # type: ignore[import-untyped]
+    LONGBLOB,
+    VARCHAR,
+)
+from sqlalchemy.ext.associationproxy import (  # type: ignore[import-untyped]
+    association_proxy,
+)
+from sqlalchemy.orm import (  # type: ignore[import-untyped]
     backref,
     joinedload,
     load_only,
@@ -32,7 +37,7 @@ from sqlalchemy.orm import (
     validates,
     with_polymorphic,
 )
-from sqlalchemy.sql.expression import false
+from sqlalchemy.sql.expression import false  # type: ignore[import-untyped]
 
 from inbox.config import config
 from inbox.constants import MAX_MESSAGE_BODY_LENGTH
@@ -103,7 +108,7 @@ def normalize_data(data: str) -> str:
 
 
 class MessageTooBigException(Exception):
-    def __init__(self, body_length) -> None:
+    def __init__(self, body_length) -> None:  # type: ignore[no-untyped-def]
         super().__init__(
             f"message length ({body_length}) is over the parsing limit"
         )
@@ -113,7 +118,7 @@ class Message(
     MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin
 ):
     @property
-    def API_OBJECT_NAME(self) -> str:  # noqa: N802
+    def API_OBJECT_NAME(self) -> str:  # type: ignore[override]  # noqa: N802
         return "message" if not self.is_draft else "draft"
 
     namespace_id = Column(BigInteger, index=True, nullable=False)
@@ -136,11 +141,11 @@ class Message(
     )
 
     @property
-    def thread(self):  # noqa: ANN201
+    def thread(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self._thread
 
     @thread.setter
-    def thread(self, value) -> None:
+    def thread(self, value) -> None:  # type: ignore[no-untyped-def]
         if value is not None and self._thread is not None:
             self._thread.deleted_at = None
         self._thread = value
@@ -185,7 +190,7 @@ class Message(
     )
 
     @property
-    def is_sending(self):  # noqa: ANN201
+    def is_sending(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self.version == MAX_MYSQL_INTEGER and not self.is_draft
 
     def mark_as_sending(self) -> None:
@@ -196,11 +201,13 @@ class Message(
         self.regenerate_nylas_uid()
 
     @property
-    def categories_changes(self):  # noqa: ANN201
+    def categories_changes(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self.state == "actions_pending"
 
     @categories_changes.setter
-    def categories_changes(self, has_changes) -> None:
+    def categories_changes(  # type: ignore[no-untyped-def]
+        self, has_changes
+    ) -> None:
         if has_changes is True:
             self.state = "actions_pending"
         else:
@@ -252,7 +259,9 @@ class Message(
     categories = association_proxy(
         "messagecategories",
         "category",
-        creator=lambda category: MessageCategory(category=category),
+        creator=lambda category: MessageCategory(  # type: ignore[call-arg]
+            category=category
+        ),
     )
 
     # FOR INBOX-CREATED MESSAGES:
@@ -318,7 +327,7 @@ class Message(
 
         """  # noqa: D401
         # stop trickle-down bugs
-        assert account.namespace is not None
+        assert account.namespace is not None  # type: ignore[attr-defined]
         assert isinstance(body, bytes)
 
         message = Message()
@@ -329,7 +338,9 @@ class Message(
         save_raw_mime(message.data_sha256, body)
 
         # Persist the processed message to the database
-        message.namespace_id = account.namespace.id
+        message.namespace_id = (
+            account.namespace.id  # type: ignore[attr-defined]
+        )
 
         with email_parsing_lock:
             try:
@@ -382,7 +393,7 @@ class Message(
                         message._parse_mimepart(
                             imap_uid,
                             mimepart,
-                            account.namespace.id,
+                            account.namespace.id,  # type: ignore[attr-defined]
                             html_parts,
                             plain_parts,
                         )
@@ -465,7 +476,7 @@ class Message(
                 mime_version=mime_version,
             )
 
-        self.subject: str | None = parsed.subject
+        self.subject: str | None = parsed.subject  # type: ignore[no-redef]
         self.from_addr = parse_mimepart_address_header(parsed, "From")
         self.sender_addr = parse_mimepart_address_header(parsed, "Sender")
         self.reply_to = parse_mimepart_address_header(parsed, "Reply-To")
@@ -473,11 +484,15 @@ class Message(
         self.cc_addr = parse_mimepart_address_header(parsed, "Cc")
         self.bcc_addr = parse_mimepart_address_header(parsed, "Bcc")
 
-        self.in_reply_to: str | None = parsed.headers.get("In-Reply-To")
+        self.in_reply_to: str | None = (  # type: ignore[no-redef]
+            parsed.headers.get("In-Reply-To")
+        )
 
         # The RFC mandates that the Message-Id header must be at most 998
         # characters. Sadly, not everybody follows specs.
-        self.message_id_header: str | None = parsed.headers.get("Message-Id")
+        self.message_id_header: str | None = (  # type: ignore[no-redef]
+            parsed.headers.get("Message-Id")
+        )
         if self.message_id_header and len(self.message_id_header) > 998:
             self.message_id_header = self.message_id_header[:998]
             log.warning(  # noqa: PLE1205
@@ -503,7 +518,9 @@ class Message(
         self.received_date = self.received_date.replace(microsecond=0)
 
         # Custom Nylas header
-        self.nylas_uid: str | None = parsed.headers.get("X-INBOX-ID")
+        self.nylas_uid: str | None = (  # type: ignore[no-redef]
+            parsed.headers.get("X-INBOX-ID")
+        )
 
         # In accordance with JWZ (http://www.jwz.org/doc/threading.html)
         self.references = parse_references(
@@ -626,15 +643,15 @@ class Message(
         block = Block()
         block.namespace_id = namespace_id
         block.filename = _trim_filename(filename, namespace_id=namespace_id)
-        block.content_type = content_type
-        part = Part(block=block, message=self)
+        block.content_type = content_type  # type: ignore[assignment]
+        part = Part(block=block, message=self)  # type: ignore[call-arg]
         if content_id:
             content_id = content_id[:255]
         part.content_id = content_id
         part.content_disposition = content_disposition
         data = data or ""
-        if not isinstance(data, bytes):
-            data = data.encode("utf-8", "strict")
+        if not isinstance(data, bytes):  # type: ignore[unreachable]
+            data = data.encode("utf-8", "strict")  # type: ignore[assignment]
         block.data = data
 
     def _mark_error(self) -> None:
@@ -751,12 +768,16 @@ class Message(
 
     @property
     def attachments(self) -> list["Part"]:
-        return [part for part in self.parts if part.is_attachment]
+        return [
+            part
+            for part in self.parts  # type: ignore[attr-defined]
+            if part.is_attachment
+        ]
 
     @property
     def api_attachment_metadata(self) -> list[dict[str, Any]]:
         resp = []
-        for part in self.parts:
+        for part in self.parts:  # type: ignore[attr-defined]
             if not part.is_attachment:
                 continue
             k = {
@@ -774,22 +795,25 @@ class Message(
         return resp
 
     @property
-    def versioned_relationships(self):  # noqa: ANN201
+    def versioned_relationships(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return ["parts", "messagecategories"]
 
     @property
-    def propagated_attributes(self):  # noqa: ANN201
+    def propagated_attributes(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return ["is_read", "is_starred", "messagecategories"]
 
     @property
     def has_attached_events(self) -> bool:
-        return "text/calendar" in [p.block.content_type for p in self.parts]
+        return "text/calendar" in [
+            p.block.content_type
+            for p in self.parts  # type: ignore[attr-defined]
+        ]
 
     @property
     def attached_event_files(self) -> list["Part"]:
         return [
             part
-            for part in self.parts
+            for part in self.parts  # type: ignore[attr-defined]
             if part.block.content_type == "text/calendar"
         ]
 
@@ -808,16 +832,20 @@ class Message(
         )
         q = q.options(
             joinedload(Message.thread).load_only("discriminator", "public_id"),
-            joinedload(Message.messagecategories).joinedload(
-                MessageCategory.category
+            joinedload(
+                Message.messagecategories  # type: ignore[attr-defined]
+            ).joinedload(MessageCategory.category),
+            joinedload(Message.parts).joinedload(  # type: ignore[attr-defined]
+                "block"
             ),
-            joinedload(Message.parts).joinedload("block"),
-            joinedload(Message.events),
+            joinedload(Message.events),  # type: ignore[attr-defined]
         )
         return q.params(public_id=public_id, namespace_id=namespace_id).one()
 
     @classmethod
-    def api_loading_options(cls, expand: bool = False):  # noqa: ANN206
+    def api_loading_options(  # type: ignore[no-untyped-def]  # noqa: ANN206
+        cls, expand: bool = False
+    ):
         columns = [
             "public_id",
             "is_draft",
@@ -858,7 +886,11 @@ class Message(
             load_only(*columns),
             subqueryload("parts").joinedload("block"),
             subqueryload("thread").load_only("public_id", "discriminator"),
-            subqueryload(Message.events.of_type(all_event_subclasses)),
+            subqueryload(
+                Message.events.of_type(  # type: ignore[attr-defined]
+                    all_event_subclasses
+                )
+            ),
             subqueryload("messagecategories").joinedload("category"),
         )
 
@@ -930,7 +962,7 @@ class MessageCategory(MailSyncBase):
     )
 
     @property
-    def namespace(self):  # noqa: ANN201
+    def namespace(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self.message.namespace
 
 

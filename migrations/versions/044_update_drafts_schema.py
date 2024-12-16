@@ -11,9 +11,9 @@ Create Date: 2014-06-19 19:09:48.387937
 revision = "247cd689758c"
 down_revision = "5a136610b50b"
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
-from sqlalchemy.dialects import mysql
+from sqlalchemy.dialects import mysql  # type: ignore[import-untyped]
 
 
 def upgrade() -> None:

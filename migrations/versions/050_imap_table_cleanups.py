@@ -13,12 +13,12 @@ down_revision = "1b751e8d9cac"
 
 from typing import Never
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.folder import Folder
     from inbox.models.session import session_scope
     from inbox.sqlalchemy_ext.util import JSON
@@ -112,16 +112,18 @@ def upgrade() -> None:
         )
         Base.metadata.reflect(engine)
 
-        class EASFolderSyncStatus(Base):
+        class EASFolderSyncStatus(Base):  # type: ignore[misc, valid-type]
             __table__ = Base.metadata.tables["easfoldersyncstatus"]
 
-    class ImapFolderSyncStatus(Base):
+    class ImapFolderSyncStatus(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["imapfoldersyncstatus"]
 
-    class ImapFolderInfo(Base):
+    class ImapFolderInfo(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["imapfolderinfo"]
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         folder_id_for = dict(
             [
                 ((account_id, name.lower()), id_)
@@ -137,7 +139,9 @@ def upgrade() -> None:
             ]
         db_session.commit()
         if "easfoldersyncstatus" in Base.metadata.tables:
-            for status in db_session.query(EASFolderSyncStatus):
+            for status in db_session.query(
+                EASFolderSyncStatus  # type: ignore[possibly-undefined]
+            ):
                 print("migrating", status.folder_name)
                 folder_id = folder_id_for.get(
                     (status.account_id, status.folder_name.lower())
@@ -146,7 +150,7 @@ def upgrade() -> None:
                     status.folder_id = folder_id
                 else:
                     # EAS folder rows *may* not exist if have no messages
-                    folder = Folder(
+                    folder = Folder(  # type: ignore[call-arg]
                         account_id=status.account_id, name=status.folder_name
                     )
                     db_session.add(folder)
@@ -206,7 +210,9 @@ def upgrade() -> None:
         "account_id", "imapfoldersyncstatus", ["account_id", "folder_id"]
     )
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         for info in db_session.query(ImapFolderInfo):
             print("migrating", info.folder_name)
             info.folder_id = folder_id_for[

@@ -2,10 +2,12 @@ import sys
 import time
 from contextlib import contextmanager
 
-from sqlalchemy import event
-from sqlalchemy.exc import OperationalError
-from sqlalchemy.ext.horizontal_shard import ShardedSession
-from sqlalchemy.orm.session import Session
+from sqlalchemy import event  # type: ignore[import-untyped]
+from sqlalchemy.exc import OperationalError  # type: ignore[import-untyped]
+from sqlalchemy.ext.horizontal_shard import (  # type: ignore[import-untyped]
+    ShardedSession,
+)
+from sqlalchemy.orm.session import Session  # type: ignore[import-untyped]
 
 from inbox.config import config
 from inbox.ignition import engine_manager
@@ -18,7 +20,9 @@ log = get_logger()
 MAX_SANE_TRX_TIME_MS = 30000
 
 
-def new_session(engine, versioned: bool = True):  # noqa: ANN201
+def new_session(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    engine, versioned: bool = True
+):
     """Returns a session bound to the given engine."""  # noqa: D401
     session = Session(bind=engine, autoflush=True, autocommit=False)
 
@@ -40,7 +44,9 @@ def new_session(engine, versioned: bool = True):  # noqa: ANN201
         metric_name = f"db.{engine.url.database}.{modname}.{funcname}"
 
         @event.listens_for(session, "after_begin")
-        def after_begin(session, transaction, connection) -> None:
+        def after_begin(  # type: ignore[no-untyped-def]
+            session, transaction, connection
+        ) -> None:
             # It's okay to key on the session object here, because each session
             # binds to only one engine/connection. If this changes in the
             # future such that a session may encompass multiple engines, then
@@ -49,7 +55,7 @@ def new_session(engine, versioned: bool = True):  # noqa: ANN201
 
         @event.listens_for(session, "after_commit")
         @event.listens_for(session, "after_rollback")
-        def end(session) -> None:
+        def end(session) -> None:  # type: ignore[no-untyped-def]
             start_time = transaction_start_map.get(session)
             if not start_time:
                 return
@@ -72,7 +78,7 @@ def new_session(engine, versioned: bool = True):  # noqa: ANN201
     return session
 
 
-def configure_versioning(session):  # noqa: ANN201
+def configure_versioning(session):  # type: ignore[no-untyped-def]  # noqa: ANN201
     from inbox.models.transaction import (
         bump_redis_txn_id,
         create_revisions,
@@ -81,12 +87,16 @@ def configure_versioning(session):  # noqa: ANN201
     )
 
     @event.listens_for(session, "before_flush")
-    def before_flush(session, flush_context, instances) -> None:
+    def before_flush(  # type: ignore[no-untyped-def]
+        session, flush_context, instances
+    ) -> None:
         propagate_changes(session)
         increment_versions(session)
 
     @event.listens_for(session, "after_flush")
-    def after_flush(session, flush_context) -> None:
+    def after_flush(  # type: ignore[no-untyped-def]
+        session, flush_context
+    ) -> None:
         """
         Hook to log revision snapshots. Must be post-flush in order to
         grab object IDs on new objects.
@@ -107,7 +117,7 @@ def configure_versioning(session):  # noqa: ANN201
 
 
 @contextmanager
-def session_scope(id_, versioned: bool = True):  # noqa: ANN201
+def session_scope(id_, versioned: bool = True):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Provide a transactional scope around a series of operations.
 
@@ -140,7 +150,7 @@ def session_scope(id_, versioned: bool = True):  # noqa: ANN201
         if config.get("LOG_DB_SESSIONS"):
             start_time = time.time()
             frame = sys._getframe()
-            assert frame
+            assert frame  # type: ignore[truthy-bool]
             assert frame.f_back
             assert frame.f_back.f_back
             calling_frame = frame.f_back.f_back
@@ -167,8 +177,10 @@ def session_scope(id_, versioned: bool = True):  # noqa: ANN201
             raise exc  # noqa: B904
     finally:
         if config.get("LOG_DB_SESSIONS"):
-            lifetime = time.time() - start_time
-            logger.info(
+            lifetime = (
+                time.time() - start_time  # type: ignore[possibly-undefined]
+            )
+            logger.info(  # type: ignore[possibly-undefined]
                 "closing db_session",
                 lifetime=lifetime,
                 sessions_used=engine.pool.checkedout(),
@@ -177,7 +189,7 @@ def session_scope(id_, versioned: bool = True):  # noqa: ANN201
 
 
 @contextmanager
-def session_scope_by_shard_id(  # noqa: ANN201
+def session_scope_by_shard_id(  # type: ignore[no-untyped-def]  # noqa: ANN201
     shard_id, versioned: bool = True
 ):
     key = shard_id << 48
@@ -189,11 +201,13 @@ def session_scope_by_shard_id(  # noqa: ANN201
 # GLOBAL (cross-shard) queries. USE WITH CAUTION.
 
 
-def shard_chooser(mapper, instance, clause=None):  # noqa: ANN201
+def shard_chooser(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    mapper, instance, clause=None
+):
     return str(engine_manager.shard_key_for_id(instance.id))
 
 
-def id_chooser(query, ident):  # noqa: ANN201
+def id_chooser(query, ident):  # type: ignore[no-untyped-def]  # noqa: ANN201
     # STOPSHIP(emfree): is ident a tuple here???
     # TODO[k]: What if len(list) > 1?
     if isinstance(ident, list) and len(ident) == 1:
@@ -201,12 +215,12 @@ def id_chooser(query, ident):  # noqa: ANN201
     return [str(engine_manager.shard_key_for_id(ident))]
 
 
-def query_chooser(query):  # noqa: ANN201
+def query_chooser(query):  # type: ignore[no-untyped-def]  # noqa: ANN201
     return [str(k) for k in engine_manager.engines]
 
 
 @contextmanager
-def global_session_scope():  # noqa: ANN201
+def global_session_scope():  # type: ignore[no-untyped-def]  # noqa: ANN201
     shards = {str(k): v for k, v in engine_manager.engines.items()}
     session = ShardedSession(
         shard_chooser=shard_chooser,

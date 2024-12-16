@@ -29,7 +29,9 @@ def is_live_env() -> bool:
 
 
 class ConfigError(Exception):
-    def __init__(self, error=None, help=None) -> None:
+    def __init__(  # type: ignore[no-untyped-def]
+        self, error=None, help=None
+    ) -> None:
         self.error = error or ""
         self.help = (
             help
@@ -40,18 +42,20 @@ class ConfigError(Exception):
         return f"{self.error} {self.help}"
 
 
-class Configuration(dict):
-    def __init__(self, *args, **kwargs) -> None:
+class Configuration(dict):  # type: ignore[type-arg]
+    def __init__(  # type: ignore[no-untyped-def]
+        self, *args, **kwargs
+    ) -> None:
         dict.__init__(self, *args, **kwargs)
 
-    def get_required(self, key):
+    def get_required(self, key):  # type: ignore[no-untyped-def]
         if key not in self:
             raise ConfigError(f"Missing config value for {key}.")
 
         return self[key]
 
 
-def _update_config_from_env(config, env):
+def _update_config_from_env(config, env):  # type: ignore[no-untyped-def]
     """
     Update a config dictionary from configuration files specified in the
     environment.
@@ -112,7 +116,9 @@ def _update_config_from_env(config, env):
                 raise
 
 
-def _update_config_from_env_variables(config) -> None:
+def _update_config_from_env_variables(  # type: ignore[no-untyped-def]
+    config,
+) -> None:
     flags = (
         os.environ.get("FEATURE_FLAGS", "") or config.get("FEATURE_FLAGS", "")
     ).split()
@@ -124,7 +130,7 @@ def _update_config_from_env_variables(config) -> None:
     config["CALENDAR_POLL_FREQUENCY"] = calendar_poll_frequencey
 
 
-def _get_process_name(config) -> None:
+def _get_process_name(config) -> None:  # type: ignore[no-untyped-def]
     if os.environ.get("PROCESS_NAME") is not None:
         config["PROCESS_NAME"] = os.environ.get("PROCESS_NAME")
 

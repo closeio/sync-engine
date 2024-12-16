@@ -7,8 +7,8 @@
 from itertools import chain
 
 import click
-from sqlalchemy import func
-from sqlalchemy.sql import and_, exists
+from sqlalchemy import func  # type: ignore[import-untyped]
+from sqlalchemy.sql import and_, exists  # type: ignore[import-untyped]
 
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.ignition import engine_manager
@@ -20,7 +20,7 @@ configure_logging()
 log = get_logger(purpose="duplicate-category-backfill")
 
 
-def backfix_shard(shard_id, dry_run) -> None:
+def backfix_shard(shard_id, dry_run) -> None:  # type: ignore[no-untyped-def]
     categories_to_fix = []
     with session_scope_by_shard_id(shard_id) as db_session:
         # 'SELECT id FROM <table> GROUP BY <x>' does not select _all_ of the
@@ -188,7 +188,7 @@ def backfix_shard(shard_id, dry_run) -> None:
 @click.command()
 @click.option("--shard-id", type=int, default=None)
 @click.option("--dry-run", is_flag=True)
-def main(shard_id, dry_run) -> None:
+def main(shard_id, dry_run) -> None:  # type: ignore[no-untyped-def]
     maybe_enable_rollbar()
 
     if shard_id is not None:

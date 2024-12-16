@@ -3,7 +3,7 @@ from collections import Counter
 from datetime import datetime
 from typing import Literal
 
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
 
 from inbox.contacts.abc import AbstractContactsProvider
 from inbox.contacts.google import GoogleContactsProvider
@@ -45,7 +45,7 @@ class ContactSync(BaseSyncMonitor):
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[no-untyped-def]
         self,
         email_address,
         provider_name,
@@ -72,7 +72,7 @@ class ContactSync(BaseSyncMonitor):
             scope="contacts",
         )
 
-    def sync(self) -> None:
+    def sync(self) -> None:  # type: ignore[override]
         """
         Query a remote provider for updates and persist them to the
         database. This function runs every `self.poll_frequency`.
@@ -86,12 +86,14 @@ class ContactSync(BaseSyncMonitor):
             account = db_session.query(Account).get(self.account_id)
             last_sync_dt = account.last_synced_contacts
 
-            all_contacts = self.provider.get_items(sync_from_dt=last_sync_dt)
+            all_contacts = self.provider.get_items(  # type: ignore[var-annotated]
+                sync_from_dt=last_sync_dt
+            )
 
             # Do a batch insertion of every 100 contact objects
-            change_counter: typing.Counter[
-                Literal["deleted", "updated", "added"]
-            ] = Counter()
+            change_counter: (  # type: ignore[unreachable]
+                typing.Counter[Literal["deleted", "updated", "added"]]
+            ) = Counter()
             for new_contact in all_contacts:
                 new_contact.namespace = account.namespace
                 assert (
@@ -145,7 +147,9 @@ class ContactSync(BaseSyncMonitor):
                     db_session.commit()
 
         # Update last sync
-        with session_scope(self.namespace_id) as db_session:
+        with session_scope(  # type: ignore[unreachable]
+            self.namespace_id
+        ) as db_session:
             account = db_session.query(Account).get(self.account_id)
             account.last_synced_contacts = sync_timestamp
 

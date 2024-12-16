@@ -12,7 +12,7 @@ revision = "1d7374c286c5"
 down_revision = "21878b1b3d4b"
 
 from alembic import op
-from sqlalchemy.dialects import mysql
+from sqlalchemy.dialects import mysql  # type: ignore[import-untyped]
 
 
 def upgrade() -> None:

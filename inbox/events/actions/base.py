@@ -5,7 +5,9 @@ from inbox.models.event import Event
 from inbox.models.session import session_scope
 
 
-def create_event(account_id, event_id, extra_args) -> None:
+def create_event(  # type: ignore[no-untyped-def]
+    account_id, event_id, extra_args
+) -> None:
     with session_scope(account_id) as db_session:
         account = db_session.query(Account).get(account_id)
         event = db_session.query(Event).get(event_id)
@@ -36,7 +38,9 @@ def create_event(account_id, event_id, extra_args) -> None:
                 send_invite(ical_file, event, account, invite_type="cancel")
 
 
-def update_event(account_id, event_id, extra_args) -> None:
+def update_event(  # type: ignore[no-untyped-def]
+    account_id, event_id, extra_args
+) -> None:
     with session_scope(account_id) as db_session:
         account = db_session.query(Account).get(account_id)
         event = db_session.query(Event).get(event_id)
@@ -70,7 +74,9 @@ def update_event(account_id, event_id, extra_args) -> None:
         db_session.commit()
 
 
-def delete_event(account_id, event_id, extra_args) -> None:
+def delete_event(  # type: ignore[no-untyped-def]
+    account_id, event_id, extra_args
+) -> None:
     with session_scope(account_id) as db_session:
         account = db_session.query(Account).get(account_id)
         event = db_session.query(Event).get(event_id)

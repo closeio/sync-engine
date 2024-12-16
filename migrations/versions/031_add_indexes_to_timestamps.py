@@ -12,11 +12,13 @@ revision = "55f0ff54c776"
 down_revision = "1b6ceae51b43"
 
 from alembic import op
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+    declarative_base,
+)
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()  # noqa: N806
@@ -352,7 +354,7 @@ def downgrade() -> None:
     op.drop_index("ix_folder_deleted_at", table_name="folder")
     op.drop_index("ix_folder_created_at", table_name="folder")
 
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()  # noqa: N806

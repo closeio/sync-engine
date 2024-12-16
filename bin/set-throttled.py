@@ -24,7 +24,7 @@ def print_usage() -> None:
     )
 
 
-def throttle(options) -> None:
+def throttle(options) -> None:  # type: ignore[no-untyped-def]
     account_id = int(options.account_id)
     with session_scope(account_id) as db_session:
         if options.account_id:

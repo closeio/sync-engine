@@ -47,7 +47,9 @@ def check_tz() -> None:
         sys.exit(_TZ_ERROR_TEXT)
 
 
-def load_overrides(file_path, loaded_config=config) -> None:
+def load_overrides(  # type: ignore[no-untyped-def]
+    file_path, loaded_config=config
+) -> None:
     """
     Convenience function for overriding default configuration.
 

@@ -15,7 +15,7 @@ class EncryptionScheme(enum.Enum):
     SECRETBOX_WITH_STATIC_KEY = 1
 
 
-def get_encryption_oracle(secret_name):  # noqa: ANN201
+def get_encryption_oracle(secret_name):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Return an encryption oracle for the given secret.
     """
@@ -41,7 +41,7 @@ class _EncryptionOracle:
     module.
     """  # noqa: D404
 
-    def __init__(self, secret_name) -> None:
+    def __init__(self, secret_name) -> None:  # type: ignore[no-untyped-def]
         self._closed = False
 
         if not config.get_required("ENCRYPT_SECRETS"):
@@ -55,7 +55,7 @@ class _EncryptionOracle:
             encoder=nacl.encoding.HexEncoder,
         )
 
-    def __enter__(self):  # noqa: ANN204
+    def __enter__(self):  # type: ignore[no-untyped-def]  # noqa: ANN204
         return self
 
     def __exit__(
@@ -80,7 +80,9 @@ class _EncryptionOracle:
         del self._secret_box
         self._closed = True
 
-    def encrypt(self, plaintext, encryption_scheme=None):
+    def encrypt(  # type: ignore[no-untyped-def]
+        self, plaintext, encryption_scheme=None
+    ):
         """
         Encrypt the specified secret.  If no encryption_scheme is specified
         (recommended), a reasonable default will be used.
@@ -134,7 +136,7 @@ class _DecryptionOracle(_EncryptionOracle):
     module.
     """  # noqa: D404
 
-    def reencrypt(
+    def reencrypt(  # type: ignore[no-untyped-def]
         self, ciphertext, encryption_scheme, new_encryption_scheme=None
     ):
         """
@@ -156,7 +158,9 @@ class _DecryptionOracle(_EncryptionOracle):
             encryption_scheme=new_encryption_scheme,
         )
 
-    def decrypt(self, ciphertext, encryption_scheme):
+    def decrypt(  # type: ignore[no-untyped-def]
+        self, ciphertext, encryption_scheme
+    ):
         # type (bytes, int) -> bytes
         """
         Decrypt the specified secret.

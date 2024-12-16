@@ -22,7 +22,9 @@ from structlog.threadlocal import wrap_dict
 MAX_EXCEPTION_LENGTH = 10000
 
 
-def find_first_app_frame_and_name(ignores=None):  # noqa: ANN201
+def find_first_app_frame_and_name(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    ignores=None,
+):
     """
     Remove ignorable calls and return the relevant app frame. Borrowed from
     structlog, but fixes an issue when the stack includes an 'exec' statement
@@ -42,7 +44,7 @@ def find_first_app_frame_and_name(ignores=None):  # noqa: ANN201
     f = sys._getframe()
     name = f.f_globals.get("__name__")
     while (
-        f is not None
+        f is not None  # type: ignore[redundant-expr]
         and f.f_back is not None
         and (name is None or any(name.startswith(i) for i in ignores))
     ):
@@ -51,7 +53,7 @@ def find_first_app_frame_and_name(ignores=None):  # noqa: ANN201
     return f, name
 
 
-def _record_level(logger, name, event_dict):
+def _record_level(logger, name, event_dict):  # type: ignore[no-untyped-def]
     """
     Processor that records the log level ('info', 'warning', etc.) in the
     structlog event dictionary.
@@ -60,7 +62,7 @@ def _record_level(logger, name, event_dict):
     return event_dict
 
 
-def _record_module(logger, name, event_dict):
+def _record_module(logger, name, event_dict):  # type: ignore[no-untyped-def]
     """
     Processor that records the module and line where the logging call was
     invoked.
@@ -79,7 +81,9 @@ def _record_module(logger, name, event_dict):
     return event_dict
 
 
-def safe_format_exception(etype, value, tb, limit=None):  # noqa: ANN201
+def safe_format_exception(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    etype, value, tb, limit=None
+):
     """
     Similar to structlog._format_exception, but truncate the exception part.
     This is because SQLAlchemy exceptions can sometimes have ludicrously large
@@ -101,7 +105,7 @@ def safe_format_exception(etype, value, tb, limit=None):  # noqa: ANN201
     return "".join(list)
 
 
-def _is_log_in_same_fn_scope(exc_tb):
+def _is_log_in_same_fn_scope(exc_tb):  # type: ignore[no-untyped-def]
     """
 
     exc_info returns exception data according to the following spec:
@@ -130,14 +134,14 @@ def _is_log_in_same_fn_scope(exc_tb):
     return any(fn_name == calling_fn for _, _, fn_name, _ in exc_tb_stack)
 
 
-def _get_exc_info_if_in_scope():
+def _get_exc_info_if_in_scope():  # type: ignore[no-untyped-def]
     exc_info = sys.exc_info()
     if _is_log_in_same_fn_scope(exc_info[2]):
         return exc_info
     return (None, None, None)
 
 
-def _safe_exc_info_renderer(_, __, event_dict):
+def _safe_exc_info_renderer(_, __, event_dict):  # type: ignore[no-untyped-def]
     """Processor that formats exception info safely."""
     error = event_dict.pop("error", None)
     exc_info = event_dict.pop("exc_info", None)
@@ -194,7 +198,7 @@ def _safe_exc_info_renderer(_, __, event_dict):
     return event_dict
 
 
-def _safe_encoding_renderer(_, __, event_dict):
+def _safe_encoding_renderer(_, __, event_dict):  # type: ignore[no-untyped-def]
     """
     Processor that converts all strings to unicode.
     Note that we ignore conversion errors.
@@ -210,7 +214,9 @@ def _safe_encoding_renderer(_, __, event_dict):
 class BoundLogger(structlog.stdlib.BoundLogger):
     """BoundLogger which always adds thread_id and env to positional args"""
 
-    def _proxy_to_logger(self, method_name, event, *event_args, **event_kw):
+    def _proxy_to_logger(  # type: ignore[no-untyped-def, override]
+        self, method_name, event, *event_args, **event_kw
+    ):
         event_kw["thread_id"] = hex(threading.get_native_id())
 
         # 'prod', 'staging', 'dev' ...
@@ -251,13 +257,13 @@ LOG_LEVELS = {
 }
 
 
-def json_excepthook(etype, value, tb) -> None:
+def json_excepthook(etype, value, tb) -> None:  # type: ignore[no-untyped-def]
     log = get_logger()
     log.error(**create_error_log_context((etype, value, tb)))
 
 
 class ConditionalFormatter(logging.Formatter):
-    def format(self, record):  # noqa: ANN201
+    def format(self, record):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if (
             record.name in ("__main__", "inbox")
             or record.name.startswith("inbox.")
@@ -274,7 +280,7 @@ class ConditionalFormatter(logging.Formatter):
         return super().format(record)
 
 
-def configure_logging(log_level=None) -> None:
+def configure_logging(log_level=None) -> None:  # type: ignore[no-untyped-def]
     """
     Idempotently configure logging.
 
@@ -310,9 +316,9 @@ def configure_logging(log_level=None) -> None:
             },
         )
     else:
-        formatter = ConditionalFormatter()
+        formatter = ConditionalFormatter()  # type: ignore[assignment]
     tty_handler.setFormatter(formatter)
-    tty_handler._nylas = True  # type: ignore
+    tty_handler._nylas = True  # type: ignore[attr-defined]
 
     # Configure the root logger.
     root_logger = logging.getLogger()

@@ -13,11 +13,11 @@ down_revision = "4f57260602c9"
 
 from typing import Never
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
-def truncate_subject(obj) -> None:
+def truncate_subject(obj) -> None:  # type: ignore[no-untyped-def]
     if obj.subject is None:
         return
     if len(obj.subject) > 255:
@@ -26,23 +26,27 @@ def truncate_subject(obj) -> None:
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
 
-    from sqlalchemy.ext.declarative import declarative_base
+    from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+        declarative_base,
+    )
 
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Message(Base):
+    class Message(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["message"]
 
-    class Thread(Base):
+    class Thread(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["thread"]
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         count = 0
         for msg in (
             db_session.query(Message)

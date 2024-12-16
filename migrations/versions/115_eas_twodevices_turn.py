@@ -14,13 +14,13 @@ down_revision = "ad7b856bcc0"
 from datetime import datetime
 from typing import Never
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
-from sqlalchemy.sql import text
+from sqlalchemy.sql import text  # type: ignore[import-untyped]
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine()
 
@@ -32,7 +32,7 @@ def upgrade() -> None:
     Base = sa.ext.declarative.declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class EASAccount(Base):
+    class EASAccount(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["easaccount"]
         primary_device = sa.orm.relationship(
             "EASDevice",
@@ -47,10 +47,12 @@ def upgrade() -> None:
             uselist=False,
         )
 
-    class EASDevice(Base):
+    class EASDevice(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["easdevice"]
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         accts = db_session.query(EASAccount).all()
 
         for a in accts:

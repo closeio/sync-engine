@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from sqlalchemy import (
+from sqlalchemy import (  # type: ignore[import-untyped]
     Boolean,
     Column,
     DateTime,
@@ -10,7 +10,11 @@ from sqlalchemy import (
     UniqueConstraint,
     inspect,
 )
-from sqlalchemy.orm import backref, object_session, relationship
+from sqlalchemy.orm import (  # type: ignore[import-untyped]
+    backref,
+    object_session,
+    relationship,
+)
 
 from inbox.models.base import MailSyncBase
 from inbox.models.constants import MAX_INDEXABLE_LENGTH
@@ -26,7 +30,7 @@ from inbox.models.namespace import Namespace
 class Calendar(
     MailSyncBase, HasPublicID, HasRevisions, UpdatedAtMixin, DeletedAtMixin
 ):
-    API_OBJECT_NAME = "calendar"
+    API_OBJECT_NAME = "calendar"  # type: ignore[assignment]
     namespace_id = Column(
         ForeignKey(Namespace.id, ondelete="CASCADE"), nullable=False
     )

@@ -10,7 +10,7 @@ from inbox.ignition import EngineManager, reset_invalid_autoincrements
 
 @click.command()
 @click.option("--dry-run", is_flag=True)
-def reset_db(dry_run) -> None:
+def reset_db(dry_run) -> None:  # type: ignore[no-untyped-def]
     maybe_enable_rollbar()
 
     database_hosts = config.get_required("DATABASE_HOSTS")

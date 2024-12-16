@@ -6,9 +6,11 @@ refresh tokens.
 from datetime import datetime, timedelta
 from hashlib import sha256
 
-from sqlalchemy import Column, ForeignKey
-from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, ForeignKey  # type: ignore[import-untyped]
+from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+    declared_attr,
+)
+from sqlalchemy.orm import relationship  # type: ignore[import-untyped]
 
 from inbox.exceptions import OAuthError
 from inbox.logging import get_logger
@@ -17,14 +19,14 @@ from inbox.models.secret import Secret, SecretType
 log = get_logger()
 
 
-def hash_token(token, prefix=None):  # noqa: ANN201
+def hash_token(token, prefix=None):  # type: ignore[no-untyped-def]  # noqa: ANN201
     if not token:
         return None
     string = f"{prefix}:{token}" if prefix else token
     return sha256(string.encode()).hexdigest()
 
 
-def log_token_usage(
+def log_token_usage(  # type: ignore[no-untyped-def]
     reason, refresh_token=None, access_token=None, account=None, scopes=None
 ) -> None:
     nylas_account_id = (
@@ -35,7 +37,7 @@ def log_token_usage(
         refresh_hash=hash_token(refresh_token, prefix="refresh_token"),
         access_hash=hash_token(access_token, prefix="access_token"),
         nylas_account_id=nylas_account_id,
-        email=account.email_address if account else None,
+        email=(account.email_address if account else None),
         scopes=scopes,
     )
 
@@ -85,7 +87,10 @@ class TokenManager:
     def get_cache_key(
         self, account: "OAuthAccount", scopes: list[str] | None
     ) -> tuple[str, tuple[str, ...] | None]:
-        return (account.id, tuple(scopes) if scopes else None)
+        return (
+            account.id,  # type: ignore[attr-defined]
+            (tuple(scopes) if scopes else None),
+        )
 
     def cache_token(
         self,
@@ -97,7 +102,7 @@ class TokenManager:
         expires_in -= 10
         expiration = datetime.utcnow() + timedelta(seconds=expires_in)
         cache_key = self.get_cache_key(account, scopes)
-        self._token_cache[cache_key] = token, expiration
+        self._token_cache[cache_key] = (token, expiration)
 
 
 token_manager = TokenManager()
@@ -121,11 +126,11 @@ class OAuthAccount:
         return None
 
     @declared_attr
-    def refresh_token_id(cls):  # noqa: ANN201, N805
+    def refresh_token_id(cls):  # type: ignore[no-untyped-def]  # noqa: ANN201, N805
         return Column(ForeignKey(Secret.id), nullable=False)
 
     @declared_attr
-    def secret(cls):  # noqa: ANN201, N805
+    def secret(cls):  # type: ignore[no-untyped-def]  # noqa: ANN201, N805
         return relationship(
             "Secret",
             cascade="all",
@@ -173,7 +178,7 @@ class OAuthAccount:
         self.secret.type = secret_type.value
         self.secret.secret = secret_value
 
-    def get_client_info(self):  # noqa: ANN201
+    def get_client_info(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         """
         Obtain the client ID and secret for this OAuth account.
 
@@ -181,8 +186,15 @@ class OAuthAccount:
             Tuple with (client_id, client_secret).
 
         """
-        if not self.client_id or self.client_id == self.OAUTH_CLIENT_ID:
-            return (self.OAUTH_CLIENT_ID, self.OAUTH_CLIENT_SECRET)
+        if (
+            not self.client_id  # type: ignore[attr-defined]
+            or self.client_id  # type: ignore[attr-defined]
+            == self.OAUTH_CLIENT_ID  # type: ignore[attr-defined]
+        ):
+            return (
+                self.OAUTH_CLIENT_ID,  # type: ignore[attr-defined]
+                self.OAUTH_CLIENT_SECRET,  # type: ignore[attr-defined]
+            )
         else:
             raise OAuthError("No valid tokens.")
 
@@ -204,14 +216,14 @@ class OAuthAccount:
 
         """  # noqa: D401
         try:
-            return self.auth_handler.acquire_access_token(
+            return self.auth_handler.acquire_access_token(  # type: ignore[attr-defined]
                 self, force_refresh=force_refresh, scopes=scopes
             )
         except Exception as e:
             log.warning(
                 f"Error while getting access token: {e}",
                 force_refresh=force_refresh,
-                account_id=self.id,
+                account_id=self.id,  # type: ignore[attr-defined]
                 exc_info=True,
             )
             raise

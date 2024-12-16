@@ -2,10 +2,11 @@
 
 import os
 import sys
+from typing import Any
 
 import click
 import werkzeug.serving
-from setproctitle import setproctitle
+from setproctitle import setproctitle  # type: ignore[import-not-found]
 
 setproctitle("inbox-api")
 
@@ -27,7 +28,7 @@ from inbox.error_handling import maybe_enable_rollbar
 from inbox.logging import configure_logging, get_logger
 from inbox.util.startup import load_overrides
 
-syncback = None
+syncback: Any = None
 
 
 @click.command()
@@ -40,7 +41,7 @@ syncback = None
     "-c", "--config", default=None, help="Path to JSON configuration file."
 )
 @click.option("-p", "--port", default=5555, help="Port to run flask app on.")
-def main(prod, config, port) -> None:
+def main(prod, config, port) -> None:  # type: ignore[no-untyped-def]
     """Launch the Nylas API service."""
     level = os.environ.get("LOGLEVEL", inbox_config.get("LOGLEVEL"))
     configure_logging(log_level=level)

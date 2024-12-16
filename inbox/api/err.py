@@ -1,7 +1,7 @@
 import sys
 import traceback
 
-import rollbar
+import rollbar  # type: ignore[import-untyped]
 from flask import jsonify, make_response, request
 
 from inbox.logging import create_error_log_context, get_logger
@@ -11,11 +11,11 @@ log = get_logger()
 from inbox.config import is_live_env  # noqa: E402
 
 
-def get_request_uid(headers):  # noqa: ANN201
+def get_request_uid(headers):  # type: ignore[no-untyped-def]  # noqa: ANN201
     return headers.get("X-Unique-ID")
 
 
-def log_exception(exc_info, **kwargs) -> None:
+def log_exception(exc_info, **kwargs) -> None:  # type: ignore[no-untyped-def]
     """
     Add exception info to the log context for the request.
 
@@ -58,7 +58,7 @@ class InputError(APIException):
 
     status_code = 400
 
-    def __init__(self, message) -> None:
+    def __init__(self, message) -> None:  # type: ignore[no-untyped-def]
         self.message = message
         super().__init__(message)
 
@@ -68,7 +68,7 @@ class NotFoundError(APIException):
 
     status_code = 404
 
-    def __init__(self, message) -> None:
+    def __init__(self, message) -> None:  # type: ignore[no-untyped-def]
         self.message = message
         super().__init__(message)
 
@@ -76,7 +76,7 @@ class NotFoundError(APIException):
 class ConflictError(APIException):
     status_code = 409
 
-    def __init__(self, message) -> None:
+    def __init__(self, message) -> None:  # type: ignore[no-untyped-def]
         self.message = message
         super().__init__(message)
 
@@ -110,7 +110,7 @@ class AccountDoesNotExistError(APIException):
     message = "The account does not exist."
 
 
-def err(http_code, message, **kwargs):  # noqa: ANN201
+def err(http_code, message, **kwargs):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """Handle unexpected errors, including sending the traceback to Rollbar."""
     log_exception(sys.exc_info(), user_error_message=message, **kwargs)
     resp = {"type": "api_error", "message": message}

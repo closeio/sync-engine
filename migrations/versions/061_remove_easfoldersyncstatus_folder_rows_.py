@@ -15,22 +15,35 @@ down_revision = "2a748760ac63"
 
 
 def upgrade() -> None:
-    if "easfoldersyncstatus" in Base.metadata.tables:  # noqa: F821
-        from inbox.ignition import main_engine
+    if (
+        "easfoldersyncstatus"
+        in Base.metadata.tables  # type: ignore[has-type, used-before-def]  # noqa: F821
+    ):
+        from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
         engine = main_engine(pool_size=1, max_overflow=0)
-        from sqlalchemy.ext.declarative import declarative_base
-        from sqlalchemy.orm.exc import NoResultFound
+        from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+            declarative_base,
+        )
+        from sqlalchemy.orm.exc import (  # type: ignore[import-untyped]
+            NoResultFound,
+        )
 
         from inbox.models.session import session_scope
 
         Base = declarative_base()  # noqa: N806
         Base.metadata.reflect(engine)
         from inbox.models import Folder
-        from inbox.models.backends.eas import EASFolderSyncStatus
-        from inbox.util.eas.constants import SKIP_FOLDERS
+        from inbox.models.backends.eas import (  # type: ignore[import-not-found]
+            EASFolderSyncStatus,
+        )
+        from inbox.util.eas.constants import (  # type: ignore[import-not-found]
+            SKIP_FOLDERS,
+        )
 
-        with session_scope(versioned=False) as db_session:
+        with session_scope(  # type: ignore[call-arg]
+            versioned=False
+        ) as db_session:
             statuses = (
                 db_session.query(EASFolderSyncStatus)
                 .filter(EASFolderSyncStatus.eas_folder_type.in_(SKIP_FOLDERS))

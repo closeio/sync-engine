@@ -1,4 +1,4 @@
-import imapclient
+import imapclient  # type: ignore[import-untyped]
 
 from inbox.crispin import connection_pool
 from inbox.logging import get_logger
@@ -8,7 +8,7 @@ from inbox.s3.exc import EmailDeletedException, EmailFetchException
 log = get_logger()
 
 
-def get_imap_raw_contents(message):  # noqa: ANN201
+def get_imap_raw_contents(message):  # type: ignore[no-untyped-def]  # noqa: ANN201
     account = message.namespace.account
 
     if len(message.imapuids) == 0:

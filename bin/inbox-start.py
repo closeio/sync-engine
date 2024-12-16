@@ -8,7 +8,7 @@ import socket
 import sys
 
 import click
-import setproctitle
+import setproctitle  # type: ignore[import-not-found]
 
 # Check that the inbox package is installed. It seems Vagrant may sometimes
 # fail to provision the box appropriately; this check is a reasonable
@@ -72,7 +72,9 @@ banner = rf"""{esc}[1;95m
     help="This process's number in the process group: a unique "
     "number satisfying 0 <= process_num < total_processes.",
 )
-def main(prod, enable_profiler, config, process_num) -> None:
+def main(  # type: ignore[no-untyped-def]
+    prod, enable_profiler, config, process_num
+) -> None:
     """Launch the Nylas sync service."""
     level = os.environ.get("LOGLEVEL", inbox_config.get("LOGLEVEL"))
     configure_logging(log_level=level)

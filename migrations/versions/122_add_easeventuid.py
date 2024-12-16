@@ -11,12 +11,12 @@ Create Date: 2014-12-10 22:03:56.946721
 revision = "476c5185121b"
 down_revision = "526eefc1d600"
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine()
 

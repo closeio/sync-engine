@@ -1,7 +1,10 @@
 from operator import attrgetter
 
-from sqlalchemy import desc
-from sqlalchemy.orm import contains_eager, load_only
+from sqlalchemy import desc  # type: ignore[import-untyped]
+from sqlalchemy.orm import (  # type: ignore[import-untyped]
+    contains_eager,
+    load_only,
+)
 
 from inbox.models.message import Message
 from inbox.models.thread import Thread
@@ -11,7 +14,7 @@ MAX_THREAD_LENGTH = 500
 MAX_MESSAGES_SCANNED = 20000
 
 
-def fetch_corresponding_thread(  # noqa: ANN201
+def fetch_corresponding_thread(  # type: ignore[no-untyped-def]  # noqa: ANN201
     db_session, namespace_id, message
 ):
     """
@@ -41,11 +44,13 @@ def fetch_corresponding_thread(  # noqa: ANN201
             Thread.namespace_id == namespace_id,
             Thread._cleaned_subject == clean_subject,
         )
-        .outerjoin(Message, Thread.messages)
+        .outerjoin(Message, Thread.messages)  # type: ignore[attr-defined]
         .order_by(desc(Thread.id))
         .options(
             load_only("id", "discriminator"),
-            contains_eager(Thread.messages).load_only(
+            contains_eager(
+                Thread.messages  # type: ignore[attr-defined]
+            ).load_only(
                 "from_addr", "to_addr", "bcc_addr", "cc_addr", "received_date"
             ),
         )

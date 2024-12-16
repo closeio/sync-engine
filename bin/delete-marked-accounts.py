@@ -29,7 +29,7 @@ log = get_logger()
 @click.command()
 @click.option("--throttle", is_flag=True)
 @click.option("--dry-run", is_flag=True)
-def run(throttle, dry_run) -> None:
+def run(throttle, dry_run) -> None:  # type: ignore[no-untyped-def]
     maybe_enable_rollbar()
 
     print("Python", sys.version, file=sys.stderr)
@@ -42,7 +42,9 @@ def run(throttle, dry_run) -> None:
             executor.submit(delete_account_data, host, throttle, dry_run)
 
 
-def delete_account_data(host, throttle, dry_run) -> None:
+def delete_account_data(  # type: ignore[no-untyped-def]
+    host, throttle, dry_run
+) -> None:
     while True:
         for shard in host["SHARDS"]:
             # Ensure shard is explicitly not marked as disabled

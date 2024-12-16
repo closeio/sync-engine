@@ -58,10 +58,10 @@ def main(shard_num: int | None, execute: str | None, batch: bool) -> None:
 
     process_arguments = [
         "mysql",
-        "-h" + creds["hostname"],
-        "-u" + creds["username"],
-        "-D" + creds["db_name"],
-        "-p" + creds["password"],
+        "-h" + creds["hostname"],  # type: ignore[operator]
+        "-u" + creds["username"],  # type: ignore[operator]
+        "-D" + creds["db_name"],  # type: ignore[operator]
+        "-p" + creds["password"],  # type: ignore[operator]
         "--safe-updates",
     ]
     if batch:

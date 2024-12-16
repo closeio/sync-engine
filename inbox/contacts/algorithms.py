@@ -25,17 +25,19 @@ SOCIAL_MOLECULE_LIMIT = 5000  # Give up if there are too many messages
 ##
 
 
-def _get_message_weight(now, message_date):
+def _get_message_weight(now, message_date):  # type: ignore[no-untyped-def]
     timediff = now - message_date
     weight = 1 - (timediff.total_seconds() / LOOKBACK_TIME)
     return max(weight, MIN_MESSAGE_WEIGHT)
 
 
-def _jaccard_similarity(set1, set2):
+def _jaccard_similarity(set1, set2):  # type: ignore[no-untyped-def]
     return len(set1.intersection(set2)) / float(len(set1.union(set2)))
 
 
-def _get_participants(msg, excluded_emails=None):
+def _get_participants(  # type: ignore[no-untyped-def]
+    msg, excluded_emails=None
+):
     """
     Returns an alphabetically sorted list of
     emails addresses that msg was sent to (including cc and bcc)
@@ -54,7 +56,7 @@ def _get_participants(msg, excluded_emails=None):
 
 
 # Not really an algorithm, but it seemed reasonable to put this here?
-def is_stale(last_updated, lifespan: int = 14):  # noqa: ANN201
+def is_stale(last_updated, lifespan: int = 14):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     last_updated is a datetime.datetime object
     lifespan is measured in days
@@ -70,7 +72,7 @@ def is_stale(last_updated, lifespan: int = 14):  # noqa: ANN201
 ##
 
 
-def calculate_contact_scores(  # noqa: ANN201
+def calculate_contact_scores(  # type: ignore[no-untyped-def]  # noqa: ANN201
     messages, time_dependent: bool = True
 ):
     now = datetime.datetime.now()
@@ -86,7 +88,9 @@ def calculate_contact_scores(  # noqa: ANN201
     return res
 
 
-def calculate_group_counts(messages, user_email):  # noqa: ANN201
+def calculate_group_counts(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    messages, user_email
+):
     """
     Strips out most of the logic from calculate_group_scores
     algorithm and just returns raw counts for each group.
@@ -99,7 +103,9 @@ def calculate_group_counts(messages, user_email):  # noqa: ANN201
     return res
 
 
-def calculate_group_scores(messages, user_email):  # noqa: ANN201
+def calculate_group_scores(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    messages, user_email
+):
     """
     This is a (modified) implementation of the algorithm described
     in this paper: http://mobisocial.stanford.edu/papers/iui11g.pdf
@@ -114,7 +120,7 @@ def calculate_group_scores(messages, user_email):  # noqa: ANN201
     message_ids_to_scores: dict[str, float] = {}
     molecules_dict = defaultdict(set)  # (emails, ...) -> {message ids, ...}
 
-    def get_message_list_weight(message_ids):
+    def get_message_list_weight(message_ids):  # type: ignore[no-untyped-def]
         return sum(message_ids_to_scores[m_id] for m_id in message_ids)
 
     # Gather initial candidate social molecules
@@ -154,7 +160,9 @@ def calculate_group_scores(messages, user_email):  # noqa: ANN201
 
 
 # Helper functions for calculating group scores
-def _expand_molecule_pool(molecules_dict) -> None:
+def _expand_molecule_pool(  # type: ignore[no-untyped-def]
+    molecules_dict,
+) -> None:
     mditems = [(set(g), msgs) for (g, msgs) in molecules_dict.items()]
     for i in range(len(mditems)):
         g1, m1 = mditems[i]
@@ -167,7 +175,9 @@ def _expand_molecule_pool(molecules_dict) -> None:
                 )
 
 
-def _subsume_molecules(molecules_list, get_message_list_weight):
+def _subsume_molecules(  # type: ignore[no-untyped-def]
+    molecules_list, get_message_list_weight
+):
     molecules_list.sort(key=lambda x: len(x[0]), reverse=True)
     is_subsumed = [False] * len(molecules_list)
     mol_weights = [get_message_list_weight(m) for (_, m) in molecules_list]
@@ -191,7 +201,7 @@ def _subsume_molecules(molecules_list, get_message_list_weight):
     return [ml for (ml, dead) in zip(molecules_list, is_subsumed) if not dead]
 
 
-def _combine_similar_molecules(molecules_list):
+def _combine_similar_molecules(molecules_list):  # type: ignore[no-untyped-def]
     """Using a greedy approach here for speed"""  # noqa: D401
     new_guys_start_idx = 0
     while new_guys_start_idx < len(molecules_list):
@@ -205,7 +215,7 @@ def _combine_similar_molecules(molecules_list):
                 js = _jaccard_similarity(g1, g2)
                 if js > JACCARD_THRESHOLD:
                     new_guys.append((g1.union(g2), m1.union(m2)))
-                    combined[i], combined[j] = True, True
+                    (combined[i], combined[j]) = (True, True)
                     break
 
         molecules_list = [

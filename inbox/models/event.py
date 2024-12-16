@@ -5,9 +5,9 @@ from datetime import datetime
 from email.utils import parseaddr
 from typing import Never
 
-import arrow
+import arrow  # type: ignore[import-untyped]
 from dateutil.parser import parse as date_parse
-from sqlalchemy import (
+from sqlalchemy import (  # type: ignore[import-untyped]
     Boolean,
     Column,
     DateTime,
@@ -19,9 +19,14 @@ from sqlalchemy import (
     Text,
     event,
 )
-from sqlalchemy.dialects.mysql import LONGTEXT
-from sqlalchemy.orm import backref, reconstructor, relationship, validates
-from sqlalchemy.types import TypeDecorator
+from sqlalchemy.dialects.mysql import LONGTEXT  # type: ignore[import-untyped]
+from sqlalchemy.orm import (  # type: ignore[import-untyped]
+    backref,
+    reconstructor,
+    relationship,
+    validates,
+)
+from sqlalchemy.types import TypeDecorator  # type: ignore[import-untyped]
 
 from inbox.logging import get_logger
 from inbox.models.base import MailSyncBase
@@ -83,20 +88,24 @@ class FlexibleDateTime(TypeDecorator):
 
     impl = DateTime
 
-    def process_bind_param(self, value, dialect):  # noqa: ANN201
+    def process_bind_param(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, value, dialect
+    ):
         if isinstance(value, arrow.arrow.Arrow):
             value = value.to("utc").naive
         if isinstance(value, datetime):
             value = arrow.get(value).to("utc").naive
         return value
 
-    def process_result_value(self, value, dialect):  # noqa: ANN201
+    def process_result_value(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, value, dialect
+    ):
         if value is None:
             return value
         else:
             return arrow.get(value).to("utc")
 
-    def compare_values(self, x, y):  # noqa: ANN201
+    def compare_values(self, x, y):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if isinstance(x, datetime | int):
             x = arrow.get(x)
         if isinstance(y, datetime) or isinstance(x, int):
@@ -110,7 +119,7 @@ class Event(
 ):
     """Data for events."""
 
-    API_OBJECT_NAME = "event"
+    API_OBJECT_NAME = "event"  # type: ignore[assignment]
     API_MODIFIABLE_FIELDS = [
         "title",
         "description",
@@ -216,13 +225,13 @@ class Event(
         "uid",
         "raw_data",
     )
-    def validate_length(self, key, value):  # noqa: ANN201
+    def validate_length(self, key, value):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if value is None:
             return None
         return unicode_safe_truncate(value, MAX_LENS[key])
 
     @property
-    def when(self):  # noqa: ANN201
+    def when(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if self.all_day:
             # Dates are stored as DateTimes so transform to dates here.
             start = arrow.get(self.start).to("utc").date()
@@ -234,7 +243,7 @@ class Event(
             return Time(start) if start == end else TimeSpan(start, end)
 
     @when.setter
-    def when(self, when) -> None:
+    def when(self, when) -> None:  # type: ignore[no-untyped-def]
         if "time" in when:
             self.start = self.end = time_parse(when["time"])
             self.all_day = False
@@ -250,7 +259,9 @@ class Event(
             self.end = date_parse(when["end_date"])
             self.all_day = True
 
-    def _merge_participant_attributes(self, left, right):
+    def _merge_participant_attributes(  # type: ignore[no-untyped-def]
+        self, left, right
+    ):
         """Merge right into left. Right takes precedence unless it's null."""
         for attribute in right.keys():
             # Special cases:
@@ -265,7 +276,9 @@ class Event(
 
         return left
 
-    def _partial_participants_merge(self, event):
+    def _partial_participants_merge(  # type: ignore[no-untyped-def]
+        self, event
+    ):
         """
         Merge the participants from event into self.participants.
         event always takes precedence over self, except if
@@ -355,7 +368,7 @@ class Event(
             self.sequence_number = event.sequence_number
 
     @property
-    def recurring(self):  # noqa: ANN201
+    def recurring(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if self.recurrence and self.recurrence != "":
             try:
                 r = ast.literal_eval(self.recurrence)
@@ -372,13 +385,13 @@ class Event(
         return []
 
     @property
-    def organizer_email(self):  # noqa: ANN201
+    def organizer_email(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         # For historical reasons, the event organizer field is stored as
         # "Owner Name <owner@email.com>".
 
         parsed_owner = parseaddr(self.owner)
         if len(parsed_owner) == 0:
-            return None
+            return None  # type: ignore[unreachable]
 
         if parsed_owner[1] == "":
             return None
@@ -386,11 +399,11 @@ class Event(
         return parsed_owner[1]
 
     @property
-    def organizer_name(self):  # noqa: ANN201
+    def organizer_name(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         parsed_owner = parseaddr(self.owner)
 
         if len(parsed_owner) == 0:
-            return None
+            return None  # type: ignore[unreachable]
 
         if parsed_owner[0] == "":
             return None
@@ -402,43 +415,43 @@ class Event(
         return self.recurrence is not None
 
     @property
-    def length(self):  # noqa: ANN201
+    def length(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self.when.delta
 
     @property
-    def cancelled(self):  # noqa: ANN201
+    def cancelled(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self.status == "cancelled"
 
     @cancelled.setter
-    def cancelled(self, is_cancelled) -> None:
+    def cancelled(self, is_cancelled) -> None:  # type: ignore[no-untyped-def]
         if is_cancelled:
             self.status = "cancelled"
         else:
             self.status = "confirmed"
 
     @property
-    def calendar_event_link(self):  # noqa: ANN201
+    def calendar_event_link(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         try:
             return json.loads(self.raw_data)["htmlLink"]
         except (ValueError, KeyError):
             return None
 
     @property
-    def emails_from_description(self):  # noqa: ANN201
+    def emails_from_description(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if self.description:
             return extract_emails_from_text(self.description)
         else:
             return []
 
     @property
-    def emails_from_title(self):  # noqa: ANN201
+    def emails_from_title(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if self.title:
             return extract_emails_from_text(self.title)
         else:
             return []
 
     @classmethod
-    def create(cls, **kwargs):  # noqa: ANN206
+    def create(cls, **kwargs):  # type: ignore[no-untyped-def]  # noqa: ANN206
         # Decide whether or not to instantiate a RecurringEvent/Override
         # based on the kwargs we get.
         cls_ = cls
@@ -453,7 +466,7 @@ class Event(
             cls_ = RecurringEventOverride
         return cls_(**kwargs)
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs) -> None:  # type: ignore[no-untyped-def]
         if (
             kwargs.pop("__event_created_sanely", None)
             is not _EVENT_CREATED_SANELY_SENTINEL
@@ -482,7 +495,7 @@ class RecurringEvent(Event):
     """
 
     __mapper_args__ = {"polymorphic_identity": "recurringevent"}
-    __table_args__ = None
+    __table_args__ = None  # type: ignore[assignment]
 
     id = Column(ForeignKey("event.id", ondelete="CASCADE"), primary_key=True)
     rrule = Column(String(RECURRENCE_MAX_LEN))
@@ -490,7 +503,7 @@ class RecurringEvent(Event):
     until = Column(FlexibleDateTime, nullable=True)
     start_timezone = Column(String(35))
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs) -> None:  # type: ignore[no-untyped-def]
         self.start_timezone = kwargs.pop("original_start_tz", None)
         kwargs["recurrence"] = repr(kwargs["recurrence"])
         super().__init__(**kwargs)
@@ -517,7 +530,7 @@ class RecurringEvent(Event):
                 exc_info=True,
             )
 
-    def inflate(self, start=None, end=None):  # noqa: ANN201
+    def inflate(self, start=None, end=None):  # type: ignore[no-untyped-def]  # noqa: ANN201
         # Convert a RecurringEvent into a series of InflatedEvents
         # by expanding its RRULE into a series of start times.
         from inbox.events.recurring import get_start_times
@@ -539,10 +552,10 @@ class RecurringEvent(Event):
             elif item.startswith("EXDATE"):
                 self.exdate = item
 
-    def all_events(self, start=None, end=None):  # noqa: ANN201
+    def all_events(self, start=None, end=None):  # type: ignore[no-untyped-def]  # noqa: ANN201
         # Returns all inflated events along with overrides that match the
         # provided time range.
-        overrides = self.overrides
+        overrides = self.overrides  # type: ignore[attr-defined]
         if start:
             overrides = overrides.filter(RecurringEventOverride.start > start)
         if end:
@@ -570,7 +583,7 @@ class RecurringEvent(Event):
                 events.append(e)
         return sorted(events, key=lambda e: e.start)
 
-    def update(self, event) -> None:
+    def update(self, event) -> None:  # type: ignore[no-untyped-def]
         super().update(event)
         if isinstance(event, type(self)):
             self.rrule = event.rrule
@@ -590,7 +603,7 @@ class RecurringEventOverride(Event):
         "polymorphic_identity": "recurringeventoverride",
         "inherit_condition": (id == Event.id),
     }
-    __table_args__ = None
+    __table_args__ = None  # type: ignore[assignment]
 
     master_event_id = Column(ForeignKey("event.id", ondelete="CASCADE"))
     master_event_uid = Column(
@@ -606,12 +619,14 @@ class RecurringEventOverride(Event):
     )
 
     @validates("master_event_uid")
-    def validate_master_event_uid_length(self, key, value):  # noqa: ANN201
+    def validate_master_event_uid_length(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, key, value
+    ):
         if value is None:
             return None
         return unicode_safe_truncate(value, MAX_LENS[key])
 
-    def update(self, event) -> None:
+    def update(self, event) -> None:  # type: ignore[no-untyped-def]
         super().update(event)
         if isinstance(event, type(self)):
             self.master_event_uid = event.master_event_uid
@@ -629,9 +644,11 @@ class InflatedEvent(Event):
 
     __mapper_args__ = {"polymorphic_identity": "inflatedevent"}
     __tablename__ = "event"
-    __table_args__ = {"extend_existing": True}
+    __table_args__ = {"extend_existing": True}  # type: ignore[assignment]
 
-    def __init__(self, event, instance_start) -> None:
+    def __init__(  # type: ignore[no-untyped-def]
+        self, event, instance_start
+    ) -> None:
         self.master = event
         self.update(self.master)
         self.read_only = True  # Until we support modifying inflated events
@@ -642,13 +659,13 @@ class InflatedEvent(Event):
         self.public_id = f"{self.master.public_id}_{ts_id}"
         self.set_start_end(instance_start)
 
-    def set_start_end(self, start) -> None:
+    def set_start_end(self, start) -> None:  # type: ignore[no-untyped-def]
         # get the length from the master event
         length = self.master.length
         self.start = start.to("utc")
         self.end = self.start + length
 
-    def update(self, master) -> None:
+    def update(self, master) -> None:  # type: ignore[no-untyped-def]
         super().update(master)
         self.namespace_id = master.namespace_id
         self.calendar_id = master.calendar_id
@@ -665,7 +682,9 @@ class InflatedEvent(Event):
         self.message = None
 
 
-def insert_warning(mapper, connection, target) -> Never:
+def insert_warning(  # type: ignore[no-untyped-def]
+    mapper, connection, target
+) -> Never:
     log.warning(f"InflatedEvent {target} shouldn't be committed")
     raise Exception("InflatedEvent should not be committed")
 

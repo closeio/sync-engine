@@ -1,10 +1,23 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, String
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship, validates
-from sqlalchemy.orm.exc import MultipleResultsFound
-from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy import (  # type: ignore[import-untyped]
+    Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    String,
+)
+from sqlalchemy.ext.hybrid import (  # type: ignore[import-untyped]
+    hybrid_property,
+)
+from sqlalchemy.orm import (  # type: ignore[import-untyped]
+    relationship,
+    validates,
+)
+from sqlalchemy.orm.exc import (  # type: ignore[import-untyped]
+    MultipleResultsFound,
+)
+from sqlalchemy.schema import UniqueConstraint  # type: ignore[import-untyped]
 
 from inbox.logging import get_logger
 from inbox.models.base import MailSyncBase
@@ -25,7 +38,7 @@ log = get_logger()
 EPOCH = datetime.utcfromtimestamp(0)
 
 
-def sanitize_name(name):  # noqa: ANN201
+def sanitize_name(name):  # type: ignore[no-untyped-def]  # noqa: ANN201
     return unicode_safe_truncate(name, MAX_INDEXABLE_LENGTH)
 
 
@@ -42,7 +55,9 @@ class CategoryNameString(StringWithTransform):
     type match the values that we are actually storing in the database.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(  # type: ignore[no-untyped-def]
+        self, *args, **kwargs
+    ) -> None:
         super().__init__(
             sanitize_name, MAX_INDEXABLE_LENGTH, collation="utf8mb4_bin"
         )
@@ -52,7 +67,7 @@ class Category(
     MailSyncBase, HasRevisions, HasPublicID, UpdatedAtMixin, DeletedAtMixin
 ):
     @property
-    def API_OBJECT_NAME(self):  # noqa: ANN201, N802
+    def API_OBJECT_NAME(self):  # type: ignore[no-untyped-def]  # noqa: ANN201, N802
         return self.type_
 
     # Override the default `deleted_at` column with one that is NOT NULL --
@@ -81,7 +96,9 @@ class Category(
     type_ = Column(Enum("folder", "label"), nullable=False, default="folder")
 
     @validates("display_name")
-    def validate_display_name(self, key, display_name):  # noqa: ANN201
+    def validate_display_name(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, key, display_name
+    ):
         sanitized_name = sanitize_name(display_name)
         if sanitized_name != display_name:
             log.warning(
@@ -92,7 +109,7 @@ class Category(
         return sanitized_name
 
     @classmethod
-    def find_or_create(  # noqa: ANN206
+    def find_or_create(  # type: ignore[no-untyped-def]  # noqa: ANN206
         cls, session, namespace_id, name, display_name, type_
     ):
         name = name or ""
@@ -107,7 +124,7 @@ class Category(
         )
 
         if not objects:
-            obj = cls(
+            obj = cls(  # type: ignore[call-arg]
                 namespace_id=namespace_id,
                 name=name,
                 display_name=display_name,
@@ -138,11 +155,11 @@ class Category(
         return obj
 
     @classmethod
-    def create(  # noqa: ANN206
+    def create(  # type: ignore[no-untyped-def]  # noqa: ANN206
         cls, session, namespace_id, name, display_name, type_
     ):
         name = name or ""
-        obj = cls(
+        obj = cls(  # type: ignore[call-arg]
             namespace_id=namespace_id,
             name=name,
             display_name=display_name,
@@ -153,23 +170,23 @@ class Category(
         return obj
 
     @property
-    def account(self):  # noqa: ANN201
+    def account(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self.namespace.account
 
     @property
-    def type(self):  # noqa: ANN201
+    def type(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self.account.category_type
 
     @hybrid_property
     def lowercase_name(self):  # noqa: ANN201
         return self.display_name.lower()
 
-    @lowercase_name.comparator
+    @lowercase_name.comparator  # type: ignore[no-redef]
     def lowercase_name(cls):  # noqa: ANN201, N805
         return CaseInsensitiveComparator(cls.display_name)
 
     @property
-    def api_display_name(self):  # noqa: ANN201
+    def api_display_name(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if self.namespace.account.provider == "gmail":
             if self.display_name.startswith("[Gmail]/"):
                 return self.display_name[8:]
@@ -186,7 +203,7 @@ class Category(
         return self.display_name
 
     @property
-    def is_deleted(self):  # noqa: ANN201
+    def is_deleted(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self.deleted_at > EPOCH
 
     __table_args__ = (

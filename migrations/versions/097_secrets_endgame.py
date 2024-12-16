@@ -17,7 +17,7 @@ from alembic import op
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine()
     if engine.has_table("easaccount"):

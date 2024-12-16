@@ -32,7 +32,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
 
     sync_engine_class: ClassVar[type[FolderSyncEngine]] = FolderSyncEngine
 
-    def __init__(
+    def __init__(  # type: ignore[no-untyped-def]
         self, account, heartbeat: int = 1, refresh_frequency: int = 30
     ) -> None:
         self.refresh_frequency = refresh_frequency
@@ -45,7 +45,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
         BaseMailSyncMonitor.__init__(self, account, heartbeat)
 
     @retry_crispin
-    def prepare_sync(self):  # noqa: ANN201
+    def prepare_sync(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         """
         Gets and save Folder objects for folders on the IMAP backend. Returns a
         list of folder names for the folders we want to sync (in order).
@@ -62,7 +62,9 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                 self.saved_remote_folders = remote_folders
         return sync_folders
 
-    def save_folder_names(self, db_session, raw_folders) -> None:
+    def save_folder_names(  # type: ignore[no-untyped-def]
+        self, db_session, raw_folders
+    ) -> None:
         """
         Save the folders present on the remote backend for an account.
 
@@ -170,15 +172,15 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
 
     def start_delete_handler(self) -> None:
         if self.delete_handler is None:
-            self.delete_handler = DeleteHandler(
+            self.delete_handler = DeleteHandler(  # type: ignore[assignment]
                 account_id=self.account_id,
                 namespace_id=self.namespace_id,
                 provider_name=self.provider_name,
                 uid_accessor=lambda m: m.imapuids,
             )
-            self.delete_handler.start()
+            self.delete_handler.start()  # type: ignore[attr-defined]
 
-    def sync(self) -> None:
+    def sync(self) -> None:  # type: ignore[override]
         try:
             self.start_delete_handler()
             self.start_new_folder_sync_engines()
@@ -201,7 +203,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
         from inbox.mailsync.backends.gmail import GmailSyncMonitor
 
         if self.delete_handler:
-            self.delete_handler.kill()
+            self.delete_handler.kill()  # type: ignore[unreachable]
         kill_all(self.folder_monitors, block=False)
         if isinstance(self, GmailSyncMonitor):
             kill_all(self.label_rename_handlers.values(), block=False)

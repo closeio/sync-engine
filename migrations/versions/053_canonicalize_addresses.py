@@ -11,9 +11,9 @@ Create Date: 2014-07-15 22:11:38.037716
 revision = "3795b2a97af1"
 down_revision = "358d0320397f"
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
-from sqlalchemy.dialects import mysql
+from sqlalchemy.dialects import mysql  # type: ignore[import-untyped]
 
 
 def upgrade() -> None:
@@ -57,19 +57,21 @@ def upgrade() -> None:
         "ix_contact__raw_address", "contact", ["_raw_address"], unique=False
     )
 
-    from flanker.addresslib import address
+    from flanker.addresslib import address  # type: ignore[import-untyped]
 
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
-    from sqlalchemy.ext.declarative import declarative_base
+    from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+        declarative_base,
+    )
 
     from inbox.models.session import session_scope
 
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    def canonicalize_address(addr):
+    def canonicalize_address(addr):  # type: ignore[no-untyped-def]
         """Gmail addresses with and without periods are the same."""
         parsed_address = address.parse(addr, addr_spec_only=True)
         if not isinstance(parsed_address, address.EmailAddress):
@@ -79,13 +81,15 @@ def upgrade() -> None:
             local_part = local_part.replace(".", "")
         return "@".join((local_part, parsed_address.hostname))
 
-    class Account(Base):
+    class Account(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["account"]
 
-    class Contact(Base):
+    class Contact(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["contact"]
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         for acct in db_session.query(Account):
             acct._raw_address = acct.email_address
             acct._canonicalized_address = canonicalize_address(
@@ -122,7 +126,7 @@ def downgrade() -> None:
     op.create_index(
         "ix_contact_email_address", "contact", ["email_address"], unique=False
     )
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
     from sqlalchemy.ext.declarative import declarative_base
@@ -132,13 +136,15 @@ def downgrade() -> None:
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Account(Base):
+    class Account(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["account"]
 
-    class Contact(Base):
+    class Contact(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["contact"]
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         for acct in db_session.query(Account):
             acct.email_address = acct._raw_address
         db_session.commit()

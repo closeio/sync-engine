@@ -27,7 +27,7 @@ class BaseSyncMonitor(InterruptibleThread):
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[no-untyped-def]
         self,
         account_id,
         namespace_id,
@@ -86,7 +86,9 @@ class BaseSyncMonitor(InterruptibleThread):
     def _run_impl(self) -> None:
         try:
             self.sync()
-            self.heartbeat_status.publish(state="poll")
+            self.heartbeat_status.publish(  # type: ignore[unreachable]
+                state="poll"
+            )
 
         # If we get a connection or API permissions error, then sleep
         # 2x poll frequency.

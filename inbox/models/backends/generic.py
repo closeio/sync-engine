@@ -1,5 +1,10 @@
-from sqlalchemy import Boolean, Column, ForeignKey, String
-from sqlalchemy.orm import relationship
+from sqlalchemy import (  # type: ignore[import-untyped]
+    Boolean,
+    Column,
+    ForeignKey,
+    String,
+)
+from sqlalchemy.orm import relationship  # type: ignore[import-untyped]
 
 from inbox.models.account import CategoryType
 from inbox.models.backends.imap import ImapAccount
@@ -61,7 +66,7 @@ class GenericAccount(ImapAccount):
     __mapper_args__ = {"polymorphic_identity": "genericaccount"}
 
     @property
-    def verbose_provider(self):  # noqa: ANN201
+    def verbose_provider(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if self.provider == "custom":
             return "imap"
         return self.provider
@@ -87,7 +92,7 @@ class GenericAccount(ImapAccount):
 
     @imap_password.setter
     def imap_password(self, value: str | bytes) -> None:
-        value: bytes = self.valid_password(value)
+        value: bytes = self.valid_password(value)  # type: ignore[no-redef]
         if not self.imap_secret:
             self.imap_secret = Secret()
         self.imap_secret.secret = value
@@ -99,7 +104,7 @@ class GenericAccount(ImapAccount):
 
     @smtp_password.setter
     def smtp_password(self, value: str | bytes) -> None:
-        value: bytes = self.valid_password(value)
+        value: bytes = self.valid_password(value)  # type: ignore[no-redef]
         if not self.smtp_secret:
             self.smtp_secret = Secret()
         self.smtp_secret.secret = value
@@ -113,22 +118,22 @@ class GenericAccount(ImapAccount):
             return "folder"
 
     @property
-    def thread_cls(self):  # noqa: ANN201
+    def thread_cls(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         from inbox.models.backends.imap import ImapThread
 
         return ImapThread
 
     @property
-    def actionlog_cls(self):  # noqa: ANN201
+    def actionlog_cls(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         from inbox.models.action_log import ActionLog
 
         return ActionLog
 
     @property
-    def server_settings(self):  # noqa: ANN201
+    def server_settings(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         settings = {}
-        settings["imap_host"], settings["imap_port"] = self.imap_endpoint
-        settings["smtp_host"], settings["smtp_port"] = self.smtp_endpoint
+        (settings["imap_host"], settings["imap_port"]) = self.imap_endpoint
+        (settings["smtp_host"], settings["smtp_port"]) = self.smtp_endpoint
         return settings
 
     # Override provider_info and auth_handler to make sure we always get
@@ -138,13 +143,13 @@ class GenericAccount(ImapAccount):
     # provider attribute to "gmail" to use the Gmail sync engine.
 
     @property
-    def provider_info(self):  # noqa: ANN201
+    def provider_info(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         provider_info = super().provider_info
         provider_info["auth"] = "password"
         return provider_info
 
     @property
-    def auth_handler(self):  # noqa: ANN201
+    def auth_handler(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         from inbox.auth.base import handler_from_provider
 
         return handler_from_provider("custom")

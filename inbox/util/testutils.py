@@ -7,7 +7,7 @@ from typing import Literal
 
 import attr
 import dns
-import pytest
+import pytest  # type: ignore[import-not-found]
 
 from inbox.exceptions import ValidationError
 from inbox.util.file import get_data
@@ -74,7 +74,7 @@ def setup_test_db() -> None:
 
 @attr.s
 class MockAnswer:
-    exchange = attr.ib()
+    exchange = attr.ib()  # type: ignore[var-annotated]
 
 
 class MockDNSResolver:
@@ -83,10 +83,10 @@ class MockDNSResolver:
             Literal["mx", "ns"], dict[str, dict[str, str] | list[str]]
         ] = {"mx": {}, "ns": {}}
 
-    def _load_records(self, filename) -> None:
+    def _load_records(self, filename) -> None:  # type: ignore[no-untyped-def]
         self._registry = json.loads(get_data(filename))
 
-    def query(self, domain, record_type):  # noqa: ANN201
+    def query(self, domain, record_type):  # type: ignore[no-untyped-def]  # noqa: ANN201
         record_type = record_type.lower()
         entry = self._registry[record_type][domain]
         if isinstance(entry, dict):
@@ -100,7 +100,7 @@ class MockDNSResolver:
 
 
 @pytest.fixture
-def mock_dns_resolver(monkeypatch):  # noqa: ANN201
+def mock_dns_resolver(monkeypatch):  # type: ignore[no-untyped-def]  # noqa: ANN201
     dns_resolver = MockDNSResolver()
     monkeypatch.setattr("inbox.util.url.dns_resolver", dns_resolver)
     yield dns_resolver
@@ -114,46 +114,54 @@ class MockIMAPClient:
     """
 
     def __init__(self) -> None:
-        self._data = {}
+        self._data = {}  # type: ignore[var-annotated]
         self.selected_folder = None
         self.uidvalidity = 1
-        self.logins = {}
+        self.logins = {}  # type: ignore[var-annotated]
         self.error_message = ""
 
-    def _add_login(self, email, password) -> None:
+    def _add_login(  # type: ignore[no-untyped-def]
+        self, email, password
+    ) -> None:
         self.logins[email] = password
 
-    def _set_error_message(self, message) -> None:
+    def _set_error_message(  # type: ignore[no-untyped-def]
+        self, message
+    ) -> None:
         self.error_message = message
 
-    def login(self, email, password) -> None:
+    def login(self, email, password) -> None:  # type: ignore[no-untyped-def]
         if email not in self.logins or self.logins[email] != password:
             raise ValidationError(self.error_message)
 
     def logout(self) -> None:
         pass
 
-    def list_folders(  # noqa: ANN201
+    def list_folders(  # type: ignore[no-untyped-def]  # noqa: ANN201
         self, directory: str = "", pattern: str = "*"
     ):
         return [(b"\\All", b"/", "[Gmail]/All Mail")]
 
-    def has_capability(self, capability) -> bool:
+    def has_capability(  # type: ignore[no-untyped-def]
+        self, capability
+    ) -> bool:
         return False
 
-    def idle_check(self, timeout=None):  # noqa: ANN201
+    def idle_check(self, timeout=None):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return []
 
-    def idle_done(self):  # noqa: ANN201
+    def idle_done(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return ("Idle terminated", [])
 
-    def add_folder_data(self, folder_name, uids) -> None:
+    def add_folder_data(  # type: ignore[no-untyped-def]
+        self, folder_name, uids
+    ) -> None:
         """Adds fake UID data for the given folder."""  # noqa: D401
         self._data[folder_name] = uids
 
-    def search(self, criteria):  # noqa: ANN201
+    def search(self, criteria):  # type: ignore[no-untyped-def]  # noqa: ANN201
         assert self.selected_folder is not None
-        assert isinstance(criteria, list)
+        assert isinstance(criteria, list)  # type: ignore[unreachable]
         uid_dict = self._data[self.selected_folder]
         if criteria == ["ALL"]:
             return list(uid_dict)
@@ -179,15 +187,19 @@ class MockIMAPClient:
             return [u for u, v in uid_dict.items() if v[criteria[0]] == thrid]
         raise ValueError(f"unsupported test criteria: {criteria!r}")
 
-    def select_folder(  # noqa: ANN201
+    def select_folder(  # type: ignore[no-untyped-def]  # noqa: ANN201
         self, folder_name, readonly: bool = False
     ):
         self.selected_folder = folder_name
         return self.folder_status(folder_name)
 
-    def fetch(self, items, data, modifiers=None):  # noqa: ANN201
+    def fetch(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, items, data, modifiers=None
+    ):
         assert self.selected_folder is not None
-        uid_dict = self._data[self.selected_folder]
+        uid_dict = self._data[  # type: ignore[unreachable]
+            self.selected_folder
+        ]
         resp = {}
         if "BODY.PEEK[]" in data:
             data.remove("BODY.PEEK[]")
@@ -214,7 +226,7 @@ class MockIMAPClient:
                 }
         return resp
 
-    def append(
+    def append(  # type: ignore[no-untyped-def]
         self,
         folder_name,
         mimemsg,
@@ -235,7 +247,9 @@ class MockIMAPClient:
             b"X-GM-THRID": x_gm_thrid,
         }
 
-    def copy(self, matching_uids, folder_name) -> None:
+    def copy(  # type: ignore[no-untyped-def]
+        self, matching_uids, folder_name
+    ) -> None:
         """
         Note: _moves_ one or more messages from the currently selected folder
         to folder_name
@@ -244,10 +258,12 @@ class MockIMAPClient:
             self._data[folder_name][u] = self._data[self.selected_folder][u]
         self.delete_messages(matching_uids)
 
-    def capabilities(self):  # noqa: ANN201
+    def capabilities(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return []
 
-    def folder_status(self, folder_name, data=None):  # noqa: ANN201
+    def folder_status(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, folder_name, data=None
+    ):
         folder_data = self._data[folder_name]
         lastuid = max(folder_data) if folder_data else 0
         resp = {b"UIDNEXT": lastuid + 1, b"UIDVALIDITY": self.uidvalidity}
@@ -257,25 +273,33 @@ class MockIMAPClient:
             )
         return resp
 
-    def delete_messages(self, uids, silent: bool = False) -> None:
+    def delete_messages(  # type: ignore[no-untyped-def]
+        self, uids, silent: bool = False
+    ) -> None:
         for u in uids:
             del self._data[self.selected_folder][u]
 
-    def remove_flags(self, uids, flags) -> None:
+    def remove_flags(  # type: ignore[no-untyped-def]
+        self, uids, flags
+    ) -> None:
         pass
 
-    def remove_gmail_labels(self, uids, labels) -> None:
+    def remove_gmail_labels(  # type: ignore[no-untyped-def]
+        self, uids, labels
+    ) -> None:
         pass
 
     def expunge(self) -> None:
         pass
 
-    def oauth2_login(self, email, token) -> None:
+    def oauth2_login(  # type: ignore[no-untyped-def]
+        self, email, token
+    ) -> None:
         pass
 
 
 @pytest.fixture
-def mock_imapclient(monkeypatch):  # noqa: ANN201
+def mock_imapclient(monkeypatch):  # type: ignore[no-untyped-def]  # noqa: ANN201
     conn = MockIMAPClient()
     monkeypatch.setattr(
         "inbox.crispin.CrispinConnectionPool._new_raw_connection",
@@ -293,11 +317,11 @@ class MockSMTPClient:
 
 
 @pytest.fixture
-def mock_smtp_get_connection(monkeypatch):  # noqa: ANN201
+def mock_smtp_get_connection(monkeypatch):  # type: ignore[no-untyped-def]  # noqa: ANN201
     client = MockSMTPClient()
 
     @contextlib.contextmanager
-    def get_connection(account):
+    def get_connection(account):  # type: ignore[no-untyped-def]
         yield client
 
     monkeypatch.setattr(
@@ -308,7 +332,7 @@ def mock_smtp_get_connection(monkeypatch):  # noqa: ANN201
 
 
 @pytest.fixture
-def files(db):  # noqa: ANN201
+def files(db):  # type: ignore[no-untyped-def]  # noqa: ANN201
     filenames = FILENAMES
     data = []
     for filename in filenames:
@@ -325,7 +349,7 @@ def files(db):  # noqa: ANN201
 
 
 @pytest.fixture
-def uploaded_file_ids(api_client, files):  # noqa: ANN201
+def uploaded_file_ids(api_client, files):  # type: ignore[no-untyped-def]  # noqa: ANN201
     file_ids = []
     upload_path = "/files"
     for filename, path in files:

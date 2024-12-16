@@ -11,15 +11,17 @@ Create Date: 2015-05-10 03:16:04.846781
 revision = "3d4f5741e1d7"
 down_revision = "29698176aa8d"
 
-import sqlalchemy as sa
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import load_only
+import sqlalchemy as sa  # type: ignore[import-untyped]
+from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+    declarative_base,
+)
+from sqlalchemy.orm import load_only  # type: ignore[import-untyped]
 
 CHUNK_SIZE = 1000
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
     from inbox.security.blobstorage import encode_blob
 
@@ -27,10 +29,12 @@ def upgrade() -> None:
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Message(Base):
+    class Message(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["message"]
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         (max_id,) = db_session.query(sa.func.max(Message.id)).one()
         if max_id is None:
             max_id = 0

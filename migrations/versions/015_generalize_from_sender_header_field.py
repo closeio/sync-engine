@@ -16,7 +16,7 @@ def upgrade() -> None:
     from inbox.models import Message
     from inbox.models.session import session_scope
 
-    with session_scope() as db_session:
+    with session_scope() as db_session:  # type: ignore[call-arg]
         results = db_session.query(Message).all()
         for message in results:
             message.from_addr = [message.from_addr]
@@ -28,7 +28,7 @@ def downgrade() -> None:
     from inbox.models import Message
     from inbox.models.session import session_scope
 
-    with session_scope() as db_session:
+    with session_scope() as db_session:  # type: ignore[call-arg]
         results = db_session.query(Message).all()
         for message in results:
             if message.from_addr:

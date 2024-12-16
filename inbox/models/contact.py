@@ -1,4 +1,4 @@
-from sqlalchemy import (
+from sqlalchemy import (  # type: ignore[import-untyped]
     BigInteger,
     Column,
     Enum,
@@ -8,8 +8,12 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.orm import backref, relationship, validates
-from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy.orm import (  # type: ignore[import-untyped]
+    backref,
+    relationship,
+    validates,
+)
+from sqlalchemy.schema import UniqueConstraint  # type: ignore[import-untyped]
 
 from inbox.models.base import MailSyncBase
 from inbox.models.event import Event
@@ -36,7 +40,7 @@ class Contact(
 ):
     """Data for a user's contact."""
 
-    API_OBJECT_NAME = "contact"
+    API_OBJECT_NAME = "contact"  # type: ignore[assignment]
 
     namespace_id = Column(BigInteger, nullable=False, index=True)
     namespace = relationship(
@@ -77,16 +81,18 @@ class Contact(
     )
 
     @validates("raw_data")
-    def validate_text_column_length(self, key, value):  # noqa: ANN201
+    def validate_text_column_length(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, key, value
+    ):
         if value is None:
             return None
         return unicode_safe_truncate(value, MAX_TEXT_CHARS)
 
     @property
-    def versioned_relationships(self):  # noqa: ANN201
+    def versioned_relationships(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return ["phone_numbers"]
 
-    def merge_from(self, new_contact) -> None:
+    def merge_from(self, new_contact) -> None:  # type: ignore[no-untyped-def]
         # This must be updated when new fields are added to the class.
         merge_attrs = ["name", "email_address", "raw_data"]
         for attr in merge_attrs:

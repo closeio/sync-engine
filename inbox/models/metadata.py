@@ -1,5 +1,12 @@
-from sqlalchemy import BigInteger, Column, ForeignKey, Index, Integer, String
-from sqlalchemy.orm import relationship
+from sqlalchemy import (  # type: ignore[import-untyped]
+    BigInteger,
+    Column,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+)
+from sqlalchemy.orm import relationship  # type: ignore[import-untyped]
 
 from inbox.models.base import MailSyncBase
 from inbox.models.mixins import (
@@ -29,7 +36,7 @@ class Metadata(
     value should be set to null.
     """
 
-    API_OBJECT_NAME = "metadata"
+    API_OBJECT_NAME = "metadata"  # type: ignore[assignment]
 
     # Application data fields
     # - app_id: The referenced app's primary key

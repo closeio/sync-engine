@@ -5,7 +5,7 @@ from sys import exit
 import click
 
 from inbox.error_handling import maybe_enable_rollbar
-from inbox.heartbeat.config import (
+from inbox.heartbeat.config import (  # type: ignore[attr-defined]
     REPORT_DATABASE,
     STATUS_DATABASE,
     _get_redis_client,
@@ -16,7 +16,7 @@ from inbox.heartbeat.config import (
 @click.command()
 @click.option("--host", "-h", type=str)
 @click.option("--port", "-p", type=int, default=6379)
-def main(host, port) -> None:
+def main(host, port) -> None:  # type: ignore[no-untyped-def]
     maybe_enable_rollbar()
 
     if host:

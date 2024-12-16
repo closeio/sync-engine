@@ -153,3 +153,31 @@ unfixable = [
 "bin/**.py" = ["T201", "E402", "N999"]
 "migrations/**.py" = ["T201", "E402"]
 "tests/**.py" = ["ANN"]
+
+[tool.mypy]
+python_version = "3.12"
+strict_equality = true
+warn_unreachable = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+show_error_context = true
+enable_error_code = [
+    "unused-awaitable",
+    "redundant-self",
+    "redundant-expr",
+    "possibly-undefined",
+    "ignore-without-code",
+    "truthy-iterable",
+    "truthy-bool",
+]
+pretty = true
+files = [
+    "bin",
+    "inbox",
+    "migrations",
+]
+namespace_packages = true
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true

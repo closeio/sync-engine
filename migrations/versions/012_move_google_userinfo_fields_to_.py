@@ -11,14 +11,16 @@ Create Date: 2014-04-15 02:21:13.398192
 revision = "193802835c33"
 down_revision = "3237b6b1ee03"
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.sql import column, table
+from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+    declarative_base,
+)
+from sqlalchemy.sql import column, table  # type: ignore[import-untyped]
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -55,10 +57,10 @@ def upgrade() -> None:
     )
 
     # MOVE:
-    class Account_(Base):  # noqa: N801
+    class Account_(Base):  # type: ignore[misc, valid-type]  # noqa: N801
         __table__ = Base.metadata.tables["account"]
 
-    with session_scope() as db_session:
+    with session_scope() as db_session:  # type: ignore[call-arg]
         results = db_session.query(
             Account_.id,
             Account_.family_name,
@@ -110,7 +112,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
     from inbox.models.session import session_scope
 
     engine = main_engine(pool_size=1, max_overflow=0)
@@ -144,10 +146,10 @@ def downgrade() -> None:
     )
 
     # MOVE:
-    class ImapAccount_(Base):  # noqa: N801
+    class ImapAccount_(Base):  # type: ignore[misc, valid-type]  # noqa: N801
         __table__ = Base.metadata.tables["imapaccount"]
 
-    with session_scope() as db_session:
+    with session_scope() as db_session:  # type: ignore[call-arg]
         results = db_session.query(
             ImapAccount_.id,
             ImapAccount_.family_name,

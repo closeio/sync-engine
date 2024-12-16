@@ -15,22 +15,27 @@ from contextlib import contextmanager
 from datetime import datetime
 from typing import Never
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, sessionmaker
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+    declarative_base,
+)
+from sqlalchemy.orm import (  # type: ignore[import-untyped]
+    relationship,
+    sessionmaker,
+)
+from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
 
     Session = sessionmaker(bind=engine)  # noqa: N806
 
     @contextmanager
-    def basic_session():
+    def basic_session():  # type: ignore[no-untyped-def]
         # Using the new_session is kind of a pain in this migration, so let's
         # just roll with a normal sqlalchemy session.
         session = Session(autoflush=True, autocommit=False)
@@ -79,17 +84,17 @@ def upgrade() -> None:
     Base = declarative_base()  # noqa: N806
     Base.metadata.reflect(engine)
 
-    class Folder(Base):
+    class Folder(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["folder"]
         account = relationship(
             "Account", foreign_keys="Folder.account_id", backref="folders"
         )
 
-    class FolderItem(Base):
+    class FolderItem(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["folderitem"]
         folder = relationship("Folder", backref="threads", lazy="joined")
 
-    class Account(Base):
+    class Account(Base):  # type: ignore[misc, valid-type]
         __table__ = Base.metadata.tables["account"]
 
     print("setting provider_prefix for current accounts")

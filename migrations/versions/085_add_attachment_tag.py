@@ -12,14 +12,14 @@ revision = "294200d809c8"
 down_revision = "10db12da2005"
 
 from alembic import op
-from sqlalchemy.sql import text
+from sqlalchemy.sql import text  # type: ignore[import-untyped]
 
 
 def upgrade() -> None:
     from inbox.models import Namespace
     from inbox.models.session import session_scope
 
-    with session_scope() as db_session:
+    with session_scope() as db_session:  # type: ignore[call-arg]
         # Create the attachment tag
         print("creating canonical tags...")
         for ns in db_session.query(Namespace):

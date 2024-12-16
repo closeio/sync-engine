@@ -46,7 +46,9 @@ class BaseMailSyncMonitor(InterruptibleThread):
         How often to check for commands.
     """
 
-    def __init__(self, account, heartbeat: int = 1) -> None:
+    def __init__(  # type: ignore[no-untyped-def]
+        self, account, heartbeat: int = 1
+    ) -> None:
         bind_context(self, "mailsyncmonitor", account.id)
         self.shutdown = threading.Event()
         # how often to check inbox, in seconds
@@ -61,7 +63,7 @@ class BaseMailSyncMonitor(InterruptibleThread):
 
         self.name = f"{self.__class__.__name__}(account_id={account.id!r})"
 
-    def _run(self):
+    def _run(self):  # type: ignore[no-untyped-def]
         try:
             return retry_with_logging(
                 self._run_impl,
@@ -73,7 +75,7 @@ class BaseMailSyncMonitor(InterruptibleThread):
             self._cleanup()
             raise
 
-    def _run_impl(self):
+    def _run_impl(self):  # type: ignore[no-untyped-def]
         self.sync_thread = InterruptibleThread(
             retry_with_logging,
             self.sync,
@@ -96,7 +98,7 @@ class BaseMailSyncMonitor(InterruptibleThread):
             provider=self.provider_name,
             exc=self.sync_thread.exception,
         )
-        raise self.sync_thread.exception
+        raise self.sync_thread.exception  # type: ignore[misc]
 
     def sync(self) -> Never:
         raise NotImplementedError
@@ -104,9 +106,9 @@ class BaseMailSyncMonitor(InterruptibleThread):
     def _cleanup(self) -> None:
         self.sync_thread.kill()
         with session_scope(self.namespace_id) as mailsync_db_session:
-            for x in self.folder_monitors:
+            for x in self.folder_monitors:  # type: ignore[attr-defined]
                 x.set_stopped(mailsync_db_session)
-        kill_all(self.folder_monitors)
+        kill_all(self.folder_monitors)  # type: ignore[attr-defined]
 
     def __repr__(self) -> str:
         return f"<{self.name}>"

@@ -12,7 +12,7 @@ revision = "4b4c5579c083"
 down_revision = "4b4674f1a726"
 
 from alembic import op
-from sqlalchemy import func
+from sqlalchemy import func  # type: ignore[import-untyped]
 
 
 def upgrade() -> None:
@@ -54,7 +54,9 @@ def upgrade() -> None:
     from inbox.models import Message
     from inbox.models.session import session_scope
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         groups = (
             db_session.query(Message.id, Message.thread_id, Message.g_msgid)
             .filter(~Message.g_msgid.is_(None))

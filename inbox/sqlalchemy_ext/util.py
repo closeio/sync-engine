@@ -7,12 +7,15 @@ import weakref
 from collections.abc import MutableMapping
 from typing import Any
 
-from sqlalchemy import String, Text, event
-from sqlalchemy.engine import Engine
-from sqlalchemy.ext.mutable import Mutable
-from sqlalchemy.pool import QueuePool
-from sqlalchemy.sql import operators
-from sqlalchemy.types import BINARY, TypeDecorator
+from sqlalchemy import String, Text, event  # type: ignore[import-untyped]
+from sqlalchemy.engine import Engine  # type: ignore[import-untyped]
+from sqlalchemy.ext.mutable import Mutable  # type: ignore[import-untyped]
+from sqlalchemy.pool import QueuePool  # type: ignore[import-untyped]
+from sqlalchemy.sql import operators  # type: ignore[import-untyped]
+from sqlalchemy.types import (  # type: ignore[import-untyped]
+    BINARY,
+    TypeDecorator,
+)
 
 from inbox.logging import get_logger
 from inbox.sqlalchemy_ext import json_util
@@ -37,7 +40,7 @@ should_log_dubiously_many_queries = True
 # that. Don't use this to silence any warnings in application code because
 # these warnings are an indicator of excessive lazy loading from the DB.
 @contextlib.contextmanager
-def disabled_dubiously_many_queries_warning():  # noqa: ANN201
+def disabled_dubiously_many_queries_warning():  # type: ignore[no-untyped-def]  # noqa: ANN201
     global should_log_dubiously_many_queries
     should_log_dubiously_many_queries = False
     yield
@@ -45,7 +48,7 @@ def disabled_dubiously_many_queries_warning():  # noqa: ANN201
 
 
 @event.listens_for(Engine, "before_cursor_execute")
-def before_cursor_execute(
+def before_cursor_execute(  # type: ignore[no-untyped-def]
     conn, cursor, statement, parameters, context, executemany
 ) -> None:
     if conn not in query_counts:
@@ -55,7 +58,7 @@ def before_cursor_execute(
 
 
 @event.listens_for(Engine, "commit")
-def before_commit(conn) -> None:
+def before_commit(conn) -> None:  # type: ignore[no-untyped-def]
     if not should_log_dubiously_many_queries:
         return
     if query_counts.get(conn, 0) > MAX_SANE_QUERIES_PER_SESSION:
@@ -96,7 +99,9 @@ class StringWithTransform(TypeDecorator):
 
     impl = String
 
-    def __init__(self, string_transform, *args, **kwargs) -> None:
+    def __init__(  # type: ignore[no-untyped-def]
+        self, string_transform, *args, **kwargs
+    ) -> None:
         super().__init__(*args, **kwargs)
         if string_transform is None:
             raise ValueError("Must provide a string_transform")
@@ -104,11 +109,13 @@ class StringWithTransform(TypeDecorator):
             raise TypeError("`string_transform` must be callable")
         self._string_transform = string_transform
 
-    def process_bind_param(self, value, dialect):  # noqa: ANN201
+    def process_bind_param(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, value, dialect
+    ):
         return self._string_transform(value)
 
     class comparator_factory(String.Comparator):  # noqa: N801
-        def __eq__(self, other):  # noqa: ANN204
+        def __eq__(self, other):  # type: ignore[no-untyped-def]  # noqa: ANN204
             other = self.type._string_transform(other)
             return self.operate(operators.eq, other)
 
@@ -119,13 +126,17 @@ class JSON(TypeDecorator):
 
     impl = Text
 
-    def process_bind_param(self, value, dialect):  # noqa: ANN201
+    def process_bind_param(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, value, dialect
+    ):
         if value is None:
             return None
 
         return json_util.dumps(value)
 
-    def process_result_value(self, value, dialect):  # noqa: ANN201
+    def process_result_value(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, value, dialect
+    ):
         if not value:
             return None
 
@@ -139,7 +150,7 @@ class JSON(TypeDecorator):
             log.error("ValueError on decoding JSON", value=value)
 
 
-def json_field_too_long(value):  # noqa: ANN201
+def json_field_too_long(value):  # type: ignore[no-untyped-def]  # noqa: ANN201
     return len(json_util.dumps(value)) > MAX_TEXT_CHARS
 
 
@@ -174,9 +185,9 @@ class Base36UID(TypeDecorator):
 # Can simply use this as is because though we use inbox.sqlalchemy_ext.json_util,
 # loads() dumps() return standard Python dicts like the json.* equivalents
 # (because these are simply called under the hood)
-class MutableDict(Mutable, dict):
+class MutableDict(Mutable, dict):  # type: ignore[type-arg]
     @classmethod
-    def coerce(cls, key, value):  # noqa: ANN206
+    def coerce(cls, key, value):  # type: ignore[no-untyped-def]  # noqa: ANN206
         """Convert plain dictionaries to MutableDict."""
         if not isinstance(value, MutableDict):
             if isinstance(value, dict):
@@ -187,31 +198,31 @@ class MutableDict(Mutable, dict):
         else:
             return value
 
-    def __setitem__(self, key, value) -> None:
+    def __setitem__(self, key, value) -> None:  # type: ignore[no-untyped-def]
         """Detect dictionary set events and emit change events."""
         dict.__setitem__(self, key, value)
         self.changed()
 
-    def __delitem__(self, key) -> None:
+    def __delitem__(self, key) -> None:  # type: ignore[no-untyped-def]
         """Detect dictionary del events and emit change events."""
         dict.__delitem__(self, key)
         self.changed()
 
-    def update(self, *args, **kwargs) -> None:
+    def update(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def]
         for k, v in dict(*args, **kwargs).items():
             self[k] = v
 
     # To support pickling:
-    def __getstate__(self):  # noqa: ANN204
+    def __getstate__(self):  # type: ignore[no-untyped-def]  # noqa: ANN204
         return dict(self)
 
-    def __setstate__(self, state) -> None:
+    def __setstate__(self, state) -> None:  # type: ignore[no-untyped-def]
         self.update(state)
 
 
-class MutableList(Mutable, list):
+class MutableList(Mutable, list):  # type: ignore[type-arg]
     @classmethod
-    def coerce(cls, key, value):  # noqa: ANN206
+    def coerce(cls, key, value):  # type: ignore[no-untyped-def]  # noqa: ANN206
         """Convert plain list to MutableList"""
         if not isinstance(value, MutableList):
             if isinstance(value, list):
@@ -222,32 +233,32 @@ class MutableList(Mutable, list):
         else:
             return value
 
-    def __setitem__(self, idx, value) -> None:
+    def __setitem__(self, idx, value) -> None:  # type: ignore[no-untyped-def]
         list.__setitem__(self, idx, value)
         self.changed()
 
-    def __delitem__(self, idx) -> None:
+    def __delitem__(self, idx) -> None:  # type: ignore[no-untyped-def]
         list.__delitem__(self, idx)
         self.changed()
 
-    def append(self, value) -> None:
+    def append(self, value) -> None:  # type: ignore[no-untyped-def]
         list.append(self, value)
         self.changed()
 
-    def insert(self, idx, value) -> None:
+    def insert(self, idx, value) -> None:  # type: ignore[no-untyped-def]
         list.insert(self, idx, value)
         self.changed()
 
-    def extend(self, values) -> None:
+    def extend(self, values) -> None:  # type: ignore[no-untyped-def]
         list.extend(self, values)
         self.changed()
 
-    def pop(self, *args, **kw):  # noqa: ANN201
+    def pop(self, *args, **kw):  # type: ignore[no-untyped-def]  # noqa: ANN201
         value = list.pop(self, *args, **kw)
         self.changed()
         return value
 
-    def remove(self, value) -> None:
+    def remove(self, value) -> None:  # type: ignore[no-untyped-def]
         list.remove(self, value)
         self.changed()
 
@@ -318,7 +329,9 @@ def utf8_surrogate_fix_decode(
 
 def utf8_surrogate_fix_search_function(encoding_name: str) -> codecs.CodecInfo:
     return codecs.CodecInfo(
-        utf8_encode, utf8_surrogate_fix_decode, name="utf8-surrogate-fix"  # type: ignore
+        utf8_encode,
+        utf8_surrogate_fix_decode,  # type: ignore[arg-type]
+        name="utf8-surrogate-fix",
     )
 
 
@@ -337,7 +350,9 @@ class ForceStrictModePool(QueuePool):
 #
 # Without this, MySQL will silently insert invalid values in the database if
 @event.listens_for(ForceStrictModePool, "connect")
-def receive_connect(dbapi_connection, connection_record) -> None:
+def receive_connect(  # type: ignore[no-untyped-def]
+    dbapi_connection, connection_record
+) -> None:
     cur = dbapi_connection.cursor()
     cur.execute(
         "SET SESSION sql_mode='STRICT_TRANS_TABLES,STRICT_ALL_TABLES,"
@@ -350,7 +365,9 @@ def receive_connect(dbapi_connection, connection_record) -> None:
     dbapi_connection.encoding = "utf8-surrogate-fix"
 
 
-def get_db_api_cursor_with_query(session, query):  # noqa: ANN201
+def get_db_api_cursor_with_query(  # type: ignore[no-untyped-def]  # noqa: ANN201
+    session, query
+):
     """
     Return a DB-API cursor with the given SQLAlchemy query executed.
 

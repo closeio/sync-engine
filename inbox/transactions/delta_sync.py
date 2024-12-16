@@ -2,8 +2,8 @@ import collections
 import time
 from datetime import datetime
 
-from sqlalchemy import asc, bindparam, desc
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy import asc, bindparam, desc  # type: ignore[import-untyped]
+from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
 
 from inbox.api.kellogs import APIEncoder, encode
 from inbox.models import Account, Message, Namespace, Thread, Transaction
@@ -17,7 +17,7 @@ EVENT_NAME_FOR_COMMAND = {
 }
 
 
-def get_transaction_cursor_near_timestamp(  # noqa: ANN201
+def get_transaction_cursor_near_timestamp(  # type: ignore[no-untyped-def]  # noqa: ANN201
     namespace_id, timestamp, db_session
 ):
     """
@@ -85,7 +85,9 @@ def get_transaction_cursor_near_timestamp(  # noqa: ANN201
     return latest_transaction.public_id
 
 
-def _get_last_trx_id_for_namespace(namespace_id, db_session):
+def _get_last_trx_id_for_namespace(  # type: ignore[no-untyped-def]
+    namespace_id, db_session
+):
     q = db_session.query(Transaction.id)
     q = q.filter(Transaction.namespace_id == bindparam("namespace_id"))
     q = (
@@ -96,7 +98,7 @@ def _get_last_trx_id_for_namespace(namespace_id, db_session):
     return q.params(namespace_id=namespace_id).one()[0]
 
 
-def format_transactions_after_pointer(  # noqa: ANN201, D417
+def format_transactions_after_pointer(  # type: ignore[no-untyped-def]  # noqa: ANN201, D417
     namespace,
     pointer,
     db_session,
@@ -285,7 +287,7 @@ def format_transactions_after_pointer(  # noqa: ANN201, D417
             pointer = transactions[-1].id
 
 
-def streaming_change_generator(  # noqa: ANN201, D417
+def streaming_change_generator(  # type: ignore[no-untyped-def]  # noqa: ANN201, D417
     namespace,
     poll_interval,
     timeout,

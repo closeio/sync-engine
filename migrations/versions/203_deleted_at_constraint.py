@@ -12,7 +12,7 @@ revision = "420ccbea2c5e"
 down_revision = "2e515548043b"
 
 from alembic import op
-from sqlalchemy.sql import text
+from sqlalchemy.sql import text  # type: ignore[import-untyped]
 
 
 def upgrade() -> None:
@@ -25,7 +25,7 @@ def upgrade() -> None:
         ["namespace_id", "name", "display_name", "deleted_at"],
     )
 
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
     if not engine.has_table("easfoldersyncstatus"):
@@ -47,7 +47,7 @@ def downgrade() -> None:
         "namespace_id", "category", ["namespace_id", "name", "display_name"]
     )
 
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
     if not engine.has_table("easfoldersyncstatus"):

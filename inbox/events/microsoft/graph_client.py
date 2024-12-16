@@ -120,9 +120,11 @@ class MicrosoftGraphClient:
             break
 
         try:
-            response.raise_for_status()
+            response.raise_for_status()  # type: ignore[possibly-undefined]
         except requests.HTTPError as e:
-            raise MicrosoftGraphClientException(response) from e
+            raise MicrosoftGraphClientException(
+                response  # type: ignore[possibly-undefined]
+            ) from e
 
         if not response.text:
             # Some DELETE operations return empty body

@@ -19,11 +19,14 @@ from flask import (
     stream_with_context,
 )
 from flask import jsonify as flask_jsonify
-from flask_restful import reqparse
-from sqlalchemy import asc, func
-from sqlalchemy.exc import OperationalError
-from sqlalchemy.orm import joinedload, load_only
-from sqlalchemy.orm.exc import NoResultFound
+from flask_restful import reqparse  # type: ignore[import-untyped]
+from sqlalchemy import asc, func  # type: ignore[import-untyped]
+from sqlalchemy.exc import OperationalError  # type: ignore[import-untyped]
+from sqlalchemy.orm import (  # type: ignore[import-untyped]
+    joinedload,
+    load_only,
+)
+from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
 
 import inbox.contacts.crud
 from inbox.actions.backends.generic import remote_delete_sent
@@ -124,7 +127,9 @@ from inbox.util.stats import statsd_client
 with contextlib.suppress(ImportError):
     # ImportError: Only important for EAS search failures, so shouldn't trigger
     # test failure.
-    from inbox.util.eas.codes import STORE_STATUS_CODES
+    from inbox.util.eas.codes import (  # type: ignore[import-not-found]
+        STORE_STATUS_CODES,
+    )
 
 from typing import Never
 
@@ -139,7 +144,7 @@ SEND_TIMEOUT = 60
 
 app = Blueprint("namespace_api", __name__, url_prefix="")
 
-app.log_exception = log_exception
+app.log_exception = log_exception  # type: ignore[attr-defined]
 
 # Configure mimetype -> extension map
 # TODO perhaps expand to encompass non-standard mimetypes too
@@ -155,7 +160,7 @@ with open(mt_path) as f:  # noqa: PTH123
         if not x or x.startswith("#"):
             continue
         m = x.split()
-        mime_type, extensions = m[0], m[1:]
+        mime_type, extensions = (m[0], m[1:])
         assert extensions, "Must have at least one extension per mimetype"
         common_extensions[mime_type.lower()] = extensions[0]
 
@@ -245,7 +250,7 @@ def before_remote_request() -> None:
 
 
 @app.after_request
-def finish(response):  # noqa: ANN201
+def finish(response):  # type: ignore[no-untyped-def]  # noqa: ANN201
     if response.status_code == 200 and hasattr(g, "db_session"):  # be cautious
         g.db_session.commit()
     if hasattr(g, "db_session"):
@@ -254,9 +259,12 @@ def finish(response):  # noqa: ANN201
 
 
 @app.errorhandler(OperationalError)
-def handle_operational_error(error):  # noqa: ANN201
+def handle_operational_error(error):  # type: ignore[no-untyped-def]  # noqa: ANN201
     rule = request.url_rule
-    if "send" in rule.rule and "rsvp" not in rule.rule:
+    if (
+        "send" in rule.rule  # type: ignore[union-attr]
+        and "rsvp" not in rule.rule  # type: ignore[union-attr]
+    ):
         message = "A temporary database error prevented us from serving this request. Your message has NOT been sent. Please try again in a few minutes."
     else:
         message = "A temporary database error prevented us from serving this request. Please try again."
@@ -268,7 +276,7 @@ def handle_operational_error(error):  # noqa: ANN201
 
 
 @app.errorhandler(NotImplementedError)
-def handle_not_implemented_error(error):  # noqa: ANN201
+def handle_not_implemented_error(error):  # type: ignore[no-untyped-def]  # noqa: ANN201
     request.environ["log_context"]["error"] = "NotImplementedError"
     response = flask_jsonify(
         message="API endpoint not yet implemented", type="api_error"
@@ -278,7 +286,7 @@ def handle_not_implemented_error(error):  # noqa: ANN201
 
 
 @app.errorhandler(APIException)
-def handle_input_error(error):  # noqa: ANN201
+def handle_input_error(error):  # type: ignore[no-untyped-def]  # noqa: ANN201
     # these "errors" are normal, so we don't need to save a traceback
     request.environ["log_context"]["error"] = error.__class__.__name__
     request.environ["log_context"]["error_message"] = error.message
@@ -290,7 +298,7 @@ def handle_input_error(error):  # noqa: ANN201
 
 
 @app.errorhandler(Exception)
-def handle_generic_error(error):  # noqa: ANN201
+def handle_generic_error(error):  # type: ignore[no-untyped-def]  # noqa: ANN201
     log_exception(sys.exc_info())
     response = flask_jsonify(
         message="An internal error occured. If this issue persists, please contact support@nylas.com and include this request_uid: {}".format(
@@ -302,7 +310,7 @@ def handle_generic_error(error):  # noqa: ANN201
 
 
 @app.route("/account")
-def one_account():  # noqa: ANN201
+def one_account():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument("view", type=view, location="args")
     args = strict_parse_args(g.parser, request.args)
     # Use a new encoder object with the expand parameter set.
@@ -314,7 +322,7 @@ def one_account():  # noqa: ANN201
 # Sync status (enable/disable account / throttling)
 #
 @app.route("/status/", methods=["GET", "PUT"])
-def status():  # noqa: ANN201
+def status():  # type: ignore[no-untyped-def]  # noqa: ANN201
     account = g.namespace.account
 
     # Don't allow resuming accounts marked for deletion.
@@ -344,7 +352,7 @@ def status():  # noqa: ANN201
 # Threads
 #
 @app.route("/threads/")
-def thread_query_api():  # noqa: ANN201
+def thread_query_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument("subject", type=bounded_str, location="args")
     g.parser.add_argument("to", type=bounded_str, location="args")
     g.parser.add_argument("from", type=bounded_str, location="args")
@@ -403,7 +411,7 @@ def thread_query_api():  # noqa: ANN201
 
 
 @app.route("/threads/search", methods=["GET"])
-def thread_search_api():  # noqa: ANN201
+def thread_search_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument("q", type=bounded_str, location="args")
     args = strict_parse_args(g.parser, request.args)
     if not args["q"]:
@@ -430,7 +438,7 @@ def thread_search_api():  # noqa: ANN201
 
 
 @app.route("/threads/search/streaming", methods=["GET"])
-def thread_streaming_search_api():  # noqa: ANN201
+def thread_streaming_search_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument("q", type=bounded_str, location="args")
     args = strict_parse_args(g.parser, request.args)
     if not args["q"]:
@@ -458,7 +466,7 @@ def thread_streaming_search_api():  # noqa: ANN201
 
 
 @app.route("/threads/<public_id>")
-def thread_api(public_id):  # noqa: ANN201
+def thread_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument("view", type=view, location="args")
     args = strict_parse_args(g.parser, request.args)
     # Use a new encoder object with the expand parameter set.
@@ -485,7 +493,7 @@ def thread_api(public_id):  # noqa: ANN201
 # Update thread
 #
 @app.route("/threads/<public_id>", methods=["PUT", "PATCH"])
-def thread_api_update(public_id):  # noqa: ANN201
+def thread_api_update(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     try:
         valid_public_id(public_id)
         thread = (
@@ -516,7 +524,7 @@ def thread_api_update(public_id):  # noqa: ANN201
 #  Delete thread
 #
 @app.route("/threads/<public_id>", methods=["DELETE"])
-def thread_api_delete(public_id) -> Never:
+def thread_api_delete(public_id) -> Never:  # type: ignore[no-untyped-def]
     """Moves the thread to the trash"""  # noqa: D401
     raise NotImplementedError
 
@@ -525,7 +533,7 @@ def thread_api_delete(public_id) -> Never:
 # Messages
 ##
 @app.route("/messages/")
-def message_query_api():  # noqa: ANN201
+def message_query_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument("subject", type=bounded_str, location="args")
     g.parser.add_argument("to", type=bounded_str, location="args")
     g.parser.add_argument("from", type=bounded_str, location="args")
@@ -585,7 +593,7 @@ def message_query_api():  # noqa: ANN201
 
 
 @app.route("/messages/search", methods=["GET"])
-def message_search_api():  # noqa: ANN201
+def message_search_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument("q", type=bounded_str, location="args")
     args = strict_parse_args(g.parser, request.args)
     if not args["q"]:
@@ -612,7 +620,7 @@ def message_search_api():  # noqa: ANN201
 
 
 @app.route("/messages/search/streaming", methods=["GET"])
-def message_streaming_search_api():  # noqa: ANN201
+def message_streaming_search_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument("q", type=bounded_str, location="args")
     args = strict_parse_args(g.parser, request.args)
     if not args["q"]:
@@ -640,7 +648,7 @@ def message_streaming_search_api():  # noqa: ANN201
 
 
 @app.route("/messages/<public_id>", methods=["GET"])
-def message_read_api(public_id):  # noqa: ANN201
+def message_read_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument("view", type=view, location="args")
     args = strict_parse_args(g.parser, request.args)
     encoder = APIEncoder(g.namespace.public_id, args["view"] == "expanded")
@@ -722,7 +730,7 @@ def message_read_api(public_id):  # noqa: ANN201
 
 
 @app.route("/messages/<public_id>", methods=["PUT", "PATCH"])
-def message_update_api(public_id):  # noqa: ANN201
+def message_update_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     try:
         valid_public_id(public_id)
         message = (
@@ -751,9 +759,9 @@ def message_update_api(public_id):  # noqa: ANN201
 # Folders / Labels
 @app.route("/folders")
 @app.route("/labels")
-def folders_labels_query_api():  # noqa: ANN201
+def folders_labels_query_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     category_type = g.namespace.account.category_type
-    rule = request.url_rule.rule
+    rule = request.url_rule.rule  # type: ignore[union-attr]
     valid_category_type(category_type, rule)
 
     g.parser.add_argument("view", type=bounded_str, location="args")
@@ -780,18 +788,18 @@ def folders_labels_query_api():  # noqa: ANN201
 
 
 @app.route("/folders/<public_id>")
-def folder_api(public_id):  # noqa: ANN201
+def folder_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     return folders_labels_api_impl(public_id)
 
 
 @app.route("/labels/<public_id>")
-def label_api(public_id):  # noqa: ANN201
+def label_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     return folders_labels_api_impl(public_id)
 
 
-def folders_labels_api_impl(public_id):  # noqa: ANN201
+def folders_labels_api_impl(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     category_type = g.namespace.account.category_type
-    rule = request.url_rule.rule
+    rule = request.url_rule.rule  # type: ignore[union-attr]
     valid_category_type(category_type, rule)
     valid_public_id(public_id)
     try:
@@ -811,9 +819,9 @@ def folders_labels_api_impl(public_id):  # noqa: ANN201
 
 @app.route("/folders", methods=["POST"])
 @app.route("/labels", methods=["POST"])
-def folders_labels_create_api():  # noqa: ANN201
+def folders_labels_create_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     category_type = g.namespace.account.category_type
-    rule = request.url_rule.rule
+    rule = request.url_rule.rule  # type: ignore[union-attr]
     valid_category_type(category_type, rule)
     data = request.get_json(force=True)
     display_name = data.get("display_name")
@@ -871,9 +879,9 @@ def folders_labels_create_api():  # noqa: ANN201
 
 @app.route("/folders/<public_id>", methods=["PUT", "PATCH"])
 @app.route("/labels/<public_id>", methods=["PUT", "PATCH"])
-def folder_label_update_api(public_id):  # noqa: ANN201
+def folder_label_update_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     category_type = g.namespace.account.category_type
-    rule = request.url_rule.rule
+    rule = request.url_rule.rule  # type: ignore[union-attr]
     valid_category_type(category_type, rule)
     valid_public_id(public_id)
     try:
@@ -939,9 +947,9 @@ def folder_label_update_api(public_id):  # noqa: ANN201
 
 @app.route("/folders/<public_id>", methods=["DELETE"])
 @app.route("/labels/<public_id>", methods=["DELETE"])
-def folder_label_delete_api(public_id):  # noqa: ANN201
+def folder_label_delete_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     category_type = g.namespace.account.category_type
-    rule = request.url_rule.rule
+    rule = request.url_rule.rule  # type: ignore[union-attr]
     valid_category_type(category_type, rule)
     valid_public_id(public_id)
     try:
@@ -1005,7 +1013,7 @@ def folder_label_delete_api(public_id):  # noqa: ANN201
 # Contacts
 ##
 @app.route("/contacts/", methods=["GET"])
-def contact_api():  # noqa: ANN201
+def contact_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument(
         "filter", type=bounded_str, default="", location="args"
     )
@@ -1031,7 +1039,7 @@ def contact_api():  # noqa: ANN201
     if args["view"] != "ids":
         results = results.options(
             load_only("public_id", "_raw_address", "name"),
-            joinedload(Contact.phone_numbers),
+            joinedload(Contact.phone_numbers),  # type: ignore[attr-defined]
         )
 
     results = results.order_by(asc(Contact.created_at))
@@ -1043,7 +1051,7 @@ def contact_api():  # noqa: ANN201
 
 
 @app.route("/contacts/<public_id>", methods=["GET"])
-def contact_read_api(public_id):  # noqa: ANN201
+def contact_read_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     # Get all data for an existing contact.
     valid_public_id(public_id)
     result = inbox.contacts.crud.read(g.namespace, g.db_session, public_id)
@@ -1056,7 +1064,7 @@ def contact_read_api(public_id):  # noqa: ANN201
 # Events
 ##
 @app.route("/events/", methods=["GET"])
-def event_api():  # noqa: ANN201
+def event_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument("event_id", type=valid_public_id, location="args")
     g.parser.add_argument("calendar_id", type=valid_public_id, location="args")
     g.parser.add_argument("title", type=bounded_str, location="args")
@@ -1113,7 +1121,7 @@ def event_api():  # noqa: ANN201
 
 
 @app.route("/events/", methods=["POST"])
-def event_create_api():  # noqa: ANN201
+def event_create_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument(
         "notify_participants", type=strict_bool, location="args"
     )
@@ -1178,7 +1186,7 @@ def event_create_api():  # noqa: ANN201
 
 
 @app.route("/events/<public_id>", methods=["GET"])
-def event_read_api(public_id):  # noqa: ANN201
+def event_read_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """Get all data for an existing event."""
     valid_public_id(public_id)
     try:
@@ -1199,7 +1207,7 @@ def event_read_api(public_id):  # noqa: ANN201
 
 
 @app.route("/events/<public_id>", methods=["PUT", "PATCH"])
-def event_update_api(public_id):  # noqa: ANN201
+def event_update_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument(
         "notify_participants", type=strict_bool, location="args"
     )
@@ -1307,7 +1315,7 @@ def event_update_api(public_id):  # noqa: ANN201
 
 
 @app.route("/events/<public_id>", methods=["DELETE"])
-def event_delete_api(public_id):  # noqa: ANN201
+def event_delete_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument(
         "notify_participants", type=strict_bool, location="args"
     )
@@ -1362,7 +1370,7 @@ def event_delete_api(public_id):  # noqa: ANN201
 
 
 @app.route("/send-rsvp", methods=["POST"])
-def event_rsvp_api():  # noqa: ANN201
+def event_rsvp_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     data = request.get_json(force=True)
 
     event_id = data.get("event_id")
@@ -1458,7 +1466,7 @@ def event_rsvp_api():  # noqa: ANN201
 # Files
 #
 @app.route("/files/", methods=["GET"])
-def files_api():  # noqa: ANN201
+def files_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument("filename", type=bounded_str, location="args")
     g.parser.add_argument("message_id", type=valid_public_id, location="args")
     g.parser.add_argument("content_type", type=bounded_str, location="args")
@@ -1481,7 +1489,7 @@ def files_api():  # noqa: ANN201
 
 
 @app.route("/files/<public_id>", methods=["GET"])
-def file_read_api(public_id):  # noqa: ANN201
+def file_read_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     valid_public_id(public_id)
     try:
         f = (
@@ -1498,7 +1506,7 @@ def file_read_api(public_id):  # noqa: ANN201
 
 
 @app.route("/files/<public_id>", methods=["DELETE"])
-def file_delete_api(public_id):  # noqa: ANN201
+def file_delete_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     valid_public_id(public_id)
     try:
         f = (
@@ -1535,13 +1543,13 @@ def file_delete_api(public_id):  # noqa: ANN201
 # $ curl http://localhost:5555/n/4s4iz36h36w17kumggi36ha2b/files \
 # --form upload=@dancingbaby.gif
 @app.route("/files/", methods=["POST"])
-def file_upload_api():  # noqa: ANN201
+def file_upload_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     all_files = []
     for name, uploaded in request.files.items():
         request.environ["log_context"].setdefault("filenames", []).append(name)
         f = Block()
         f.namespace = g.namespace
-        f.content_type = uploaded.content_type
+        f.content_type = uploaded.content_type  # type: ignore[assignment]
         f.filename = uploaded.filename
         f.data = uploaded.read()
         all_files.append(f)
@@ -1556,7 +1564,7 @@ def file_upload_api():  # noqa: ANN201
 # File downloads
 #
 @app.route("/files/<public_id>/download")
-def file_download_api(public_id):  # noqa: ANN201
+def file_download_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     valid_public_id(public_id)
     try:
         f = (
@@ -1608,11 +1616,13 @@ def file_download_api(public_id):  # noqa: ANN201
         statsd_client.incr(f"{statsd_string}.successes")
 
     except TemporaryEmailFetchException:
-        statsd_client.incr(f"{statsd_string}.temporary_failure")
+        statsd_client.incr(
+            f"{statsd_string}.temporary_failure"  # type: ignore[possibly-undefined]
+        )
         log.warning(
             "Exception when fetching email",
-            account_id=account.id,
-            provider=account.provider,
+            account_id=account.id,  # type: ignore[possibly-undefined]
+            provider=account.provider,  # type: ignore[possibly-undefined]
             logstash_tag="direct_fetching",
             exc_info=True,
         )
@@ -1623,18 +1633,22 @@ def file_download_api(public_id):  # noqa: ANN201
             "Please try again in a few minutes.",
         )
     except EmailDeletedException:
-        statsd_client.incr(f"{statsd_string}.deleted")
+        statsd_client.incr(
+            f"{statsd_string}.deleted"  # type: ignore[possibly-undefined]
+        )
         log.warning(
             "Exception when fetching email",
-            account_id=account.id,
-            provider=account.provider,
+            account_id=account.id,  # type: ignore[possibly-undefined]
+            provider=account.provider,  # type: ignore[possibly-undefined]
             logstash_tag="direct_fetching",
             exc_info=True,
         )
 
         return err(404, "The data was deleted on the email server.")
     except EmailFetchException:
-        statsd_client.incr(f"{statsd_string}.failures")
+        statsd_client.incr(
+            f"{statsd_string}.failures"  # type: ignore[possibly-undefined]
+        )
         log.warning(
             "Exception when fetching email",
             logstash_tag="direct_fetching",
@@ -1651,7 +1665,7 @@ def file_download_api(public_id):  # noqa: ANN201
 # Calendars
 ##
 @app.route("/calendars/", methods=["GET"])
-def calendar_api():  # noqa: ANN201
+def calendar_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument("view", type=view, location="args")
 
     args = strict_parse_args(g.parser, request.args)
@@ -1676,7 +1690,7 @@ def calendar_api():  # noqa: ANN201
 
 
 @app.route("/calendars/<public_id>", methods=["GET"])
-def calendar_read_api(public_id):  # noqa: ANN201
+def calendar_read_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """Get all data for an existing calendar."""
     valid_public_id(public_id)
 
@@ -1705,7 +1719,7 @@ def calendar_read_api(public_id):  # noqa: ANN201
 
 
 @app.route("/drafts/", methods=["GET"])
-def draft_query_api():  # noqa: ANN201
+def draft_query_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument("subject", type=bounded_str, location="args")
     g.parser.add_argument("to", type=bounded_str, location="args")
     g.parser.add_argument("cc", type=bounded_str, location="args")
@@ -1762,7 +1776,7 @@ def draft_query_api():  # noqa: ANN201
 
 
 @app.route("/drafts/<public_id>", methods=["GET"])
-def draft_get_api(public_id):  # noqa: ANN201
+def draft_get_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     valid_public_id(public_id)
     draft = (
         g.db_session.query(Message)
@@ -1778,7 +1792,7 @@ def draft_get_api(public_id):  # noqa: ANN201
 
 
 @app.route("/drafts/", methods=["POST"])
-def draft_create_api():  # noqa: ANN201
+def draft_create_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     data = request.get_json(force=True)
     draft = create_message_from_json(
         data, g.namespace, g.db_session, is_draft=True
@@ -1787,7 +1801,7 @@ def draft_create_api():  # noqa: ANN201
 
 
 @app.route("/drafts/<public_id>", methods=["PUT", "PATCH"])
-def draft_update_api(public_id):  # noqa: ANN201
+def draft_update_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     data = request.get_json(force=True)
     original_draft = get_draft(
         public_id, data.get("version"), g.namespace.id, g.db_session
@@ -1830,20 +1844,22 @@ def draft_update_api(public_id):  # noqa: ANN201
 
 
 @app.route("/drafts/<public_id>", methods=["DELETE"])
-def draft_delete_api(public_id):  # noqa: ANN201
+def draft_delete_api(public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     data = request.get_json(force=True)
     # Validate draft id, version, etc.
     draft = get_draft(
         public_id, data.get("version"), g.namespace.id, g.db_session
     )
 
-    result = delete_draft(g.db_session, g.namespace.account, draft)
+    result = delete_draft(  # type: ignore[func-returns-value]
+        g.db_session, g.namespace.account, draft
+    )
     return g.encoder.jsonify(result)
 
 
 @app.route("/send", methods=["POST"])
 @app.route("/send-with-features", methods=["POST"])  # TODO deprecate this URL
-def draft_send_api():  # noqa: ANN201
+def draft_send_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     request_started = time.time()
     account = g.namespace.account
 
@@ -1875,7 +1891,9 @@ def draft_send_api():  # noqa: ANN201
 
     if tracking_options:  # Open/Link/Reply tracking set
         try:
-            from redwood.api.tracking import handle_tracking_options
+            from redwood.api.tracking import (  # type: ignore[import-not-found]
+                handle_tracking_options,
+            )
         except ImportError:
             return err(
                 501,
@@ -1919,7 +1937,7 @@ def draft_send_api():  # noqa: ANN201
 
 
 @app.route("/send-multiple", methods=["POST"])
-def multi_send_create():  # noqa: ANN201
+def multi_send_create():  # type: ignore[no-untyped-def]  # noqa: ANN201
     """Initiates a multi-send session by creating a new multi-send draft."""  # noqa: D401
     account = g.namespace.account
 
@@ -1943,7 +1961,7 @@ def multi_send_create():  # noqa: ANN201
 
 
 @app.route("/send-multiple/<draft_id>", methods=["POST"])
-def multi_send(draft_id):  # noqa: ANN201
+def multi_send(draft_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Performs a single send operation in an individualized multi-send
     session. Sends a copy of the draft at draft_id to the specified address
@@ -1993,7 +2011,7 @@ def multi_send(draft_id):  # noqa: ANN201
 
 
 @app.route("/send-multiple/<draft_id>", methods=["DELETE"])
-def multi_send_finish(draft_id):  # noqa: ANN201
+def multi_send_finish(draft_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Closes out a multi-send session by marking the sending draft as sent
     and moving it to the user's Sent folder.
@@ -2038,7 +2056,7 @@ def multi_send_finish(draft_id):  # noqa: ANN201
 ##
 @app.route("/delta")
 @app.route("/delta/longpoll")
-def sync_deltas():  # noqa: ANN201
+def sync_deltas():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument(
         "cursor", type=valid_public_id, location="args", required=True
     )
@@ -2129,7 +2147,10 @@ def sync_deltas():  # noqa: ANN201
             return g.encoder.jsonify(response)
 
         # No changes. perhaps wait
-        elif "/delta/longpoll" in request.url_rule.rule:
+        elif (
+            "/delta/longpoll"
+            in request.url_rule.rule  # type: ignore[union-attr]
+        ):
             time.sleep(poll_interval)
         else:  # Return immediately
             response["cursor_end"] = cursor
@@ -2137,13 +2158,13 @@ def sync_deltas():  # noqa: ANN201
             return g.encoder.jsonify(response)
 
     # If nothing happens until timeout, just return the end of the cursor
-    response["cursor_end"] = cursor
+    response["cursor_end"] = cursor  # type: ignore[possibly-undefined]
     return g.encoder.jsonify(response)
 
 
 # TODO Deprecate this
 @app.route("/delta/generate_cursor", methods=["POST"])
-def generate_cursor():  # noqa: ANN201
+def generate_cursor():  # type: ignore[no-untyped-def]  # noqa: ANN201
     data = request.get_json(force=True)
 
     if list(data) != ["start"] or not isinstance(data["start"], int):
@@ -2169,7 +2190,7 @@ def generate_cursor():  # noqa: ANN201
 
 
 @app.route("/delta/latest_cursor", methods=["POST"])
-def latest_cursor():  # noqa: ANN201
+def latest_cursor():  # type: ignore[no-untyped-def]  # noqa: ANN201
     cursor = delta_sync.get_transaction_cursor_near_timestamp(
         g.namespace.id, int(time.time()), g.db_session
     )
@@ -2182,7 +2203,7 @@ def latest_cursor():  # noqa: ANN201
 
 
 @app.route("/delta/streaming")
-def stream_changes():  # noqa: ANN201
+def stream_changes():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument("timeout", type=float, location="args")
     g.parser.add_argument(
         "cursor", type=valid_public_id, location="args", required=True
@@ -2278,7 +2299,7 @@ def stream_changes():  # noqa: ANN201
 
 
 @app.route("/groups/intrinsic")
-def groups_intrinsic():  # noqa: ANN201
+def groups_intrinsic():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument(
         "force_recalculate", type=strict_bool, location="args"
     )
@@ -2290,7 +2311,9 @@ def groups_intrinsic():  # noqa: ANN201
             .one()
         )
     except NoResultFound:
-        dpcache = DataProcessingCache(namespace_id=g.namespace.id)
+        dpcache = DataProcessingCache(  # type: ignore[call-arg]
+            namespace_id=g.namespace.id
+        )
 
     last_updated = dpcache.contact_groups_last_updated
     cached_data = dpcache.contact_groups
@@ -2328,7 +2351,7 @@ def groups_intrinsic():  # noqa: ANN201
 
 
 @app.route("/contacts/rankings")
-def contact_rankings():  # noqa: ANN201
+def contact_rankings():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument(
         "force_recalculate", type=strict_bool, location="args"
     )
@@ -2340,7 +2363,9 @@ def contact_rankings():  # noqa: ANN201
             .one()
         )
     except NoResultFound:
-        dpcache = DataProcessingCache(namespace_id=g.namespace.id)
+        dpcache = DataProcessingCache(  # type: ignore[call-arg]
+            namespace_id=g.namespace.id
+        )
 
     last_updated = dpcache.contact_rankings_last_updated
     cached_data = dpcache.contact_rankings

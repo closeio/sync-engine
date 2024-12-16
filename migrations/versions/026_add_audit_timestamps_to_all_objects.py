@@ -13,10 +13,12 @@ down_revision = "59b42d0ac749"
 
 from datetime import datetime
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.sql import column, table
+from sqlalchemy.ext.declarative import (  # type: ignore[import-untyped]
+    declarative_base,
+)
+from sqlalchemy.sql import column, table  # type: ignore[import-untyped]
 
 table_names = {
     "account",
@@ -41,7 +43,7 @@ table_names = {
 
 
 def add_eas_tables() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
     Base = declarative_base()  # noqa: N806

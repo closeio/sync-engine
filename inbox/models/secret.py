@@ -1,8 +1,8 @@
 import enum
 
-from sqlalchemy import Column, Enum, Integer
-from sqlalchemy.orm import validates
-from sqlalchemy.types import BLOB
+from sqlalchemy import Column, Enum, Integer  # type: ignore[import-untyped]
+from sqlalchemy.orm import validates  # type: ignore[import-untyped]
+from sqlalchemy.types import BLOB  # type: ignore[import-untyped]
 
 from inbox.models.base import MailSyncBase
 from inbox.models.mixins import DeletedAtMixin, UpdatedAtMixin
@@ -43,10 +43,12 @@ class Secret(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             raise TypeError("Invalid secret")
 
         with get_encryption_oracle("SECRET_ENCRYPTION_KEY") as e_oracle:
-            self._secret, self.encryption_scheme = e_oracle.encrypt(plaintext)
+            (self._secret, self.encryption_scheme) = e_oracle.encrypt(
+                plaintext
+            )
 
     @validates("type")
-    def validate_type(self, k, type):  # noqa: ANN201
+    def validate_type(self, k, type):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if type not in [x.value for x in SecretType]:
             raise TypeError("Invalid secret type.")
 

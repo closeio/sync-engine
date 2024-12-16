@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import click
-from sqlalchemy import func
+from sqlalchemy import func  # type: ignore[import-untyped]
 
 from inbox.error_handling import maybe_enable_rollbar
 from inbox.ignition import engine_manager

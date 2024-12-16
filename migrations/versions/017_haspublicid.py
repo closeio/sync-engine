@@ -14,16 +14,16 @@ down_revision = "5093433b073"
 import sys
 from gc import collect as garbage_collect
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
-from sqlalchemy.dialects import mysql
+from sqlalchemy.dialects import mysql  # type: ignore[import-untyped]
 
 chunk_size = 500
 
 
 def upgrade() -> None:
     # These all inherit HasPublicID
-    from inbox.models import (
+    from inbox.models import (  # type: ignore[attr-defined]
         Account,
         Block,
         Contact,
@@ -72,7 +72,7 @@ def upgrade() -> None:
 
     print("Finished adding columns. \nNow generating public_ids")
 
-    with session_scope() as db_session:
+    with session_scope() as db_session:  # type: ignore[call-arg]
         count = 0
         for c in classes:
             garbage_collect()
@@ -99,7 +99,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     # These all inherit HasPublicID
-    from inbox.models import (
+    from inbox.models import (  # type: ignore[attr-defined]
         Account,
         Block,
         Contact,

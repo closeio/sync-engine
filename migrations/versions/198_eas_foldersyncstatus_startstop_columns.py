@@ -11,12 +11,12 @@ Create Date: 2015-08-12 10:16:11.628828
 revision = "301d22aa96b8"
 down_revision = "3cf51fb0e76a"
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
 def upgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
     if not engine.has_table("easfoldersyncstatus"):
@@ -32,7 +32,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    from inbox.ignition import main_engine
+    from inbox.ignition import main_engine  # type: ignore[attr-defined]
 
     engine = main_engine(pool_size=1, max_overflow=0)
     if not engine.has_table("easfoldersyncstatus"):

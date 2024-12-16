@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 
-from sqlalchemy import (
+from sqlalchemy import (  # type: ignore[import-untyped]
     BigInteger,
     Boolean,
     Column,
@@ -13,10 +13,16 @@ from sqlalchemy import (
     String,
     desc,
 )
-from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import backref, object_session, relationship
-from sqlalchemy.schema import UniqueConstraint
-from sqlalchemy.sql.expression import false
+from sqlalchemy.ext.associationproxy import (  # type: ignore[import-untyped]
+    association_proxy,
+)
+from sqlalchemy.orm import (  # type: ignore[import-untyped]
+    backref,
+    object_session,
+    relationship,
+)
+from sqlalchemy.schema import UniqueConstraint  # type: ignore[import-untyped]
+from sqlalchemy.sql.expression import false  # type: ignore[import-untyped]
 
 from inbox.logging import get_logger
 from inbox.models.account import Account
@@ -48,7 +54,7 @@ class ImapAccount(Account):
     _smtp_server_port = Column(Integer, nullable=False, server_default="587")
 
     @property
-    def imap_endpoint(self):  # noqa: ANN201
+    def imap_endpoint(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if self._imap_server_host is not None:
             # We have to take care to coerce to int here and below, because
             # mysqlclient returns Integer columns as type long, and
@@ -59,25 +65,27 @@ class ImapAccount(Account):
             return self.provider_info["imap"]
 
     @imap_endpoint.setter
-    def imap_endpoint(self, endpoint) -> None:
+    def imap_endpoint(self, endpoint) -> None:  # type: ignore[no-untyped-def]
         host, port = endpoint
         self._imap_server_host = host
         self._imap_server_port = int(port)
 
     @property
-    def smtp_endpoint(self):  # noqa: ANN201
+    def smtp_endpoint(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         if self._smtp_server_host is not None:
             return (self._smtp_server_host, int(self._smtp_server_port))
         else:
             return self.provider_info["smtp"]
 
     @smtp_endpoint.setter
-    def smtp_endpoint(self, endpoint) -> None:
+    def smtp_endpoint(self, endpoint) -> None:  # type: ignore[no-untyped-def]
         host, port = endpoint
         self._smtp_server_host = host
         self._smtp_server_port = int(port)
 
-    def get_raw_message_contents(self, message):  # noqa: ANN201
+    def get_raw_message_contents(  # type: ignore[no-untyped-def]  # noqa: ANN201
+        self, message
+    ):
         from inbox.s3.backends.imap import get_imap_raw_contents
 
         return get_imap_raw_contents(message)
@@ -116,7 +124,9 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     )
 
     labels = association_proxy(
-        "labelitems", "label", creator=lambda label: LabelItem(label=label)
+        "labelitems",
+        "label",
+        creator=lambda label: LabelItem(label=label),  # type: ignore[call-arg]
     )
 
     # Flags #
@@ -144,7 +154,9 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
         """  # noqa: D401
         changed = False
-        new_flags = {flag.decode() for flag in new_flags}
+        new_flags = {  # type: ignore[assignment]
+            flag.decode() for flag in new_flags
+        }
         columns_for_flag = {
             "\\Draft": "is_draft",
             "\\Seen": "is_seen",
@@ -154,11 +166,13 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         }
         for flag, column in columns_for_flag.items():
             prior_column_value = getattr(self, column)
-            new_column_value = flag in new_flags
+            new_column_value = (
+                flag in new_flags  # type: ignore[comparison-overlap]
+            )
             if prior_column_value != new_column_value:
                 changed = True
                 setattr(self, column, new_column_value)
-            new_flags.discard(flag)
+            new_flags.discard(flag)  # type: ignore[attr-defined]
 
         extra_flags = sorted(new_flags)
 
@@ -171,7 +185,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             extra_flags.pop()
 
         self.extra_flags = extra_flags
-        return changed
+        return changed  # type: ignore[return-value]
 
     def update_labels(self, new_labels: list[str]) -> None:
         # TODO(emfree): This is all mad complicated. Simplify if possible?
@@ -197,7 +211,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             elif label in category_map:
                 remote_labels.add((category_map[label], category_map[label]))
             else:
-                remote_labels.add((label, None))
+                remote_labels.add((label, None))  # type: ignore[arg-type]
 
         local_labels = {
             (lbl.name, lbl.canonical_name): lbl for lbl in self.labels
@@ -217,8 +231,8 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
                 self.labels.add(label)
 
     @property
-    def namespace(self):  # noqa: ANN201
-        return self.imapaccount.namespace
+    def namespace(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
+        return self.imapaccount.namespace  # type: ignore[attr-defined]
 
     @property
     def categories(self) -> set[Category]:
@@ -288,7 +302,9 @@ class ImapFolderInfo(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     __table_args__ = (UniqueConstraint("account_id", "folder_id"),)
 
 
-def _choose_existing_thread_for_gmail(message, db_session):
+def _choose_existing_thread_for_gmail(  # type: ignore[no-untyped-def]
+    message, db_session
+):
     """
     For Gmail, determine if `message` should be added to an existing thread
     based on the value of `g_thrid`. If so, return the existing ImapThread
@@ -339,7 +355,7 @@ class ImapThread(Thread):
     g_thrid = Column(BigInteger, nullable=True, index=True, unique=False)
 
     @classmethod
-    def from_gmail_message(  # noqa: ANN206
+    def from_gmail_message(  # type: ignore[no-untyped-def]  # noqa: ANN206
         cls, session, namespace_id, message
     ):
         """
@@ -358,7 +374,7 @@ class ImapThread(Thread):
         if message.g_thrid is not None:
             thread = _choose_existing_thread_for_gmail(message, session)
             if thread is None:
-                thread = cls(
+                thread = cls(  # type: ignore[call-arg]
                     subject=message.subject,
                     g_thrid=message.g_thrid,
                     recentdate=message.received_date,
@@ -366,16 +382,18 @@ class ImapThread(Thread):
                     subjectdate=message.received_date,
                     snippet=message.snippet,
                 )
-        return thread
+        return thread  # type: ignore[possibly-undefined]
 
     @classmethod
-    def from_imap_message(cls, session, namespace_id, message):  # noqa: ANN206
+    def from_imap_message(  # type: ignore[no-untyped-def]  # noqa: ANN206
+        cls, session, namespace_id, message
+    ):
         if message.thread is not None:
             # If this message *already* has a thread associated with it, don't
             # create a new one.
             return message.thread
         clean_subject = cleanup_subject(message.subject)
-        thread = cls(
+        thread = cls(  # type: ignore[call-arg]
             subject=clean_subject,
             recentdate=message.received_date,
             namespace_id=namespace_id,
@@ -427,7 +445,7 @@ class ImapFolderSyncStatus(
     _metrics = Column(MutableDict.as_mutable(JSON), default={}, nullable=True)
 
     @property
-    def metrics(self):  # noqa: ANN201
+    def metrics(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         status = dict(name=self.folder.name, state=self.state)
         status.update(self._metrics or {})
 
@@ -443,10 +461,10 @@ class ImapFolderSyncStatus(
         self._metrics["sync_end_time"] = datetime.utcnow()
 
     @property
-    def is_killed(self):  # noqa: ANN201
+    def is_killed(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self._metrics.get("run_state") == "killed"
 
-    def update_metrics(self, metrics) -> None:
+    def update_metrics(self, metrics) -> None:  # type: ignore[no-untyped-def]
         sync_status_metrics = [
             "remote_uid_count",
             "delete_uid_count",
@@ -468,7 +486,7 @@ class ImapFolderSyncStatus(
             self._metrics = metrics
 
     @property
-    def sync_enabled(self):  # noqa: ANN201
+    def sync_enabled(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         # sync is enabled if the folder's run bit is set, and the account's
         # run bit is set. (this saves us needing to reproduce account-state
         # transition logic on the folder level, and gives us a comparison bit
@@ -500,7 +518,7 @@ class LabelItem(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     )
 
     @property
-    def namespace(self):  # noqa: ANN201
+    def namespace(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return self.label.namespace
 
 

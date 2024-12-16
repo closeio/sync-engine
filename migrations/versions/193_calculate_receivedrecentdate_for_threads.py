@@ -13,7 +13,7 @@ down_revision = "2758cefad87d"
 
 
 # solution from http://stackoverflow.com/a/1217947
-def page_query(q):  # noqa: ANN201
+def page_query(q):  # type: ignore[no-untyped-def]  # noqa: ANN201
     CHUNK_SIZE = 500  # noqa: N806
     offset = 0
     while True:
@@ -27,13 +27,15 @@ def page_query(q):  # noqa: ANN201
 
 
 def upgrade() -> None:
-    from sqlalchemy import desc
-    from sqlalchemy.sql import not_
+    from sqlalchemy import desc  # type: ignore[import-untyped]
+    from sqlalchemy.sql import not_  # type: ignore[import-untyped]
 
     from inbox.models import Message, Thread
     from inbox.models.session import session_scope
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         for thread in page_query(db_session.query(Thread)):
             last_message = (
                 db_session.query(Message)

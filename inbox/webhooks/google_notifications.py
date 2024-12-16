@@ -1,12 +1,12 @@
 from flask import Blueprint, g, jsonify, make_response, request
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
 
 from inbox.api.err import APIException, InputError, NotFoundError
 from inbox.api.validation import valid_public_id
 from inbox.logging import get_logger
 
 log = get_logger()
-import limitlion  # noqa: E402
+import limitlion  # type: ignore[import-untyped]  # noqa: E402
 
 from inbox.models import Calendar  # noqa: E402
 from inbox.models.backends.gmail import GmailAccount  # noqa: E402
@@ -19,19 +19,19 @@ GOOGLE_RESOURCE_STATE_STRING = "X-Goog-Resource-State"
 GOOGLE_RESOURCE_ID_STRING = "X-Goog-Resource-ID"
 
 
-def resp(http_code, message=None, **kwargs):  # noqa: ANN201
+def resp(http_code, message=None, **kwargs):  # type: ignore[no-untyped-def]  # noqa: ANN201
     resp = kwargs
     if message:
         resp["message"] = message
     if http_code == 204:
         body = ""
     else:
-        body = jsonify(resp)
+        body = jsonify(resp)  # type: ignore[assignment]
     return make_response(body, http_code)
 
 
 @app.before_request
-def start():  # noqa: ANN201
+def start():  # type: ignore[no-untyped-def]  # noqa: ANN201
     try:
         watch_state = request.headers[GOOGLE_RESOURCE_STATE_STRING]
         g.watch_channel_id = request.headers[GOOGLE_CHANNEL_ID_STRING]
@@ -53,14 +53,14 @@ def start():  # noqa: ANN201
 
 
 @app.errorhandler(APIException)
-def handle_input_error(error):  # noqa: ANN201
+def handle_input_error(error):  # type: ignore[no-untyped-def]  # noqa: ANN201
     response = jsonify(message=error.message, type="invalid_request_error")
     response.status_code = error.status_code
     return response
 
 
 @app.route("/calendar_list_update/<account_public_id>", methods=["POST"])
-def calendar_update(account_public_id):  # noqa: ANN201
+def calendar_update(account_public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     request.environ["log_context"]["account_public_id"] = account_public_id
     try:
         valid_public_id(account_public_id)
@@ -86,7 +86,7 @@ def calendar_update(account_public_id):  # noqa: ANN201
 
 
 @app.route("/calendar_update/<calendar_public_id>", methods=["POST"])
-def event_update(calendar_public_id):  # noqa: ANN201
+def event_update(calendar_public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     request.environ["log_context"]["calendar_public_id"] = calendar_public_id
     try:
         valid_public_id(calendar_public_id)

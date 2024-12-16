@@ -3,9 +3,9 @@ import logging
 import os
 import sys
 
-import rollbar
+import rollbar  # type: ignore[import-untyped]
 import structlog
-from rollbar.logger import RollbarHandler
+from rollbar.logger import RollbarHandler  # type: ignore[import-untyped]
 
 from inbox.logging import create_error_log_context, get_logger
 
@@ -15,7 +15,7 @@ ROLLBAR_API_KEY = os.getenv("ROLLBAR_API_KEY", "")
 
 
 class SyncEngineRollbarHandler(RollbarHandler):
-    def emit(self, record):  # noqa: ANN201
+    def emit(self, record):  # type: ignore[no-untyped-def]  # noqa: ANN201
         try:
             data = json.loads(record.msg)
         except ValueError:
@@ -38,7 +38,9 @@ class SyncEngineRollbarHandler(RollbarHandler):
         return super().emit(record)
 
 
-def log_uncaught_errors(logger=None, **kwargs) -> None:  # noqa: D417
+def log_uncaught_errors(  # type: ignore[no-untyped-def]  # noqa: D417
+    logger=None, **kwargs
+) -> None:
     """
     Helper to log uncaught exceptions.
 
@@ -77,7 +79,7 @@ GROUP_EXCEPTION_CLASSES = [
 ]
 
 
-def payload_handler(payload, **kw):  # noqa: ANN201
+def payload_handler(payload, **kw):  # type: ignore[no-untyped-def]  # noqa: ANN201
     title = payload["data"].get("title")
     exception = (
         payload["data"].get("body", {}).get("trace", {}).get("exception", {})

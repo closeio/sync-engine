@@ -1,6 +1,14 @@
-from sqlalchemy import Column, ForeignKey, String
-from sqlalchemy.orm import backref, relationship, validates
-from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy import (  # type: ignore[import-untyped]
+    Column,
+    ForeignKey,
+    String,
+)
+from sqlalchemy.orm import (  # type: ignore[import-untyped]
+    backref,
+    relationship,
+    validates,
+)
+from sqlalchemy.schema import UniqueConstraint  # type: ignore[import-untyped]
 
 from inbox.logging import get_logger
 from inbox.models.base import MailSyncBase
@@ -45,7 +53,7 @@ class Label(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     )
 
     @validates("name")
-    def validate_name(self, key, name):  # noqa: ANN201
+    def validate_name(self, key, name):  # type: ignore[no-untyped-def]  # noqa: ANN201
         sanitized_name = sanitize_name(name)
         if sanitized_name != name:
             log.warning(
@@ -56,7 +64,9 @@ class Label(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         return sanitized_name
 
     @classmethod
-    def find_or_create(cls, session, account, name, role=None):  # noqa: ANN206
+    def find_or_create(  # type: ignore[no-untyped-def]  # noqa: ANN206
+        cls, session, account, name, role=None
+    ):
         q = session.query(cls).filter(cls.account_id == account.id)
 
         role = role or ""
@@ -67,7 +77,9 @@ class Label(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
 
         obj = q.first()
         if obj is None:
-            obj = cls(account=account, name=name, canonical_name=role)
+            obj = cls(  # type: ignore[call-arg]
+                account=account, name=name, canonical_name=role
+            )
             obj.category = Category.find_or_create(
                 session,
                 namespace_id=account.namespace.id,

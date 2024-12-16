@@ -34,7 +34,9 @@ cls_for_type = dict(
 )
 
 try:
-    from inbox.models.backends.eas import EASFolderSyncStatus
+    from inbox.models.backends.eas import (  # type: ignore[import-not-found]
+        EASFolderSyncStatus,
+    )
 
     cls_for_type["easfoldersyncstatus"] = EASFolderSyncStatus
 except ImportError:
@@ -48,7 +50,9 @@ except ImportError:
 @click.option("--account-id", type=str, default=None)
 @click.option("--namespace-id", type=str, default=None)
 @click.option("--readwrite", is_flag=True, default=False)
-def main(type, id, public_id, account_id, namespace_id, readwrite) -> None:
+def main(  # type: ignore[no-untyped-def]
+    type, id, public_id, account_id, namespace_id, readwrite
+) -> None:
     maybe_enable_rollbar()
 
     type = type.lower()  # noqa: A001
@@ -67,14 +71,20 @@ def main(type, id, public_id, account_id, namespace_id, readwrite) -> None:
         qu = db_session.query(cls)
 
         if public_id:
-            qu = qu.filter(cls.public_id == public_id)
+            qu = qu.filter(
+                cls.public_id == public_id  # type: ignore[attr-defined]
+            )
         elif id:
-            qu = qu.filter(cls.id == id)
+            qu = qu.filter(cls.id == id)  # type: ignore[attr-defined]
 
         if account_id:
-            qu = qu.filter(cls.account_id == account_id)
+            qu = qu.filter(
+                cls.account_id == account_id  # type: ignore[attr-defined]
+            )
         elif namespace_id:
-            qu = qu.filter(cls.namespace_id == namespace_id)
+            qu = qu.filter(
+                cls.namespace_id == namespace_id  # type: ignore[attr-defined]
+            )
 
         obj = qu.one()  # noqa: F841
 

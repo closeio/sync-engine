@@ -9,9 +9,11 @@ import time
 from collections.abc import Callable, Iterable
 from typing import Any, TypeVar
 
-from MySQLdb import _exceptions as _mysql_exceptions
+from MySQLdb import (  # type: ignore[import-untyped]
+    _exceptions as _mysql_exceptions,
+)
 from redis import TimeoutError
-from sqlalchemy.exc import StatementError
+from sqlalchemy.exc import StatementError  # type: ignore[import-untyped]
 
 from inbox import interruptible_threading
 from inbox.error_handling import log_uncaught_errors
@@ -40,7 +42,7 @@ TRANSIENT_MYSQL_MESSAGES = (
 )
 
 
-def retry(  # noqa: ANN201, D417
+def retry(  # type: ignore[no-untyped-def]  # noqa: ANN201, D417
     func,
     retry_classes=None,
     fail_classes=None,
@@ -74,7 +76,7 @@ def retry(  # noqa: ANN201, D417
             "Can't include exception classes in both fail_on and retry_on"
         )
 
-    def should_retry_on(exc) -> bool:
+    def should_retry_on(exc) -> bool:  # type: ignore[no-untyped-def]
         if fail_classes and isinstance(exc, tuple(fail_classes)):
             return False
         if retry_classes and not isinstance(exc, tuple(retry_classes)):
@@ -82,7 +84,7 @@ def retry(  # noqa: ANN201, D417
         return True
 
     @functools.wraps(func)
-    def wrapped(*args, **kwargs):
+    def wrapped(*args, **kwargs):  # type: ignore[no-untyped-def]
         while True:
             try:
                 return func(*args, **kwargs)
@@ -105,7 +107,7 @@ def retry(  # noqa: ANN201, D417
     return wrapped
 
 
-def retry_with_logging(  # noqa: ANN201
+def retry_with_logging(  # type: ignore[no-untyped-def]  # noqa: ANN201
     func,
     logger=None,
     retry_classes=None,
@@ -119,7 +121,7 @@ def retry_with_logging(  # noqa: ANN201
     # http://stackoverflow.com/questions/7935966/python-overwriting-variables-in-nested-functions
     occurrences = [0]
 
-    def callback(e) -> None:
+    def callback(e) -> None:  # type: ignore[no-untyped-def]
         is_transient = isinstance(e, TRANSIENT_NETWORK_ERRS)
         mysql_error = None
 
@@ -211,7 +213,7 @@ def kill_all(
     *,
     block: bool = True,
 ) -> None:
-    if not interruptible_threads:
+    if not interruptible_threads:  # type: ignore[truthy-iterable]
         return
 
     for thread in interruptible_threads:

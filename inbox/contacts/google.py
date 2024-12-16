@@ -41,7 +41,9 @@ class GoogleContactsProvider(AbstractContactsProvider):
 
     PROVIDER_NAME = "google"
 
-    def __init__(self, account_id, namespace_id) -> None:
+    def __init__(  # type: ignore[no-untyped-def]
+        self, account_id, namespace_id
+    ) -> None:
         self.account_id = account_id
         self.namespace_id = namespace_id
         self.log = logger.new(
@@ -50,20 +52,26 @@ class GoogleContactsProvider(AbstractContactsProvider):
             provider=self.PROVIDER_NAME,
         )
 
-    def _get_google_client(self, retry_conn_errors: bool = True):
+    def _get_google_client(  # type: ignore[no-untyped-def]
+        self, retry_conn_errors: bool = True
+    ):
         """Return the Google API client."""
         with session_scope(self.namespace_id) as db_session:
             account = db_session.query(GmailAccount).get(self.account_id)
             db_session.expunge(account)
         access_token = token_manager.get_token(account)
-        token = gdata.gauth.AuthSubToken(access_token)  # noqa: F821
-        google_client = gdata.contacts.client.ContactsClient(  # noqa: F821
+        token = gdata.gauth.AuthSubToken(  # type: ignore[name-defined]  # noqa: F821
+            access_token
+        )
+        google_client = gdata.contacts.client.ContactsClient(  # type: ignore[name-defined]  # noqa: F821
             source=SOURCE_APP_NAME
         )
         google_client.auth_token = token
         return google_client
 
-    def _parse_contact_result(self, google_contact):
+    def _parse_contact_result(  # type: ignore[no-untyped-def]
+        self, google_contact
+    ):
         """
         Constructs a Contact object from a Google contact entry.
 
@@ -118,7 +126,7 @@ class GoogleContactsProvider(AbstractContactsProvider):
 
         deleted = google_contact.deleted is not None
 
-        return Contact(
+        return Contact(  # type: ignore[call-arg]
             namespace_id=self.namespace_id,
             uid=g_id,
             name=name,
@@ -128,7 +136,7 @@ class GoogleContactsProvider(AbstractContactsProvider):
             raw_data=raw_data,
         )
 
-    def get_items(  # noqa: ANN201
+    def get_items(  # type: ignore[no-untyped-def]  # noqa: ANN201
         self, sync_from_dt=None, max_results: int = 100000
     ):
         """
@@ -154,7 +162,9 @@ class GoogleContactsProvider(AbstractContactsProvider):
             insufficient permissions, respectively.
 
         """  # noqa: D401
-        query = gdata.contacts.client.ContactsQuery()  # noqa: F821
+        query = (
+            gdata.contacts.client.ContactsQuery()  # type: ignore[name-defined]  # noqa: F821
+        )
         # TODO(emfree): Implement batch fetching
         # Note: The Google contacts API will only return 25 results if
         # query.max_results is not explicitly set, so have to set it to a large
@@ -170,7 +180,9 @@ class GoogleContactsProvider(AbstractContactsProvider):
                 return [
                     self._parse_contact_result(result) for result in results
                 ]
-            except gdata.client.RequestError as e:  # noqa: F821
+            except (
+                gdata.client.RequestError  # type: ignore[name-defined]  # noqa: F821
+            ) as e:
                 if e.status == 503:
                     self.log.info(
                         "Ran into Google bot detection. Sleeping.", message=e
@@ -181,7 +193,7 @@ class GoogleContactsProvider(AbstractContactsProvider):
                         "contact sync request failure; retrying", message=e
                     )
                     time.sleep(30 + random.randrange(0, 60))
-            except gdata.client.Unauthorized:  # noqa: F821
+            except gdata.client.Unauthorized:  # type: ignore[name-defined]  # noqa: F821
                 self.log.warning(
                     "Invalid access token; refreshing and retrying"
                 )

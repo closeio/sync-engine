@@ -2,7 +2,7 @@
 
 import contextlib
 
-import lxml.etree as ET  # noqa: N812
+import lxml.etree as ET  # type: ignore[import-untyped]  # noqa: N812
 
 from inbox.contacts.abc import AbstractContactsProvider
 from inbox.contacts.carddav import supports_carddav
@@ -26,7 +26,9 @@ class ICloudContactsProvider(AbstractContactsProvider):
 
     PROVIDER_NAME = "icloud"
 
-    def __init__(self, account_id, namespace_id) -> None:
+    def __init__(  # type: ignore[no-untyped-def]
+        self, account_id, namespace_id
+    ) -> None:
         supports_carddav(ICLOUD_CONTACTS_URL)
         self.account_id = account_id
         self.namespace_id = namespace_id
@@ -36,10 +38,14 @@ class ICloudContactsProvider(AbstractContactsProvider):
             provider=self.PROVIDER_NAME,
         )
 
-    def _vCard_raw_to_contact(self, cardstring):  # noqa: N802
+    def _vCard_raw_to_contact(  # type: ignore[no-untyped-def]  # noqa: N802
+        self, cardstring
+    ):
         card = vcard_from_string(cardstring)
 
-        def _x(key):  # Ugly parsing helper for ugly formats
+        def _x(  # type: ignore[no-untyped-def]
+            key,
+        ):  # Ugly parsing helper for ugly formats
             if key in card:
                 with contextlib.suppress(IndexError):
                     return card[key][0][0]
@@ -57,7 +63,7 @@ class ICloudContactsProvider(AbstractContactsProvider):
         # phone_number = _x('TEL')
         # organization = _x('ORG')
 
-        return Contact(
+        return Contact(  # type: ignore[call-arg]
             namespace_id=self.namespace_id,
             provider_name=self.PROVIDER_NAME,
             uid=uid,
@@ -66,7 +72,7 @@ class ICloudContactsProvider(AbstractContactsProvider):
             raw_data=cardstring,
         )
 
-    def get_items(  # noqa: ANN201
+    def get_items(  # type: ignore[no-untyped-def]  # noqa: ANN201
         self, sync_from_dt=None, max_results: int = 100000
     ):
         with session_scope(self.namespace_id) as db_session:

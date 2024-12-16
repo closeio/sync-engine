@@ -6,7 +6,7 @@ import os
 import alembic.command
 import alembic.config
 import click
-import sqlalchemy
+import sqlalchemy  # type: ignore[import-untyped]
 
 from inbox.config import config
 from inbox.error_handling import maybe_enable_rollbar
@@ -21,7 +21,7 @@ from inbox.sqlalchemy_ext.util import ForceStrictModePool
     help="Limit database initialization to only one host / set of shards",
 )
 @click.option("--host-ip", default=None)
-def main(target_hostname, host_ip) -> None:
+def main(target_hostname, host_ip) -> None:  # type: ignore[no-untyped-def]
     maybe_enable_rollbar()
 
     database_hosts = config.get_required("DATABASE_HOSTS")

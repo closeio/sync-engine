@@ -13,7 +13,7 @@ down_revision = "24e085e152c0"
 
 from typing import Never
 
-import sqlalchemy as sa
+import sqlalchemy as sa  # type: ignore[import-untyped]
 from alembic import op
 
 
@@ -87,10 +87,16 @@ def upgrade() -> None:
     # of this commit. However, the alternative is to have a crazy long,
     # involved and error-prone recreation of the models and their behavior
     # here. (I tried it, and decided this way was better.)
-    from inbox.models import FolderItem, Namespace, Tag
+    from inbox.models import (  # type: ignore[attr-defined]
+        FolderItem,
+        Namespace,
+        Tag,
+    )
     from inbox.models.session import session_scope
 
-    with session_scope(versioned=False) as db_session:
+    with session_scope(  # type: ignore[call-arg]
+        versioned=False
+    ) as db_session:
         # create canonical tags that don't already exist.
         CANONICAL_TAG_NAMES = [  # noqa: N806
             "inbox",

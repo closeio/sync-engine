@@ -1,8 +1,8 @@
 from typing import Any
 
 from flask import Flask, g, jsonify, make_response, request
-from flask_restful import reqparse
-from sqlalchemy.orm.exc import NoResultFound
+from flask_restful import reqparse  # type: ignore[import-untyped]
+from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
 from werkzeug.exceptions import HTTPException, default_exceptions
 
 from inbox.api.err import APIException, InputError, NotFoundError
@@ -44,28 +44,34 @@ reconfigure_logging()
 
 
 @app.errorhandler(APIException)
-def handle_input_error(error):  # noqa: ANN201
+def handle_input_error(error):  # type: ignore[no-untyped-def]  # noqa: ANN201
     response = jsonify(message=error.message, type="invalid_request_error")
     response.status_code = error.status_code
     return response
 
 
-def default_json_error(ex):  # noqa: ANN201
+def default_json_error(ex):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """Exception -> flask JSON responder"""
     logger = get_logger()
     logger.error("Uncaught error thrown by Flask/Werkzeug", exc_info=ex)
     response = jsonify(message=str(ex), type="api_error")
-    response.status_code = ex.code if isinstance(ex, HTTPException) else 500
+    response.status_code = (
+        ex.code  # type: ignore[assignment]
+        if isinstance(ex, HTTPException)
+        else 500
+    )
     return response
 
 
 # Patch all error handlers in werkzeug
 for code in default_exceptions:
-    app.error_handler_spec[None][code] = default_json_error
+    app.error_handler_spec[None][
+        code
+    ] = default_json_error  # type: ignore[assignment]
 
 
 @app.before_request
-def auth():  # noqa: ANN201
+def auth():  # type: ignore[no-untyped-def]  # noqa: ANN201
     """Check for account ID on all non-root URLS"""
     if (
         request.path == "/"
@@ -119,7 +125,7 @@ def auth():  # noqa: ANN201
 
 
 @app.after_request
-def finish(response):  # noqa: ANN201
+def finish(response):  # type: ignore[no-untyped-def]  # noqa: ANN201
     origin = request.headers.get("origin")
     if origin:  # means it's just a regular request
         response.headers["Access-Control-Allow-Origin"] = origin
@@ -134,7 +140,7 @@ def finish(response):  # noqa: ANN201
 
 
 @app.route("/accounts/", methods=["GET"])
-def ns_all():  # noqa: ANN201
+def ns_all():  # type: ignore[no-untyped-def]  # noqa: ANN201
     """Return all namespaces"""
     # We do this outside the blueprint to support the case of an empty
     # public_id.  However, this means the before_request isn't run, so we need
@@ -162,7 +168,9 @@ def ns_all():  # noqa: ANN201
         return encoder.jsonify(namespaces)
 
 
-def _get_account_data_for_generic_account(data):
+def _get_account_data_for_generic_account(  # type: ignore[no-untyped-def]
+    data,
+):
     email_address = data["email_address"]
     sync_email = data.get("sync_email", True)
     smtp_server_host = data.get("smtp_server_host", "localhost")
@@ -253,7 +261,7 @@ def _get_account_data_for_microsoft_account(
 
 
 @app.route("/accounts/", methods=["POST"])
-def create_account():  # noqa: ANN201
+def create_account():  # type: ignore[no-untyped-def]  # noqa: ANN201
     """Create a new account"""
     data = request.get_json(force=True)
 
@@ -276,11 +284,11 @@ def create_account():  # noqa: ANN201
         db_session.commit()
 
         encoder = APIEncoder()
-        return encoder.jsonify(account.namespace)
+        return encoder.jsonify(account.namespace)  # type: ignore[union-attr]
 
 
 @app.route("/accounts/<namespace_public_id>/", methods=["PUT"])
-def modify_account(namespace_public_id):  # noqa: ANN201
+def modify_account(namespace_public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Modify an existing account
 
@@ -320,7 +328,7 @@ def modify_account(namespace_public_id):  # noqa: ANN201
 
 
 @app.route("/accounts/<namespace_public_id>/", methods=["DELETE"])
-def delete_account(namespace_public_id):  # noqa: ANN201
+def delete_account(namespace_public_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """Mark an existing account for deletion."""
     try:
         with global_session_scope() as db_session:
@@ -347,7 +355,7 @@ def home() -> str:
 
 
 @app.route("/logout")
-def logout():  # noqa: ANN201
+def logout():  # type: ignore[no-untyped-def]  # noqa: ANN201
     """
     Utility function used to force browsers to reset cached HTTP Basic Auth
     credentials

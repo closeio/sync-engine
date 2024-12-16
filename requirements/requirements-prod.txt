@@ -979,8 +979,9 @@ requests-file==1.5.1 \
     # via
     #   -r requirements-prod.in
     #   tldextract
-rollbar==0.16.2 \
-    --hash=sha256:aa3b570062dd8dfb0e11537ba858f9e1633a604680e062a525434b8245540f87
+rollbar==1.1.0 \
+    --hash=sha256:0894302f7caf3d1f16c84ae3d609dc6385fcdba95ae78c9af1f4809a7dd44a89 \
+    --hash=sha256:a39634cdd53a8ae3ebdb850c0075da8fd88154bea356acee738b52aef79ec384
     # via -r requirements-prod.in
 s3transfer==0.10.3 \
     --hash=sha256:263ed587a5803c6c708d3ce44dc4dfedaab4c1a32e8329bab818933d79ddcf5d \
@@ -1022,7 +1023,6 @@ six==1.16.0 \
     #   imapclient
     #   python-dateutil
     #   requests-file
-    #   rollbar
 sqlalchemy==1.4.54 \
     --hash=sha256:02d2ecb9508f16ab9c5af466dfe5a88e26adf2e1a8d1c56eb616396ccae2c186 \
     --hash=sha256:0b76bbb1cbae618d10679be8966f6d66c94f301cfc15cb49e2f2382563fb6efb \

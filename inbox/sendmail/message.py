@@ -26,8 +26,6 @@ from html2text import html2text
 
 from inbox import VERSION
 
-REPLYSTR = "Re: "
-
 
 # Patch flanker to use base64 rather than quoted-printable encoding for
 # MIME parts with long lines. Flanker's implementation of quoted-printable

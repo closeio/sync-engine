@@ -485,7 +485,6 @@ def valid_display_name(  # noqa: ANN201
 
     display_name = display_name.rstrip()
     if len(display_name) > MAX_INDEXABLE_LENGTH:
-        # Set as MAX_FOLDER_LENGTH, MAX_LABEL_LENGTH
         raise InputError('"display_name" is too long')
 
     if (

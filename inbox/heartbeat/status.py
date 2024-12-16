@@ -1,12 +1,9 @@
 import time
 from collections import namedtuple
-from datetime import timedelta
 
 from inbox.heartbeat.config import ALIVE_EXPIRY
 from inbox.heartbeat.store import HeartbeatStore
 from inbox.logging import get_logger
-
-ALIVE_THRESHOLD = timedelta(seconds=ALIVE_EXPIRY)
 
 log = get_logger()
 

@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Session  # type: ignore[import-untyped]
 
+from inbox import interruptible_threading
 from inbox.contacts.crud import INBOX_PROVIDER_NAME
 from inbox.models import (
     Contact,
@@ -11,6 +12,7 @@ from inbox.models import (
 )
 from inbox.util.addr import canonicalize_address as canonicalize
 from inbox.util.addr import valid_email
+from inbox.util.itert import chunk
 
 if TYPE_CHECKING:
     from inbox.models.message import Message
@@ -133,6 +135,10 @@ def update_contacts_from_message(
                 )
 
 
+CONTACT_CHUNK_SIZE = 20
+CONTACT_CHUNK_SLEEP = 0.2
+
+
 def update_contacts_from_event(  # type: ignore[no-untyped-def]
     db_session, event, namespace_id
 ) -> None:
@@ -167,6 +173,12 @@ def update_contacts_from_event(  # type: ignore[no-untyped-def]
                 EventContactAssociation.event_id == event.id
             )
         )
+        if len(event.participants) > CONTACT_CHUNK_SIZE:
+            interruptible_threading.sleep(
+                CONTACT_CHUNK_SLEEP
+                * len(event.participants)
+                // CONTACT_CHUNK_SIZE
+            )
 
         if not all_addresses:
             return
@@ -197,8 +209,11 @@ def update_contacts_from_event(  # type: ignore[no-untyped-def]
                 )
 
         if values:
-            db_session.execute(
-                EventContactAssociation.__table__.insert().values(  # type: ignore[attr-defined]
-                    values
+            for chunk_index, values_chunk in enumerate(chunk(values, 20)):
+                db_session.execute(
+                    EventContactAssociation.__table__.insert().values(  # type: ignore[attr-defined]
+                        values_chunk
+                    )
                 )
-            )
+                if chunk_index > 0:
+                    interruptible_threading.sleep(CONTACT_CHUNK_SLEEP)

@@ -108,6 +108,11 @@ class OAuthAuthHandler(AuthHandler):
                 # If the developer has outright deleted their Google OAuth app
                 # ID. We treat this too as a case of 'invalid credentials'.
                 raise OAuthError("deleted_client")
+            elif session_dict["error"] == "access_denied":
+                # When a Google OAuth account is restricted, we may see
+                # "access_denied" rather than "invalid_grant". This should also
+                # be treated as revoked access.
+                raise OAuthError("access_denied")
             else:
                 # You can also get e.g. {"error": "internal_failure"}
                 account_logger.error(

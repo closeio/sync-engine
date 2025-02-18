@@ -235,7 +235,11 @@ class GoogleEventsProvider(AbstractEventsProvider):
                         )
                         time.sleep(30 + random.randrange(0, 60))
                         continue
-                    elif reason in ["accessNotConfigured", "notACalendarUser"]:
+                    elif reason in [
+                        "accessNotConfigured",
+                        "notACalendarUser",
+                        "insufficientPermissions",
+                    ]:
                         self.log.warning(
                             f"API not enabled with reason {reason}; returning empty result"
                         )

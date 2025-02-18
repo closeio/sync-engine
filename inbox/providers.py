@@ -443,6 +443,8 @@ providers: dict[str, dict[str, Any]] = {
         "auth": "password",
         "folder_map": {
             "INBOX.Archive": "archive",
+            # Support German naming for Archive folder
+            "INBOX.Archiv": "archive",
             "INBOX.Drafts": "drafts",
             "INBOX.Junk Mail": "spam",
             "INBOX.Trash": "trash",

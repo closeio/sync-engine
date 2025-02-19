@@ -2,9 +2,7 @@ import calendar
 import datetime
 import json
 
-from sqlalchemy import desc
-
-from inbox.models import Block, Category, Message, Namespace, Thread
+from inbox.models import Block, Category, Namespace, Thread
 from inbox.util.misc import dt_to_timestamp
 from tests.util.base import add_fake_message, add_fake_thread, test_client
 
@@ -256,27 +254,46 @@ def test_query_target(db, api_client, thread, default_namespace):
 
 
 def test_ordering(api_client, db, default_namespace):
+    thr = add_fake_thread(db.session, default_namespace.id)
+    messages = []
     for i in range(3):
-        thr = add_fake_thread(db.session, default_namespace.id)
         received_date = datetime.datetime.utcnow() + datetime.timedelta(
             seconds=22 * (i + 1)
         )
-        add_fake_message(
-            db.session, default_namespace.id, thr, received_date=received_date
+        messages.append(
+            add_fake_message(
+                db.session,
+                default_namespace.id,
+                thr,
+                received_date=received_date,
+            )
         )
+
     ordered_results = api_client.get_data("/messages")
+    ordered_ids = [result["id"] for result in ordered_results]
     ordered_dates = [result["date"] for result in ordered_results]
+    assert ordered_ids == list(reversed([m.public_id for m in messages]))
     assert ordered_dates == sorted(ordered_dates, reverse=True)
 
-    ordered_results = api_client.get_data("/messages?limit=3")
-    expected_public_ids = [
-        public_id
-        for public_id, in db.session.query(Message.public_id)
-        .filter(Message.namespace_id == default_namespace.id)
-        .order_by(desc(Message.received_date))
-        .limit(3)
-    ]
-    assert expected_public_ids == [r["id"] for r in ordered_results]
+    ordered_results = api_client.get_data("/messages?order_by=received_date")
+    ordered_ids = [result["id"] for result in ordered_results]
+    ordered_dates = [result["date"] for result in ordered_results]
+    assert ordered_ids == [m.public_id for m in messages]
+    assert ordered_dates == sorted(ordered_dates)
+
+    ordered_results = api_client.get_data("/messages?order_by=-received_date")
+    ordered_ids = [result["id"] for result in ordered_results]
+    ordered_dates = [result["date"] for result in ordered_results]
+    assert ordered_ids == list(reversed([m.public_id for m in messages]))
+    assert ordered_dates == sorted(ordered_dates, reverse=True)
+
+    response = api_client.get_data("/messages?order_by=nonsense")
+    assert response == {
+        "message": (
+            "An internal error occured. If this issue persists, please contact"
+            " support@nylas.com and include this request_uid: None"
+        )
+    }
 
 
 def test_strict_argument_parsing(api_client):

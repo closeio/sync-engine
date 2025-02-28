@@ -151,6 +151,9 @@ class Event(
     uid = Column(
         String(UID_MAX_LEN, collation="ascii_general_ci"), nullable=False
     )
+    # Temporary attribute used to check if an Event exists that uses the plain
+    # Event id provided by MS Graph Event API.
+    _ms_graph_event_id: str | None = None
 
     # DEPRECATED
     # TODO(emfree): remove
@@ -482,6 +485,10 @@ class Event(
             if not hasattr(type(self), k):
                 del kwargs[k]
         super().__init__(**kwargs)
+
+    @property
+    def ms_graph_event_id(self):
+        return self._ms_graph_event_id
 
 
 # For API querying performance - default sort order is event.start ASC

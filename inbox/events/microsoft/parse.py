@@ -693,7 +693,8 @@ def parse_event(
         assert master_event_uid
         assert event["type"] in ["exception", "synthesizedCancellation"]
 
-    uid = event["id"]
+    ical_uid = event["iCalUId"]
+    event_id = event["id"]
     raw_data = json.dumps(event)
     title = event["subject"] or ""
     start = parse_msgraph_datetime_tz_as_utc(event["start"])
@@ -744,7 +745,8 @@ def parse_event(
         original_start = None
 
     return Event.create(
-        uid=uid,
+        uid=ical_uid,
+        _ms_graph_event_id=event_id,
         raw_data=raw_data,
         title=title,
         description=description,

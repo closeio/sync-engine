@@ -3,6 +3,7 @@ from typing import Any
 
 import more_itertools  # type: ignore[import-not-found]
 from requests.exceptions import HTTPError
+from sqlalchemy import or_
 
 from inbox.config import config
 from inbox.contacts.processing import update_contacts_from_event
@@ -203,15 +204,25 @@ def handle_event_updates(
         assert event.uid is not None, "Got remote item with null uid"
 
         local_event = None
+        # Skip looking for a local event if we know none exist for initial sync.
         if events_exist:
-            # Skip this lookup if there are no local events at all, for faster
-            # first sync.
+            # TODO: Remove this field and check in the future once old format
+            # If this event includes an _ms_graph_event_id, we should also
+            # check if there is an old event created with that ID.
+            event_filter = (
+                or_(
+                    Event.uid == event.uid,
+                    Event.uid == event.ms_graph_event_id,
+                )
+                if event.ms_graph_event_id is not None
+                else (Event.uid == event.uid)
+            )
             local_event = (
                 db_session.query(Event)
                 .filter(
                     Event.namespace_id == namespace_id,
                     Event.calendar_id == calendar_id,
-                    Event.uid == event.uid,
+                    event_filter,
                 )
                 .first()
             )

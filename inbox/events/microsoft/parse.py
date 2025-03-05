@@ -25,6 +25,7 @@ from inbox.events.microsoft.graph_types import (
     MsGraphWeekIndex,
 )
 from inbox.events.timezones import windows_timezones
+from inbox.logging import get_logger
 from inbox.models.calendar import Calendar
 from inbox.models.event import Event
 from inbox.util.html import strip_tags
@@ -692,7 +693,10 @@ def parse_event(
     ]:
         assert master_event_uid
         assert event["type"] in ["exception", "synthesizedCancellation"]
-
+    log = get_logger()
+    log.info(
+        "Parsing event", event_ical_id=event["iCalUId"], event_uid=event["id"]
+    )
     ical_uid = event["iCalUId"]
     event_id = event["id"]
     raw_data = json.dumps(event)

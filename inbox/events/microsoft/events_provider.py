@@ -23,6 +23,7 @@ from inbox.events.microsoft.parse import (
     validate_event,
 )
 from inbox.events.util import CalendarSyncResponse
+from inbox.logging import get_logger
 from inbox.models.account import Account
 from inbox.models.backends.outlook import MICROSOFT_CALENDAR_SCOPES
 from inbox.models.calendar import Calendar
@@ -185,14 +186,26 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         start = master_event.start
         end = start + MAX_RECURRING_EVENT_WINDOW
-
+        log = get_logger()
+        log.info(
+            "Getting overrides for event",
+            event_id=master_event._ms_graph_event_id,
+        )
         raw_occurrences = cast(
             list[MsGraphEvent],
             list(
                 self.client.iter_event_instances(
-                    master_event.uid, start=start, end=end, fields=EVENT_FIELDS
+                    master_event._ms_graph_event_id,
+                    start=start,
+                    end=end,
+                    fields=EVENT_FIELDS,
                 )
             ),
+        )
+        log.info(
+            "got overrides for event",
+            event_id=master_event.uid,
+            occurrence_count=len(raw_occurrences),
         )
         (raw_exceptions, raw_cancellations) = (
             calculate_exception_and_canceled_occurrences(

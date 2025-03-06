@@ -64,6 +64,7 @@ def events_responses() -> None:
             "value": [
                 {
                     "id": "singular_id",
+                    "iCalUId": "singular_ical_id",
                     "lastModifiedDateTime": "2022-09-07T08:41:36.5027961Z",
                     "originalStartTimeZone": "Eastern Standard Time",
                     "originalEndTimeZone": "Eastern Standard Time",
@@ -106,6 +107,7 @@ def events_responses() -> None:
                 },
                 {
                     "id": "recurrence_id",
+                    "iCalUId": "recurrence_ical_id",
                     "lastModifiedDateTime": "2022-09-27T14:41:23.1042764Z",
                     "originalStartTimeZone": "Pacific Standard Time",
                     "originalEndTimeZone": "Pacific Standard Time",
@@ -352,6 +354,7 @@ def exception_override_response() -> None:
                 },
                 {
                     "id": "recurrence_id_exception",
+                    "iCalUId": "recurrence_ical_id_exception",
                     "lastModifiedDateTime": "2022-09-27T14:41:23.1042764Z",
                     "originalStartTimeZone": "Pacific Standard Time",
                     "originalEndTimeZone": "Pacific Standard Time",
@@ -494,7 +497,7 @@ def test_sync_events_cancellation(provider) -> None:
     ].start == datetime.datetime(2022, 9, 19, 15, tzinfo=pytz.UTC)
     assert (
         events_by_title_and_status[("Recurring", "confirmed")].uid
-        == "recurrence_id"
+        == "recurrence_ical_id"
     )
     assert isinstance(
         events_by_title_and_status[("Recurring", "cancelled")],
@@ -505,7 +508,7 @@ def test_sync_events_cancellation(provider) -> None:
     ].start == datetime.datetime(2022, 9, 20, 15, tzinfo=pytz.UTC)
     assert (
         events_by_title_and_status[("Recurring", "cancelled")].uid
-        == "recurrence_id-synthesizedCancellation-2022-09-20"
+        == "recurrence_ical_id-synthesizedCancellation-2022-09-20"
     )
 
 
@@ -519,7 +522,7 @@ def test_sync_events_exception(provider) -> None:
     assert events_by_title["Recurring"].start == datetime.datetime(
         2022, 9, 19, 15, tzinfo=pytz.UTC
     )
-    assert events_by_title["Recurring"].uid == "recurrence_id"
+    assert events_by_title["Recurring"].uid == "recurrence_ical_id"
     assert isinstance(
         events_by_title["Recurring exception"], RecurringEventOverride
     )
@@ -527,7 +530,8 @@ def test_sync_events_exception(provider) -> None:
         2022, 9, 20, 15, tzinfo=pytz.UTC
     )
     assert (
-        events_by_title["Recurring exception"].uid == "recurrence_id_exception"
+        events_by_title["Recurring exception"].uid
+        == "recurrence_ical_id_exception"
     )
 
 

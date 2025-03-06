@@ -735,6 +735,7 @@ def test_inflate_msgraph_patterned_recurrence(
 
 master_event = {
     "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIM02sjAABtf4g8yY_zTZgZh6x0X-50AAIM0_o4AAA=",
+    "iCalUId": "iCalUId:2",
     "subject": "Expansion",
     "importance": "normal",
     "sensitivity": "normal",
@@ -769,6 +770,7 @@ master_event = {
 event_occurrences = [
     {
         "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQFRAAgI2pnR5UQAAEYAAAAAovUUFgf0jU2QbgCzOiiDrAcAbX_IPMmPs02YGYesdF-_dAACDNNrIwAAbX_IPMmPs02YGYesdF-_dAACDNPqOAAAEA==",
+        "iCalUId": "iCalUId:3",
         "subject": "Expansion",
         "importance": "normal",
         "sensitivity": "normal",
@@ -789,6 +791,7 @@ event_occurrences = [
     },
     {
         "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQFRAAgI2pqbD63AAEYAAAAAovUUFgf0jU2QbgCzOiiDrAcAbX_IPMmPs02YGYesdF-_dAACDNNrIwAAbX_IPMmPs02YGYesdF-_dAACDNPqOAAAEA==",
+        "iCalUId": "iCalUId:4",
         "subject": "Expansion",
         "importance": "normal",
         "sensitivity": "normal",
@@ -809,6 +812,7 @@ event_occurrences = [
     },
     {
         "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQFRAAgI2ptkOheAAEYAAAAAovUUFgf0jU2QbgCzOiiDrAcAbX_IPMmPs02YGYesdF-_dAACDNNrIwAAbX_IPMmPs02YGYesdF-_dAACDNPqOAAAEA==",
+        "iCalUId": "iCalUId:5",
         "subject": "Expansion",
         "importance": "normal",
         "sensitivity": "normal",
@@ -860,6 +864,7 @@ def test_calculate_exception_and_canceled_occurrences_with_deletion() -> None:
 
 master_event_crossing_dst = {
     "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIzYW90AABtf4g8yY_zTZgZh6x0X-50AAI4iyJwAAA=",
+    "iCalUId": "iCalUId:6",
     "originalStartTimeZone": "Eastern Standard Time",
     "originalEndTimeZone": "Eastern Standard Time",
     "type": "seriesMaster",
@@ -1359,7 +1364,7 @@ def test_parse_event_recurrence() -> None:
     event = parse_event(recurring_event, read_only=False)
 
     assert isinstance(event, RecurringEvent)
-    assert event.uid == recurring_event["id"]
+    assert event.uid == recurring_event["iCalUId"]
     assert event.title == "Expansion"
     assert event.start == datetime.datetime(2022, 9, 19, 15, tzinfo=pytz.UTC)
     assert event.end == datetime.datetime(2022, 9, 19, 15, 30, tzinfo=pytz.UTC)
@@ -1397,7 +1402,7 @@ single_instance_event = {
     "transactionId": "962593bf-9e1b-ef34-bff6-da63d058df7f",
     "originalStartTimeZone": "Eastern Standard Time",
     "originalEndTimeZone": "Eastern Standard Time",
-    "iCalUId": "040000008200E00074C5B7101A82E00800000000D0C4525C95C2D80100000000000000001000000007003FD5ECC09F42A0ACCA4299772507",
+    "iCalUId": "iCalUId:1",
     "reminderMinutesBeforeStart": 15,
     "isReminderOn": True,
     "hasAttachments": False,
@@ -1446,7 +1451,7 @@ def test_parse_event_singular() -> None:
     event = parse_event(single_instance_event, read_only=False)
 
     assert isinstance(event, Event)
-    assert event.uid == single_instance_event["id"]
+    assert event.uid == single_instance_event["iCalUId"]
     assert event.title == "Test event 2"
     assert event.start == datetime.datetime(2022, 9, 15, 12, tzinfo=pytz.UTC)
     assert event.end == datetime.datetime(2022, 9, 15, 12, 30, tzinfo=pytz.UTC)

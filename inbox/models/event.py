@@ -487,7 +487,7 @@ class Event(
         super().__init__(**kwargs)
 
     @property
-    def ms_graph_event_id(self):
+    def ms_graph_event_id(self) -> str | None:
         return self._ms_graph_event_id
 
 

@@ -215,7 +215,7 @@ def handle_event_updates(
                     Event.uid == event.ms_graph_event_id,
                 )
                 if event.ms_graph_event_id is not None
-                else (Event.uid == event.uid)
+                else Event.uid == event.uid
             )
             local_event = (
                 db_session.query(Event)

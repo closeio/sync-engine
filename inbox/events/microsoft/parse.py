@@ -412,7 +412,7 @@ def synthesize_canceled_occurrence(
     assert start_datetime.tzinfo == pytz.UTC
 
     cancellation_id = (
-        master_event["id"]
+        master_event["iCalUId"]
         + "-synthesizedCancellation-"
         + start_datetime.date().isoformat()
     )
@@ -429,6 +429,7 @@ def synthesize_canceled_occurrence(
     result = {
         **master_event,
         "id": cancellation_id,
+        "iCalUId": cancellation_id,
         "type": "synthesizedCancellation",
         "isCancelled": True,
         "recurrence": None,

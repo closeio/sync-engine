@@ -346,7 +346,13 @@ class Event(
         if event.provider_name is not None:
             self.provider_name = event.provider_name
 
-        self.uid = event.uid
+        # I'm not sure updating the UID is ever a good idea. The consuming
+        # service will interpret this as a new event, resulting in duplicates.
+        self.uid = (
+            event.uid
+            if event.ms_graph_event_id != self.uid
+            else event.ms_graph_event_id
+        )
         self.raw_data = event.raw_data
         self.title = event.title
         self.description = event.description

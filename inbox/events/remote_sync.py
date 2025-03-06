@@ -224,10 +224,15 @@ def handle_event_updates(
                     Event.calendar_id == calendar_id,
                     event_filter,
                 )
-                .first()
+                .all()
             )
 
         if local_event is not None:
+            log.info(
+                "*****Found local event",
+                local_event=local_event.id,
+                new_event=event.uid,
+            )
             # We also need to mark all overrides as cancelled if we're
             # cancelling a recurring event. However, note the original event
             # may not itself be recurring (recurrence may have been added).
@@ -246,6 +251,11 @@ def handle_event_updates(
 
             updated_count += 1
         else:
+            log.info(
+                "*****Did not find local event",
+                new_event_graph_id=event.ms_graph_event_id,
+                new_event=event.uid,
+            )
             local_event = event
             local_event.namespace_id = namespace_id
             local_event.calendar_id = calendar_id

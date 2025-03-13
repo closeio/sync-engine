@@ -2,7 +2,7 @@ import os
 from collections.abc import Generator
 
 ROOT_PATH = os.path.normpath(
-    os.path.join(__file__, os.pardir, os.pardir, os.pardir)  # noqa: PTH118
+    os.path.join(__file__, os.pardir, os.pardir, os.pardir, os.pardir)  # noqa: PTH118
 )
 
 

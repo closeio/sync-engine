@@ -6,3 +6,4 @@ requirements_lint.txt
 .travis.yml
 docker-compose.yml
 Dockerfile
+.venv

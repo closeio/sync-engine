@@ -22,9 +22,6 @@ htmlcov
 /config.json
 inbox/test/.cache
 
-# location for editable pip installs
-/src
-
 # virtualenv
 venv
 .venv

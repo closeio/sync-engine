@@ -5,6 +5,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+import certifi
 import pytz
 import requests
 from authalligator_client.client import (  # type: ignore[import-untyped]
@@ -21,6 +22,7 @@ from imapclient import IMAPClient  # type: ignore[import-untyped]
 
 from inbox.config import config
 from inbox.exceptions import (
+    AuthError,
     ConnectionError,
     ImapSupportDisabledError,
     OAuthError,
@@ -291,7 +293,7 @@ class OAuthAuthHandler(AuthHandler):
             headers={"Authorization": f"Bearer {access_token}"},
         )
         try:
-            response = urllib.request.urlopen(request)
+            response = urllib.request.urlopen(request, cafile=certifi.where())
         except urllib.error.HTTPError as e:
             if e.code == 401:
                 raise OAuthError("Could not retrieve user info.")  # noqa: B904
@@ -303,7 +305,14 @@ class OAuthAuthHandler(AuthHandler):
 
         userinfo_dict = json.loads(response.read())
 
-        return {"email": userinfo_dict["EmailAddress"]}
+        email = userinfo_dict.get("EmailAddress")
+        if email is None:
+            email = userinfo_dict.get("email")
+
+        if email is None:
+            raise AuthError("Could not extract user email from user info.")
+
+        return {"email": email}
 
     def _get_authenticated_user(  # type: ignore[no-untyped-def]
         self, authorization_code

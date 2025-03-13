@@ -340,6 +340,7 @@ def files(db):  # type: ignore[no-untyped-def]  # noqa: ANN201
             os.path.dirname(os.path.abspath(__file__)),  # noqa: PTH100, PTH120
             "..",
             "..",
+            "..",
             "tests",
             "data",
             filename,

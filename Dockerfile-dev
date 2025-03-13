@@ -1,0 +1,14 @@
+FROM ghcr.io/astral-sh/uv:debian-slim
+
+RUN apt-get update
+RUN apt-get install --no-install-recommends -y \
+    python3-dev \
+    default-libmysqlclient-dev \
+    mariadb-client \
+    build-essential \
+    pkg-config \
+    gcc \
+    git \
+    vim
+
+WORKDIR /opt/app

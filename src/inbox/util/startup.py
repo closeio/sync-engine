@@ -12,7 +12,13 @@ log = get_logger()
 
 
 def check_sudo() -> None:
-    if os.getuid() == 0:
+    env = os.getenv("NYLAS_ENV", "prod")
+    # Don't run the Nylas Sync Engine as root in production or staging.
+    # Ideally env would be attached to config so we don't use os.environ
+    # outside of config.py. However, os.environ is used in error_handler.py
+    # as well, so, for now, this is the best place to check if the current
+    # environment is production or staging.
+    if os.getuid() == 0 and env in ["prod", "staging"]:
         raise Exception("Don't run the Nylas Sync Engine as root!")
 
 

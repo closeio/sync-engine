@@ -3,8 +3,8 @@
 version: 2
 updates:
   # Enable version updates for python
-  - package-ecosystem: "pip"
-    directory: "/requirements"
+  - package-ecosystem: "uv"
+    directory: "/"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 16

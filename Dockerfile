@@ -11,7 +11,8 @@ ENV \
   LANG="en_US.UTF-8" \
   LC_ALL="en_US.UTF-8" \
   DEBIAN_FRONTEND=noninteractive \
-  PATH="/opt/venv/bin:$PATH"
+  PATH="/opt/venv/bin:$PATH" \
+  UV_PROJECT_ENVIRONMENT="/opt/venv"
 
 ARG BUILD_WEEK=0
 RUN echo $BUILD_WEEK && apt-get update \
@@ -55,15 +56,13 @@ RUN apt-get update \
     git \
     pkg-config \
     python3.12-dev \
-    python3.12-venv \
-    python3-pip \
     libmysqlclient-dev \
   && rm -rf /var/lib/apt/lists/*
 
-COPY /requirements/ /requirements/
-RUN python3.12 -m venv /opt/venv && \
-  /opt/venv/bin/python3.12 -m pip install --no-cache --no-deps -r /requirements/requirements-prod.txt -r /requirements/requirements-test.txt && \
-  /opt/venv/bin/python3.12 -m pip check
+COPY --from=ghcr.io/astral-sh/uv:0.6.6 /uv /uvx /bin/
+COPY ./pyproject.toml ./uv.lock ./src /opt/app/
+WORKDIR /opt/app
+RUN uv sync --no-editable --frozen
 
 
 # --- Stage 2 --- #
@@ -77,4 +76,8 @@ WORKDIR /opt/app
 
 COPY --from=stage_1 --chown=sync-engine:sync-engine /opt/venv /opt/venv
 RUN ln -s /opt/app/bin/wait-for-it.sh /opt/venv/bin/
-COPY --chown=sync-engine:sync-engine ./ /opt/app/
+COPY --chown=sync-engine:sync-engine ./alembic.ini /opt/app/
+COPY --chown=sync-engine:sync-engine ./bin /opt/app/bin
+COPY --chown=sync-engine:sync-engine ./etc /opt/app/etc
+COPY --chown=sync-engine:sync-engine ./migrations /opt/app/migrations
+COPY --chown=sync-engine:sync-engine ./scripts /opt/app/scripts

@@ -24,9 +24,7 @@ import queue
 import threading
 import time
 from collections.abc import Callable
-from typing import Any, Concatenate, TypeVar
-
-from typing_extensions import ParamSpec
+from typing import Any, Concatenate, TypeVar, ParamSpec
 
 
 class InterruptibleThreadExit(BaseException):

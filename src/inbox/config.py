@@ -15,6 +15,7 @@ __all__ = ["config"]
 if "NYLAS_ENV" in os.environ:
     assert os.environ["NYLAS_ENV"] in (
         "dev",
+        "docker-dev",
         "test",
         "staging",
         "prod",
@@ -81,7 +82,7 @@ def _update_config_from_env(config, env):  # type: ignore[no-untyped-def]
 
     """
     srcdir = os.path.join(  # noqa: PTH118
-        os.path.dirname(os.path.realpath(__file__)), ".."  # noqa: PTH120
+        os.path.dirname(os.path.realpath(__file__)), "../.."  # noqa: PTH120
     )
 
     if env in ["prod", "staging"]:

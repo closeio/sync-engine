@@ -1,0 +1,73 @@
+{
+"DATABASE_HOSTS": [
+    {
+        "HOSTNAME": "mysql",
+        "PORT": 3306,
+        "SHARDS": [
+            {
+                "ID": 0,
+                "SCHEMA_NAME": "synctest",
+                "OPEN": true
+            }
+        ]
+    }
+],
+
+"SYNCBACK_ASSIGNMENTS": {
+    0:[0,1,2,3,4,5]
+
+},
+
+"SYNC_STEAL_ACCOUNTS": true,
+
+"DB_POOL_SIZE": 25,
+"DB_POOL_MAX_OVERFLOW": 5,
+
+"LOGDIR": "/var/log/inboxapp",
+"LOGLEVEL": 10,
+
+"REDIS_PORT": 6379,
+"REDIS_SHARDS": ["localhost"],
+
+"ACCOUNT_QUEUE_REDIS_HOSTNAME": "redis",
+"ACCOUNT_QUEUE_REDIS_DB": 3,
+
+"EVENT_QUEUE_REDIS_HOSTNAME": "redis",
+"EVENT_QUEUE_REDIS_DB": 3,
+
+"BASE_ALIVE_THRESHOLD": 480,
+"CONTACTS_ALIVE_THRESHOLD": 480,
+"EVENTS_ALIVE_THRESHOLD": 480,
+"EAS_THROTTLED_ALIVE_THRESHOLD": 600,
+"EAS_PING_ALIVE_THRESHOLD": 780,
+
+"GOOGLE_OAUTH_REDIRECT_URI": "http://localhost",
+
+"STORE_MESSAGES_ON_S3": false,
+"MSG_PARTS_DIRECTORY": "/var/lib/inboxapp/parts",
+
+"CALENDAR_POLL_FREQUENCY": 300,
+"EMAIL_EXCEPTIONS": false,
+"ENCRYPT_SECRETS": true,
+"DEBUG_CONSOLE_ON": true,
+
+"FEATURE_FLAGS": "ical_autoimport",
+
+"THROTTLE_REDIS_HOSTNAME": "redis",
+"THROTTLE_REDIS_DB": "throttle",
+
+"TXN_REDIS_HOSTNAME": "redis",
+"TXN_REDIS_DB": "txn",
+
+"THROTTLE_DELETION": false,
+"UMPIRE_BASE_URL": "127.0.0.1",
+
+"MAILGUN_DOMAIN": null,
+"MAILGUN_API_KEY": null,
+
+"NOTIFICATIONS_MAILGUN_DOMAIN": null,
+"NOTIFICATIONS_MAILGUN_API_KEY": null,
+
+"AUTHALLIGATOR_SERVICE_URL": "https://authalligator-service"
+
+}

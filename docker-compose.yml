@@ -1,4 +1,3 @@
-version: "3.7"
 services:
   redis:
     image: redis:7.0
@@ -15,6 +14,12 @@ services:
       MYSQL_DATABASE: synctest
       PYTHONUNBUFFERED: 1
       PYTHONDONTWRITEBYTECODE: 1
+    healthcheck:
+      test: "mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD"
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   minio:
     image: closeio/minio:branch-main
@@ -29,15 +34,56 @@ services:
     image: sync-engine_app
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile-dev
     volumes:
-      - .:/opt/app
+      - ./bin/wait-for-it.sh:/opt/app/.venv/bin/wait-for-it.sh
       - ipython_data_local:/root/.ipython/profile_default
-    user: root
+      - uv_python_installs:/root/.local/share/uv/python
+      - uv_venv:/opt/venv
+      - local_project:/opt/app
     depends_on:
-      - redis
-      - mysql
-      - minio
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+    environment:
+      TZ: "Etc/GMT"
+      LANG: "en_US.UTF-8"
+      LC_ALL: "en_US.UTF-8"
+      DEBIAN_FRONTEND: noninteractive
+      NYLAS_ENV: docker-dev
+      UV_PROJECT_ENVIRONMENT: "/opt/venv"
+    ports:
+      - "5555:5555"
+    command: ["uv", "run", "bin/inbox-api.py"]
+
+  test:
+    image: sync-engine_test
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+    volumes:
+      - uv_python_installs:/root/.local/share/uv/python
+      - local_project:/opt/app
+      - uv_venv:/opt/venv
+    depends_on:
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+    environment:
+      TZ: "Etc/GMT"
+      LANG: "en_US.UTF-8"
+      LC_ALL: "en_US.UTF-8"
+      NYLAS_ENV: test
+      UV_PROJECT_ENVIRONMENT: "/opt/venv"
+    command: ["uv", "run", "--group=test", "pytest"]
+    profiles:
+      - quality
 
   # for running code formatting, isort
   devtools:
@@ -45,6 +91,16 @@ services:
     working_dir: /src
     volumes:
       - .:/src
+    profiles:
+      - quality
 
 volumes:
-  ipython_data_local: {}
+  ipython_data_local:
+  uv_python_installs:
+  uv_venv:
+  local_project:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: .

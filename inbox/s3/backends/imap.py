@@ -23,6 +23,11 @@ def get_imap_raw_contents(message):  # type: ignore[no-untyped-def]  # noqa: ANN
         try:
             crispin_client.select_folder(folder.name, uidvalidity_cb)
         except FolderMissingError as exc:
+            log.error(  # noqa: G201
+                "Error while fetching raw contents: can't find folder",
+                exc_info=True,
+                logstash_tag="fetching_error",
+            )
             raise EmailFetchException(
                 "Folder containing email cannot be found or accessed on the"
                 " backend server."

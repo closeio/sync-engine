@@ -493,8 +493,8 @@ class Event(
         super().__init__(**kwargs)
 
     @property
-    def ms_event_id(self) -> str:
-        return self._ms_graph_event_id or self.uid
+    def ms_graph_event_id(self) -> str | None:
+        return self._ms_graph_event_id
 
 
 # For API querying performance - default sort order is event.start ASC

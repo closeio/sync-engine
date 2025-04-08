@@ -183,6 +183,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         """
         assert raw_master_event["type"] == "seriesMaster"
+        assert master_event.ms_graph_event_id
 
         start = master_event.start
         end = start + MAX_RECURRING_EVENT_WINDOW
@@ -192,7 +193,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
             list[MsGraphEvent],
             list(
                 self.client.iter_event_instances(
-                    master_event.ms_event_id,
+                    master_event.ms_graph_event_id,
                     start=start,
                     end=end,
                     fields=EVENT_FIELDS,

@@ -3,7 +3,7 @@ from typing import Any
 
 import more_itertools  # type: ignore[import-not-found]
 from requests.exceptions import HTTPError
-from sqlalchemy import or_
+from sqlalchemy import or_  # type: ignore[import-untyped]
 
 from inbox.config import config
 from inbox.contacts.processing import update_contacts_from_event

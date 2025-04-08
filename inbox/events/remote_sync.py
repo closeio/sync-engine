@@ -224,7 +224,7 @@ def handle_event_updates(
                     Event.calendar_id == calendar_id,
                     event_filter,
                 )
-                .all()
+                .first()
             )
 
         if local_event is not None:

@@ -187,15 +187,12 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
         start = master_event.start
         end = start + MAX_RECURRING_EVENT_WINDOW
         log = get_logger()
-        log.info(
-            "Getting overrides for event",
-            event_id=master_event.ms_graph_event_id,
-        )
+        log.info("Getting overrides for event", event_id=master_event.uid)
         raw_occurrences = cast(
             list[MsGraphEvent],
             list(
                 self.client.iter_event_instances(
-                    master_event.ms_graph_event_id,
+                    master_event.ms_event_id,
                     start=start,
                     end=end,
                     fields=EVENT_FIELDS,

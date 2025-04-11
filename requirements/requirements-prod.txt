@@ -628,9 +628,9 @@ lxml==5.1.0 \
     --hash=sha256:f4c9bda132ad108b387c33fabfea47866af87f4ea6ffb79418004f0521e63204 \
     --hash=sha256:f643ffd2669ffd4b5a3e9b41c909b72b2a1d5e4915da90a77e119b8d48ce867a
     # via -r requirements-prod.in
-mako==1.2.2 \
-    --hash=sha256:3724869b363ba630a272a5f89f68c070352137b8fd1757650017b7e06fda163f \
-    --hash=sha256:8efcb8004681b5f71d09c983ad5a9e6f5c40601a6ec469148753292abc0da534
+mako==1.3.10 \
+    --hash=sha256:99579a6f39583fa7e5630a28c3c1f440e4e97a414b80372649c0ce338da2ea28 \
+    --hash=sha256:baef24a52fc4fc514a0887ac600f9f1cff3d82c61d4d700a1fa84d597b88db59
     # via
     #   -r requirements-prod.in
     #   alembic

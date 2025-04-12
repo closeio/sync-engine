@@ -29,7 +29,7 @@ executing==1.2.0
 filelock==3.4.0
 flanker @ https://github.com/closeio/flanker-new/archive/fa272d95345d45e8bb1f9bc32bc2c074bf52a484.zip
 tld==0.12.6
-Flask==2.2.5
+Flask==2.3.2
 Flask-RESTful==0.3.9
 gdata==2.0.18
 greenlet==3.0.3

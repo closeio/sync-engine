@@ -34,7 +34,7 @@ Flask-RESTful==0.3.9
 gdata==2.0.18
 greenlet==3.0.3
 gunicorn==23.0.0
-hiredis==2.3.2
+hiredis==3.2.1
 html2text==2020.1.16
 icalendar==4.0.9
 idna==3.7

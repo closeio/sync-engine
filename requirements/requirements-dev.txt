@@ -42,9 +42,9 @@ pip==23.3.1 \
     # via
     #   -c requirements-pip.txt
     #   pip-tools
-setuptools==75.2.0 \
-    --hash=sha256:753bb6ebf1f465a1912e19ed1d41f403a79173a9acf66a42e7e6aec45c3c16ec \
-    --hash=sha256:a7fcb66f68b4d9e8e66b42f9876150a3371558f98fa32222ffaa5bced76406f8
+setuptools==78.1.1 \
+    --hash=sha256:c3a9c4211ff4c309edb8b8c4f1cbfa7ae324c4ba9f91ff254e3d305b9fd54561 \
+    --hash=sha256:fcc17fd9cd898242f6b4adfaca46137a9edef687f43e6f78469692a5e70d851d
     # via
     #   -c requirements-prod.txt
     #   pip-tools

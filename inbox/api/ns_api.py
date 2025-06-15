@@ -557,6 +557,7 @@ def message_query_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument("thread_id", type=valid_public_id, location="args")
     g.parser.add_argument("unread", type=strict_bool, location="args")
     g.parser.add_argument("starred", type=strict_bool, location="args")
+    g.parser.add_argument("order_by", type=bounded_str, location="args")
     g.parser.add_argument("view", type=view, location="args")
 
     args = strict_parse_args(g.parser, request.args)
@@ -581,6 +582,7 @@ def message_query_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
         in_=args["in"],
         unread=args["unread"],
         starred=args["starred"],
+        order_by=args["order_by"],
         limit=args["limit"],
         offset=args["offset"],
         view=args["view"],
@@ -1742,6 +1744,7 @@ def draft_query_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     g.parser.add_argument("thread_id", type=valid_public_id, location="args")
     g.parser.add_argument("unread", type=strict_bool, location="args")
     g.parser.add_argument("starred", type=strict_bool, location="args")
+    g.parser.add_argument("order_by", type=bounded_str, location="args")
     g.parser.add_argument("view", type=view, location="args")
 
     args = strict_parse_args(g.parser, request.args)
@@ -1766,6 +1769,7 @@ def draft_query_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
         in_=args["in"],
         unread=args["unread"],
         starred=args["starred"],
+        order_by=args["order_by"],
         limit=args["limit"],
         offset=args["offset"],
         view=args["view"],

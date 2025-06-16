@@ -15,24 +15,35 @@ def safe_decode(message: str | bytes) -> str:
     return message
 
 
-def auth_requires_app_password(exc):  # type: ignore[no-untyped-def]  # noqa: ANN201
-    # Some servers require an application specific password, token, or
-    # authorization code to login
-    PREFIXES = (  # noqa: N806
+# Some servers require an application-specific password, token, or
+# authorization code to login.
+APP_SPECIFIC_PASSWORD_PREFIXES = [
+    prefix.lower()
+    for prefix in [
         "Please using authorized code to login.",  # http://service.mail.qq.com/cgi-bin/help?subtype=1&&id=28&&no=1001256
         "Authorized code is incorrect",  # http://service.mail.qq.com/cgi-bin/help?subtype=1&&id=28&&no=1001256
         "Login fail. Please using weixin token",  # http://service.exmail.qq.com/cgi-bin/help?subtype=1&no=1001023&id=23.
+    ]
+]
+
+
+def auth_requires_app_password(exc: IMAPClient.Error) -> bool:
+    if not exc.args:
+        return False
+    error_message = safe_decode(exc.args[0]).lower()
+    return any(
+        error_message.startswith(prefix)
+        for prefix in APP_SPECIFIC_PASSWORD_PREFIXES
     )
-    message = safe_decode(exc.args[0]) if exc.args else ""
-    return any(message.lower().startswith(msg.lower()) for msg in PREFIXES)
 
 
-def auth_is_invalid(exc):  # type: ignore[no-untyped-def]  # noqa: ANN201
-    # IMAP doesn't really have error semantics, so we have to match the error
-    # message against a list of known response strings to determine whether we
-    # couldn't log in because the credentials are invalid, or because of some
-    # temporary server error.
-    AUTH_INVALID_PREFIXES = (  # noqa: N806
+# IMAP doesn't really have error semantics, so we have to match the error
+# message against a list of known response strings to determine whether we
+# couldn't log in because the credentials are invalid, or because of some
+# temporary server error.
+AUTH_INVALID_PREFIXES = [
+    prefix.lower()
+    for prefix in (
         "[authenticationfailed]",
         "incorrect username or password",
         "invalid login or password",
@@ -53,10 +64,15 @@ def auth_is_invalid(exc):  # type: ignore[no-untyped-def]  # noqa: ANN201
         "[AUTHORIZATIONFAILED]",
         "incorrect password",
     )
-    message = safe_decode(exc.args[0]) if exc.args else ""
+]
+
+
+def auth_is_invalid(exc: IMAPClient.Error) -> bool:
+    if not exc.args:
+        return False
+    error_message = safe_decode(exc.args[0]).lower()
     return any(
-        message.lower().startswith(msg.lower())
-        for msg in AUTH_INVALID_PREFIXES
+        error_message.startswith(prefix) for prefix in AUTH_INVALID_PREFIXES
     )
 
 

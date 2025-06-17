@@ -1,4 +1,3 @@
-import re
 import ssl
 
 from imapclient import IMAPClient  # type: ignore[import-untyped]
@@ -44,28 +43,27 @@ def auth_requires_app_password(exc: IMAPClient.Error) -> bool:
 # different responses from servers. For real error messages that have been
 # received from servers in the past, see the test suite.
 AUTH_INVALID_PATTERNS = [
-    pattern.lower()
-    for pattern in (
-        "fail",
-        "incorrect",
-        "invalid",
-        r"\bbad\b",
-        "login error",
-        "username error",
-        "password error",
-        "please log in",
-    )
-]
-AUTH_INVALID_PATTERNS_RE = [
-    re.compile(pattern) for pattern in AUTH_INVALID_PATTERNS
+    "authenticationfail",
+    "authorizationfail",
+    "loginfail",
+    "authentication fail",
+    "authorization fail",
+    "login fail",
+    "incorrect",
+    "invalid",
+    "login bad",
+    "login error",
+    "username error",
+    "password error",
+    "please log in",
 ]
 
 
 def is_error_message_invalid_auth(error_message: str) -> bool:
     normalized_error_message = error_message.lower()
     return any(
-        pattern.search(normalized_error_message)
-        for pattern in AUTH_INVALID_PATTERNS_RE
+        pattern in normalized_error_message
+        for pattern in AUTH_INVALID_PATTERNS
     )
 
 

@@ -1,3 +1,4 @@
+import re
 import ssl
 
 from imapclient import IMAPClient  # type: ignore[import-untyped]
@@ -48,20 +49,23 @@ AUTH_INVALID_PATTERNS = [
         "fail",
         "incorrect",
         "invalid",
-        "bad",
+        r"\bbad\b",
         "login error",
         "username error",
         "password error",
         "please log in",
     )
 ]
+AUTH_INVALID_PATTERNS_RE = [
+    re.compile(pattern) for pattern in AUTH_INVALID_PATTERNS
+]
 
 
 def is_error_message_invalid_auth(error_message: str) -> bool:
     normalized_error_message = error_message.lower()
     return any(
-        pattern in normalized_error_message
-        for pattern in AUTH_INVALID_PATTERNS
+        pattern.search(normalized_error_message)
+        for pattern in AUTH_INVALID_PATTERNS_RE
     )
 
 

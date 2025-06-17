@@ -37,42 +37,31 @@ def auth_requires_app_password(exc: IMAPClient.Error) -> bool:
     )
 
 
-# IMAP doesn't really have error semantics, so we have to match the error
-# message against a list of known response strings to determine whether we
-# couldn't log in because the credentials are invalid, or because of some
-# temporary server error.
-AUTH_INVALID_PREFIXES = [
-    prefix.lower()
-    for prefix in (
-        "[authenticationfailed]",
-        "incorrect username or password",
-        "invalid login or password",
-        "login login error password error",
-        "[auth] authentication failed.",
-        "invalid login credentials",
-        "[ALERT] Please log in via your web browser",
-        "LOGIN Authentication failed",
-        "authentication failed",
-        "[ALERT] Invalid credentials(Failure)",
-        "Invalid email login",
-        "failed: Re-Authentication Failure",
-        "Invalid",
-        "Login incorrect",
-        "LOGIN GroupWise login failed",
-        "authentication failed",
-        "LOGIN bad",  # LOGIN bad username or password
-        "[AUTHORIZATIONFAILED]",
-        "incorrect password",
+# IMAP doesn't have error semantics, so we have to match the error message
+# against a list of known responses to determine whether we couldn't log in
+# because the credentials are invalid. Sometimes a single pattern matches many
+# different responses from servers. For real error messages that have been
+# received from servers in the past, see the test suite.
+AUTH_INVALID_PATTERNS = [
+    pattern.lower()
+    for pattern in (
+        "fail",
+        "incorrect",
+        "invalid",
+        "bad",
+        "login error",
+        "username error",
+        "password error",
+        "please log in",
     )
 ]
 
 
-def auth_is_invalid(exc: IMAPClient.Error) -> bool:
-    if not exc.args:
-        return False
-    error_message = safe_decode(exc.args[0]).lower()
+def is_error_message_invalid_auth(error_message: str) -> bool:
+    normalized_error_message = error_message.lower()
     return any(
-        error_message.startswith(prefix) for prefix in AUTH_INVALID_PREFIXES
+        pattern in normalized_error_message
+        for pattern in AUTH_INVALID_PATTERNS
     )
 
 

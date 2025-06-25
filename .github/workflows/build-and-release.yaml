@@ -94,6 +94,9 @@ jobs:
           if [ "$(git log -1 --pretty=%B | head -n 1 | grep '#notests')" ]; then
             echo 'SKIP_TESTS="1"' >> $GITHUB_ENV
           fi
+          if [ "$(git log -1 --pretty=%B | head -n 1 | grep '#nobuildcache')" ]; then
+            echo 'BUILD_CACHE_BUST=${{ github.sha }}' >> $GITHUB_ENV
+          fi
           DOCKER_IMAGE_TAG=${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ github.sha }}
           if [ "${{ matrix.arch }}" = "arm64" ]; then
             DOCKER_IMAGE_TAG="${DOCKER_IMAGE_TAG}-arm64"
@@ -129,6 +132,8 @@ jobs:
             ${{ env.DOCKER_IMAGE_TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_CACHE_BUST=${{ env.BUILD_CACHE_BUST }}
 
       - name: Run tests
         run: |

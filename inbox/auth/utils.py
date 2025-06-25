@@ -51,14 +51,10 @@ AUTH_INVALID_PATTERNS = [
     "login fail",
     "incorrect",
     "invalid",
-    "no valid tokens",
     "login bad",
-    "bad username",
-    "bad password",
     "login error",
     "username error",
     "password error",
-    "authenticated but not connected",
     "please log in",
 ]
 

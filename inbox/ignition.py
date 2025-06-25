@@ -1,10 +1,4 @@
 import time
-import weakref
-from collections.abc import MutableMapping
-from socket import gethostname
-from typing import Any
-from urllib.parse import quote_plus as urlquote
-from warnings import filterwarnings
 
 import limitlion  # type: ignore[import-untyped]
 import redis

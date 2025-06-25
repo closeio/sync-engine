@@ -14,7 +14,8 @@ ENV \
   PATH="/opt/venv/bin:$PATH"
 
 ARG BUILD_WEEK=0
-RUN echo $BUILD_WEEK && apt-get update \
+ARG BUILD_CACHE_BUST
+RUN echo $BUILD_WEEK $BUILD_CACHE_BUST && apt-get update \
   && apt-get dist-upgrade -y \
   && apt-get install --no-install-recommends -y \
     tzdata \

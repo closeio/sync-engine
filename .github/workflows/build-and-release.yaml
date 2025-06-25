@@ -97,6 +97,8 @@ jobs:
           if [ "$(git log -1 --pretty=%B | head -n 1 | grep '#nobuildcache')" ]; then
             echo 'BUILD_CACHE_BUST=${{ github.sha }}' >> $GITHUB_ENV
           fi
+          BUILD_WEEK=$(date +%Y-%V)
+          echo "BUILD_WEEK=${BUILD_WEEK}" >> $GITHUB_ENV
           DOCKER_IMAGE_TAG=${{ env.DOCKERHUB_NAMESPACE }}/${{ env.PROJECT }}:${{ github.sha }}
           if [ "${{ matrix.arch }}" = "arm64" ]; then
             DOCKER_IMAGE_TAG="${DOCKER_IMAGE_TAG}-arm64"
@@ -134,6 +136,7 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             BUILD_CACHE_BUST=${{ env.BUILD_CACHE_BUST }}
+            BUILD_WEEK=${{ env.BUILD_WEEK }}
 
       - name: Run tests
         run: |

@@ -13,7 +13,8 @@ Auth an account via the commandline to start syncing:
     bin/inbox-auth ben.bitdiddle1861@gmail.com
 
 The `inbox-auth` command will walk you through the process of obtaining an 
-authorization token from Google or another service for syncing your mail. Your credentials are stored to the local MySQL database for simplicity.
+authorization token from Google or another service for syncing your mail. Your
+credentials are stored to the local MySQL database for simplicity.
 
 The sync engine will automatically begin syncing your account with the underlying provider. The `inbox-sync` command allows you to manually stop or restart the sync by running `inbox-sync stop [YOUR_ACCOUNT]@example.com` or `inbox-sync start [YOUR_ACCOUNT]@example.com`. Note that an initial sync can take quite a while depending on how much mail you have.
 

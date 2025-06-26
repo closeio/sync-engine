@@ -5,7 +5,11 @@ from sqlalchemy import desc  # type: ignore[import-untyped]
 
 from inbox.api.kellogs import APIEncoder
 from inbox.crispin import CrispinClient, FolderMissingError
-from inbox.exceptions import NotSupportedError, ValidationError
+from inbox.exceptions import (
+    IMAPDisabledError,
+    NotSupportedError,
+    ValidationError,
+)
 from inbox.logging import get_logger
 from inbox.mailsync.backends.imap.generic import UidInvalid, uidvalidity_cb
 from inbox.models import Account, Folder, Message, Thread
@@ -47,6 +51,15 @@ class IMAPSearchClient:
                     "because the account's credentials "
                     "are out of date. Please "
                     "reauthenticate and try again."
+                ),
+                403,
+            )
+        except IMAPDisabledError:
+            raise SearchBackendException(  # noqa: B904
+                (
+                    "This search can't be performed "
+                    "because the account doesn't have IMAP enabled. "
+                    "Enable IMAP and try again."
                 ),
                 403,
             )

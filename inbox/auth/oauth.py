@@ -22,8 +22,10 @@ from imapclient import IMAPClient  # type: ignore[import-untyped]
 from inbox.config import config
 from inbox.exceptions import (
     ConnectionError,
-    ImapSupportDisabledError,
+    GMailDisabledError,
+    IMAPDisabledError,
     OAuthError,
+    ValidationError,
 )
 from inbox.logging import get_logger
 from inbox.models.backends.oauth import OAuthAccount, token_manager
@@ -246,10 +248,7 @@ class OAuthAuthHandler(AuthHandler):
 
             # Raise all IMAP disabled errors except authentication_failed
             # error, which we handle differently.
-            if (
-                isinstance(exc, ImapSupportDisabledError)
-                and exc.reason != "authentication_failed"
-            ):
+            if isinstance(exc, GMailDisabledError | IMAPDisabledError):
                 raise exc from original_exc
 
             log.warning(
@@ -257,7 +256,7 @@ class OAuthAuthHandler(AuthHandler):
                 account_id=account.id,  # type: ignore[attr-defined]
                 error=exc,
             )
-            if not isinstance(exc, ImapSupportDisabledError):
+            if not isinstance(exc, ValidationError):
                 raise  # Unknown IMAPClient error, reraise
 
             # If we got an AUTHENTICATIONFAILED response, force a token refresh
@@ -272,16 +271,11 @@ class OAuthAuthHandler(AuthHandler):
                 )
             except IMAPClient.Error as original_exc:
                 exc = _process_imap_exception(original_exc)
-                if (
-                    not isinstance(exc, ImapSupportDisabledError)
-                    or exc.reason != "authentication_failed"
-                ):
+                if not isinstance(exc, ValidationError):
                     raise exc from original_exc
-                else:
-                    # Instead of authentication_failed, report imap disabled
-                    raise ImapSupportDisabledError(
-                        "imap_disabled_for_account"
-                    ) from original_exc
+
+                # Instead of authentication_failed, report imap disabled
+                raise IMAPDisabledError(original_exc) from original_exc
 
     def _get_user_info(self, session_dict):  # type: ignore[no-untyped-def]
         access_token = session_dict["access_token"]
@@ -356,18 +350,18 @@ def _process_imap_exception(exc):  # type: ignore[no-untyped-def]
     message = exc.args[0] if exc.args else ""
     if "Lookup failed" in message:
         # Gmail is disabled for this apps account
-        return ImapSupportDisabledError("gmail_disabled_for_domain")
+        return GMailDisabledError(exc)
     elif "IMAP access is disabled for your domain." in message:
         # IMAP is disabled for this domain
-        return ImapSupportDisabledError("imap_disabled_for_domain")
+        return IMAPDisabledError(exc)
     elif message.startswith(
         "[AUTHENTICATIONFAILED] Invalid credentials (Failure)"
     ):
         # Google
-        return ImapSupportDisabledError("authentication_failed")
+        return ValidationError(exc)
     elif message.startswith("AUTHENTICATE failed."):
         # Microsoft
-        return ImapSupportDisabledError("authentication_failed")
+        return ValidationError(exc)
     else:
         # Unknown IMAPClient error
         return exc

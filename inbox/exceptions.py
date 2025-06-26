@@ -30,10 +30,12 @@ class GmailSettingError(ValidationError):
     pass
 
 
-class ImapSupportDisabledError(ValidationError):
-    def __init__(self, reason=None) -> None:  # type: ignore[no-untyped-def]
-        super().__init__(reason)
-        self.reason = reason
+class GMailDisabledError(Exception):
+    pass
+
+
+class IMAPDisabledError(Exception):
+    pass
 
 
 class AccessNotEnabledError(Exception):

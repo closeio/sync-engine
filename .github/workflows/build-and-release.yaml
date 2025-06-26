@@ -2,8 +2,6 @@ name: Build and Release
 
 on:
   push:
-    branches:
-      - '*'
 
 concurrency:
   group: build-${{ github.event.pull_request.number || github.ref }}

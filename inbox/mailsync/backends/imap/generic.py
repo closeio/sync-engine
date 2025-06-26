@@ -74,7 +74,7 @@ from sqlalchemy.orm import Session  # type: ignore[import-untyped]
 from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
 
 from inbox import interruptible_threading
-from inbox.exceptions import ValidationError
+from inbox.exceptions import IMAPDisabledError, ValidationError
 from inbox.interruptible_threading import InterruptibleThread
 from inbox.logging import get_logger
 from inbox.util.concurrency import introduce_jitter, retry_with_logging
@@ -344,9 +344,8 @@ class FolderSyncEngine(InterruptibleThread):
             )
             raise MailsyncDone()  # noqa: B904
         except ValidationError as exc:
-            log.error(  # noqa: G201
+            log.exception(
                 "Error authenticating; stopping sync",
-                exc_info=True,
                 account_id=self.account_id,
                 folder_id=self.folder_id,
                 logstash_tag="mark_invalid",
@@ -354,6 +353,18 @@ class FolderSyncEngine(InterruptibleThread):
             with session_scope(self.namespace_id) as db_session:
                 account = db_session.query(Account).get(self.account_id)
                 account.mark_invalid()
+                account.update_sync_error(exc)
+            raise MailsyncDone()  # noqa: B904
+        except IMAPDisabledError as exc:
+            log.exception(
+                "Error syncing, IMAP disabled; stopping sync",
+                account_id=self.account_id,
+                folder_id=self.folder_id,
+                logstash_tag="mark_invalid",
+            )
+            with session_scope(self.namespace_id) as db_session:
+                account = db_session.query(Account).get(self.account_id)
+                account.mark_invalid("imap disabled")
                 account.update_sync_error(exc)
             raise MailsyncDone()  # noqa: B904
 
@@ -756,7 +767,7 @@ class FolderSyncEngine(InterruptibleThread):
             "Committed new UIDs", new_committed_message_count=len(new_uids)
         )
         # If we downloaded uids, record message velocity (#uid / latency)
-        if self.state == "initial" and len(new_uids):
+        if self.state == "initial" and new_uids:
             self._report_message_velocity(
                 datetime.utcnow() - start, len(new_uids)
             )

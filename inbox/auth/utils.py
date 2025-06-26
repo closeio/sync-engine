@@ -71,6 +71,10 @@ def is_error_message_invalid_auth(error_message: str) -> bool:
     )
 
 
+def is_error_message_disabled_imap(error_message: str) -> bool:
+    return "you are yet to enable imap" in error_message.lower()
+
+
 def create_imap_connection(  # type: ignore[no-untyped-def]  # noqa: ANN201
     host, port, use_timeout: bool = True
 ):

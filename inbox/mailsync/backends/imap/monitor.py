@@ -3,7 +3,7 @@ from typing import ClassVar
 
 from inbox import interruptible_threading
 from inbox.crispin import connection_pool, retry_crispin
-from inbox.exceptions import ValidationError
+from inbox.exceptions import IMAPDisabledError, ValidationError
 from inbox.logging import get_logger
 from inbox.mailsync.backends.base import BaseMailSyncMonitor
 from inbox.mailsync.backends.imap.generic import FolderSyncEngine
@@ -197,6 +197,17 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
             with session_scope(self.namespace_id) as db_session:
                 account = db_session.query(Account).get(self.account_id)
                 account.mark_invalid()
+                account.update_sync_error(exc)
+        except IMAPDisabledError as exc:
+            log.error(  # noqa: G201
+                "Error syncing, IMAP disabled; stopping sync",
+                exc_info=True,
+                account_id=self.account_id,
+                logstash_tag="mark_invalid",
+            )
+            with session_scope(self.namespace_id) as db_session:
+                account = db_session.query(Account).get(self.account_id)
+                account.mark_invalid("imap disabled")
                 account.update_sync_error(exc)
 
     def stop(self) -> None:

@@ -13,7 +13,7 @@ ENV \
   DEBIAN_FRONTEND=noninteractive \
   PATH="/opt/venv/bin:$PATH"
 
-ARG BUILD_WEEK=0
+ARG BUILD_WEEK
 ARG BUILD_CACHE_BUST
 RUN echo $BUILD_WEEK $BUILD_CACHE_BUST && apt-get update \
   && apt-get dist-upgrade -y \

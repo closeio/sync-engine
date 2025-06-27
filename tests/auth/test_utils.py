@@ -1,6 +1,9 @@
 import pytest
 
-from inbox.auth.utils import is_error_message_invalid_auth
+from inbox.auth.utils import (
+    is_error_message_disabled_imap,
+    is_error_message_invalid_auth,
+)
 
 
 @pytest.mark.parametrize(
@@ -28,3 +31,13 @@ from inbox.auth.utils import is_error_message_invalid_auth
 )
 def test_auth_is_invalid(error_message):
     assert is_error_message_invalid_auth(error_message) is True
+
+
+def test_imap_disabled_detection():
+    assert (
+        is_error_message_disabled_imap(
+            "[ALERT] You are yet to enable IMAP for your account. Please"
+            " contact your administrator (Failure)"
+        )
+        is True
+    )

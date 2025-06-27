@@ -8,6 +8,7 @@ from typing import Literal
 import attr
 import dns
 import pytest  # type: ignore[import-not-found]
+from imapclient import IMAPClient  # type: ignore[import-untyped]
 
 from inbox.exceptions import ValidationError
 from inbox.util.file import get_data
@@ -118,6 +119,7 @@ class MockIMAPClient:
         self.selected_folder = None
         self.uidvalidity = 1
         self.logins = {}  # type: ignore[var-annotated]
+        self.login_errors: dict[tuple[str, str], str] = {}
         self.error_message = ""
 
     def _add_login(  # type: ignore[no-untyped-def]
@@ -125,12 +127,22 @@ class MockIMAPClient:
     ) -> None:
         self.logins[email] = password
 
+    def _add_login_error(
+        self, email: str, password: str, error_message: str
+    ) -> None:
+        self.login_errors[(email, password)] = error_message
+
     def _set_error_message(  # type: ignore[no-untyped-def]
         self, message
     ) -> None:
         self.error_message = message
 
     def login(self, email, password) -> None:  # type: ignore[no-untyped-def]
+        # Check if this login should raise a specific error
+        if (email, password) in self.login_errors:
+            raise IMAPClient.Error(self.login_errors[(email, password)])
+
+        # Check if this is a valid login
         if email not in self.logins or self.logins[email] != password:
             raise ValidationError(self.error_message)
 

@@ -6,6 +6,7 @@ import pytest
 import requests
 from pytest import fixture  # noqa: PT013
 
+from inbox.exceptions import IMAPDisabledError
 from inbox.models import Folder
 from inbox.search.backends.gmail import GmailSearchClient
 from inbox.search.backends.imap import IMAPSearchClient
@@ -530,3 +531,37 @@ def test_streaming_search_results(
     assert responses[2] == ""
     assert len(json.loads(responses[0])) == 3
     assert len(json.loads(responses[1])) == 2
+
+
+@pytest.mark.parametrize("is_streaming", [True, False])
+def test_imap_disabled_error_search(
+    db,
+    imap_api_client,
+    generic_account,
+    imap_folder,
+    monkeypatch,
+    is_streaming,
+) -> None:
+    """Test that search properly handles IMAPDisabledError"""
+
+    def mock_get_authenticated_imap_connection(*args, **kwargs):
+        raise IMAPDisabledError("IMAP is disabled")
+
+    # Mock the search method to raise IMAPDisabledError
+    monkeypatch.setattr(
+        "inbox.auth.base.AuthHandler.get_authenticated_imap_connection",
+        mock_get_authenticated_imap_connection,
+    )
+
+    search_client = get_search_client(generic_account)
+    assert isinstance(search_client, IMAPSearchClient)
+
+    if is_streaming:
+        response = imap_api_client.get_raw("/messages/search/streaming?q=test")
+        assert response.status_code == 200
+        assert response.data == b""
+    else:
+        response = imap_api_client.get_raw("/messages/search?q=test")
+        assert response.status_code == 403
+        response_data = json.loads(response.data)
+        assert "doesn't have IMAP enabled" in response_data["message"]

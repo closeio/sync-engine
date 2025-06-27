@@ -4,7 +4,7 @@ import attr
 import pytest
 
 from inbox.auth.generic import GenericAccountData, GenericAuthHandler
-from inbox.exceptions import ValidationError
+from inbox.exceptions import IMAPDisabledError, ValidationError
 from inbox.models.account import Account
 from inbox.util.url import parent_domain
 
@@ -190,3 +190,21 @@ def test_successful_reauth_resets_sync_state(db, mock_imapclient) -> None:
     assert account.sync_state == "running"
     db.session.add(account)
     db.session.commit()
+
+
+@pytest.mark.usefixtures("mock_smtp_get_connection")
+def test_imap_disabled_error_handling(db, mock_imapclient) -> None:
+    email = account_data.email
+    password = account_data.imap_password
+
+    # Mock IMAP client to raise error indicating IMAP is disabled
+    mock_imapclient._add_login_error(
+        email, password, "you are yet to enable imap"
+    )
+
+    handler = GenericAuthHandler()
+    account = handler.create_account(account_data)
+
+    # Verify that IMAPDisabledError is raised when IMAP is disabled
+    with pytest.raises(IMAPDisabledError):
+        handler.verify_account(account)

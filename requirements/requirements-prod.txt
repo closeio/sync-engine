@@ -70,6 +70,7 @@ certifi==2024.8.30 \
     # via
     #   -r requirements-prod.in
     #   requests
+    #   sentry-sdk
 cffi==1.17.1 \
     --hash=sha256:045d61c734659cc045141be4bae381a41d89b741f795af1dd018bfb532fd0df8 \
     --hash=sha256:0984a4925a435b1da406122d4d7968dd861c1385afe3b45ba82b750f229811e2 \
@@ -996,6 +997,10 @@ s3transfer==0.10.3 \
     # via
     #   -r requirements-prod.in
     #   boto3
+sentry-sdk==2.32.0 \
+    --hash=sha256:6cf51521b099562d7ce3606da928c473643abe99b00ce4cb5626ea735f4ec345 \
+    --hash=sha256:9016c75d9316b0f6921ac14c8cd4fb938f26002430ac5be9945ab280f78bec6b
+    # via -r requirements-prod.in
 setproctitle==1.2.2 \
     --hash=sha256:077943272d0490b3f43d17379432d5e49c263f608fdf4cf624b419db762ca72b \
     --hash=sha256:0d160d46c8f3567e0aa27b26b1f36e03122e3de475aacacc14a92b8fe45b648a \
@@ -1128,6 +1133,7 @@ urllib3==2.5.0 \
     #   -r requirements-prod.in
     #   botocore
     #   requests
+    #   sentry-sdk
 vobject==0.9.6.1 \
     --hash=sha256:96512aec74b90abb71f6b53898dd7fe47300cc940104c4f79148f0671f790101
     # via -r requirements-prod.in

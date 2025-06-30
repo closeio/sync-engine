@@ -73,6 +73,7 @@ requests==2.32.3
 requests-file==1.5.1
 rollbar==0.16.2
 s3transfer==0.10.3
+sentry-sdk<3
 setproctitle==1.2.2
 setuptools==78.1.1
 six==1.16.0

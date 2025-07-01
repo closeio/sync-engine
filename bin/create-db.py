@@ -9,7 +9,7 @@ import click
 import sqlalchemy  # type: ignore[import-untyped]
 
 from inbox.config import config
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.ignition import EngineManager, build_uri, init_db, verify_db
 from inbox.sqlalchemy_ext.util import ForceStrictModePool
 
@@ -22,7 +22,7 @@ from inbox.sqlalchemy_ext.util import ForceStrictModePool
 )
 @click.option("--host-ip", default=None)
 def main(target_hostname, host_ip) -> None:  # type: ignore[no-untyped-def]
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     database_hosts = config.get_required("DATABASE_HOSTS")
     database_users = config.get_required("DATABASE_USERS")

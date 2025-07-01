@@ -14,7 +14,7 @@ import click
 from setproctitle import setproctitle  # type: ignore[import-not-found]
 
 from inbox.config import config as inbox_config
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.logging import configure_logging
 from inbox.mailsync.frontend import SyncbackHTTPFrontend
 from inbox.transactions.actions import SyncbackService
@@ -55,7 +55,7 @@ def main(  # type: ignore[no-untyped-def]
     """Launch the actions syncback service."""
     setproctitle(f"syncback-{process_num}")
 
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     print("Python", sys.version, file=sys.stderr)
 

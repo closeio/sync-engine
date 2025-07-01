@@ -6,7 +6,7 @@ import sys
 
 import click
 
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.models import (
     Account,
     Block,
@@ -38,7 +38,7 @@ cls_for_type = dict(
 @click.option("--id", type=str, default=None)
 @click.option("--public-id", type=str, default=None)
 def main(type, id, public_id) -> None:  # type: ignore[no-untyped-def]
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     type = type.lower()  # noqa: A001
 

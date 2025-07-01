@@ -2,7 +2,7 @@
 
 import time
 
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.ignition import engine_manager
 from inbox.logging import configure_logging, get_logger
 from inbox.mailsync.service import shared_sync_event_queue_for_zone
@@ -17,7 +17,7 @@ accounts_without_sync_host = set()  # type: ignore[var-annotated]
 
 
 def check_accounts() -> None:
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     global accounts_without_sync_host
     poll_interval = 30

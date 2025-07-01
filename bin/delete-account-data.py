@@ -23,7 +23,7 @@ import time
 
 import click
 
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.heartbeat.status import clear_heartbeat_status
 from inbox.models import Account
 from inbox.models.session import session_scope
@@ -38,7 +38,7 @@ from inbox.models.util import delete_namespace
 def delete_account_data(  # type: ignore[no-untyped-def]
     account_id, dry_run, yes, throttle
 ) -> int | None:
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     with session_scope(account_id) as db_session:
         account = db_session.query(Account).get(account_id)

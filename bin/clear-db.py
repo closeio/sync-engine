@@ -2,7 +2,7 @@
 import argparse
 import sys
 
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.util.db import drop_everything
 
 
@@ -21,7 +21,7 @@ def main() -> None:
         main_engine,
     )
 
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     engine = main_engine(pool_size=1)
 

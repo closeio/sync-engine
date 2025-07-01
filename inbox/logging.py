@@ -17,6 +17,8 @@ from typing import Any
 
 import colorlog
 import structlog
+
+# TODO: Stop using this, `structlog.threadlocal` is deprecated
 from structlog.threadlocal import wrap_dict
 
 MAX_EXCEPTION_LENGTH = 10000

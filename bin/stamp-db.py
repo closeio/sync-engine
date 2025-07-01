@@ -9,11 +9,11 @@ import alembic.config
 import alembic.util
 
 from inbox.config import config
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 
 
 def main(revision_id) -> None:  # type: ignore[no-untyped-def]
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     alembic_ini_filename = os.environ.get("ALEMBIC_INI_PATH", "alembic.ini")
     assert os.path.isfile(  # noqa: PTH113

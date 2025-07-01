@@ -12,7 +12,7 @@ from inbox.logging import get_logger
 log = get_logger()
 
 from inbox.console import start_client_console, start_console
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 
 
 @click.command()
@@ -27,7 +27,7 @@ from inbox.error_handling import maybe_enable_rollbar
 )
 def console(email_address, client) -> None:  # type: ignore[no-untyped-def]
     """REPL for Nylas."""
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     if client:
         start_client_console(email_address)

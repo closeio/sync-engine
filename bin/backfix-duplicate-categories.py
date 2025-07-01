@@ -10,7 +10,7 @@ import click
 from sqlalchemy import func  # type: ignore[import-untyped]
 from sqlalchemy.sql import and_, exists  # type: ignore[import-untyped]
 
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.ignition import engine_manager
 from inbox.logging import configure_logging, get_logger
 from inbox.models import Category, MessageCategory
@@ -189,7 +189,7 @@ def backfix_shard(shard_id, dry_run) -> None:  # type: ignore[no-untyped-def]
 @click.option("--shard-id", type=int, default=None)
 @click.option("--dry-run", is_flag=True)
 def main(shard_id, dry_run) -> None:  # type: ignore[no-untyped-def]
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     if shard_id is not None:
         backfix_shard(shard_id, dry_run)

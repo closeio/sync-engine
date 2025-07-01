@@ -18,7 +18,7 @@ from concurrent.futures import ThreadPoolExecutor
 import click
 
 from inbox.config import config
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.logging import configure_logging, get_logger
 from inbox.models.util import batch_delete_namespaces, get_accounts_to_delete
 
@@ -30,7 +30,7 @@ log = get_logger()
 @click.option("--throttle", is_flag=True)
 @click.option("--dry-run", is_flag=True)
 def run(throttle, dry_run) -> None:  # type: ignore[no-untyped-def]
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     print("Python", sys.version, file=sys.stderr)
 

@@ -8,18 +8,19 @@ Mostly based off http://www.structlog.org/en/16.1.0/standard-library.html.
 import contextlib
 import logging
 import os
-import re
 import sys
 import threading
 import traceback
 from types import TracebackType
 from typing import Any
 
-import colorlog
 import structlog
+from pythonjsonlogger.jsonlogger import JsonFormatter
 
 # TODO: Stop using this, `structlog.threadlocal` is deprecated
 from structlog.threadlocal import wrap_dict
+
+from inbox.config import is_debug
 
 MAX_EXCEPTION_LENGTH = 10000
 
@@ -53,15 +54,6 @@ def find_first_app_frame_and_name(  # type: ignore[no-untyped-def]  # noqa: ANN2
         f = f.f_back
         name = f.f_globals.get("__name__")
     return f, name
-
-
-def _record_level(logger, name, event_dict):  # type: ignore[no-untyped-def]
-    """
-    Processor that records the log level ('info', 'warning', etc.) in the
-    structlog event dictionary.
-    """
-    event_dict["level"] = name
-    return event_dict
 
 
 def _record_module(logger, name, event_dict):  # type: ignore[no-untyped-def]
@@ -107,112 +99,6 @@ def safe_format_exception(  # type: ignore[no-untyped-def]  # noqa: ANN201
     return "".join(list)
 
 
-def _is_log_in_same_fn_scope(exc_tb):  # type: ignore[no-untyped-def]
-    """
-
-    exc_info returns exception data according to the following spec:
-
-        If the current stack frame is not handling an exception, the
-        information is taken from the calling stack frame, or its caller,
-        and so on until a stack frame is found that is handling an
-        exception.  Here, “handling an exception” is defined as
-        “executing or having executed an except clause.” For any stack
-        frame, only information about the most recently handled exception
-        is accessible.
-
-    The default behavior we want, however, is only logging exceptions if
-    the user is inside or immediately next to the frame to log. This
-    detects of the log statement and the exception share the same
-    function.
-    """
-    cur_stack = traceback.extract_stack()
-    calling_fn = None
-    for _, _, fn_name, code in reversed(cur_stack):
-        if code and re.search(r"log\.(error|exception)", code):
-            calling_fn = fn_name
-            break
-
-    exc_tb_stack = traceback.extract_tb(exc_tb)
-    return any(fn_name == calling_fn for _, _, fn_name, _ in exc_tb_stack)
-
-
-def _get_exc_info_if_in_scope():  # type: ignore[no-untyped-def]
-    exc_info = sys.exc_info()
-    if _is_log_in_same_fn_scope(exc_info[2]):
-        return exc_info
-    return (None, None, None)
-
-
-def _safe_exc_info_renderer(_, __, event_dict):  # type: ignore[no-untyped-def]
-    """Processor that formats exception info safely."""
-    error = event_dict.pop("error", None)
-    exc_info = event_dict.pop("exc_info", None)
-    include_exception = event_dict.pop("include_exception", None)
-
-    if error:
-        # If an `error` is passed, merge that into exc_info
-        if isinstance(error, Exception):
-            # If that error is an Exception, we just need to grab the
-            # traceback (since exceptions don't include tracebacks in
-            # Python)
-            __, __, exc_tb = _get_exc_info_if_in_scope()
-            exc_info = (type(error), error, exc_tb)
-        else:
-            # Sometimes people pass stings and ints as the error. We
-            # normalize these to be an error object's message, or if
-            # we're not in an error frame, just an `error_message`
-            exc_info = _get_exc_info_if_in_scope()
-            if exc_info[1]:
-                exc_info[1].message = error
-            else:
-                event_dict["error_message"] = error
-                exc_info = (None, None, None)
-    elif exc_info is False or include_exception is False:
-        # This means someone explicitly asked us to not include any error
-        # info. We force it to be none.
-        exc_info = (None, None, None)
-    elif (
-        exc_info is None
-        and include_exception is None
-        and event_dict.get("level", None) == "error"
-    ):
-        # This means people called `log.error` or `log.exception` without
-        # passing any error arguments. In this case attempt to
-        # optimistically grab the exception (if it's available) and add
-        # it to our logging.
-        exc_info = _get_exc_info_if_in_scope()
-    elif exc_info is True or include_exception is True:
-        # This means we explicitly asked to always grab the error
-        # traceback if it's available. We assume that the caller knows
-        # what their doing and is aware that tracebacks can be fetched
-        # from recently handled exceptions
-        exc_info = sys.exc_info()
-    elif isinstance(exc_info, tuple):
-        # This supports passing the value of `sys.exc_info()` to the
-        # `exc_info` argument. If that's the case, we take it verbatim.
-        pass
-    else:
-        # All other cases of normal log types that didn't pass any any
-        # exception info.
-        exc_info = (None, None, None)
-
-    event_dict.update(create_error_log_context(exc_info))
-    return event_dict
-
-
-def _safe_encoding_renderer(_, __, event_dict):  # type: ignore[no-untyped-def]
-    """
-    Processor that converts all strings to unicode.
-    Note that we ignore conversion errors.
-    """
-    for key in event_dict:
-        entry = event_dict[key]
-        if isinstance(entry, bytes):
-            event_dict[key] = entry.decode(encoding="utf-8", errors="replace")
-
-    return event_dict
-
-
 class BoundLogger(structlog.stdlib.BoundLogger):
     """BoundLogger which always adds thread_id and env to positional args"""
 
@@ -231,17 +117,31 @@ class BoundLogger(structlog.stdlib.BoundLogger):
         )
 
 
-structlog.configure(
-    processors=[
+def _get_structlog_processors() -> list[structlog.typing.Processor]:
+    processors: list[structlog.typing.Processor] = [
         structlog.stdlib.filter_by_level,
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
         structlog.processors.TimeStamper(fmt="iso", utc=True),
-        structlog.processors.StackInfoRenderer(),
-        _record_level,
-        _safe_exc_info_renderer,
-        _safe_encoding_renderer,
-        _record_module,
-        structlog.processors.JSONRenderer(),
-    ],
+    ]
+
+    if is_debug():
+        # This breaks Sentry reporting - errors still show up,
+        # but with broken stack traces and potentially missing
+        # metadata. We don't mind that much, because the debug
+        # mode is only enabled in dev environments.
+        processors.append(structlog.processors.format_exc_info)
+        processors.append(
+            structlog.dev.ConsoleRenderer(colors=sys.stdout.isatty())
+        )
+    else:
+        processors.append(structlog.stdlib.render_to_log_kwargs)
+
+    return processors
+
+
+structlog.configure(
+    processors=_get_structlog_processors(),
     context_class=wrap_dict(dict),
     logger_factory=structlog.stdlib.LoggerFactory(),
     wrapper_class=BoundLogger,
@@ -262,24 +162,6 @@ LOG_LEVELS = {
 def json_excepthook(etype, value, tb) -> None:  # type: ignore[no-untyped-def]
     log = get_logger()
     log.error(**create_error_log_context((etype, value, tb)))
-
-
-class ConditionalFormatter(logging.Formatter):
-    def format(self, record):  # type: ignore[no-untyped-def]  # noqa: ANN201
-        if (
-            record.name in ("__main__", "inbox")
-            or record.name.startswith("inbox.")
-            or record.name == "gunicorn"
-            or record.name.startswith("gunicorn.")
-            or record.name == "werkzeug"
-        ):
-            style = "%(message)s"
-        else:
-            style = "%(name)s - %(levelname)s: %(message)s"
-
-        self._style._fmt = style
-
-        return super().format(record)
 
 
 def configure_logging(log_level=None) -> None:  # type: ignore[no-untyped-def]
@@ -303,24 +185,11 @@ def configure_logging(log_level=None) -> None:  # type: ignore[no-untyped-def]
         log_level = logging.INFO
     log_level = LOG_LEVELS.get(log_level, log_level)
 
-    tty_handler = logging.StreamHandler(sys.stdout)
-    if sys.stdout.isatty():
-        # Use a more human-friendly format.
-        formatter = colorlog.ColoredFormatter(
-            "%(log_color)s[%(levelname)s]%(reset)s %(message)s",
-            reset=True,
-            log_colors={
-                "DEBUG": "cyan",
-                "INFO": "green",
-                "WARNING": "yellow",
-                "ERROR": "red",
-                "CRITICAL": "red",
-            },
-        )
-    else:
-        formatter = ConditionalFormatter()  # type: ignore[assignment]
-    tty_handler.setFormatter(formatter)
-    tty_handler._nylas = True  # type: ignore[attr-defined]
+    nylas_handler = logging.StreamHandler(sys.stdout)
+    nylas_handler.setFormatter(
+        logging.Formatter() if is_debug() else JsonFormatter()
+    )
+    nylas_handler._nylas = True  # type: ignore[attr-defined]
 
     # Configure the root logger.
     root_logger = logging.getLogger()
@@ -329,7 +198,7 @@ def configure_logging(log_level=None) -> None:  # type: ignore[no-untyped-def]
         # calls to configure_logging() are idempotent.
         if getattr(handler, "_nylas", False):
             root_logger.removeHandler(handler)
-    root_logger.addHandler(tty_handler)
+    root_logger.addHandler(nylas_handler)
     root_logger.setLevel(log_level)
 
     imapclient_logger = logging.getLogger("imapclient")

@@ -446,13 +446,13 @@ class SyncbackService(InterruptibleThread):
             self.running_action_ids.update(task.action_log_ids)
             self.log.debug(
                 "Syncback added task",
-                process=self.process_number,
+                process_number=self.process_number,
                 account_id=account_id,
-                action_log_ids=task.action_log_ids,
-                num_actions=len(task.action_log_ids),
-                msg=task.action_name,
+                task_action_log_ids=task.action_log_ids,
+                task_action_count=len(task.action_log_ids),
+                task_action_name=task.action_name,
                 task_count=self.task_queue.qsize(),
-                extra_args=task.extra_args,
+                task_extra_args=task.extra_args,
             )
         return batch_task
 

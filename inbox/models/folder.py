@@ -92,7 +92,7 @@ class Folder(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             log.warning(
                 "Truncating folder name for account",
                 account_id=self.account_id,
-                name=name,
+                folder_name=name,
             )
         return sanitized_name
 

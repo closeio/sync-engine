@@ -38,7 +38,6 @@ from inbox.actions.base import (
 )
 from inbox.config import config
 from inbox.crispin import writable_connection_pool
-from inbox.error_handling import log_uncaught_errors
 from inbox.events.actions.base import create_event, delete_event, update_event
 from inbox.ignition import engine_manager
 from inbox.interruptible_threading import InterruptibleThread
@@ -736,8 +735,10 @@ class SyncbackTask:
                 )
                 return True
         except Exception:
-            log_uncaught_errors(
-                self.log, account_id=self.account_id, provider=self.provider
+            self.log.exception(
+                "Uncaught error",
+                account_id=self.account_id,
+                provider=self.provider,
             )
             with session_scope(self.account_id) as db_session:
                 action_log_entries = db_session.query(ActionLog).filter(

@@ -16,7 +16,6 @@ from redis import TimeoutError
 from sqlalchemy.exc import StatementError  # type: ignore[import-untyped]
 
 from inbox import interruptible_threading
-from inbox.error_handling import log_uncaught_errors
 from inbox.logging import create_error_log_context, get_logger
 from inbox.models import Account
 from inbox.models.session import session_scope
@@ -165,8 +164,8 @@ def retry_with_logging(  # type: ignore[no-untyped-def]  # noqa: ANN201
                     **create_error_log_context(sys.exc_info()),
                 )
 
-        log_uncaught_errors(
-            logger,
+        log.exception(
+            "Uncaught error",
             account_id=account_id,
             provider=provider,
             occurrences=occurrences[0],

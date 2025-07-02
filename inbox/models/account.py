@@ -21,7 +21,6 @@ from sqlalchemy.orm.session import Session  # type: ignore[import-untyped]
 from sqlalchemy.sql.expression import false  # type: ignore[import-untyped]
 
 from inbox.config import config
-from inbox.error_handling import log_uncaught_errors
 from inbox.logging import get_logger
 from inbox.models.base import MailSyncBase
 from inbox.models.calendar import Calendar
@@ -494,8 +493,8 @@ def after_flush(  # type: ignore[no-untyped-def]
                 shared_queue.send_event({"event": "migrate", "id": id})
                 obj_state["sent_event"] = True
             except Exception:
-                log_uncaught_errors(
-                    log,
+                log.exception(
+                    "Uncaught error",
                     account_id=id,
                     sync_host=sync_host,
                     desired_sync_host=desired_sync_host,

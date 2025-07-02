@@ -245,7 +245,9 @@ class SyncService:
                 try:
                     self.start_sync(account_id)
                 except OperationalError:
-                    self.log.exception("Database error starting account sync")
+                    self.log.exception(
+                        "Database error starting account sync", foo="Hey!"
+                    )
 
         stop_accounts = self.account_ids_owned() - set(start_accounts)
         for account_id in stop_accounts:
@@ -331,6 +333,7 @@ class SyncService:
         If that account doesn't exist, does nothing.
 
         """  # noqa: D401
+        raise OperationalError("A", "B", "C")
         with self.semaphore, session_scope(account_id) as db_session:
             account = (
                 db_session.query(Account).with_for_update().get(account_id)

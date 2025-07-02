@@ -28,6 +28,10 @@ def is_live_env() -> bool:
     return env in ["prod", "staging"]
 
 
+def is_debug() -> bool:
+    return config.get("DEBUG") or False
+
+
 class ConfigError(Exception):
     def __init__(  # type: ignore[no-untyped-def]
         self, error=None, help=None

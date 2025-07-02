@@ -403,7 +403,7 @@ class SMTPClient:
 
             self.log.error(
                 "Sending failed",
-                message=message,
+                exception_message=message,
                 http_code=http_code,
                 server_error=server_error,
             )

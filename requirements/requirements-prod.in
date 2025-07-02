@@ -47,7 +47,7 @@ Jinja2==3.1.6
 jmespath==0.9.3
 json_log_formatter==1.0
 limitlion==0.10.0
-lxml==5.1.0
+lxml==6.0.0
 Mako==1.2.2
 MarkupSafe==2.1.2
 matplotlib-inline==0.1.6

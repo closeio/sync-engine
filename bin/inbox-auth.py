@@ -10,7 +10,7 @@ setproctitle("inbox-auth")
 
 from inbox.auth.base import handler_from_provider
 from inbox.config import config
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.exceptions import NotSupportedError
 from inbox.logging import configure_logging
 from inbox.models import Account
@@ -45,7 +45,7 @@ def main(  # type: ignore[no-untyped-def]
     """Auth an email account."""
     preflight()
 
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     shard_id = target << 48
 

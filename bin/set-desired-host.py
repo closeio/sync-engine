@@ -3,7 +3,7 @@
 
 import click
 
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.models.account import Account
 from inbox.models.session import global_session_scope
 
@@ -16,7 +16,7 @@ from inbox.models.session import global_session_scope
 def main(  # type: ignore[no-untyped-def]
     account_id, desired_host, dry_run, toggle_sync
 ) -> None:
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     with global_session_scope() as db_session:
         account = db_session.query(Account).get(int(account_id))

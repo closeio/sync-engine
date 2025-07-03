@@ -9,7 +9,6 @@ from sqlalchemy.exc import OperationalError  # type: ignore[import-untyped]
 
 from inbox.config import config
 from inbox.contacts.remote_sync import ContactSync
-from inbox.error_handling import log_uncaught_errors
 from inbox.events.abstract import AbstractEventsProvider
 from inbox.events.google import GoogleEventsProvider
 from inbox.events.microsoft.events_provider import MicrosoftEventsProvider
@@ -246,10 +245,9 @@ class SyncService:
                 try:
                     self.start_sync(account_id)
                 except OperationalError:
-                    self.log.error(  # noqa: G201
-                        "Database error starting account sync", exc_info=True
+                    self.log.exception(
+                        "Database error starting account sync", foo="Hey!"
                     )
-                    log_uncaught_errors()
 
         stop_accounts = self.account_ids_owned() - set(start_accounts)
         for account_id in stop_accounts:
@@ -257,10 +255,7 @@ class SyncService:
             try:
                 self.stop_sync(account_id)
             except OperationalError:
-                self.log.error(  # noqa: G201
-                    "Database error stopping account sync", exc_info=True
-                )
-                log_uncaught_errors()
+                self.log.exception("Database error stopping account sync")
 
     def account_ids_to_sync(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         with global_session_scope() as db_session:
@@ -338,6 +333,7 @@ class SyncService:
         If that account doesn't exist, does nothing.
 
         """  # noqa: D401
+        raise OperationalError("A", "B", "C")
         with self.semaphore, session_scope(account_id) as db_session:
             account = (
                 db_session.query(Account).with_for_update().get(account_id)

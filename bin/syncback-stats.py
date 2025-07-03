@@ -3,7 +3,7 @@
 import click
 from sqlalchemy import func  # type: ignore[import-untyped]
 
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.ignition import engine_manager
 from inbox.models import Account, Namespace
 from inbox.models.action_log import ActionLog
@@ -17,7 +17,7 @@ def main() -> None:
     lengths.
 
     """
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     for key in engine_manager.engines:
         with session_scope_by_shard_id(key) as db_session:

@@ -8,7 +8,6 @@ from sqlalchemy import desc, func  # type: ignore[import-untyped]
 from sqlalchemy.orm import Session  # type: ignore[import-untyped]
 from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
 
-from inbox.error_handling import log_uncaught_errors
 from inbox.heartbeat.status import clear_heartbeat_status
 from inbox.ignition import redis_txn
 from inbox.logging import get_logger
@@ -149,7 +148,7 @@ def batch_delete_namespaces(  # type: ignore[no-untyped-def]
             message = e.args[0] if e.args else ""
             log.critical("AccountDeletionErrror", error_message=message)
         except Exception:
-            log_uncaught_errors(log, account_id=account_id)
+            log.exception("Uncaught error", account_id=account_id)
 
     end = time.time()
     log.info(

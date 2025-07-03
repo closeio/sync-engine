@@ -1,5 +1,6 @@
 import socket
 import time
+from unittest import mock
 
 import pytest
 from MySQLdb import _exceptions as _mysql_exceptions
@@ -7,15 +8,6 @@ from sqlalchemy.exc import StatementError
 
 from inbox.interruptible_threading import InterruptibleThreadExit
 from inbox.util.concurrency import retry_with_logging
-
-
-class MockLogger:
-    def __init__(self) -> None:
-        self.call_count = 0
-        self._context = {}
-
-    def error(self, *args, **kwargs) -> None:
-        self.call_count += 1
 
 
 class FailingFunction:
@@ -36,30 +28,37 @@ class FailingFunction:
 
 @pytest.mark.usefixtures("mock_time_sleep")
 def test_retry_with_logging() -> None:
-    logger = MockLogger()
+    logger_mock = mock.Mock()
     failing_function = FailingFunction(ValueError)
-    retry_with_logging(failing_function, logger=logger, backoff_delay=0)
-    assert logger.call_count == failing_function.max_executions - 1
+    retry_with_logging(failing_function, logger=logger_mock, backoff_delay=0)
+    assert logger_mock.mock_calls == [
+        mock.call.exception(
+            "Uncaught error", account_id=None, provider=None, occurrences=1
+        ),
+        mock.call.exception(
+            "Uncaught error", account_id=None, provider=None, occurrences=1
+        ),
+    ]
     assert failing_function.call_count == failing_function.max_executions
 
 
 def test_no_logging_on_interruptible_thread_exit() -> None:
-    logger = MockLogger()
+    logger_mock = mock.Mock()
     failing_function = FailingFunction(InterruptibleThreadExit)
     with pytest.raises(InterruptibleThreadExit):
-        retry_with_logging(failing_function, logger=logger)
-    assert logger.call_count == 0
+        retry_with_logging(failing_function, logger=logger_mock)
+    assert logger_mock.mock_calls == []
     assert failing_function.call_count == 1
 
 
 def test_selective_retry() -> None:
-    logger = MockLogger()
+    logger_mock = mock.Mock()
     failing_function = FailingFunction(ValueError)
     with pytest.raises(ValueError):
         retry_with_logging(
-            failing_function, logger=logger, fail_classes=[ValueError]
+            failing_function, logger=logger_mock, fail_classes=[ValueError]
         )
-    assert logger.call_count == 0
+    assert logger_mock.mock_calls == []
     assert failing_function.call_count == 1
 
 
@@ -98,17 +97,26 @@ def test_no_logging_until_many_transient_error() -> None:
     ]
 
     for transient_exc in transient:
-        logger = MockLogger()
+        logger_mock = mock.Mock()
         failing_function = FailingFunction(transient_exc, max_executions=2)
-        retry_with_logging(failing_function, logger=logger)
+        retry_with_logging(failing_function, logger=logger_mock)
 
-        assert logger.call_count == 0, f"{transient_exc} should not be logged"
+        assert (
+            logger_mock.mock_calls == []
+        ), f"{transient_exc} should not be logged"
         assert failing_function.call_count == 2
 
         failing_function = FailingFunction(socket.error, max_executions=21)
-        retry_with_logging(failing_function, logger=logger)
+        retry_with_logging(failing_function, logger=logger_mock)
 
-        assert logger.call_count == 1
+        assert logger_mock.mock_calls == [
+            mock.call.exception(
+                "Uncaught error",
+                account_id=None,
+                provider=None,
+                occurrences=20,
+            )
+        ]
         assert failing_function.call_count == 21
 
         failing_function = FailingFunction(socket.error, max_executions=2)
@@ -140,9 +148,13 @@ def test_logging_on_critical_error() -> None:
     ]
 
     for critical_exc in critical:
-        logger = MockLogger()
+        logger_mock = mock.Mock()
         failing_function = FailingFunction(critical_exc, max_executions=2)
-        retry_with_logging(failing_function, logger=logger)
+        retry_with_logging(failing_function, logger=logger_mock)
 
-        assert logger.call_count == 1, f"{critical_exc} should be logged"
+        assert logger_mock.mock_calls == [
+            mock.call.exception(
+                "Uncaught error", account_id=None, provider=None, occurrences=1
+            )
+        ], f"{critical_exc} should be logged"
         assert failing_function.call_count == 2

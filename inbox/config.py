@@ -47,11 +47,6 @@ class ConfigError(Exception):
 
 
 class Configuration(dict):  # type: ignore[type-arg]
-    def __init__(  # type: ignore[no-untyped-def]
-        self, *args, **kwargs
-    ) -> None:
-        dict.__init__(self, *args, **kwargs)
-
     def get_required(self, key):  # type: ignore[no-untyped-def]
         if key not in self:
             raise ConfigError(f"Missing config value for {key}.")

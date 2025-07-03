@@ -159,11 +159,6 @@ LOG_LEVELS = {
 }
 
 
-def json_excepthook(etype, value, tb) -> None:  # type: ignore[no-untyped-def]
-    log = get_logger()
-    log.error(**create_error_log_context((etype, value, tb)))
-
-
 def configure_logging(log_level=None) -> None:  # type: ignore[no-untyped-def]
     """
     Idempotently configure logging.
@@ -171,13 +166,7 @@ def configure_logging(log_level=None) -> None:  # type: ignore[no-untyped-def]
     Infers options based on whether or not the output is a TTY.
 
     Sets the root log level to INFO if not otherwise specified.
-
-    Overrides top-level exceptions to also print as JSON, rather than
-    printing to stderr as plaintext.
-
     """
-    sys.excepthook = json_excepthook
-
     # Set loglevel INFO if not otherwise specified. (We don't set a
     # default in the case that you're loading a value from a config and
     # may be passing in None explicitly if it's not defined.)

@@ -22,7 +22,7 @@ from imapclient import IMAPClient  # type: ignore[import-untyped]
 from inbox.config import config
 from inbox.exceptions import (
     ConnectionError,
-    GMailDisabledError,
+    GmailDisabledError,
     IMAPDisabledError,
     OAuthError,
     ValidationError,
@@ -248,7 +248,7 @@ class OAuthAuthHandler(AuthHandler):
 
             # Raise all IMAP disabled errors except authentication_failed
             # error, which we handle differently.
-            if isinstance(exc, GMailDisabledError | IMAPDisabledError):
+            if isinstance(exc, GmailDisabledError | IMAPDisabledError):
                 raise exc from original_exc
 
             log.warning(
@@ -350,7 +350,7 @@ def _process_imap_exception(exc):  # type: ignore[no-untyped-def]
     message = exc.args[0] if exc.args else ""
     if "Lookup failed" in message:
         # Gmail is disabled for this apps account
-        return GMailDisabledError(exc)
+        return GmailDisabledError(exc)
     elif "IMAP access is disabled for your domain." in message:
         # IMAP is disabled for this domain
         return IMAPDisabledError(exc)

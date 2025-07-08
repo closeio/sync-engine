@@ -30,7 +30,7 @@ class GmailSettingError(ValidationError):
     pass
 
 
-class GMailDisabledError(Exception):
+class GmailDisabledError(Exception):
     pass
 
 

@@ -2,7 +2,7 @@ import attr
 
 from inbox.config import config
 from inbox.crispin import GmailCrispinClient
-from inbox.exceptions import GMailDisabledError, IMAPDisabledError, OAuthError
+from inbox.exceptions import GmailDisabledError, IMAPDisabledError, OAuthError
 from inbox.logging import get_logger
 from inbox.models import Namespace
 from inbox.models.backends.gmail import GmailAccount
@@ -145,7 +145,7 @@ class GoogleAuthHandler(OAuthAuthHandler):
             )
             client.sync_folders()
             conn.logout()
-        except (GMailDisabledError, IMAPDisabledError):
+        except (GmailDisabledError, IMAPDisabledError):
             if account.sync_email:
                 raise
 

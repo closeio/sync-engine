@@ -139,8 +139,8 @@ class MockIMAPClient:
 
     def login(self, email, password) -> None:  # type: ignore[no-untyped-def]
         # Check if this login should raise a specific error
-        if (email, password) in self.login_errors:
-            raise IMAPClient.Error(self.login_errors[(email, password)])
+        if error := self.login_errors.get((email, password)):
+            raise IMAPClient.Error(error)
 
         # Check if this is a valid login
         if email not in self.logins or self.logins[email] != password:

@@ -23,17 +23,6 @@ class SyncEngineRollbarHandler(RollbarHandler):
             return super().emit(record)
 
         event = data.get("event")
-        # Prevent uncaught exceptions from being duplicated in Rollbar.
-        # Otherwise they would be reported twice.
-        # Once from structlog to logging integration
-        # and another time from handle_uncaught_exception
-        if event in (
-            "Uncaught error",
-            "Uncaught error thrown by Flask/Werkzeug",
-            "SyncbackWorker caught exception",
-        ):
-            return None
-
         record.payload_data = {"fingerprint": event, "title": event}
 
         return super().emit(record)

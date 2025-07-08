@@ -4,9 +4,11 @@ import os
 
 import rollbar  # type: ignore[import-untyped]
 import sentry_sdk
+import sentry_sdk.scrubber
 from rollbar.logger import RollbarHandler  # type: ignore[import-untyped]
 from sentry_sdk.integrations.logging import LoggingIntegration
 
+from inbox.constants import ERROR_REPORTING_SCRUB_FIELDS
 from inbox.logging import get_logger
 
 log = get_logger()
@@ -99,7 +101,6 @@ def maybe_enable_sentry() -> None:
     )
     sentry_sdk.init(
         dsn=SENTRY_DSN,
-        send_default_pii=True,
         environment=application_environment,
         release=os.environ.get("DEPLOYMENT_GIT_SHA", "unknown"),
         integrations=[
@@ -108,5 +109,11 @@ def maybe_enable_sentry() -> None:
                 event_level=logging.ERROR,  # Send ERROR+ to Sentry
             )
         ],
+        event_scrubber=sentry_sdk.scrubber.EventScrubber(
+            denylist=sorted(
+                ERROR_REPORTING_SCRUB_FIELDS
+                | set(sentry_sdk.scrubber.DEFAULT_DENYLIST)
+            )
+        ),
         attach_stacktrace=True,
     )

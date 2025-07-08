@@ -251,6 +251,13 @@ def serialize_before_insert(  # type: ignore[no-untyped-def]
         target._content_type_common = target.content_type
         target._content_type_other = None
     else:
+        if target.content_type and len(target.content_type) > 255:
+            target.content_type = target.content_type[:255]
+            log.warning(
+                "Block content_type is longer than 255 characters - truncating.",
+                truncated_content_type=target.content_type,
+            )
+
         target._content_type_common = None
         target._content_type_other = target.content_type
 

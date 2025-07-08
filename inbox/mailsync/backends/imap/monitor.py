@@ -188,9 +188,8 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                 interruptible_threading.sleep(self.refresh_frequency)
                 self.start_new_folder_sync_engines()
         except ValidationError as exc:
-            log.error(  # noqa: G201
+            log.exception(
                 "Error authenticating; stopping sync",
-                exc_info=True,
                 account_id=self.account_id,
                 logstash_tag="mark_invalid",
             )
@@ -199,9 +198,8 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                 account.mark_invalid()
                 account.update_sync_error(exc)
         except IMAPDisabledError as exc:
-            log.error(  # noqa: G201
+            log.exception(
                 "Error syncing, IMAP disabled; stopping sync",
-                exc_info=True,
                 account_id=self.account_id,
                 logstash_tag="mark_invalid",
             )

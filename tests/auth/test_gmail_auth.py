@@ -2,7 +2,7 @@ import attr
 import pytest
 
 from inbox.auth.google import GoogleAccountData, GoogleAuthHandler
-from inbox.exceptions import ImapSupportDisabledError
+from inbox.exceptions import GmailDisabledError
 from inbox.models.account import Account
 from inbox.models.secret import SecretType
 
@@ -21,7 +21,7 @@ account_data = GoogleAccountData(
 @pytest.fixture
 def patched_gmail_client(monkeypatch) -> None:
     def raise_exc(*args, **kwargs):
-        raise ImapSupportDisabledError()
+        raise GmailDisabledError()
 
     monkeypatch.setattr("inbox.crispin.GmailCrispinClient.__init__", raise_exc)
 
@@ -73,7 +73,7 @@ def test_verify_account(db, patched_gmail_client) -> None:
     db.session.commit()
     assert account.sync_email is True
     # Verify an exception is raised if there is an email settings error.
-    with pytest.raises(ImapSupportDisabledError):
+    with pytest.raises(GmailDisabledError):
         handler.verify_account(account)
 
     # Create an account with sync_email=False

@@ -5,7 +5,11 @@ from sqlalchemy import desc  # type: ignore[import-untyped]
 
 from inbox.api.kellogs import APIEncoder
 from inbox.crispin import CrispinClient, FolderMissingError
-from inbox.exceptions import NotSupportedError, ValidationError
+from inbox.exceptions import (
+    IMAPDisabledError,
+    NotSupportedError,
+    ValidationError,
+)
 from inbox.logging import get_logger
 from inbox.mailsync.backends.imap.generic import UidInvalid, uidvalidity_cb
 from inbox.models import Account, Folder, Message, Thread
@@ -31,17 +35,17 @@ class IMAPSearchClient:
             conn = account.auth_handler.get_authenticated_imap_connection(
                 account
             )
-        except (IMAPClient.Error, OSError, IMAP4.error):
-            raise SearchBackendException(  # noqa: B904
+        except (IMAPClient.Error, OSError, IMAP4.error) as exc:
+            raise SearchBackendException(
                 (
                     "Unable to connect to the IMAP "
                     "server. Please retry in a "
                     "couple minutes."
                 ),
                 503,
-            )
-        except ValidationError:
-            raise SearchBackendException(  # noqa: B904
+            ) from exc
+        except ValidationError as exc:
+            raise SearchBackendException(
                 (
                     "This search can't be performed "
                     "because the account's credentials "
@@ -49,7 +53,16 @@ class IMAPSearchClient:
                     "reauthenticate and try again."
                 ),
                 403,
-            )
+            ) from exc
+        except IMAPDisabledError as exc:
+            raise SearchBackendException(
+                (
+                    "This search can't be performed "
+                    "because the account doesn't have IMAP enabled. "
+                    "Enable IMAP and try again."
+                ),
+                403,
+            ) from exc
 
         try:
             acct_provider_info = provider_info(account.provider)

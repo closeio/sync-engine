@@ -6,9 +6,14 @@ from imapclient import IMAPClient  # type: ignore[import-untyped]
 
 from inbox.auth.utils import (
     auth_requires_app_password,
+    is_error_message_disabled_imap,
     is_error_message_invalid_auth,
 )
-from inbox.exceptions import AppPasswordError, ValidationError
+from inbox.exceptions import (
+    AppPasswordError,
+    IMAPDisabledError,
+    ValidationError,
+)
 from inbox.logging import get_logger
 from inbox.models import Namespace
 from inbox.models.backends.generic import GenericAccount
@@ -78,16 +83,29 @@ class GenericAuthHandler(AuthHandler):
             conn.login(account.imap_username, account.imap_password)
         except IMAPClient.Error as exc:
             if is_error_message_invalid_auth(exc.args[0]):
-                log.info("IMAP login failed", account_id=account.id, error=exc)
+                log.info(
+                    "IMAP login failed, invalid credentials",
+                    account_id=account.id,
+                    error=exc,
+                )
                 raise ValidationError(exc) from exc
+            elif is_error_message_disabled_imap(exc.args[0]):
+                log.info(
+                    "IMAP login failed, disabled IMAP",
+                    account_id=account.id,
+                    error=exc,
+                )
+                raise IMAPDisabledError(exc) from exc
             elif auth_requires_app_password(exc):
-                raise AppPasswordError(exc)  # noqa: B904
+                log.info(
+                    "IMAP login failed, invalid app password",
+                    account_id=account.id,
+                    error=exc,
+                )
+                raise AppPasswordError(exc) from exc
             else:
                 log.warning(
-                    (
-                        "IMAP login failed for an unknown reason. Check"
-                        " is_error_message_invalid_auth"
-                    ),
+                    "IMAP login failed for an unknown reason",
                     account_id=account.id,
                     error=exc,
                 )

@@ -101,6 +101,7 @@ def maybe_enable_sentry() -> None:
         dsn=SENTRY_DSN,
         send_default_pii=True,
         environment=application_environment,
+        release=os.environ.get("DEPLOYMENT_GIT_SHA", "unknown"),
         integrations=[
             LoggingIntegration(
                 level=logging.INFO,  # Capture INFO+

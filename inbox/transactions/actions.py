@@ -38,7 +38,6 @@ from inbox.actions.base import (
 )
 from inbox.config import config
 from inbox.crispin import writable_connection_pool
-from inbox.error_handling import log_uncaught_errors
 from inbox.events.actions.base import create_event, delete_event, update_event
 from inbox.ignition import engine_manager
 from inbox.interruptible_threading import InterruptibleThread
@@ -447,13 +446,13 @@ class SyncbackService(InterruptibleThread):
             self.running_action_ids.update(task.action_log_ids)
             self.log.debug(
                 "Syncback added task",
-                process=self.process_number,
+                process_number=self.process_number,
                 account_id=account_id,
-                action_log_ids=task.action_log_ids,
-                num_actions=len(task.action_log_ids),
-                msg=task.action_name,
+                task_action_log_ids=task.action_log_ids,
+                task_action_count=len(task.action_log_ids),
+                task_action_name=task.action_name,
                 task_count=self.task_queue.qsize(),
-                extra_args=task.extra_args,
+                task_extra_args=task.extra_args,
             )
         return batch_task
 
@@ -731,13 +730,15 @@ class SyncbackTask:
                 self.log.info(
                     "syncback action completed",
                     latency=max_latency,
-                    process=parent_service.process_number,
+                    process_number=parent_service.process_number,
                     func_latency=max_func_latency,
                 )
                 return True
         except Exception:
-            log_uncaught_errors(
-                self.log, account_id=self.account_id, provider=self.provider
+            self.log.exception(
+                "Uncaught error",
+                account_id=self.account_id,
+                provider=self.provider,
             )
             with session_scope(self.account_id) as db_session:
                 action_log_entries = db_session.query(ActionLog).filter(

@@ -7,13 +7,13 @@ import nacl.secret
 import nacl.utils
 import yaml
 
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 
 
 def main() -> None:
     from inbox.config import config, secrets_path  # type: ignore[attr-defined]
 
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     # If the config contains encryption keys, don't override.
     if config.get("SECRET_ENCRYPTION_KEY"):

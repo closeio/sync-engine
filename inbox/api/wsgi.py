@@ -6,7 +6,7 @@ from gunicorn.workers.gthread import (  # type: ignore[import-untyped]
     ThreadWorker,
 )
 
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.logging import configure_logging, get_logger
 
 log = get_logger()
@@ -18,7 +18,7 @@ class NylasWSGIWorker(ThreadWorker):
     def init_process(self) -> None:
         print("Python", sys.version, file=sys.stderr)  # noqa: T201
 
-        maybe_enable_rollbar()
+        maybe_enable_error_reporting()
 
         configure_logging(log_level=LOGLEVEL)
 

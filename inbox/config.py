@@ -24,8 +24,8 @@ else:
     env = "prod"
 
 
-def is_live_env() -> bool:
-    return env in ["prod", "staging"]
+def is_debug() -> bool:
+    return config.get("DEBUG") or False
 
 
 class ConfigError(Exception):
@@ -43,11 +43,6 @@ class ConfigError(Exception):
 
 
 class Configuration(dict):  # type: ignore[type-arg]
-    def __init__(  # type: ignore[no-untyped-def]
-        self, *args, **kwargs
-    ) -> None:
-        dict.__init__(self, *args, **kwargs)
-
     def get_required(self, key):  # type: ignore[no-untyped-def]
         if key not in self:
             raise ConfigError(f"Missing config value for {key}.")

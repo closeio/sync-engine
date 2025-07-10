@@ -4,14 +4,14 @@
 import click
 
 from inbox.config import config
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.ignition import EngineManager, reset_invalid_autoincrements
 
 
 @click.command()
 @click.option("--dry-run", is_flag=True)
 def reset_db(dry_run) -> None:  # type: ignore[no-untyped-def]
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     database_hosts = config.get_required("DATABASE_HOSTS")
     database_users = config.get_required("DATABASE_USERS")

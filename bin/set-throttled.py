@@ -5,7 +5,7 @@
 import optparse
 import sys
 
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.models.account import Account
 from inbox.models.session import session_scope
 
@@ -54,7 +54,7 @@ def main() -> None:
         print_usage()
         sys.exit(-1)
 
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     # If we were not given the --stdin param, only start/stop the account
     # specified on the command-line.

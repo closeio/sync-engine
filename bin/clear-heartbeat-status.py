@@ -6,7 +6,7 @@ from sys import exit
 import click
 
 from inbox.config import config
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.heartbeat.status import clear_heartbeat_status
 from inbox.logging import configure_logging, get_logger
 
@@ -23,7 +23,7 @@ log = get_logger()
 def main(  # type: ignore[no-untyped-def]
     host, port, account_id, folder_id, device_id
 ) -> None:
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     print("Clearing heartbeat status...")
     n = clear_heartbeat_status(  # type: ignore[call-arg]

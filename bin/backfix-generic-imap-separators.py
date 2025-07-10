@@ -6,7 +6,7 @@
 import click
 
 from inbox.crispin import connection_pool
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.logging import configure_logging, get_logger
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.session import (
@@ -24,7 +24,7 @@ log = get_logger(purpose="separator-backfix")
 @click.option("--max-id", type=int, default=None)
 @click.option("--shard-id", type=int, default=None)
 def main(min_id, max_id, shard_id) -> None:  # type: ignore[no-untyped-def]
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     generic_accounts = []
     failed = []

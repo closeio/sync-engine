@@ -198,10 +198,11 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
                 account.mark_invalid()
                 account.update_sync_error(exc)
         except IMAPDisabledError as exc:
-            log.exception(
+            log.warning(
                 "Error syncing, IMAP disabled; stopping sync",
                 account_id=self.account_id,
                 logstash_tag="mark_invalid",
+                exc_info=True,
             )
             with session_scope(self.namespace_id) as db_session:
                 account = db_session.query(Account).get(self.account_id)

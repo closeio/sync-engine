@@ -730,7 +730,7 @@ class SyncbackTask:
                 self.log.info(
                     "syncback action completed",
                     latency=max_latency,
-                    process=parent_service.process_number,
+                    process_number=parent_service.process_number,
                     func_latency=max_func_latency,
                 )
                 return True

@@ -11,6 +11,7 @@ import os
 import sys
 import threading
 import traceback
+from collections.abc import Mapping, MutableMapping
 from types import TracebackType
 from typing import Any
 
@@ -99,22 +100,18 @@ def safe_format_exception(  # type: ignore[no-untyped-def]  # noqa: ANN201
     return "".join(list)
 
 
-class BoundLogger(structlog.stdlib.BoundLogger):
-    """BoundLogger which always adds thread_id and env to positional args"""
+def _add_env_to_event_dict(
+    logger: Any, name: str, event_dict: MutableMapping[str, Any]
+) -> Mapping[str, Any]:
+    event_dict["env"] = os.environ.get("NYLAS_ENV")
+    return event_dict
 
-    def _proxy_to_logger(  # type: ignore[no-untyped-def, override]
-        self, method_name, event, *event_args, **event_kw
-    ):
-        event_kw["thread_id"] = hex(threading.get_native_id())
 
-        # 'prod', 'staging', 'dev' ...
-        env = os.environ.get("NYLAS_ENV")
-        if env is not None:
-            event_kw["env"] = env
-
-        return super()._proxy_to_logger(
-            method_name, event, *event_args, **event_kw
-        )
+def _add_thread_id_to_event_dict(
+    logger: Any, name: str, event_dict: MutableMapping[str, Any]
+) -> Mapping[str, Any]:
+    event_dict["thread_id"] = hex(threading.get_native_id())
+    return event_dict
 
 
 def _get_structlog_processors() -> list[structlog.typing.Processor]:
@@ -123,6 +120,8 @@ def _get_structlog_processors() -> list[structlog.typing.Processor]:
         structlog.stdlib.add_logger_name,
         structlog.stdlib.add_log_level,
         structlog.processors.TimeStamper(fmt="iso", utc=True),
+        _add_env_to_event_dict,
+        _add_thread_id_to_event_dict,
     ]
 
     if is_debug():
@@ -144,7 +143,7 @@ structlog.configure(
     processors=_get_structlog_processors(),
     context_class=wrap_dict(dict),
     logger_factory=structlog.stdlib.LoggerFactory(),
-    wrapper_class=BoundLogger,
+    wrapper_class=structlog.stdlib.BoundLogger,
     cache_logger_on_first_use=True,
 )
 get_logger = structlog.get_logger

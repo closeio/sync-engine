@@ -5,10 +5,6 @@ from inbox.logging import get_logger
 log = get_logger()
 
 
-def get_request_uid(headers):  # type: ignore[no-untyped-def]  # noqa: ANN201
-    return headers.get("X-Unique-ID")
-
-
 class APIException(Exception):
     status_code = 500
 

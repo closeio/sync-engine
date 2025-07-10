@@ -5,14 +5,11 @@ Mostly based off http://www.structlog.org/en/16.1.0/standard-library.html.
 
 """
 
-import contextlib
 import logging
 import os
 import sys
 import threading
-import traceback
 from collections.abc import Mapping, MutableMapping
-from types import TracebackType
 from typing import Any
 
 import structlog
@@ -22,8 +19,6 @@ from pythonjsonlogger.jsonlogger import JsonFormatter
 from structlog.threadlocal import wrap_dict
 
 from inbox.config import is_debug
-
-MAX_EXCEPTION_LENGTH = 10000
 
 
 def find_first_app_frame_and_name(  # type: ignore[no-untyped-def]  # noqa: ANN201
@@ -55,49 +50,6 @@ def find_first_app_frame_and_name(  # type: ignore[no-untyped-def]  # noqa: ANN2
         f = f.f_back
         name = f.f_globals.get("__name__")
     return f, name
-
-
-def _record_module(logger, name, event_dict):  # type: ignore[no-untyped-def]
-    """
-    Processor that records the module and line where the logging call was
-    invoked.
-    """
-    f, name = find_first_app_frame_and_name(
-        ignores=[
-            "structlog",
-            "inbox.logging",
-            "inbox.sqlalchemy_ext.util",
-            "inbox.models.session",
-            "sqlalchemy",
-            "gunicorn.glogging",
-        ]
-    )
-    event_dict["module"] = f"{name}:{f.f_lineno}"
-    return event_dict
-
-
-def safe_format_exception(  # type: ignore[no-untyped-def]  # noqa: ANN201
-    etype, value, tb, limit=None
-):
-    """
-    Similar to structlog._format_exception, but truncate the exception part.
-    This is because SQLAlchemy exceptions can sometimes have ludicrously large
-    exception strings.
-    """
-    if tb:
-        list = ["Traceback (most recent call last):\n"]  # noqa: A001
-        list = list + traceback.format_tb(tb, limit)  # noqa: A001
-    elif etype and value:
-        list = []  # noqa: A001
-    else:
-        return None
-    exc_only = traceback.format_exception_only(etype, value)
-    # Normally exc_only is a list containing a single string.  For syntax
-    # errors it may contain multiple elements, but we don't really need to
-    # worry about that here.
-    exc_only[0] = exc_only[0][:MAX_EXCEPTION_LENGTH]
-    list = list + exc_only  # noqa: A001
-    return "".join(list)
 
 
 def _add_env_to_event_dict(
@@ -195,46 +147,3 @@ def configure_logging(log_level=None) -> None:  # type: ignore[no-untyped-def]
     urllib_logger.setLevel(logging.ERROR)
     sqlalchemy_pool_logger = logging.getLogger("inbox.sqlalchemy_ext")
     sqlalchemy_pool_logger.setLevel(logging.ERROR)
-
-
-MAX_ERROR_MESSAGE_LENGTH = 1024
-
-
-def create_error_log_context(
-    exc_info: tuple[type | None, Any, TracebackType | None]
-) -> dict[str, Any]:
-    exc_type, exc_value, exc_tb = exc_info
-    out: dict[str, Any] = {}
-
-    if exc_type is None and exc_value is None and exc_tb is None:
-        return out
-
-    # Break down the info as much as Python gives us, for easier aggregation of
-    # similar error types.
-    if exc_type and hasattr(exc_type, "__name__"):
-        out["error_name"] = exc_type.__name__
-
-    if hasattr(exc_value, "code"):
-        out["error_code"] = exc_value.code
-
-    if hasattr(exc_value, "args") and hasattr(exc_value.args, "__getitem__"):
-        error_message = None
-        with contextlib.suppress(IndexError):
-            error_message = exc_value.args[0]
-
-        if (
-            isinstance(error_message, str)
-            and len(error_message) > MAX_ERROR_MESSAGE_LENGTH
-        ):
-            error_message = error_message[:MAX_ERROR_MESSAGE_LENGTH] + "..."
-
-        if error_message:
-            out["error_message"] = error_message
-
-    with contextlib.suppress(Exception):
-        if exc_tb:
-            tb = safe_format_exception(exc_type, exc_value, exc_tb)
-            if tb:
-                out["error_traceback"] = tb
-
-    return out

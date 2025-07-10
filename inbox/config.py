@@ -24,10 +24,6 @@ else:
     env = "prod"
 
 
-def is_live_env() -> bool:
-    return env in ["prod", "staging"]
-
-
 def is_debug() -> bool:
     return config.get("DEBUG") or False
 

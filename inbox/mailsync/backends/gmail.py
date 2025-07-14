@@ -628,7 +628,7 @@ class GmailSyncMonitor(ImapSyncMonitor):
                 # but which mysteriously reappeared. Unmark it.
                 log.info(
                     "Deleted label recreated on remote",
-                    name=raw_folder.display_name,
+                    folder_name=raw_folder.display_name,
                 )
                 label.deleted_at = None
                 label.category.deleted_at = EPOCH

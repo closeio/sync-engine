@@ -221,7 +221,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                     "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)",
                 )
             )
-
+            deleted_uids = set()
             chunk_size = 1000
             for entry in imap_uid_entries.yield_per(chunk_size):
                 if entry.message.g_msgid in mapping:
@@ -234,7 +234,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                     )
                     entry.msg_uid = mapping[entry.message.g_msgid]
                 else:
-                    db_session.delete(entry)
+                    deleted_uids.add(entry.msg_uid)
             log.debug(
                 "UIDVALIDITY from {} to {}".format(  # noqa: G001
                     imap_folder_info_entry.uidvalidity, uidvalidity
@@ -243,6 +243,10 @@ class GmailFolderSyncEngine(FolderSyncEngine):
             imap_folder_info_entry.uidvalidity = uidvalidity
             imap_folder_info_entry.highestmodseq = None
             db_session.commit()
+            with self.syncmanager_lock:
+                common.remove_deleted_uids(
+                    self.account_id, self.folder_id, deleted_uids
+                )
 
     def __deduplicate_message_object_creation(  # type: ignore[no-untyped-def]
         self, db_session, raw_messages, account

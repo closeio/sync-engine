@@ -24,7 +24,7 @@ except ImportError:
     )
 
 
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.logging import configure_logging, get_logger
 from inbox.util.startup import load_overrides
 
@@ -46,7 +46,7 @@ def main(prod, config, port) -> None:  # type: ignore[no-untyped-def]
     level = os.environ.get("LOGLEVEL", inbox_config.get("LOGLEVEL"))
     configure_logging(log_level=level)
 
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     if config is not None:
         config_path = os.path.abspath(config)  # noqa: PTH100

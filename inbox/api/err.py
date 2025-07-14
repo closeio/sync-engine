@@ -1,49 +1,8 @@
-import sys
-import traceback
+from flask import jsonify, make_response
 
-import rollbar  # type: ignore[import-untyped]
-from flask import jsonify, make_response, request
-
-from inbox.logging import create_error_log_context, get_logger
+from inbox.logging import get_logger
 
 log = get_logger()
-
-from inbox.config import is_live_env  # noqa: E402
-
-
-def get_request_uid(headers):  # type: ignore[no-untyped-def]  # noqa: ANN201
-    return headers.get("X-Unique-ID")
-
-
-def log_exception(exc_info, **kwargs) -> None:  # type: ignore[no-untyped-def]
-    """
-    Add exception info to the log context for the request.
-
-    We do not log in a separate log statement in order to make debugging
-    easier. As a bonus, this reduces log volume somewhat.
-
-    """
-    rollbar.report_exc_info(exc_info)
-
-    if not is_live_env():
-        print()  # noqa: T201
-        traceback.print_exc()
-        print()  # noqa: T201
-
-    new_log_context = create_error_log_context(exc_info)
-    new_log_context.update(kwargs)
-
-    # guard against programming errors overriding log fields (confusing!)
-    if set(new_log_context.keys()).intersection(
-        set(request.environ.get("log_context", {}))
-    ):
-        log.warning(
-            "attempt to log more than one error to HTTP request",
-            request_uid=get_request_uid(request.headers),
-            **new_log_context,
-        )
-    else:
-        request.environ.setdefault("log_context", {}).update(new_log_context)
 
 
 class APIException(Exception):
@@ -112,7 +71,7 @@ class AccountDoesNotExistError(APIException):
 
 def err(http_code, message, **kwargs):  # type: ignore[no-untyped-def]  # noqa: ANN201
     """Handle unexpected errors, including sending the traceback to Rollbar."""
-    log_exception(sys.exc_info(), user_error_message=message, **kwargs)
+    log.exception("API error", user_error_message=message, **kwargs)
     resp = {"type": "api_error", "message": message}
     resp.update(kwargs)
     return make_response(jsonify(resp), http_code)

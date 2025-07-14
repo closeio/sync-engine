@@ -522,8 +522,8 @@ class GmailSyncMonitor(ImapSyncMonitor):
                     "Folder name changed on remote",
                     account_id=self.account_id,
                     role=raw_folder.role,
-                    new_name=raw_folder.display_name,
-                    name=folder.name,
+                    new_folder_name=raw_folder.display_name,
+                    old_folder_name=folder.name,
                 )
                 folder.name = raw_folder.display_name
 

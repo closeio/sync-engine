@@ -4,7 +4,7 @@
 import click
 from sqlalchemy.orm import load_only  # type: ignore[import-untyped]
 
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.models.account import Account
 from inbox.models.session import global_session_scope
 
@@ -18,7 +18,7 @@ def main() -> None:
     host.)
 
     """  # noqa: D401
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     with global_session_scope() as db_session:
         for acc in (

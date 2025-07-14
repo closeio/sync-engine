@@ -59,7 +59,7 @@ class Label(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             log.warning(
                 "Truncating label name for account",
                 account_id=self.account_id,
-                name=name,
+                label_name=name,
             )
         return sanitized_name
 

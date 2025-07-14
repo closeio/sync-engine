@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 import click
 
 from inbox.config import config
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.logging import configure_logging, get_logger
 from inbox.models.util import purge_transactions
 
@@ -30,7 +30,7 @@ log = get_logger()
 def run(  # type: ignore[no-untyped-def]
     days_ago, limit, throttle, dry_run
 ) -> None:
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     print("Python", sys.version, file=sys.stderr)
 

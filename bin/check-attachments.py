@@ -8,7 +8,7 @@ import click
 from sqlalchemy import true  # type: ignore[import-untyped]
 from sqlalchemy.sql.expression import func  # type: ignore[import-untyped]
 
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.logging import configure_logging, get_logger
 from inbox.models import Account, Block
 from inbox.models.session import global_session_scope, session_scope
@@ -68,7 +68,7 @@ def process_account(account_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
 @click.command()
 @click.option("--num-accounts", type=int, default=1500)
 def main(num_accounts) -> None:  # type: ignore[no-untyped-def]
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     with global_session_scope() as db_session:
         accounts = (

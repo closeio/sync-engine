@@ -6,7 +6,7 @@ from sys import exit
 import click
 from redis import BlockingConnectionPool, StrictRedis
 
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.heartbeat.config import (
     MAX_CONNECTIONS,
     SOCKET_TIMEOUT,
@@ -20,7 +20,7 @@ from inbox.heartbeat.config import (
 @click.option("--port", "-p", type=int, default=6379)
 @click.option("--database", "-d", type=int, default=STATUS_DATABASE)
 def main(host, port, database) -> None:  # type: ignore[no-untyped-def]
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     connection_pool = BlockingConnectionPool(
         host=host,

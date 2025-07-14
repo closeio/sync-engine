@@ -22,7 +22,7 @@ except ImportError:
         "Try running sudo ./setup.sh"
     )
 
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.logging import configure_logging, get_logger
 from inbox.mailsync.frontend import SyncHTTPFrontend
 from inbox.mailsync.service import SyncService
@@ -80,7 +80,7 @@ def main(  # type: ignore[no-untyped-def]
     configure_logging(log_level=level)
     reconfigure_logging()
 
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     if config is not None:
         from inbox.util.startup import load_overrides

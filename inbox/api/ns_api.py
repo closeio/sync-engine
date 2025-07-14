@@ -2,7 +2,6 @@ import contextlib
 import itertools
 import json
 import os
-import sys
 import time
 import uuid
 from collections import namedtuple
@@ -37,7 +36,6 @@ from inbox.api.err import (
     InputError,
     NotFoundError,
     err,
-    log_exception,
 )
 from inbox.api.kellogs import APIEncoder
 from inbox.api.sending import (
@@ -143,8 +141,6 @@ LONG_POLL_POLL_INTERVAL = 1
 SEND_TIMEOUT = 60
 
 app = Blueprint("namespace_api", __name__, url_prefix="")
-
-app.log_exception = log_exception  # type: ignore[attr-defined]
 
 # Configure mimetype -> extension map
 # TODO perhaps expand to encompass non-standard mimetypes too
@@ -299,7 +295,8 @@ def handle_input_error(error):  # type: ignore[no-untyped-def]  # noqa: ANN201
 
 @app.errorhandler(Exception)
 def handle_generic_error(error):  # type: ignore[no-untyped-def]  # noqa: ANN201
-    log_exception(sys.exc_info())
+    log.exception("Uncaught API error")
+
     response = flask_jsonify(
         message="An internal error occured. If this issue persists, please contact support@nylas.com and include this request_uid: {}".format(
             request.headers.get("X-Unique-ID")
@@ -2040,7 +2037,7 @@ def multi_send_finish(draft_id):  # type: ignore[no-untyped-def]  # noqa: ANN201
                 )
         except Exception:
             # Even if this fails, we need to finish off the multi-send session
-            log_exception(sys.exc_info(), draft_public_id=draft.public_id)
+            log.exception("Uncaught error", draft_public_id=draft.public_id)
 
     # Mark the draft as sent in our database
     update_draft_on_send(account, draft, g.db_session)

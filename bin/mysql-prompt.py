@@ -7,7 +7,7 @@ import sys
 import click
 
 from inbox.config import config
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 
 
 @click.command()
@@ -23,7 +23,7 @@ from inbox.error_handling import maybe_enable_rollbar
     help="Print results using tab as the column separator",
 )
 def main(shard_num: int | None, execute: str | None, batch: bool) -> None:
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     users = config.get_required("DATABASE_USERS")
 

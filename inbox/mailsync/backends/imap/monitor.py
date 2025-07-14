@@ -103,7 +103,7 @@ class ImapSyncMonitor(BaseMailSyncMonitor):
             log.info(
                 "Folder deleted from remote",
                 account_id=self.account_id,
-                name=name,
+                folder_name=name,
             )
             if local_folders[name].category_id is not None:
                 cat = db_session.query(Category).get(

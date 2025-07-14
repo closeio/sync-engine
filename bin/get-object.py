@@ -7,7 +7,7 @@ import sys
 import click
 import IPython
 
-from inbox.error_handling import maybe_enable_rollbar
+from inbox.error_handling import maybe_enable_error_reporting
 from inbox.models import (
     Account,
     Block,
@@ -53,7 +53,7 @@ except ImportError:
 def main(  # type: ignore[no-untyped-def]
     type, id, public_id, account_id, namespace_id, readwrite
 ) -> None:
-    maybe_enable_rollbar()
+    maybe_enable_error_reporting()
 
     type = type.lower()  # noqa: A001
 

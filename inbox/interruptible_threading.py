@@ -84,7 +84,8 @@ class InterruptibleThread(threading.Thread):
         )
         self.__exception: Exception | None = None
 
-        self._timeout_deadline: "float | None" = None
+        self._timeout_deadline: float | None = None
+        self.last_ping_time: float | None = None
 
         super().__init__()
 
@@ -157,6 +158,11 @@ class InterruptibleThread(threading.Thread):
             and time.monotonic() >= self._timeout_deadline
         ):
             raise InterruptibleThreadTimeout()
+
+        self._ping()
+
+    def _ping(self) -> None:
+        self.last_ping_time = time.monotonic()
 
 
 P = ParamSpec("P")
@@ -239,6 +245,14 @@ def check_interrupted(current_thread: InterruptibleThread, /) -> None:
     Check if the current thread is interrupted.
     """
     return current_thread._check_interrupted()
+
+
+@_interruptible(lambda: None)
+def ping(current_thread: InterruptibleThread, /) -> None:
+    """
+    Bump the last ping timestamp for the current thread.
+    """
+    return current_thread._ping()
 
 
 class InterruptibleThreadTimeout(BaseException):

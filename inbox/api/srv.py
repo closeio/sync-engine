@@ -3,7 +3,6 @@ from typing import Any
 from flask import Flask, g, jsonify, make_response, request
 from flask_restful import reqparse  # type: ignore[import-untyped]
 from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
-from werkzeug.exceptions import HTTPException, default_exceptions
 
 from inbox.api.err import APIException, InputError, NotFoundError
 from inbox.api.kellogs import APIEncoder
@@ -17,7 +16,6 @@ from inbox.api.validation import (
 from inbox.auth.generic import GenericAccountData, GenericAuthHandler
 from inbox.auth.google import GoogleAccountData, GoogleAuthHandler
 from inbox.auth.microsoft import MicrosoftAccountData, MicrosoftAuthHandler
-from inbox.logging import get_logger
 from inbox.models import Account, Namespace
 from inbox.models.backends.generic import GenericAccount
 from inbox.models.backends.gmail import GOOGLE_EMAIL_SCOPES, GmailAccount
@@ -48,26 +46,6 @@ def handle_input_error(error):  # type: ignore[no-untyped-def]  # noqa: ANN201
     response = jsonify(message=error.message, type="invalid_request_error")
     response.status_code = error.status_code
     return response
-
-
-def default_json_error(ex):  # type: ignore[no-untyped-def]  # noqa: ANN201
-    """Exception -> flask JSON responder"""
-    logger = get_logger()
-    logger.error("Uncaught error thrown by Flask/Werkzeug", exc_info=ex)
-    response = jsonify(message=str(ex), type="api_error")
-    response.status_code = (
-        ex.code  # type: ignore[assignment]
-        if isinstance(ex, HTTPException)
-        else 500
-    )
-    return response
-
-
-# Patch all error handlers in werkzeug
-for code in default_exceptions:
-    app.error_handler_spec[None][
-        code
-    ] = default_json_error  # type: ignore[assignment]
 
 
 @app.before_request

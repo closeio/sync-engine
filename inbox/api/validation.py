@@ -161,9 +161,9 @@ def strict_parse_args(parser, raw_args):  # type: ignore[no-untyped-def]  # noqa
     return args
 
 
-def get_sending_draft(  # type: ignore[no-untyped-def]  # noqa: ANN201
+def get_sending_draft(  # type: ignore[no-untyped-def]
     draft_public_id, namespace_id, db_session
-):
+) -> Message:
     valid_public_id(draft_public_id)
     try:
         draft = (
@@ -398,7 +398,7 @@ def valid_event_update(  # type: ignore[no-untyped-def]
             )
 
 
-def noop_event_update(event, data) -> bool:  # type: ignore[no-untyped-def]
+def noop_event_update(event: Event, data) -> bool:  # type: ignore[no-untyped-def]
     # Check whether the update is actually updating fields.
     # We do this by cloning the event, updating the fields and
     # comparing them. This is less cumbersome than having to think

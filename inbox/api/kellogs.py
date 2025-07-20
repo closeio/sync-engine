@@ -1,7 +1,7 @@
 import calendar
 import datetime
 from json import JSONEncoder, dumps
-from typing import Any, TypedDict
+from typing import Any, TypedDict, overload
 
 import arrow  # type: ignore[import-untyped]
 from flask import Response
@@ -106,6 +106,35 @@ def format_phone_numbers(
     ]
 
 
+@overload
+def encode(
+    obj: datetime.date,
+    namespace_public_id: str | None = None,
+    expand: bool = False,
+    is_n1: bool = False,
+) -> str | int: ...
+
+
+@overload
+def encode(
+    obj: (
+        Namespace
+        | Message
+        | Thread
+        | Contact
+        | Event
+        | Calendar
+        | When
+        | Block
+        | Category
+        | Metadata
+    ),
+    namespace_public_id: str | None = None,
+    expand: bool = False,
+    is_n1: bool = False,
+) -> dict[str, Any]: ...
+
+
 def encode(
     obj: Any,
     namespace_public_id: str | None = None,
@@ -135,6 +164,35 @@ def _convert_timezone_to_iana_tz(original_tz: str | None) -> str | None:
     except KeyError:
         log.error("Bad IANA timezone identifier", original_tz=original_tz)
         return original_tz
+
+
+@overload
+def _encode(
+    obj: datetime.date,
+    namespace_public_id: str | None = None,
+    expand: bool = False,
+    is_n1: bool = False,
+) -> str | int: ...
+
+
+@overload
+def _encode(
+    obj: (
+        Namespace
+        | Message
+        | Thread
+        | Contact
+        | Event
+        | Calendar
+        | When
+        | Block
+        | Category
+        | Metadata
+    ),
+    namespace_public_id: str | None = None,
+    expand: bool = False,
+    is_n1: bool = False,
+) -> dict[str, Any]: ...
 
 
 def _encode(  # noqa: D417
@@ -249,13 +307,15 @@ def _encode(  # noqa: D417
             ],
         }
 
-        categories = format_messagecategories(
+        message_categories = format_messagecategories(
             obj.messagecategories  # type: ignore[attr-defined]
         )
         if obj.namespace.account.category_type == "folder":
-            resp["folder"] = categories[0] if categories else None
+            resp["folder"] = (
+                message_categories[0] if message_categories else None
+            )
         else:
-            resp["labels"] = categories
+            resp["labels"] = message_categories
 
         # If the message is a draft (Nylas-created or otherwise):
         if obj.is_draft:
@@ -334,11 +394,15 @@ def _encode(  # noqa: D417
                     "References": msg.references,
                 },
             }
-            categories = format_messagecategories(msg.messagecategories)
+            message_categories = format_messagecategories(
+                msg.messagecategories
+            )
             if obj.namespace.account.category_type == "folder":
-                resp["folder"] = categories[0] if categories else None
+                resp["folder"] = (
+                    message_categories[0] if message_categories else None
+                )
             else:
-                resp["labels"] = categories
+                resp["labels"] = message_categories
 
             if msg.is_draft:
                 resp["object"] = "draft"
@@ -539,9 +603,7 @@ class APIEncoder:
 
         return InternalEncoder
 
-    def cereal(  # noqa: D417
-        self, obj: Any, pretty: bool = False
-    ) -> str:
+    def cereal(self, obj: Any, pretty: bool = False) -> str:  # noqa: D417
         """
         Returns the JSON string representation of obj.
 

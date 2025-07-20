@@ -1,6 +1,7 @@
 import calendar
 import datetime
 from json import JSONEncoder, dumps
+from typing import Any, TypedDict, Type
 
 import arrow  # type: ignore[import-untyped]
 from flask import Response
@@ -30,7 +31,12 @@ from inbox.models.event import (
 log = get_logger()
 
 
-def format_address_list(addresses):  # type: ignore[no-untyped-def]  # noqa: ANN201
+class FormattedAddress(TypedDict):
+    name: str
+    email: str
+
+
+def format_address_list(addresses: list[tuple[str, str]] | None) -> list[FormattedAddress]:  # noqa: ANN201
     if addresses is None:
         return []
     return [{"name": name, "email": email} for name, email in addresses]
@@ -51,7 +57,7 @@ def format_categories(categories):  # type: ignore[no-untyped-def]  # noqa: ANN2
 
 
 def format_messagecategories(  # type: ignore[no-untyped-def]  # noqa: ANN201
-    messagecategories,
+        messagecategories,
 ):
     if messagecategories is None:
         return []
@@ -76,9 +82,12 @@ def format_phone_numbers(phone_numbers):  # type: ignore[no-untyped-def]  # noqa
     return formatted_phone_numbers
 
 
-def encode(  # type: ignore[no-untyped-def]  # noqa: ANN201
-    obj, namespace_public_id=None, expand: bool = False, is_n1: bool = False
-):
+def encode(  # noqa: ANN201
+        obj: Any,
+        namespace_public_id: str | None = None,
+        expand: bool = False,
+        is_n1: bool = False
+) -> dict[str, Any] | str | int | None:
     try:
         return _encode(obj, namespace_public_id, expand, is_n1=is_n1)
     except Exception as e:
@@ -104,9 +113,12 @@ def _convert_timezone_to_iana_tz(original_tz):  # type: ignore[no-untyped-def]
         return original_tz
 
 
-def _encode(  # type: ignore[no-untyped-def]  # noqa: D417
-    obj, namespace_public_id=None, expand: bool = False, is_n1: bool = False
-):
+def _encode(  # noqa: D417
+        obj: Any,
+        namespace_public_id: str | None = None,
+        expand: bool = False,
+        is_n1: bool = False
+) -> dict[str, Any] | int | str | None:
     """
     Returns a dictionary representation of a Nylas model object obj, or
     None if there is no such representation defined. If the optional
@@ -126,10 +138,10 @@ def _encode(  # type: ignore[no-untyped-def]  # noqa: D417
 
     """  # noqa: D401
 
-    def _get_namespace_public_id(obj):  # type: ignore[no-untyped-def]
+    def _get_namespace_public_id(obj: Any) -> str | None:
         return namespace_public_id or obj.namespace.public_id
 
-    def _format_participant_data(participant):  # type: ignore[no-untyped-def]
+    def _format_participant_data(participant: dict[str, Any]) -> dict[str, Any]:
         """
         Event.participants is a JSON blob which may contain internal data.
         This function returns a dict with only the data we want to make
@@ -141,7 +153,7 @@ def _encode(  # type: ignore[no-untyped-def]  # noqa: D417
 
         return dct
 
-    def _get_lowercase_class_name(obj):  # type: ignore[no-untyped-def]
+    def _get_lowercase_class_name(obj: Any) -> str:
         return type(obj).__name__.lower()
 
     # Flask's jsonify() doesn't handle datetimes or json arrays as primary
@@ -473,21 +485,24 @@ class APIEncoder:
 
     """
 
-    def __init__(  # type: ignore[no-untyped-def]
-        self,
-        namespace_public_id=None,
-        expand: bool = False,
-        is_n1: bool = False,
+    def __init__(
+            self,
+            namespace_public_id: str | None = None,
+            expand: bool = False,
+            is_n1: bool = False,
     ) -> None:
         self.encoder_class = self._encoder_factory(
             namespace_public_id, expand, is_n1=is_n1
         )
 
     def _encoder_factory(  # type: ignore[no-untyped-def]
-        self, namespace_public_id, expand, is_n1: bool = False
-    ):
+            self,
+            namespace_public_id,
+            expand: bool,
+            is_n1: bool = False
+    ) -> Type[JSONEncoder]:
         class InternalEncoder(JSONEncoder):
-            def default(self, obj):  # type: ignore[no-untyped-def]
+            def default(self, obj: Any):  # type: ignore[no-untyped-def]
                 custom_representation = encode(
                     obj, namespace_public_id, expand=expand, is_n1=is_n1
                 )
@@ -498,9 +513,9 @@ class APIEncoder:
 
         return InternalEncoder
 
-    def cereal(  # type: ignore[no-untyped-def]  # noqa: ANN201, D417
-        self, obj, pretty: bool = False
-    ):
+    def cereal(  # noqa: ANN201, D417
+            self, obj: Any, pretty: bool = False
+    ) -> str:
         """
         Returns the JSON string representation of obj.
 
@@ -526,7 +541,7 @@ class APIEncoder:
             )
         return dumps(obj, cls=self.encoder_class)
 
-    def jsonify(self, obj):  # type: ignore[no-untyped-def]  # noqa: ANN201, D417
+    def jsonify(self, obj: Any) -> Response:  # noqa: ANN201, D417
         """
         Returns a Flask Response object encapsulating the JSON
         representation of obj.

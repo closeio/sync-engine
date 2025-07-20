@@ -1,7 +1,7 @@
 import calendar
 import datetime
 from json import JSONEncoder, dumps
-from typing import Any, TypedDict, Type
+from typing import Any, TypedDict
 
 import arrow  # type: ignore[import-untyped]
 from flask import Response
@@ -16,8 +16,10 @@ from inbox.models import (
     Contact,
     Event,
     Message,
+    MessageCategory,
     Metadata,
     Namespace,
+    PhoneNumber,
     Thread,
     When,
 )
@@ -36,13 +38,23 @@ class FormattedAddress(TypedDict):
     email: str
 
 
-def format_address_list(addresses: list[tuple[str, str]] | None) -> list[FormattedAddress]:  # noqa: ANN201
+def format_address_list(
+    addresses: list[tuple[str, str]] | None
+) -> list[FormattedAddress]:
     if addresses is None:
         return []
     return [{"name": name, "email": email} for name, email in addresses]
 
 
-def format_categories(categories):  # type: ignore[no-untyped-def]  # noqa: ANN201
+class FormattedCategory(TypedDict):
+    id: str
+    name: str | None
+    display_name: str
+
+
+def format_categories(
+    categories: set[Category] | None,
+) -> list[FormattedCategory]:
     if categories is None:
         return []
     return [
@@ -52,13 +64,20 @@ def format_categories(categories):  # type: ignore[no-untyped-def]  # noqa: ANN2
             "display_name": category.api_display_name,
         }
         for category in categories
-        if category
+        if category  # type: ignore[truthy-bool]
     ]
 
 
-def format_messagecategories(  # type: ignore[no-untyped-def]  # noqa: ANN201
-        messagecategories,
-):
+class FormattedMessageCategory(TypedDict):
+    id: str
+    name: str | None
+    display_name: str
+    created_timestamp: datetime.datetime
+
+
+def format_messagecategories(
+    messagecategories: list[MessageCategory] | None,
+) -> list[FormattedMessageCategory]:
     if messagecategories is None:
         return []
     return [
@@ -73,20 +92,25 @@ def format_messagecategories(  # type: ignore[no-untyped-def]  # noqa: ANN201
     ]
 
 
-def format_phone_numbers(phone_numbers):  # type: ignore[no-untyped-def]  # noqa: ANN201
-    formatted_phone_numbers = []
-    for number in phone_numbers:
-        formatted_phone_numbers.append(
-            {"type": number.type, "number": number.number}
-        )
-    return formatted_phone_numbers
+class FormattedPhoneNumber(TypedDict):
+    type: str
+    number: str
 
 
-def encode(  # noqa: ANN201
-        obj: Any,
-        namespace_public_id: str | None = None,
-        expand: bool = False,
-        is_n1: bool = False
+def format_phone_numbers(
+    phone_numbers: list[PhoneNumber],
+) -> list[FormattedPhoneNumber]:
+    return [
+        {"type": number.type, "number": number.number}
+        for number in phone_numbers
+    ]
+
+
+def encode(
+    obj: Any,
+    namespace_public_id: str | None = None,
+    expand: bool = False,
+    is_n1: bool = False,
 ) -> dict[str, Any] | str | int | None:
     try:
         return _encode(obj, namespace_public_id, expand, is_n1=is_n1)
@@ -102,7 +126,7 @@ def encode(  # noqa: ANN201
         raise
 
 
-def _convert_timezone_to_iana_tz(original_tz):  # type: ignore[no-untyped-def]
+def _convert_timezone_to_iana_tz(original_tz: str | None) -> str | None:
     if original_tz is None:
         return None
 
@@ -114,10 +138,10 @@ def _convert_timezone_to_iana_tz(original_tz):  # type: ignore[no-untyped-def]
 
 
 def _encode(  # noqa: D417
-        obj: Any,
-        namespace_public_id: str | None = None,
-        expand: bool = False,
-        is_n1: bool = False
+    obj: Any,
+    namespace_public_id: str | None = None,
+    expand: bool = False,
+    is_n1: bool = False,
 ) -> dict[str, Any] | int | str | None:
     """
     Returns a dictionary representation of a Nylas model object obj, or
@@ -141,7 +165,9 @@ def _encode(  # noqa: D417
     def _get_namespace_public_id(obj: Any) -> str | None:
         return namespace_public_id or obj.namespace.public_id
 
-    def _format_participant_data(participant: dict[str, Any]) -> dict[str, Any]:
+    def _format_participant_data(
+        participant: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Event.participants is a JSON blob which may contain internal data.
         This function returns a dict with only the data we want to make
@@ -486,23 +512,23 @@ class APIEncoder:
     """
 
     def __init__(
-            self,
-            namespace_public_id: str | None = None,
-            expand: bool = False,
-            is_n1: bool = False,
+        self,
+        namespace_public_id: str | None = None,
+        expand: bool = False,
+        is_n1: bool = False,
     ) -> None:
         self.encoder_class = self._encoder_factory(
             namespace_public_id, expand, is_n1=is_n1
         )
 
-    def _encoder_factory(  # type: ignore[no-untyped-def]
-            self,
-            namespace_public_id,
-            expand: bool,
-            is_n1: bool = False
-    ) -> Type[JSONEncoder]:
+    def _encoder_factory(
+        self,
+        namespace_public_id: str | None,
+        expand: bool,
+        is_n1: bool = False,
+    ) -> type[JSONEncoder]:
         class InternalEncoder(JSONEncoder):
-            def default(self, obj: Any):  # type: ignore[no-untyped-def]
+            def default(self, obj: Any) -> Any:
                 custom_representation = encode(
                     obj, namespace_public_id, expand=expand, is_n1=is_n1
                 )
@@ -513,8 +539,8 @@ class APIEncoder:
 
         return InternalEncoder
 
-    def cereal(  # noqa: ANN201, D417
-            self, obj: Any, pretty: bool = False
+    def cereal(  # noqa: D417
+        self, obj: Any, pretty: bool = False
     ) -> str:
         """
         Returns the JSON string representation of obj.
@@ -541,7 +567,7 @@ class APIEncoder:
             )
         return dumps(obj, cls=self.encoder_class)
 
-    def jsonify(self, obj: Any) -> Response:  # noqa: ANN201, D417
+    def jsonify(self, obj: Any) -> Response:  # noqa: D417
         """
         Returns a Flask Response object encapsulating the JSON
         representation of obj.

@@ -76,35 +76,29 @@ class BaseMailSyncMonitor(InterruptibleThread):
             raise
 
     def _run_impl(self):  # type: ignore[no-untyped-def]
-        self.sync_thread = InterruptibleThread(
-            retry_with_logging,
-            self.sync,
-            account_id=self.account_id,
-            provider=self.provider_name,
-            logger=self.log,
-        )
-        self.sync_thread.start()
-        self.sync_thread.join()
-
-        if self.sync_thread.successful():
-            self._cleanup()
+        try:
+            retry_with_logging(
+                self.sync,
+                account_id=self.account_id,
+                provider=self.provider_name,
+                logger=self.log,
+            )
+        except Exception:
+            self.log.exception(
+                "mail sync raised an exception", provider=self.provider_name
+            )
+            raise
+        else:
             self.log.info(
                 "mail sync finished successfully", provider=self.provider_name
             )
-            return
-
-        self.log.error(
-            "mail sync raised an exception",
-            provider=self.provider_name,
-            exc=self.sync_thread.exception,
-        )
-        raise self.sync_thread.exception  # type: ignore[misc]
+        finally:
+            self._cleanup()
 
     def sync(self) -> Never:
         raise NotImplementedError
 
     def _cleanup(self) -> None:
-        self.sync_thread.kill()
         with session_scope(self.namespace_id) as mailsync_db_session:
             for x in self.folder_monitors:  # type: ignore[attr-defined]
                 x.set_stopped(mailsync_db_session)

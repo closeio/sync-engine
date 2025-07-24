@@ -200,7 +200,9 @@ class MsGraphEvent(TypedDict):
     """
 
     id: str
+    iCalUId: str
     type: MsGraphEventType
+    createdDateTime: str
     start: MsGraphDateTimeTimeZone
     originalStart: str
     end: MsGraphDateTimeTimeZone

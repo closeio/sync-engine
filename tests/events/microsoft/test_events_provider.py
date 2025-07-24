@@ -64,6 +64,8 @@ def events_responses() -> None:
             "value": [
                 {
                     "id": "singular_id",
+                    "iCalUId": "singular_ical_id",
+                    "createdDateTime": "2025-07-07T08:41:36.5027961Z",
                     "lastModifiedDateTime": "2022-09-07T08:41:36.5027961Z",
                     "originalStartTimeZone": "Eastern Standard Time",
                     "originalEndTimeZone": "Eastern Standard Time",
@@ -106,6 +108,8 @@ def events_responses() -> None:
                 },
                 {
                     "id": "recurrence_id",
+                    "iCalUId": "recurrence_ical_id",
+                    "createdDateTime": "2022-09-07T08:41:36.5027961Z",
                     "lastModifiedDateTime": "2022-09-27T14:41:23.1042764Z",
                     "originalStartTimeZone": "Pacific Standard Time",
                     "originalEndTimeZone": "Pacific Standard Time",
@@ -352,6 +356,8 @@ def exception_override_response() -> None:
                 },
                 {
                     "id": "recurrence_id_exception",
+                    "iCalUId": "recurrence_ical_id_exception",
+                    "createdDateTime": "2022-09-27T14:41:23.1042764Z",
                     "lastModifiedDateTime": "2022-09-27T14:41:23.1042764Z",
                     "originalStartTimeZone": "Pacific Standard Time",
                     "originalEndTimeZone": "Pacific Standard Time",
@@ -474,8 +480,193 @@ def test_sync_events(provider) -> None:
 
     assert isinstance(events_by_title["Singular"], Event)
     assert events_by_title["Singular"].description == "Singular"
+    assert events_by_title["Singular"].uid == "singular_id"
     assert isinstance(events_by_title["Recurring"], RecurringEvent)
     assert events_by_title["Recurring"].description == "Hello world!"
+
+
+@pytest.fixture
+def events_with_cutoff_response() -> None:
+    responses.get(
+        BASE_URL + "/me/calendars/fake_calendar_id/events",
+        json={
+            "value": [
+                {
+                    "id": "before_cutoff_id",
+                    "iCalUId": "before_cutoff_ical_id",
+                    "createdDateTime": "2025-07-29T12:00:00.0000000Z",  # Before cutoff
+                    "lastModifiedDateTime": "2025-07-29T12:00:00.0000000Z",
+                    "originalStartTimeZone": "Eastern Standard Time",
+                    "originalEndTimeZone": "Eastern Standard Time",
+                    "subject": "Event Before Cutoff",
+                    "importance": "normal",
+                    "sensitivity": "normal",
+                    "isAllDay": False,
+                    "isCancelled": False,
+                    "isOrganizer": True,
+                    "showAs": "busy",
+                    "type": "singleInstance",
+                    "recurrence": None,
+                    "body": {
+                        "contentType": "html",
+                        "content": "Before cutoff",
+                    },
+                    "start": {
+                        "dateTime": "2025-08-01T12:00:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                    "end": {
+                        "dateTime": "2025-08-01T13:00:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                    "locations": [],
+                    "attendees": [],
+                    "organizer": None,
+                },
+                {
+                    "id": "after_cutoff_id",
+                    "iCalUId": "after_cutoff_ical_id",
+                    "createdDateTime": "2025-08-01T12:00:00.0000000Z",  # After cutoff
+                    "lastModifiedDateTime": "2025-08-01T12:00:00.0000000Z",
+                    "originalStartTimeZone": "Eastern Standard Time",
+                    "originalEndTimeZone": "Eastern Standard Time",
+                    "subject": "Event After Cutoff",
+                    "importance": "normal",
+                    "sensitivity": "normal",
+                    "isAllDay": False,
+                    "isCancelled": False,
+                    "isOrganizer": True,
+                    "showAs": "busy",
+                    "type": "singleInstance",
+                    "recurrence": None,
+                    "body": {"contentType": "html", "content": "After cutoff"},
+                    "start": {
+                        "dateTime": "2025-08-01T14:00:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                    "end": {
+                        "dateTime": "2025-08-01T15:00:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                    "locations": [],
+                    "attendees": [],
+                    "organizer": None,
+                },
+                {
+                    "id": "recurring_after_cutoff_id",
+                    "iCalUId": "recurring_after_cutoff_ical_id",
+                    "createdDateTime": "2025-08-05T10:00:00.0000000Z",  # After cutoff
+                    "lastModifiedDateTime": "2025-08-05T10:00:00.0000000Z",
+                    "originalStartTimeZone": "Pacific Standard Time",
+                    "originalEndTimeZone": "Pacific Standard Time",
+                    "subject": "Recurring After Cutoff",
+                    "importance": "normal",
+                    "sensitivity": "normal",
+                    "isAllDay": False,
+                    "isCancelled": False,
+                    "isOrganizer": True,
+                    "showAs": "busy",
+                    "type": "seriesMaster",
+                    "body": {
+                        "contentType": "html",
+                        "content": "Recurring after cutoff",
+                    },
+                    "start": {
+                        "dateTime": "2025-08-10T15:00:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                    "end": {
+                        "dateTime": "2025-08-10T15:30:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                    "locations": [],
+                    "recurrence": {
+                        "pattern": {
+                            "type": "daily",
+                            "interval": 1,
+                            "month": 0,
+                            "dayOfMonth": 0,
+                            "firstDayOfWeek": "sunday",
+                            "index": "first",
+                        },
+                        "range": {
+                            "type": "endDate",
+                            "startDate": "2025-08-10",
+                            "endDate": "2025-08-12",
+                            "recurrenceTimeZone": "Pacific Standard Time",
+                            "numberOfOccurrences": 0,
+                        },
+                    },
+                    "attendees": [],
+                    "organizer": {
+                        "emailAddress": {
+                            "name": "Test",
+                            "address": "test@example.com",
+                        }
+                    },
+                },
+            ]
+        },
+    )
+
+
+@pytest.fixture
+def recurring_instances_response() -> None:
+    responses.get(
+        BASE_URL + "/me/events/recurring_after_cutoff_id/instances",
+        json={
+            "value": [
+                {
+                    "type": "occurrence",
+                    "start": {
+                        "dateTime": "2025-08-10T15:00:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                    "originalStart": "2025-08-10T15:00:00Z",
+                },
+                {
+                    "type": "occurrence",
+                    "start": {
+                        "dateTime": "2025-08-11T15:00:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                    "originalStart": "2025-08-11T15:00:00Z",
+                },
+                {
+                    "type": "occurrence",
+                    "start": {
+                        "dateTime": "2025-08-12T15:00:00.0000000",
+                        "timeZone": "UTC",
+                    },
+                    "originalStart": "2025-08-12T15:00:00Z",
+                },
+            ]
+        },
+    )
+
+
+@responses.activate
+@pytest.mark.usefixtures(
+    "events_with_cutoff_response", "recurring_instances_response"
+)
+def test_sync_events_respects_ical_uid_cutoff(provider) -> None:
+    events = provider.sync_events("fake_calendar_id")
+    events_by_title = {event.title: event for event in events}
+
+    # Event created before cutoff should use MS Graph ID
+    assert events_by_title["Event Before Cutoff"].uid == "before_cutoff_id"
+
+    # Event created after cutoff should use iCalUID
+    assert events_by_title["Event After Cutoff"].uid == "after_cutoff_ical_id"
+
+    # Recurring event created after cutoff should use iCalUID
+    assert isinstance(
+        events_by_title["Recurring After Cutoff"], RecurringEvent
+    )
+    assert (
+        events_by_title["Recurring After Cutoff"].uid
+        == "recurring_after_cutoff_ical_id"
+    )
 
 
 @responses.activate

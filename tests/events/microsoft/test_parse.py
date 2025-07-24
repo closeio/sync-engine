@@ -735,6 +735,7 @@ def test_inflate_msgraph_patterned_recurrence(
 
 master_event = {
     "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIM02sjAABtf4g8yY_zTZgZh6x0X-50AAIM0_o4AAA=",
+    "iCalUId": "iCalUId:2",
     "subject": "Expansion",
     "importance": "normal",
     "sensitivity": "normal",
@@ -769,6 +770,7 @@ master_event = {
 event_occurrences = [
     {
         "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQFRAAgI2pnR5UQAAEYAAAAAovUUFgf0jU2QbgCzOiiDrAcAbX_IPMmPs02YGYesdF-_dAACDNNrIwAAbX_IPMmPs02YGYesdF-_dAACDNPqOAAAEA==",
+        "iCalUId": "iCalUId:3",
         "subject": "Expansion",
         "importance": "normal",
         "sensitivity": "normal",
@@ -789,6 +791,7 @@ event_occurrences = [
     },
     {
         "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQFRAAgI2pqbD63AAEYAAAAAovUUFgf0jU2QbgCzOiiDrAcAbX_IPMmPs02YGYesdF-_dAACDNNrIwAAbX_IPMmPs02YGYesdF-_dAACDNPqOAAAEA==",
+        "iCalUId": "iCalUId:4",
         "subject": "Expansion",
         "importance": "normal",
         "sensitivity": "normal",
@@ -809,6 +812,7 @@ event_occurrences = [
     },
     {
         "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQFRAAgI2ptkOheAAEYAAAAAovUUFgf0jU2QbgCzOiiDrAcAbX_IPMmPs02YGYesdF-_dAACDNNrIwAAbX_IPMmPs02YGYesdF-_dAACDNPqOAAAEA==",
+        "iCalUId": "iCalUId:5",
         "subject": "Expansion",
         "importance": "normal",
         "sensitivity": "normal",
@@ -860,6 +864,7 @@ def test_calculate_exception_and_canceled_occurrences_with_deletion() -> None:
 
 master_event_crossing_dst = {
     "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIzYW90AABtf4g8yY_zTZgZh6x0X-50AAI4iyJwAAA=",
+    "iCalUId": "iCalUId:6",
     "originalStartTimeZone": "Eastern Standard Time",
     "originalEndTimeZone": "Eastern Standard Time",
     "type": "seriesMaster",
@@ -1397,7 +1402,7 @@ single_instance_event = {
     "transactionId": "962593bf-9e1b-ef34-bff6-da63d058df7f",
     "originalStartTimeZone": "Eastern Standard Time",
     "originalEndTimeZone": "Eastern Standard Time",
-    "iCalUId": "040000008200E00074C5B7101A82E00800000000D0C4525C95C2D80100000000000000001000000007003FD5ECC09F42A0ACCA4299772507",
+    "iCalUId": "iCalUId:1",
     "reminderMinutesBeforeStart": 15,
     "isReminderOn": True,
     "hasAttachments": False,
@@ -1520,3 +1525,207 @@ def test_parse_calendar() -> None:
     assert calendar.name == "Calendar"
     assert calendar.read_only is False
     assert calendar.default is True
+
+
+def test_parse_event_uses_ical_uid_after_cutoff() -> None:
+    # Event created after cutoff date should use iCalUID
+    event_after_cutoff = {
+        "@odata.etag": 'W/"bX+IPMmPs02YGYesdF/+dAAB/52fpA=="',
+        "id": "ms_graph_id_after",
+        "iCalUId": "ical_uid_after",
+        "createdDateTime": "2025-08-01T10:00:00.0000000Z",  # After cutoff
+        "lastModifiedDateTime": "2025-08-01T10:00:00.0000000Z",
+        "originalStartTimeZone": "Eastern Standard Time",
+        "originalEndTimeZone": "Eastern Standard Time",
+        "subject": "Event after cutoff",
+        "importance": "normal",
+        "sensitivity": "normal",
+        "isAllDay": False,
+        "isCancelled": False,
+        "isOrganizer": True,
+        "showAs": "busy",
+        "type": "singleInstance",
+        "recurrence": None,
+        "body": {"contentType": "html", "content": "Test"},
+        "start": {
+            "dateTime": "2025-08-15T12:00:00.0000000",
+            "timeZone": "UTC",
+        },
+        "end": {"dateTime": "2025-08-15T13:00:00.0000000", "timeZone": "UTC"},
+        "locations": [],
+        "attendees": [],
+        "organizer": None,
+    }
+
+    event = parse_event(event_after_cutoff, read_only=False)
+    assert event.uid == "ical_uid_after"
+
+    # Event created before cutoff date should use MS Graph ID
+    event_before_cutoff = {
+        "@odata.etag": 'W/"bX+IPMmPs02YGYesdF/+dAAB/52fpA=="',
+        "id": "ms_graph_id_before",
+        "iCalUId": "ical_uid_before",
+        "createdDateTime": "2025-07-29T10:00:00.0000000Z",  # Before cutoff
+        "lastModifiedDateTime": "2025-07-29T10:00:00.0000000Z",
+        "originalStartTimeZone": "Eastern Standard Time",
+        "originalEndTimeZone": "Eastern Standard Time",
+        "subject": "Event before cutoff",
+        "importance": "normal",
+        "sensitivity": "normal",
+        "isAllDay": False,
+        "isCancelled": False,
+        "isOrganizer": True,
+        "showAs": "busy",
+        "type": "singleInstance",
+        "recurrence": None,
+        "body": {"contentType": "html", "content": "Test"},
+        "start": {
+            "dateTime": "2025-08-15T12:00:00.0000000",
+            "timeZone": "UTC",
+        },
+        "end": {"dateTime": "2025-08-15T13:00:00.0000000", "timeZone": "UTC"},
+        "locations": [],
+        "attendees": [],
+        "organizer": None,
+    }
+
+    event = parse_event(event_before_cutoff, read_only=False)
+    assert event.uid == "ms_graph_id_before"
+
+
+def test_parse_event_at_exact_cutoff_time() -> None:
+    # Event created exactly at cutoff should use MS Graph ID (not after)
+    event_at_cutoff = {
+        "@odata.etag": 'W/"bX+IPMmPs02YGYesdF/+dAAB/52fpA=="',
+        "id": "ms_graph_id_at_cutoff",
+        "iCalUId": "ical_uid_at_cutoff",
+        "createdDateTime": "2025-07-30T00:00:00.0000000Z",  # Exactly at cutoff
+        "lastModifiedDateTime": "2025-07-30T00:00:00.0000000Z",
+        "originalStartTimeZone": "UTC",
+        "originalEndTimeZone": "UTC",
+        "subject": "Event at cutoff",
+        "importance": "normal",
+        "sensitivity": "normal",
+        "isAllDay": False,
+        "isCancelled": False,
+        "isOrganizer": True,
+        "showAs": "busy",
+        "type": "singleInstance",
+        "recurrence": None,
+        "body": {"contentType": "html", "content": "Test"},
+        "start": {
+            "dateTime": "2025-08-15T12:00:00.0000000",
+            "timeZone": "UTC",
+        },
+        "end": {"dateTime": "2025-08-15T13:00:00.0000000", "timeZone": "UTC"},
+        "locations": [],
+        "attendees": [],
+        "organizer": None,
+    }
+
+    event = parse_event(event_at_cutoff, read_only=False)
+    assert event.uid == "ms_graph_id_at_cutoff"
+
+
+def test_parse_recurring_event_uses_ical_uid_after_cutoff() -> None:
+    # Recurring event created after cutoff should use iCalUID
+    recurring_after_cutoff = {
+        "@odata.etag": 'W/"bX+IPMmPs02YGYesdF/+dAACDYEM6g=="',
+        "id": "recurring_ms_graph_id_after",
+        "iCalUId": "recurring_ical_uid_after",
+        "createdDateTime": "2025-08-05T15:32:22.239054Z",  # After cutoff
+        "lastModifiedDateTime": "2025-08-05T15:32:22.239054Z",
+        "originalStartTimeZone": "Pacific Standard Time",
+        "originalEndTimeZone": "Pacific Standard Time",
+        "subject": "Recurring after cutoff",
+        "importance": "normal",
+        "sensitivity": "normal",
+        "isAllDay": False,
+        "isCancelled": False,
+        "isOrganizer": True,
+        "showAs": "busy",
+        "type": "seriesMaster",
+        "body": {"contentType": "html", "content": "Recurring test"},
+        "start": {
+            "dateTime": "2025-08-10T15:00:00.0000000",
+            "timeZone": "UTC",
+        },
+        "end": {"dateTime": "2025-08-10T15:30:00.0000000", "timeZone": "UTC"},
+        "locations": [],
+        "recurrence": {
+            "pattern": {
+                "type": "daily",
+                "interval": 1,
+                "month": 0,
+                "dayOfMonth": 0,
+                "firstDayOfWeek": "sunday",
+                "index": "first",
+            },
+            "range": {
+                "type": "endDate",
+                "startDate": "2025-08-10",
+                "endDate": "2025-08-20",
+                "recurrenceTimeZone": "Pacific Standard Time",
+                "numberOfOccurrences": 0,
+            },
+        },
+        "attendees": [],
+        "organizer": {
+            "emailAddress": {"name": "Test", "address": "test@example.com"}
+        },
+    }
+
+    event = parse_event(recurring_after_cutoff, read_only=False)
+    assert isinstance(event, RecurringEvent)
+    assert event.uid == "recurring_ical_uid_after"
+
+    # Recurring event created before cutoff should use MS Graph ID
+    recurring_before_cutoff = {
+        "@odata.etag": 'W/"bX+IPMmPs02YGYesdF/+dAACDYEM6g=="',
+        "id": "recurring_ms_graph_id_before",
+        "iCalUId": "recurring_ical_uid_before",
+        "createdDateTime": "2025-07-25T15:32:22.239054Z",  # Before cutoff
+        "lastModifiedDateTime": "2025-07-25T15:32:22.239054Z",
+        "originalStartTimeZone": "Pacific Standard Time",
+        "originalEndTimeZone": "Pacific Standard Time",
+        "subject": "Recurring before cutoff",
+        "importance": "normal",
+        "sensitivity": "normal",
+        "isAllDay": False,
+        "isCancelled": False,
+        "isOrganizer": True,
+        "showAs": "busy",
+        "type": "seriesMaster",
+        "body": {"contentType": "html", "content": "Recurring test"},
+        "start": {
+            "dateTime": "2025-08-10T15:00:00.0000000",
+            "timeZone": "UTC",
+        },
+        "end": {"dateTime": "2025-08-10T15:30:00.0000000", "timeZone": "UTC"},
+        "locations": [],
+        "recurrence": {
+            "pattern": {
+                "type": "daily",
+                "interval": 1,
+                "month": 0,
+                "dayOfMonth": 0,
+                "firstDayOfWeek": "sunday",
+                "index": "first",
+            },
+            "range": {
+                "type": "endDate",
+                "startDate": "2025-08-10",
+                "endDate": "2025-08-20",
+                "recurrenceTimeZone": "Pacific Standard Time",
+                "numberOfOccurrences": 0,
+            },
+        },
+        "attendees": [],
+        "organizer": {
+            "emailAddress": {"name": "Test", "address": "test@example.com"}
+        },
+    }
+
+    event = parse_event(recurring_before_cutoff, read_only=False)
+    assert isinstance(event, RecurringEvent)
+    assert event.uid == "recurring_ms_graph_id_before"

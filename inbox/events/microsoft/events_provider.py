@@ -23,6 +23,7 @@ from inbox.events.microsoft.parse import (
     validate_event,
 )
 from inbox.events.util import CalendarSyncResponse
+from inbox.logging import get_logger
 from inbox.models.account import Account
 from inbox.models.backends.outlook import MICROSOFT_CALENDAR_SCOPES
 from inbox.models.calendar import Calendar
@@ -46,6 +47,8 @@ MAX_RECURRING_EVENT_WINDOW = datetime.timedelta(days=365)
 
 EVENT_FIELDS = [
     "id",
+    "iCalUId",
+    "createdDateTime",
     "type",
     "subject",
     "start",
@@ -154,27 +157,32 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
             if isinstance(event, RecurringEvent):
                 (exceptions, cancellations) = self._get_event_overrides(
-                    raw_event, event, read_only=read_only
+                    raw_event,
+                    event,
+                    ms_graph_event_id=raw_event["id"],
+                    read_only=read_only,
                 )
                 updates.extend(exceptions)  # type: ignore[arg-type]
                 updates.extend(cancellations)  # type: ignore[arg-type]
 
         return updates
 
-    def _get_event_overrides(  # type: ignore[no-untyped-def]
+    def _get_event_overrides(
         self,
         raw_master_event: MsGraphEvent,
         master_event: RecurringEvent,
         *,
-        read_only,
+        ms_graph_event_id: str,
+        read_only: bool,
     ) -> tuple[list[MsGraphEvent], list[MsGraphEvent]]:
         """
         Fetch recurring event instances and determine exceptions and cancellations.
 
         Arguments:
-            raw_master_event: Recurring master event as retruend by the API
-            master_event: Parsed recurring master event as ORM object
-            read_only: Does master event come from read-only calendar
+            raw_master_event: Recurring master event as returned by the API
+            master_event: Parsed recurring master event as an ORM object
+            ms_graph_event_id: Microsoft Graph event ID for use with Graph API
+            read_only: Does master event come from a read-only calendar
 
         Returns:
             Tuple of exceptions and cancellations
@@ -184,14 +192,27 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
 
         start = master_event.start
         end = start + MAX_RECURRING_EVENT_WINDOW
-
+        log = get_logger()
+        log.info(
+            "Getting overrides for event",
+            event_uid=master_event.uid,
+            event_ms_graph_id=ms_graph_event_id,
+        )
         raw_occurrences = cast(
             list[MsGraphEvent],
             list(
                 self.client.iter_event_instances(
-                    master_event.uid, start=start, end=end, fields=EVENT_FIELDS
+                    ms_graph_event_id,
+                    start=start,
+                    end=end,
+                    fields=EVENT_FIELDS,
                 )
             ),
+        )
+        log.info(
+            "got overrides for event",
+            event_id=master_event.uid,
+            occurrence_count=len(raw_occurrences),
         )
         (raw_exceptions, raw_cancellations) = (
             calculate_exception_and_canceled_occurrences(

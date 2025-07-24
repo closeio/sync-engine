@@ -10,6 +10,7 @@ import dateutil.rrule
 import pytz
 import pytz.tzinfo
 
+from inbox.config import config
 from inbox.events.microsoft.graph_types import (
     ICalDayOfWeek,
     ICalFreq,
@@ -25,6 +26,7 @@ from inbox.events.microsoft.graph_types import (
     MsGraphWeekIndex,
 )
 from inbox.events.timezones import windows_timezones
+from inbox.logging import get_logger
 from inbox.models.calendar import Calendar
 from inbox.models.event import Event
 from inbox.util.html import strip_tags
@@ -415,6 +417,11 @@ def synthesize_canceled_occurrence(
         + "-synthesizedCancellation-"
         + start_datetime.date().isoformat()
     )
+    cancellation_ical_uid = (
+        master_event["iCalUId"]
+        + "-synthesizedCancellation-"
+        + start_datetime.date().isoformat()
+    )
     cancellation_start = dump_datetime_as_msgraph_datetime_tz(start_datetime)
     assert start_datetime.tzinfo == pytz.UTC
     original_start = start_datetime.replace(tzinfo=None).isoformat() + "Z"
@@ -425,9 +432,13 @@ def synthesize_canceled_occurrence(
         start_datetime + duration
     )
 
+    # As this is still an MSGraphEvent, we need to maintain separate id and
+    # iCalUId. The decision for which to use will be made when parsing this into
+    # a sync engine internal Event model.
     result = {
         **master_event,
         "id": cancellation_id,
+        "iCalUId": cancellation_ical_uid,
         "type": "synthesizedCancellation",
         "isCancelled": True,
         "recurrence": None,
@@ -692,8 +703,19 @@ def parse_event(
     ]:
         assert master_event_uid
         assert event["type"] in ["exception", "synthesizedCancellation"]
-
-    uid = event["id"]
+    log = get_logger()
+    log.info(
+        "Parsing event",
+        event_ical_id=event["iCalUId"],
+        event_uid=event["id"],
+        created_at=event["createdDateTime"],
+        title=event["subject"],
+    )
+    ical_uid = event["iCalUId"]
+    event_id = event["id"]
+    created_date_time = datetime.datetime.fromisoformat(
+        event["createdDateTime"]
+    )
     raw_data = json.dumps(event)
     title = event["subject"] or ""
     start = parse_msgraph_datetime_tz_as_utc(event["start"])
@@ -744,7 +766,11 @@ def parse_event(
         original_start = None
 
     return Event.create(
-        uid=uid,
+        uid=(
+            ical_uid
+            if created_date_time > config["MS_GRAPH_ICAL_UID_CUTOFF"]
+            else event_id
+        ),
         raw_data=raw_data,
         title=title,
         description=description,

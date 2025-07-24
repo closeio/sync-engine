@@ -417,6 +417,11 @@ def synthesize_canceled_occurrence(
         + "-synthesizedCancellation-"
         + start_datetime.date().isoformat()
     )
+    cancellation_ical_uid = (
+        master_event["iCalUId"]
+        + "-synthesizedCancellation-"
+        + start_datetime.date().isoformat()
+    )
     cancellation_start = dump_datetime_as_msgraph_datetime_tz(start_datetime)
     assert start_datetime.tzinfo == pytz.UTC
     original_start = start_datetime.replace(tzinfo=None).isoformat() + "Z"
@@ -427,9 +432,13 @@ def synthesize_canceled_occurrence(
         start_datetime + duration
     )
 
+    # As this is still an MSGraphEvent, we need to maintain separate id and
+    # iCalUId. The decision for which to use will be made when parsing this into
+    # a sync engine internal Event model.
     result = {
         **master_event,
         "id": cancellation_id,
+        "iCalUId": cancellation_ical_uid,
         "type": "synthesizedCancellation",
         "isCancelled": True,
         "recurrence": None,

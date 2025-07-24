@@ -46,6 +46,8 @@ MAX_RECURRING_EVENT_WINDOW = datetime.timedelta(days=365)
 
 EVENT_FIELDS = [
     "id",
+    "iCalUId",
+    "createdDateTime",
     "type",
     "subject",
     "start",

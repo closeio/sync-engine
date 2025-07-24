@@ -1,6 +1,7 @@
 import errno
 import os
 
+import ciso8601
 import urllib3
 import yaml
 
@@ -123,6 +124,17 @@ def _update_config_from_env_variables(  # type: ignore[no-untyped-def]
         or config.get("CALENDAR_POLL_FREQUENCY", 300)
     )
     config["CALENDAR_POLL_FREQUENCY"] = calendar_poll_frequencey
+
+    # MS Calendar events created before this cutoff will continue to use the legacy
+    # ID for all event association/deduplication. After the cutoff, the primary ID
+    # will be taken from iCalUId, to allow deduplication of events shared between
+    # calendars.
+    ms_graph_ical_uid_cutoff_str = os.environ.get(
+        "MS_GRAPH_ICAL_UID_CUTOFF", ""
+    ) or config.get("MS_GRAPH_ICAL_UID_CUTOFF", "2025-07-30T00:00:00Z")
+    config["MS_GRAPH_ICAL_UID_CUTOFF"] = ciso8601.parse_datetime(
+        ms_graph_ical_uid_cutoff_str
+    )
 
 
 def _get_process_name(config) -> None:  # type: ignore[no-untyped-def]

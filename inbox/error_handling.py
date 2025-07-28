@@ -103,6 +103,9 @@ def maybe_enable_sentry() -> None:
         dsn=SENTRY_DSN,
         environment=application_environment,
         release=os.environ.get("DEPLOYMENT_GIT_SHA", "unknown"),
+        # TODO: Remove `sample_rate` once we've reduced the number
+        # of errors sync-engine is reporting.
+        sample_rate=0.1,
         integrations=[
             sentry_sdk.integrations.logging.LoggingIntegration(
                 level=logging.INFO,  # Capture INFO+

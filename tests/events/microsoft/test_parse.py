@@ -440,9 +440,9 @@ def test_convert_msgraph_patterned_recurrence_to_ical_rrule(
     recurrence, rrule
 ) -> None:
     assert (
-        convert_msgraph_patterned_recurrence_to_ical_rrule({
-            "recurrence": recurrence
-        })
+        convert_msgraph_patterned_recurrence_to_ical_rrule(
+            {"recurrence": recurrence}
+        )
         == rrule
     )
 
@@ -722,9 +722,9 @@ def test_convert_msgraph_patterned_recurrence_to_ical_rrule(
 def test_inflate_msgraph_patterned_recurrence(
     recurrence, inflated_dates
 ) -> None:
-    rrule = convert_msgraph_patterned_recurrence_to_ical_rrule({
-        "recurrence": recurrence
-    })
+    rrule = convert_msgraph_patterned_recurrence_to_ical_rrule(
+        {"recurrence": recurrence}
+    )
     start_datetime = datetime.datetime(2022, 9, 19, 12, tzinfo=pytz.UTC)
     parsed_rrule = dateutil.rrule.rrulestr(rrule, dtstart=start_datetime)
     # For infinite recurrences expand only first 3

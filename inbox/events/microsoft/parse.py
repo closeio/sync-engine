@@ -417,11 +417,13 @@ def synthesize_canceled_occurrence(
         + "-synthesizedCancellation-"
         + start_datetime.date().isoformat()
     )
-    cancellation_ical_uid = (
-        master_event["iCalUId"]
-        + "-synthesizedCancellation-"
-        + start_datetime.date().isoformat()
-    )
+    cancellation_ical_uid = None
+    if master_event["iCalUId"] is not None:
+        cancellation_ical_uid = (
+            master_event["iCalUId"]
+            + "-synthesizedCancellation-"
+            + start_datetime.date().isoformat()
+        )
     cancellation_start = dump_datetime_as_msgraph_datetime_tz(start_datetime)
     assert start_datetime.tzinfo == pytz.UTC
     original_start = start_datetime.replace(tzinfo=None).isoformat() + "Z"
@@ -769,6 +771,7 @@ def parse_event(
         uid=(
             ical_uid
             if created_date_time > config["MS_GRAPH_ICAL_UID_CUTOFF"]
+            and ical_uid is not None
             else event_id
         ),
         raw_data=raw_data,

@@ -930,6 +930,54 @@ def test_calculate_exception_and_canceled_occurrences_with_deletion_around_dst()
     )
 
 
+def test_calculate_exception_and_canceled_occurrences_with_null_ical_uid() -> None:
+    """Test that synthesized cancellations work when master event has null iCalUId."""
+    master_event_null_ical = {
+        "id": "event-id-123",
+        "iCalUId": None,  # This can happen for events before the cutoff date
+        "originalStartTimeZone": "Eastern Standard Time",
+        "originalEndTimeZone": "Eastern Standard Time",
+        "type": "seriesMaster",
+        "subject": "Test Event",
+        "start": {"dateTime": "2022-09-26T12:00:00.0000000", "timeZone": "UTC"},
+        "end": {"dateTime": "2022-09-26T12:30:00.0000000", "timeZone": "UTC"},
+        "recurrence": {
+            "pattern": {
+                "type": "daily",
+                "interval": 1,
+                "month": 0,
+                "dayOfMonth": 0,
+                "firstDayOfWeek": "sunday",
+                "index": "first",
+            },
+            "range": {
+                "type": "endDate",
+                "startDate": "2022-09-26",
+                "endDate": "2022-09-28",
+                "recurrenceTimeZone": "Eastern Standard Time",
+                "numberOfOccurrences": 0,
+            },
+        },
+    }
+    
+    occurrences = [
+        {"originalStart": "2022-09-26T12:00:00Z", "type": "occurrence"},
+        # Missing 2022-09-27
+        {"originalStart": "2022-09-28T12:00:00Z", "type": "occurrence"},
+    ]
+    
+    ((), (cancellation,)) = calculate_exception_and_canceled_occurrences(
+        master_event_null_ical,
+        occurrences,
+        datetime.datetime(2022, 9, 29, 23, 59, 59, tzinfo=pytz.UTC),
+    )
+    
+    assert cancellation["type"] == "synthesizedCancellation"
+    assert cancellation["iCalUId"] is None  # Should be None, not a concatenated string
+    assert cancellation["id"] == "event-id-123-synthesizedCancellation-2022-09-27"
+    assert cancellation["isCancelled"] is True
+
+
 master_with_exception = {
     "id": "AAMkADdiYzg5OGRlLTY1MjktNDc2Ni05YmVkLWMxMzFlNTQ0MzU3YQBGAAAAAACi9RQWB-SNTZBuALM6KIOsBwBtf4g8yY_zTZgZh6x0X-50AAIM02sjAABtf4g8yY_zTZgZh6x0X-50AAIQCYpPAAA=",
     "subject": "Expansion",

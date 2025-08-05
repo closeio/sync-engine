@@ -505,7 +505,8 @@ class LabelItem(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     imapuid = relationship(
         "ImapUid",
         backref=backref(
-            "labelitems", collection_class=set, cascade="all, delete-orphan"
+            "labelitems", collection_class=set, cascade="all, delete-orphan",
+            passive_deletes=True
         ),
     )
 
@@ -513,7 +514,8 @@ class LabelItem(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     label = relationship(
         Label,
         backref=backref(
-            "labelitems", cascade="all, delete-orphan", lazy="dynamic"
+            "labelitems", cascade="all, delete-orphan", lazy="dynamic",
+            passive_deletes=True
         ),
     )
 

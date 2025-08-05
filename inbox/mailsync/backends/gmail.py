@@ -173,7 +173,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 # schedule change_poller to die
                 change_poller.kill()
 
-    def resync_uids_impl(self) -> None:
+    def resync_uids_impl(self, chunk_size: int = 1000) -> None:
         with session_scope(self.namespace_id) as db_session:
             imap_folder_info_entry = (
                 db_session.query(ImapFolderInfo)
@@ -222,7 +222,6 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 )
             )
 
-            chunk_size = 1000
             for entry in imap_uid_entries.yield_per(chunk_size):
                 if entry.message.g_msgid in mapping:
                     log.debug(

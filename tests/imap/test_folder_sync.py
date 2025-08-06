@@ -430,10 +430,8 @@ def test_imap_message_deduplication(
     )
 
 
-@pytest.mark.usefixtures("blockstore_backend")
-@pytest.mark.parametrize("blockstore_backend", ["disk", "s3"], indirect=True)
 def test_gmail_handle_uidinvalid(
-    db, default_account, all_mail_folder, mock_imapclient, monkeypatch
+    db, default_account, all_mail_folder, mock_imapclient, label
 ) -> None:
     """
     Tests when a GMail account's UID validity changes. In this case we attempt
@@ -466,20 +464,15 @@ def test_gmail_handle_uidinvalid(
     )
     folder_sync_engine.initial_sync()
 
-    # Add labels to some ImapUids to trigger the cascade loading issue
-    from inbox.models.label import Label
-
-    # Create a label
-    label = Label.find_or_create(db.session, default_account, "Important")
-
-    # Get some ImapUids and add labels to them
+    # We need to add labels to our imap uids so that the cascade delete on
+    # LabelItems is required. This would trigger a deletion during the yield_chunk
+    # query if any ORM level cascades are triggered.
     imap_uids = (
         db.session.query(ImapUid)
         .filter(ImapUid.folder_id == all_mail_folder.id)
         .limit(5)
         .all()
     )
-
     for uid in imap_uids:
         uid.labels.add(label)
 
@@ -489,10 +482,10 @@ def test_gmail_handle_uidinvalid(
     with pytest.raises(UidInvalid):
         folder_sync_engine.poll_impl()
 
-    # Call resync_uids_impl directly with chunk_size=1 to trigger the issue
+    # chunk_size must be set small (default is 1000) so that we actually have
+    # more than one chunk, keeping the query open.
     folder_sync_engine.resync_uids_impl(chunk_size=1)
 
-    # No need to check new_state since we're calling impl directly
     assert (
         db.session.query(ImapUid)
         .filter(ImapUid.folder_id == all_mail_folder.id)

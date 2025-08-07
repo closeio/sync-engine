@@ -473,6 +473,8 @@ def test_gmail_handle_uidinvalid(
         .limit(5)
         .all()
     )
+
+    assert len(imap_uids) == 5
     for uid in imap_uids:
         uid.labels.add(label)
 

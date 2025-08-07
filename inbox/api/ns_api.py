@@ -265,7 +265,7 @@ def handle_operational_error(error):  # type: ignore[no-untyped-def]  # noqa: AN
     else:
         message = "A temporary database error prevented us from serving this request. Please try again."
 
-    log.error("MySQL OperationalError", exc_info=True)
+    log.exception("MySQL OperationalError")
     response = flask_jsonify(message=message, type="database_error")
     response.status_code = 503
     return response

@@ -743,34 +743,17 @@ def mock_time_sleep(monkeypatch):
 
 def mock_client():
     mock_client = mock_strict_redis_client()
-
-    # Adding a couple of methods we use that mockredis doesn't support yet.
-    def scan_iter_patch(match=None, count=100):
-        match = str(match).replace("*", "")
-        return [k for k in mock_client.keys() if k.startswith(match)]
-
-    mock_client.scan_iter = scan_iter_patch
     mock_client.reset = lambda: True
 
-    def zscan_iter_patch(key, match=None):
-        match = str(match).replace("*", "")
-        return [
-            k for k in mock_client.zrange(key, 0, -1) if k.startswith(match)
-        ]
-
-    mock_client.zscan_iter = zscan_iter_patch
+    _zadd_orig = mock_client.zadd
 
     def zadd_patch(key, mapping):
         # as of pyredis 3.0, Redis.zadd takes a mapping of {member: score} instead of
         # the old Redis.zadd method that takes *args of score, member, score,
         # member or a kwarg mapping of {member: score}
-        return mock_client.zadd_orig(
-            key, **{str(k): v for k, v in mapping.items()}
-        )
+        return _zadd_orig(key, **{str(k): v for k, v in mapping.items()})
 
-    mock_client.zadd_orig = mock_client.zadd
     mock_client.zadd = zadd_patch
-
     return mock_client
 
 

@@ -20,11 +20,11 @@ user always gets the full thread when they look at mail.
 
 """
 
+import itertools
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from threading import Semaphore
 from typing import TYPE_CHECKING, ClassVar
-import itertools
 
 from sqlalchemy.orm import (  # type: ignore[import-untyped]
     joinedload,
@@ -125,10 +125,9 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                     # Prioritize UIDs for messages in the inbox folder.
                     if len_remote_uids < 1e6:
                         inbox_uids = set(
-                            crispin_client.search_uids([
-                                "X-GM-LABELS",
-                                "inbox",
-                            ])
+                            crispin_client.search_uids(
+                                ["X-GM-LABELS", "inbox"]
+                            )
                         )
                     else:
                         # The search above is really slow (times out) on really
@@ -136,12 +135,14 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                         # the past month in order to get anywhere.
                         since = datetime.utcnow() - timedelta(days=30)
                         inbox_uids = set(
-                            crispin_client.search_uids([
-                                "X-GM-LABELS",
-                                "inbox",
-                                "SINCE",
-                                since,  # type: ignore[list-item]
-                            ])
+                            crispin_client.search_uids(
+                                [
+                                    "X-GM-LABELS",
+                                    "inbox",
+                                    "SINCE",
+                                    since,  # type: ignore[list-item]
+                                ]
+                            )
                         )
 
                     uids_to_download = sorted(

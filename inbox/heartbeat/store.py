@@ -17,9 +17,7 @@ def safe_failure(f):  # type: ignore[no-untyped-def]  # noqa: ANN201
         try:
             return f(*args, **kwargs)
         except Exception:
-            log.error(  # noqa: G201
-                "Error interacting with heartbeats", exc_info=True
-            )
+            log.exception("Error interacting with heartbeats")
 
     return wrapper
 
@@ -87,12 +85,11 @@ class HeartbeatStatusProxy:
             self.store.publish(self.key, self.heartbeat_at)
         except Exception:
             log = get_logger()
-            log.error(  # noqa: G201
+            log.exception(
                 "Error while writing the heartbeat status",
                 account_id=self.key.account_id,
                 folder_id=self.key.folder_id,
                 device_id=self.device_id,
-                exc_info=True,
             )
 
     @safe_failure

@@ -88,13 +88,8 @@ def parse_rrule(event):  # type: ignore[no-untyped-def]  # noqa: ANN201
             )
 
             return rule
-        except Exception as e:
-            log.error(  # noqa: G201
-                "Error parsing RRULE entry",
-                event_id=event.id,
-                error=e,
-                exc_info=True,
-            )
+        except Exception:
+            log.exception("Error parsing RRULE entry", event_id=event.id)
     return None
 
 

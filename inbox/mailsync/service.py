@@ -392,8 +392,8 @@ class SyncService:
                     sync_host=account.sync_host,
                 )
             except Exception:
-                self.log.error(  # noqa: G201
-                    "Error starting sync", exc_info=True, account_id=account_id
+                self.log.exception(
+                    "Error starting sync", account_id=account_id
                 )
                 return False
         return True

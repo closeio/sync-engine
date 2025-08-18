@@ -23,9 +23,8 @@ def get_imap_raw_contents(message):  # type: ignore[no-untyped-def]  # noqa: ANN
         try:
             crispin_client.select_folder(folder.name, uidvalidity_cb)
         except FolderMissingError as exc:
-            log.error(  # noqa: G201
+            log.exception(
                 "Error while fetching raw contents: can't find folder",
-                exc_info=True,
                 logstash_tag="fetching_error",
             )
             raise EmailFetchException(
@@ -42,9 +41,8 @@ def get_imap_raw_contents(message):  # type: ignore[no-untyped-def]  # noqa: ANN
 
             return uids[0].body
         except imapclient.IMAPClient.Error:
-            log.error(  # noqa: G201
+            log.exception(
                 "Error while fetching raw contents",
-                exc_info=True,
                 logstash_tag="fetching_error",
             )
             raise EmailFetchException(  # noqa: B904

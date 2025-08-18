@@ -884,9 +884,8 @@ class SyncbackWorker(InterruptibleThread):
                 ):
                     task.execute()
             except Exception:
-                self.log.error(  # noqa: G201
+                self.log.exception(
                     "SyncbackWorker caught exception",
-                    exc_info=True,
                     account_id=task.account_id,
                 )
             finally:

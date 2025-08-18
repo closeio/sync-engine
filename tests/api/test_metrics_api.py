@@ -92,7 +92,7 @@ def test_metrics_index_busted_account(
 
     # outlook_account gets error
     ((method, (message,), kwargs),) = log_mock.method_calls
-    assert method == "error"
+    assert method == "exception"
     assert message == "Error while serializing account metrics"
     assert kwargs["account_id"] == outlook_account.id
 

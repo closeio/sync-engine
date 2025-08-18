@@ -510,9 +510,7 @@ class RecurringEvent(Event):
         try:
             self.unwrap_rrule()
         except Exception as e:
-            log.exception(
-                "Error parsing RRULE entry", event_id=self.id, error=e
-            )
+            log.exception("Error parsing RRULE entry", event_id=self.id)
 
     # FIXME @karim: use an overrided property instead of a reconstructor.
     @reconstructor
@@ -520,9 +518,7 @@ class RecurringEvent(Event):
         try:
             self.unwrap_rrule()
         except Exception as e:
-            log.exception(
-                "Error parsing stored RRULE entry", event_id=self.id, error=e
-            )
+            log.exception("Error parsing stored RRULE entry", event_id=self.id)
 
     def inflate(self, start=None, end=None):  # type: ignore[no-untyped-def]  # noqa: ANN201
         # Convert a RecurringEvent into a series of InflatedEvents

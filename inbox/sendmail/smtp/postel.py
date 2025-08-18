@@ -161,7 +161,7 @@ class SMTPConnection:
             self.connection.connect(host, port)
         except OSError as e:
             # 'Connection refused', SSL errors for non-TLS connections, etc.
-            log.exception("SMTP connection error", server_error=e.strerror)
+            log.exception("SMTP connection error")
             msg = _transform_ssl_error(e.strerror)
             raise SendMailException(msg, 503)  # noqa: B904
 
@@ -362,7 +362,7 @@ class SMTPClient:
                         )
             except smtplib.SMTPException as err:
                 last_error = err
-                self.log.exception("Error sending", error=err)
+                self.log.exception("Error sending")
 
         assert last_error is not None
         self.log.error(

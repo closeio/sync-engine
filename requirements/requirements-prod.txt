@@ -294,9 +294,9 @@ executing==1.2.0 \
     # via
     #   -r requirements-prod.in
     #   stack-data
-filelock==3.4.0 \
-    --hash=sha256:2e139a228bcf56dd8b2274a65174d005c4a6b68540ee0bdbb92c76f43f29f7e8 \
-    --hash=sha256:93d512b32a23baf4cac44ffd72ccf70732aeff7b8050fcaf6d3ec406d954baf4
+filelock==3.19.1 \
+    --hash=sha256:66eda1888b0171c998b35be2bcc0f6d75c388a7ce20c3f3f37aa8e96c2dddf58 \
+    --hash=sha256:d38e30481def20772f5baf097c122c3babc4fcdb7e14e57049eb9d88c6dc017d
     # via
     #   -r requirements-prod.in
     #   tldextract

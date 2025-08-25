@@ -237,6 +237,7 @@ def messages_or_drafts(  # type: ignore[no-untyped-def]  # noqa: ANN201
     in_,
     unread,
     starred,
+    order_by,
     limit,
     offset,
     view,
@@ -476,7 +477,15 @@ def messages_or_drafts(  # type: ignore[no-untyped-def]  # noqa: ANN201
         res = query.params(**param_dict).one()[0]
         return {"count": res}
 
-    query = query.order_by(desc(Message.received_date))
+    if not order_by:
+        query = query.order_by(desc(Message.received_date))
+    elif order_by == "received_date":
+        query = query.order_by(asc(Message.received_date))
+    elif order_by == "-received_date":
+        query = query.order_by(desc(Message.received_date))
+    else:
+        raise ValueError(f"Unknown 'order_by' value: '{order_by}'")
+
     query = query.limit(bindparam("limit"))
     if offset:
         query = query.offset(bindparam("offset"))

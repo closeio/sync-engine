@@ -70,7 +70,7 @@ class AccountDoesNotExistError(APIException):
 
 
 def err(http_code, message, **kwargs):  # type: ignore[no-untyped-def]  # noqa: ANN201
-    """Handle unexpected errors, including sending the traceback to Rollbar."""
+    """Handle unexpected errors."""
     log.exception("API error", user_error_message=message, **kwargs)
     resp = {"type": "api_error", "message": message}
     resp.update(kwargs)

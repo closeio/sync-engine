@@ -1,12 +1,9 @@
-import json
 import logging
 import os
 
-import rollbar  # type: ignore[import-untyped]
 import sentry_sdk
 import sentry_sdk.integrations.logging
 import sentry_sdk.scrubber
-from rollbar.logger import RollbarHandler  # type: ignore[import-untyped]
 
 from inbox.constants import ERROR_REPORTING_SCRUB_FIELDS
 from inbox.logging import get_logger
@@ -14,20 +11,6 @@ from inbox.logging import get_logger
 log = get_logger()
 
 SENTRY_DSN = os.getenv("SENTRY_DSN", "")
-ROLLBAR_API_KEY = os.getenv("ROLLBAR_API_KEY", "")
-
-
-class SyncEngineRollbarHandler(RollbarHandler):
-    def emit(self, record):  # type: ignore[no-untyped-def]  # noqa: ANN201
-        try:
-            data = json.loads(record.msg)
-        except ValueError:
-            return super().emit(record)
-
-        event = data.get("event")
-        record.payload_data = {"fingerprint": event, "title": event}
-
-        return super().emit(record)
 
 
 GROUP_EXCEPTION_CLASSES = [
@@ -62,33 +45,7 @@ def payload_handler(payload, **kw):  # type: ignore[no-untyped-def]  # noqa: ANN
 
 
 def maybe_enable_error_reporting() -> None:
-    maybe_enable_rollbar()
     maybe_enable_sentry()
-
-
-def maybe_enable_rollbar() -> None:
-    if not ROLLBAR_API_KEY:
-        log.info("ROLLBAR_API_KEY not configured - Rollbar disabled.")
-        return
-
-    application_environment = (
-        "production" if os.getenv("NYLAS_ENV", "") == "prod" else "dev"
-    )
-
-    rollbar.init(
-        ROLLBAR_API_KEY,
-        application_environment,
-        allow_logging_basic_config=False,
-    )
-
-    rollbar_handler = SyncEngineRollbarHandler()
-    rollbar_handler.setLevel(logging.ERROR)
-    logger = logging.getLogger()
-    logger.addHandler(rollbar_handler)
-
-    rollbar.events.add_payload_handler(payload_handler)
-
-    log.info("Rollbar enabled")
 
 
 def maybe_enable_sentry() -> None:

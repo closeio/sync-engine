@@ -5,4 +5,4 @@
 -c requirements-prod.txt
 -c requirements-pip.txt
 
-pip-tools==7.4.1
+pip-tools==7.5.2

@@ -962,10 +962,16 @@ class FolderSyncEngine(InterruptibleThread):
                     self.account_id, db_session, self.folder_id
                 )
 
+            new_uids = (
+                remote_uids.difference(local_uids) if self.state != "initial" else None
+            )
             expunged_uids = local_uids.difference(remote_uids)
             del local_uids  # free memory as soon as possible
             max_remote_uid = max(remote_uids) if remote_uids else 0
             del remote_uids  # free memory as soon as possible
+
+        if new_uids:
+            self.download_and_commit_uids(crispin_client, new_uids)
 
         if expunged_uids:
             # If new UIDs have appeared since we last checked in
@@ -1014,16 +1020,22 @@ class FolderSyncEngine(InterruptibleThread):
 
         with self.global_lock:
             # Check for any deleted messages.
-            remote_uids = crispin_client.all_uids()
+            remote_uids = set(crispin_client.all_uids())
 
             with session_scope(self.namespace_id) as db_session:
                 local_uids = common.local_uids(
                     self.account_id, db_session, self.folder_id
                 )
 
+            new_uids = (
+                remote_uids.difference(local_uids) if self.state != "initial" else None
+            )
             expunged_uids = local_uids.difference(remote_uids)
             del local_uids  # free memory as soon as possible
             del remote_uids  # free memory as soon as possible
+
+        if new_uids:
+            self.download_and_commit_uids(crispin_client, new_uids)
 
         if expunged_uids:
             with self.syncmanager_lock:

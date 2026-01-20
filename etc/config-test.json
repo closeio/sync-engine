@@ -9,11 +9,6 @@
                 "ID": 0,
                 "SCHEMA_NAME": "synctest",
                 "OPEN": true
-            },
-            {
-                "ID": 1,
-                "SCHEMA_NAME": "synctest_1",
-                "OPEN": false
             }
         ]
     }

@@ -1,7 +1,7 @@
 """Utilities for validating user input to the API."""
 
 import contextlib
-from typing import Never
+from typing import Any, Never
 
 import arrow  # type: ignore[import-untyped]
 from arrow.parser import ParserError  # type: ignore[import-untyped]
@@ -161,9 +161,9 @@ def strict_parse_args(parser, raw_args):  # type: ignore[no-untyped-def]  # noqa
     return args
 
 
-def get_sending_draft(  # type: ignore[no-untyped-def]  # noqa: ANN201
+def get_sending_draft(  # type: ignore[no-untyped-def]
     draft_public_id, namespace_id, db_session
-):
+) -> Message:
     valid_public_id(draft_public_id)
     try:
         draft = (
@@ -398,7 +398,7 @@ def valid_event_update(  # type: ignore[no-untyped-def]
             )
 
 
-def noop_event_update(event, data) -> bool:  # type: ignore[no-untyped-def]
+def noop_event_update(event: Event, data: dict[str, Any]) -> bool:
     # Check whether the update is actually updating fields.
     # We do this by cloning the event, updating the fields and
     # comparing them. This is less cumbersome than having to think
@@ -469,7 +469,7 @@ def valid_delta_object_types(types_arg):  # type: ignore[no-untyped-def]  # noqa
     return types
 
 
-def validate_draft_recipients(draft) -> None:  # type: ignore[no-untyped-def]
+def validate_draft_recipients(draft: Message) -> None:
     """
     Check that a draft has at least one recipient, and that all recipient
     emails are at least plausible email addresses, before we try to send it.

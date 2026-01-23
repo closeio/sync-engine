@@ -263,8 +263,21 @@ class MockIMAPClient:
         self, matching_uids, folder_name
     ) -> None:
         """
-        Note: _moves_ one or more messages from the currently selected folder
-        to folder_name
+        Copies one or more messages from the currently selected folder
+        to folder_name.
+
+        Note: Also deletes from source to simulate existing test expectations.
+        """
+        for u in matching_uids:
+            self._data[folder_name][u] = self._data[self.selected_folder][u]
+        self.delete_messages(matching_uids)
+
+    def move(  # type: ignore[no-untyped-def]
+        self, matching_uids, folder_name
+    ) -> None:
+        """
+        Atomically moves one or more messages from the currently selected folder
+        to folder_name (RFC 6851).
         """
         for u in matching_uids:
             self._data[folder_name][u] = self._data[self.selected_folder][u]

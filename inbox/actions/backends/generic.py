@@ -111,8 +111,12 @@ def remote_move(  # type: ignore[no-untyped-def]
 
     for folder_name, uids in uids_for_message.items():
         crispin_client.select_folder_if_necessary(folder_name, uidvalidity_cb)
-        crispin_client.conn.copy(uids, destination)
-        crispin_client.delete_uids(uids)
+
+        if crispin_client.move_supported():
+            crispin_client.conn.move(uids, destination)
+        else:
+            crispin_client.conn.copy(uids, destination)
+            crispin_client.delete_uids(uids)
 
 
 def remote_create_folder(  # type: ignore[no-untyped-def]

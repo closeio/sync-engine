@@ -13,6 +13,7 @@ from inbox.actions.base import (
     delete_label,
     mark_starred,
     mark_unread,
+    move,
     save_draft,
     update_draft,
     update_folder,
@@ -275,3 +276,58 @@ def test_failed_event_creation(
     assert all(a.status == "failed" for a in q)
 
     service.stop()
+
+
+def test_move_uses_imap_move_when_supported(
+    db, default_account, message, folder, mock_imapclient
+) -> None:
+    """Test that IMAP MOVE command is used when the server supports it."""
+    mock_imapclient.add_folder_data(folder.name, {})
+    mock_imapclient.add_folder_data("Archive", {})
+    mock_imapclient.capabilities = mock.Mock(
+        return_value=[b"IMAP4rev1", b"MOVE"]
+    )
+    mock_imapclient.move = mock.Mock()
+    mock_imapclient.copy = mock.Mock()
+    mock_imapclient.delete_messages = mock.Mock()
+    add_fake_imapuid(db.session, default_account.id, message, folder, 42)
+
+    with writable_connection_pool(default_account.id).get() as crispin_client:
+        move(
+            crispin_client,
+            default_account.id,
+            message.id,
+            {"destination": "Archive"},
+        )
+
+    mock_imapclient.move.assert_called_once_with([42], "Archive")
+    mock_imapclient.copy.assert_not_called()
+
+
+def test_move_falls_back_to_copy_delete_when_move_not_supported(
+    db, default_account, message, folder, mock_imapclient
+) -> None:
+    """Test fallback to COPY+DELETE when MOVE is not supported."""
+    mock_imapclient.add_folder_data(folder.name, {})
+    mock_imapclient.add_folder_data("Archive", {})
+    mock_imapclient.capabilities = mock.Mock(return_value=[b"IMAP4rev1"])
+    mock_imapclient.move = mock.Mock()
+    mock_imapclient.copy = mock.Mock()
+    mock_imapclient.delete_messages = mock.Mock()
+    mock_imapclient.expunge = mock.Mock()
+    add_fake_imapuid(db.session, default_account.id, message, folder, 42)
+
+    with writable_connection_pool(default_account.id).get() as crispin_client:
+        move(
+            crispin_client,
+            default_account.id,
+            message.id,
+            {"destination": "Archive"},
+        )
+
+    mock_imapclient.move.assert_not_called()
+    mock_imapclient.copy.assert_called_once_with([42], "Archive")
+    # delete_uids converts UIDs to strings before calling delete_messages
+    mock_imapclient.delete_messages.assert_called_once_with(
+        ["42"], silent=True
+    )

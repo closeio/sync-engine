@@ -7,7 +7,7 @@ import arrow
 import pytest
 import requests
 
-from inbox.api.kellogs import _encode
+from inbox.api.kellogs import _encode, _extract_extended_properties
 from inbox.events.google import GoogleEventsProvider, parse_event_response
 from inbox.exceptions import AccessNotEnabledError
 from inbox.models import Calendar, Event
@@ -859,3 +859,76 @@ def test_cancelled_override_creation() -> None:
     provider._get_raw_events = mock.MagicMock(return_value=raw_response)
     updates = provider.sync_events("uid", 1)
     assert updates[0].cancelled is True
+
+
+class TestExtractExtendedProperties:
+    """Tests for the _extract_extended_properties helper function."""
+
+    def test_returns_none_for_none_raw_data(self) -> None:
+        assert _extract_extended_properties(None) is None
+
+    def test_returns_none_for_empty_raw_data(self) -> None:
+        assert _extract_extended_properties("") is None
+
+    def test_returns_none_for_invalid_json(self) -> None:
+        assert _extract_extended_properties("not valid json") is None
+
+    def test_returns_none_when_extended_properties_not_present(self) -> None:
+        raw_data = json.dumps({"id": "test", "summary": "Test Event"})
+        assert _extract_extended_properties(raw_data) is None
+
+    def test_returns_extended_properties(self) -> None:
+        raw_data = json.dumps(
+            {
+                "id": "test",
+                "extendedProperties": {"private": {"key1": "value1"}},
+            }
+        )
+        result = _extract_extended_properties(raw_data)
+        assert result == {"private": {"key1": "value1"}}
+
+
+@pytest.mark.parametrize(
+    ("raw_extended_properties", "expected_extended_properties"),
+    [
+        ({}, None),
+        (
+            {"extendedProperties": {"private": {"closeTaskId": "task_123"}}},
+            {"private": {"closeTaskId": "task_123"}},
+        ),
+    ],
+)
+def test_event_with_extended_properties(
+    raw_extended_properties, expected_extended_properties
+) -> None:
+    raw_event = {
+        "created": "2014-01-09T03:33:02.000Z",
+        "creator": {
+            "displayName": "Ben Bitdiddle",
+            "email": "ben.bitdiddle2222@gmail.com",
+            "self": True,
+        },
+        "etag": '"2778476764000000"',
+        "htmlLink": "https://www.google.com/calendar/event?eid=BAR",
+        "iCalUID": "20140615_60o30dr564o30c1g60o30dr4ck@google.com",
+        "id": "20140615_60o30dr564o30c1g60o30dr4ck",
+        "kind": "calendar#event",
+        "organizer": {
+            "displayName": "Ben Bitdiddle",
+            "email": "ben.bitdiddle2222@gmail.com",
+            "self": True,
+        },
+        "sequence": 0,
+        "start": {"date": "2014-03-15"},
+        "end": {"date": "2014-03-15"},
+        "status": "confirmed",
+        "summary": "Event with Extended Properties",
+        "transparency": "transparent",
+        "updated": "2014-01-09T03:33:02.000Z",
+        "visibility": "public",
+        **raw_extended_properties,
+    }
+
+    event = parse_event_response(raw_event, True)
+    encoded = _encode(event, "999999")
+    assert encoded["extended_properties"] == expected_extended_properties

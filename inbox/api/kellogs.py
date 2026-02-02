@@ -1,6 +1,6 @@
 import calendar
 import datetime
-from json import JSONEncoder, dumps
+from json import JSONEncoder, dumps, loads
 
 import arrow  # type: ignore[import-untyped]
 from flask import Response
@@ -74,6 +74,24 @@ def format_phone_numbers(phone_numbers):  # type: ignore[no-untyped-def]  # noqa
             {"type": number.type, "number": number.number}
         )
     return formatted_phone_numbers
+
+
+def _extract_extended_properties(
+    raw_data: str | None,
+) -> dict[str, dict[str, str]] | None:
+    """
+    Extract extendedProperties from an event's raw_data JSON.
+
+    Returns the extendedProperties dict if present, otherwise None.
+    This is Google Calendar specific data.
+    """
+    if not raw_data:
+        return None
+    try:
+        data = loads(raw_data)
+        return data.get("extendedProperties")
+    except (ValueError, TypeError):
+        return None
 
 
 def encode(  # type: ignore[no-untyped-def]  # noqa: ANN201
@@ -357,6 +375,7 @@ def _encode(  # type: ignore[no-untyped-def]  # noqa: D417
             "uid": obj.uid,
             "calendar_event_link": obj.calendar_event_link,
             "conference_data": obj.conference_data,
+            "extended_properties": _extract_extended_properties(obj.raw_data),
         }
         if isinstance(obj, RecurringEvent):
             resp["recurrence"] = {

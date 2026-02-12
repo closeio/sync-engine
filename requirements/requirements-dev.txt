@@ -20,6 +20,7 @@ packaging==24.2 \
     # via
     #   -c requirements-prod.txt
     #   build
+    #   wheel
 pip-tools==7.5.3 \
     --hash=sha256:3aac0c473240ae90db7213c033401f345b05197293ccbdd2704e52e7a783785e \
     --hash=sha256:8fa364779ebc010cbfe17cb9de404457ac733e100840423f28f6955de7742d41
@@ -30,10 +31,12 @@ pyproject-hooks==1.2.0 \
     # via
     #   build
     #   pip-tools
-wheel==0.45.1 \
-    --hash=sha256:661e1abd9198507b1409a20c02106d9670b2576e916d58f520316666abca6729 \
-    --hash=sha256:708e7481cc80179af0e556bbf0cc00b8444c7321e2700b8d8580231d13017248
-    # via pip-tools
+wheel==0.46.3 \
+    --hash=sha256:4b399d56c9d9338230118d705d9737a2a468ccca63d5e813e2a4fc7815d8bc4d \
+    --hash=sha256:e3e79874b07d776c40bd6033f8ddf76a7dad46a7b8aa1b2787a83083519a1803
+    # via
+    #   -r requirements-dev.in
+    #   pip-tools
 
 # The following packages are considered to be unsafe in a requirements file:
 pip==25.3 \

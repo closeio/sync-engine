@@ -5,4 +5,5 @@
 -c requirements-prod.txt
 -c requirements-pip.txt
 
-pip-tools==7.5.2
+pip-tools==7.5.3
+wheel==0.46.3

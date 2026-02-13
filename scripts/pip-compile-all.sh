@@ -6,7 +6,7 @@
 
 set -e
 
-PIP_COMPILE_CMD="pip-compile --generate-hashes --allow-unsafe --upgrade-package wheel"
+PIP_COMPILE_CMD="pip-compile --generate-hashes --allow-unsafe"
 
 ### helper functions
 

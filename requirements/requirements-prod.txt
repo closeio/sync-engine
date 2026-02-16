@@ -554,8 +554,8 @@ jmespath==0.9.3 \
 json-log-formatter==1.0 \
     --hash=sha256:fda3f943a2cddc4c8b0f06d57db5c53a903a1d4b6fc62416339d109e8c482ef7
     # via -r requirements-prod.in
-limitlion==0.10.0 \
-    --hash=sha256:eba33c92b14ffb1890b4974921c040bdf0493f5c1bd0c5110d4c6189d9597e77
+limitlion==1.1.0 \
+    --hash=sha256:8786f5ace2c9d35d2c6ab0605804ae37d415d6c7bc6710f233daebbea09660d0
     # via -r requirements-prod.in
 lxml==5.1.0 \
     --hash=sha256:13521a321a25c641b9ea127ef478b580b5ec82aa2e9fc076c86169d161798b01 \

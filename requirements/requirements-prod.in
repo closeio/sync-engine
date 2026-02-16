@@ -46,7 +46,7 @@ itsdangerous==2.1.2
 Jinja2==3.1.6
 jmespath==0.9.3
 json_log_formatter==1.0
-limitlion==0.10.0
+limitlion==1.1.0
 lxml==5.1.0
 Mako==1.2.2
 MarkupSafe==2.1.2
@@ -75,7 +75,7 @@ requests-file==1.5.1
 s3transfer==0.10.3
 sentry-sdk<3
 setproctitle==1.2.2
-setuptools==78.1.1
+setuptools==82.0.0
 six==1.16.0
 sqlalchemy==1.4.54
 statsd==3.3.0

@@ -75,7 +75,7 @@ requests-file==1.5.1
 s3transfer==0.10.3
 sentry-sdk<3
 setproctitle==1.2.2
-setuptools==78.1.1
+setuptools==82.0.0
 six==1.16.0
 sqlalchemy==1.4.54
 statsd==3.3.0

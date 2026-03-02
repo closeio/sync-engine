@@ -1,5 +1,6 @@
 """Fixtures don't go here; see util/base.py and friends."""
 
+import importlib
 import os
 
 import werkzeug
@@ -23,7 +24,7 @@ def make_api_client():
         # test_client uses werkzeug.__version__ attribute
         # which has been deprecated
         # To avoid a rushed flask upgrade we'll patch it here
-        werkzeug.__version__ = "1.0.0"
+        werkzeug.__version__ = importlib.metadata.version("werkzeug")
         with app.test_client() as c:
             return TestAPIClient(c, namespace.public_id)
 

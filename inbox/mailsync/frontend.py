@@ -73,7 +73,7 @@ class SyncHTTPFrontend(ProfilingHTTPFrontend):
 
         @app.route("/unassign", methods=["POST"])
         def unassign_account():  # type: ignore[no-untyped-def]
-            account_id = request.json["account_id"]  # type: ignore[index]
+            account_id = request.json["account_id"]
             ret = self.sync_service.stop_sync(account_id)
             if ret:
                 return "OK"

@@ -63,15 +63,21 @@ def local_uids(  # type: ignore[no-untyped-def]
 def lastseenuid(  # type: ignore[no-untyped-def]  # noqa: ANN201
     account_id, session, folder_id
 ):
-    q = session.query(func.max(ImapUid.msg_uid)).with_hint(
-        ImapUid, "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)"
+    q = (
+        session.query(ImapUid.msg_uid)
+        .with_hint(
+            ImapUid,
+            "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)",
+        )
+        .filter(
+            ImapUid.account_id == bindparam("account_id"),
+            ImapUid.folder_id == bindparam("folder_id"),
+        )
+        .order_by(ImapUid.msg_uid.desc())
+        .limit(1)
     )
-    q = q.filter(
-        ImapUid.account_id == bindparam("account_id"),
-        ImapUid.folder_id == bindparam("folder_id"),
-    )
-    res = q.params(account_id=account_id, folder_id=folder_id).one()[0]
-    return res or 0
+    res = q.params(account_id=account_id, folder_id=folder_id).first()
+    return res[0] if res else 0
 
 
 def update_message_metadata(

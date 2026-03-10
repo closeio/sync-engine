@@ -233,9 +233,8 @@ class IMAPSearchClient:
             self.log.warning("Won't search missing IMAP folder", exc_info=True)
             return []
         except UidInvalid:
-            self.log.error(  # noqa: G201
-                ("Got Uidvalidity error when searching. Skipping."),
-                exc_info=True,
+            self.log.exception(
+                "Got Uidvalidity error when searching. Skipping."
             )
             return []
 

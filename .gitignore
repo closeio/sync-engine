@@ -90,3 +90,6 @@ setup/
 
 # Pycharm
 .idea/
+
+# pip cache
+.cache

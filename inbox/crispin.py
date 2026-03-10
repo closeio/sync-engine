@@ -874,6 +874,10 @@ class CrispinClient:
 
         return b"IDLE" in self.conn.capabilities()
 
+    def move_supported(self) -> bool:
+        interruptible_threading.check_interrupted()
+        return b"MOVE" in self.conn.capabilities()
+
     def search_uids(self, criteria: list[str]) -> Iterable[int]:
         """
         Find UIDs in this folder matching the criteria. See

@@ -104,7 +104,7 @@ class SyncService:
         )
 
         self.syncing_accounts = set()  # type: ignore[var-annotated]
-        self.email_sync_monitors = {}  # type: ignore[var-annotated]
+        self.email_sync_monitors: dict[int, BaseMailSyncMonitor] = {}
         self.contact_sync_monitors = {}  # type: ignore[var-annotated]
         self.event_sync_monitors = {}  # type: ignore[var-annotated]
         # Randomize the poll_interval so we maintain at least a little fairness
@@ -392,8 +392,8 @@ class SyncService:
                     sync_host=account.sync_host,
                 )
             except Exception:
-                self.log.error(  # noqa: G201
-                    "Error starting sync", exc_info=True, account_id=account_id
+                self.log.exception(
+                    "Error starting sync", account_id=account_id
                 )
                 return False
         return True

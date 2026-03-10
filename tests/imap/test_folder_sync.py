@@ -428,3 +428,69 @@ def test_imap_message_deduplication(
         .count()
         == 1
     )
+
+
+def test_gmail_handle_uidinvalid(
+    db, default_account, all_mail_folder, mock_imapclient, label
+) -> None:
+    """
+    Tests when a GMail account's UID validity changes. In this case we attempt
+    to resync existing messages by their google message ID. If this fails, we
+    delete the message and trust that we'll sync it back in if it still exists.
+
+    When deleting these messages, during the `yield_chunk`, it was possible for
+    a `sqlalchemy.exc.ProgrammingError: (MySQLdb.ProgrammingError)
+    (2014, "Commands out of sync; you can't run this command now")` to be raised.
+
+    This error is raised when an association attempts a cascade delete from
+    within the ORM. Adding label associations triggers the error. To resolve
+    this, we can use `passive_deletes=True` in the `relationship` call.
+    """
+    uid_dict = uids.example()
+    mock_imapclient.add_folder_data(all_mail_folder.name, uid_dict)
+    mock_imapclient.list_folders = lambda: [
+        ((b"\\All", b"\\HasNoChildren"), b"/", "[Gmail]/All Mail")
+    ]
+    mock_imapclient.idle = lambda: None
+    mock_imapclient.idle_check = raise_imap_error
+
+    folder_sync_engine = GmailFolderSyncEngine(
+        default_account.id,
+        default_account.namespace.id,
+        all_mail_folder.name,
+        default_account.email_address,
+        "gmail",
+        BoundedSemaphore(1),
+    )
+    folder_sync_engine.initial_sync()
+
+    # We need to add labels to our imap uids so that the cascade delete on
+    # LabelItems is required. This would trigger a deletion during the yield_chunk
+    # query if any ORM level cascades are triggered.
+    imap_uids = (
+        db.session.query(ImapUid)
+        .filter(ImapUid.folder_id == all_mail_folder.id)
+        .limit(5)
+        .all()
+    )
+
+    assert len(imap_uids) == 5
+    for uid in imap_uids:
+        uid.labels.add(label)
+
+    db.session.commit()
+
+    mock_imapclient.uidvalidity = 2
+    with pytest.raises(UidInvalid):
+        folder_sync_engine.poll_impl()
+
+    # chunk_size must be set small (default is 1000) so that we actually have
+    # more than one chunk, keeping the query open.
+    folder_sync_engine.resync_uids_impl(chunk_size=1)
+
+    assert (
+        db.session.query(ImapUid)
+        .filter(ImapUid.folder_id == all_mail_folder.id)
+        .all()
+        == []
+    )

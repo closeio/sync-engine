@@ -20,6 +20,7 @@ user always gets the full thread when they look at mail.
 
 """
 
+import itertools
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from threading import Semaphore
@@ -173,7 +174,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                 # schedule change_poller to die
                 change_poller.kill()
 
-    def resync_uids_impl(self) -> None:
+    def resync_uids_impl(self, chunk_size: int = 1000) -> None:
         with session_scope(self.namespace_id) as db_session:
             imap_folder_info_entry = (
                 db_session.query(ImapFolderInfo)
@@ -188,6 +189,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                     self.folder_name, lambda *args: True
                 )
                 uidvalidity = crispin_client.selected_uidvalidity
+                remote_uidnext = crispin_client.selected_uidnext
                 if uidvalidity <= imap_folder_info_entry.uidvalidity:
                     # if the remote UIDVALIDITY is less than or equal to -
                     # from my (siro) understanding it should not be less than -
@@ -221,8 +223,7 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                     "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)",
                 )
             )
-
-            chunk_size = 1000
+            imap_uids_to_delete = []
             for entry in imap_uid_entries.yield_per(chunk_size):
                 if entry.message.g_msgid in mapping:
                     log.debug(
@@ -234,14 +235,22 @@ class GmailFolderSyncEngine(FolderSyncEngine):
                     )
                     entry.msg_uid = mapping[entry.message.g_msgid]
                 else:
-                    db_session.delete(entry)
+                    imap_uids_to_delete.append(entry.msg_uid)
             log.debug(
                 "UIDVALIDITY from {} to {}".format(  # noqa: G001
                     imap_folder_info_entry.uidvalidity, uidvalidity
                 )
             )
+            for uid_batch in itertools.batched(
+                imap_uids_to_delete, chunk_size
+            ):
+                for uid_to_delete in db_session.query(ImapUid).filter(
+                    ImapUid.msg_uid.in_(uid_batch)
+                ):
+                    db_session.delete(uid_to_delete)
             imap_folder_info_entry.uidvalidity = uidvalidity
             imap_folder_info_entry.highestmodseq = None
+            imap_folder_info_entry.uidnext = remote_uidnext
             db_session.commit()
 
     def __deduplicate_message_object_creation(  # type: ignore[no-untyped-def]
@@ -470,7 +479,7 @@ def g_msgids(namespace_id, session, in_):  # type: ignore[no-untyped-def]  # noq
             .filter(Message.namespace_id == namespace_id)
             .all()
         )
-        return sorted(g_msgid for g_msgid, in query if g_msgid in in_)
+        return sorted(g_msgid for (g_msgid,) in query if g_msgid in in_)
     # But in the normal case that in_ only has a few elements, it's way better
     # to not fetch a bunch of values from MySQL only to return a few of them.
     query = (
@@ -478,7 +487,7 @@ def g_msgids(namespace_id, session, in_):  # type: ignore[no-untyped-def]  # noq
         .filter(Message.namespace_id == namespace_id, Message.g_msgid.in_(in_))
         .all()
     )
-    return {g_msgid for g_msgid, in query}
+    return {g_msgid for (g_msgid,) in query}
 
 
 class GmailSyncMonitor(ImapSyncMonitor):

@@ -256,10 +256,9 @@ def index():  # type: ignore[no-untyped-def]  # noqa: ANN201
                     }
                 )
             except Exception:
-                log.error(  # noqa: G201
+                log.exception(
                     "Error while serializing account metrics",
                     account_id=account.id,
-                    exc_info=True,
                 )
 
         return APIEncoder().jsonify(data)

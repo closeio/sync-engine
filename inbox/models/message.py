@@ -708,10 +708,8 @@ class Message(
         try:
             text = strip_tags(text)
         except HTMLParseError:
-            log.error(  # noqa: G201
-                "error stripping tags",
-                message_nylas_uid=self.nylas_uid,
-                exc_info=True,
+            log.exception(
+                "error stripping tags", message_nylas_uid=self.nylas_uid
             )
             text = ""
 

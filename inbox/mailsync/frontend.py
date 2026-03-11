@@ -71,24 +71,20 @@ class ProfilingHTTPFrontend:
                 if isinstance(thread, InterruptibleThread)
             ]
             threads_count = len(threads)
-            threads_delayed_5m_count = sum(
-                1
-                for thread in threads
-                if not thread.last_ping_time
-                or now - thread.last_ping_time > 5 * 60
-            )
-            threads_delayed_20m_count = sum(
-                1
-                for thread in threads
-                if not thread.last_ping_time
-                or now - thread.last_ping_time > 20 * 60
-            )
-            threads_delayed_60m_count = sum(
-                1
-                for thread in threads
-                if not thread.last_ping_time
-                or now - thread.last_ping_time > 60 * 60
-            )
+            threads_delayed_5m_count = 0
+            threads_delayed_20m_count = 0
+            threads_delayed_60m_count = 0
+            for thread in threads:
+                if thread.last_ping_time is None:
+                    delay = float("inf")
+                else:
+                    delay = now - thread.last_ping_time
+                if delay > 5 * 60:
+                    threads_delayed_5m_count += 1
+                if delay > 20 * 60:
+                    threads_delayed_20m_count += 1
+                if delay > 60 * 60:
+                    threads_delayed_60m_count += 1
 
             longevity_deadline_reached = now >= self.report_unhealthy_at
             service_stuck = (

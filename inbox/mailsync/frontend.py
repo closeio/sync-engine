@@ -87,7 +87,7 @@ class ProfilingHTTPFrontend:
                     threads_delayed_60m_count += 1
 
             longevity_deadline_reached = now >= self.report_unhealthy_at
-            service_stuck = (
+            service_stuck = bool(
                 # Treat as stuck if there are threads running, and:
                 threads_count
                 and (

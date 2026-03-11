@@ -118,16 +118,19 @@ class ProfilingHTTPFrontend:
                 "threads_delayed_20m_count": threads_delayed_20m_count,
                 "threads_delayed_60m_count": threads_delayed_60m_count,
                 "max_delay": max(
-                    # XXX: Temporary. Remove me if everything's working fine in prod.
                     (
+                        # XXX: Temporary. Remove me if everything's working fine in prod.
                         (
-                            now - thread.last_ping_time
-                            if thread.last_ping_time is not None
-                            else -1
-                        ),
-                        thread.__class__.__name__,
-                    )
-                    for thread in threads
+                            (
+                                now - thread.last_ping_time
+                                if thread.last_ping_time is not None
+                                else -1
+                            ),
+                            thread.__class__.__name__,
+                        )
+                        for thread in threads
+                    ),
+                    default=None,
                 ),
                 "threads_count": threads_count,
                 "longevity_deadline_reached": longevity_deadline_reached,

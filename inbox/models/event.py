@@ -186,11 +186,7 @@ class Event(
     )
 
     message = relationship(
-        Message,
-        backref=backref(
-            "events",
-            cascade="all, delete-orphan",
-        ),
+        Message, backref=backref("events", cascade="all, delete-orphan")
     )
 
     __table_args__ = (

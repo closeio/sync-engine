@@ -7,6 +7,7 @@ from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
 
 from inbox.api.kellogs import APIEncoder, encode
 from inbox.models import Account, Message, Namespace, Thread, Transaction
+from inbox.models.message import load_events_for_messages
 from inbox.models.session import session_scope
 from inbox.models.util import transaction_objects
 
@@ -245,9 +246,9 @@ def format_transactions_after_pointer(  # type: ignore[no-untyped-def]  # noqa: 
                 if object_cls == Message:
                     query = query.options(*Message.api_loading_options(expand))
                     # T7045: Workaround for some SQLAlchemy bugs.
-                    objects = {
-                        obj.id: obj for obj in query if obj.thread is not None
-                    }
+                    messages = [obj for obj in query if obj.thread is not None]
+                    load_events_for_messages(db_session, messages)
+                    objects = {obj.id: obj for obj in messages}
                 else:
                     objects = {obj.id: obj for obj in query}
 

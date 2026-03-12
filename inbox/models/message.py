@@ -31,11 +31,15 @@ from sqlalchemy.orm import (  # type: ignore[import-untyped]
     backref,
     joinedload,
     load_only,
+    noload,
     relationship,
     subqueryload,
     synonym,
     validates,
     with_polymorphic,
+)
+from sqlalchemy.orm.attributes import (  # type: ignore[import-untyped]
+    set_committed_value,
 )
 from sqlalchemy.sql.expression import false  # type: ignore[import-untyped]
 
@@ -870,26 +874,51 @@ class Message(
         if expand:
             columns += ["message_id_header", "in_reply_to", "references"]
 
-        from inbox.models.event import (
-            Event,
-            RecurringEvent,
-            RecurringEventOverride,
-        )
-
-        all_event_subclasses = with_polymorphic(
-            Event, [RecurringEvent, RecurringEventOverride], flat=True
-        )
-
         return (
             load_only(*columns),
             subqueryload("parts").joinedload("block"),
             subqueryload("thread").load_only("public_id", "discriminator"),
-            subqueryload(
-                Message.events.of_type(  # type: ignore[attr-defined]
-                    all_event_subclasses
-                )
-            ),
+            noload(Message.events),  # type: ignore[attr-defined]
             subqueryload("messagecategories").joinedload("category"),
+        )
+
+
+def load_events_for_messages(db_session, messages):  # type: ignore[no-untyped-def]  # noqa: ANN201
+    """
+    Manually load events for a list of messages using FORCE INDEX to ensure
+    MySQL uses the message_id index. This replaces the automatic eager
+    loading (subqueryload/selectinload) which generates queries that the
+    MySQL query planner handles poorly on large tables.
+    """
+    # Importing this here to avoid circular imports.
+    from inbox.models.event import (
+        Event,
+        RecurringEvent,
+        RecurringEventOverride,
+    )
+
+    if not messages:
+        return
+
+    message_ids = [msg.id for msg in messages]
+
+    all_event_subclasses = with_polymorphic(
+        Event, [RecurringEvent, RecurringEventOverride]
+    )
+    events = (
+        db_session.query(all_event_subclasses)
+        .with_hint(Event, "FORCE INDEX (message_id)", "mysql")
+        .filter(Event.message_id.in_(message_ids))
+        .all()
+    )
+
+    events_by_message_id = defaultdict(list)
+    for event in events:
+        events_by_message_id[event.message_id].append(event)
+
+    for msg in messages:
+        set_committed_value(
+            msg, "events", events_by_message_id.get(msg.id, [])
         )
 
 

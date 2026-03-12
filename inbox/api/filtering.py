@@ -8,6 +8,7 @@ from sqlalchemy import (  # type: ignore[import-untyped]
 )
 from sqlalchemy.orm import (  # type: ignore[import-untyped]
     contains_eager,
+    noload,
     subqueryload,
 )
 
@@ -27,6 +28,7 @@ from inbox.models import (
     Thread,
 )
 from inbox.models.event import RecurringEvent
+from inbox.models.message import load_events_for_messages
 
 
 def contact_subquery(  # type: ignore[no-untyped-def]  # noqa: ANN201
@@ -506,11 +508,15 @@ def messages_or_drafts(  # type: ignore[no-untyped-def]  # noqa: ANN201
         subqueryload(Message.parts).joinedload(  # type: ignore[attr-defined]
             Part.block
         ),
-        subqueryload(Message.events),  # type: ignore[attr-defined]
+        noload(Message.events),  # type: ignore[attr-defined]
     )
 
     prepared = query.params(**param_dict)
-    return prepared.all()
+    messages = prepared.all()
+
+    load_events_for_messages(db_session, messages)
+
+    return messages
 
 
 def files(  # type: ignore[no-untyped-def]  # noqa: ANN201

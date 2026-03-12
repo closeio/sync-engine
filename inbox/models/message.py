@@ -49,7 +49,6 @@ from inbox.logging import get_logger
 from inbox.models.account import Account
 from inbox.models.base import MailSyncBase
 from inbox.models.category import Category
-from inbox.models.event import Event, RecurringEvent, RecurringEventOverride
 from inbox.models.mixins import (
     DeletedAtMixin,
     HasPublicID,
@@ -891,6 +890,13 @@ def load_events_for_messages(db_session, messages):  # type: ignore[no-untyped-d
     loading (subqueryload/selectinload) which generates queries that the
     MySQL query planner handles poorly on large tables.
     """
+    # Importing this here to avoid circular imports.
+    from inbox.models.event import (
+        Event,
+        RecurringEvent,
+        RecurringEventOverride,
+    )
+
     if not messages:
         return
 

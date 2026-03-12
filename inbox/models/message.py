@@ -544,7 +544,7 @@ class Message(
     ) -> None:
         disposition, _ = mimepart.content_disposition
         content_id: str | None = mimepart.headers.get("Content-Id")
-        content_type, params = mimepart.content_type
+        content_type, params = mimepart.content_type  # noqa: F841
 
         filename: str | None = mimepart.detected_file_name
         if filename == "":

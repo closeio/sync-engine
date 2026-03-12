@@ -207,7 +207,11 @@ def _encode(  # type: ignore[no-untyped-def]  # noqa: D417
             "starred": obj.is_starred,
             "files": obj.api_attachment_metadata,
             "events": [
-                encode(e) for e in obj.events  # type: ignore[attr-defined]
+                encode(e)
+                for e in sorted(
+                    obj.events,  # type: ignore[attr-defined]
+                    key=lambda e: e.last_modified,
+                )
             ],
         }
 

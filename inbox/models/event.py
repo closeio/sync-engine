@@ -189,7 +189,6 @@ class Event(
         Message,
         backref=backref(
             "events",
-            order_by="Event.last_modified",
             cascade="all, delete-orphan",
         ),
     )

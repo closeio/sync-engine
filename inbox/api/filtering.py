@@ -8,7 +8,7 @@ from sqlalchemy import (  # type: ignore[import-untyped]
 )
 from sqlalchemy.orm import (  # type: ignore[import-untyped]
     contains_eager,
-    subqueryload,
+    selectinload,
 )
 
 from inbox.api.err import InputError
@@ -500,13 +500,13 @@ def messages_or_drafts(  # type: ignore[no-untyped-def]  # noqa: ANN201
     # thread table. We should eventually try to simplify this.
     query = query.options(
         contains_eager(Message.thread),
-        subqueryload(
+        selectinload(
             Message.messagecategories  # type: ignore[attr-defined]
         ).joinedload("category", "created_at"),
-        subqueryload(Message.parts).joinedload(  # type: ignore[attr-defined]
+        selectinload(Message.parts).joinedload(  # type: ignore[attr-defined]
             Part.block
         ),
-        subqueryload(Message.events),  # type: ignore[attr-defined]
+        selectinload(Message.events),  # type: ignore[attr-defined]
     )
 
     prepared = query.params(**param_dict)

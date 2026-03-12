@@ -14,7 +14,7 @@ from sqlalchemy.orm import (  # type: ignore[import-untyped]
     backref,
     object_session,
     relationship,
-    subqueryload,
+    selectinload,
     validates,
 )
 
@@ -257,11 +257,11 @@ class Thread(
                 "reply_to",
             ]
         return (
-            subqueryload(Thread.messages)  # type: ignore[attr-defined]
+            selectinload(Thread.messages)  # type: ignore[attr-defined]
             .load_only(*message_columns)
             .joinedload("messagecategories")
             .joinedload("category"),
-            subqueryload(Thread.messages)  # type: ignore[attr-defined]
+            selectinload(Thread.messages)  # type: ignore[attr-defined]
             .joinedload("parts")
             .joinedload("block"),
         )

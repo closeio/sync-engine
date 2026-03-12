@@ -32,7 +32,7 @@ from sqlalchemy.orm import (  # type: ignore[import-untyped]
     joinedload,
     load_only,
     relationship,
-    subqueryload,
+    selectinload,
     synonym,
     validates,
     with_polymorphic,
@@ -882,14 +882,14 @@ class Message(
 
         return (
             load_only(*columns),
-            subqueryload("parts").joinedload("block"),
-            subqueryload("thread").load_only("public_id", "discriminator"),
-            subqueryload(
+            selectinload("parts").joinedload("block"),
+            selectinload("thread").load_only("public_id", "discriminator"),
+            selectinload(
                 Message.events.of_type(  # type: ignore[attr-defined]
                     all_event_subclasses
                 )
             ),
-            subqueryload("messagecategories").joinedload("category"),
+            selectinload("messagecategories").joinedload("category"),
         )
 
 

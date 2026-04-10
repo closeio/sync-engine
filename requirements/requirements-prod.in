@@ -8,7 +8,6 @@ arrow==0.17.0
 asn1crypto==0.24.0
 attrs==23.1.0
 authalligator-client @ https://github.com/closeio/authalligator-client/archive/e7cc8e0bc5b1f2285ab5997e2590a8eb056fc627.zip
-async_timeout==4.0.3
 backcall==0.2.0
 jedi==0.18.2
 boto3==1.35.50

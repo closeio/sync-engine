@@ -32,7 +32,6 @@ json_log_formatter==1.0
 limitlion==1.1.0
 lxml==5.1.0
 mysqlclient==2.2.5
-pickleshare==0.7.5
 ply==3.11
 psutil==5.8.0
 ptyprocess==0.7.0

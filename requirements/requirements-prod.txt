@@ -1049,9 +1049,7 @@ regex==2026.4.4 \
     --hash=sha256:fa7922bbb2cc84fa062d37723f199d4c0cd200245ce269c05db82d904db66b83 \
     --hash=sha256:fe896e07a5a2462308297e515c0054e9ec2dd18dfdc9427b19900b37dfe6f40b \
     --hash=sha256:ffa81f81b80047ba89a3c69ae6a0f78d06f4a42ce5126b0eb2a0a10ad44e0b2e
-    # via
-    #   -r requirements-prod.in
-    #   flanker
+    # via flanker
 requests==2.32.5 \
     --hash=sha256:2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6 \
     --hash=sha256:dbba0bac56e100853db0ea71b82b4dfd5fe2bf6d3754a8893c3af500cec7d7cf

@@ -33,7 +33,6 @@ limitlion==1.1.0
 lxml==5.1.0
 mysqlclient==2.2.5
 psutil==5.8.0
-prompt-toolkit==3.0.36
 pure-eval==0.2.2
 pycparser==2.21
 pygments==2.17.2

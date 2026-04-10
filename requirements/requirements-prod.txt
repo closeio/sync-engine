@@ -332,9 +332,7 @@ executing==1.2.0 \
 filelock==3.20.3 \
     --hash=sha256:18c57ee915c7ec61cff0ecf7f0f869936c7c30191bb0cf406f1341778d0834e1 \
     --hash=sha256:4b0dda527ee31078689fc205ec4f1c1bf7d56cf88b6dc9426c4f230e46c2dce1
-    # via
-    #   -r requirements-prod.in
-    #   tldextract
+    # via tldextract
 flanker @ https://github.com/closeio/flanker-new/archive/fa272d95345d45e8bb1f9bc32bc2c074bf52a484.zip \
     --hash=sha256:a197ba8c42aa6ee69c126b001de56ccbc5c3c24bdaba683359668820d2229de7
     # via -r requirements-prod.in

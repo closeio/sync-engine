@@ -28,7 +28,6 @@ imapclient==2.2.0
 importlib-metadata==4.8.1
 importlib-resources==5.4.0
 ipython==8.10.0
-jmespath==0.9.3
 json_log_formatter==1.0
 limitlion==1.1.0
 lxml==5.1.0

@@ -1,4 +1,4 @@
-# Sync Engine [![CircleCI](https://circleci.com/gh/closeio/sync-engine.svg?style=svg)](https://circleci.com/gh/closeio/sync-engine)
+# Sync Engine [![Build and release](https://github.com/closeio/sync-engine/actions/workflows/build-and-release.yaml/badge.svg)](https://github.com/closeio/sync-engine/actions/workflows/build-and-release.yaml)
 
 This is a fork of the Nylas [sync-engine project](https://github.com/nylas/sync-engine). 
 For those looking for a hosted email syncing service, check out 

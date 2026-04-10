@@ -15,7 +15,6 @@ ciso8601==2.2.0
 click==8.1.7
 colorlog==6.5.0
 cryptography==46.0.5
-decorator==5.1.1
 dnspython==2.6.1
 executing==1.2.0
 flanker @ https://github.com/closeio/flanker-new/archive/fa272d95345d45e8bb1f9bc32bc2c074bf52a484.zip

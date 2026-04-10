@@ -50,7 +50,6 @@ setuptools==82.0.0
 six==1.16.0
 sqlalchemy==1.4.54
 statsd==3.3.0
-stack-data==0.6.2
 tldextract==3.1.2
 structlog==23.1.0
 traitlets==5.9.0

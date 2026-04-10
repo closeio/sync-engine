@@ -31,7 +31,6 @@ ipython==8.10.0
 json_log_formatter==1.0
 limitlion==1.1.0
 lxml==5.1.0
-matplotlib-inline==0.1.6
 mysqlclient==2.2.5
 parso==0.8.3
 pexpect==4.8.0

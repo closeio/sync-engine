@@ -25,7 +25,6 @@ gunicorn==23.0.0
 hiredis==2.3.2
 html2text==2020.1.16
 icalendar==4.0.9
-idna==3.7
 imapclient==2.2.0
 importlib-metadata==4.8.1
 importlib-resources==5.4.0

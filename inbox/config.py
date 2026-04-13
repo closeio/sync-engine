@@ -77,8 +77,8 @@ def _update_config_from_env(config, env):  # type: ignore[no-untyped-def]
 
     """
     srcdir = os.path.join(  # noqa: PTH118
-        os.path.dirname(os.path.realpath(__file__)),
-        "..",  # noqa: PTH120
+        os.path.dirname(os.path.realpath(__file__)),  # noqa: PTH120
+        "..",
     )
 
     if env in ["prod", "staging"]:

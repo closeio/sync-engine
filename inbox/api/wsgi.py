@@ -48,9 +48,7 @@ class JsonRequestFormatter(json_log_formatter.JSONFormatter):
 
         url = record.args["U"]  # type: ignore[call-overload, index]
         if record.args["q"]:  # type: ignore[call-overload, index]
-            url += (  # type: ignore[operator]
-                f"?{record.args['q']}"  # type: ignore[call-overload, index]
-            )
+            url += f"?{record.args['q']}"  # type: ignore[call-overload, index, operator]
 
         method = record.args["m"]  # type: ignore[call-overload, index]
         log_context = record.args.get(  # type: ignore[union-attr]

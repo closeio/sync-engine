@@ -39,13 +39,11 @@ def start():  # type: ignore[no-untyped-def]  # noqa: ANN201
     except KeyError:
         raise InputError("Malformed headers")  # noqa: B904
 
-    request.environ.setdefault("log_context", {}).update(
-        {
-            "watch_state": watch_state,
-            "watch_channel_id": g.watch_channel_id,
-            "watch_resource_id": g.watch_resource_id,
-        }
-    )
+    request.environ.setdefault("log_context", {}).update({
+        "watch_state": watch_state,
+        "watch_channel_id": g.watch_channel_id,
+        "watch_resource_id": g.watch_resource_id,
+    })
 
     if watch_state == "sync":
         return resp(204)

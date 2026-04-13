@@ -178,9 +178,10 @@ class SyncHTTPFrontend(ProfilingHTTPFrontend):
                     1:-1
                 ]  # Remove first and last single quotes.
                 _, git_commit = f.readline().rstrip("\n").split()
-                return jsonify(
-                    {"build_id": build_id, "git_commit": git_commit}
-                )
+                return jsonify({
+                    "build_id": build_id,
+                    "git_commit": git_commit,
+                })
 
 
 class _QuietHandler(WSGIRequestHandler):

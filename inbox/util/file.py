@@ -9,7 +9,8 @@ ROOT_PATH = os.path.normpath(
 def get_data(filename: str) -> bytes:
     """Read contents of a file relative to the project root folder"""
     with open(  # noqa: PTH123
-        os.path.join(ROOT_PATH, filename), "rb"  # noqa: PTH118
+        os.path.join(ROOT_PATH, filename),  # noqa: PTH118
+        "rb",
     ) as file:
         return file.read()
 

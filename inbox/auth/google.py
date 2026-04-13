@@ -39,14 +39,12 @@ class GoogleAuthHandler(OAuthAuthHandler):
     OAUTH_ACCESS_TOKEN_URL = "https://accounts.google.com/o/oauth2/token"
     OAUTH_USER_INFO_URL = "https://www.googleapis.com/oauth2/v1/userinfo"
 
-    OAUTH_AUTH_SCOPE = " ".join(
-        [
-            "email",  # email address
-            "https://mail.google.com/",  # email
-            "https://www.google.com/m8/feeds",  # contacts
-            "https://www.googleapis.com/auth/calendar",  # calendar
-        ]
-    )
+    OAUTH_AUTH_SCOPE = " ".join([
+        "email",  # email address
+        "https://mail.google.com/",  # email
+        "https://www.google.com/m8/feeds",  # contacts
+        "https://www.googleapis.com/auth/calendar",  # calendar
+    ])
 
     def create_account(  # type: ignore[override]
         self, account_data: GoogleAccountData

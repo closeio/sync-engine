@@ -4,7 +4,6 @@
 
 -c requirements-prod.txt
 
-black
 mypy
 ruff
 typing_extensions

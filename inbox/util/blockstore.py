@@ -150,9 +150,9 @@ def save_to_blockstore(
 def _save_to_s3(
     data_sha256: str, data: bytes, *, overwrite: bool = False
 ) -> None:
-    assert (
-        "TEMP_MESSAGE_STORE_BUCKET_NAME" in config
-    ), "Need temp bucket name to store message data!"
+    assert "TEMP_MESSAGE_STORE_BUCKET_NAME" in config, (
+        "Need temp bucket name to store message data!"
+    )
 
     _save_to_s3_bucket(
         data_sha256,
@@ -224,9 +224,9 @@ def get_from_blockstore(  # type: ignore[no-untyped-def]
         return value
 
     if check_sha:
-        assert (
-            data_sha256 == sha256(value).hexdigest()
-        ), "Returned data doesn't match stored hash!"
+        assert data_sha256 == sha256(value).hexdigest(), (
+            "Returned data doesn't match stored hash!"
+        )
 
     return value
 
@@ -271,9 +271,9 @@ def get_raw_mime(data_sha256: str) -> "bytes | None":
 
     decompressed_raw_mime = maybe_decompress_raw_mime(compressed_raw_mime)
 
-    assert (
-        sha256(decompressed_raw_mime).hexdigest() == data_sha256
-    ), "Returned data doesn't match stored hash!"
+    assert sha256(decompressed_raw_mime).hexdigest() == data_sha256, (
+        "Returned data doesn't match stored hash!"
+    )
 
     return decompressed_raw_mime
 
@@ -282,9 +282,9 @@ def _get_from_s3(data_sha256):  # type: ignore[no-untyped-def]
     assert "AWS_ACCESS_KEY_ID" in config, "Need AWS key!"
     assert "AWS_SECRET_ACCESS_KEY" in config, "Need AWS secret!"
 
-    assert (
-        "TEMP_MESSAGE_STORE_BUCKET_NAME" in config
-    ), "Need temp bucket name to store message data!"
+    assert "TEMP_MESSAGE_STORE_BUCKET_NAME" in config, (
+        "Need temp bucket name to store message data!"
+    )
 
     # Try getting data from our temporary blockstore before
     # trying getting it from the provider.

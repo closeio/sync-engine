@@ -255,12 +255,9 @@ def upgrade() -> None:
     with session_scope(  # type: ignore[call-arg]
         versioned=False
     ) as db_session:
-        folders = dict(
-            [
-                ((i.account_id, i.name), i)
-                for i in db_session.query(Folder).all()
-            ]
-        )
+        folders = dict([
+            ((i.account_id, i.name), i) for i in db_session.query(Folder).all()
+        ])
         count = 0
         for folderitem in (
             db_session.query(FolderItem)

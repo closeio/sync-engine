@@ -45,9 +45,10 @@ def populate_labels(  # type: ignore[no-untyped-def]
         if label_string in ("\\Draft", "\\Starred"):
             continue
         elif label_string in category_map:
-            remote_labels.add(
-                (category_map[label_string], category_map[label_string])
-            )
+            remote_labels.add((
+                category_map[label_string],
+                category_map[label_string],
+            ))
         else:
             remote_labels.add((label_string, None))  # type: ignore[arg-type]
 
@@ -203,7 +204,7 @@ def upgrade() -> None:
     from inbox.models.session import session_scope
 
     with session_scope() as db_session:  # type: ignore[call-arg]
-        account_ids = [id_ for id_, in db_session.query(Account.id)]
+        account_ids = [id_ for (id_,) in db_session.query(Account.id)]
 
     for id_ in account_ids:
         migrate_account(id_)

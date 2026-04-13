@@ -96,9 +96,9 @@ class ContactSync(BaseSyncMonitor):
             ) = Counter()
             for new_contact in all_contacts:
                 new_contact.namespace = account.namespace
-                assert (
-                    new_contact.uid is not None
-                ), "Got remote item with null uid"
+                assert new_contact.uid is not None, (
+                    "Got remote item with null uid"
+                )
                 assert isinstance(new_contact.uid, str)
 
                 if (

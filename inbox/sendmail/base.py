@@ -390,15 +390,13 @@ def generate_attachments(message, blocks):  # type: ignore[no-untyped-def]  # no
                 content_disposition = "inline"
                 break
 
-        attachment_dicts.append(
-            {
-                "block_id": block.public_id,
-                "filename": block.filename,
-                "data": block.data,
-                "content_type": block.content_type,
-                "content_disposition": content_disposition,
-            }
-        )
+        attachment_dicts.append({
+            "block_id": block.public_id,
+            "filename": block.filename,
+            "data": block.data,
+            "content_type": block.content_type,
+            "content_disposition": content_disposition,
+        })
     return attachment_dicts
 
 

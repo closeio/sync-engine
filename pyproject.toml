@@ -1,8 +1,3 @@
-[tool.black]
-skip-magic-trailing-comma = true
-target-version = ["py312"]
-line-length = 79
-
 [tool.ruff]
 target-version = "py312"
 line-length = 79
@@ -74,11 +69,6 @@ ignore = [
     "PLW0603",
     # Redefining argument with the local name
     "PLR1704",
-    # TODO fix these
-    # Fixture `x` does not return anything, add leading underscore
-    "PT004",
-    # Fixture `x` returns a value, remove leading underscore
-    "PT005",
     # Fixture `x` without value is injected as parameter, use `@pytest.mark.usefixtures` instead
     "PT019",
     # `pytest.raises(ValueError)` is too broad
@@ -91,6 +81,10 @@ ignore = [
     "UP032",
     # Not ready for __future__ annotations
     "UP037",
+    # D203 and D211 are incompatible. Ignoring D203 
+    "D203",
+    # `import` should be at the top-level of a file
+    "PLC0415",
 ]
 select = [
     "A001",
@@ -104,7 +98,7 @@ select = [
     "S110", # Exceptions must be logged in try-except-pass
     "S112", # Exceptions must be logged in try-except-continue
     "TID25",
-    "TCH005",
+    "TC005",
     "W",
     "UP",
     "ISC",
@@ -129,7 +123,7 @@ select = [
     # Unnecessarily verbose raise
     "TRY201",
     # Useless try-except-raise
-    "TRY302",
+    "TRY203",
     # Annotations
     "ANN201",
     "ANN204",

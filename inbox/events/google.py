@@ -525,7 +525,7 @@ class GoogleEventsProvider(AbstractEventsProvider):
 
 
 def parse_calendar_response(  # noqa: D417
-    calendar: dict[str, Any]
+    calendar: dict[str, Any],
 ) -> Calendar:
     """
     Constructs a Calendar object from a Google calendarList resource (a
@@ -593,7 +593,7 @@ class ConferenceData:
 
 
 def sanitize_conference_data(
-    conference_data: dict[str, Any] | None
+    conference_data: dict[str, Any] | None,
 ) -> ConferenceData | None:
     if not conference_data:
         return None
@@ -664,26 +664,26 @@ def parse_event_response(  # noqa: D417
 
     owner = ""
     if organizer:
-        owner = email.utils.formataddr(
-            (organizer.get("displayName", ""), organizer.get("email", ""))
-        )
+        owner = email.utils.formataddr((
+            organizer.get("displayName", ""),
+            organizer.get("email", ""),
+        ))
     elif creator:
-        owner = email.utils.formataddr(
-            (creator.get("displayName", ""), creator.get("email", ""))
-        )
+        owner = email.utils.formataddr((
+            creator.get("displayName", ""),
+            creator.get("email", ""),
+        ))
 
     participants = []
     attendees = event.get("attendees", [])
     for attendee in attendees:
         status = STATUS_MAP[attendee.get("responseStatus")]
-        participants.append(
-            {
-                "email": attendee.get("email"),
-                "name": attendee.get("displayName"),
-                "status": status,
-                "notes": attendee.get("comment"),
-            }
-        )
+        participants.append({
+            "email": attendee.get("email"),
+            "name": attendee.get("displayName"),
+            "status": status,
+            "notes": attendee.get("comment"),
+        })
 
     # FIXME @karim: The right thing here would be to use Google's ACL API.
     # There's some obscure cases, like an autoimported event which guests can

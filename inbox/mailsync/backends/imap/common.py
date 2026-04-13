@@ -57,7 +57,7 @@ def local_uids(  # type: ignore[no-untyped-def]
     # We're using a raw DB-API cursor here to avoid the overhead of the ORM.
     db_api_cursor = get_db_api_cursor_with_query(session, q)
 
-    return {uid for uid, in db_api_cursor.fetchall()}
+    return {uid for (uid,) in db_api_cursor.fetchall()}
 
 
 def lastseenuid(  # type: ignore[no-untyped-def]  # noqa: ANN201

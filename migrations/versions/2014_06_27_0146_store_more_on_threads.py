@@ -47,17 +47,15 @@ def upgrade() -> None:
                 thread.snippet = thread.messages[-1].snippet
                 participant_set = set()
                 for message in thread.messages:
-                    participant_set.update(
-                        {
-                            tuple(p)
-                            for p in itertools.chain(
-                                message.from_addr,
-                                message.to_addr,
-                                message.cc_addr,
-                                message.bcc_addr,
-                            )
-                        }
-                    )
+                    participant_set.update({
+                        tuple(p)
+                        for p in itertools.chain(
+                            message.from_addr,
+                            message.to_addr,
+                            message.cc_addr,
+                            message.bcc_addr,
+                        )
+                    })
                 thread.participants = list(participant_set)
                 thread.message_public_ids = [
                     m.public_id for m in thread.messages

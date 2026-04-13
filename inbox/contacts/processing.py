@@ -76,8 +76,7 @@ def _get_contact_from_map(
     # and so on: rather than creating many contacts with
     # varying name, null out the name for the existing contact.
     if (
-        contact.name != name
-        and "noreply" in canonicalized_address  # type: ignore[operator]
+        contact.name != name and "noreply" in canonicalized_address  # type: ignore[operator]
     ):
         contact.name = None
 
@@ -200,13 +199,11 @@ def update_contacts_from_event(  # type: ignore[no-untyped-def]
                 if not contact:
                     continue
 
-                values.append(
-                    {
-                        "event_id": event.id,
-                        "contact_id": contact.id,
-                        "field": field_name,
-                    }
-                )
+                values.append({
+                    "event_id": event.id,
+                    "contact_id": contact.id,
+                    "field": field_name,
+                })
 
         if values:
             for chunk_index, values_chunk in enumerate(chunk(values, 20)):

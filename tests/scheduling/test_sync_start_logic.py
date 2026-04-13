@@ -62,9 +62,10 @@ def test_start_new_accounts_when_stealing_enabled(
     default_account.sync_host = None
     db.session.commit()
 
-    s.handle_shared_queue_event(
-        {"queue_name": "foo", "id": default_account.id}
-    )
+    s.handle_shared_queue_event({
+        "queue_name": "foo",
+        "id": default_account.id,
+    })
     assert s.start_sync.call_count == 1
     assert s.start_sync.call_args == mock.call(default_account.id)
 
@@ -81,9 +82,10 @@ def test_dont_start_accounts_if_over_ppa_limit(
     s._pending_avgs_provider = mock.Mock()
     s._pending_avgs_provider.get_pending_avgs = lambda *args: {15: 11}
 
-    s.handle_shared_queue_event(
-        {"queue_name": "foo", "id": default_account.id}
-    )
+    s.handle_shared_queue_event({
+        "queue_name": "foo",
+        "id": default_account.id,
+    })
     assert s.start_sync.call_count == 0
 
 
@@ -94,9 +96,10 @@ def test_dont_start_new_accounts_when_stealing_disabled(
     s = patched_sync_service(db)
     default_account.sync_host = None
     db.session.commit()
-    s.handle_shared_queue_event(
-        {"queue_name": "foo", "id": default_account.id}
-    )
+    s.handle_shared_queue_event({
+        "queue_name": "foo",
+        "id": default_account.id,
+    })
     assert s.start_sync.call_count == 0
 
 
@@ -191,9 +194,10 @@ def test_http_unassignment(db, default_account) -> None:
     default_account.desired_sync_host = None
     default_account.sync_host = None
     db.session.commit()
-    s.handle_shared_queue_event(
-        {"queue_name": "foo", "id": default_account.id}
-    )
+    s.handle_shared_queue_event({
+        "queue_name": "foo",
+        "id": default_account.id,
+    })
 
     frontend = SyncHTTPFrontend(s, 16384, False)
     app = frontend._create_app()
@@ -232,7 +236,8 @@ def test_start_accounts_w_sync_should_run_set(
     db.session.commit()
 
     s = patched_sync_service(db)
-    s.handle_shared_queue_event(
-        {"queue_name": "foo", "id": default_account.id}
-    )
+    s.handle_shared_queue_event({
+        "queue_name": "foo",
+        "id": default_account.id,
+    })
     assert s.start_sync.call_count == 1

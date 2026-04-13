@@ -48,14 +48,12 @@ def test_account_expanded(db, api_client, generic_account, gmail_account):
     resp_data = api_client.get_data("/account/?view=expanded")
     assert resp_data["provider"] == "custom"
     assert "server_settings" in resp_data
-    assert set(resp_data["server_settings"]) == set(
-        {
-            "imap_host": "imap.custom.com",
-            "smtp_host": "smtp.custom.com",
-            "imap_port": 993,
-            "smtp_port": 587,
-        }
-    )
+    assert set(resp_data["server_settings"]) == set({
+        "imap_host": "imap.custom.com",
+        "smtp_host": "smtp.custom.com",
+        "imap_port": 993,
+        "smtp_port": 587,
+    })
 
     # Yahoo
     yahoo_account = add_fake_yahoo_account(db.session)
@@ -63,14 +61,12 @@ def test_account_expanded(db, api_client, generic_account, gmail_account):
     resp_data = api_client.get_data("/account/?view=expanded")
     assert resp_data["provider"] == "yahoo"
     assert "server_settings" in resp_data
-    assert set(resp_data["server_settings"]) == set(
-        {
-            "imap_host": "imap.mail.yahoo.com",
-            "smtp_host": "smtp.mail.yahoo.com",
-            "imap_port": 993,
-            "smtp_port": 587,
-        }
-    )
+    assert set(resp_data["server_settings"]) == set({
+        "imap_host": "imap.mail.yahoo.com",
+        "smtp_host": "smtp.mail.yahoo.com",
+        "imap_port": 993,
+        "smtp_port": 587,
+    })
 
     # Gmail accounts don't expose a `server_settings` attribute
     api_client = new_api_client(db, gmail_account.namespace)

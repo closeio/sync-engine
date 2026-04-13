@@ -63,9 +63,9 @@ def test_generic_grouping(db, default_account) -> None:
     thread = fetch_corresponding_thread(
         db.session, default_account.namespace.id, message
     )
-    assert (
-        thread is None
-    ), "fetch_similar_threads should heed namespace boundaries"
+    assert thread is None, (
+        "fetch_similar_threads should heed namespace boundaries"
+    )
 
 
 def test_threading_limit(db, folder_sync_engine, monkeypatch) -> None:

@@ -218,9 +218,9 @@ class Block(
             log.error("No data returned!")
             return value
 
-        assert (
-            self.data_sha256 == sha256(value).hexdigest()
-        ), "Returned data doesn't match stored hash!"
+        assert self.data_sha256 == sha256(value).hexdigest(), (
+            "Returned data doesn't match stored hash!"
+        )
         return value
 
     @data.setter

@@ -36,7 +36,7 @@ def upgrade() -> None:
 
     parent_drafts_ids = [
         id_
-        for id_, in conn.execute(
+        for (id_,) in conn.execute(
             text(
                 """
         SELECT message.parent_draft_id from message

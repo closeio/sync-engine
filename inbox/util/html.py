@@ -110,6 +110,6 @@ def plaintext2html(text: str, tabstop: int = 4) -> str:
                 last = "<br>"
             return f'{prefix}<a href="{url}">{url}</a>{last}'
 
-    return "\n".join(
-        [f"<p>{re.sub(re_string, do_sub, p)}</p>" for p in text.split("\n\n")]
-    )
+    return "\n".join([
+        f"<p>{re.sub(re_string, do_sub, p)}</p>" for p in text.split("\n\n")
+    ])

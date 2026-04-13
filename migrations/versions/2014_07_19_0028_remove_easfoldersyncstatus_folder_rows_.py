@@ -16,8 +16,7 @@ down_revision = "2a748760ac63"
 
 def upgrade() -> None:
     if (
-        "easfoldersyncstatus"
-        in Base.metadata.tables  # type: ignore[has-type, used-before-def]  # noqa: F821
+        "easfoldersyncstatus" in Base.metadata.tables  # type: ignore[has-type, used-before-def]  # noqa: F821
     ):
         from inbox.ignition import main_engine  # type: ignore[attr-defined]
 

@@ -170,7 +170,7 @@ T = TypeVar("T")
 
 
 def _interruptible(
-    blocking_function: Callable[P, T]
+    blocking_function: Callable[P, T],
 ) -> Callable[
     [Callable[Concatenate[InterruptibleThread, P], T]], Callable[P, T]
 ]:
@@ -182,7 +182,7 @@ def _interruptible(
     def decorator(
         interruptible_function: Callable[
             Concatenate[InterruptibleThread, P], T
-        ]
+        ],
     ) -> Callable[P, T]:
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             current_thread = threading.current_thread()

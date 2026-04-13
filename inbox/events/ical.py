@@ -149,9 +149,9 @@ def events_from_ics(  # type: ignore[no-untyped-def]  # noqa: ANN201
                 start = arrow.get(start)
                 end = arrow.get(end)
 
-            assert isinstance(
-                start, type(end)
-            ), "Start and end should be of the same type"
+            assert isinstance(start, type(end)), (
+                "Start and end should be of the same type"
+            )
 
             # Get the last modification date.
             # Exchange uses DtStamp, iCloud and Gmail LAST-MODIFIED.
@@ -278,15 +278,13 @@ def events_from_ics(  # type: ignore[no-untyped-def]  # noqa: ANN201
                 except KeyError:
                     pass
 
-                participants.append(
-                    {
-                        "email": email.lower(),
-                        "name": name,
-                        "status": status,
-                        "notes": notes,
-                        "guests": [],
-                    }
-                )
+                participants.append({
+                    "email": email.lower(),
+                    "name": name,
+                    "status": status,
+                    "notes": notes,
+                    "guests": [],
+                })
 
             location = component.get("location")
             uid = str(component.get("uid"))

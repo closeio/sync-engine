@@ -542,9 +542,9 @@ def test_override_cancelled(db, default_account, calendar) -> None:
     all_events = event.all_events()
     assert len(all_events) == 6
     assert override not in all_events
-    assert not any(
-        [e.start == arrow.get(2014, 9, 4, 20, 30, 0) for e in all_events]
-    )
+    assert not any([
+        e.start == arrow.get(2014, 9, 4, 20, 30, 0) for e in all_events
+    ])
 
 
 def test_new_instance_cancelled(db, default_account, calendar) -> None:

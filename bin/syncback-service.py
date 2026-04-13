@@ -6,7 +6,6 @@ also starts up the syncback service.)
 
 """
 
-
 import os
 import sys
 

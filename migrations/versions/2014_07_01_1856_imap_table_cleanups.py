@@ -124,14 +124,12 @@ def upgrade() -> None:
     with session_scope(  # type: ignore[call-arg]
         versioned=False
     ) as db_session:
-        folder_id_for = dict(
-            [
-                ((account_id, name.lower()), id_)
-                for id_, account_id, name in db_session.query(
-                    Folder.id, Folder.account_id, Folder.name
-                )
-            ]
-        )
+        folder_id_for = dict([
+            ((account_id, name.lower()), id_)
+            for id_, account_id, name in db_session.query(
+                Folder.id, Folder.account_id, Folder.name
+            )
+        ])
         for status in db_session.query(ImapFolderSyncStatus):
             print("migrating", status.folder_name)
             status.folder_id = folder_id_for[
@@ -143,9 +141,10 @@ def upgrade() -> None:
                 EASFolderSyncStatus  # type: ignore[possibly-undefined]
             ):
                 print("migrating", status.folder_name)
-                folder_id = folder_id_for.get(
-                    (status.account_id, status.folder_name.lower())
-                )
+                folder_id = folder_id_for.get((
+                    status.account_id,
+                    status.folder_name.lower(),
+                ))
                 if folder_id is not None:
                     status.folder_id = folder_id
                 else:

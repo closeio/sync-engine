@@ -83,28 +83,24 @@ def engine(  # type: ignore[no-untyped-def]  # noqa: ANN201
 
         if config.get("ENABLE_DB_TXN_METRICS", False):
             statsd_client.gauge(
-                ".".join(
-                    [
-                        "dbconn",
-                        database_name,
-                        hostname,
-                        process_name,
-                        "checkedout",
-                    ]
-                ),
+                ".".join([
+                    "dbconn",
+                    database_name,
+                    hostname,
+                    process_name,
+                    "checkedout",
+                ]),
                 connection_proxy._pool.checkedout(),
             )
 
             statsd_client.gauge(
-                ".".join(
-                    [
-                        "dbconn",
-                        database_name,
-                        hostname,
-                        process_name,
-                        "overflow",
-                    ]
-                ),
+                ".".join([
+                    "dbconn",
+                    database_name,
+                    hostname,
+                    process_name,
+                    "overflow",
+                ]),
                 connection_proxy._pool.overflow(),
             )
 
@@ -153,12 +149,12 @@ class EngineManager:
 
                 # Perform some sanity checks on the configuration.
                 assert isinstance(key, int)
-                assert (
-                    key not in keys
-                ), f"Shard key collision: key {key} is repeated"
-                assert (
-                    schema_name not in schema_names
-                ), f"Shard name collision: {schema_name} is repeated"
+                assert key not in keys, (
+                    f"Shard key collision: key {key} is repeated"
+                )
+                assert schema_name not in schema_names, (
+                    f"Shard name collision: {schema_name} is repeated"
+                )
                 keys.add(key)
                 schema_names.add(schema_name)
 
@@ -219,9 +215,7 @@ def init_db(engine, key: int = 0) -> None:  # type: ignore[no-untyped-def]
     # to execute this function multiple times.
     # STOPSHIP(emfree): verify
     increment = (key << 48) + 1
-    for (
-        table
-    ) in MailSyncBase.metadata.tables.values():  # type: ignore[attr-defined]
+    for table in MailSyncBase.metadata.tables.values():  # type: ignore[attr-defined]
         event.listen(
             table,
             "after_create",
@@ -238,9 +232,7 @@ def verify_db(engine, schema, key) -> None:  # type: ignore[no-untyped-def]
     table_schema='{}' AND table_name='{}';"""
 
     verified = set()
-    for (
-        table
-    ) in MailSyncBase.metadata.sorted_tables:  # type: ignore[attr-defined]
+    for table in MailSyncBase.metadata.sorted_tables:  # type: ignore[attr-defined]
         # ContactSearchIndexCursor does not need to be checked because there's
         # only one row in the table
         if str(table) == "contactsearchindexcursor":
@@ -248,10 +240,10 @@ def verify_db(engine, schema, key) -> None:  # type: ignore[no-untyped-def]
 
         increment = engine.execute(query.format(schema, table)).scalar()
         if increment is not None:
-            assert (
-                increment >> 48
-            ) == key, "table: {}, increment: {}, key: {}".format(
-                table, increment, key
+            assert (increment >> 48) == key, (
+                "table: {}, increment: {}, key: {}".format(
+                    table, increment, key
+                )
             )
         else:
             # We leverage the following invariants about the sync
@@ -277,9 +269,7 @@ def reset_invalid_autoincrements(  # type: ignore[no-untyped-def]  # noqa: ANN20
     table_schema='{}' AND table_name='{}';"""
 
     reset = set()
-    for (
-        table
-    ) in MailSyncBase.metadata.sorted_tables:  # type: ignore[attr-defined]
+    for table in MailSyncBase.metadata.sorted_tables:  # type: ignore[attr-defined]
         increment = engine.execute(query.format(schema, table)).scalar()
         if increment is not None and (increment >> 48) != key:
             if not dry_run:

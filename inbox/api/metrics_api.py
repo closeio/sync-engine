@@ -43,14 +43,12 @@ def _get_calendar_data(db_session, namespace):  # type: ignore[no-untyped-def]
             else:
                 state = "initial"
 
-        calendar_data[account_id].append(
-            {
-                "uid": calendar.uid,
-                "name": calendar.name,
-                "last_synced": calendar.last_synced,
-                "state": state,
-            }
-        )
+        calendar_data[account_id].append({
+            "uid": calendar.uid,
+            "name": calendar.name,
+            "last_synced": calendar.last_synced,
+            "state": state,
+        })
 
     return calendar_data
 
@@ -109,9 +107,9 @@ def index():  # type: ignore[no-untyped-def]  # noqa: ANN201
         else:
             namespace = None
 
-        accounts = db_session.query(ImapAccount).with_polymorphic(
-            [GenericAccount]
-        )
+        accounts = db_session.query(ImapAccount).with_polymorphic([
+            GenericAccount
+        ])
 
         if namespace:
             accounts = accounts.filter(
@@ -149,12 +147,10 @@ def index():  # type: ignore[no-untyped-def]  # noqa: ANN201
                 for folder_status in account_heartbeat.folders:
                     folder_status_id = int(folder_status.id)
                     if folder_status_id in account_folder_data:
-                        account_folder_data[folder_status_id].update(
-                            {
-                                "alive": folder_status.alive,
-                                "heartbeat_at": folder_status.timestamp,
-                            }
-                        )
+                        account_folder_data[folder_status_id].update({
+                            "alive": folder_status.alive,
+                            "heartbeat_at": folder_status.timestamp,
+                        })
                     elif folder_status_id == EVENT_SYNC_FOLDER_ID:
                         events_alive = folder_status.alive
 
@@ -219,42 +215,40 @@ def index():  # type: ignore[no-untyped-def]  # noqa: ANN201
                 sync_status_str = "dead"
 
             try:
-                data.append(
-                    {
-                        "account_private_id": account.id,
-                        "namespace_private_id": account.namespace.id,
-                        "account_id": account.public_id,
-                        "namespace_id": account.namespace.public_id,
-                        "events_alive": events_alive,  # type: ignore[possibly-undefined]
-                        "email_alive": email_alive,  # type: ignore[possibly-undefined]
-                        "alive": alive,
-                        "email_initial_sync": email_initial_sync,
-                        "events_initial_sync": events_initial_sync,
-                        "initial_sync": initial_sync,
-                        "provider_name": account.provider,
-                        "email_address": account.email_address,
-                        "folders": sorted(
-                            folder_data[account.id].values(),
-                            key=itemgetter("name"),
-                        ),
-                        "calendars": sorted(
-                            calendar_data[account.id], key=itemgetter("name")
-                        ),
-                        "sync_email": account.sync_email,
-                        "sync_events": account.sync_events,
-                        "sync_status": sync_status_str,
-                        "sync_error": sync_status.get("sync_error"),
-                        "sync_end_time": sync_status.get("sync_end_time"),
-                        "sync_disabled_reason": sync_status.get(
-                            "sync_disabled_reason"
-                        ),
-                        "sync_host": account.sync_host,
-                        "progress": progress,
-                        "throttled": account.throttled,
-                        "created_at": account.created_at,
-                        "updated_at": account.updated_at,
-                    }
-                )
+                data.append({
+                    "account_private_id": account.id,
+                    "namespace_private_id": account.namespace.id,
+                    "account_id": account.public_id,
+                    "namespace_id": account.namespace.public_id,
+                    "events_alive": events_alive,  # type: ignore[possibly-undefined]
+                    "email_alive": email_alive,  # type: ignore[possibly-undefined]
+                    "alive": alive,
+                    "email_initial_sync": email_initial_sync,
+                    "events_initial_sync": events_initial_sync,
+                    "initial_sync": initial_sync,
+                    "provider_name": account.provider,
+                    "email_address": account.email_address,
+                    "folders": sorted(
+                        folder_data[account.id].values(),
+                        key=itemgetter("name"),
+                    ),
+                    "calendars": sorted(
+                        calendar_data[account.id], key=itemgetter("name")
+                    ),
+                    "sync_email": account.sync_email,
+                    "sync_events": account.sync_events,
+                    "sync_status": sync_status_str,
+                    "sync_error": sync_status.get("sync_error"),
+                    "sync_end_time": sync_status.get("sync_end_time"),
+                    "sync_disabled_reason": sync_status.get(
+                        "sync_disabled_reason"
+                    ),
+                    "sync_host": account.sync_host,
+                    "progress": progress,
+                    "throttled": account.throttled,
+                    "created_at": account.created_at,
+                    "updated_at": account.updated_at,
+                })
             except Exception:
                 log.exception(
                     "Error while serializing account metrics",

@@ -29,10 +29,10 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --no-deps -r requirements/requirements-lint.txt
 
-      - name: Black
-        run: black --check .
+      - name: Formatting (ruff)
+        run: ruff format --check .
 
-      - name: Ruff
+      - name: Linting (ruff)
         run: ruff check --no-cache --output-format github .
 
       - name: Install production requirements (for Mypy)

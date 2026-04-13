@@ -91,15 +91,13 @@ def auth():  # type: ignore[no-untyped-def]  # noqa: ANN201
             g.namespace_id = namespace.id
             g.account_id = namespace.account.id
         except NoResultFound:
-            return make_response(
-                (
-                    "Could not verify access credential.",
-                    401,
-                    {
-                        "WWW-Authenticate": 'Basic realm="API Access Token Required"'
-                    },
-                )
-            )
+            return make_response((
+                "Could not verify access credential.",
+                401,
+                {
+                    "WWW-Authenticate": 'Basic realm="API Access Token Required"'
+                },
+            ))
 
 
 @app.after_request
@@ -171,7 +169,7 @@ def _get_account_data_for_generic_account(  # type: ignore[no-untyped-def]
 
 
 def _get_account_data_for_google_account(
-    data: dict[str, Any]
+    data: dict[str, Any],
 ) -> GoogleAccountData:
     email_address = data["email_address"]
     scopes = data.get("scopes", " ".join(GOOGLE_EMAIL_SCOPES))
@@ -206,7 +204,7 @@ def _get_account_data_for_google_account(
 
 
 def _get_account_data_for_microsoft_account(
-    data: dict[str, Any]
+    data: dict[str, Any],
 ) -> MicrosoftAccountData:
     email_address = data["email_address"]
     scopes = data["scopes"]
@@ -338,13 +336,11 @@ def logout():  # type: ignore[no-untyped-def]  # noqa: ANN201
     Utility function used to force browsers to reset cached HTTP Basic Auth
     credentials
     """  # noqa: D401
-    return make_response(
-        (
-            "<meta http-equiv='refresh' content='0; url=/''>.",
-            401,
-            {"WWW-Authenticate": 'Basic realm="API Access Token Required"'},
-        )
-    )
+    return make_response((
+        "<meta http-equiv='refresh' content='0; url=/''>.",
+        401,
+        {"WWW-Authenticate": 'Basic realm="API Access Token Required"'},
+    ))
 
 
 app.register_blueprint(metrics_api)

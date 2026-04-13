@@ -124,9 +124,9 @@ def upgrade() -> None:
                 )
                 .all()
             )
-            missing_canonical_names = set(CANONICAL_TAG_NAMES).difference(
-                {tag.canonical_name for tag in existing_canonical_tags}
-            )
+            missing_canonical_names = set(CANONICAL_TAG_NAMES).difference({
+                tag.canonical_name for tag in existing_canonical_tags
+            })
             for canonical_name in missing_canonical_names:
                 tag = Tag(
                     namespace=namespace,

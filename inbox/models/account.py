@@ -453,9 +453,10 @@ def after_flush(  # type: ignore[no-untyped-def]
                             account_id=id,
                             queue_name=queue_name,
                         )
-                        EventQueue(queue_name).send_event(
-                            {"event": "migrate_from", "id": id}
-                        )
+                        EventQueue(queue_name).send_event({
+                            "event": "migrate_from",
+                            "id": id,
+                        })
                     return
 
                 if not sync_should_run:
@@ -475,9 +476,10 @@ def after_flush(  # type: ignore[no-untyped-def]
                         account_id=id,
                         queue_name=queue_name,
                     )
-                    EventQueue(queue_name).send_event(
-                        {"event": "migrate_to", "id": id}
-                    )
+                    EventQueue(queue_name).send_event({
+                        "event": "migrate_to",
+                        "id": id,
+                    })
                     return
 
                 # Nobody is actively syncing the Account, and nobody in particular

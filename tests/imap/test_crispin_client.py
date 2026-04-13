@@ -216,8 +216,9 @@ def test_gmail_bogus_integer_flags(gmail_client, constants) -> None:
 
 def test_g_msgids(gmail_client, constants) -> None:
     expected_resp = (
-        "{seq} (X-GM-MSGID {g_msgid} "
-        "UID {uid} MODSEQ ({modseq}))".format(**constants)
+        "{seq} (X-GM-MSGID {g_msgid} UID {uid} MODSEQ ({modseq}))".format(
+            **constants
+        )
     ).encode()
     unsolicited_resp = b"1198 (UID 1731 MODSEQ (95244) FLAGS (\\Seen))"
     patch_imap4(gmail_client, [expected_resp, unsolicited_resp])
@@ -257,10 +258,9 @@ def test_gmail_body(gmail_client, constants) -> None:
 
 
 def test_flags(generic_client, constants) -> None:
-    expected_resp = (
-        "{seq} (FLAGS {flags} "
-        "UID {uid} MODSEQ ({modseq}))".format(**constants).encode()
-    )
+    expected_resp = "{seq} (FLAGS {flags} UID {uid} MODSEQ ({modseq}))".format(
+        **constants
+    ).encode()
     unsolicited_resp = b"1198 (UID 1731 MODSEQ (95244) FLAGS (\\Seen))"
     patch_imap4(generic_client, [expected_resp, unsolicited_resp])
     uid = constants["uid"]
@@ -803,9 +803,9 @@ def test_imap_many_folders_one_role(monkeypatch, constants) -> None:
         assert role in folder_names
         number_roles = 2 if (role in ["sent", "trash"]) else 1
         test_set = [x for x in raw_folders if x.role == role]
-        assert (
-            len(test_set) == number_roles
-        ), f"assigned wrong number of {role}"
+        assert len(test_set) == number_roles, (
+            f"assigned wrong number of {role}"
+        )
 
 
 def test_german_outlook(monkeypatch) -> None:

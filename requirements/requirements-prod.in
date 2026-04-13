@@ -38,7 +38,6 @@ python-json-logger==3.3.0
 pytz==2026.1.post1
 PyYAML==6.0.2
 redis==5.0.2
-regex==2021.11.10
 requests==2.32.5
 requests-file==1.5.1
 s3transfer==0.10.3

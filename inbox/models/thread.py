@@ -215,7 +215,8 @@ class Thread(
     @property
     def attachments(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return any(
-            m.attachments for m in self.messages  # type: ignore[attr-defined]
+            m.attachments
+            for m in self.messages  # type: ignore[attr-defined]
         )
 
     @property

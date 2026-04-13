@@ -58,7 +58,7 @@ def main(  # type: ignore[no-untyped-def]
         )
         if number:
             to_unschedule = to_unschedule.limit(number)
-        to_unschedule = [id_ for id_, in to_unschedule.all()]
+        to_unschedule = [id_ for (id_,) in to_unschedule.all()]
         if number:
             to_unschedule = to_unschedule[:number]
 

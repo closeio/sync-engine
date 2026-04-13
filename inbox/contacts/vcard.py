@@ -24,7 +24,6 @@
 The pycarddav abstract model and tools for VCard handling.
 """
 
-
 import base64
 import contextlib
 import logging

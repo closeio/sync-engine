@@ -237,9 +237,9 @@ def before_remote_request() -> None:
     ) and g.namespace:
         # Logging provider here to ensure that the provider is only logged for
         # requests that modify data or are proxied to remote servers.
-        request.environ["log_context"][
-            "provider"
-        ] = g.namespace.account.provider
+        request.environ["log_context"]["provider"] = (
+            g.namespace.account.provider
+        )
 
         # Disable validation so we can perform requests on paused accounts.
         # valid_account(g.namespace)
@@ -340,9 +340,10 @@ def status():  # type: ignore[no-untyped-def]  # noqa: ANN201
                 account.throttled = True
             else:
                 account.throttled = False
-    return g.encoder.jsonify(
-        {"sync_status": account.sync_status, "throttled": account.throttled}
-    )
+    return g.encoder.jsonify({
+        "sync_status": account.sync_status,
+        "throttled": account.throttled,
+    })
 
 
 #
@@ -782,7 +783,7 @@ def folders_labels_query_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     results = results.order_by(asc(Category.id))
     results = results.limit(args["limit"]).offset(args["offset"]).all()
     if args["view"] == "ids":
-        return g.encoder.jsonify([r for r, in results])
+        return g.encoder.jsonify([r for (r,) in results])
     return g.encoder.jsonify(results)
 
 
@@ -1044,7 +1045,7 @@ def contact_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     results = results.order_by(asc(Contact.created_at))
     results = results.limit(args["limit"]).offset(args["offset"]).all()
     if args["view"] == "ids":
-        return g.encoder.jsonify([r for r, in results])
+        return g.encoder.jsonify([r for (r,) in results])
 
     return g.encoder.jsonify(results)
 
@@ -1683,7 +1684,7 @@ def calendar_api():  # type: ignore[no-untyped-def]  # noqa: ANN201
     results = results.order_by(asc(Calendar.id))
     results = results.limit(args["limit"]).offset(args["offset"]).all()
     if args["view"] == "ids":
-        return g.encoder.jsonify([r for r, in results])
+        return g.encoder.jsonify([r for (r,) in results])
 
     return g.encoder.jsonify(results)
 
@@ -2149,8 +2150,7 @@ def sync_deltas():  # type: ignore[no-untyped-def]  # noqa: ANN201
 
         # No changes. perhaps wait
         elif (
-            "/delta/longpoll"
-            in request.url_rule.rule  # type: ignore[union-attr]
+            "/delta/longpoll" in request.url_rule.rule  # type: ignore[union-attr]
         ):
             time.sleep(poll_interval)
         else:  # Return immediately

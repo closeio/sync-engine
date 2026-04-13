@@ -28,29 +28,23 @@ def upgrade() -> None:
 
     conn = op.get_bind()
 
-    tag_id_for_namespace = dict(
-        [
-            (namespace_id, tag_id)
-            for namespace_id, tag_id in conn.execute(
-                text(
-                    "SELECT namespace_id, id FROM tag WHERE name = 'attachment'"
-                )
-            )
-        ]
-    )
+    tag_id_for_namespace = dict([
+        (namespace_id, tag_id)
+        for namespace_id, tag_id in conn.execute(
+            text("SELECT namespace_id, id FROM tag WHERE name = 'attachment'")
+        )
+    ])
     print("have attachment tag for", len(tag_id_for_namespace), "namespaces")
 
-    existing_tagitems = set(
-        [
-            thread_id
-            for thread_id, in conn.execute(
-                text(
-                    "SELECT distinct(thread_id) FROM tagitem WHERE tag_id IN :tag_ids"
-                ),
-                tag_ids=set(tag_id_for_namespace.values()),
-            )
-        ]
-    )
+    existing_tagitems = set([
+        thread_id
+        for (thread_id,) in conn.execute(
+            text(
+                "SELECT distinct(thread_id) FROM tagitem WHERE tag_id IN :tag_ids"
+            ),
+            tag_ids=set(tag_id_for_namespace.values()),
+        )
+    ])
 
     q = """SELECT distinct(thread.id), namespace_id FROM thread
                INNER JOIN message ON thread.id = message.thread_id

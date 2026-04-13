@@ -124,9 +124,10 @@ class SyncService:
         self.private_queue = EventQueue(
             SYNC_EVENT_QUEUE_NAME.format(self.process_identifier)
         )
-        self.queue_group = EventQueueGroup(
-            [shared_sync_event_queue_for_zone(self.zone), self.private_queue]
-        )
+        self.queue_group = EventQueueGroup([
+            shared_sync_event_queue_for_zone(self.zone),
+            self.private_queue,
+        ])
 
         self.stealing_enabled = config.get("SYNC_STEAL_ACCOUNTS", True)
         self._pending_avgs_provider = None
@@ -146,12 +147,10 @@ class SyncService:
             "stopped event sync monitors", count=len(self.event_sync_monitors)
         )
 
-        run_in_parallel(
-            [
-                email_sync_monitor.stop
-                for email_sync_monitor in self.email_sync_monitors.values()
-            ]
-        )
+        run_in_parallel([
+            email_sync_monitor.stop
+            for email_sync_monitor in self.email_sync_monitors.values()
+        ])
         self.log.info(
             "stopped email sync monitors", count=len(self.email_sync_monitors)
         )

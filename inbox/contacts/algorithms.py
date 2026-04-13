@@ -45,13 +45,11 @@ def _get_participants(  # type: ignore[no-untyped-def]
     excluded_emails = excluded_emails or []
     participants = msg.to_addr + msg.cc_addr + msg.bcc_addr
     return sorted(
-        list(
-            {
-                email.lower()
-                for _, email in participants
-                if email not in excluded_emails
-            }
-        )
+        list({
+            email.lower()
+            for _, email in participants
+            if email not in excluded_emails
+        })
     )
 
 

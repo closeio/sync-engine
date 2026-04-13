@@ -504,7 +504,7 @@ def delete_message_hashes(
     with session_scope(account_id) as db_session:
         existing_hashes = [
             data_sha256
-            for data_sha256, in db_session.query(Message.data_sha256)
+            for (data_sha256,) in db_session.query(Message.data_sha256)
             .filter(Message.data_sha256.in_(message_hashes))
             .filter(Message.namespace_id != namespace_id)
             .distinct()

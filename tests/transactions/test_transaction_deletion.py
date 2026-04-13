@@ -75,8 +75,10 @@ class TestTransactionDeletion:
         self, now, db, default_namespace
     ) -> None:
         shard_id = default_namespace.id >> 48
-        query = "SELECT count(id) FROM transaction WHERE namespace_id={}".format(  # noqa: S608
-            default_namespace.id
+        query = (
+            "SELECT count(id) FROM transaction WHERE namespace_id={}".format(  # noqa: S608
+                default_namespace.id
+            )
         )
         all_transactions = db.session.execute(query).scalar()
 
@@ -88,8 +90,10 @@ class TestTransactionDeletion:
         self, now, db, default_namespace
     ) -> None:
         shard_id = default_namespace.id >> 48
-        query = "SELECT count(id) FROM transaction WHERE namespace_id={}".format(  # noqa: S608
-            default_namespace.id
+        query = (
+            "SELECT count(id) FROM transaction WHERE namespace_id={}".format(  # noqa: S608
+                default_namespace.id
+            )
         )
         all_transactions = db.session.execute(query).scalar()
         date_query = (
@@ -109,8 +113,10 @@ class TestTransactionDeletion:
         self, now, transactions, db, default_namespace
     ) -> None:
         shard_id = default_namespace.id >> 48
-        query = "SELECT count(id) FROM transaction WHERE namespace_id={}".format(  # noqa: S608
-            default_namespace.id
+        query = (
+            "SELECT count(id) FROM transaction WHERE namespace_id={}".format(  # noqa: S608
+                default_namespace.id
+            )
         )
         all_transactions = db.session.execute(query).scalar()
 

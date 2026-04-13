@@ -58,19 +58,17 @@ class OAuthAuthHandler(AuthHandler):
 
         client_id, client_secret = account.get_client_info()
 
-        assert (
-            self.OAUTH_ACCESS_TOKEN_URL
-        ), "OAUTH_ACCESS_TOKEN_URL is not defined"
+        assert self.OAUTH_ACCESS_TOKEN_URL, (
+            "OAUTH_ACCESS_TOKEN_URL is not defined"
+        )
         access_token_url = self.OAUTH_ACCESS_TOKEN_URL
 
-        data = urllib.parse.urlencode(
-            {
-                "refresh_token": refresh_token,
-                "client_id": client_id,
-                "client_secret": client_secret,
-                "grant_type": "refresh_token",
-            }
-        )
+        data = urllib.parse.urlencode({
+            "refresh_token": refresh_token,
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "grant_type": "refresh_token",
+        })
         headers = {
             "Content-type": "application/x-www-form-urlencoded",
             "Accept": "text/plain",
@@ -241,7 +239,8 @@ class OAuthAuthHandler(AuthHandler):
         )
         try:
             conn.oauth2_login(
-                account.email_address, token  # type: ignore[attr-defined]
+                account.email_address,
+                token,  # type: ignore[attr-defined]
             )
         except IMAPClient.Error as original_exc:
             exc = _process_imap_exception(original_exc)
@@ -267,7 +266,8 @@ class OAuthAuthHandler(AuthHandler):
             )
             try:
                 conn.oauth2_login(
-                    account.email_address, token  # type: ignore[attr-defined]
+                    account.email_address,
+                    token,  # type: ignore[attr-defined]
                 )
             except IMAPClient.Error as original_exc:
                 exc = _process_imap_exception(original_exc)
@@ -315,9 +315,9 @@ class OAuthAuthHandler(AuthHandler):
             "Accept": "text/plain",
         }
         data = urllib.parse.urlencode(args)
-        assert (
-            self.OAUTH_ACCESS_TOKEN_URL
-        ), "OAUTH_ACCESS_TOKEN_URL is not defined"
+        assert self.OAUTH_ACCESS_TOKEN_URL, (
+            "OAUTH_ACCESS_TOKEN_URL is not defined"
+        )
         resp = requests.post(
             self.OAUTH_ACCESS_TOKEN_URL, data=data, headers=headers
         )

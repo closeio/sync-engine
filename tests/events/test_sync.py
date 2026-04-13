@@ -315,7 +315,7 @@ def test_handle_changes(db, generic_account) -> None:
     # Sync a calendar delete
     event_public_ids = [
         id_
-        for id_, in db.session.query(Event.public_id).filter(
+        for (id_,) in db.session.query(Event.public_id).filter(
             Event.namespace_id == namespace_id,
             Event.calendar_id == first_calendar.id,
         )

@@ -178,9 +178,7 @@ def handle_event_deletions(
         for deleted_event in deleted_events:
             deleted_event.status = "cancelled"
             if isinstance(deleted_event, RecurringEvent):
-                for (
-                    override
-                ) in deleted_event.overrides:  # type: ignore[attr-defined]
+                for override in deleted_event.overrides:  # type: ignore[attr-defined]
                     override.status = "cancelled"
 
         db_session.commit()

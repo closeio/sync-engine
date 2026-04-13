@@ -912,7 +912,8 @@ def patch_crispin_del_sent(monkeypatch):
             return ["sent"]
 
         def delete_sent_message(
-            message_id_header, delete_multiple=False  # noqa: N805
+            message_id_header,
+            delete_multiple=False,  # noqa: N805
         ):
             pass
 

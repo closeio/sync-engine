@@ -18,7 +18,6 @@ You can do this manually like this:
 
 """
 
-
 import time
 
 import click

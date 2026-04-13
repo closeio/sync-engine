@@ -279,9 +279,10 @@ class LabelRenameHandler(InterruptibleThread):
             for folder_name in folder_names:
                 crispin_client.select_folder(folder_name, uidvalidity_cb)
 
-                found_uids = crispin_client.search_uids(
-                    ["X-GM-LABELS", self.label_name]
-                )
+                found_uids = crispin_client.search_uids([
+                    "X-GM-LABELS",
+                    self.label_name,
+                ])
 
                 for chnk in chunk(found_uids, 200):
                     flags = crispin_client.flags(chnk)

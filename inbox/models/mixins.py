@@ -102,9 +102,9 @@ class AddressComparator(Comparator):
         return self.__clause_element__().like(term, escape=escape)
 
     def in_(self, addresses):  # type: ignore[no-untyped-def]  # noqa: ANN201
-        return self.__clause_element__().in_(
-            [canonicalize_address(address) for address in addresses]
-        )
+        return self.__clause_element__().in_([
+            canonicalize_address(address) for address in addresses
+        ])
 
 
 class CaseInsensitiveComparator(Comparator):

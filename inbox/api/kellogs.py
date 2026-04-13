@@ -70,9 +70,10 @@ def format_messagecategories(  # type: ignore[no-untyped-def]  # noqa: ANN201
 def format_phone_numbers(phone_numbers):  # type: ignore[no-untyped-def]  # noqa: ANN201
     formatted_phone_numbers = []
     for number in phone_numbers:
-        formatted_phone_numbers.append(
-            {"type": number.type, "number": number.number}
-        )
+        formatted_phone_numbers.append({
+            "type": number.type,
+            "number": number.number,
+        })
     return formatted_phone_numbers
 
 
@@ -207,7 +208,8 @@ def _encode(  # type: ignore[no-untyped-def]  # noqa: D417
             "starred": obj.is_starred,
             "files": obj.api_attachment_metadata,
             "events": [
-                encode(e) for e in obj.events  # type: ignore[attr-defined]
+                encode(e)
+                for e in obj.events  # type: ignore[attr-defined]
             ],
         }
 
@@ -408,22 +410,18 @@ def _encode(  # type: ignore[no-untyped-def]  # noqa: D417
         if len(obj.parts):  # type: ignore[attr-defined]
             # if obj is actually a message attachment (and not merely an
             # uploaded file), set additional properties
-            resp.update(
-                {
-                    "message_ids": [
-                        p.message.public_id
-                        for p in obj.parts  # type: ignore[attr-defined]
-                    ]
-                }
-            )
-
-            content_ids = list(
-                {
-                    p.content_id
+            resp.update({
+                "message_ids": [
+                    p.message.public_id
                     for p in obj.parts  # type: ignore[attr-defined]
-                    if p.content_id is not None
-                }
-            )
+                ]
+            })
+
+            content_ids = list({
+                p.content_id
+                for p in obj.parts  # type: ignore[attr-defined]
+                if p.content_id is not None
+            })
             content_id = None
             if len(content_ids) > 0:
                 content_id = content_ids[0]

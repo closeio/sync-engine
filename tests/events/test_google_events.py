@@ -515,12 +515,10 @@ def test_handle_unparseable_dates() -> None:
 def test_pagination() -> None:
     first_response = requests.Response()
     first_response.status_code = 200
-    first_response._content = json.dumps(
-        {
-            "items": ["A", "B", "C"],
-            "nextPageToken": "CjkKKzlhb2tkZjNpZTMwNjhtZThllU",
-        }
-    ).encode()
+    first_response._content = json.dumps({
+        "items": ["A", "B", "C"],
+        "nextPageToken": "CjkKKzlhb2tkZjNpZTMwNjhtZThllU",
+    }).encode()
     second_response = requests.Response()
     second_response.status_code = 200
     second_response._content = json.dumps({"items": ["D", "E"]}).encode()
@@ -553,21 +551,19 @@ def test_handle_http_401() -> None:
 def test_handle_quota_exceeded() -> None:
     first_response = requests.Response()
     first_response.status_code = 403
-    first_response._content = json.dumps(
-        {
-            "error": {
-                "errors": [
-                    {
-                        "domain": "usageLimits",
-                        "reason": "userRateLimitExceeded",
-                        "message": "User Rate Limit Exceeded",
-                    }
-                ],
-                "code": 403,
-                "message": "User Rate Limit Exceeded",
-            }
+    first_response._content = json.dumps({
+        "error": {
+            "errors": [
+                {
+                    "domain": "usageLimits",
+                    "reason": "userRateLimitExceeded",
+                    "message": "User Rate Limit Exceeded",
+                }
+            ],
+            "code": 403,
+            "message": "User Rate Limit Exceeded",
         }
-    ).encode()
+    }).encode()
 
     second_response = requests.Response()
     second_response.status_code = 200
@@ -603,22 +599,20 @@ def test_handle_internal_server_error() -> None:
 def test_handle_api_not_enabled() -> None:
     response = requests.Response()
     response.status_code = 403
-    response._content = json.dumps(
-        {
-            "error": {
-                "code": 403,
-                "message": "Access Not Configured.",
-                "errors": [
-                    {
-                        "domain": "usageLimits",
-                        "message": "Access Not Configured",
-                        "reason": "accessNotConfigured",
-                        "extendedHelp": "https://console.developers.google.com",
-                    }
-                ],
-            }
+    response._content = json.dumps({
+        "error": {
+            "code": 403,
+            "message": "Access Not Configured.",
+            "errors": [
+                {
+                    "domain": "usageLimits",
+                    "message": "Access Not Configured",
+                    "reason": "accessNotConfigured",
+                    "extendedHelp": "https://console.developers.google.com",
+                }
+            ],
         }
-    ).encode()
+    }).encode()
 
     requests.get = mock.Mock(return_value=response)
     provider = GoogleEventsProvider(1, 1)

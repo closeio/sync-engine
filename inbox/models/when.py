@@ -6,7 +6,7 @@ import arrow  # type: ignore[import-untyped]
 
 
 def parse_as_when(
-    raw: dict[str, Any]
+    raw: dict[str, Any],
 ) -> Union["TimeSpan", "Time", "DateSpan", "Date"]:
     """
     Tries to parse a dictionary into a corresponding Date, DateSpan,

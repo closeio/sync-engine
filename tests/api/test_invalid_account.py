@@ -23,9 +23,9 @@ def search_response():
     resp = requests.Response()
     resp.status_code = 200
     resp.elapsed = datetime.timedelta(seconds=22)
-    resp._content = json.dumps(
-        {"messages": [{"id": "1"}, {"id": "2"}, {"id": "3"}]}
-    )
+    resp._content = json.dumps({
+        "messages": [{"id": "1"}, {"id": "2"}, {"id": "3"}]
+    })
     requests.get = mock.Mock(return_value=resp)
 
 

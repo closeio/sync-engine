@@ -3,7 +3,6 @@
 Create event contact associations for events that don't have any.
 """
 
-
 import click
 from sqlalchemy import asc  # type: ignore[import-untyped]
 

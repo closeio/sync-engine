@@ -225,9 +225,7 @@ def handle_event_updates(
                 and event.status == "cancelled"
                 and local_event.status != "cancelled"
             ):
-                for (
-                    override
-                ) in local_event.overrides:  # type: ignore[attr-defined]
+                for override in local_event.overrides:  # type: ignore[attr-defined]
                     override.status = "cancelled"
 
             local_event.update(event)
@@ -445,7 +443,7 @@ def _delete_calendar(db_session: Any, calendar: Calendar) -> None:
     # load ids first to save memory
     event_ids = [
         event_id
-        for event_id, in db_session.query(Event.id).filter(
+        for (event_id,) in db_session.query(Event.id).filter(
             Event.calendar_id == calendar.id
         )
     ]

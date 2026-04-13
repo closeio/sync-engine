@@ -77,12 +77,10 @@ def upgrade() -> None:
             column("updated_at", sa.DateTime()),
         )
         op.execute(
-            t.update().values(
-                {
-                    "created_at": datetime.utcnow(),
-                    "updated_at": datetime.utcnow(),
-                }
-            )
+            t.update().values({
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow(),
+            })
         )
 
         op.alter_column(

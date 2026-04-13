@@ -85,13 +85,13 @@ def test_deleting_from_a_message_with_multiple_uids(
     remove_deleted_uids(default_account.id, inbox_folder.id, [2222])
     db.session.expire_all()
 
-    assert (
-        message.deleted_at is None
-    ), "The associated message should not have been marked for deletion."
+    assert message.deleted_at is None, (
+        "The associated message should not have been marked for deletion."
+    )
 
-    assert (
-        len(message.imapuids) == 1
-    ), "The message should have only one imapuid."
+    assert len(message.imapuids) == 1, (
+        "The message should have only one imapuid."
+    )
 
 
 def test_deletion_with_short_ttl(

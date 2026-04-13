@@ -103,7 +103,7 @@ class MicrosoftEventsProvider(AbstractEventsProvider):
             # stores events parsed from email message attachements
             deleted_uids = [
                 uid
-                for uid, in db_session.query(Calendar.uid).filter(
+                for (uid,) in db_session.query(Calendar.uid).filter(
                     Calendar.namespace_id == self.namespace_id,
                     Calendar.uid.not_in(remote_uids),
                 )

@@ -5,7 +5,6 @@ the created_at column)
 
 """
 
-
 import logging
 import sys
 import time

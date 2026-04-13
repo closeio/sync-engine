@@ -101,9 +101,9 @@ def test_no_logging_until_many_transient_error() -> None:
         failing_function = FailingFunction(transient_exc, max_executions=2)
         retry_with_logging(failing_function, logger=logger_mock)
 
-        assert (
-            logger_mock.mock_calls == []
-        ), f"{transient_exc} should not be logged"
+        assert logger_mock.mock_calls == [], (
+            f"{transient_exc} should not be logged"
+        )
         assert failing_function.call_count == 2
 
         failing_function = FailingFunction(socket.error, max_executions=21)

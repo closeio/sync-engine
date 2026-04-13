@@ -1089,9 +1089,9 @@ class CrispinClient:
     def save_draft(  # type: ignore[no-untyped-def]
         self, message, date=None
     ) -> None:
-        assert (
-            self.selected_folder_name in self.folder_names()["drafts"]
-        ), f"Must select a drafts folder first ({self.selected_folder_name})"
+        assert self.selected_folder_name in self.folder_names()["drafts"], (
+            f"Must select a drafts folder first ({self.selected_folder_name})"
+        )
 
         interruptible_threading.check_interrupted()
         self.conn.append(
@@ -1106,9 +1106,9 @@ class CrispinClient:
         like iCloud not saving Sent messages.
 
         """
-        assert (
-            self.selected_folder_name in self.folder_names()["sent"]
-        ), f"Must select sent folder first ({self.selected_folder_name})"
+        assert self.selected_folder_name in self.folder_names()["sent"], (
+            f"Must select sent folder first ({self.selected_folder_name})"
+        )
 
         interruptible_threading.check_interrupted()
         return self.conn.append(

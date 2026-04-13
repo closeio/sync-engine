@@ -40,7 +40,7 @@ def upgrade() -> None:
 
     # Imports to `imapaccount_old` table
     with open(SQL_DUMP_FILENAME) as f:  # noqa: PTH123
-        print("Importing old account data..."),
+        (print("Importing old account data..."),)
         op.execute(f.read())
         print("OK!")
 
@@ -94,7 +94,7 @@ def upgrade() -> None:
 
         verified_accounts = []
         for acct in migrated_accounts:
-            print(f"Verifying {acct.email_address}... "),
+            (print(f"Verifying {acct.email_address}... "),)
             if gmail.verify_account(acct):
                 verified_accounts.append(acct)
                 print("OK!")

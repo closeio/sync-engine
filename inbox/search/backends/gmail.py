@@ -64,9 +64,12 @@ class GmailSearchClient:
             encoder = APIEncoder()
 
             with session_scope(self.account_id) as db_session:
-                yield encoder.cereal(
-                    self.search_messages(db_session, search_query)
-                ) + "\n"
+                yield (
+                    encoder.cereal(
+                        self.search_messages(db_session, search_query)
+                    )
+                    + "\n"
+                )
 
         return g
 
@@ -103,9 +106,12 @@ class GmailSearchClient:
             encoder = APIEncoder()
 
             with session_scope(self.account_id) as db_session:
-                yield encoder.cereal(
-                    self.search_threads(db_session, search_query)
-                ) + "\n"
+                yield (
+                    encoder.cereal(
+                        self.search_threads(db_session, search_query)
+                    )
+                    + "\n"
+                )
 
         return g
 

@@ -52,14 +52,14 @@ def upgrade() -> None:
 
     for c in classes:
         assert issubclass(c, HasPublicID)
-        print(f"[{c.__tablename__}] adding public_id column... "),
+        (print(f"[{c.__tablename__}] adding public_id column... "),)
         sys.stdout.flush()
         op.add_column(
             c.__tablename__,
             sa.Column("public_id", mysql.BINARY(16), nullable=False),
         )
 
-        print("adding index... "),
+        (print("adding index... "),)
         op.create_index(
             f"ix_{c.__tablename__}_public_id",
             c.__tablename__,
@@ -76,9 +76,9 @@ def upgrade() -> None:
         count = 0
         for c in classes:
             garbage_collect()
-            print(f"[{c.__name__}] Loading rows. "),
+            (print(f"[{c.__name__}] Loading rows. "),)
             sys.stdout.flush()
-            print("Generating public_ids"),
+            (print("Generating public_ids"),)
             sys.stdout.flush()
             for r in db_session.query(c).yield_per(chunk_size):
                 count += 1
@@ -88,7 +88,7 @@ def upgrade() -> None:
                     sys.stdout.flush()
                     db_session.commit()
                     garbage_collect()
-            sys.stdout.write(" Saving. ".format()),
+            (sys.stdout.write(" Saving. ".format()),)
             # sys.stdout.flush()
             sys.stdout.flush()
             db_session.commit()
@@ -126,10 +126,10 @@ def downgrade() -> None:
 
     for c in classes:
         assert issubclass(c, HasPublicID)
-        print(f"[{c.__tablename__}] Dropping public_id column... "),
+        (print(f"[{c.__tablename__}] Dropping public_id column... "),)
         op.drop_column(c.__tablename__, "public_id")
 
-        print("Dropping index... "),
+        (print("Dropping index... "),)
         op.drop_index(
             f"ix_{c.__tablename__}_public_id", table_name=c.__tablename__
         )

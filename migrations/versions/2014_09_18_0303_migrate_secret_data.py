@@ -46,7 +46,7 @@ def upgrade() -> None:
             .join(GenericAccount)
             .filter(Secret.id == GenericAccount.password_id)
         )
-        password_secrets = [id_ for id_, in generic_query]
+        password_secrets = [id_ for (id_,) in generic_query]
         if engine.has_table("easaccount"):
 
             class EASAccount(Base):  # type: ignore[misc, valid-type]
@@ -57,7 +57,7 @@ def upgrade() -> None:
                 .join(EASAccount)
                 .filter(Secret.id == EASAccount.password_id)
             )
-            password_secrets.extend([id_ for id_, in eas_query])
+            password_secrets.extend([id_ for (id_,) in eas_query])
 
         for s in secrets:
             plain = (

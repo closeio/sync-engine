@@ -60,7 +60,6 @@ sessions reduce scalability.
 
 """
 
-
 import contextlib
 import imaplib
 import threading
@@ -601,7 +600,7 @@ class FolderSyncEngine(InterruptibleThread):
         with session_scope(self.namespace_id) as db_session:
             invalid_uids = {
                 uid
-                for uid, in db_session.query(ImapUid.msg_uid)
+                for (uid,) in db_session.query(ImapUid.msg_uid)
                 .filter(
                     ImapUid.account_id == self.account_id,
                     ImapUid.folder_id == self.folder_id,
@@ -683,17 +682,18 @@ class FolderSyncEngine(InterruptibleThread):
                 datetime.utcnow() - new_uid.message.received_date
             ).total_seconds() * 1000
             metrics = [
-                ".".join(
-                    ["mailsync", "providers", "overall", "message_latency"]
-                ),
-                ".".join(
-                    [
-                        "mailsync",
-                        "providers",
-                        self.provider_name,
-                        "message_latency",
-                    ]
-                ),
+                ".".join([
+                    "mailsync",
+                    "providers",
+                    "overall",
+                    "message_latency",
+                ]),
+                ".".join([
+                    "mailsync",
+                    "providers",
+                    self.provider_name,
+                    "message_latency",
+                ]),
             ]
             for metric in metrics:
                 statsd_client.timing(metric, latency_millis)
@@ -793,9 +793,12 @@ class FolderSyncEngine(InterruptibleThread):
         latency = (now - account_created).total_seconds() * 1000
 
         metrics = [
-            ".".join(
-                ["mailsync", "providers", self.provider_name, "first_message"]
-            ),
+            ".".join([
+                "mailsync",
+                "providers",
+                self.provider_name,
+                "first_message",
+            ]),
             ".".join(["mailsync", "providers", "overall", "first_message"]),
         ]
 
@@ -808,14 +811,12 @@ class FolderSyncEngine(InterruptibleThread):
         latency = (timedelta).total_seconds() * 1000
         latency_per_uid = float(latency) / num_uids
         metrics = [
-            ".".join(
-                [
-                    "mailsync",
-                    "providers",
-                    self.provider_name,
-                    "message_velocity",
-                ]
-            ),
+            ".".join([
+                "mailsync",
+                "providers",
+                self.provider_name,
+                "message_velocity",
+            ]),
             ".".join(["mailsync", "providers", "overall", "message_velocity"]),
         ]
         for metric in metrics:

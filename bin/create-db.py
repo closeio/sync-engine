@@ -68,9 +68,9 @@ def main(target_hostname, host_ip) -> None:  # type: ignore[no-untyped-def]
                 (current_revision,) = engine.execute(
                     "SELECT version_num from alembic_version"
                 ).fetchone()
-                assert (
-                    current_revision
-                ), "Need current revision in alembic_version table."
+                assert current_revision, (
+                    "Need current revision in alembic_version table."
+                )
                 print(
                     f"Already revisioned by alembic version: {current_revision}"
                 )

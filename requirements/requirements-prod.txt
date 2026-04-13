@@ -1113,9 +1113,9 @@ urllib3==2.6.3 \
 vobject==0.9.6.1 \
     --hash=sha256:96512aec74b90abb71f6b53898dd7fe47300cc940104c4f79148f0671f790101
     # via -r requirements-prod.in
-wcwidth==0.2.6 \
-    --hash=sha256:795b138f6875577cd91bba52baf9e445cd5118fd32723b460e30a0af30ea230e \
-    --hash=sha256:a5220780a404dbe3353789870978e472cfe477761f06ee55077256e509b156d0
+wcwidth==0.6.0 \
+    --hash=sha256:1a3a1e510b553315f8e146c54764f4fb6264ffad731b3d78088cdb1478ffbdad \
+    --hash=sha256:cdc4e4262d6ef9a1a57e018384cbeb1208d8abbc64176027e2c2455c81313159
     # via prompt-toolkit
 webob==1.8.8 \
     --hash=sha256:2abc1555e118fc251e705fc6dc66c7f5353bb9fbfab6d20e22f1c02b4b71bcee \

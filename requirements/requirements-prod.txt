@@ -556,8 +556,8 @@ jmespath==0.9.3 \
     # via
     #   boto3
     #   botocore
-json-log-formatter==1.0 \
-    --hash=sha256:fda3f943a2cddc4c8b0f06d57db5c53a903a1d4b6fc62416339d109e8c482ef7
+json-log-formatter==1.1.1 \
+    --hash=sha256:0815e3b4469e5c79cf3f6dc8a0613ba6601f4a7464f85ba03655cfa6e3e17d10
     # via -r requirements-prod.in
 limitlion==1.1.0 \
     --hash=sha256:8786f5ace2c9d35d2c6ab0605804ae37d415d6c7bc6710f233daebbea09660d0

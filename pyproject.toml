@@ -85,9 +85,6 @@ ignore = [
     "D203",
     # `import` should be at the top-level of a file
     "PLC0415",
-    # The following rule may cause conflicts when used with the formatter
-    "ISC001"
-
 ]
 select = [
     "A001",

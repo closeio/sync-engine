@@ -239,8 +239,8 @@ class OAuthAuthHandler(AuthHandler):
         )
         try:
             conn.oauth2_login(
-                account.email_address,
-                token,  # type: ignore[attr-defined]
+                account.email_address,  # type: ignore[attr-defined]
+                token,
             )
         except IMAPClient.Error as original_exc:
             exc = _process_imap_exception(original_exc)
@@ -266,8 +266,8 @@ class OAuthAuthHandler(AuthHandler):
             )
             try:
                 conn.oauth2_login(
-                    account.email_address,
-                    token,  # type: ignore[attr-defined]
+                    account.email_address,  # type: ignore[attr-defined]
+                    token,
                 )
             except IMAPClient.Error as original_exc:
                 exc = _process_imap_exception(original_exc)

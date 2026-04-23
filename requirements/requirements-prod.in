@@ -28,7 +28,7 @@ importlib-resources==5.4.0
 ipython==8.10.0
 json_log_formatter==1.0
 limitlion==1.1.0
-lxml==5.1.0
+lxml==6.0.4
 mysqlclient==2.2.5
 psutil==5.8.0
 Pympler==0.9

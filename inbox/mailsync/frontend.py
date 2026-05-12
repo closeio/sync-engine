@@ -1,9 +1,11 @@
 import random
 import threading
 import time
+from typing import cast
 
 import structlog
 from flask import Flask, jsonify, request
+from flask.json.provider import DefaultJSONProvider
 from flask.typing import ResponseReturnValue
 from pympler import muppy, summary  # type: ignore[import-untyped]
 from werkzeug.serving import WSGIRequestHandler, run_simple
@@ -33,7 +35,7 @@ class ProfilingHTTPFrontend:
 
     def _create_app(self):  # type: ignore[no-untyped-def]
         app = Flask(__name__)
-        app.json.sort_keys = False
+        cast(DefaultJSONProvider, app.json).sort_keys = False
         self._create_app_impl(app)
         return app
 

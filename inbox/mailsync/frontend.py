@@ -33,7 +33,7 @@ class ProfilingHTTPFrontend:
 
     def _create_app(self):  # type: ignore[no-untyped-def]
         app = Flask(__name__)
-        app.config["JSON_SORT_KEYS"] = False
+        app.json.sort_keys = False
         self._create_app_impl(app)
         return app
 

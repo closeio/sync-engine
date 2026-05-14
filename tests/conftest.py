@@ -1,9 +1,6 @@
 """Fixtures don't go here; see util/base.py and friends."""
 
-import importlib
 import os
-
-import werkzeug
 
 os.environ["NYLAS_ENV"] = "test"
 
@@ -21,10 +18,6 @@ def make_api_client():
         from inbox.api.srv import app
 
         app.config["TESTING"] = True
-        # test_client uses werkzeug.__version__ attribute
-        # which has been deprecated
-        # To avoid a rushed flask upgrade we'll patch it here
-        werkzeug.__version__ = importlib.metadata.version("werkzeug")
         with app.test_client() as c:
             return TestAPIClient(c, namespace.public_id)
 

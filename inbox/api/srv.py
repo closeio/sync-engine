@@ -1,6 +1,7 @@
-from typing import Any
+from typing import Any, cast
 
 from flask import Flask, g, jsonify, make_response, request
+from flask.json.provider import DefaultJSONProvider
 from flask_restful import reqparse  # type: ignore[import-untyped]
 from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
 
@@ -33,7 +34,7 @@ from .ns_api import DEFAULT_LIMIT
 from .ns_api import app as ns_api
 
 app = Flask(__name__)
-app.config["JSON_SORT_KEYS"] = False
+cast(DefaultJSONProvider, app.json).sort_keys = False
 # Handle both /endpoint and /endpoint/ without redirecting.
 # Note that we need to set this *before* registering the blueprint.
 app.url_map.strict_slashes = False

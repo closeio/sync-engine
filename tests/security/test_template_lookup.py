@@ -14,16 +14,18 @@ def test_template_rendering_with_variable_substitution(tmp_path):
     assert "Hello world!" in str(output)
 
 
-def test_template_rendering_nested_list_comprehension_with_strict_undefined(tmp_path):
+def test_template_rendering_nested_list_comprehension_with_strict_undefined(
+    tmp_path,
+):
     """Nested list comprehensions don't raise undefined variable errors with strict_undefined=True."""
     template_dir = tmp_path / "templates"
     template_dir.mkdir()
     # Nested comprehension: inner variable 'b' should not be flagged as undefined
-    (template_dir / "comp.html").write_text(
-        "${[b for a in items for b in a]}"
-    )
+    (template_dir / "comp.html").write_text("${[b for a in items for b in a]}")
 
-    lookup = TemplateLookup(directories=[str(template_dir)], strict_undefined=True)
+    lookup = TemplateLookup(
+        directories=[str(template_dir)], strict_undefined=True
+    )
     output = lookup.get_template("/comp.html").render(items=[[1, 2], [3]])
     assert "[1, 2, 3]" in str(output)
 

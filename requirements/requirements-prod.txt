@@ -518,9 +518,9 @@ idna==3.7 \
     #   flanker
     #   requests
     #   tldextract
-imapclient==2.2.0 \
-    --hash=sha256:0578056b9fff5316516f460810fc8b485f6fd7e3f4203786c130e222007d63f3 \
-    --hash=sha256:f30a4a94746accfdb0d2b0324e312f2c83579ae20351c3c20ea76f17127936ab
+imapclient==3.1.0 \
+    --hash=sha256:34c192ffe82936e940a998ac89c474296942cd7c4f6c208f0fccfcd972946038 \
+    --hash=sha256:b0413a516ffcc4b4d69f2c611c0e95da57968edf5a5c78ac82d1bf882305facc
     # via -r requirements-prod.in
 importlib-metadata==4.8.1 \
     --hash=sha256:b618b6d2d5ffa2f16add5697cf57a46c76a56229b0ed1c438322e4e95645bd15 \
@@ -1121,7 +1121,6 @@ six==1.17.0 \
     #   asttokens
     #   flanker
     #   flask-restful
-    #   imapclient
     #   python-dateutil
     #   requests-file
 sqlalchemy==1.4.54 \

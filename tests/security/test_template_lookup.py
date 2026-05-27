@@ -31,7 +31,8 @@ def test_template_rendering_nested_list_comprehension_with_strict_undefined(
 
 
 def test_template_lookup_rejects_double_slash_prefix_path_traversal(tmp_path):
-    """TemplateLookup does not serve files outside the template directory via double-slash URIs.
+    """
+    TemplateLookup does not serve files outside the template directory via double-slash URIs.
 
     A URI like '//absolute/path/to/file' would previously cause posixpath.join to ignore
     the template directory prefix entirely (since the second arg became an absolute path
@@ -56,7 +57,8 @@ def test_template_lookup_rejects_double_slash_prefix_path_traversal(tmp_path):
 
 
 def test_template_lookup_normalizes_backslash_separators_in_uri(tmp_path):
-    """Backslash characters in URIs are normalized to forward slashes before path resolution.
+    r"""
+    Backslash characters in URIs are normalized to forward slashes before path resolution.
 
     On Windows, a URI like '\\..\secret.txt' could bypass directory traversal checks
     if backslashes aren't converted to forward slashes first.

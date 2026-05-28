@@ -11,9 +11,9 @@ alembic==1.7.5 \
 aniso8601==2.0.0 \
     --hash=sha256:085786415d3550e89785ffbedaa9bb37d41de0707a1268bdbba11249064b71d1
     # via flask-restful
-arrow==0.17.0 \
-    --hash=sha256:e098abbd9af3665aea81bdd6c869e93af4feb078e98468dd351c383af187aac5 \
-    --hash=sha256:ff08d10cda1d36c68657d6ad20d74fbea493d980f8b2d45344e00d6ed2bf6ed4
+arrow==1.4.0 \
+    --hash=sha256:749f0769958ebdc79c173ff0b0670d59051a535fa26e8eba02953dc19eb43205 \
+    --hash=sha256:ed0cc050e98001b8779e84d461b0098c4ac597e88704a655582b21d116e526d7
     # via -r requirements-prod.in
 asn1crypto==0.24.0 \
     --hash=sha256:2f1adbb7546ed199e3c90ef23ec95c5cf3585bac7d11fb7eb562a3fe89c64e87 \
@@ -1210,6 +1210,10 @@ typing-extensions==4.12.2 \
     --hash=sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d \
     --hash=sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8
     # via -r requirements-prod.in
+tzdata==2026.2 \
+    --hash=sha256:9173fde7d80d9018e02a662e168e5a2d04f87c41ea174b139fbef642eda62d10 \
+    --hash=sha256:bbe9af844f658da81a5f95019480da3a89415801f6cc966806612cc7169bffe7
+    # via arrow
 urllib3==2.7.0 \
     --hash=sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c \
     --hash=sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897

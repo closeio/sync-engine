@@ -45,7 +45,7 @@ sentry-sdk<3
 setproctitle==1.2.2
 setuptools==82.0.0
 six==1.17.0
-sqlalchemy==1.4.54
+sqlalchemy==2.0.50
 statsd==3.3.0
 tldextract==3.1.2
 structlog==23.1.0

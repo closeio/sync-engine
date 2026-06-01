@@ -53,6 +53,6 @@ typing_extensions
 urllib3==2.7.0
 vobject==0.9.6.1
 WebOb==1.8.8
-Werkzeug==3.1.5
+Werkzeug==3.1.8
 zipp==3.20.2
 zstandard==0.23.0

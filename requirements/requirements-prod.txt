@@ -507,9 +507,9 @@ html2text==2020.1.16 \
     --hash=sha256:c7c629882da0cf377d66f073329ccf34a12ed2adf0169b9285ae4e63ef54c82b \
     --hash=sha256:e296318e16b059ddb97f7a8a1d6a5c1d7af4544049a01e261731d2d5cc277bbb
     # via -r requirements-prod.in
-icalendar==4.0.9 \
-    --hash=sha256:cc73fa9c848744843046228cb66ea86cd8c18d73a51b140f7c003f760b84a997 \
-    --hash=sha256:cf1446ffdf1b6ad469451a8966cfa7694f5fac796ac6fc7cd93e28c51a637d2c
+icalendar==7.1.2 \
+    --hash=sha256:01c76243c76c549f58bb51510a8f0a4edb7c539726adda1356dfd0dc04fb7a53 \
+    --hash=sha256:ebc43ebeb357be98984b573d975118008dee3410d8df28b054ef2943cf3e367e
     # via -r requirements-prod.in
 idna==3.7 \
     --hash=sha256:028ff3aadf0609c1fd278d8ea3089299412a7a8b9bd005dd08b9f8285bcb5cfc \
@@ -889,7 +889,6 @@ pytz==2026.1.post1 \
     # via
     #   -r requirements-prod.in
     #   flask-restful
-    #   icalendar
 pyyaml==6.0.2 \
     --hash=sha256:01179a4a8559ab5de078078f37e5c1a30d76bb88519906844fd7bdea1b7729ff \
     --hash=sha256:0833f8694549e586547b576dcfaba4a6b55b9e96098b36cdc7ebefe667dfed48 \
@@ -1209,7 +1208,13 @@ traitlets==5.14.3 \
 typing-extensions==4.12.2 \
     --hash=sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d \
     --hash=sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8
-    # via -r requirements-prod.in
+    # via
+    #   -r requirements-prod.in
+    #   icalendar
+tzdata==2026.2 \
+    --hash=sha256:9173fde7d80d9018e02a662e168e5a2d04f87c41ea174b139fbef642eda62d10 \
+    --hash=sha256:bbe9af844f658da81a5f95019480da3a89415801f6cc966806612cc7169bffe7
+    # via icalendar
 urllib3==2.7.0 \
     --hash=sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c \
     --hash=sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897

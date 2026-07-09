@@ -1,8 +1,6 @@
 """Regression tests for HTML parsing."""
 
-import pytest
-
-from inbox.util.html import HTMLParseError, strip_tags
+from inbox.util.html import strip_tags
 
 
 def test_strip_tags() -> None:
@@ -14,14 +12,11 @@ def test_strip_tags() -> None:
 
     # MS Word conditional marked section
     text = "<![if word]>content<![endif]>"
-
     assert strip_tags(text).strip() == "content"
 
-    # Unknown marked section
-    text = """<![FOR]>"""
-
-    with pytest.raises(HTMLParseError):
-        strip_tags(text)
+    # An unknown marked section is simply dropped.
+    text = "before<![FOR]>after"
+    assert strip_tags(text).strip() == "beforeafter"
 
 
 def test_preserve_refs() -> None:

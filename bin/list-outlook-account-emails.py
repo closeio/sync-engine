@@ -19,6 +19,7 @@ from inbox.models.session import global_session_scope
 
 
 AccountInfo = tuple[int, int | None, str]
+FolderResult = tuple[str, str]
 CsvRow = list[str]
 
 
@@ -27,46 +28,57 @@ def get_cluster() -> str:
     return "-".join(hostname.split("-")[:2])
 
 
-def get_imap_folder_names(account_id: int) -> str:
+def get_imap_folder_names(account_id: int) -> FolderResult:
     try:
         cp = connection_pool(account_id)
         with cp.get() as crispin_client:
             folders = crispin_client.folders()
 
-        return ",".join(
-            sorted(folder.display_name for folder in folders)
+        return (
+            ",".join(sorted(folder.display_name for folder in folders)),
+            "",
         )
-    except Exception:
-        return ""
+    except Exception as exc:
+        return "", str(exc)
 
 
 def get_graph_folder_names(
     account_id: int, namespace_id: int | None
-) -> str:
+) -> FolderResult:
     if namespace_id is None:
-        return ""
+        return "", "missing namespace"
 
     try:
         events_provider = MicrosoftEventsProvider(account_id, namespace_id)
-        return ",".join(
-            sorted(
-                folder["displayName"]
-                for folder in events_provider.client._iter(
-                    "/me/mailFolders"
+        return (
+            ",".join(
+                sorted(
+                    folder["displayName"]
+                    for folder in events_provider.client._iter(
+                        "/me/mailFolders"
+                    )
                 )
-            )
+            ),
+            "",
         )
-    except Exception:
-        return ""
+    except Exception as exc:
+        return "", str(exc)
 
 
 def process_account(cluster: str, account_info: AccountInfo) -> CsvRow:
     account_id, namespace_id, email_address = account_info
+    imap_folder_names, imap_error = get_imap_folder_names(account_id)
+    graph_folder_names, graph_error = get_graph_folder_names(
+        account_id, namespace_id
+    )
     return [
         cluster,
+        str(account_id),
         email_address,
-        get_imap_folder_names(account_id),
-        get_graph_folder_names(account_id, namespace_id),
+        imap_folder_names,
+        imap_error,
+        graph_folder_names,
+        graph_error,
     ]
 
 
@@ -90,9 +102,12 @@ def main(concurrency: int) -> None:
     writer.writerow(
         [
             "cluster",
+            "account_id",
             "email_address",
             "imap_folder_names",
+            "imap_error",
             "graph_folder_names",
+            "graph_error",
         ]
     )
 

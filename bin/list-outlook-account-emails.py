@@ -6,6 +6,7 @@ from setproctitle import setproctitle  # type: ignore[import-not-found]
 setproctitle("list-outlook-account-emails")
 
 import csv
+import json
 import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -18,7 +19,7 @@ from inbox.models.backends.outlook import OutlookAccount
 from inbox.models.session import global_session_scope
 
 
-AccountInfo = tuple[int, int | None, str]
+AccountInfo = tuple[int, int | None, str, str]
 FolderResult = tuple[str, str]
 CsvRow = list[str]
 
@@ -66,7 +67,12 @@ def get_graph_folder_names(
 
 
 def process_account(cluster: str, account_info: AccountInfo) -> CsvRow:
-    account_id, namespace_id, email_address = account_info
+    (
+        account_id,
+        namespace_id,
+        email_address,
+        authalligator_username,
+    ) = account_info
     imap_folder_names, imap_error = get_imap_folder_names(account_id)
     graph_folder_names, graph_error = get_graph_folder_names(
         account_id, namespace_id
@@ -75,6 +81,7 @@ def process_account(cluster: str, account_info: AccountInfo) -> CsvRow:
         cluster,
         str(account_id),
         email_address,
+        authalligator_username,
         imap_folder_names,
         imap_error,
         graph_folder_names,
@@ -104,6 +111,7 @@ def main(concurrency: int) -> None:
             "cluster",
             "account_id",
             "email_address",
+            "authalligator_username",
             "imap_folder_names",
             "imap_error",
             "graph_folder_names",
@@ -120,6 +128,7 @@ def main(concurrency: int) -> None:
                 account.id,
                 account.namespace.id if account.namespace else None,
                 account.email_address or "",
+                json.loads(account.secret.secret)["username"],
             )
             for account in accounts.yield_per(100)
         ]

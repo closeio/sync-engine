@@ -151,7 +151,7 @@ def get_start_times(  # type: ignore[no-untyped-def]  # noqa: ANN201
 
         if len(excl_dates) > 0:
             if not isinstance(rrules, rruleset):
-                rrules = rruleset().rrule(rrules)
+                rrules = rruleset().rrule(rrules)  # type: ignore[func-returns-value]
 
             # We want naive-everything for all-day events.
             if event.all_day:

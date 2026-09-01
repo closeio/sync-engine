@@ -17,6 +17,17 @@ authorization token from Google or another service for syncing your mail. Your c
 
 The sync engine will automatically begin syncing your account with the underlying provider. The `inbox-sync` command allows you to manually stop or restart the sync by running `inbox-sync stop [YOUR_ACCOUNT]@example.com` or `inbox-sync start [YOUR_ACCOUNT]@example.com`. Note that an initial sync can take quite a while depending on how much mail you have.
 
+### Managing Dependencies
+
+We use [`uv`](https://github.com/astral-sh/uv) to manage the pinning of our
+dependencies. New dependencies should be added to the appropriate section of
+`pyproject.toml` (`[project.dependencies]` for runtime dependencies, or the
+relevant `[dependency-groups]` entry for lint/test/dev-only dependencies) and
+then `uv lock` should be run to update `uv.lock`.
+
+Run `uv sync` to install dependencies into a local virtualenv, and `uv run
+<command>` to run a command against it (e.g. `uv run pytest`).
+
 ### API Service
 
 The API service provides a REST API for interacting with your data. To start 

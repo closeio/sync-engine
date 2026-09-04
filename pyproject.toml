@@ -80,7 +80,7 @@ test = [
     "iniconfig==2.0.0",
     "mockredispy==2.9.3",
     "more-itertools==10.5.0",
-    "packaging==24.2",
+    "packaging==26.3",
     "pbr==6.1.0",
     "pluggy==1.6.0",
     "pyparsing==3.1.4",

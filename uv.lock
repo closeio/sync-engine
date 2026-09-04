@@ -773,11 +773,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/0a/f1/d7db33898151aa9a1
 
 [[package]]
 name = "more-itertools"
-version = "10.5.0"
+version = "11.1.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/51/78/65922308c4248e0eb08ebcbe67c95d48615cc6f27854b6f2e57143e9178f/more-itertools-10.5.0.tar.gz", hash = "sha256:5482bfef7849c25dc3c6dd53a6173ae4795da2a41a80faea6700d9f5846c5da6", size = 121020, upload-time = "2024-09-05T15:28:22.081Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/de/1d/f4da6f02cdffe04d6362210b807146a26044c88d839208aec273bb0d9184/more_itertools-11.1.0.tar.gz", hash = "sha256:48e8f4d9e7e5878571ecf6f2b4e57634f93cd474cc8cfbd2376f2d11b396e30d", size = 145772, upload-time = "2026-05-22T14:14:29.909Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/48/7e/3a64597054a70f7c86eb0a7d4fc315b8c1ab932f64883a297bdffeb5f967/more_itertools-10.5.0-py3-none-any.whl", hash = "sha256:037b0d3203ce90cca8ab1defbbdac29d5f993fc20131f3664dc8d6acfa872aef", size = 60952, upload-time = "2024-09-05T15:28:20.141Z" },
+    { url = "https://files.pythonhosted.org/packages/e8/3d/1087453384dbde46a8c7f9356eead2c58be8a7bf156bca40243377c85715/more_itertools-11.1.0-py3-none-any.whl", hash = "sha256:4b65538ae22f6fed0ce4874efd317463a7489796a0939fa66824dd542125a192", size = 72226, upload-time = "2026-05-22T14:14:28.824Z" },
 ]
 
 [[package]]
@@ -1455,7 +1455,7 @@ dev = [
     { name = "hypothesis", specifier = "==6.113.0" },
     { name = "iniconfig", specifier = "==2.0.0" },
     { name = "mockredispy", specifier = "==2.9.3" },
-    { name = "more-itertools", specifier = "==10.5.0" },
+    { name = "more-itertools", specifier = "==11.1.0" },
     { name = "mypy", specifier = "==1.13.0" },
     { name = "packaging", specifier = "==24.2" },
     { name = "pbr", specifier = "==6.1.0" },
@@ -1496,7 +1496,7 @@ test = [
     { name = "hypothesis", specifier = "==6.113.0" },
     { name = "iniconfig", specifier = "==2.0.0" },
     { name = "mockredispy", specifier = "==2.9.3" },
-    { name = "more-itertools", specifier = "==10.5.0" },
+    { name = "more-itertools", specifier = "==11.1.0" },
     { name = "packaging", specifier = "==24.2" },
     { name = "pbr", specifier = "==6.1.0" },
     { name = "pluggy", specifier = "==1.6.0" },

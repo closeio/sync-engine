@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any
 
-import more_itertools  # type: ignore[import-not-found]
+import more_itertools
 from requests.exceptions import HTTPError
 
 from inbox.config import config

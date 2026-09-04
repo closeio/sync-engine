@@ -56,15 +56,20 @@ RUN apt-get update \
     git \
     pkg-config \
     python3.12-dev \
-    python3.12-venv \
-    python3-pip \
     libmysqlclient-dev \
   && rm -rf /var/lib/apt/lists/*
 
-COPY /requirements/ /requirements/
-RUN python3.12 -m venv /opt/venv && \
-  /opt/venv/bin/python3.12 -m pip install --no-cache --no-deps -r /requirements/requirements-prod.txt -r /requirements/requirements-test.txt && \
-  /opt/venv/bin/python3.12 -m pip check
+WORKDIR /src
+COPY pyproject.toml uv.lock .python-version ./
+# Install uv, pinned to the version declared in pyproject.toml's [tool.uv]
+# required-version (the same canonical source CI's astral-sh/setup-uv step
+# reads), so there's exactly one place to bump it.
+RUN UV_VERSION="$(grep -m1 'required-version' pyproject.toml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')" \
+  && curl -LsSf "https://astral.sh/uv/${UV_VERSION}/install.sh" | sh
+ENV PATH="/root/.local/bin:${PATH}"
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+ENV UV_PYTHON_DOWNLOADS=never
+RUN uv sync --locked --no-install-project --no-default-groups --group test
 
 
 # --- Stage 2 --- #

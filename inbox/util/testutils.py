@@ -7,7 +7,7 @@ from typing import Literal
 
 import attr
 import dns
-import pytest  # type: ignore[import-not-found]
+import pytest
 from imapclient import IMAPClient  # type: ignore[import-untyped]
 
 from inbox.exceptions import ValidationError

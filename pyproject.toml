@@ -61,7 +61,7 @@ dependencies = [
 
 [dependency-groups]
 lint = [
-    "mypy==1.13.0",
+    "mypy==2.3.1",
     "ruff==0.8.2",
     "types-boto",
     "types-python-dateutil",

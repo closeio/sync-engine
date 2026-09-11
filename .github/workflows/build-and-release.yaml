@@ -77,8 +77,9 @@ jobs:
           version: latest
           endpoint: container-builder
 
+      # Dependabot runs have no Docker Hub credentials; they pull anonymously and never push.
       - name: Login to DockerHub
-        # if: ${{ github.ref == 'master' && github.event.pull_request.merged == true }}
+        if: github.actor != 'dependabot[bot]'
         uses: docker/login-action@v4
         with:
           username: ${{ vars.PRIVATE_RW_DOCKER_USERNAME }}
@@ -113,5 +114,6 @@ jobs:
         if: ${{ matrix.arch == 'amd64' }}
 
       - name: Push image
+        if: github.actor != 'dependabot[bot]'
         run: |
           docker push ${{ env.DOCKER_IMAGE_TAG }}

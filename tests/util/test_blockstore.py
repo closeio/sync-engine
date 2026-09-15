@@ -1,9 +1,42 @@
 import hashlib
 import pathlib
+from unittest import mock
 
 import pytest
 
 from inbox.util import blockstore
+
+
+def test_retry_on_s3_endpoint_connection_error() -> None:
+    call_count = 0
+
+    @blockstore.retry_on_s3_endpoint_connection_error
+    def eventually_succeeds() -> None:
+        nonlocal call_count
+        call_count += 1
+        if call_count <= len(blockstore.S3_RETRY_DELAYS):
+            raise blockstore.botocore.exceptions.EndpointConnectionError(
+                endpoint_url="https://example.com"
+            )
+
+    with mock.patch.object(blockstore.interruptible_threading, "sleep"):
+        eventually_succeeds()
+
+
+def test_retry_on_s3_endpoint_connection_error_gives_up() -> None:
+    always_fails = blockstore.retry_on_s3_endpoint_connection_error(
+        mock.Mock(
+            side_effect=blockstore.botocore.exceptions.EndpointConnectionError(
+                endpoint_url="https://example.com"
+            )
+        )
+    )
+
+    with (
+        mock.patch.object(blockstore.interruptible_threading, "sleep"),
+        pytest.raises(blockstore.botocore.exceptions.EndpointConnectionError),
+    ):
+        always_fails()
 
 
 @pytest.mark.usefixtures("blockstore_backend")

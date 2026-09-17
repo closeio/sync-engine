@@ -63,12 +63,9 @@ dependencies = [
 lint = [
     "mypy==1.13.0",
     "ruff==0.8.2",
-    "types-boto",
     "types-python-dateutil",
     "types-pytz",
     "types-PyYAML",
-    "types-redis",
-    "types-requests",
 ]
 test = [
     "coverage==7.6.1",

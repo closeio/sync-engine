@@ -1,11 +1,14 @@
+import functools
 import io
 import os
+import random
 import time
 from collections.abc import Callable, Iterable
 from hashlib import sha256
 
 import zstandard
 
+from inbox import interruptible_threading
 from inbox.config import config
 from inbox.logging import get_logger
 from inbox.util.itert import chunk
@@ -25,6 +28,27 @@ import botocore.exceptions  # type: ignore[import-untyped]  # noqa: E402
 # > contains byte values outside of ASCII range, and doesn't map into UTF8 space.
 # > It reduces the chances that a text file represent this value by accident.
 ZSTD_MAGIC_NUMBER_PREFIX = 0xFD2FB528.to_bytes(4, "little")
+
+S3_RETRY_DELAYS: list[int] = [1, 2, 4, 8, 16, 32]
+
+
+def retry_on_s3_endpoint_connection_error[**P, T](
+    decorated: Callable[P, T],
+) -> Callable[P, T]:
+    @functools.wraps(decorated)
+    def wrapped(*args: P.args, **kwargs: P.kwargs) -> T:
+        for delay in S3_RETRY_DELAYS:
+            try:
+                return decorated(*args, **kwargs)
+            except botocore.exceptions.EndpointConnectionError:
+                interruptible_threading.sleep(
+                    random.uniform(delay * 0.9, delay)
+                )
+
+        # The final attempt propagates its exception unchanged.
+        return decorated(*args, **kwargs)
+
+    return wrapped
 
 
 def _data_file_directory(h):  # type: ignore[no-untyped-def]
@@ -188,6 +212,7 @@ def _s3_key_exists(bucket, key) -> bool:  # type: ignore[no-untyped-def]
     return True
 
 
+@retry_on_s3_endpoint_connection_error
 def _save_to_s3_bucket(
     data_sha256: str, bucket_name: str, data: bytes, *, overwrite: bool = False
 ) -> None:
@@ -310,6 +335,7 @@ def _get_from_s3(data_sha256):  # type: ignore[no-untyped-def]
     return None
 
 
+@retry_on_s3_endpoint_connection_error
 def _get_from_s3_bucket(data_sha256: str, bucket_name: str) -> "bytes | None":
     if not data_sha256:
         return None
@@ -341,6 +367,7 @@ def _get_from_disk(data_sha256):  # type: ignore[no-untyped-def]
         return None
 
 
+@retry_on_s3_endpoint_connection_error
 def _delete_from_s3_bucket(
     data_sha256_hashes: "Iterable[str]", bucket_name: str
 ) -> None:

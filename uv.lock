@@ -37,15 +37,6 @@ wheels = [
 ]
 
 [[package]]
-name = "asn1crypto"
-version = "0.24.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/fc/f1/8db7daa71f414ddabfa056c4ef792e1461ff655c2ae2928a2b675bfed6b4/asn1crypto-0.24.0.tar.gz", hash = "sha256:9d5c20441baf0cb60a4ac34cc447c6c189024b6b4c6cd7877034f4965c464e49", size = 104964, upload-time = "2017-12-14T21:04:21.861Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ea/cd/35485615f45f30a510576f1a56d1e0a7ad7bd8ab5ed7cdc600ef7cd06222/asn1crypto-0.24.0-py2.py3-none-any.whl", hash = "sha256:2f1adbb7546ed199e3c90ef23ec95c5cf3585bac7d11fb7eb562a3fe89c64e87", size = 101571, upload-time = "2017-12-14T21:04:15.437Z" },
-]
-
-[[package]]
 name = "asttokens"
 version = "3.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -252,18 +243,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44", size = 27697, upload-time = "2022-10-25T02:36:22.414Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335, upload-time = "2022-10-25T02:36:20.889Z" },
-]
-
-[[package]]
-name = "colorlog"
-version = "6.5.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c2/42/f7a7d8eaa3420fcfc7b85c423c0800b0f2eb2241c780705f0952eafd0171/colorlog-6.5.0.tar.gz", hash = "sha256:cf62a8e389d5660d0d22be17937b25b9abef9497ddc940197d1773aa1f604339", size = 30638, upload-time = "2021-10-07T11:04:23.746Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/19/11/6daf005ecf7e00ec431f369b79029cd4a7bf47121a891f8a72be8f2b4bcb/colorlog-6.5.0-py2.py3-none-any.whl", hash = "sha256:d334b1b8dae5989b786232f05586a7a0111feb24ff9cfc8310c3347a91388717", size = 11153, upload-time = "2021-10-07T11:04:22.752Z" },
 ]
 
 [[package]]
@@ -553,27 +532,6 @@ wheels = [
 ]
 
 [[package]]
-name = "importlib-metadata"
-version = "4.8.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "zipp" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/f0/70/ca3dd67cdd368b957e73a8156f7e1a10339f9813e314cb8b4549526070da/importlib_metadata-4.8.1.tar.gz", hash = "sha256:f284b3e11256ad1e5d03ab86bb2ccd6f5339688ff17a4d797a0fe7df326f23b1", size = 41779, upload-time = "2021-08-29T15:26:52Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/71/c2/cb1855f0b2a0ae9ccc9b69f150a7aebd4a8d815bd951e74621c4154c52a8/importlib_metadata-4.8.1-py3-none-any.whl", hash = "sha256:b618b6d2d5ffa2f16add5697cf57a46c76a56229b0ed1c438322e4e95645bd15", size = 17798, upload-time = "2021-08-29T15:26:50.531Z" },
-]
-
-[[package]]
-name = "importlib-resources"
-version = "5.4.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/b5/d8/51ace1c1ea6609c01c7f46ca2978e11821aa0efaaa7516002ef6df000731/importlib_resources-5.4.0.tar.gz", hash = "sha256:d756e2f85dd4de2ba89be0b21dba2a3bbec2e871a42a3a16719258a11f87506b", size = 30554, upload-time = "2021-10-30T14:50:59.592Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/24/1b/33e489669a94da3ef4562938cd306e8fa915e13939d7b8277cb5569cb405/importlib_resources-5.4.0-py3-none-any.whl", hash = "sha256:33a95faed5fc19b4bc16b29a6eeae248a3fe69dd55d4d229d2b480e23eeaad45", size = 28066, upload-time = "2021-10-30T14:50:58.179Z" },
-]
-
-[[package]]
 name = "iniconfig"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -851,12 +809,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/7d/ea/39b988c938f75cb75
 wheels = [
     { url = "https://files.pythonhosted.org/packages/54/6f/84908cad2d6aa5144abcf7b42709fe4fdb459bc640ec7ac5786e7693dabc/prompt_toolkit-3.0.53-py3-none-any.whl", hash = "sha256:01c0891d7f9237d5e339f7d3e42cdae80b7534abb1c7c0e3352efba6231492f2", size = 392288, upload-time = "2026-07-26T20:56:12.512Z" },
 ]
-
-[[package]]
-name = "psutil"
-version = "5.8.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e1/b0/7276de53321c12981717490516b7e612364f2cb372ee8901bd4a66a000d7/psutil-5.8.0.tar.gz", hash = "sha256:0c9ccb99ab76025f2f0bbecf341d4656e9c1351db8cc8a03ccd62e318ab4b5c6", size = 470886, upload-time = "2020-12-19T01:20:42.916Z" }
 
 [[package]]
 name = "ptyprocess"
@@ -1155,15 +1107,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/a1/7f/a1d4f4c7b66f0fc02f35dc5c85f45a8b4e4a7988357a29e61c14e725ef86/setproctitle-1.2.2.tar.gz", hash = "sha256:7dfb472c8852403d34007e01d6e3c68c57eb66433fb8a5c77b13b89a160d97df", size = 23960, upload-time = "2021-01-23T03:52:36.135Z" }
 
 [[package]]
-name = "setuptools"
-version = "82.0.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/82/f3/748f4d6f65d1756b9ae577f329c951cda23fb900e4de9f70900ced962085/setuptools-82.0.0.tar.gz", hash = "sha256:22e0a2d69474c6ae4feb01951cb69d515ed23728cf96d05513d36e42b62b37cb", size = 1144893, upload-time = "2026-02-08T15:08:40.206Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e1/c6/76dc613121b793286a3f91621d7b75a2b493e0390ddca50f11993eadf192/setuptools-82.0.0-py3-none-any.whl", hash = "sha256:70b18734b607bd1da571d097d236cfcfacaf01de45717d59e6e04b96877532e0", size = 1003468, upload-time = "2026-02-08T15:08:38.723Z" },
-]
-
-[[package]]
 name = "six"
 version = "1.17.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1236,14 +1179,12 @@ source = { virtual = "." }
 dependencies = [
     { name = "alembic" },
     { name = "arrow" },
-    { name = "asn1crypto" },
     { name = "attrs" },
     { name = "authalligator-client" },
     { name = "boto3" },
     { name = "botocore" },
     { name = "ciso8601" },
     { name = "click" },
-    { name = "colorlog" },
     { name = "cryptography" },
     { name = "dnspython" },
     { name = "flanker" },
@@ -1255,14 +1196,12 @@ dependencies = [
     { name = "html2text" },
     { name = "icalendar" },
     { name = "imapclient" },
-    { name = "importlib-metadata" },
-    { name = "importlib-resources" },
     { name = "ipython" },
     { name = "json-log-formatter" },
     { name = "limitlion" },
     { name = "lxml" },
+    { name = "more-itertools" },
     { name = "mysqlclient" },
-    { name = "psutil" },
     { name = "pympler" },
     { name = "pynacl" },
     { name = "python-dateutil" },
@@ -1271,12 +1210,8 @@ dependencies = [
     { name = "pyyaml" },
     { name = "redis" },
     { name = "requests" },
-    { name = "requests-file" },
-    { name = "s3transfer" },
     { name = "sentry-sdk" },
     { name = "setproctitle" },
-    { name = "setuptools" },
-    { name = "six" },
     { name = "sqlalchemy" },
     { name = "statsd" },
     { name = "structlog" },
@@ -1285,7 +1220,6 @@ dependencies = [
     { name = "urllib3" },
     { name = "vobject" },
     { name = "werkzeug" },
-    { name = "zipp" },
     { name = "zstandard" },
 ]
 
@@ -1296,7 +1230,6 @@ dev = [
     { name = "hypothesis" },
     { name = "iniconfig" },
     { name = "mockredispy" },
-    { name = "more-itertools" },
     { name = "mypy" },
     { name = "packaging" },
     { name = "pluggy" },
@@ -1326,7 +1259,6 @@ test = [
     { name = "hypothesis" },
     { name = "iniconfig" },
     { name = "mockredispy" },
-    { name = "more-itertools" },
     { name = "packaging" },
     { name = "pluggy" },
     { name = "pyparsing" },
@@ -1341,14 +1273,12 @@ test = [
 requires-dist = [
     { name = "alembic", specifier = "==1.7.5" },
     { name = "arrow", specifier = "==0.17.0" },
-    { name = "asn1crypto", specifier = "==0.24.0" },
     { name = "attrs", specifier = "==23.1.0" },
     { name = "authalligator-client", url = "https://github.com/closeio/authalligator-client/archive/e7cc8e0bc5b1f2285ab5997e2590a8eb056fc627.zip" },
     { name = "boto3", specifier = "==1.35.50" },
     { name = "botocore", specifier = "==1.35.50" },
     { name = "ciso8601", specifier = "==2.2.0" },
     { name = "click", specifier = "==8.1.7" },
-    { name = "colorlog", specifier = "==6.5.0" },
     { name = "cryptography", specifier = "==50.0.0" },
     { name = "dnspython", specifier = "==2.6.1" },
     { name = "flanker", url = "https://github.com/closeio/flanker-new/archive/fa272d95345d45e8bb1f9bc32bc2c074bf52a484.zip" },
@@ -1360,14 +1290,12 @@ requires-dist = [
     { name = "html2text", specifier = "==2020.1.16" },
     { name = "icalendar", specifier = "==4.0.9" },
     { name = "imapclient", specifier = "==2.2.0" },
-    { name = "importlib-metadata", specifier = "==4.8.1" },
-    { name = "importlib-resources", specifier = "==5.4.0" },
     { name = "ipython", specifier = "==9.12.0" },
     { name = "json-log-formatter", specifier = "==1.0" },
     { name = "limitlion", specifier = "==1.1.0" },
     { name = "lxml", specifier = "==6.1.0" },
+    { name = "more-itertools", specifier = "==10.5.0" },
     { name = "mysqlclient", specifier = "==2.2.5" },
-    { name = "psutil", specifier = "==5.8.0" },
     { name = "pympler", specifier = "==0.9" },
     { name = "pynacl", specifier = "==1.6.2" },
     { name = "python-dateutil", specifier = "==2.8.2" },
@@ -1376,12 +1304,8 @@ requires-dist = [
     { name = "pyyaml", specifier = "==6.0.2" },
     { name = "redis", specifier = "==5.0.2" },
     { name = "requests", specifier = "==2.34.2" },
-    { name = "requests-file", specifier = "==1.5.1" },
-    { name = "s3transfer", specifier = "==0.10.3" },
     { name = "sentry-sdk", specifier = "<3" },
     { name = "setproctitle", specifier = "==1.2.2" },
-    { name = "setuptools", specifier = "==82.0.0" },
-    { name = "six", specifier = "==1.17.0" },
     { name = "sqlalchemy", specifier = "==1.4.54" },
     { name = "statsd", specifier = "==3.3.0" },
     { name = "structlog", specifier = "==23.1.0" },
@@ -1390,7 +1314,6 @@ requires-dist = [
     { name = "urllib3", specifier = "==2.7.0" },
     { name = "vobject", specifier = "==0.9.6.1" },
     { name = "werkzeug", specifier = "==3.1.8" },
-    { name = "zipp", specifier = "==3.20.2" },
     { name = "zstandard", specifier = "==0.23.0" },
 ]
 
@@ -1401,7 +1324,6 @@ dev = [
     { name = "hypothesis", specifier = "==6.113.0" },
     { name = "iniconfig", specifier = "==2.0.0" },
     { name = "mockredispy", specifier = "==2.9.3" },
-    { name = "more-itertools", specifier = "==10.5.0" },
     { name = "mypy", specifier = "==1.13.0" },
     { name = "packaging", specifier = "==24.2" },
     { name = "pluggy", specifier = "==1.6.0" },
@@ -1431,7 +1353,6 @@ test = [
     { name = "hypothesis", specifier = "==6.113.0" },
     { name = "iniconfig", specifier = "==2.0.0" },
     { name = "mockredispy", specifier = "==2.9.3" },
-    { name = "more-itertools", specifier = "==10.5.0" },
     { name = "packaging", specifier = "==24.2" },
     { name = "pluggy", specifier = "==1.6.0" },
     { name = "pyparsing", specifier = "==3.1.4" },
@@ -1604,15 +1525,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/dd/b2/381be8cfdee792dd117872481b6e378f85c957dd7c5bca38897b08f765fd/werkzeug-3.1.8.tar.gz", hash = "sha256:9bad61a4268dac112f1c5cd4630a56ede601b6ed420300677a869083d70a4c44", size = 875852, upload-time = "2026-04-02T18:49:14.268Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/93/8c/2e650f2afeb7ee576912636c23ddb621c91ac6a98e66dc8d29c3c69446e1/werkzeug-3.1.8-py3-none-any.whl", hash = "sha256:63a77fb8892bf28ebc3178683445222aa500e48ebad5ec77b0ad80f8726b1f50", size = 226459, upload-time = "2026-04-02T18:49:12.72Z" },
-]
-
-[[package]]
-name = "zipp"
-version = "3.20.2"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/54/bf/5c0000c44ebc80123ecbdddba1f5dcd94a5ada602a9c225d84b5aaa55e86/zipp-3.20.2.tar.gz", hash = "sha256:bc9eb26f4506fda01b81bcde0ca78103b6e62f991b381fec825435c836edbc29", size = 24199, upload-time = "2024-09-13T13:44:16.101Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/62/8b/5ba542fa83c90e09eac972fc9baca7a88e7e7ca4b221a89251954019308b/zipp-3.20.2-py3-none-any.whl", hash = "sha256:a817ac80d6cf4b23bf7f2828b7cabf326f15a001bea8b1f9b49631780ba28350", size = 9200, upload-time = "2024-09-13T13:44:14.38Z" },
 ]
 
 [[package]]

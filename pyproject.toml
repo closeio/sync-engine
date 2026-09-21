@@ -62,7 +62,7 @@ lint = [
 test = [
     "coverage==7.6.1",
     "freezegun==1.5.1",
-    "hypothesis==6.113.0",
+    "hypothesis==6.168.0",
     "iniconfig==2.0.0",
     "mockredispy==2.9.3",
     "packaging==24.2",

@@ -8,7 +8,7 @@ import socket
 import sys
 
 import click
-import setproctitle  # type: ignore[import-not-found]
+import setproctitle
 
 # Check that the inbox package is installed. It seems Vagrant may sometimes
 # fail to provision the box appropriately; this check is a reasonable

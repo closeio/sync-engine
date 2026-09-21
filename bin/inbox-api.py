@@ -6,7 +6,7 @@ from typing import Any
 
 import click
 import werkzeug.serving
-from setproctitle import setproctitle  # type: ignore[import-not-found]
+from setproctitle import setproctitle
 
 setproctitle("inbox-api")
 

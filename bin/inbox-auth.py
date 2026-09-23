@@ -4,7 +4,7 @@
 import sys
 
 import click
-from setproctitle import setproctitle  # type: ignore[import-not-found]
+from setproctitle import setproctitle
 
 setproctitle("inbox-auth")
 

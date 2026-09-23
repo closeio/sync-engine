@@ -10,7 +10,7 @@ import os
 import sys
 
 import click
-from setproctitle import setproctitle  # type: ignore[import-not-found]
+from setproctitle import setproctitle
 
 from inbox.config import config as inbox_config
 from inbox.error_handling import maybe_enable_error_reporting

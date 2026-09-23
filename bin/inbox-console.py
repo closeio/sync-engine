@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-from setproctitle import setproctitle  # type: ignore[import-not-found]
+from setproctitle import setproctitle
 
 setproctitle("inbox-console")
 

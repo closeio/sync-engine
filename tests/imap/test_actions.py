@@ -1,9 +1,12 @@
 import time
+from datetime import datetime, timedelta
 from unittest import mock
 
 import pytest
 from flanker import mime
+from imapclient.exceptions import LoginError
 
+from inbox import interruptible_threading
 from inbox.actions.base import (
     change_labels,
     create_folder,
@@ -20,11 +23,16 @@ from inbox.actions.base import (
     update_label,
 )
 from inbox.crispin import writable_connection_pool
+from inbox.interruptible_threading import InterruptibleThreadTimeout
 from inbox.models import ActionLog, Category
 from inbox.models.action_log import schedule_action
 from inbox.sendmail.base import create_message_from_json
 from inbox.sendmail.base import update_draft as sendmail_update_draft
-from inbox.transactions.actions import SyncbackService
+from inbox.transactions.actions import (
+    ACTION_MAX_NR_OF_RETRIES,
+    SyncbackService,
+    SyncbackWorker,
+)
 from tests.util.base import add_fake_category, add_fake_imapuid
 
 
@@ -276,6 +284,259 @@ def test_failed_event_creation(
     assert all(a.status == "failed" for a in q)
 
     service.stop()
+
+
+@pytest.fixture
+def failing_connection_pool(monkeypatch):
+    """
+    Patch the writable connection pool of syncback, so that each connection
+    fails with a Gmail login error.
+    """
+    connection_pool = mock.MagicMock()
+    connection_pool.get.return_value.__enter__.side_effect = LoginError(
+        "[ALERT] Account exceeded command or bandwidth limits. (Failure)"
+    )
+    monkeypatch.setattr(
+        "inbox.transactions.actions.writable_connection_pool",
+        lambda account_id: connection_pool,
+    )
+    return connection_pool
+
+
+def schedule_and_fetch_action(
+    db, account, action, record, **extra_args
+) -> ActionLog:
+    """Schedule `action` for `record`, and return its `ActionLog`."""
+    schedule_action(
+        action, record, account.namespace.id, db.session, **extra_args
+    )
+    db.session.commit()
+    return (
+        db.session.query(ActionLog)
+        .filter_by(
+            namespace_id=account.namespace.id,
+            record_id=record.id,
+            action=action,
+        )
+        .one()
+    )
+
+
+def schedule_mark_as_read(db, account, message) -> ActionLog:
+    """Schedule a `mark_unread` action that marks `message` as read."""
+    return schedule_and_fetch_action(
+        db, account, "mark_unread", message, unread=False
+    )
+
+
+def make_syncback_service() -> SyncbackService:
+    return SyncbackService(
+        syncback_id=0, process_number=0, total_processes=1, num_workers=1
+    )
+
+
+def test_connection_error_counts_as_failure_of_first_task(
+    db, default_account, message, failing_connection_pool
+) -> None:
+    action_log_entry = schedule_mark_as_read(db, default_account, message)
+    other_action_log_entry = schedule_and_fetch_action(
+        db, default_account, "mark_starred", message, starred=True
+    )
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(
+        db.session, [action_log_entry, other_action_log_entry]
+    )
+    assert len(batch_task.tasks) == 2
+
+    for retries in range(1, ACTION_MAX_NR_OF_RETRIES):
+        batch_task.execute()
+        # Commit to end the transaction, and read the new state of the action.
+        db.session.commit()
+        assert action_log_entry.retries == retries
+        assert action_log_entry.status == "pending"
+
+    batch_task.execute()
+    db.session.commit()
+    assert action_log_entry.retries == ACTION_MAX_NR_OF_RETRIES
+    assert action_log_entry.status == "failed"
+    assert other_action_log_entry.retries == 0
+    assert other_action_log_entry.status == "pending"
+    assert failing_connection_pool.get.call_count == ACTION_MAX_NR_OF_RETRIES
+
+
+def test_connection_error_counts_as_failure_of_first_imap_task(
+    db, default_account, message, event, failing_connection_pool
+) -> None:
+    event_action_log_entry = schedule_and_fetch_action(
+        db, default_account, "update_event", event
+    )
+    mail_action_log_entry = schedule_mark_as_read(db, default_account, message)
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(
+        db.session, [event_action_log_entry, mail_action_log_entry]
+    )
+    assert batch_task.tasks[0].action_name == "update_event"
+
+    batch_task.execute()
+    db.session.commit()
+
+    assert event_action_log_entry.retries == 0
+    assert mail_action_log_entry.retries == 1
+
+
+def test_connection_error_skips_task_without_pending_actions(
+    db, default_account, message, failing_connection_pool
+) -> None:
+    action_log_entry = schedule_mark_as_read(db, default_account, message)
+    other_action_log_entry = schedule_and_fetch_action(
+        db, default_account, "mark_starred", message, starred=True
+    )
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(
+        db.session, [action_log_entry, other_action_log_entry]
+    )
+    action_log_entry.status = "successful"
+    db.session.commit()
+
+    batch_task.execute()
+    db.session.commit()
+
+    assert action_log_entry.retries == 0
+    assert other_action_log_entry.retries == 1
+
+
+def test_connection_error_delays_next_attempt(
+    db, default_account, message, failing_connection_pool
+) -> None:
+    action_log_entry = schedule_mark_as_read(db, default_account, message)
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+    batch_task.execute()
+    service.notify_worker_finished(batch_task.action_log_ids)
+    db.session.commit()
+
+    assert service._batch_log_entries(db.session, [action_log_entry]) is None
+
+    action_log_entry.updated_at = datetime.utcnow() - timedelta(
+        seconds=service.retry_interval + 1
+    )
+    db.session.commit()
+    assert (
+        service._batch_log_entries(db.session, [action_log_entry]) is not None
+    )
+
+
+def test_connection_timeout_counts_as_failure(
+    db, default_account, message, failing_connection_pool, monkeypatch
+) -> None:
+    failing_connection_pool.get.return_value.__enter__.side_effect = (
+        InterruptibleThreadTimeout()
+    )
+    syncback_logger = mock.MagicMock()
+    monkeypatch.setattr("inbox.transactions.actions.logger", syncback_logger)
+    action_log_entry = schedule_mark_as_read(db, default_account, message)
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    with pytest.raises(InterruptibleThreadTimeout):
+        batch_task.execute()
+
+    db.session.commit()
+    assert action_log_entry.retries == 1
+    assert action_log_entry.status == "pending"
+    syncback_logger.new.return_value.exception.assert_called_once_with(
+        "Syncback connection timed out", account_id=default_account.id
+    )
+
+
+def test_slow_connection_counts_as_failure(
+    db, default_account, message, monkeypatch
+) -> None:
+    monkeypatch.setattr(
+        "inbox.transactions.actions.writable_connection_pool",
+        lambda account_id: mock.MagicMock(),
+    )
+    action_log_entry = schedule_mark_as_read(db, default_account, message)
+    service = make_syncback_service()
+    service.task_queue.put(
+        service._batch_log_entries(db.session, [action_log_entry])
+    )
+    # With a timeout of 0 per task, the connection step uses up the deadline
+    # of the batch, like a slow login.
+    worker = SyncbackWorker(service, task_timeout=0)
+    service.workers.append(worker)
+    worker.start()
+    try:
+        assert service.worker_did_finish.wait(timeout=5)
+    finally:
+        service.stop()
+
+    db.session.commit()
+    assert action_log_entry.retries == 1
+    assert action_log_entry.status == "pending"
+
+
+def test_timeout_counts_as_failure_of_task(
+    db, default_account, message, monkeypatch
+) -> None:
+    def function_for_action(name):
+        def func(*args):
+            raise InterruptibleThreadTimeout()
+
+        return func
+
+    monkeypatch.setattr(
+        "inbox.transactions.actions.function_for_action", function_for_action
+    )
+    monkeypatch.setattr(
+        "inbox.transactions.actions.writable_connection_pool",
+        lambda account_id: mock.MagicMock(),
+    )
+    syncback_logger = mock.MagicMock()
+    monkeypatch.setattr("inbox.transactions.actions.logger", syncback_logger)
+    action_log_entry = schedule_mark_as_read(db, default_account, message)
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    with pytest.raises(InterruptibleThreadTimeout):
+        batch_task.execute()
+
+    db.session.commit()
+    assert action_log_entry.retries == 1
+    assert action_log_entry.status == "pending"
+    syncback_logger.new.return_value.exception.assert_called_once_with(
+        "Syncback action timed out",
+        account_id=default_account.id,
+        provider=default_account.verbose_provider,
+    )
+
+
+def test_worker_logs_batch_timeout(default_account, monkeypatch) -> None:
+    class TimedOutTask:
+        account_id = default_account.id
+        action_log_ids: list[int] = []
+
+        def timeout(self, per_task_timeout):
+            return 0
+
+        def execute(self):
+            interruptible_threading.check_interrupted()
+
+    service = make_syncback_service()
+    # Patch the logger after the service exists, so that only the worker
+    # uses the mock.
+    syncback_logger = mock.MagicMock()
+    monkeypatch.setattr("inbox.transactions.actions.logger", syncback_logger)
+    service.task_queue.put(TimedOutTask())
+    service._restart_workers()
+    try:
+        assert service.worker_did_finish.wait(timeout=5)
+    finally:
+        service.stop()
+
+    syncback_logger.new.return_value.warning.assert_called_once_with(
+        "Syncback batch timed out", account_id=default_account.id
+    )
 
 
 def test_move_uses_imap_move_when_supported(

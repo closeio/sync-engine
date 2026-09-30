@@ -77,7 +77,7 @@ def test_generic_drafts_flag_constrained_by_folder(
     assert message.is_draft == (folder_role == "drafts")
 
 
-def test_update_categories_when_actionlog_entry_missing(
+def test_categories_follow_imap_labels_without_label_change(
     db, default_account, message, imapuid
 ) -> None:
     message.categories_changes = True

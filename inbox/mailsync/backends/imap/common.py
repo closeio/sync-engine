@@ -17,12 +17,11 @@ from datetime import datetime
 from sqlalchemy import bindparam, desc  # type: ignore[import-untyped]
 from sqlalchemy.orm import Session  # type: ignore[import-untyped]
 from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
-from sqlalchemy.sql.expression import func  # type: ignore[import-untyped]
 
 from inbox.contacts.processing import update_contacts_from_message
 from inbox.crispin import RawMessage
 from inbox.logging import get_logger
-from inbox.models import Account, ActionLog, Folder, Message, MessageCategory
+from inbox.models import Account, Folder, Message, MessageCategory
 from inbox.models.backends.imap import ImapFolderInfo, ImapUid
 from inbox.models.category import Category
 from inbox.models.session import session_scope
@@ -161,15 +160,6 @@ def update_message_metadata(
     # a different table.
     if old_categories or new_categories:
         message.updated_at = update_time
-
-    """
-    if not message.categories_changes:
-        # No syncback actions scheduled, so there is no danger of
-        # overwriting modified local state.
-        message.categories = categories
-    else:
-        _update_categories(session, message, categories)
-    """
 
 
 def update_metadata(  # type: ignore[no-untyped-def]
@@ -367,44 +357,3 @@ def create_imap_message(
     )
 
     return imapuid
-
-
-def _update_categories(  # type: ignore[no-untyped-def]
-    db_session, message, synced_categories
-) -> None:
-    now = datetime.utcnow()
-
-    # We make the simplifying assumption that only the latest syncback action
-    # matters, since it reflects the current local state.
-    actionlog_id = (
-        db_session.query(func.max(ActionLog.id))
-        .filter(
-            ActionLog.namespace_id == message.namespace_id,
-            ActionLog.table_name == "message",
-            ActionLog.record_id == message.id,
-            ActionLog.action.in_(["change_labels", "move"]),
-        )
-        .scalar()
-    )
-    if actionlog_id is not None:
-        actionlog = db_session.query(ActionLog).get(actionlog_id)
-        # Do /not/ overwrite message.categories in case of a recent local
-        # change - namely, a still 'pending' action or one that completed
-        # recently.
-        if (
-            actionlog.status == "pending"
-            or (now - actionlog.updated_at).total_seconds() <= 90
-        ):
-            return
-
-    # We completed the syncback action /long enough ago/ (on average and
-    # with an error margin) that:
-    # - if it completed successfully, sync has picked it up; so, safe to
-    # overwrite message.categories
-    # - if syncback failed, the local changes made can be overwritten
-    # without confusing the API user.
-    # TODO[k]/(emfree): Implement proper rollback of local state in this case.
-    # This is needed in order to pick up future changes to the message,
-    # the local_changes counter is reset as well.
-    message.categories = synced_categories
-    message.categories_changes = False

@@ -110,6 +110,12 @@ def remote_move(  # type: ignore[no-untyped-def]
         return
 
     for folder_name, uids in uids_for_message.items():
+        # The UIDs in the destination folder are already in place. Some
+        # servers reject a `MOVE` into the same folder, and a `COPY` into it
+        # gives the message a new UID.
+        if folder_name == destination:
+            continue
+
         crispin_client.select_folder_if_necessary(folder_name, uidvalidity_cb)
 
         if crispin_client.move_supported():

@@ -8,6 +8,7 @@ talking to the same database backend things could go really badly.
 
 """
 
+import contextlib
 import queue
 import random
 import threading
@@ -40,7 +41,10 @@ from inbox.config import config
 from inbox.crispin import writable_connection_pool
 from inbox.events.actions.base import create_event, delete_event, update_event
 from inbox.ignition import engine_manager
-from inbox.interruptible_threading import InterruptibleThread
+from inbox.interruptible_threading import (
+    InterruptibleThread,
+    InterruptibleThreadTimeout,
+)
 from inbox.logging import get_logger
 from inbox.models import ActionLog, Event
 from inbox.models.session import session_scope, session_scope_by_shard_id
@@ -563,7 +567,32 @@ class SyncbackBatchTask:
 
     def execute(self) -> None:
         log = logger.new()
-        with self.semaphore, self._crispin_client_or_none() as crispin_client:
+        with self.semaphore, contextlib.ExitStack() as exit_stack:
+            try:
+                crispin_client = exit_stack.enter_context(
+                    self._crispin_client_or_none()
+                )
+                # A connection that uses up the deadline of the batch is a
+                # failure too.
+                interruptible_threading.check_interrupted()
+            except Exception:
+                log.warning(
+                    "Syncback connection failed",
+                    account_id=self.account_id,
+                    exc_info=True,
+                )
+                self._record_connection_failure()
+                return
+            except InterruptibleThreadTimeout:
+                log.warning(
+                    "Syncback connection timed out",
+                    account_id=self.account_id,
+                    exc_info=True,
+                )
+                self._record_connection_failure()
+                # The timeout must still stop the batch.
+                raise
+
             log.debug(
                 "Syncback running batch of actions",
                 num_actions=len(self.tasks),
@@ -580,6 +609,13 @@ class SyncbackBatchTask:
                     # Stop executing further actions for an account if any
                     # failed.
                     break
+
+    def _record_connection_failure(self) -> None:
+        # Only the tasks that use the connection need it. Count the failure
+        # for the first of them with pending actions.
+        for task in self.tasks:
+            if task.uses_crispin_client() and task.record_failure():
+                break
 
     def uses_crispin_client(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return any([task.uses_crispin_client() for task in self.tasks])
@@ -688,14 +724,7 @@ class SyncbackTask:
         """
         interruptible_threading.check_interrupted()
 
-        self.log = logger.new(
-            record_ids=list(set(self.record_ids)),
-            action_log_ids=self.action_log_ids[:100],
-            n_action_log_ids=len(self.action_log_ids),
-            action=self.action_name,
-            account_id=self.account_id,
-            extra_args=self.extra_args,
-        )
+        self._bind_log()
 
         # Double-check that the action is still pending.
         # Although the task queue is populated based on pending actions, it's
@@ -740,30 +769,67 @@ class SyncbackTask:
                 account_id=self.account_id,
                 provider=self.provider,
             )
-            with session_scope(self.account_id) as db_session:
-                action_log_entries = db_session.query(ActionLog).filter(
-                    ActionLog.id.in_(action_ids_to_process)
+            self._increment_retries(action_ids_to_process)
+            return False
+        except InterruptibleThreadTimeout:
+            self.log.warning(
+                "Syncback action timed out",
+                account_id=self.account_id,
+                provider=self.provider,
+                exc_info=True,
+            )
+            self._increment_retries(action_ids_to_process)
+            # The timeout must still stop the batch.
+            raise
+
+    def record_failure(self) -> bool:
+        """
+        Count a failure of the task for its actions that are pending. Return
+        `True` if the task had pending actions.
+        """
+        self._bind_log()
+        (_, action_ids_to_process) = self._get_records_and_actions_to_process()
+        if not action_ids_to_process:
+            return False
+        self._increment_retries(action_ids_to_process)
+        return True
+
+    def _bind_log(self) -> None:
+        """Set `self.log` to a new logger with the details of the task."""
+        self.log = logger.new(
+            record_ids=list(set(self.record_ids)),
+            action_log_ids=self.action_log_ids[:100],
+            n_action_log_ids=len(self.action_log_ids),
+            action=self.action_name,
+            account_id=self.account_id,
+            extra_args=self.extra_args,
+        )
+
+    def _increment_retries(self, action_ids: list[int]) -> None:
+        """
+        Increment `retries` of the actions with the IDs in `action_ids`. If
+        one of them reaches `ACTION_MAX_NR_OF_RETRIES`, mark all of them as
+        failed.
+        """
+        with session_scope(self.account_id) as db_session:
+            action_log_entries = db_session.query(ActionLog).filter(
+                ActionLog.id.in_(action_ids)
+            )
+
+            marked_as_failed = False
+            for action_log_entry in action_log_entries:
+                action_log_entry.retries += 1
+                if action_log_entry.retries >= ACTION_MAX_NR_OF_RETRIES:
+                    marked_as_failed = True
+
+            if marked_as_failed:
+                self.log.debug(
+                    "marking actions as failed", action_log_ids=action_ids
                 )
-
-                marked_as_failed = False
+                # If we merged actions, fail them all at the same time.
                 for action_log_entry in action_log_entries:
-                    action_log_entry.retries += 1
-                    if action_log_entry.retries == ACTION_MAX_NR_OF_RETRIES:
-                        marked_as_failed = True
-
-                if marked_as_failed:
-                    self.log.debug(
-                        "marking actions as failed",
-                        action_log_ids=action_ids_to_process,
-                    )
-                    # If we merged actions, fail them all at the same time.
-                    for action_log_entry in action_log_entries:
-                        self._mark_action_as_failed(
-                            action_log_entry, db_session
-                        )
-                db_session.commit()
-
-                return False
+                    self._mark_action_as_failed(action_log_entry, db_session)
+            db_session.commit()
 
     def _get_records_and_actions_to_process(  # type: ignore[no-untyped-def]
         self,
@@ -882,7 +948,16 @@ class SyncbackWorker(InterruptibleThread):
                 with interruptible_threading.timeout(
                     task.timeout(self.task_timeout)
                 ):
-                    task.execute()
+                    # Log every timeout of the batch, not only the timeouts
+                    # inside an action.
+                    try:
+                        task.execute()
+                    except InterruptibleThreadTimeout:
+                        self.log.warning(
+                            "Syncback batch timed out",
+                            account_id=task.account_id,
+                        )
+                        raise
             except Exception:
                 self.log.exception(
                     "SyncbackWorker caught exception",

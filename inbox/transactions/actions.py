@@ -576,15 +576,18 @@ class SyncbackBatchTask:
                 # failure too.
                 interruptible_threading.check_interrupted()
             except Exception:
-                log.exception(
-                    "Syncback connection failed", account_id=self.account_id
+                log.warning(
+                    "Syncback connection failed",
+                    account_id=self.account_id,
+                    exc_info=True,
                 )
                 self._record_connection_failure()
                 return
             except InterruptibleThreadTimeout:
-                log.exception(
+                log.warning(
                     "Syncback connection timed out",
                     account_id=self.account_id,
+                    exc_info=True,
                 )
                 self._record_connection_failure()
                 # The timeout must still stop the batch.
@@ -769,10 +772,11 @@ class SyncbackTask:
             self._increment_retries(action_ids_to_process)
             return False
         except InterruptibleThreadTimeout:
-            self.log.exception(
+            self.log.warning(
                 "Syncback action timed out",
                 account_id=self.account_id,
                 provider=self.provider,
+                exc_info=True,
             )
             self._increment_retries(action_ids_to_process)
             # The timeout must still stop the batch.

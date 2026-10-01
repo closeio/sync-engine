@@ -448,8 +448,10 @@ def test_connection_timeout_counts_as_failure(
     db.session.commit()
     assert action_log_entry.retries == 1
     assert action_log_entry.status == "pending"
-    syncback_logger.new.return_value.exception.assert_called_once_with(
-        "Syncback connection timed out", account_id=default_account.id
+    syncback_logger.new.return_value.warning.assert_called_once_with(
+        "Syncback connection timed out",
+        account_id=default_account.id,
+        exc_info=True,
     )
 
 
@@ -508,10 +510,11 @@ def test_timeout_counts_as_failure_of_task(
     db.session.commit()
     assert action_log_entry.retries == 1
     assert action_log_entry.status == "pending"
-    syncback_logger.new.return_value.exception.assert_called_once_with(
+    syncback_logger.new.return_value.warning.assert_called_once_with(
         "Syncback action timed out",
         account_id=default_account.id,
         provider=default_account.verbose_provider,
+        exc_info=True,
     )
 
 

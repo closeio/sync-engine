@@ -75,8 +75,13 @@ def is_error_message_disabled_imap(error_message: str) -> bool:
     return "you are yet to enable imap" in error_message.lower()
 
 
+# Timeout in seconds for the connection to the IMAP server, and for each read
+# from it or write to it.
+IMAP_SOCKET_TIMEOUT = 300
+
+
 def create_imap_connection(  # type: ignore[no-untyped-def]  # noqa: ANN201
-    host, port, use_timeout: bool = True
+    host, port
 ):
     """
     Return a connection to the IMAP server.
@@ -84,13 +89,16 @@ def create_imap_connection(  # type: ignore[no-untyped-def]  # noqa: ANN201
     If the port is the SSL port (993), use an SSL connection. Otherwise, use
     STARTTLS.
 
+    The socket of the connection times out after `IMAP_SOCKET_TIMEOUT`
+    seconds. Thus, a server that does not respond cannot block the caller
+    forever.
+
     Raises:
         SSLNotSupportedError: If an encrypted connection is not supported by
             the IMAP server.
 
     """
     is_ssl_port = port == 993
-    timeout = 300 if use_timeout else None
 
     # TODO: certificate pinning for well known sites
     context = create_default_context()
@@ -100,7 +108,7 @@ def create_imap_connection(  # type: ignore[no-untyped-def]  # noqa: ANN201
         use_uid=True,
         ssl=is_ssl_port,
         ssl_context=context,
-        timeout=timeout,
+        timeout=IMAP_SOCKET_TIMEOUT,
     )
 
     if not is_ssl_port:

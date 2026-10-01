@@ -1,3 +1,4 @@
+import imaplib
 import time
 from datetime import datetime, timedelta
 from unittest import mock
@@ -22,7 +23,7 @@ from inbox.actions.base import (
     update_folder,
     update_label,
 )
-from inbox.crispin import writable_connection_pool
+from inbox.crispin import CrispinConnectionPool, writable_connection_pool
 from inbox.interruptible_threading import InterruptibleThreadTimeout
 from inbox.models import ActionLog, Category
 from inbox.models.action_log import schedule_action
@@ -339,6 +340,46 @@ def make_syncback_service() -> SyncbackService:
     )
 
 
+def make_actions_raise(monkeypatch, error: BaseException) -> None:
+    """Patch syncback, so that each action raises `error`."""
+
+    def function_for_action(name):
+        def func(*args):
+            raise error
+
+        return func
+
+    monkeypatch.setattr(
+        "inbox.transactions.actions.function_for_action", function_for_action
+    )
+
+
+@pytest.fixture
+def syncback_crispin_client():
+    return mock.Mock()
+
+
+@pytest.fixture
+def syncback_connection_pool(
+    default_account, syncback_crispin_client, monkeypatch
+):
+    """
+    Patch the writable connection pool of syncback with a real pool, whose
+    only client is `syncback_crispin_client`.
+    """
+    connection_pool = CrispinConnectionPool(
+        default_account.id, num_connections=1, readonly=False
+    )
+    monkeypatch.setattr(
+        connection_pool, "_new_connection", lambda: syncback_crispin_client
+    )
+    monkeypatch.setattr(
+        "inbox.transactions.actions.writable_connection_pool",
+        lambda account_id: connection_pool,
+    )
+    return connection_pool
+
+
 def test_connection_error_counts_as_failure_of_first_task(
     db, default_account, message, failing_connection_pool
 ) -> None:
@@ -485,15 +526,7 @@ def test_slow_connection_counts_as_failure(
 def test_timeout_counts_as_failure_of_task(
     db, default_account, message, monkeypatch
 ) -> None:
-    def function_for_action(name):
-        def func(*args):
-            raise InterruptibleThreadTimeout()
-
-        return func
-
-    monkeypatch.setattr(
-        "inbox.transactions.actions.function_for_action", function_for_action
-    )
+    make_actions_raise(monkeypatch, InterruptibleThreadTimeout())
     monkeypatch.setattr(
         "inbox.transactions.actions.writable_connection_pool",
         lambda account_id: mock.MagicMock(),
@@ -544,6 +577,85 @@ def test_worker_logs_batch_timeout(default_account, monkeypatch) -> None:
     syncback_logger.new.return_value.warning.assert_called_once_with(
         "Syncback batch timed out", account_id=default_account.id
     )
+
+
+@pytest.mark.parametrize(
+    ("error", "connection_is_usable"),
+    [
+        (TimeoutError("The read operation timed out"), False),
+        (imaplib.IMAP4.abort("socket error: EOF"), False),
+        (
+            imaplib.IMAP4.error(
+                "move failed: [CANNOT] UID MOVE not allowed for same folder"
+            ),
+            True,
+        ),
+        (ValueError(), True),
+    ],
+)
+def test_failed_task_logs_out_only_usable_connection(
+    db,
+    default_account,
+    message,
+    syncback_crispin_client,
+    syncback_connection_pool,
+    monkeypatch,
+    error,
+    connection_is_usable,
+) -> None:
+    make_actions_raise(monkeypatch, error)
+    syncback_logger = mock.MagicMock()
+    monkeypatch.setattr("inbox.transactions.actions.logger", syncback_logger)
+    action_log_entry = schedule_mark_as_read(db, default_account, message)
+    other_action_log_entry = schedule_and_fetch_action(
+        db, default_account, "mark_starred", message, starred=True
+    )
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(
+        db.session, [action_log_entry, other_action_log_entry]
+    )
+    assert len(batch_task.tasks) == 2
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert action_log_entry.retries == 1
+    assert action_log_entry.status == "pending"
+    # The batch stops after the first failure.
+    assert other_action_log_entry.retries == 0
+    assert syncback_crispin_client.logout.called is connection_is_usable
+    assert syncback_crispin_client.shutdown.called is not connection_is_usable
+    assert syncback_connection_pool._queue.get_nowait() is None
+    if connection_is_usable:
+        expected_message = "Pausing syncback tasks due to error"
+    else:
+        expected_message = "Syncback connection unusable"
+    syncback_logger.new.return_value.info.assert_any_call(
+        expected_message, account_id=default_account.id
+    )
+
+
+def test_timeout_discards_connection(
+    db,
+    default_account,
+    message,
+    syncback_crispin_client,
+    syncback_connection_pool,
+    monkeypatch,
+) -> None:
+    make_actions_raise(monkeypatch, InterruptibleThreadTimeout())
+    action_log_entry = schedule_mark_as_read(db, default_account, message)
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    with pytest.raises(InterruptibleThreadTimeout):
+        batch_task.execute()
+
+    db.session.commit()
+    assert action_log_entry.retries == 1
+    assert not syncback_crispin_client.logout.called
+    assert syncback_crispin_client.shutdown.called
+    assert syncback_connection_pool._queue.get_nowait() is None
 
 
 def test_move_uses_imap_move_when_supported(

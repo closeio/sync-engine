@@ -1,8 +1,12 @@
+from unittest import mock
+
 import attr
 import pytest
+import requests
 
 from inbox.auth.google import GoogleAccountData, GoogleAuthHandler
-from inbox.exceptions import GmailDisabledError
+from inbox.auth.oauth import OAUTH_TOKEN_REQUEST_TIMEOUT
+from inbox.exceptions import ConnectionError, GmailDisabledError
 from inbox.models.account import Account
 from inbox.models.secret import SecretType
 
@@ -61,6 +65,29 @@ def test_update_account(db) -> None:
     db.session.commit()
     account = db.session.query(Account).get(id_)
     assert account.refresh_token == "NewRefreshToken"
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        requests.exceptions.ConnectionError(),
+        requests.exceptions.ReadTimeout(),
+    ],
+)
+def test_access_token_request_error_raises_connection_error(
+    db, monkeypatch, error
+) -> None:
+    handler = GoogleAuthHandler()
+    account = handler.create_account(account_data)
+    db.session.add(account)
+    db.session.commit()
+    post = mock.Mock(side_effect=error)
+    monkeypatch.setattr("inbox.auth.oauth.requests.post", post)
+
+    with pytest.raises(ConnectionError):
+        handler.acquire_access_token(account)
+
+    assert post.call_args.kwargs["timeout"] == OAUTH_TOKEN_REQUEST_TIMEOUT
 
 
 def test_verify_account(db, patched_gmail_client) -> None:

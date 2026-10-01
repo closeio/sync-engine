@@ -344,6 +344,14 @@ def test_missing_flags(generic_client, constants) -> None:
     assert generic_client.uids([uid]) == []
 
 
+def test_shutdown_closes_socket_without_logout(generic_client) -> None:
+    generic_client.shutdown()
+
+    imap = generic_client.conn._imap
+    assert imap.shutdown.called
+    assert not imap.logout.called
+
+
 def test_deleted_folder_on_select(
     monkeypatch, generic_client, constants
 ) -> None:

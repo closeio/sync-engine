@@ -35,6 +35,11 @@ from .base import AuthHandler
 
 log = get_logger()
 
+# Timeout in seconds for the connection to the access token endpoint, and for
+# each read from it. Thus, an endpoint that does not respond cannot block the
+# caller forever.
+OAUTH_TOKEN_REQUEST_TIMEOUT = 60
+
 
 class OAuthAuthHandler(AuthHandler):
     # Defined by subclasses
@@ -80,9 +85,15 @@ class OAuthAuthHandler(AuthHandler):
 
         try:
             response = requests.post(
-                access_token_url, data=data, headers=headers
+                access_token_url,
+                data=data,
+                headers=headers,
+                timeout=OAUTH_TOKEN_REQUEST_TIMEOUT,
             )
-        except requests.exceptions.ConnectionError as e:
+        except (
+            requests.exceptions.ConnectionError,
+            requests.exceptions.Timeout,
+        ) as e:
             account_logger.error(
                 "Network error renewing access token", error=e
             )

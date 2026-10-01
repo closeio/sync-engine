@@ -24,8 +24,14 @@ from inbox.models import ActionLog, Category
 from inbox.models.action_log import schedule_action
 from inbox.sendmail.base import create_message_from_json
 from inbox.sendmail.base import update_draft as sendmail_update_draft
-from inbox.transactions.actions import SyncbackService
-from tests.util.base import add_fake_category, add_fake_imapuid
+from inbox.transactions.actions import (
+    SyncbackService,
+)
+from tests.util.base import (
+    add_fake_category,
+    add_fake_folder,
+    add_fake_imapuid,
+)
 
 
 def test_draft_updates(db, default_account, mock_imapclient) -> None:
@@ -331,3 +337,61 @@ def test_move_falls_back_to_copy_delete_when_move_not_supported(
     mock_imapclient.delete_messages.assert_called_once_with(
         ["42"], silent=True
     )
+
+
+def test_move_skips_uids_in_destination_folder(
+    db, default_account, message, folder, mock_imapclient
+) -> None:
+    """Test that only the UIDs outside the destination folder are moved."""
+    archive_folder = add_fake_folder(
+        db.session, default_account, "Archive", "archive"
+    )
+    mock_imapclient.add_folder_data(folder.name, {})
+    mock_imapclient.add_folder_data(archive_folder.name, {})
+    mock_imapclient.capabilities = mock.Mock(
+        return_value=[b"IMAP4rev1", b"MOVE"]
+    )
+    mock_imapclient.move = mock.Mock()
+    add_fake_imapuid(db.session, default_account.id, message, folder, 42)
+    add_fake_imapuid(
+        db.session, default_account.id, message, archive_folder, 43
+    )
+
+    with writable_connection_pool(default_account.id).get() as crispin_client:
+        move(
+            crispin_client,
+            default_account.id,
+            message.id,
+            {"destination": archive_folder.category.display_name},
+        )
+
+    mock_imapclient.move.assert_called_once_with([42], "Archive")
+
+
+def test_move_does_nothing_when_message_is_only_in_destination_folder(
+    db, default_account, message, mock_imapclient
+) -> None:
+    """Test that a message only in the destination folder is not changed."""
+    archive_folder = add_fake_folder(
+        db.session, default_account, "Archive", "archive"
+    )
+    mock_imapclient.add_folder_data(archive_folder.name, {})
+    mock_imapclient.capabilities = mock.Mock(return_value=[b"IMAP4rev1"])
+    mock_imapclient.move = mock.Mock()
+    mock_imapclient.copy = mock.Mock()
+    mock_imapclient.delete_messages = mock.Mock()
+    add_fake_imapuid(
+        db.session, default_account.id, message, archive_folder, 43
+    )
+
+    with writable_connection_pool(default_account.id).get() as crispin_client:
+        move(
+            crispin_client,
+            default_account.id,
+            message.id,
+            {"destination": archive_folder.category.display_name},
+        )
+
+    mock_imapclient.move.assert_not_called()
+    mock_imapclient.copy.assert_not_called()
+    mock_imapclient.delete_messages.assert_not_called()

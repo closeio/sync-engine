@@ -246,17 +246,21 @@ class CrispinConnectionPool:
         self._sem = BoundedSemaphore(num_connections)
         self._set_account_info()
 
-    def _should_timeout_connection(self):  # type: ignore[no-untyped-def]
-        # Writable pools don't need connection timeouts because
-        # SyncbackBatchTasks properly scope the IMAP connection across its
-        # constituent SyncbackTasks.
-        return self.readonly
-
     def _logout(self, client) -> None:  # type: ignore[no-untyped-def]
         try:
             client.logout()
         except Exception:
             log.info("Error on IMAP logout", exc_info=True)
+            # A failed LOGOUT can leave the socket open.
+            self._shutdown(client)
+
+    def _shutdown(self, client) -> None:  # type: ignore[no-untyped-def]
+        # Close the socket now. Other objects can still hold the client, so
+        # the socket does not close when the pool drops it.
+        try:
+            client.shutdown()
+        except Exception:
+            log.info("Error on IMAP shutdown", exc_info=True)
 
     @contextlib.contextmanager
     def get(  # type: ignore[no-untyped-def]
@@ -293,7 +297,8 @@ class CrispinConnectionPool:
                 client = self._new_connection()
             yield client
 
-            if not self._should_timeout_connection():
+            # Writable connections do not stay open between uses.
+            if not self.readonly:
                 self._logout(client)
                 client = None
         except CONN_DISCARD_EXC_CLASSES as exc:
@@ -304,11 +309,33 @@ class CrispinConnectionPool:
             log.info(
                 "IMAP connection error; discarding connection", exc_info=True
             )
-            if client is not None and not isinstance(
-                exc, CONN_UNUSABLE_EXC_CLASSES
-            ):
-                self._logout(client)
+            if client is not None:
+                if isinstance(exc, CONN_UNUSABLE_EXC_CLASSES):
+                    self._shutdown(client)
+                else:
+                    self._logout(client)
             client = None
+            raise
+        except interruptible_threading.InterruptibleThreadTimeout:
+            # The timeout can stop the client in the middle of an exchange
+            # with the server, so the connection is not safe to reuse. Do not
+            # send LOGOUT, because the deadline already passed.
+            log.info(
+                "IMAP connection timed out; discarding connection",
+                account_id=self.account_id,
+            )
+            if client is not None:
+                self._shutdown(client)
+            client = None
+            raise
+        except Exception:
+            # After an unexpected error, the state of a writable connection is
+            # unknown. Do not reuse it, and do not send LOGOUT, because the
+            # socket can be broken.
+            if not self.readonly:
+                if client is not None:
+                    self._shutdown(client)
+                client = None
             raise
         finally:
             self._queue.put(client)
@@ -346,9 +373,7 @@ class CrispinConnectionPool:
                 )
             db_session.expunge(account)
 
-        return self.auth_handler.get_authenticated_imap_connection(
-            account, self._should_timeout_connection()
-        )
+        return self.auth_handler.get_authenticated_imap_connection(account)
 
     def _new_connection(self):  # type: ignore[no-untyped-def]
         conn = self._new_raw_connection()
@@ -1241,6 +1266,15 @@ class CrispinClient:
     def logout(self) -> None:
         interruptible_threading.check_interrupted()
         self.conn.logout()
+
+    def shutdown(self) -> None:
+        """
+        Close the socket of the connection without LOGOUT.
+
+        This method sends nothing to the server, so it does not check for an
+        interrupt.
+        """
+        self.conn.shutdown()
 
     def idle(self, timeout: int):  # type: ignore[no-untyped-def]  # noqa: ANN201
         """

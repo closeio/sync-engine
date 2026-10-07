@@ -67,11 +67,11 @@ class AuthHandler:
         raise NotImplementedError()
 
     def get_imap_connection(  # type: ignore[no-untyped-def]  # noqa: ANN201
-        self, account, use_timeout: bool = True
+        self, account
     ):
         host, port = account.imap_endpoint
         try:
-            return create_imap_connection(host, port, use_timeout)
+            return create_imap_connection(host, port)
         except (IMAPClient.Error, OSError) as exc:
             log.warning(
                 "Error instantiating IMAP connection",
@@ -88,9 +88,9 @@ class AuthHandler:
         raise NotImplementedError()
 
     def get_authenticated_imap_connection(  # type: ignore[no-untyped-def]  # noqa: ANN201
-        self, account, use_timeout: bool = True
+        self, account
     ):
-        conn = self.get_imap_connection(account, use_timeout=use_timeout)
+        conn = self.get_imap_connection(account)
         self.authenticate_imap_connection(account, conn)
         return conn  # type: ignore[unreachable]
 

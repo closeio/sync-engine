@@ -38,7 +38,7 @@ from inbox.actions.base import (
     update_label,
 )
 from inbox.config import config
-from inbox.crispin import writable_connection_pool
+from inbox.crispin import CONN_UNUSABLE_EXC_CLASSES, writable_connection_pool
 from inbox.events.actions.base import create_event, delete_event, update_event
 from inbox.ignition import engine_manager
 from inbox.interruptible_threading import (
@@ -566,8 +566,21 @@ class SyncbackBatchTask:
             return DummyContextManager()
 
     def execute(self) -> None:
+        with self.semaphore:
+            try:
+                self._execute_tasks()
+            except CONN_UNUSABLE_EXC_CLASSES:
+                # The pool must see the error to discard the connection. Thus,
+                # catch it only here, after it left the connection context in
+                # `_execute_tasks`.
+                logger.new().info(
+                    "Syncback connection unusable",
+                    account_id=self.account_id,
+                )
+
+    def _execute_tasks(self) -> None:
         log = logger.new()
-        with self.semaphore, contextlib.ExitStack() as exit_stack:
+        with contextlib.ExitStack() as exit_stack:
             try:
                 crispin_client = exit_stack.enter_context(
                     self._crispin_client_or_none()
@@ -721,6 +734,10 @@ class SyncbackTask:
     def execute_with_lock(self) -> bool | None:
         """
         Process a task and return whether it executed successfully.
+
+        If an action that uses the IMAP connection fails with an error that
+        makes the connection unusable, record the failure and raise the error
+        again.
         """
         interruptible_threading.check_interrupted()
 
@@ -763,13 +780,17 @@ class SyncbackTask:
                     func_latency=max_func_latency,
                 )
                 return True
-        except Exception:
+        except Exception as exc:
             self.log.exception(
                 "Uncaught error",
                 account_id=self.account_id,
                 provider=self.provider,
             )
             self._increment_retries(action_ids_to_process)
+            if self.uses_crispin_client() and isinstance(
+                exc, CONN_UNUSABLE_EXC_CLASSES
+            ):
+                raise
             return False
         except InterruptibleThreadTimeout:
             self.log.warning(

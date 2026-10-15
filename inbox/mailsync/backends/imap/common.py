@@ -12,7 +12,7 @@ accounts.
 
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import bindparam, desc  # type: ignore[import-untyped]
 from sqlalchemy.orm import Session  # type: ignore[import-untyped]
@@ -21,7 +21,7 @@ from sqlalchemy.orm.exc import NoResultFound  # type: ignore[import-untyped]
 from inbox.contacts.processing import update_contacts_from_message
 from inbox.crispin import RawMessage
 from inbox.logging import get_logger
-from inbox.models import Account, Folder, Message, MessageCategory
+from inbox.models import Account, ActionLog, Folder, Message, MessageCategory
 from inbox.models.backends.imap import ImapFolderInfo, ImapUid
 from inbox.models.category import Category
 from inbox.models.session import session_scope
@@ -29,6 +29,12 @@ from inbox.models.util import reconcile_message
 from inbox.sqlalchemy_ext.util import get_db_api_cursor_with_query
 
 log = get_logger()
+
+# Maximum age of a pending `change_labels` action that keeps the categories
+# of its message. Thus, a stuck action cannot hide the IMAP labels of its
+# message for longer than this. Clock differences between hosts do not matter
+# at this size.
+PENDING_LABEL_CHANGE_MAX_AGE = timedelta(minutes=30)
 
 
 def local_uids(  # type: ignore[no-untyped-def]
@@ -79,10 +85,34 @@ def lastseenuid(  # type: ignore[no-untyped-def]  # noqa: ANN201
     return res[0] if res else 0
 
 
+def _has_pending_label_change(session: Session, message: Message) -> bool:
+    """
+    Return whether a `change_labels` action for the message is pending and
+    is at most `PENDING_LABEL_CHANGE_MAX_AGE` old.
+    """
+    query = session.query(ActionLog.id).filter(
+        ActionLog.status == "pending",
+        ActionLog.namespace_id == message.namespace_id,
+        ActionLog.record_id == message.id,
+        ActionLog.table_name == "message",
+        ActionLog.action == "change_labels",
+        ActionLog.discriminator == "actionlog",
+        ActionLog.created_at
+        >= datetime.utcnow() - PENDING_LABEL_CHANGE_MAX_AGE,
+    )
+    return session.query(query.exists()).scalar()
+
+
 def update_message_metadata(
     session: Session, account: Account, message: Message, is_draft: bool
 ) -> None:
-    """Update the message's metadata"""
+    """
+    Update the message's metadata.
+
+    For a label account, keep the current categories while a `change_labels`
+    action for the message is pending, for up to
+    `PENDING_LABEL_CHANGE_MAX_AGE`.
+    """
     # Sort imapuids in a way that the ones that were added later come last
     now = datetime.utcnow()
     sorted_imapuids: list[ImapUid] = sorted(
@@ -116,12 +146,47 @@ def update_message_metadata(
     else:
         raise AssertionError("Unreachable")
 
+    # Read the categories before the query for pending actions. The API
+    # commits a label change together with its action. Thus, if the
+    # categories show the change, the query also finds the action.
+    current_categories = set(message.categories)
+    if (
+        account.category_type == "label"
+        and message.id is not None
+        and _has_pending_label_change(session, message)
+    ):
+        # `message.categories` already has the change of the pending
+        # `change_labels` action, but the IMAP labels can be older than that
+        # change. Thus, keep the current categories. Other label changes in
+        # the IMAP labels stay out of the categories until a later call
+        # without a pending action.
+        if categories != current_categories:
+            imap_only_categories = categories - current_categories
+            local_only_categories = current_categories - categories
+            log.info(
+                "Kept message categories during a pending label change",
+                account_id=account.id,
+                message_id=message.id,
+                imap_only_category_names=sorted(
+                    category.name for category in imap_only_categories
+                ),
+                # A `MessageCategory` row of a deleted category gives `None`.
+                local_only_category_names=sorted(
+                    category.name
+                    for category in local_only_categories
+                    if category is not None
+                ),
+            )
+        categories = current_categories
+
     # Use a consistent time across creating categories, message updated_at
     # and the subsequent transaction that may be created.
     update_time = datetime.utcnow()
 
-    # XXX: This will overwrite local state if syncback actions are scheduled,
-    # but the eventual state is correct.
+    # XXX: This will overwrite local state for a folder account with a
+    # pending `move` action, and for a label account with a pending
+    # `change_labels` action older than `PENDING_LABEL_CHANGE_MAX_AGE`.
+    # The eventual state is correct.
     # XXX: Don't just overwrite message categories but specifically add new
     # ones and remove old ones. That way we don't re-create them, which both
     # saves on database queries and also lets use rely on the message category

@@ -26,7 +26,11 @@ from inbox.actions.base import (
 from inbox.crispin import CrispinConnectionPool, writable_connection_pool
 from inbox.interruptible_threading import InterruptibleThreadTimeout
 from inbox.models import ActionLog, Category
-from inbox.models.action_log import schedule_action
+from inbox.models.action_log import (
+    CHANGE_LABELS_MODSEQ_KEY,
+    FolderModseq,
+    schedule_action,
+)
 from inbox.sendmail.base import create_message_from_json
 from inbox.sendmail.base import update_draft as sendmail_update_draft
 from inbox.transactions.actions import (
@@ -38,6 +42,7 @@ from tests.util.base import (
     add_fake_category,
     add_fake_folder,
     add_fake_imapuid,
+    add_fake_message,
 )
 
 
@@ -159,13 +164,26 @@ def test_change_flags(
 def test_change_labels(
     db, default_account, message, folder, mock_imapclient
 ) -> None:
-    mock_imapclient.add_folder_data(folder.name, {})
+    mock_imapclient.add_folder_data(
+        folder.name,
+        {
+            22: {
+                b"FLAGS": (b"\\Seen",),
+                b"X-GM-LABELS": (),
+                b"MODSEQ": (123,),
+            }
+        },
+    )
+    mock_imapclient.uidvalidity = 7
     mock_imapclient.add_gmail_labels = mock.Mock()
     mock_imapclient.remove_gmail_labels = mock.Mock()
+    # The mock returns `MODSEQ` also if the fetch does not ask for it. Thus,
+    # check the fetched items below.
+    mock_imapclient.fetch = mock.Mock(wraps=mock_imapclient.fetch)
     add_fake_imapuid(db.session, default_account.id, message, folder, 22)
 
     with writable_connection_pool(default_account.id).get() as crispin_client:
-        change_labels(
+        modseqs = change_labels(
             crispin_client,
             default_account.id,
             [message.id],
@@ -179,6 +197,187 @@ def test_change_labels(
         )
         mock_imapclient.remove_gmail_labels.assert_called_with(
             [22], [b"\\Inbox"], silent=True
+        )
+        mock_imapclient.fetch.assert_called_once_with(
+            [22], ["FLAGS", "X-GM-LABELS", "MODSEQ"]
+        )
+    assert modseqs == {
+        message.id: {str(folder.id): FolderModseq(uidvalidity=7, modseq=123)}
+    }
+
+
+def test_change_labels_returns_modseqs_by_message_and_folder(
+    db, default_account, message, folder, mock_imapclient
+) -> None:
+    other_message = add_fake_message(
+        db.session, default_account.namespace.id, message.thread
+    )
+    other_folder = add_fake_folder(
+        db.session, default_account, "[Gmail]/Trash", "trash"
+    )
+    mock_imapclient.add_folder_data(
+        folder.name,
+        {
+            22: {b"FLAGS": (), b"X-GM-LABELS": (), b"MODSEQ": (123,)},
+            23: {b"FLAGS": (), b"X-GM-LABELS": (), b"MODSEQ": (124,)},
+        },
+    )
+    mock_imapclient.add_folder_data(
+        other_folder.name,
+        {30: {b"FLAGS": (), b"X-GM-LABELS": (), b"MODSEQ": (125,)}},
+    )
+    mock_imapclient.remove_gmail_labels = mock.Mock()
+    add_fake_imapuid(db.session, default_account.id, message, folder, 22)
+    add_fake_imapuid(db.session, default_account.id, other_message, folder, 23)
+    add_fake_imapuid(db.session, default_account.id, message, other_folder, 30)
+
+    with writable_connection_pool(default_account.id).get() as crispin_client:
+        modseqs = change_labels(
+            crispin_client,
+            default_account.id,
+            [message.id, other_message.id],
+            {"removed_labels": ["\\Inbox"], "added_labels": []},
+        )
+
+    uidvalidity = mock_imapclient.uidvalidity
+    assert modseqs == {
+        message.id: {
+            str(folder.id): FolderModseq(uidvalidity=uidvalidity, modseq=123),
+            str(other_folder.id): FolderModseq(
+                uidvalidity=uidvalidity, modseq=125
+            ),
+        },
+        other_message.id: {
+            str(folder.id): FolderModseq(uidvalidity=uidvalidity, modseq=124)
+        },
+    }
+
+
+def test_change_labels_skips_uids_without_modseq(
+    db, default_account, message, folder, mock_imapclient
+) -> None:
+    mock_imapclient.add_folder_data(
+        folder.name, {22: {b"FLAGS": (), b"X-GM-LABELS": ()}}
+    )
+    mock_imapclient.remove_gmail_labels = mock.Mock()
+    add_fake_imapuid(db.session, default_account.id, message, folder, 22)
+
+    with writable_connection_pool(default_account.id).get() as crispin_client:
+        modseqs = change_labels(
+            crispin_client,
+            default_account.id,
+            [message.id],
+            {"removed_labels": ["\\Inbox"], "added_labels": []},
+        )
+
+    assert modseqs == {}
+
+
+def test_change_labels_returns_lowest_modseq_of_message_in_folder(
+    db, default_account, message, folder, mock_imapclient
+) -> None:
+    # The UID with the higher MODSEQ comes last in the fetch response.
+    mock_imapclient.add_folder_data(
+        folder.name,
+        {
+            22: {b"FLAGS": (), b"X-GM-LABELS": (), b"MODSEQ": (123,)},
+            23: {b"FLAGS": (), b"X-GM-LABELS": (), b"MODSEQ": (124,)},
+        },
+    )
+    mock_imapclient.remove_gmail_labels = mock.Mock()
+    add_fake_imapuid(db.session, default_account.id, message, folder, 22)
+    add_fake_imapuid(db.session, default_account.id, message, folder, 23)
+
+    with writable_connection_pool(default_account.id).get() as crispin_client:
+        modseqs = change_labels(
+            crispin_client,
+            default_account.id,
+            [message.id],
+            {"removed_labels": ["\\Inbox"], "added_labels": []},
+        )
+
+    assert modseqs == {
+        message.id: {
+            str(folder.id): FolderModseq(
+                uidvalidity=mock_imapclient.uidvalidity, modseq=123
+            )
+        }
+    }
+
+
+def test_change_labels_skips_folder_with_failed_modseq_fetch(
+    db, default_account, message, folder, mock_imapclient, monkeypatch
+) -> None:
+    other_folder = add_fake_folder(
+        db.session, default_account, "[Gmail]/Trash", "trash"
+    )
+    mock_imapclient.add_folder_data(
+        folder.name,
+        {22: {b"FLAGS": (), b"X-GM-LABELS": (), b"MODSEQ": (123,)}},
+    )
+    mock_imapclient.add_folder_data(
+        other_folder.name,
+        {30: {b"FLAGS": (), b"X-GM-LABELS": (), b"MODSEQ": (125,)}},
+    )
+    fetch = mock_imapclient.fetch
+
+    def fail_fetch_in_folder(*args, **kwargs):
+        if mock_imapclient.selected_folder == folder.name:
+            raise imaplib.IMAP4.error("FETCH failed")
+        return fetch(*args, **kwargs)
+
+    mock_imapclient.fetch = fail_fetch_in_folder
+    mock_imapclient.remove_gmail_labels = mock.Mock()
+    add_fake_imapuid(db.session, default_account.id, message, folder, 22)
+    add_fake_imapuid(db.session, default_account.id, message, other_folder, 30)
+    mock_log = mock.Mock()
+    monkeypatch.setattr("inbox.actions.backends.gmail.log", mock_log)
+
+    with writable_connection_pool(default_account.id).get() as crispin_client:
+        modseqs = change_labels(
+            crispin_client,
+            default_account.id,
+            [message.id],
+            {"removed_labels": ["\\Inbox"], "added_labels": []},
+        )
+
+    assert mock_imapclient.remove_gmail_labels.call_count == 2
+    assert modseqs == {
+        message.id: {
+            str(other_folder.id): FolderModseq(
+                uidvalidity=mock_imapclient.uidvalidity, modseq=125
+            )
+        }
+    }
+    mock_log.warning.assert_called_once_with(
+        "Could not fetch MODSEQ after label change",
+        account_id=default_account.id,
+        folder_name=folder.name,
+        message_ids=[message.id],
+        exc_info=True,
+    )
+
+
+def test_change_labels_raises_connection_error_of_modseq_fetch(
+    db, default_account, message, folder, mock_imapclient
+) -> None:
+    mock_imapclient.add_folder_data(
+        folder.name,
+        {22: {b"FLAGS": (), b"X-GM-LABELS": (), b"MODSEQ": (123,)}},
+    )
+    mock_imapclient.fetch = mock.Mock(side_effect=ConnectionResetError())
+    mock_imapclient.remove_gmail_labels = mock.Mock()
+    add_fake_imapuid(db.session, default_account.id, message, folder, 22)
+
+    with (
+        pytest.raises(ConnectionResetError),
+        writable_connection_pool(default_account.id).get() as crispin_client,
+    ):
+        change_labels(
+            crispin_client,
+            default_account.id,
+            [message.id],
+            {"removed_labels": ["\\Inbox"], "added_labels": []},
         )
 
 
@@ -340,18 +539,20 @@ def make_syncback_service() -> SyncbackService:
     )
 
 
+def make_actions_run(monkeypatch, func) -> None:
+    """Patch syncback, so that each action calls `func`."""
+    monkeypatch.setattr(
+        "inbox.transactions.actions.function_for_action", lambda name: func
+    )
+
+
 def make_actions_raise(monkeypatch, error: BaseException) -> None:
     """Patch syncback, so that each action raises `error`."""
 
-    def function_for_action(name):
-        def func(*args):
-            raise error
+    def func(*args):
+        raise error
 
-        return func
-
-    monkeypatch.setattr(
-        "inbox.transactions.actions.function_for_action", function_for_action
-    )
+    make_actions_run(monkeypatch, func)
 
 
 @pytest.fixture
@@ -656,6 +857,113 @@ def test_timeout_discards_connection(
     assert not syncback_crispin_client.logout.called
     assert syncback_crispin_client.shutdown.called
     assert syncback_connection_pool._queue.get_nowait() is None
+
+
+def test_change_labels_task_saves_modseqs_with_status(
+    db, default_account, message, syncback_connection_pool, monkeypatch
+) -> None:
+    folder_modseqs = {"7": FolderModseq(uidvalidity=1, modseq=123)}
+    make_actions_run(monkeypatch, lambda *args: {message.id: folder_modseqs})
+    action_log_entry = schedule_and_fetch_action(
+        db,
+        default_account,
+        "change_labels",
+        message,
+        removed_labels=["\\Inbox"],
+        added_labels=[],
+    )
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert action_log_entry.status == "successful"
+    assert action_log_entry.extra_args == {
+        "removed_labels": ["\\Inbox"],
+        "added_labels": [],
+        CHANGE_LABELS_MODSEQ_KEY: folder_modseqs,
+    }
+
+
+def test_change_labels_tasks_save_modseqs_of_own_message(
+    db, default_account, message, syncback_connection_pool, monkeypatch
+) -> None:
+    other_message = add_fake_message(
+        db.session, default_account.namespace.id, message.thread
+    )
+    folder_modseqs_by_message_id = {
+        message.id: {"7": FolderModseq(uidvalidity=1, modseq=123)},
+        other_message.id: {"7": FolderModseq(uidvalidity=1, modseq=124)},
+    }
+    make_actions_run(monkeypatch, lambda *args: folder_modseqs_by_message_id)
+    action_log_entries = [
+        schedule_and_fetch_action(
+            db,
+            default_account,
+            "change_labels",
+            record,
+            removed_labels=["\\Inbox"],
+            added_labels=[],
+        )
+        for record in [message, other_message]
+    ]
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, action_log_entries)
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert [
+        action_log_entry.extra_args[CHANGE_LABELS_MODSEQ_KEY]
+        for action_log_entry in action_log_entries
+    ] == [
+        folder_modseqs_by_message_id[message.id],
+        folder_modseqs_by_message_id[other_message.id],
+    ]
+
+
+def test_change_labels_task_saves_modseqs_on_each_action_of_message(
+    db, default_account, message, syncback_connection_pool, monkeypatch
+) -> None:
+    folder_modseqs = {"7": FolderModseq(uidvalidity=1, modseq=123)}
+    make_actions_run(monkeypatch, lambda *args: {message.id: folder_modseqs})
+    # Use different labels, so that the second action is not a duplicate of
+    # the first one.
+    for removed_labels in (["\\Inbox"], ["\\Important"]):
+        schedule_action(
+            "change_labels",
+            message,
+            default_account.namespace.id,
+            db.session,
+            removed_labels=removed_labels,
+            added_labels=[],
+        )
+    db.session.commit()
+    action_log_entries = (
+        db.session.query(ActionLog)
+        .filter_by(
+            namespace_id=default_account.namespace.id,
+            record_id=message.id,
+            action="change_labels",
+        )
+        .order_by(ActionLog.id)
+        .all()
+    )
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, action_log_entries)
+    assert len(batch_task.tasks) == 1
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert [
+        (
+            action_log_entry.status,
+            action_log_entry.extra_args[CHANGE_LABELS_MODSEQ_KEY],
+        )
+        for action_log_entry in action_log_entries
+    ] == [("successful", folder_modseqs), ("successful", folder_modseqs)]
 
 
 def test_move_uses_imap_move_when_supported(

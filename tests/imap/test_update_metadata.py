@@ -8,12 +8,18 @@ from inbox.api.update import update_thread
 from inbox.crispin import Flags, GmailFlags
 from inbox.mailsync.backends.imap import common
 from inbox.mailsync.backends.imap.common import (
+    LABEL_CHANGE_MODSEQ_MAX_AGE,
     PENDING_LABEL_CHANGE_MAX_AGE,
     update_message_metadata,
     update_metadata,
 )
-from inbox.models.action_log import ActionLog, schedule_action
-from inbox.models.backends.imap import ImapUid
+from inbox.models.action_log import (
+    CHANGE_LABELS_MODSEQ_KEY,
+    ActionLog,
+    FolderModseq,
+    schedule_action,
+)
+from inbox.models.backends.imap import ImapFolderInfo, ImapUid
 from inbox.models.folder import Folder
 from inbox.models.message import MessageCategory
 from inbox.models.session import session_scope
@@ -147,11 +153,14 @@ def archived_new_message(db, default_account, thread, folder):
     delete_imapuids(db.session)
 
 
-def save_poll_of_new_message(db, account, folder) -> None:
+def save_poll_of_new_message(db, account, folder, modseq=None) -> None:
     """
-    Save a Gmail poll that reports the new message as read and in the inbox.
+    Save a Gmail poll that reports the new message as read and in the inbox,
+    with `modseq`.
     """
-    new_flags = {NEW_MESSAGE_UID: GmailFlags((b"\\Seen",), ["\\Inbox"], None)}
+    new_flags = {
+        NEW_MESSAGE_UID: GmailFlags((b"\\Seen",), ["\\Inbox"], modseq)
+    }
     update_metadata(
         account.id, folder.id, folder.canonical_name, new_flags, db.session
     )
@@ -190,9 +199,10 @@ def test_kept_categories_are_logged(
     save_poll_of_new_message(db, default_account, folder)
 
     mock_log.info.assert_any_call(
-        "Kept message categories during a pending label change",
+        "Kept message categories during a label change",
         account_id=default_account.id,
         message_id=archived_new_message.id,
+        reason="pending_label_change",
         imap_only_category_names=["inbox"],
         local_only_category_names=[],
     )
@@ -210,6 +220,10 @@ def test_categories_read_before_pending_label_change_query(
         for message_category in message.messagecategories
         if message_category.category.name == "inbox"
     )
+    # Give the IMAP labels a category that the message does not have. Thus,
+    # the call below runs the query for a pending action.
+    imapuid.update_labels(["\\Inbox", "\\Important"])
+    db.session.commit()
     # Make the call below read the categories from the database.
     db.session.expire(message)
 
@@ -229,7 +243,37 @@ def test_categories_read_before_pending_label_change_query(
     update_message_metadata(db.session, default_account, message, False)
     db.session.commit()
 
-    assert "inbox" not in {category.name for category in message.categories}
+    category_names = {category.name for category in message.categories}
+    assert "inbox" not in category_names
+    assert "important" in category_names
+
+
+def test_label_change_queries_skipped_with_imap_labels_as_categories(
+    db, default_account, message, imapuid, monkeypatch
+) -> None:
+    update_message_metadata(db.session, default_account, message, False)
+    db.session.commit()
+    has_pending_label_change = mock.Mock(return_value=False)
+    is_older_than_label_change = mock.Mock(return_value=False)
+    monkeypatch.setattr(
+        common, "_has_pending_label_change", has_pending_label_change
+    )
+    monkeypatch.setattr(
+        common, "_is_older_than_label_change", is_older_than_label_change
+    )
+
+    update_message_metadata(
+        db.session,
+        default_account,
+        message,
+        False,
+        fetched_folder_id=imapuid.folder_id,
+        fetched_modseq=1,
+    )
+
+    has_pending_label_change.assert_not_called()
+    is_older_than_label_change.assert_not_called()
+    assert message.categories == {imapuid.folder.category}
 
 
 def test_categories_follow_imap_labels_with_old_pending_label_change(
@@ -305,6 +349,341 @@ def test_categories_follow_imap_labels_with_pending_mark_unread(
     save_poll_of_new_message(db, default_account, folder)
 
     assert "inbox" in {
+        category.name for category in archived_new_message.categories
+    }
+
+
+SAVED_MODSEQ = 100
+FOLDER_UIDVALIDITY = 2
+
+
+@pytest.fixture
+def folder_info(db, default_account, folder):
+    """Save `FOLDER_UIDVALIDITY` as the UIDVALIDITY of the folder."""
+    folder_info = ImapFolderInfo(
+        account_id=default_account.id,
+        folder_id=folder.id,
+        uidvalidity=FOLDER_UIDVALIDITY,
+    )
+    db.session.add(folder_info)
+    db.session.commit()
+
+    yield folder_info
+
+    db.session.rollback()
+    db.session.query(ImapFolderInfo).filter(
+        ImapFolderInfo.folder_id == folder.id
+    ).delete(synchronize_session=False)
+    db.session.commit()
+
+
+def saved_folder_modseqs(folder_id, uidvalidity=FOLDER_UIDVALIDITY):
+    """
+    Return the values that a `change_labels` action saves for `SAVED_MODSEQ`
+    in the folder with the ID `folder_id`, under `uidvalidity`.
+    """
+    return {
+        str(folder_id): FolderModseq(
+            uidvalidity=uidvalidity, modseq=SAVED_MODSEQ
+        )
+    }
+
+
+def finish_label_changes(db, account, message, folder_modseqs) -> None:
+    """
+    Mark the `change_labels` actions as successful. The action of `message`
+    saves `folder_modseqs`.
+    """
+    for action_log_entry in db.session.query(ActionLog).filter(
+        ActionLog.namespace_id == account.namespace.id,
+        ActionLog.action == "change_labels",
+    ):
+        action_log_entry.status = "successful"
+        if action_log_entry.record_id == message.id:
+            action_log_entry.extra_args = {
+                **action_log_entry.extra_args,
+                CHANGE_LABELS_MODSEQ_KEY: folder_modseqs,
+            }
+    db.session.commit()
+
+
+def test_categories_kept_with_imap_labels_older_than_label_change(
+    db, default_account, folder, folder_info, archived_new_message
+) -> None:
+    finish_label_changes(
+        db,
+        default_account,
+        archived_new_message,
+        saved_folder_modseqs(folder.id),
+    )
+
+    save_poll_of_new_message(db, default_account, folder, SAVED_MODSEQ - 10)
+
+    assert "inbox" not in {
+        category.name for category in archived_new_message.categories
+    }
+    assert archived_new_message.is_read
+    assert "inbox" in {
+        category.name
+        for category in archived_new_message.imapuids[0].categories
+    }
+
+
+def test_stale_imap_labels_are_logged(
+    db, default_account, folder, folder_info, archived_new_message, monkeypatch
+) -> None:
+    finish_label_changes(
+        db,
+        default_account,
+        archived_new_message,
+        saved_folder_modseqs(folder.id),
+    )
+    mock_log = mock.Mock()
+    monkeypatch.setattr(common, "log", mock_log)
+
+    save_poll_of_new_message(db, default_account, folder, SAVED_MODSEQ - 10)
+
+    mock_log.info.assert_any_call(
+        "Kept message categories during a label change",
+        account_id=default_account.id,
+        message_id=archived_new_message.id,
+        reason="stale_imap_data",
+        imap_only_category_names=["inbox"],
+        local_only_category_names=[],
+    )
+
+
+def test_categories_follow_imap_labels_as_new_as_label_change(
+    db, default_account, folder, folder_info, archived_new_message
+) -> None:
+    finish_label_changes(
+        db,
+        default_account,
+        archived_new_message,
+        saved_folder_modseqs(folder.id),
+    )
+
+    save_poll_of_new_message(db, default_account, folder, SAVED_MODSEQ)
+
+    assert "inbox" in {
+        category.name for category in archived_new_message.categories
+    }
+
+
+def test_categories_follow_imap_labels_with_modseq_of_other_folder(
+    db, default_account, folder, folder_info, archived_new_message
+) -> None:
+    finish_label_changes(
+        db,
+        default_account,
+        archived_new_message,
+        saved_folder_modseqs(folder.id + 1),
+    )
+
+    save_poll_of_new_message(db, default_account, folder, SAVED_MODSEQ - 10)
+
+    assert "inbox" in {
+        category.name for category in archived_new_message.categories
+    }
+
+
+def test_categories_follow_imap_labels_with_modseq_of_other_message(
+    db, default_account, folder, folder_info, archived_new_message
+) -> None:
+    other_message = next(
+        message
+        for message in archived_new_message.thread.messages
+        if message.id != archived_new_message.id
+    )
+    finish_label_changes(
+        db,
+        default_account,
+        other_message,
+        saved_folder_modseqs(folder.id),
+    )
+
+    save_poll_of_new_message(db, default_account, folder, SAVED_MODSEQ - 10)
+
+    assert "inbox" in {
+        category.name for category in archived_new_message.categories
+    }
+
+
+def test_categories_follow_imap_labels_with_modseq_of_old_uidvalidity(
+    db, default_account, folder, folder_info, archived_new_message
+) -> None:
+    # The action saved its MODSEQ before a UIDVALIDITY change of the folder.
+    finish_label_changes(
+        db,
+        default_account,
+        archived_new_message,
+        saved_folder_modseqs(folder.id, uidvalidity=FOLDER_UIDVALIDITY - 1),
+    )
+
+    save_poll_of_new_message(db, default_account, folder, SAVED_MODSEQ - 10)
+
+    assert "inbox" in {
+        category.name for category in archived_new_message.categories
+    }
+
+
+def test_categories_follow_imap_labels_without_folder_uidvalidity(
+    db, default_account, folder, archived_new_message
+) -> None:
+    # The folder has no `ImapFolderInfo` row, so its current UIDVALIDITY is
+    # unknown.
+    finish_label_changes(
+        db,
+        default_account,
+        archived_new_message,
+        saved_folder_modseqs(folder.id),
+    )
+
+    save_poll_of_new_message(db, default_account, folder, SAVED_MODSEQ - 10)
+
+    assert "inbox" in {
+        category.name for category in archived_new_message.categories
+    }
+
+
+def test_categories_follow_imap_labels_after_old_label_change(
+    db, default_account, folder, folder_info, archived_new_message
+) -> None:
+    finish_label_changes(
+        db,
+        default_account,
+        archived_new_message,
+        saved_folder_modseqs(folder.id),
+    )
+    old_updated_at = (
+        datetime.datetime.utcnow()
+        - LABEL_CHANGE_MODSEQ_MAX_AGE
+        - datetime.timedelta(minutes=1)
+    )
+    db.session.query(ActionLog).filter(
+        ActionLog.record_id == archived_new_message.id,
+        ActionLog.action == "change_labels",
+    ).update({"updated_at": old_updated_at}, synchronize_session=False)
+    db.session.commit()
+
+    save_poll_of_new_message(db, default_account, folder, SAVED_MODSEQ - 10)
+
+    assert "inbox" in {
+        category.name for category in archived_new_message.categories
+    }
+
+
+def test_categories_follow_imap_labels_after_label_change_without_modseqs(
+    db, default_account, folder, folder_info, archived_new_message
+) -> None:
+    # The successful actions saved no MODSEQ values.
+    db.session.query(ActionLog).filter(
+        ActionLog.namespace_id == default_account.namespace.id,
+        ActionLog.action == "change_labels",
+    ).update({"status": "successful"}, synchronize_session=False)
+    db.session.commit()
+
+    save_poll_of_new_message(db, default_account, folder, SAVED_MODSEQ - 10)
+
+    assert "inbox" in {
+        category.name for category in archived_new_message.categories
+    }
+
+
+def test_categories_follow_imap_labels_without_fetched_modseq(
+    db, default_account, folder, folder_info, archived_new_message
+) -> None:
+    finish_label_changes(
+        db,
+        default_account,
+        archived_new_message,
+        saved_folder_modseqs(folder.id),
+    )
+
+    save_poll_of_new_message(db, default_account, folder)
+
+    assert "inbox" in {
+        category.name for category in archived_new_message.categories
+    }
+
+
+def test_categories_kept_after_newer_label_change_without_modseqs(
+    db, default_account, folder, folder_info, archived_new_message
+) -> None:
+    finish_label_changes(
+        db,
+        default_account,
+        archived_new_message,
+        saved_folder_modseqs(folder.id),
+    )
+    # A newer successful action for the message saved no MODSEQ values. The
+    # IMAP data is still older than the earlier action.
+    schedule_action(
+        "change_labels",
+        archived_new_message,
+        archived_new_message.namespace_id,
+        db.session,
+        removed_labels=["\\Inbox"],
+        added_labels=[],
+    )
+    db.session.commit()
+    newer_action_log_entry = (
+        db.session.query(ActionLog)
+        .filter(
+            ActionLog.record_id == archived_new_message.id,
+            ActionLog.action == "change_labels",
+        )
+        .order_by(ActionLog.id.desc())
+        .first()
+    )
+    newer_action_log_entry.status = "successful"
+    newer_action_log_entry.extra_args = {
+        **newer_action_log_entry.extra_args,
+        CHANGE_LABELS_MODSEQ_KEY: {},
+    }
+    db.session.commit()
+
+    save_poll_of_new_message(db, default_account, folder, SAVED_MODSEQ - 10)
+
+    assert "inbox" not in {
+        category.name for category in archived_new_message.categories
+    }
+
+
+def test_successful_label_change_query_after_pending_query(
+    db, default_account, folder, folder_info, archived_new_message, monkeypatch
+) -> None:
+    namespace_id = default_account.namespace.id
+    message_id = archived_new_message.id
+    folder_modseqs = saved_folder_modseqs(folder.id)
+
+    def finish_label_change_after_query(_session, _message) -> bool:
+        # Commit the end of the action from another session, after a query
+        # that found no pending action.
+        with session_scope(namespace_id) as other_session:
+            action_log_entry = (
+                other_session.query(ActionLog)
+                .filter(
+                    ActionLog.record_id == message_id,
+                    ActionLog.action == "change_labels",
+                )
+                .one()
+            )
+            action_log_entry.status = "successful"
+            action_log_entry.extra_args = {
+                **action_log_entry.extra_args,
+                CHANGE_LABELS_MODSEQ_KEY: folder_modseqs,
+            }
+            other_session.commit()
+        return False
+
+    monkeypatch.setattr(
+        common, "_has_pending_label_change", finish_label_change_after_query
+    )
+
+    save_poll_of_new_message(db, default_account, folder, SAVED_MODSEQ - 10)
+
+    assert "inbox" not in {
         category.name for category in archived_new_message.categories
     }
 

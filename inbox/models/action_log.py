@@ -1,3 +1,5 @@
+from typing import TypedDict
+
 from sqlalchemy import (  # type: ignore[import-untyped]
     BigInteger,
     Column,
@@ -18,6 +20,18 @@ from inbox.models.namespace import Namespace
 from inbox.sqlalchemy_ext.util import JSON
 
 log = get_logger()
+
+# Key in `extra_args` of a successful `change_labels` action. The value maps
+# each folder ID, as a string, to the `FolderModseq` of the message in that
+# folder after the change.
+CHANGE_LABELS_MODSEQ_KEY = "modseq_by_folder_id"
+
+
+class FolderModseq(TypedDict):
+    """The MODSEQ of a message in a folder, with the folder's UIDVALIDITY."""
+
+    uidvalidity: int
+    modseq: int
 
 
 def schedule_action(  # type: ignore[no-untyped-def]

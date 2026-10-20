@@ -1380,7 +1380,7 @@ class GmailCrispinClient(CrispinClient):
         """
         interruptible_threading.check_interrupted()
         data: dict[int, dict[bytes, Any]] = self.conn.fetch(
-            uids, ["FLAGS", "X-GM-LABELS"]
+            uids, ["FLAGS", "X-GM-LABELS", "MODSEQ"]
         )
         uid_set = set(uids)
         return {
@@ -1418,7 +1418,7 @@ class GmailCrispinClient(CrispinClient):
 
                 interruptible_threading.check_interrupted()
                 data_for_uid: dict[int, dict[bytes, Any]] = self.conn.fetch(
-                    uid, ["FLAGS", "X-GM-LABELS"]
+                    uid, ["FLAGS", "X-GM-LABELS", "MODSEQ"]
                 )
                 if not data_for_uid:
                     continue

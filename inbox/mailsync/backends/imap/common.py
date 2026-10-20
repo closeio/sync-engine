@@ -13,6 +13,7 @@ accounts.
 """
 
 from datetime import datetime, timedelta
+from typing import Literal
 
 from sqlalchemy import bindparam, desc  # type: ignore[import-untyped]
 from sqlalchemy.orm import Session  # type: ignore[import-untyped]
@@ -22,6 +23,7 @@ from inbox.contacts.processing import update_contacts_from_message
 from inbox.crispin import RawMessage
 from inbox.logging import get_logger
 from inbox.models import Account, ActionLog, Folder, Message, MessageCategory
+from inbox.models.action_log import CHANGE_LABELS_MODSEQ_KEY
 from inbox.models.backends.imap import ImapFolderInfo, ImapUid
 from inbox.models.category import Category
 from inbox.models.session import session_scope
@@ -35,6 +37,15 @@ log = get_logger()
 # message for longer than this. Clock differences between hosts do not matter
 # at this size.
 PENDING_LABEL_CHANGE_MAX_AGE = timedelta(minutes=30)
+
+# Maximum time after the end of a successful `change_labels` action for which
+# its saved MODSEQ values count. In this time only, a MODSEQ reset without a
+# UIDVALIDITY change can make fresh IMAP data look older than the action.
+LABEL_CHANGE_MODSEQ_MAX_AGE = timedelta(hours=1)
+
+# Reason to keep the current categories of a message of a label account,
+# instead of the categories from its IMAP labels.
+KeepCategoriesReason = Literal["pending_label_change", "stale_imap_data"]
 
 
 def local_uids(  # type: ignore[no-untyped-def]
@@ -103,15 +114,69 @@ def _has_pending_label_change(session: Session, message: Message) -> bool:
     return session.query(query.exists()).scalar()
 
 
+def _is_older_than_label_change(
+    session: Session, message: Message, folder_id: int, modseq: int
+) -> bool:
+    """
+    Return whether IMAP data with `modseq` in the folder with the ID
+    `folder_id` is older than a successful `change_labels` action for the
+    message.
+
+    Each action counts with the MODSEQ that it saved for that folder, if the
+    UIDVALIDITY that it saved is the current UIDVALIDITY of the folder.
+    Actions that finished more than `LABEL_CHANGE_MODSEQ_MAX_AGE` ago do not
+    count.
+    """
+    rows = session.query(ActionLog.extra_args).filter(
+        ActionLog.status == "successful",
+        ActionLog.namespace_id == message.namespace_id,
+        ActionLog.record_id == message.id,
+        ActionLog.table_name == "message",
+        ActionLog.action == "change_labels",
+        ActionLog.discriminator == "actionlog",
+        ActionLog.updated_at
+        >= datetime.utcnow() - LABEL_CHANGE_MODSEQ_MAX_AGE,
+    )
+    # The UIDVALIDITY values that go with the saved MODSEQ values that are
+    # higher than `modseq`.
+    uidvalidities_of_higher_modseqs: set[int] = set()
+    for row in rows:
+        if not row.extra_args:
+            continue
+        folder_modseq = row.extra_args.get(CHANGE_LABELS_MODSEQ_KEY, {}).get(
+            str(folder_id)
+        )
+        if folder_modseq is not None and modseq < folder_modseq["modseq"]:
+            uidvalidities_of_higher_modseqs.add(folder_modseq["uidvalidity"])
+    if not uidvalidities_of_higher_modseqs:
+        return False
+    # MODSEQ values compare only under the same UIDVALIDITY. Read the current
+    # UIDVALIDITY only here, because few calls get this far.
+    current_uidvalidity = (
+        session.query(ImapFolderInfo.uidvalidity)
+        .filter(ImapFolderInfo.folder_id == folder_id)
+        .scalar()
+    )
+    return current_uidvalidity in uidvalidities_of_higher_modseqs
+
+
 def update_message_metadata(
-    session: Session, account: Account, message: Message, is_draft: bool
+    session: Session,
+    account: Account,
+    message: Message,
+    is_draft: bool,
+    *,
+    fetched_folder_id: int | None = None,
+    fetched_modseq: int | None = None,
 ) -> None:
     """
     Update the message's metadata.
 
     For a label account, keep the current categories while a `change_labels`
-    action for the message is pending, for up to
-    `PENDING_LABEL_CHANGE_MAX_AGE`.
+    action for the message is pending (see `_has_pending_label_change`). Also
+    keep them if the IMAP data with `fetched_modseq` in the folder with the
+    ID `fetched_folder_id` is older than a successful `change_labels` action
+    for the message (see `_is_older_than_label_change`).
     """
     # Sort imapuids in a way that the ones that were added later come last
     now = datetime.utcnow()
@@ -146,27 +211,46 @@ def update_message_metadata(
     else:
         raise AssertionError("Unreachable")
 
-    # Read the categories before the query for pending actions. The API
-    # commits a label change together with its action. Thus, if the
-    # categories show the change, the query also finds the action.
+    # Read the categories before the queries for actions. The API commits a
+    # label change together with its action. Thus, if the categories show the
+    # change, the queries also find the action. If the IMAP labels give the
+    # current categories, the result is the same with or without the queries.
+    # Thus, the queries run only if the categories are different.
     current_categories = set(message.categories)
     if (
         account.category_type == "label"
         and message.id is not None
-        and _has_pending_label_change(session, message)
+        and categories != current_categories
     ):
-        # `message.categories` already has the change of the pending
-        # `change_labels` action, but the IMAP labels can be older than that
-        # change. Thus, keep the current categories. Other label changes in
-        # the IMAP labels stay out of the categories until a later call
-        # without a pending action.
-        if categories != current_categories:
+        # Query for a successful action only after the query for a pending
+        # one. An action becomes `successful` only after it was `pending`.
+        # Thus, if the first query does not find an action because it is
+        # already `successful`, the second query finds it, with its
+        # `CHANGE_LABELS_MODSEQ_KEY` values.
+        keep_reason: KeepCategoriesReason | None = None
+        if _has_pending_label_change(session, message):
+            keep_reason = "pending_label_change"
+        elif (
+            fetched_folder_id is not None
+            and fetched_modseq is not None
+            and _is_older_than_label_change(
+                session, message, fetched_folder_id, fetched_modseq
+            )
+        ):
+            keep_reason = "stale_imap_data"
+        if keep_reason is not None:
+            # `message.categories` already has the change of the last
+            # `change_labels` action, but the IMAP labels can be older than
+            # that change. Thus, keep the current categories. Other label
+            # changes in the IMAP labels stay out of the categories until a
+            # later call that keeps no categories.
             imap_only_categories = categories - current_categories
             local_only_categories = current_categories - categories
             log.info(
-                "Kept message categories during a pending label change",
+                "Kept message categories during a label change",
                 account_id=account.id,
                 message_id=message.id,
+                reason=keep_reason,
                 imap_only_category_names=sorted(
                     category.name for category in imap_only_categories
                 ),
@@ -177,7 +261,7 @@ def update_message_metadata(
                     if category is not None
                 ),
             )
-        categories = current_categories
+            categories = current_categories
 
     # Use a consistent time across creating categories, message updated_at
     # and the subsequent transaction that may be created.
@@ -257,6 +341,7 @@ def update_metadata(  # type: ignore[no-untyped-def]
     ):
         flags = new_flags[item.msg_uid].flags
         labels = getattr(new_flags[item.msg_uid], "labels", None)
+        modseq = new_flags[item.msg_uid].modseq
 
         # TODO(emfree) refactor so this is only ever relevant for Gmail.
         changed = item.update_flags(flags)
@@ -267,7 +352,14 @@ def update_metadata(  # type: ignore[no-untyped-def]
         if changed:
             change_count += 1
             is_draft = item.is_draft and folder_role in ["drafts", "all"]
-            update_message_metadata(session, account, item.message, is_draft)
+            update_message_metadata(
+                session,
+                account,
+                item.message,
+                is_draft,
+                fetched_folder_id=folder_id,
+                fetched_modseq=modseq,
+            )
             session.commit()
     log.info(
         "Updated UID metadata", changed=change_count, out_of=len(new_flags)

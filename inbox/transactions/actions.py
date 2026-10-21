@@ -47,6 +47,7 @@ from inbox.interruptible_threading import (
 )
 from inbox.logging import get_logger
 from inbox.models import ActionLog, Event
+from inbox.models.action_log import CHANGE_LABELS_MODSEQ_KEY
 from inbox.models.session import session_scope, session_scope_by_shard_id
 from inbox.util.concurrency import kill_all, retry_with_logging
 from inbox.util.misc import DummyContextManager
@@ -754,7 +755,9 @@ class SyncbackTask:
             return True
 
         try:
-            before, after = self._execute_timed_action(records_to_process)
+            before, after, result = self._execute_timed_action(
+                records_to_process
+            )
             self.log.debug(
                 "executing action", action_log_ids=action_ids_to_process
             )
@@ -766,6 +769,17 @@ class SyncbackTask:
 
                 max_latency = max_func_latency = 0
                 for action_log_entry in action_log_entries:
+                    if self.action_name == "change_labels":
+                        # Assign a new dict, because the JSON column does not
+                        # track changes inside a dict. Set it before
+                        # `_mark_action_as_successful`, so that one commit
+                        # saves it with the status.
+                        action_log_entry.extra_args = {
+                            **(action_log_entry.extra_args or {}),
+                            CHANGE_LABELS_MODSEQ_KEY: result.get(
+                                action_log_entry.record_id, {}
+                            ),
+                        }
                     (latency, func_latency) = self._mark_action_as_successful(
                         action_log_entry, before, after, db_session
                     )
@@ -892,9 +906,9 @@ class SyncbackTask:
             func_args.insert(  # type: ignore[unreachable]
                 0, self.crispin_client
             )
-        self.func(*func_args)
+        result = self.func(*func_args)
         after_func = datetime.utcnow()
-        return before_func, after_func
+        return before_func, after_func, result
 
     def _mark_action_as_successful(  # type: ignore[no-untyped-def]
         self, action_log_entry, before, after, db_session

@@ -46,6 +46,7 @@ from inbox.actions.backends.gmail import (
 )
 from inbox.logging import get_logger
 from inbox.models import Message
+from inbox.models.action_log import FolderModseq
 from inbox.models.session import session_scope
 
 log = get_logger()
@@ -78,10 +79,10 @@ def move(  # type: ignore[no-untyped-def]
 
 def change_labels(  # type: ignore[no-untyped-def]
     crispin_client, account_id, message_ids, args
-) -> None:
+) -> dict[int, dict[str, FolderModseq]]:
     added_labels = args["added_labels"]
     removed_labels = args["removed_labels"]
-    remote_change_labels(
+    return remote_change_labels(
         crispin_client, account_id, message_ids, removed_labels, added_labels
     )
 

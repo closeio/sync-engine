@@ -214,6 +214,34 @@ def test_gmail_bogus_integer_flags(gmail_client, constants) -> None:
     }
 
 
+def test_gmail_condstore_changed_flags_refetches_modseq(
+    gmail_client, constants
+) -> None:
+    uid = constants["uid"]
+    modseq = constants["modseq"]
+    # The first response has no `X-GM-LABELS`, so the client fetches the UID
+    # again.
+    gmail_client.conn.fetch = mock.Mock(
+        side_effect=[
+            {uid: {b"FLAGS": (), b"MODSEQ": (modseq,)}},
+            {
+                uid: {
+                    b"FLAGS": (b"\\Seen",),
+                    b"X-GM-LABELS": (b"\\Inbox",),
+                    b"MODSEQ": (modseq + 1,),
+                }
+            },
+        ]
+    )
+
+    assert gmail_client.condstore_changed_flags(modseq - 1) == {
+        uid: GmailFlags((b"\\Seen",), ["\\Inbox"], modseq + 1)
+    }
+    gmail_client.conn.fetch.assert_called_with(
+        uid, ["FLAGS", "X-GM-LABELS", "MODSEQ"]
+    )
+
+
 def test_g_msgids(gmail_client, constants) -> None:
     expected_resp = (
         "{seq} (X-GM-MSGID {g_msgid} UID {uid} MODSEQ ({modseq}))".format(

@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Close's email sync engine."
 requires-python = "==3.12.*"
 dependencies = [
-    "alembic==1.7.5",
+    "alembic==1.19.1",
     "arrow==0.17.0",
     "attrs==23.1.0",
     "authalligator-client @ https://github.com/closeio/authalligator-client/archive/e7cc8e0bc5b1f2285ab5997e2590a8eb056fc627.zip",

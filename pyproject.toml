@@ -26,7 +26,7 @@ dependencies = [
     "ipython==9.12.0",
     "json_log_formatter==1.0",
     "limitlion==1.1.0",
-    "lxml==6.1.0",
+    "lxml==6.1.3",
     "more-itertools==10.5.0",
     "mysqlclient==2.2.5",
     "Pympler==0.9",

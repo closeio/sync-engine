@@ -650,12 +650,16 @@ def test_categories_kept_after_newer_label_change_without_modseqs(
     }
 
 
-def test_successful_label_change_query_after_pending_query(
-    db, default_account, folder, folder_info, archived_new_message, monkeypatch
+def make_label_change_finish_after_pending_query(
+    monkeypatch, message, folder_modseqs
 ) -> None:
-    namespace_id = default_account.namespace.id
-    message_id = archived_new_message.id
-    folder_modseqs = saved_folder_modseqs(folder.id)
+    """
+    Patch the query for a pending action, so that the `change_labels` action
+    of `message` becomes successful right after the query, and saves
+    `folder_modseqs`.
+    """
+    namespace_id = message.namespace_id
+    message_id = message.id
 
     def finish_label_change_after_query(_session, _message) -> bool:
         # Commit the end of the action from another session, after a query
@@ -681,11 +685,272 @@ def test_successful_label_change_query_after_pending_query(
         common, "_has_pending_label_change", finish_label_change_after_query
     )
 
+
+def test_successful_label_change_query_after_pending_query(
+    db, default_account, folder, folder_info, archived_new_message, monkeypatch
+) -> None:
+    make_label_change_finish_after_pending_query(
+        monkeypatch, archived_new_message, saved_folder_modseqs(folder.id)
+    )
+
     save_poll_of_new_message(db, default_account, folder, SAVED_MODSEQ - 10)
 
     assert "inbox" not in {
         category.name for category in archived_new_message.categories
     }
+
+
+def save_label_change_rows_of_new_message(db, new_message) -> None:
+    """
+    Save the IMAP rows that the `change_labels` action of the new message
+    fetched after it removed the inbox label. The message is read at that
+    time.
+    """
+    new_imapuid = new_message.imapuids[0]
+    new_imapuid.update_flags([b"\\Seen"])
+    new_imapuid.update_labels([])
+    db.session.commit()
+
+
+def save_unread_poll_of_new_message(db, account, folder, modseq=None) -> None:
+    """
+    Save a Gmail poll that reports the new message as unread and in the
+    inbox, with `modseq`.
+    """
+    new_flags = {NEW_MESSAGE_UID: GmailFlags((), ["\\Inbox"], modseq)}
+    update_metadata(
+        account.id, folder.id, folder.canonical_name, new_flags, db.session
+    )
+
+
+def imap_category_names(message) -> set[str]:
+    """Return the names of the categories from the IMAP rows of `message`."""
+    return {
+        category.name
+        for imapuid in message.imapuids
+        for category in imapuid.categories
+    }
+
+
+def test_imap_rows_kept_with_imap_labels_older_than_label_change(
+    db, default_account, folder, folder_info, archived_new_message
+) -> None:
+    save_label_change_rows_of_new_message(db, archived_new_message)
+    finish_label_changes(
+        db,
+        default_account,
+        archived_new_message,
+        saved_folder_modseqs(folder.id),
+    )
+
+    save_poll_of_new_message(db, default_account, folder, SAVED_MODSEQ - 10)
+
+    assert "inbox" not in {
+        category.name for category in archived_new_message.categories
+    }
+    assert "inbox" not in imap_category_names(archived_new_message)
+    assert archived_new_message.is_read
+
+
+def test_imap_flags_kept_with_imap_labels_older_than_label_change(
+    db, default_account, folder, folder_info, archived_new_message
+) -> None:
+    save_label_change_rows_of_new_message(db, archived_new_message)
+    finish_label_changes(
+        db,
+        default_account,
+        archived_new_message,
+        saved_folder_modseqs(folder.id),
+    )
+
+    # The poll fetched the new message before the read change.
+    save_unread_poll_of_new_message(
+        db, default_account, folder, SAVED_MODSEQ - 10
+    )
+
+    assert archived_new_message.imapuids[0].is_seen
+    assert archived_new_message.is_read
+
+
+def test_imap_rows_follow_imap_data_during_pending_label_change(
+    db, default_account, folder, archived_new_message
+) -> None:
+    # Gmail reports the new message as read, and with a label that its IMAP
+    # rows do not have. For example, the user added the label in Gmail.
+    new_flags = {
+        NEW_MESSAGE_UID: GmailFlags(
+            (b"\\Seen",), ["\\Inbox", "Foo"], SAVED_MODSEQ
+        )
+    }
+
+    update_metadata(
+        default_account.id,
+        folder.id,
+        folder.canonical_name,
+        new_flags,
+        db.session,
+    )
+
+    new_imapuid = archived_new_message.imapuids[0]
+    assert new_imapuid.is_seen
+    assert {label.name for label in new_imapuid.labels} == {"inbox", "Foo"}
+    assert archived_new_message.is_read
+    # The pending action still keeps the categories.
+    assert {
+        category.name or category.display_name
+        for category in archived_new_message.categories
+    } == {"all"}
+
+
+def test_imap_rows_kept_with_older_imap_data_during_pending_label_change(
+    db, default_account, folder, folder_info, archived_new_message
+) -> None:
+    save_label_change_rows_of_new_message(db, archived_new_message)
+    finish_label_changes(
+        db,
+        default_account,
+        archived_new_message,
+        saved_folder_modseqs(folder.id),
+    )
+    # A newer action for the message is pending. Use other labels, so that
+    # the action is not a duplicate of the finished one.
+    schedule_action(
+        "change_labels",
+        archived_new_message,
+        archived_new_message.namespace_id,
+        db.session,
+        removed_labels=["\\Important"],
+        added_labels=[],
+    )
+    db.session.commit()
+
+    save_poll_of_new_message(db, default_account, folder, SAVED_MODSEQ - 10)
+
+    assert "inbox" not in imap_category_names(archived_new_message)
+    assert "inbox" not in {
+        category.name for category in archived_new_message.categories
+    }
+
+
+def test_imap_rows_follow_imap_labels_as_new_as_label_change(
+    db, default_account, folder, folder_info, archived_new_message, monkeypatch
+) -> None:
+    save_label_change_rows_of_new_message(db, archived_new_message)
+    finish_label_changes(
+        db,
+        default_account,
+        archived_new_message,
+        saved_folder_modseqs(folder.id),
+    )
+    has_pending_label_change = mock.Mock(
+        wraps=common._has_pending_label_change
+    )
+    is_older_than_label_change = mock.Mock(
+        wraps=common._is_older_than_label_change
+    )
+    monkeypatch.setattr(
+        common, "_has_pending_label_change", has_pending_label_change
+    )
+    monkeypatch.setattr(
+        common, "_is_older_than_label_change", is_older_than_label_change
+    )
+
+    save_poll_of_new_message(db, default_account, folder, SAVED_MODSEQ)
+
+    assert "inbox" in imap_category_names(archived_new_message)
+    assert "inbox" in {
+        category.name for category in archived_new_message.categories
+    }
+    # The message update reuses the check of `update_metadata`.
+    assert has_pending_label_change.call_count == 1
+    assert is_older_than_label_change.call_count == 1
+
+
+def test_imap_rows_kept_with_successful_label_change_after_pending_query(
+    db, default_account, folder, folder_info, archived_new_message, monkeypatch
+) -> None:
+    save_label_change_rows_of_new_message(db, archived_new_message)
+    make_label_change_finish_after_pending_query(
+        monkeypatch, archived_new_message, saved_folder_modseqs(folder.id)
+    )
+
+    save_poll_of_new_message(db, default_account, folder, SAVED_MODSEQ - 10)
+
+    assert "inbox" not in {
+        category.name for category in archived_new_message.categories
+    }
+    assert "inbox" not in imap_category_names(archived_new_message)
+
+
+def test_label_change_check_left_to_message_update_with_saved_labels(
+    db, default_account, folder, archived_new_message, monkeypatch
+) -> None:
+    # The IMAP rows of the new message already have the labels of the poll.
+    message_update = mock.Mock(wraps=update_message_metadata)
+    monkeypatch.setattr(common, "update_message_metadata", message_update)
+
+    save_poll_of_new_message(db, default_account, folder)
+
+    assert message_update.call_args.kwargs["label_change_check"] is None
+    # The message update still keeps the categories.
+    assert "inbox" not in {
+        category.name for category in archived_new_message.categories
+    }
+
+
+@pytest.mark.parametrize(
+    ("has_newer_pending_label_change", "reason"),
+    [(False, "stale_imap_data"), (True, "pending_label_change")],
+)
+def test_kept_imap_labels_are_logged(
+    db,
+    default_account,
+    folder,
+    folder_info,
+    archived_new_message,
+    monkeypatch,
+    has_newer_pending_label_change,
+    reason,
+) -> None:
+    save_label_change_rows_of_new_message(db, archived_new_message)
+    finish_label_changes(
+        db,
+        default_account,
+        archived_new_message,
+        saved_folder_modseqs(folder.id),
+    )
+    if has_newer_pending_label_change:
+        # Use other labels, so that the action is not a duplicate of the
+        # finished one.
+        schedule_action(
+            "change_labels",
+            archived_new_message,
+            archived_new_message.namespace_id,
+            db.session,
+            removed_labels=["\\Important"],
+            added_labels=[],
+        )
+        db.session.commit()
+    mock_log = mock.Mock()
+    monkeypatch.setattr(common, "log", mock_log)
+
+    save_poll_of_new_message(db, default_account, folder, SAVED_MODSEQ - 10)
+
+    mock_log.info.assert_any_call(
+        "Kept IMAP rows newer than the fetched data",
+        account_id=default_account.id,
+        message_id=archived_new_message.id,
+        folder_id=folder.id,
+        reason=reason,
+        fetched_only_label_names=["inbox"],
+        saved_only_label_names=[],
+    )
+    # The kept IMAP rows give the current categories. Thus, only the line
+    # above shows the stale `\Inbox`.
+    logged_messages = [call.args[0] for call in mock_log.info.call_args_list]
+    assert (
+        "Kept message categories during a label change" not in logged_messages
+    )
 
 
 @pytest.fixture

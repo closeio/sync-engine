@@ -3,15 +3,20 @@
 import contextlib
 from collections import defaultdict
 from imaplib import IMAP4
+from typing import NamedTuple
 
 import imapclient  # type: ignore[import-untyped]
+from sqlalchemy.orm import (  # type: ignore[import-untyped]
+    Session,
+    selectinload,
+)
 
-from inbox.crispin import CONN_UNUSABLE_EXC_CLASSES
+from inbox.crispin import CONN_UNUSABLE_EXC_CLASSES, GmailFlags
 from inbox.logging import get_logger
 from inbox.mailsync.backends.imap.generic import uidvalidity_cb
 from inbox.models import Folder
 from inbox.models.action_log import FolderModseq
-from inbox.models.backends.imap import ImapUid
+from inbox.models.backends.imap import ImapUid, LabelItem
 from inbox.models.category import Category
 from inbox.models.session import session_scope
 
@@ -26,17 +31,92 @@ def _encode_labels(labels):  # type: ignore[no-untyped-def]
     return [imapclient.imap_utf7.encode(label) for label in labels]
 
 
+class LabelChangeResult(NamedTuple):
+    """The result of a label change in Gmail."""
+
+    # The MODSEQ of each message after the change, with the UIDVALIDITY of
+    # the folder, by message ID and then by folder ID.
+    modseqs: dict[int, dict[str, FolderModseq]]
+    # The UIDs that the label change found for each message, by message ID.
+    # Each UID is a pair of folder ID and UID.
+    uids_by_message_id: dict[int, set[tuple[int, int]]]
+    # The flags, the labels, and the MODSEQ of each UID after the change, by
+    # folder ID and UID. A UID without data from the fetch after the change
+    # is not in this dict.
+    fetched_flags: dict[tuple[int, int], GmailFlags]
+
+
+def save_fetched_imap_rows(
+    db_session: Session, account_id: int, result: LabelChangeResult
+) -> set[int]:
+    """
+    Save the flags and the labels in `result.fetched_flags` in the IMAP rows
+    of their UIDs. Skip the IMAP row of a UID if it belongs to another
+    message than in `result.uids_by_message_id`. Return the IDs of the
+    messages whose IMAP rows the function saved for all their UIDs in
+    `result.uids_by_message_id`. The function does not commit.
+    """
+    message_id_by_folder_uid = {
+        folder_uid: message_id
+        for message_id, folder_uids in result.uids_by_message_id.items()
+        for folder_uid in folder_uids
+    }
+    msg_uids_by_folder_id: dict[int, list[int]] = defaultdict(list)
+    for folder_id, msg_uid in result.fetched_flags:
+        msg_uids_by_folder_id[folder_id].append(msg_uid)
+
+    saved_folder_uids: set[tuple[int, int]] = set()
+    for folder_id, msg_uids in msg_uids_by_folder_id.items():
+        imapuids = (
+            db_session.query(ImapUid)
+            .filter(
+                ImapUid.account_id == account_id,
+                ImapUid.folder_id == folder_id,
+                ImapUid.msg_uid.in_(msg_uids),
+            )
+            .with_hint(
+                ImapUid,
+                "FORCE INDEX (ix_imapuid_account_id_folder_id_msg_uid_desc)",
+            )
+            # Load the label rows of all UIDs in one query.
+            .options(
+                selectinload(
+                    ImapUid.labelitems  # type: ignore[attr-defined]
+                ).joinedload(LabelItem.label)
+            )
+        )
+        for imapuid in imapuids:
+            folder_uid = (folder_id, imapuid.msg_uid)
+            # A resync of the folder can give the UID to another message after
+            # the label change read the UIDs.
+            if message_id_by_folder_uid.get(folder_uid) != imapuid.message_id:
+                continue
+            uid_flags = result.fetched_flags[folder_uid]
+            imapuid.update_flags(list(uid_flags.flags))
+            imapuid.update_labels(uid_flags.labels)
+            # Flush, so that the next UID finds a label row that this UID
+            # created.
+            db_session.flush()
+            saved_folder_uids.add(folder_uid)
+
+    return {
+        message_id
+        for message_id, folder_uids in result.uids_by_message_id.items()
+        if folder_uids <= saved_folder_uids
+    }
+
+
 def remote_change_labels(  # type: ignore[no-untyped-def]
     crispin_client, account_id, message_ids, removed_labels, added_labels
-) -> dict[int, dict[str, FolderModseq]]:
+) -> LabelChangeResult:
     """
-    Change the labels of the messages in Gmail.
+    Change the labels of the messages in Gmail. After the change, fetch the
+    flags, the labels, and the MODSEQ of each UID.
 
-    Return the MODSEQ of each message after the change, with the UIDVALIDITY
-    of the folder, by message ID and then by folder ID. The folder IDs are
-    strings. If a message has more than one UID in a folder, the result has
-    the lowest MODSEQ of these UIDs. If the fetch after the change fails, and
-    the connection stays usable, the result has no values for that folder.
+    In `LabelChangeResult.modseqs`, the folder IDs are strings. If a message
+    has more than one UID in a folder, the result has the lowest MODSEQ of
+    these UIDs. If the fetch after the change fails, and the connection stays
+    usable, the result has no values for that folder.
     """
     with session_scope(account_id) as db_session:
         rows = (
@@ -50,12 +130,15 @@ def remote_change_labels(  # type: ignore[no-untyped-def]
     uids_by_folder_name: dict[str, list[int]] = defaultdict(list)
     folder_id_by_name: dict[str, int] = {}
     message_id_by_folder_uid: dict[tuple[str, int], int] = {}
+    uids_by_message_id: dict[int, set[tuple[int, int]]] = defaultdict(set)
     for message_id, msg_uid, folder_id, folder_name in rows:
         uids_by_folder_name[folder_name].append(msg_uid)
         folder_id_by_name[folder_name] = folder_id
         message_id_by_folder_uid[folder_name, msg_uid] = message_id
+        uids_by_message_id[message_id].add((folder_id, msg_uid))
 
     modseqs: dict[int, dict[str, FolderModseq]] = defaultdict(dict)
+    fetched_flags: dict[tuple[int, int], GmailFlags] = {}
     for folder_name, uids in uids_by_folder_name.items():
         crispin_client.select_folder_if_necessary(folder_name, uidvalidity_cb)
         if len(added_labels) > 0:
@@ -74,7 +157,7 @@ def remote_change_labels(  # type: ignore[no-untyped-def]
             raise
         except Exception:
             # The label change is already in Gmail, so do not raise. Return
-            # no MODSEQ for this folder.
+            # no fetched data for this folder.
             log.warning(
                 "Could not fetch MODSEQ after label change",
                 account_id=account_id,
@@ -85,9 +168,11 @@ def remote_change_labels(  # type: ignore[no-untyped-def]
                 exc_info=True,
             )
             continue
-        folder_key = str(folder_id_by_name[folder_name])
+        folder_id = folder_id_by_name[folder_name]
+        folder_key = str(folder_id)
         uidvalidity = crispin_client.selected_uidvalidity
         for uid, uid_flags in remote_flags.items():
+            fetched_flags[folder_id, uid] = uid_flags
             if uid_flags.modseq is None:
                 continue
             message_id = message_id_by_folder_uid[folder_name, uid]
@@ -104,7 +189,11 @@ def remote_change_labels(  # type: ignore[no-untyped-def]
                 modseqs[message_id][folder_key] = FolderModseq(
                     uidvalidity=uidvalidity, modseq=uid_flags.modseq
                 )
-    return dict(modseqs)
+    return LabelChangeResult(
+        modseqs=dict(modseqs),
+        uids_by_message_id=dict(uids_by_message_id),
+        fetched_flags=fetched_flags,
+    )
 
 
 def remote_create_label(  # type: ignore[no-untyped-def]

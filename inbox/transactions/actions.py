@@ -15,10 +15,16 @@ import threading
 import weakref
 from collections import defaultdict
 from datetime import datetime, timedelta
+from typing import Any
 
 from sqlalchemy import desc  # type: ignore[import-untyped]
+from sqlalchemy.orm import Session  # type: ignore[import-untyped]
 
 from inbox import interruptible_threading
+from inbox.actions.backends.gmail import (
+    LabelChangeResult,
+    save_fetched_imap_rows,
+)
 from inbox.actions.base import (
     can_handle_multiple_records,
     change_labels,
@@ -46,6 +52,9 @@ from inbox.interruptible_threading import (
     InterruptibleThreadTimeout,
 )
 from inbox.logging import get_logger
+from inbox.mailsync.backends.imap.common import (
+    rebuild_message_metadata_from_imap_rows,
+)
 from inbox.models import ActionLog, Event
 from inbox.models.action_log import CHANGE_LABELS_MODSEQ_KEY
 from inbox.models.session import session_scope, session_scope_by_shard_id
@@ -763,28 +772,30 @@ class SyncbackTask:
             )
 
             with session_scope(self.account_id) as db_session:
-                action_log_entries = db_session.query(ActionLog).filter(
-                    ActionLog.id.in_(action_ids_to_process)
+                action_log_entries = (
+                    db_session.query(ActionLog)
+                    .filter(ActionLog.id.in_(action_ids_to_process))
+                    .all()
+                )
+                refreshed_message_ids = self._mark_actions_as_successful(
+                    db_session, action_log_entries, result
                 )
 
-                max_latency = max_func_latency = 0
+                max_latency = max_func_latency = 0.0
                 for action_log_entry in action_log_entries:
-                    if self.action_name == "change_labels":
-                        # Assign a new dict, because the JSON column does not
-                        # track changes inside a dict. Set it before
-                        # `_mark_action_as_successful`, so that one commit
-                        # saves it with the status.
-                        action_log_entry.extra_args = {
-                            **(action_log_entry.extra_args or {}),
-                            CHANGE_LABELS_MODSEQ_KEY: result.get(
-                                action_log_entry.record_id, {}
-                            ),
-                        }
-                    (latency, func_latency) = self._mark_action_as_successful(
-                        action_log_entry, before, after, db_session
+                    (latency, func_latency) = self._log_success(
+                        action_log_entry, before, after
                     )
                     max_latency = max(latency, max_latency)
                     max_func_latency = max(func_latency, max_func_latency)
+                # Only a `change_labels` task rebuilds messages.
+                rebuild_log_args: dict[str, float] = {}
+                if self.action_name == "change_labels":
+                    rebuild_log_args["rebuild_latency"] = (
+                        self._rebuild_message_metadata(
+                            db_session, result, refreshed_message_ids
+                        )
+                    )
                 parent_service = self.parent_service()
                 assert parent_service
                 self.log.info(
@@ -792,6 +803,7 @@ class SyncbackTask:
                     latency=max_latency,
                     process_number=parent_service.process_number,
                     func_latency=max_func_latency,
+                    **rebuild_log_args,
                 )
                 return True
         except Exception as exc:
@@ -910,11 +922,72 @@ class SyncbackTask:
         after_func = datetime.utcnow()
         return before_func, after_func, result
 
-    def _mark_action_as_successful(  # type: ignore[no-untyped-def]
-        self, action_log_entry, before, after, db_session
-    ):
-        action_log_entry.status = "successful"
-        db_session.commit()
+    def _mark_actions_as_successful(
+        self,
+        db_session: Session,
+        action_log_entries: list[ActionLog],
+        result: Any,
+    ) -> set[int]:
+        """
+        Mark the actions as successful in one commit. Return the IDs of the
+        messages whose IMAP rows the commit refreshed.
+
+        For a `change_labels` task, the commit also saves the MODSEQ values of
+        `result` with each action, and the data that `result` fetched in the
+        IMAP rows. Thus, no other session can read the fresh IMAP rows without
+        these values. If the save of the IMAP rows fails, commit the actions
+        without it.
+        """
+        self._set_actions_as_successful(action_log_entries, result)
+        if self.action_name != "change_labels":
+            db_session.commit()
+            return set()
+        try:
+            refreshed_message_ids = save_fetched_imap_rows(
+                db_session, self.account_id, result
+            )
+            db_session.commit()
+        except Exception:
+            # The label change is already in Gmail, so the actions succeed
+            # without the IMAP rows. The rollback also discards the changes
+            # to the actions. Thus, make them again.
+            db_session.rollback()
+            self.log.warning(
+                "Could not save IMAP rows after label change",
+                message_ids=sorted(result.uids_by_message_id),
+                exc_info=True,
+            )
+            self._set_actions_as_successful(action_log_entries, result)
+            db_session.commit()
+            return set()
+        return refreshed_message_ids
+
+    def _set_actions_as_successful(
+        self, action_log_entries: list[ActionLog], result: Any
+    ) -> None:
+        """
+        Set the status of the actions to `successful`. For a `change_labels`
+        task, also set the MODSEQ values of `result` in each action.
+        """
+        for action_log_entry in action_log_entries:
+            if self.action_name == "change_labels":
+                # Assign a new dict, because the JSON column does not track
+                # changes inside a dict.
+                action_log_entry.extra_args = {
+                    **(action_log_entry.extra_args or {}),
+                    CHANGE_LABELS_MODSEQ_KEY: result.modseqs.get(
+                        action_log_entry.record_id, {}
+                    ),
+                }
+            action_log_entry.status = "successful"
+
+    def _log_success(
+        self, action_log_entry: ActionLog, before: datetime, after: datetime
+    ) -> tuple[float, float]:
+        """
+        Send the latency of the successful action to statsd. Return the
+        latency of the action and the latency of its function.
+        """
         latency = round(
             (datetime.utcnow() - action_log_entry.created_at).total_seconds(),
             2,
@@ -922,6 +995,45 @@ class SyncbackTask:
         func_latency = round((after - before).total_seconds(), 2)
         self._log_to_statsd(action_log_entry.status, latency)
         return (latency, func_latency)
+
+    def _rebuild_message_metadata(
+        self,
+        db_session: Session,
+        result: LabelChangeResult,
+        refreshed_message_ids: set[int],
+    ) -> float:
+        """
+        Rebuild the categories and the flags of the messages in
+        `refreshed_message_ids` from their IMAP rows, after a successful
+        `change_labels` task. Log the other messages of `result`, and skip
+        them. Return the duration of the rebuild in seconds.
+        """
+        unrefreshed_message_ids = (
+            set(result.uids_by_message_id) - refreshed_message_ids
+        )
+        # Older IMAP rows can bring back the labels that the task removed.
+        if unrefreshed_message_ids:
+            self.log.warning(
+                "Skipped message rebuild without fresh IMAP rows",
+                message_ids=sorted(unrefreshed_message_ids),
+            )
+        before_rebuild = datetime.utcnow()
+        try:
+            # Mail sync can change the IMAP rows after the task saved them.
+            # Thus, give the rebuild the data that the task fetched.
+            rebuild_message_metadata_from_imap_rows(
+                db_session,
+                self.account_id,
+                refreshed_message_ids,
+                fetched_flags=result.fetched_flags,
+            )
+            db_session.commit()
+        except Exception:
+            # The actions succeeded. An error in the rebuild must not count as
+            # a failure of the actions.
+            db_session.rollback()
+            self.log.exception("Could not rebuild message metadata")
+        return round((datetime.utcnow() - before_rebuild).total_seconds(), 2)
 
     def _mark_action_as_failed(  # type: ignore[no-untyped-def]
         self, action_log_entry, db_session

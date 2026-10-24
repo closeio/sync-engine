@@ -8,6 +8,10 @@ from flanker import mime
 from imapclient.exceptions import LoginError
 
 from inbox import interruptible_threading
+from inbox.actions.backends.gmail import (
+    LabelChangeResult,
+    save_fetched_imap_rows,
+)
 from inbox.actions.base import (
     change_labels,
     create_folder,
@@ -23,14 +27,22 @@ from inbox.actions.base import (
     update_folder,
     update_label,
 )
-from inbox.crispin import CrispinConnectionPool, writable_connection_pool
+from inbox.api.update import update_thread
+from inbox.crispin import (
+    CrispinConnectionPool,
+    GmailFlags,
+    writable_connection_pool,
+)
 from inbox.interruptible_threading import InterruptibleThreadTimeout
-from inbox.models import ActionLog, Category
+from inbox.mailsync.backends.imap.common import update_message_metadata
+from inbox.models import ActionLog, Category, Label, Transaction
 from inbox.models.action_log import (
     CHANGE_LABELS_MODSEQ_KEY,
     FolderModseq,
     schedule_action,
 )
+from inbox.models.backends.imap import ImapUid
+from inbox.models.session import session_scope
 from inbox.sendmail.base import create_message_from_json
 from inbox.sendmail.base import update_draft as sendmail_update_draft
 from inbox.transactions.actions import (
@@ -43,6 +55,7 @@ from tests.util.base import (
     add_fake_folder,
     add_fake_imapuid,
     add_fake_message,
+    delete_imapuids,
 )
 
 
@@ -161,6 +174,24 @@ def test_change_flags(
         )
 
 
+def count_message_transactions(db, message) -> int:
+    """Return the number of transactions of `message`."""
+    return (
+        db.session.query(Transaction)
+        .filter(
+            Transaction.namespace_id == message.namespace_id,
+            Transaction.object_type == "message",
+            Transaction.record_id == message.id,
+        )
+        .count()
+    )
+
+
+def label_names(imapuid) -> set[str]:
+    """Return the names of the labels in the IMAP rows of `imapuid`."""
+    return {label.name for label in imapuid.labels}
+
+
 def test_change_labels(
     db, default_account, message, folder, mock_imapclient
 ) -> None:
@@ -169,7 +200,10 @@ def test_change_labels(
         {
             22: {
                 b"FLAGS": (b"\\Seen",),
-                b"X-GM-LABELS": (),
+                b"X-GM-LABELS": (
+                    b"mot&APY-rhead",
+                    b"&A7wDtQPEA6wDvQO,A7kDsQ-",
+                ),
                 b"MODSEQ": (123,),
             }
         },
@@ -180,10 +214,14 @@ def test_change_labels(
     # The mock returns `MODSEQ` also if the fetch does not ask for it. Thus,
     # check the fetched items below.
     mock_imapclient.fetch = mock.Mock(wraps=mock_imapclient.fetch)
-    add_fake_imapuid(db.session, default_account.id, message, folder, 22)
+    imapuid = add_fake_imapuid(
+        db.session, default_account.id, message, folder, 22
+    )
+    imapuid.update_labels(["\\Inbox"])
+    db.session.commit()
 
     with writable_connection_pool(default_account.id).get() as crispin_client:
-        modseqs = change_labels(
+        result = change_labels(
             crispin_client,
             default_account.id,
             [message.id],
@@ -201,9 +239,20 @@ def test_change_labels(
         mock_imapclient.fetch.assert_called_once_with(
             [22], ["FLAGS", "X-GM-LABELS", "MODSEQ"]
         )
-    assert modseqs == {
+    assert result.modseqs == {
         message.id: {str(folder.id): FolderModseq(uidvalidity=7, modseq=123)}
     }
+    assert result.uids_by_message_id == {message.id: {(folder.id, 22)}}
+    assert result.fetched_flags == {
+        (folder.id, 22): GmailFlags(
+            (b"\\Seen",), ["motörhead", "μετάνοια"], 123
+        )
+    }
+    # End the transaction, and read the IMAP rows. The action does not save
+    # them.
+    db.session.commit()
+    assert not imapuid.is_seen
+    assert label_names(imapuid) == {"inbox"}
 
 
 def test_change_labels_returns_modseqs_by_message_and_folder(
@@ -232,7 +281,7 @@ def test_change_labels_returns_modseqs_by_message_and_folder(
     add_fake_imapuid(db.session, default_account.id, message, other_folder, 30)
 
     with writable_connection_pool(default_account.id).get() as crispin_client:
-        modseqs = change_labels(
+        result = change_labels(
             crispin_client,
             default_account.id,
             [message.id, other_message.id],
@@ -240,7 +289,7 @@ def test_change_labels_returns_modseqs_by_message_and_folder(
         )
 
     uidvalidity = mock_imapclient.uidvalidity
-    assert modseqs == {
+    assert result.modseqs == {
         message.id: {
             str(folder.id): FolderModseq(uidvalidity=uidvalidity, modseq=123),
             str(other_folder.id): FolderModseq(
@@ -263,14 +312,14 @@ def test_change_labels_skips_uids_without_modseq(
     add_fake_imapuid(db.session, default_account.id, message, folder, 22)
 
     with writable_connection_pool(default_account.id).get() as crispin_client:
-        modseqs = change_labels(
+        result = change_labels(
             crispin_client,
             default_account.id,
             [message.id],
             {"removed_labels": ["\\Inbox"], "added_labels": []},
         )
 
-    assert modseqs == {}
+    assert result.modseqs == {}
 
 
 def test_change_labels_returns_lowest_modseq_of_message_in_folder(
@@ -289,14 +338,14 @@ def test_change_labels_returns_lowest_modseq_of_message_in_folder(
     add_fake_imapuid(db.session, default_account.id, message, folder, 23)
 
     with writable_connection_pool(default_account.id).get() as crispin_client:
-        modseqs = change_labels(
+        result = change_labels(
             crispin_client,
             default_account.id,
             [message.id],
             {"removed_labels": ["\\Inbox"], "added_labels": []},
         )
 
-    assert modseqs == {
+    assert result.modseqs == {
         message.id: {
             str(folder.id): FolderModseq(
                 uidvalidity=mock_imapclient.uidvalidity, modseq=123
@@ -334,7 +383,7 @@ def test_change_labels_skips_folder_with_failed_modseq_fetch(
     monkeypatch.setattr("inbox.actions.backends.gmail.log", mock_log)
 
     with writable_connection_pool(default_account.id).get() as crispin_client:
-        modseqs = change_labels(
+        result = change_labels(
             crispin_client,
             default_account.id,
             [message.id],
@@ -342,7 +391,7 @@ def test_change_labels_skips_folder_with_failed_modseq_fetch(
         )
 
     assert mock_imapclient.remove_gmail_labels.call_count == 2
-    assert modseqs == {
+    assert result.modseqs == {
         message.id: {
             str(other_folder.id): FolderModseq(
                 uidvalidity=mock_imapclient.uidvalidity, modseq=125
@@ -379,6 +428,213 @@ def test_change_labels_raises_connection_error_of_modseq_fetch(
             [message.id],
             {"removed_labels": ["\\Inbox"], "added_labels": []},
         )
+
+
+def test_change_labels_returns_fetched_flags_of_folders_with_fetched_data(
+    db, default_account, message, folder, mock_imapclient
+) -> None:
+    other_message = add_fake_message(
+        db.session, default_account.namespace.id, message.thread
+    )
+    other_folder = add_fake_folder(
+        db.session, default_account, "[Gmail]/Trash", "trash"
+    )
+    mock_imapclient.add_folder_data(
+        folder.name,
+        {22: {b"FLAGS": (), b"X-GM-LABELS": (), b"MODSEQ": (123,)}},
+    )
+    fetched_data = {
+        b"FLAGS": (b"\\Seen",),
+        b"X-GM-LABELS": (b"Foo",),
+        b"MODSEQ": (125,),
+    }
+    mock_imapclient.add_folder_data(
+        other_folder.name, {30: fetched_data, 31: fetched_data}
+    )
+    fetch = mock_imapclient.fetch
+
+    def fail_fetch_in_folder(*args, **kwargs):
+        if mock_imapclient.selected_folder == folder.name:
+            raise imaplib.IMAP4.error("FETCH failed")
+        return fetch(*args, **kwargs)
+
+    mock_imapclient.fetch = fail_fetch_in_folder
+    mock_imapclient.remove_gmail_labels = mock.Mock()
+    # `message` has UIDs in both folders, and `other_message` only in the
+    # folder whose fetch works.
+    add_fake_imapuid(db.session, default_account.id, message, folder, 22)
+    add_fake_imapuid(db.session, default_account.id, message, other_folder, 30)
+    add_fake_imapuid(
+        db.session, default_account.id, other_message, other_folder, 31
+    )
+
+    with writable_connection_pool(default_account.id).get() as crispin_client:
+        result = change_labels(
+            crispin_client,
+            default_account.id,
+            [message.id, other_message.id],
+            {"removed_labels": ["\\Inbox"], "added_labels": []},
+        )
+
+    assert result.uids_by_message_id == {
+        message.id: {(folder.id, 22), (other_folder.id, 30)},
+        other_message.id: {(other_folder.id, 31)},
+    }
+    fetched_flags = GmailFlags((b"\\Seen",), ["Foo"], 125)
+    assert result.fetched_flags == {
+        (other_folder.id, 30): fetched_flags,
+        (other_folder.id, 31): fetched_flags,
+    }
+
+
+def test_save_fetched_imap_rows(db, default_account, message, folder) -> None:
+    other_message = add_fake_message(
+        db.session, default_account.namespace.id, message.thread
+    )
+    imapuid = add_fake_imapuid(
+        db.session, default_account.id, message, folder, 22
+    )
+    imapuid.update_labels(["\\Inbox"])
+    other_imapuid = add_fake_imapuid(
+        db.session, default_account.id, other_message, folder, 23
+    )
+    other_imapuid_without_data = add_fake_imapuid(
+        db.session, default_account.id, other_message, folder, 24
+    )
+    other_imapuid_without_data.update_labels(["\\Inbox"])
+    db.session.commit()
+    # The fetch has no data for UID 24, for example because the UID left the
+    # folder.
+    result = LabelChangeResult(
+        modseqs={},
+        uids_by_message_id={
+            message.id: {(folder.id, 22)},
+            other_message.id: {(folder.id, 23), (folder.id, 24)},
+        },
+        fetched_flags={
+            (folder.id, 22): GmailFlags((b"\\Seen",), ["Foo"], 123),
+            (folder.id, 23): GmailFlags((b"\\Seen",), ["Foo"], 124),
+        },
+    )
+
+    refreshed_message_ids = save_fetched_imap_rows(
+        db.session, default_account.id, result
+    )
+
+    assert refreshed_message_ids == {message.id}
+    db.session.commit()
+    for fetched_imapuid in (imapuid, other_imapuid):
+        assert fetched_imapuid.is_seen
+        assert label_names(fetched_imapuid) == {"Foo"}
+    assert not other_imapuid_without_data.is_seen
+    assert label_names(other_imapuid_without_data) == {"inbox"}
+
+
+def test_save_fetched_imap_rows_skips_message_without_imap_row(
+    db, default_account, message, folder
+) -> None:
+    # The IMAP row of the UID is gone, for example because mail sync deleted
+    # it after the fetch.
+    result = LabelChangeResult(
+        modseqs={},
+        uids_by_message_id={message.id: {(folder.id, 22)}},
+        fetched_flags={
+            (folder.id, 22): GmailFlags((b"\\Seen",), ["Foo"], 123)
+        },
+    )
+
+    refreshed_message_ids = save_fetched_imap_rows(
+        db.session, default_account.id, result
+    )
+
+    assert refreshed_message_ids == set()
+
+
+def test_save_fetched_imap_rows_skips_imap_row_of_other_message(
+    db, default_account, message, folder
+) -> None:
+    other_message = add_fake_message(
+        db.session, default_account.namespace.id, message.thread
+    )
+    # A resync of the folder gave the UID to another message after the label
+    # change read the UIDs.
+    other_imapuid = add_fake_imapuid(
+        db.session, default_account.id, other_message, folder, 22
+    )
+    other_imapuid.update_labels(["\\Inbox"])
+    db.session.commit()
+    result = LabelChangeResult(
+        modseqs={},
+        uids_by_message_id={message.id: {(folder.id, 22)}},
+        fetched_flags={
+            (folder.id, 22): GmailFlags((b"\\Seen",), ["Foo"], 123)
+        },
+    )
+
+    refreshed_message_ids = save_fetched_imap_rows(
+        db.session, default_account.id, result
+    )
+
+    assert refreshed_message_ids == set()
+    db.session.commit()
+    assert not other_imapuid.is_seen
+    assert label_names(other_imapuid) == {"inbox"}
+
+
+def test_save_fetched_imap_rows_creates_one_row_of_new_label(
+    db, default_account, message, folder
+) -> None:
+    # The message has two UIDs. For both UIDs, the fetch reports a label that
+    # has no row yet.
+    msg_uids = [22, 23]
+    for msg_uid in msg_uids:
+        add_fake_imapuid(
+            db.session, default_account.id, message, folder, msg_uid
+        )
+    db.session.commit()
+    labels_of_account = db.session.query(Label).filter(
+        Label.account_id == default_account.id, Label.name == "Foo"
+    )
+    assert labels_of_account.count() == 0
+    result = LabelChangeResult(
+        modseqs={},
+        uids_by_message_id={
+            message.id: {(folder.id, msg_uid) for msg_uid in msg_uids}
+        },
+        fetched_flags={
+            (folder.id, msg_uid): GmailFlags((), ["Foo"], 123)
+            for msg_uid in msg_uids
+        },
+    )
+
+    refreshed_message_ids = save_fetched_imap_rows(
+        db.session, default_account.id, result
+    )
+
+    assert refreshed_message_ids == {message.id}
+    db.session.commit()
+    assert labels_of_account.count() == 1
+    for imapuid in message.imapuids:
+        assert label_names(imapuid) == {"Foo"}
+
+
+def test_change_labels_leaves_out_message_without_imap_uids(
+    db, default_account, message, mock_imapclient
+) -> None:
+    mock_imapclient.remove_gmail_labels = mock.Mock()
+
+    with writable_connection_pool(default_account.id).get() as crispin_client:
+        result = change_labels(
+            crispin_client,
+            default_account.id,
+            [message.id],
+            {"removed_labels": ["\\Inbox"], "added_labels": []},
+        )
+
+    mock_imapclient.remove_gmail_labels.assert_not_called()
+    assert result == LabelChangeResult(
+        modseqs={}, uids_by_message_id={}, fetched_flags={}
+    )
 
 
 @pytest.mark.parametrize("obj_type", ["folder", "label"])
@@ -553,6 +809,35 @@ def make_actions_raise(monkeypatch, error: BaseException) -> None:
         raise error
 
     make_actions_run(monkeypatch, func)
+
+
+def make_label_changes_return(
+    monkeypatch, modseqs, uids_by_message_id=None, fetched_flags=None
+) -> None:
+    """
+    Patch syncback, so that each action returns a `LabelChangeResult` with
+    `modseqs`, `uids_by_message_id`, and `fetched_flags`.
+    """
+    make_actions_run(
+        monkeypatch,
+        lambda *args: LabelChangeResult(
+            modseqs=modseqs,
+            uids_by_message_id=dict(uids_by_message_id or {}),
+            fetched_flags=dict(fetched_flags or {}),
+        ),
+    )
+
+
+def make_imap_row_saves_return(monkeypatch, refreshed_message_ids) -> None:
+    """
+    Patch syncback, so that the save of the IMAP rows changes no rows, and
+    returns `refreshed_message_ids`. Thus, the IMAP rows differ from the
+    fetched data, as if mail sync changed them after the save.
+    """
+    monkeypatch.setattr(
+        "inbox.transactions.actions.save_fetched_imap_rows",
+        lambda *args: set(refreshed_message_ids),
+    )
 
 
 @pytest.fixture
@@ -863,7 +1148,7 @@ def test_change_labels_task_saves_modseqs_with_status(
     db, default_account, message, syncback_connection_pool, monkeypatch
 ) -> None:
     folder_modseqs = {"7": FolderModseq(uidvalidity=1, modseq=123)}
-    make_actions_run(monkeypatch, lambda *args: {message.id: folder_modseqs})
+    make_label_changes_return(monkeypatch, {message.id: folder_modseqs})
     action_log_entry = schedule_and_fetch_action(
         db,
         default_account,
@@ -896,7 +1181,7 @@ def test_change_labels_tasks_save_modseqs_of_own_message(
         message.id: {"7": FolderModseq(uidvalidity=1, modseq=123)},
         other_message.id: {"7": FolderModseq(uidvalidity=1, modseq=124)},
     }
-    make_actions_run(monkeypatch, lambda *args: folder_modseqs_by_message_id)
+    make_label_changes_return(monkeypatch, folder_modseqs_by_message_id)
     action_log_entries = [
         schedule_and_fetch_action(
             db,
@@ -927,7 +1212,7 @@ def test_change_labels_task_saves_modseqs_on_each_action_of_message(
     db, default_account, message, syncback_connection_pool, monkeypatch
 ) -> None:
     folder_modseqs = {"7": FolderModseq(uidvalidity=1, modseq=123)}
-    make_actions_run(monkeypatch, lambda *args: {message.id: folder_modseqs})
+    make_label_changes_return(monkeypatch, {message.id: folder_modseqs})
     # Use different labels, so that the second action is not a duplicate of
     # the first one.
     for removed_labels in (["\\Inbox"], ["\\Important"]):
@@ -964,6 +1249,800 @@ def test_change_labels_task_saves_modseqs_on_each_action_of_message(
         )
         for action_log_entry in action_log_entries
     ] == [("successful", folder_modseqs), ("successful", folder_modseqs)]
+
+
+ARCHIVED_MESSAGE_UID = 22
+
+
+def category_names(message) -> set[str]:
+    """
+    Return the names of the categories of `message`. A category of a custom
+    label gives its display name.
+    """
+    return {
+        category.name or category.display_name
+        for category in message.categories
+    }
+
+
+@pytest.fixture
+def archived_message(db, default_account, message, folder):
+    """
+    Return a read Gmail message that the API archived. Its IMAP rows still
+    have the inbox label, and its `change_labels` action is pending.
+    """
+    imapuid = add_fake_imapuid(
+        db.session, default_account.id, message, folder, ARCHIVED_MESSAGE_UID
+    )
+    imapuid.update_flags([b"\\Seen"])
+    imapuid.update_labels(["\\Inbox"])
+    update_message_metadata(db.session, default_account, message, False)
+    db.session.commit()
+    update_thread(
+        message.thread,
+        {"label_ids": [folder.category.public_id]},
+        db.session,
+        optimistic=False,
+    )
+    db.session.commit()
+    assert category_names(message) == {"all"}
+
+    yield message
+
+    db.session.rollback()
+    db.session.query(ActionLog).delete(synchronize_session=False)
+    db.session.commit()
+    delete_imapuids(db.session)
+
+
+def report_after_label_change(mock_imapclient, folder, labels) -> None:
+    """
+    Make Gmail report the archived message as read, with `labels`, after the
+    label change.
+    """
+    mock_imapclient.add_folder_data(
+        folder.name,
+        {
+            ARCHIVED_MESSAGE_UID: {
+                b"FLAGS": (b"\\Seen",),
+                b"X-GM-LABELS": labels,
+                b"MODSEQ": (123,),
+            }
+        },
+    )
+    mock_imapclient.remove_gmail_labels = mock.Mock()
+
+
+def pending_label_change(db, message) -> ActionLog:
+    """Return the pending `change_labels` action of `message`."""
+    return (
+        db.session.query(ActionLog)
+        .filter_by(
+            record_id=message.id, action="change_labels", status="pending"
+        )
+        .one()
+    )
+
+
+def test_change_labels_task_rebuilds_categories_from_saved_imap_rows(
+    db, default_account, folder, archived_message, mock_imapclient
+) -> None:
+    # After the change, Gmail also reports a label that the local state does
+    # not have.
+    report_after_label_change(mock_imapclient, folder, (b"Foo",))
+    action_log_entry = pending_label_change(db, archived_message)
+    transaction_count = count_message_transactions(db, archived_message)
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert action_log_entry.status == "successful"
+    assert category_names(archived_message) == {"all", "Foo"}
+    assert (
+        count_message_transactions(db, archived_message)
+        == transaction_count + 1
+    )
+
+
+def test_change_labels_tasks_of_batch_rebuild_own_message(
+    db, default_account, message, folder, mock_imapclient
+) -> None:
+    other_message = add_fake_message(
+        db.session, default_account.namespace.id, message.thread
+    )
+    thread_messages = [message, other_message]
+    msg_uids = [22, 23]
+    for thread_message, msg_uid in zip(thread_messages, msg_uids):
+        imapuid = add_fake_imapuid(
+            db.session, default_account.id, thread_message, folder, msg_uid
+        )
+        imapuid.update_labels(["\\Inbox"])
+        update_message_metadata(
+            db.session, default_account, thread_message, False
+        )
+    db.session.commit()
+    update_thread(
+        message.thread,
+        {"label_ids": [folder.category.public_id]},
+        db.session,
+        optimistic=False,
+    )
+    db.session.commit()
+    # After the change, Gmail also reports a label that the local state does
+    # not have.
+    mock_imapclient.add_folder_data(
+        folder.name,
+        {
+            msg_uid: {
+                b"FLAGS": (),
+                b"X-GM-LABELS": (b"Foo",),
+                b"MODSEQ": (123,),
+            }
+            for msg_uid in msg_uids
+        },
+    )
+    mock_imapclient.remove_gmail_labels = mock.Mock()
+    action_log_entries = [
+        pending_label_change(db, thread_message)
+        for thread_message in thread_messages
+    ]
+    transaction_counts = [
+        count_message_transactions(db, thread_message)
+        for thread_message in thread_messages
+    ]
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, action_log_entries)
+    # Each message has its own task.
+    assert len(batch_task.tasks) == 2
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert [
+        call.args[0]
+        for call in mock_imapclient.remove_gmail_labels.call_args_list
+    ] == [[22], [23]]
+    # Each task rebuilds only its own message. A rebuild by the task of the
+    # other message adds a second transaction.
+    for thread_message, transaction_count in zip(
+        thread_messages, transaction_counts
+    ):
+        assert label_names(thread_message.imapuids[0]) == {"Foo"}
+        assert category_names(thread_message) == {"all", "Foo"}
+        assert (
+            count_message_transactions(db, thread_message)
+            == transaction_count + 1
+        )
+
+
+def test_change_labels_task_keeps_categories_that_match_imap_rows(
+    db, default_account, folder, archived_message, mock_imapclient
+) -> None:
+    report_after_label_change(mock_imapclient, folder, ())
+    action_log_entry = pending_label_change(db, archived_message)
+    transaction_count = count_message_transactions(db, archived_message)
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert action_log_entry.status == "successful"
+    assert label_names(archived_message.imapuids[0]) == set()
+    assert category_names(archived_message) == {"all"}
+    assert (
+        count_message_transactions(db, archived_message) == transaction_count
+    )
+
+
+@pytest.mark.parametrize(
+    ("labels", "added_category_names"),
+    [
+        # After the change, Gmail still reports the inbox label.
+        ((b"\\Inbox",), ["inbox"]),
+        # A category of a custom label goes into the log with its display
+        # name.
+        ((b"Foo",), ["Foo"]),
+    ],
+)
+def test_change_labels_task_logs_categories_of_rebuild(
+    db,
+    default_account,
+    folder,
+    archived_message,
+    mock_imapclient,
+    monkeypatch,
+    labels,
+    added_category_names,
+) -> None:
+    report_after_label_change(mock_imapclient, folder, labels)
+    mock_log = mock.Mock()
+    monkeypatch.setattr("inbox.mailsync.backends.imap.common.log", mock_log)
+    action_log_entry = pending_label_change(db, archived_message)
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert category_names(archived_message) == {"all", *added_category_names}
+    mock_log.warning.assert_any_call(
+        "Rebuilt message categories after a change_labels action",
+        account_id=default_account.id,
+        message_id=archived_message.id,
+        added_category_names=added_category_names,
+        removed_category_names=[],
+    )
+
+
+def test_change_labels_task_logs_removed_categories_of_rebuild(
+    db, default_account, folder, archived_message, mock_imapclient, monkeypatch
+) -> None:
+    # The user removed a label in Gmail while the action was pending. A poll
+    # saved the IMAP rows without the label, and the pending action kept its
+    # category.
+    label = Label.find_or_create(db.session, default_account, "Foo")
+    archived_message.categories.add(label.category)
+    db.session.commit()
+    assert category_names(archived_message) == {"all", "Foo"}
+    report_after_label_change(mock_imapclient, folder, ())
+    mock_log = mock.Mock()
+    monkeypatch.setattr("inbox.mailsync.backends.imap.common.log", mock_log)
+    action_log_entry = pending_label_change(db, archived_message)
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert category_names(archived_message) == {"all"}
+    mock_log.warning.assert_any_call(
+        "Rebuilt message categories after a change_labels action",
+        account_id=default_account.id,
+        message_id=archived_message.id,
+        added_category_names=[],
+        removed_category_names=["Foo"],
+    )
+
+
+def test_change_labels_task_logs_flags_of_rebuild(
+    db, default_account, folder, archived_message, mock_imapclient, monkeypatch
+) -> None:
+    # Gmail reports the message as read only after the label change.
+    archived_message.imapuids[0].update_flags([])
+    update_message_metadata(
+        db.session, default_account, archived_message, False
+    )
+    db.session.commit()
+    assert not archived_message.is_read
+    report_after_label_change(mock_imapclient, folder, ())
+    mock_log = mock.Mock()
+    monkeypatch.setattr("inbox.mailsync.backends.imap.common.log", mock_log)
+    action_log_entry = pending_label_change(db, archived_message)
+    transaction_count = count_message_transactions(db, archived_message)
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert archived_message.is_read
+    assert category_names(archived_message) == {"all"}
+    assert (
+        count_message_transactions(db, archived_message)
+        == transaction_count + 1
+    )
+    mock_log.info.assert_any_call(
+        "Rebuilt message flags after a change_labels action",
+        account_id=default_account.id,
+        message_id=archived_message.id,
+        is_read=True,
+        is_starred=False,
+    )
+    logged_messages = [
+        call.args[0] for call in mock_log.warning.call_args_list
+    ]
+    assert (
+        "Rebuilt message categories after a change_labels action"
+        not in logged_messages
+    )
+
+
+def test_change_labels_task_keeps_flags_of_pending_flag_changes(
+    db, default_account, folder, archived_message, mock_imapclient
+) -> None:
+    # Gmail still reports the message as read and not starred after the
+    # label change.
+    report_after_label_change(mock_imapclient, folder, ())
+    action_log_entry = pending_label_change(db, archived_message)
+    # The API marks the message as unread and starred. The actions of these
+    # changes run after the label change.
+    update_thread(
+        archived_message.thread,
+        {"unread": True, "starred": True},
+        db.session,
+        optimistic=True,
+    )
+    db.session.commit()
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert action_log_entry.status == "successful"
+    assert archived_message.imapuids[0].is_seen
+    assert not archived_message.is_read
+    assert archived_message.is_starred
+
+
+@pytest.mark.parametrize(
+    ("saved_flags", "flag_update", "is_read", "is_starred"),
+    [
+        # The IMAP rows are unread before the label change. The API stars
+        # the message.
+        ([], {"starred": True}, True, True),
+        # The IMAP rows are starred before the label change. The API marks
+        # the message as unread.
+        ([b"\\Seen", b"\\Flagged"], {"unread": True}, False, False),
+    ],
+)
+def test_change_labels_task_keeps_only_flag_of_pending_flag_change(
+    db,
+    default_account,
+    folder,
+    archived_message,
+    mock_imapclient,
+    saved_flags,
+    flag_update,
+    is_read,
+    is_starred,
+) -> None:
+    archived_message.imapuids[0].update_flags(saved_flags)
+    update_message_metadata(
+        db.session, default_account, archived_message, False
+    )
+    db.session.commit()
+    # Gmail reports the message as read and not starred after the label
+    # change.
+    report_after_label_change(mock_imapclient, folder, ())
+    action_log_entry = pending_label_change(db, archived_message)
+    # The action of the flag change runs after the label change. Give a copy,
+    # so that the parameters of the test stay as they are.
+    update_thread(
+        archived_message.thread,
+        dict(flag_update),
+        db.session,
+        optimistic=True,
+    )
+    db.session.commit()
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert action_log_entry.status == "successful"
+    # The flag without a pending action follows the IMAP rows.
+    assert (archived_message.is_read, archived_message.is_starred) == (
+        is_read,
+        is_starred,
+    )
+
+
+def completed_log_calls(syncback_logger) -> list:
+    """Return the calls that logged the completion of a syncback task."""
+    return [
+        call
+        for call in syncback_logger.new.return_value.info.call_args_list
+        if call.args[0] == "syncback action completed"
+    ]
+
+
+def test_change_labels_task_logs_rebuild_latency(
+    db, default_account, message, syncback_connection_pool, monkeypatch
+) -> None:
+    make_label_changes_return(monkeypatch, {})
+    syncback_logger = mock.MagicMock()
+    monkeypatch.setattr("inbox.transactions.actions.logger", syncback_logger)
+    action_log_entry = schedule_and_fetch_action(
+        db,
+        default_account,
+        "change_labels",
+        message,
+        removed_labels=["\\Inbox"],
+        added_labels=[],
+    )
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    batch_task.execute()
+
+    completed_calls = completed_log_calls(syncback_logger)
+    assert len(completed_calls) == 1
+    assert isinstance(completed_calls[0].kwargs["rebuild_latency"], float)
+
+
+def test_other_task_does_not_log_rebuild_latency(
+    db, default_account, message, syncback_connection_pool, monkeypatch
+) -> None:
+    make_actions_run(monkeypatch, lambda *args: None)
+    syncback_logger = mock.MagicMock()
+    monkeypatch.setattr("inbox.transactions.actions.logger", syncback_logger)
+    action_log_entry = schedule_mark_as_read(db, default_account, message)
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert action_log_entry.status == "successful"
+    completed_calls = completed_log_calls(syncback_logger)
+    assert len(completed_calls) == 1
+    assert "rebuild_latency" not in completed_calls[0].kwargs
+
+
+def test_change_labels_task_keeps_categories_during_other_label_change(
+    db, default_account, folder, archived_message, mock_imapclient
+) -> None:
+    report_after_label_change(mock_imapclient, folder, (b"Foo",))
+    action_log_entry = pending_label_change(db, archived_message)
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+    # The batch does not run this action. Use other labels, so that the
+    # action is not a duplicate of the first one.
+    schedule_action(
+        "change_labels",
+        archived_message,
+        archived_message.namespace_id,
+        db.session,
+        removed_labels=["\\Important"],
+        added_labels=[],
+    )
+    db.session.commit()
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert action_log_entry.status == "successful"
+    assert category_names(archived_message) == {"all"}
+
+
+@pytest.mark.parametrize(
+    "uid_flags",
+    [
+        # Mail sync wrote other labels in the IMAP rows after the task saved
+        # them.
+        GmailFlags((b"\\Seen",), [], 123),
+        # Mail sync wrote another read state in the IMAP rows after the task
+        # saved them.
+        GmailFlags((), ["\\Inbox"], 123),
+        # Mail sync wrote another starred state in the IMAP rows after the
+        # task saved them.
+        GmailFlags((b"\\Seen", b"\\Flagged"), ["\\Inbox"], 123),
+        # The UID is not one of the UIDs whose IMAP rows the task saved.
+        None,
+    ],
+)
+def test_change_labels_task_skips_message_rebuild_with_changed_imap_rows(
+    db,
+    default_account,
+    folder,
+    archived_message,
+    syncback_connection_pool,
+    monkeypatch,
+    uid_flags,
+) -> None:
+    # The IMAP rows of the archived message are read, not starred, and still
+    # have the inbox label.
+    folder_uid = (folder.id, ARCHIVED_MESSAGE_UID)
+    fetched_flags = {} if uid_flags is None else {folder_uid: uid_flags}
+    make_label_changes_return(
+        monkeypatch, {}, {archived_message.id: {folder_uid}}, fetched_flags
+    )
+    make_imap_row_saves_return(monkeypatch, {archived_message.id})
+    mock_log = mock.Mock()
+    monkeypatch.setattr("inbox.mailsync.backends.imap.common.log", mock_log)
+    action_log_entry = pending_label_change(db, archived_message)
+    transaction_count = count_message_transactions(db, archived_message)
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert action_log_entry.status == "successful"
+    # A rebuild from these IMAP rows brings back `inbox`.
+    assert category_names(archived_message) == {"all"}
+    assert (
+        count_message_transactions(db, archived_message) == transaction_count
+    )
+    mock_log.warning.assert_called_once_with(
+        "Skipped message rebuild with changed IMAP rows",
+        account_id=default_account.id,
+        message_id=archived_message.id,
+        folder_id=folder.id,
+        msg_uid=ARCHIVED_MESSAGE_UID,
+        imap_category_names=["all", "inbox"],
+    )
+
+
+def test_change_labels_task_saves_imap_rows_with_status(
+    db, default_account, folder, archived_message, mock_imapclient, monkeypatch
+) -> None:
+    report_after_label_change(mock_imapclient, folder, ())
+    action_log_entry = pending_label_change(db, archived_message)
+    action_log_id = action_log_entry.id
+    namespace_id = archived_message.namespace_id
+    statuses_at_save = []
+
+    def save_imap_rows(db_session, account_id, result):
+        # Read the status in the session of the save, and the committed
+        # status in another session.
+        with session_scope(namespace_id) as other_session:
+            statuses_at_save.append((
+                db_session.query(ActionLog.status)
+                .filter(ActionLog.id == action_log_id)
+                .scalar(),
+                other_session.query(ActionLog.status)
+                .filter(ActionLog.id == action_log_id)
+                .scalar(),
+            ))
+        return save_fetched_imap_rows(db_session, account_id, result)
+
+    monkeypatch.setattr(
+        "inbox.transactions.actions.save_fetched_imap_rows", save_imap_rows
+    )
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    batch_task.execute()
+
+    # The save runs in the transaction that marks the action as successful,
+    # before its commit.
+    assert statuses_at_save == [("successful", "pending")]
+    db.session.commit()
+    assert action_log_entry.status == "successful"
+    assert action_log_entry.extra_args[CHANGE_LABELS_MODSEQ_KEY] == {
+        str(folder.id): FolderModseq(
+            uidvalidity=mock_imapclient.uidvalidity, modseq=123
+        )
+    }
+    assert label_names(archived_message.imapuids[0]) == set()
+
+
+def test_change_labels_task_succeeds_if_imap_row_save_fails(
+    db, default_account, folder, archived_message, mock_imapclient, monkeypatch
+) -> None:
+    report_after_label_change(mock_imapclient, folder, (b"Foo",))
+    monkeypatch.setattr(
+        ImapUid, "update_labels", mock.Mock(side_effect=ValueError())
+    )
+    syncback_logger = mock.MagicMock()
+    monkeypatch.setattr("inbox.transactions.actions.logger", syncback_logger)
+    action_log_entry = pending_label_change(db, archived_message)
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert action_log_entry.status == "successful"
+    assert action_log_entry.retries == 0
+    assert action_log_entry.extra_args[CHANGE_LABELS_MODSEQ_KEY] == {
+        str(folder.id): FolderModseq(
+            uidvalidity=mock_imapclient.uidvalidity, modseq=123
+        )
+    }
+    # The IMAP rows still have the inbox label, so the message is not
+    # rebuilt.
+    assert label_names(archived_message.imapuids[0]) == {"inbox"}
+    assert category_names(archived_message) == {"all"}
+    task_log = syncback_logger.new.return_value
+    task_log.warning.assert_any_call(
+        "Could not save IMAP rows after label change",
+        message_ids=[archived_message.id],
+        exc_info=True,
+    )
+    task_log.warning.assert_any_call(
+        "Skipped message rebuild without fresh IMAP rows",
+        message_ids=[archived_message.id],
+    )
+
+
+def test_change_labels_task_succeeds_if_message_rebuild_fails(
+    db,
+    default_account,
+    folder,
+    archived_message,
+    syncback_connection_pool,
+    monkeypatch,
+) -> None:
+    folder_uid = (folder.id, ARCHIVED_MESSAGE_UID)
+    fetched_flags = {folder_uid: GmailFlags((b"\\Seen",), ["Foo"], 123)}
+    make_label_changes_return(
+        monkeypatch, {}, {archived_message.id: {folder_uid}}, fetched_flags
+    )
+    rebuild_message_metadata = mock.Mock(side_effect=ValueError())
+    monkeypatch.setattr(
+        "inbox.transactions.actions.rebuild_message_metadata_from_imap_rows",
+        rebuild_message_metadata,
+    )
+    syncback_logger = mock.MagicMock()
+    monkeypatch.setattr("inbox.transactions.actions.logger", syncback_logger)
+    action_log_entry = pending_label_change(db, archived_message)
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    batch_task.execute()
+
+    db.session.commit()
+    rebuild_message_metadata.assert_called_once_with(
+        mock.ANY,
+        default_account.id,
+        {archived_message.id},
+        fetched_flags=fetched_flags,
+    )
+    assert action_log_entry.status == "successful"
+    assert action_log_entry.retries == 0
+    # The IMAP rows stay saved.
+    assert label_names(archived_message.imapuids[0]) == {"Foo"}
+    syncback_logger.new.return_value.exception.assert_called_once_with(
+        "Could not rebuild message metadata"
+    )
+
+
+def test_change_labels_task_skips_message_rebuild_without_fetched_data(
+    db, default_account, folder, archived_message, mock_imapclient, monkeypatch
+) -> None:
+    report_after_label_change(mock_imapclient, folder, ())
+    mock_imapclient.fetch = mock.Mock(
+        side_effect=imaplib.IMAP4.error("FETCH failed")
+    )
+    syncback_logger = mock.MagicMock()
+    monkeypatch.setattr("inbox.transactions.actions.logger", syncback_logger)
+    action_log_entry = pending_label_change(db, archived_message)
+    transaction_count = count_message_transactions(db, archived_message)
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert action_log_entry.status == "successful"
+    assert action_log_entry.retries == 0
+    # The IMAP rows still have the inbox label. A rebuild from them brings
+    # back `inbox`.
+    assert label_names(archived_message.imapuids[0]) == {"inbox"}
+    assert category_names(archived_message) == {"all"}
+    assert (
+        count_message_transactions(db, archived_message) == transaction_count
+    )
+    syncback_logger.new.return_value.warning.assert_any_call(
+        "Skipped message rebuild without fresh IMAP rows",
+        message_ids=[archived_message.id],
+    )
+
+
+def test_change_labels_tasks_skip_message_with_uid_in_failed_fetch(
+    db, default_account, message, folder, mock_imapclient, monkeypatch
+) -> None:
+    other_message = add_fake_message(
+        db.session, default_account.namespace.id, message.thread
+    )
+    other_folder = add_fake_folder(
+        db.session, default_account, "[Gmail]/Trash", "trash"
+    )
+    # `message` has UIDs in both folders, and `other_message` only in the
+    # folder whose fetch works.
+    add_fake_imapuid(db.session, default_account.id, message, folder, 22)
+    add_fake_imapuid(db.session, default_account.id, message, other_folder, 30)
+    add_fake_imapuid(
+        db.session, default_account.id, other_message, other_folder, 31
+    )
+    thread_messages = [message, other_message]
+    for thread_message in thread_messages:
+        update_message_metadata(
+            db.session, default_account, thread_message, False
+        )
+    db.session.commit()
+    # After the change, Gmail also reports a label that the local state does
+    # not have.
+    fetched_data = {
+        b"FLAGS": (),
+        b"X-GM-LABELS": (b"Foo",),
+        b"MODSEQ": (125,),
+    }
+    mock_imapclient.add_folder_data(folder.name, {22: fetched_data})
+    mock_imapclient.add_folder_data(
+        other_folder.name, {30: fetched_data, 31: fetched_data}
+    )
+    fetch = mock_imapclient.fetch
+
+    def fail_fetch_in_folder(*args, **kwargs):
+        if mock_imapclient.selected_folder == folder.name:
+            raise imaplib.IMAP4.error("FETCH failed")
+        return fetch(*args, **kwargs)
+
+    mock_imapclient.fetch = fail_fetch_in_folder
+    mock_imapclient.remove_gmail_labels = mock.Mock()
+    syncback_logger = mock.MagicMock()
+    monkeypatch.setattr("inbox.transactions.actions.logger", syncback_logger)
+    action_log_entries = [
+        schedule_and_fetch_action(
+            db,
+            default_account,
+            "change_labels",
+            thread_message,
+            removed_labels=["\\Inbox"],
+            added_labels=[],
+        )
+        for thread_message in thread_messages
+    ]
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, action_log_entries)
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert [
+        action_log_entry.status for action_log_entry in action_log_entries
+    ] == ["successful", "successful"]
+    imapuids_by_folder_uid = {
+        (imapuid.folder_id, imapuid.msg_uid): imapuid
+        for thread_message in thread_messages
+        for imapuid in thread_message.imapuids
+    }
+    # Only the UIDs in the folder whose fetch works have the fetched labels.
+    assert label_names(imapuids_by_folder_uid[folder.id, 22]) == set()
+    assert label_names(imapuids_by_folder_uid[other_folder.id, 30]) == {"Foo"}
+    assert label_names(imapuids_by_folder_uid[other_folder.id, 31]) == {"Foo"}
+    # Only `other_message` has fresh IMAP rows for all its UIDs.
+    assert category_names(message) == {"all", "trash"}
+    assert category_names(other_message) == {"trash", "Foo"}
+    skipped_calls = [
+        call
+        for call in syncback_logger.new.return_value.warning.call_args_list
+        if call.args[0] == "Skipped message rebuild without fresh IMAP rows"
+    ]
+    assert skipped_calls == [
+        mock.call(
+            "Skipped message rebuild without fresh IMAP rows",
+            message_ids=[message.id],
+        )
+    ]
+
+
+def test_change_labels_task_does_not_log_message_without_imap_uids(
+    db, default_account, message, mock_imapclient, monkeypatch
+) -> None:
+    syncback_logger = mock.MagicMock()
+    monkeypatch.setattr("inbox.transactions.actions.logger", syncback_logger)
+    action_log_entry = schedule_and_fetch_action(
+        db,
+        default_account,
+        "change_labels",
+        message,
+        removed_labels=["\\Inbox"],
+        added_labels=[],
+    )
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert action_log_entry.status == "successful"
+    warning_messages = [
+        call.args[0]
+        for call in syncback_logger.new.return_value.warning.call_args_list
+    ]
+    assert (
+        "Skipped message rebuild without fresh IMAP rows"
+        not in warning_messages
+    )
 
 
 def test_move_uses_imap_move_when_supported(

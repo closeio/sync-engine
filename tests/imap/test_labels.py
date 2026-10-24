@@ -3,6 +3,8 @@ import json
 import pytest
 
 from inbox.mailsync.backends.imap.common import update_message_metadata
+from inbox.models.backends.imap import LabelItem
+from inbox.models.constants import MAX_INDEXABLE_LENGTH
 from tests.util.base import (
     add_fake_folder,
     add_fake_imapuid,
@@ -295,3 +297,108 @@ def test_removing_a_mutually_exclusive_label_does_not_orphan_a_message(
     assert len(labels) == 2
     assert {lbl["name"] for lbl in labels} == {label, None}
     assert "<3" in [lbl["display_name"] for lbl in labels]
+
+
+@pytest.fixture
+def imapuid_with_folder_list_labels(db, default_account, imapuid):
+    """
+    Return an IMAP UID with labels as the folder list creates them: a system
+    label with its Gmail folder name, and a custom label without a canonical
+    name.
+    """
+    imapuid.labels.add(
+        add_fake_label(
+            db.session, default_account, "[Gmail]/Important", "important"
+        )
+    )
+    imapuid.labels.add(add_fake_label(db.session, default_account, "<3", None))
+    db.session.commit()
+    return imapuid
+
+
+def test_imap_labels_match_labels_of_folder_list(
+    db, imapuid_with_folder_list_labels
+) -> None:
+    imapuid = imapuid_with_folder_list_labels
+    label_item_ids = {label_item.id for label_item in imapuid.labelitems}
+    gmail_labels = ["\\Important", "<3", "\\Starred"]
+
+    assert imapuid.compare_labels(gmail_labels) == (set(), set())
+    imapuid.update_labels(gmail_labels)
+    db.session.commit()
+
+    assert {
+        label_item.id for label_item in imapuid.labelitems
+    } == label_item_ids
+
+
+@pytest.mark.parametrize(
+    ("gmail_labels", "fetched_only_label_names", "saved_only_label_names"),
+    [
+        (["\\Important"], set(), {"<3"}),
+        (["\\Important", "<3", "\\Inbox"], {"inbox"}, set()),
+        (["\\Important", "<4"], {"<4"}, {"<3"}),
+    ],
+)
+def test_imap_labels_differ_from_labels_of_folder_list(
+    db,
+    imapuid_with_folder_list_labels,
+    gmail_labels,
+    fetched_only_label_names,
+    saved_only_label_names,
+) -> None:
+    imapuid = imapuid_with_folder_list_labels
+
+    assert imapuid.compare_labels(gmail_labels) == (
+        fetched_only_label_names,
+        saved_only_label_names,
+    )
+    imapuid.update_labels(gmail_labels)
+    db.session.commit()
+
+    assert imapuid.compare_labels(gmail_labels) == (set(), set())
+
+
+def test_numeric_imap_label_matches_label_row(
+    db, default_account, imapuid
+) -> None:
+    imapuid.labels.add(add_fake_label(db.session, default_account, "42", None))
+    db.session.commit()
+
+    # IMAPClient parses numeric labels into integers.
+    assert imapuid.compare_labels([42]) == (set(), set())
+
+
+@pytest.mark.parametrize(
+    "gmail_label",
+    [
+        "x" * (MAX_INDEXABLE_LENGTH + 1),
+        "Trailing space ",
+        # The truncated name ends with a space.
+        "x" * (MAX_INDEXABLE_LENGTH - 1) + " y",
+    ],
+)
+def test_imap_label_matches_label_row_with_sanitized_name(
+    db, imapuid, gmail_label
+) -> None:
+    imapuid.update_labels([gmail_label])
+    db.session.commit()
+
+    # Label rows store each name sanitized.
+    assert imapuid.compare_labels([gmail_label]) == (set(), set())
+
+
+def test_imap_labels_remove_duplicate_label_rows(
+    db, default_account, imapuid
+) -> None:
+    label = add_fake_label(db.session, default_account, "<3", None)
+    # Syncback and mail sync can both save a row for the same label.
+    for _ in range(2):
+        imapuid.labelitems.add(LabelItem(label=label))
+    db.session.commit()
+    assert len(imapuid.labelitems) == 2
+
+    imapuid.update_labels([])
+    db.session.commit()
+
+    assert not imapuid.labelitems

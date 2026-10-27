@@ -1,6 +1,7 @@
 import json
 from collections.abc import Collection, Iterable
 from datetime import datetime
+from typing import NamedTuple
 
 from sqlalchemy import (  # type: ignore[import-untyped]
     BigInteger,
@@ -103,6 +104,31 @@ def _label_identity(name: str, canonical_name: str | None) -> tuple[str, str]:
     if canonical_name:
         return ("canonical_name", canonical_name)
     return ("name", name)
+
+
+class ImapUidState(NamedTuple):
+    """
+    The read state, the starred state, and the labels of a UID. Each label is
+    given by its key of `_label_identity`.
+    """
+
+    is_seen: bool
+    is_flagged: bool
+    label_identities: frozenset[tuple[str, str]]
+
+    @classmethod
+    def from_flags_and_labels(
+        cls, flags: Collection[bytes], gmail_labels: Iterable[str | int]
+    ) -> "ImapUidState":
+        """
+        Return the state of a UID with the IMAP `flags` and the Gmail labels
+        in `gmail_labels`.
+        """
+        return cls(
+            is_seen=b"\\Seen" in flags,
+            is_flagged=b"\\Flagged" in flags,
+            label_identities=frozenset(_labels_by_identity(gmail_labels)),
+        )
 
 
 # Note, you should never directly create ImapAccount objects. Instead you
@@ -302,6 +328,14 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
         return (
             {key for _, key in remote_only_identities},
             {key for _, key in local_only_identities},
+        )
+
+    def saved_state(self) -> ImapUidState:
+        """Return the state in the IMAP rows of the UID."""
+        return ImapUidState(
+            is_seen=self.is_seen,
+            is_flagged=self.is_flagged,
+            label_identities=frozenset(self._saved_label_identities()),
         )
 
     def _saved_label_identities(self) -> set[tuple[str, str]]:

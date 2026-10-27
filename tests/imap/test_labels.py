@@ -3,7 +3,7 @@ import json
 import pytest
 
 from inbox.mailsync.backends.imap.common import update_message_metadata
-from inbox.models.backends.imap import LabelItem
+from inbox.models.backends.imap import ImapUidState, LabelItem
 from inbox.models.constants import MAX_INDEXABLE_LENGTH
 from tests.util.base import (
     add_fake_folder,
@@ -357,6 +357,39 @@ def test_imap_labels_differ_from_labels_of_folder_list(
     db.session.commit()
 
     assert imapuid.compare_labels(gmail_labels) == (set(), set())
+
+
+def test_saved_state_matches_state_of_same_imap_data(
+    db, imapuid_with_folder_list_labels
+) -> None:
+    imapuid = imapuid_with_folder_list_labels
+    imapuid.update_flags([b"\\Seen", b"\\Flagged", b"\\Answered"])
+    db.session.commit()
+
+    # Only the read state, the starred state, and the labels count.
+    assert imapuid.saved_state() == ImapUidState.from_flags_and_labels(
+        (b"\\Seen", b"\\Flagged"), ["\\Important", "<3", "\\Starred"]
+    )
+
+
+@pytest.mark.parametrize(
+    ("flags", "gmail_labels"),
+    [
+        ((b"\\Flagged",), ["\\Important", "<3"]),
+        ((b"\\Seen",), ["\\Important", "<3"]),
+        ((b"\\Seen", b"\\Flagged"), ["\\Important"]),
+    ],
+)
+def test_saved_state_differs_from_state_of_other_imap_data(
+    db, imapuid_with_folder_list_labels, flags, gmail_labels
+) -> None:
+    imapuid = imapuid_with_folder_list_labels
+    imapuid.update_flags([b"\\Seen", b"\\Flagged"])
+    db.session.commit()
+
+    assert imapuid.saved_state() != ImapUidState.from_flags_and_labels(
+        flags, gmail_labels
+    )
 
 
 def test_numeric_imap_label_matches_label_row(

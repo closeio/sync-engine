@@ -14,9 +14,8 @@ from sqlalchemy.orm import (  # type: ignore[import-untyped]
 from inbox.crispin import CONN_UNUSABLE_EXC_CLASSES, GmailFlags
 from inbox.logging import get_logger
 from inbox.mailsync.backends.imap.generic import uidvalidity_cb
-from inbox.models import Folder
 from inbox.models.action_log import FolderModseq
-from inbox.models.backends.imap import ImapUid, LabelItem
+from inbox.models.backends.imap import ImapUid, ImapUidState, LabelItem
 from inbox.models.category import Category
 from inbox.models.session import session_scope
 
@@ -40,6 +39,9 @@ class LabelChangeResult(NamedTuple):
     # The UIDs that the label change found for each message, by message ID.
     # Each UID is a pair of folder ID and UID.
     uids_by_message_id: dict[int, set[tuple[int, int]]]
+    # The state in the IMAP rows of each UID before the change, by folder ID
+    # and UID.
+    states_before_change: dict[tuple[int, int], ImapUidState]
     # The flags, the labels, and the MODSEQ of each UID after the change, by
     # folder ID and UID. A UID without data from the fetch after the change
     # is not in this dict.
@@ -51,10 +53,26 @@ def save_fetched_imap_rows(
 ) -> set[int]:
     """
     Save the flags and the labels in `result.fetched_flags` in the IMAP rows
-    of their UIDs. Skip the IMAP row of a UID if it belongs to another
-    message than in `result.uids_by_message_id`. Return the IDs of the
-    messages whose IMAP rows the function saved for all their UIDs in
-    `result.uids_by_message_id`. The function does not commit.
+    of their UIDs. Return the IDs of the messages whose IMAP rows the
+    function saved for all their UIDs in `result.uids_by_message_id`. The
+    function does not commit.
+
+    Skip the IMAP row of a UID if it belongs to another message than in
+    `result.uids_by_message_id`. For each other row, use the first rule that
+    applies to its `ImapUidState`:
+
+    - If the row still has its state in `result.states_before_change`, save
+      the fetched data in the row.
+    - If the row already has the state of the fetched data, count the row as
+      saved, and do not change it. Thus, newer data in its other columns
+      stays.
+    - Otherwise, keep the row, and log it. Another session changed the row
+      after the label change read it. Thus, the row can be newer than the
+      fetched data.
+
+    The rules compare only the `ImapUidState`. If another session saves
+    newer data with the state in `result.states_before_change`, the first
+    rule saves the older fetched data over it.
     """
     message_id_by_folder_uid = {
         folder_uid: message_id
@@ -92,12 +110,45 @@ def save_fetched_imap_rows(
             if message_id_by_folder_uid.get(folder_uid) != imapuid.message_id:
                 continue
             uid_flags = result.fetched_flags[folder_uid]
-            imapuid.update_flags(list(uid_flags.flags))
-            imapuid.update_labels(uid_flags.labels)
-            # Flush, so that the next UID finds a label row that this UID
-            # created.
-            db_session.flush()
-            saved_folder_uids.add(folder_uid)
+            state_before_change = result.states_before_change[folder_uid]
+            saved_state = imapuid.saved_state()
+            fetched_state = ImapUidState.from_flags_and_labels(
+                uid_flags.flags, uid_flags.labels
+            )
+            if saved_state == state_before_change:
+                imapuid.update_flags(list(uid_flags.flags))
+                imapuid.update_labels(uid_flags.labels)
+                # Flush, so that the next UID finds a label row that this UID
+                # created.
+                db_session.flush()
+                saved_folder_uids.add(folder_uid)
+            elif saved_state == fetched_state:
+                saved_folder_uids.add(folder_uid)
+            else:
+                fetched_only_label_names, saved_only_label_names = (
+                    imapuid.compare_labels(uid_flags.labels)
+                )
+                log.info(
+                    "Kept IMAP rows that changed during the label change",
+                    account_id=account_id,
+                    message_id=imapuid.message_id,
+                    folder_id=folder_id,
+                    msg_uid=imapuid.msg_uid,
+                    fetched_only_label_names=sorted(fetched_only_label_names),
+                    saved_only_label_names=sorted(saved_only_label_names),
+                    saved_is_seen=saved_state.is_seen,
+                    fetched_is_seen=fetched_state.is_seen,
+                    saved_is_flagged=saved_state.is_flagged,
+                    fetched_is_flagged=fetched_state.is_flagged,
+                    # The state before the change shows what the other
+                    # session changed in the row. A label with a canonical
+                    # name gives its canonical name.
+                    before_change_label_names=sorted(
+                        key for _, key in state_before_change.label_identities
+                    ),
+                    before_change_is_seen=state_before_change.is_seen,
+                    before_change_is_flagged=state_before_change.is_flagged,
+                )
 
     return {
         message_id
@@ -110,32 +161,42 @@ def remote_change_labels(  # type: ignore[no-untyped-def]
     crispin_client, account_id, message_ids, removed_labels, added_labels
 ) -> LabelChangeResult:
     """
-    Change the labels of the messages in Gmail. After the change, fetch the
-    flags, the labels, and the MODSEQ of each UID.
+    Change the labels of the messages in Gmail. Before the change, read the
+    state in the IMAP rows of each UID. After the change, fetch the flags,
+    the labels, and the MODSEQ of each UID.
 
     In `LabelChangeResult.modseqs`, the folder IDs are strings. If a message
     has more than one UID in a folder, the result has the lowest MODSEQ of
     these UIDs. If the fetch after the change fails, and the connection stays
     usable, the result has no values for that folder.
     """
-    with session_scope(account_id) as db_session:
-        rows = (
-            db_session.query(
-                ImapUid.message_id, ImapUid.msg_uid, Folder.id, Folder.name
-            )
-            .join(Folder)
-            .filter(ImapUid.message_id.in_(list(set(message_ids))))
-            .all()
-        )
     uids_by_folder_name: dict[str, list[int]] = defaultdict(list)
     folder_id_by_name: dict[str, int] = {}
     message_id_by_folder_uid: dict[tuple[str, int], int] = {}
     uids_by_message_id: dict[int, set[tuple[int, int]]] = defaultdict(set)
-    for message_id, msg_uid, folder_id, folder_name in rows:
-        uids_by_folder_name[folder_name].append(msg_uid)
-        folder_id_by_name[folder_name] = folder_id
-        message_id_by_folder_uid[folder_name, msg_uid] = message_id
-        uids_by_message_id[message_id].add((folder_id, msg_uid))
+    states_before_change: dict[tuple[int, int], ImapUidState] = {}
+    with session_scope(account_id) as db_session:
+        imapuids = (
+            db_session.query(ImapUid)
+            .filter(ImapUid.message_id.in_(list(set(message_ids))))
+            # Load the label rows of all UIDs in one query.
+            .options(
+                selectinload(
+                    ImapUid.labelitems  # type: ignore[attr-defined]
+                ).joinedload(LabelItem.label)
+            )
+            .all()
+        )
+        for imapuid in imapuids:
+            folder_name = imapuid.folder.name
+            folder_uid = (imapuid.folder_id, imapuid.msg_uid)
+            uids_by_folder_name[folder_name].append(imapuid.msg_uid)
+            folder_id_by_name[folder_name] = imapuid.folder_id
+            message_id_by_folder_uid[folder_name, imapuid.msg_uid] = (
+                imapuid.message_id
+            )
+            uids_by_message_id[imapuid.message_id].add(folder_uid)
+            states_before_change[folder_uid] = imapuid.saved_state()
 
     modseqs: dict[int, dict[str, FolderModseq]] = defaultdict(dict)
     fetched_flags: dict[tuple[int, int], GmailFlags] = {}
@@ -192,6 +253,7 @@ def remote_change_labels(  # type: ignore[no-untyped-def]
     return LabelChangeResult(
         modseqs=dict(modseqs),
         uids_by_message_id=dict(uids_by_message_id),
+        states_before_change=states_before_change,
         fetched_flags=fetched_flags,
     )
 

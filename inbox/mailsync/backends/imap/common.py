@@ -29,7 +29,12 @@ from inbox.crispin import Flags, GmailFlags, RawMessage
 from inbox.logging import get_logger
 from inbox.models import Account, ActionLog, Folder, Message, MessageCategory
 from inbox.models.action_log import CHANGE_LABELS_MODSEQ_KEY
-from inbox.models.backends.imap import ImapFolderInfo, ImapUid, LabelItem
+from inbox.models.backends.imap import (
+    ImapFolderInfo,
+    ImapUid,
+    ImapUidState,
+    LabelItem,
+)
 from inbox.models.category import Category
 from inbox.models.session import session_scope
 from inbox.models.util import reconcile_message
@@ -501,21 +506,15 @@ def _find_uid_with_changed_data(
     """
     Return a UID of the message that has no data in `fetched_flags`, by
     folder ID and UID, or whose IMAP rows differ from this data. Compare the
-    label rows, and the flags that give the read and the starred state.
-    Return `None` if the message has no such UID.
+    label rows, and the flags that give the read and the starred state (see
+    `ImapUidState`). Return `None` if the message has no such UID.
     """
     for imapuid in message.imapuids:  # type: ignore[attr-defined]
         uid_flags = fetched_flags.get((imapuid.folder_id, imapuid.msg_uid))
         if uid_flags is None:
             return imapuid
-        fetched_only_label_names, saved_only_label_names = (
-            imapuid.compare_labels(uid_flags.labels)
-        )
-        if (
-            fetched_only_label_names
-            or saved_only_label_names
-            or imapuid.is_seen != (b"\\Seen" in uid_flags.flags)
-            or imapuid.is_flagged != (b"\\Flagged" in uid_flags.flags)
+        if imapuid.saved_state() != ImapUidState.from_flags_and_labels(
+            uid_flags.flags, uid_flags.labels
         ):
             return imapuid
     return None
@@ -536,7 +535,7 @@ def rebuild_message_metadata_from_imap_rows(
     `fetched_flags` has the flags and the labels of each UID, by folder ID
     and UID. Skip a message if one of its UIDs has no data in
     `fetched_flags`, or IMAP rows that differ from this data. Log the
-    categories of that UID.
+    categories of that UID, and whether it has data in `fetched_flags`.
 
     Keep the read state of a message while a `mark_unread` action for it is
     pending, and its starred state while a `mark_starred` action for it is
@@ -577,6 +576,12 @@ def rebuild_message_metadata_from_imap_rows(
                 message_id=message.id,
                 folder_id=changed_imapuid.folder_id,
                 msg_uid=changed_imapuid.msg_uid,
+                # Tell a UID without fetched data from a UID whose IMAP rows
+                # differ from its fetched data.
+                has_fetched_data=(
+                    (changed_imapuid.folder_id, changed_imapuid.msg_uid)
+                    in fetched_flags
+                ),
                 imap_category_names=_category_log_names(
                     changed_imapuid.categories
                 ),

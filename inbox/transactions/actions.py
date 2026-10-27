@@ -15,7 +15,6 @@ import threading
 import weakref
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Any
 
 from sqlalchemy import desc  # type: ignore[import-untyped]
 from sqlalchemy.orm import Session  # type: ignore[import-untyped]
@@ -926,7 +925,7 @@ class SyncbackTask:
         self,
         db_session: Session,
         action_log_entries: list[ActionLog],
-        result: Any,
+        result: LabelChangeResult | None,
     ) -> set[int]:
         """
         Mark the actions as successful in one commit. Return the IDs of the
@@ -942,6 +941,7 @@ class SyncbackTask:
         if self.action_name != "change_labels":
             db_session.commit()
             return set()
+        assert isinstance(result, LabelChangeResult)
         try:
             refreshed_message_ids = save_fetched_imap_rows(
                 db_session, self.account_id, result
@@ -963,14 +963,17 @@ class SyncbackTask:
         return refreshed_message_ids
 
     def _set_actions_as_successful(
-        self, action_log_entries: list[ActionLog], result: Any
+        self,
+        action_log_entries: list[ActionLog],
+        result: LabelChangeResult | None,
     ) -> None:
         """
         Set the status of the actions to `successful`. For a `change_labels`
         task, also set the MODSEQ values of `result` in each action.
         """
-        for action_log_entry in action_log_entries:
-            if self.action_name == "change_labels":
+        if self.action_name == "change_labels":
+            assert isinstance(result, LabelChangeResult)
+            for action_log_entry in action_log_entries:
                 # Assign a new dict, because the JSON column does not track
                 # changes inside a dict.
                 action_log_entry.extra_args = {
@@ -979,6 +982,7 @@ class SyncbackTask:
                         action_log_entry.record_id, {}
                     ),
                 }
+        for action_log_entry in action_log_entries:
             action_log_entry.status = "successful"
 
     def _log_success(

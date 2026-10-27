@@ -75,7 +75,8 @@ class Flags(NamedTuple):
 # Flags includes labels on Gmail because Gmail doesn't use \Draft.
 class GmailFlags(NamedTuple):
     flags: tuple[bytes, ...]
-    labels: list[str]
+    # IMAPClient parses numeric labels into integers.
+    labels: list[str | int]
     modseq: int | None
 
 

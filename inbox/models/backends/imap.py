@@ -1,5 +1,7 @@
 import json
+from collections.abc import Collection, Iterable
 from datetime import datetime
+from typing import NamedTuple
 
 from sqlalchemy import (  # type: ignore[import-untyped]
     BigInteger,
@@ -27,7 +29,7 @@ from sqlalchemy.sql.expression import false  # type: ignore[import-untyped]
 from inbox.logging import get_logger
 from inbox.models.account import Account
 from inbox.models.base import MailSyncBase
-from inbox.models.category import Category
+from inbox.models.category import Category, sanitize_name
 from inbox.models.folder import Folder
 from inbox.models.label import Label
 from inbox.models.message import Message
@@ -39,6 +41,94 @@ from inbox.util.misc import cleanup_subject
 log = get_logger()
 
 PROVIDER = "imap"
+
+# The name of the label for each Gmail system label. The name is also the
+# canonical name of the label.
+GMAIL_SYSTEM_LABEL_NAMES = {
+    "\\Inbox": "inbox",
+    "\\Important": "important",
+    "\\Sent": "sent",
+    "\\Trash": "trash",
+    "\\Spam": "spam",
+    "\\All": "all",
+}
+
+# Gmail labels that give the draft and the starred state of a message. They
+# have no label rows.
+GMAIL_FLAG_LABELS = ("\\Draft", "\\Starred")
+
+
+def _labels_by_identity(
+    gmail_labels: Iterable[str | int],
+) -> dict[tuple[str, str], tuple[str, str | None]]:
+    """
+    Return the name and the canonical name of the label for each Gmail label
+    in `gmail_labels`, except the labels in `GMAIL_FLAG_LABELS`, by the key
+    of `_label_identity`. Labels without a canonical name get `None`.
+    """
+    labels_by_identity: dict[tuple[str, str], tuple[str, str | None]] = {}
+    for gmail_label in gmail_labels:
+        if gmail_label in GMAIL_FLAG_LABELS:
+            continue
+        name: str
+        canonical_name: str | None
+        if (
+            isinstance(gmail_label, str)
+            and gmail_label in GMAIL_SYSTEM_LABEL_NAMES
+        ):
+            name = canonical_name = GMAIL_SYSTEM_LABEL_NAMES[gmail_label]
+        else:
+            # Label rows store each name sanitized, as a string. IMAPClient
+            # parses numeric labels into integers. A truncated name can end
+            # with whitespace, and the label row stores it without that
+            # whitespace.
+            name = sanitize_name(gmail_label).rstrip()
+            canonical_name = None
+        identity = _label_identity(name, canonical_name)
+        labels_by_identity[identity] = (name, canonical_name)
+    return labels_by_identity
+
+
+def _label_identity(name: str, canonical_name: str | None) -> tuple[str, str]:
+    """
+    Return the key that identifies a label among the labels of an account.
+
+    A label with a canonical name is identified by its canonical name, and
+    any other label by its name. Thus, a label from the folder list, such as
+    `[Gmail]/Important`, has the same key as the Gmail system label with the
+    same canonical name.
+
+    Both `None` and `""` count as no canonical name. A label row stores `""`
+    for a label without a canonical name.
+    """
+    if canonical_name:
+        return ("canonical_name", canonical_name)
+    return ("name", name)
+
+
+class ImapUidState(NamedTuple):
+    """
+    The read state, the starred state, and the labels of a UID. Each label is
+    given by its key of `_label_identity`.
+    """
+
+    is_seen: bool
+    is_flagged: bool
+    label_identities: frozenset[tuple[str, str]]
+
+    @classmethod
+    def from_flags_and_labels(
+        cls, flags: Collection[bytes], gmail_labels: Iterable[str | int]
+    ) -> "ImapUidState":
+        """
+        Return the state of a UID with the IMAP `flags` and the Gmail labels
+        in `gmail_labels`.
+        """
+        return cls(
+            is_seen=b"\\Seen" in flags,
+            is_flagged=b"\\Flagged" in flags,
+            label_identities=frozenset(_labels_by_identity(gmail_labels)),
+        )
 
 
 # Note, you should never directly create ImapAccount objects. Instead you
@@ -146,7 +236,7 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
     # TO BE DEPRECATED
     g_labels = Column(JSON, default=list, nullable=True)
 
-    def update_flags(self, new_flags: list[bytes]) -> None:
+    def update_flags(self, new_flags: list[bytes]) -> bool:
         """
         Sets flag and g_labels values based on the new_flags and x_gm_labels
         parameters. Returns True if any values have changed compared to what we
@@ -185,50 +275,78 @@ class ImapUid(MailSyncBase, UpdatedAtMixin, DeletedAtMixin):
             extra_flags.pop()
 
         self.extra_flags = extra_flags
-        return changed  # type: ignore[return-value]
+        return changed
 
-    def update_labels(self, new_labels: list[str]) -> None:
+    def update_labels(self, new_labels: Collection[str | int]) -> None:
         # TODO(emfree): This is all mad complicated. Simplify if possible?
 
         # Gmail IMAP doesn't use the normal IMAP \\Draft flag. Silly Gmail
         # IMAP.
         self.is_draft = "\\Draft" in new_labels
-        self.is_starred = "\\Starred" in new_labels
 
-        category_map = {
-            "\\Inbox": "inbox",
-            "\\Important": "important",
-            "\\Sent": "sent",
-            "\\Trash": "trash",
-            "\\Spam": "spam",
-            "\\All": "all",
-        }
-
-        remote_labels = set()
-        for label in new_labels:
-            if label in ("\\Draft", "\\Starred"):
-                continue
-            elif label in category_map:
-                remote_labels.add((category_map[label], category_map[label]))
-            else:
-                remote_labels.add((label, None))  # type: ignore[arg-type]
-
-        local_labels = {
-            (lbl.name, lbl.canonical_name): lbl for lbl in self.labels
-        }
-
-        remove = set(local_labels) - remote_labels
-        add = remote_labels - set(local_labels)
+        # Compare the labels by identity. Thus, the label rows change only if
+        # the labels change.
+        remote_labels_by_identity = _labels_by_identity(new_labels)
+        add = set(remote_labels_by_identity) - self._saved_label_identities()
 
         with object_session(self).no_autoflush:
-            for key in remove:
-                self.labels.remove(local_labels[key])
+            # Remove each label row of a removed label. Thus, more than one row
+            # of the same label also goes.
+            for label_item in list(self.labelitems):  # type: ignore[attr-defined]
+                label = label_item.label
+                if (
+                    _label_identity(label.name, label.canonical_name)
+                    not in remote_labels_by_identity
+                ):
+                    self.labelitems.remove(label_item)  # type: ignore[attr-defined]
 
-            for name, canonical_name in add:
+            for key in add:
+                name, canonical_name = remote_labels_by_identity[key]
                 label = Label.find_or_create(
                     object_session(self), self.account, name, canonical_name
                 )
                 self.labels.add(label)
+
+    def compare_labels(
+        self, new_labels: Iterable[str | int]
+    ) -> tuple[set[str], set[str]]:
+        """
+        Return the labels that only `new_labels` has, and the labels that only
+        the label rows of the UID have. The labels match by the key of
+        `_label_identity`. A label with a canonical name is given by its
+        canonical name, and any other label by its name. This method changes
+        nothing.
+        """
+        remote_label_identities = set(_labels_by_identity(new_labels))
+        local_label_identities = self._saved_label_identities()
+        remote_only_identities = (
+            remote_label_identities - local_label_identities
+        )
+        local_only_identities = (
+            local_label_identities - remote_label_identities
+        )
+        return (
+            {key for _, key in remote_only_identities},
+            {key for _, key in local_only_identities},
+        )
+
+    def saved_state(self) -> ImapUidState:
+        """Return the state in the IMAP rows of the UID."""
+        return ImapUidState(
+            is_seen=self.is_seen,
+            is_flagged=self.is_flagged,
+            label_identities=frozenset(self._saved_label_identities()),
+        )
+
+    def _saved_label_identities(self) -> set[tuple[str, str]]:
+        """
+        Return the key of `_label_identity` for each label in the label rows
+        of the UID.
+        """
+        return {
+            _label_identity(label.name, label.canonical_name)
+            for label in self.labels
+        }
 
     @property
     def namespace(self):  # type: ignore[no-untyped-def]  # noqa: ANN201

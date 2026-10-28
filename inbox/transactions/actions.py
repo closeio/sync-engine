@@ -1037,13 +1037,17 @@ class SyncbackTask:
                 self.account_id,
                 refreshed_message_ids,
                 fetched_flags=result.fetched_flags,
+                action_status="successful",
             )
             db_session.commit()
         except Exception:
             # The actions succeeded. An error in the rebuild must not count as
             # a failure of the actions.
             db_session.rollback()
-            self.log.exception("Could not rebuild message metadata")
+            self.log.exception(
+                "Could not rebuild message metadata",
+                action_status="successful",
+            )
         return round((datetime.utcnow() - before_rebuild).total_seconds(), 2)
 
     def _mark_action_as_failed(  # type: ignore[no-untyped-def]

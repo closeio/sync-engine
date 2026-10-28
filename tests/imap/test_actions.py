@@ -1747,6 +1747,7 @@ def test_change_labels_task_logs_categories_of_rebuild(
         "Rebuilt message categories after a change_labels action",
         account_id=default_account.id,
         message_id=archived_message.id,
+        action_status="successful",
         added_category_names=added_category_names,
         removed_category_names=[],
     )
@@ -1777,6 +1778,7 @@ def test_change_labels_task_logs_removed_categories_of_rebuild(
         "Rebuilt message categories after a change_labels action",
         account_id=default_account.id,
         message_id=archived_message.id,
+        action_status="successful",
         added_category_names=[],
         removed_category_names=["Foo"],
     )
@@ -1813,6 +1815,7 @@ def test_change_labels_task_logs_flags_of_rebuild(
         "Rebuilt message flags after a change_labels action",
         account_id=default_account.id,
         message_id=archived_message.id,
+        action_status="successful",
         is_read=True,
         is_starred=False,
     )
@@ -2211,13 +2214,14 @@ def test_change_labels_task_succeeds_if_message_rebuild_fails(
         default_account.id,
         {archived_message.id},
         fetched_flags=fetched_flags,
+        action_status="successful",
     )
     assert action_log_entry.status == "successful"
     assert action_log_entry.retries == 0
     # The IMAP rows stay saved.
     assert label_names(archived_message.imapuids[0]) == {"Foo"}
     syncback_logger.new.return_value.exception.assert_called_once_with(
-        "Could not rebuild message metadata"
+        "Could not rebuild message metadata", action_status="successful"
     )
 
 

@@ -1285,6 +1285,33 @@ def test_timeout_counts_as_failure_of_task(
     )
 
 
+def test_error_after_success_keeps_action_successful(
+    db, default_account, message, monkeypatch
+) -> None:
+    make_actions_run(monkeypatch, lambda *args: None)
+    monkeypatch.setattr(
+        "inbox.transactions.actions.writable_connection_pool",
+        lambda account_id: mock.MagicMock(),
+    )
+    # The error comes after the commit that marks the action as successful.
+    monkeypatch.setattr(
+        "inbox.transactions.actions.SyncbackTask._log_success",
+        mock.Mock(side_effect=ValueError()),
+    )
+    action_log_entry = schedule_mark_as_read(db, default_account, message)
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [action_log_entry])
+    # One more failure makes the action reach the limit of retries.
+    action_log_entry.retries = ACTION_MAX_NR_OF_RETRIES - 1
+    db.session.commit()
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert action_log_entry.status == "successful"
+    assert action_log_entry.retries == ACTION_MAX_NR_OF_RETRIES - 1
+
+
 def test_worker_logs_batch_timeout(default_account, monkeypatch) -> None:
     class TimedOutTask:
         account_id = default_account.id

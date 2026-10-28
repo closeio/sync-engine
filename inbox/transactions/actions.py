@@ -853,13 +853,20 @@ class SyncbackTask:
 
     def _increment_retries(self, action_ids: list[int]) -> None:
         """
-        Increment `retries` of the actions with the IDs in `action_ids`. If
-        one of them reaches `ACTION_MAX_NR_OF_RETRIES`, mark all of them as
-        failed.
+        Increment `retries` of the pending actions with the IDs in
+        `action_ids`. If one of them reaches `ACTION_MAX_NR_OF_RETRIES`, mark
+        all of them as failed.
         """
         with session_scope(self.account_id) as db_session:
-            action_log_entries = db_session.query(ActionLog).filter(
-                ActionLog.id.in_(action_ids)
+            action_log_entries = (
+                db_session.query(ActionLog)
+                .filter(
+                    ActionLog.id.in_(action_ids),
+                    # An error after the commit of a successful action must
+                    # not count as a failure of the action.
+                    ActionLog.status == "pending",
+                )
+                .all()
             )
 
             marked_as_failed = False

@@ -15,6 +15,7 @@ import threading
 import weakref
 from collections import defaultdict
 from datetime import datetime, timedelta
+from typing import Any
 
 from sqlalchemy import desc  # type: ignore[import-untyped]
 from sqlalchemy.orm import Session  # type: ignore[import-untyped]
@@ -105,6 +106,63 @@ INVALID_ACCOUNT_GRACE_PERIOD = 60 * 60 * 2  # 2 hours
 # Max amount of actionlog entries to fetch for specific records to
 # deduplicate.
 MAX_DEDUPLICATION_BATCH_SIZE = 5000
+
+
+def commit_failed_label_changes(
+    db_session: Session,
+    account_id: int,
+    action_log_entries: list[ActionLog],
+    log: Any,
+) -> None:
+    """
+    Mark the `change_labels` actions in `action_log_entries` as failed, and
+    rebuild the categories of their messages from their IMAP rows. Commit the
+    failure and the rebuild together. Thus, a stop of the process cannot
+    commit the failure without the rebuild.
+
+    If the rebuild fails, roll back, and log the error with `log`. Then
+    commit the failure alone, with the `retries` that the actions had before
+    the rollback. The rollback discards all other changes in `db_session`.
+    """
+    # The record of a `change_labels` action is a message.
+    message_ids = {
+        action_log_entry.record_id for action_log_entry in action_log_entries
+    }
+    # The rollback also discards the changes to `retries`. Thus, keep them.
+    retries_to_restore = [
+        (action_log_entry, action_log_entry.retries)
+        for action_log_entry in action_log_entries
+    ]
+    for action_log_entry in action_log_entries:
+        action_log_entry.status = "failed"
+    try:
+        # Write the `failed` status before the rebuild. Thus, the rebuild
+        # does not count these actions as pending label changes.
+        db_session.flush()
+        # A failed action has no data from Gmail. Thus, rebuild from the IMAP
+        # rows as they are.
+        rebuild_message_metadata_from_imap_rows(
+            db_session,
+            account_id,
+            message_ids,
+            fetched_flags=None,
+            action_status="failed",
+        )
+        db_session.commit()
+    except Exception:
+        # The actions failed for good. An error in the rebuild must not keep
+        # them pending.
+        db_session.rollback()
+        log.exception(
+            "Could not rebuild message metadata",
+            account_id=account_id,
+            message_ids=sorted(message_ids),
+            action_status="failed",
+        )
+        for action_log_entry, retries in retries_to_restore:
+            action_log_entry.retries = retries
+            action_log_entry.status = "failed"
+        db_session.commit()
 
 
 class SyncbackService(InterruptibleThread):
@@ -855,7 +913,9 @@ class SyncbackTask:
         """
         Increment `retries` of the pending actions with the IDs in
         `action_ids`. If one of them reaches `ACTION_MAX_NR_OF_RETRIES`, mark
-        all of them as failed.
+        all of them as failed. If the failed actions are `change_labels`
+        actions, also rebuild the categories of their messages, in the same
+        commit.
         """
         with session_scope(self.account_id) as db_session:
             action_log_entries = (
@@ -882,6 +942,14 @@ class SyncbackTask:
                 # If we merged actions, fail them all at the same time.
                 for action_log_entry in action_log_entries:
                     self._mark_action_as_failed(action_log_entry, db_session)
+                if self.action_name == "change_labels":
+                    commit_failed_label_changes(
+                        db_session,
+                        self.account_id,
+                        action_log_entries,
+                        self.log,
+                    )
+                    return
             db_session.commit()
 
     def _get_records_and_actions_to_process(  # type: ignore[no-untyped-def]

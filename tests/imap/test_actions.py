@@ -962,6 +962,32 @@ def test_failed_event_creation(
     service.stop()
 
 
+def test_failed_event_creation_keeps_actions_of_other_tables(
+    db, patched_syncback_task, default_account, event
+) -> None:
+    create_event_action = schedule_and_fetch_action(
+        db, default_account, "create_event", event
+    )
+    # A message can have the same ID as the event.
+    message_action = ActionLog.create(
+        action="change_labels",
+        table_name="message",
+        record_id=event.id,
+        namespace_id=default_account.namespace.id,
+        extra_args={"added_labels": [], "removed_labels": ["\\Inbox"]},
+    )
+    db.session.add(message_action)
+    db.session.commit()
+    service = make_syncback_service()
+    batch_task = service._batch_log_entries(db.session, [create_event_action])
+
+    batch_task.execute()
+
+    db.session.commit()
+    assert create_event_action.status == "failed"
+    assert message_action.status == "pending"
+
+
 @pytest.fixture
 def failing_connection_pool(monkeypatch):
     """

@@ -526,6 +526,7 @@ def rebuild_message_metadata_from_imap_rows(
     message_ids: set[int],
     *,
     fetched_flags: Mapping[tuple[int, int], GmailFlags],
+    action_status: Literal["successful", "failed"],
 ) -> None:
     """
     Rebuild the categories of the messages from their IMAP label rows, and
@@ -536,6 +537,9 @@ def rebuild_message_metadata_from_imap_rows(
     and UID. Skip a message if one of its UIDs has no data in
     `fetched_flags`, or IMAP rows that differ from this data. Log the
     categories of that UID, and whether it has data in `fetched_flags`.
+
+    `action_status` is the status of the `change_labels` action that caused
+    the rebuild. It goes into the log lines of the rebuild.
 
     Keep the read state of a message while a `mark_unread` action for it is
     pending, and its starred state while a `mark_starred` action for it is
@@ -609,6 +613,7 @@ def rebuild_message_metadata_from_imap_rows(
                 "Rebuilt message categories after a change_labels action",
                 account_id=account_id,
                 message_id=message.id,
+                action_status=action_status,
                 added_category_names=_category_log_names(
                     new_categories - old_categories
                 ),
@@ -624,6 +629,7 @@ def rebuild_message_metadata_from_imap_rows(
                 "Rebuilt message flags after a change_labels action",
                 account_id=account_id,
                 message_id=message.id,
+                action_status=action_status,
                 is_read=message.is_read,
                 is_starred=message.is_starred,
             )

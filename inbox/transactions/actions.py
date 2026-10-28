@@ -1049,6 +1049,12 @@ class SyncbackTask:
     def _mark_action_as_failed(  # type: ignore[no-untyped-def]
         self, action_log_entry, db_session
     ) -> None:
+        """
+        Mark the action as failed. If it is a `create_event` action, also mark
+        the pending actions of its event as failed, and mark the event as
+        deleted. Do not commit. Thus, the caller can commit other changes
+        together with the failure.
+        """
         self.log.critical("Max retries reached, giving up.", exc_info=True)
         action_log_entry.status = "failed"
         self._log_to_statsd(action_log_entry.status)
@@ -1075,7 +1081,6 @@ class SyncbackTask:
             # Mark the local copy as deleted so future actions can't be made.
             event = db_session.query(Event).get(action_log_entry.record_id)
             event.deleted_at = datetime.now()
-        db_session.commit()
 
     def uses_crispin_client(self):  # type: ignore[no-untyped-def]  # noqa: ANN201
         return action_uses_crispin_client(self.action_name)

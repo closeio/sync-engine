@@ -529,8 +529,8 @@ def rebuild_message_metadata_from_imap_rows(
 ) -> None:
     """
     Rebuild the categories of the messages from their IMAP label rows, and
-    their read and starred state from the flags of their IMAP rows. The
-    function does not commit.
+    their read and starred state from the flags of their IMAP rows. Skip a
+    message without IMAP rows. The function does not commit.
 
     `fetched_flags` has the flags and the labels of each UID, by folder ID
     and UID. Skip a message if one of its UIDs has no data in
@@ -566,6 +566,11 @@ def rebuild_message_metadata_from_imap_rows(
         session, account.namespace.id, message_ids
     )
     for message in messages:
+        # A message can exist before mail sync saves its IMAP rows, for
+        # example a message that the API sent. Such a message has no state
+        # to rebuild from.
+        if not message.imapuids:
+            continue
         # The comparison and the rebuild read the same loaded rows. Thus, a
         # change to the rows after the comparison does not reach the rebuild.
         changed_imapuid = _find_uid_with_changed_data(message, fetched_flags)

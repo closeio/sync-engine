@@ -1054,6 +1054,8 @@ class SyncbackTask:
             actions = (
                 db_session.query(ActionLog)
                 .filter_by(
+                    # Records of other tables can have the same ID.
+                    table_name=action_log_entry.table_name,
                     record_id=action_log_entry.record_id,
                     namespace_id=action_log_entry.namespace_id,
                     status="pending",

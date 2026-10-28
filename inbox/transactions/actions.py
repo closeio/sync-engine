@@ -427,6 +427,14 @@ class SyncbackService(InterruptibleThread):
         Batch action log entries together and return a batch task after
         verifying we can process them. All actions must belong to the same
         account.
+
+        Mark an action of an `invalid` or `stopped` account as failed if it
+        is older than `INVALID_ACCOUNT_GRACE_PERIOD`. If it is a
+        `change_labels` action, rebuild the categories of its message in the
+        same commit.
+
+        `db_session` must have no uncommitted changes. The rebuild of a failed
+        `change_labels` action can roll back the session.
         """
         valid_log_entries = []
         account_id: int | None = None
@@ -470,8 +478,16 @@ class SyncbackService(InterruptibleThread):
                 ).total_seconds()
 
                 if action_age > INVALID_ACCOUNT_GRACE_PERIOD:
-                    log_entry.status = "failed"
-                    db_session.commit()
+                    if log_entry.action == "change_labels":
+                        # The poll loop has no uncommitted changes here.
+                        # Thus, a rollback of the rebuild discards no other
+                        # change.
+                        commit_failed_label_changes(
+                            db_session, account_id, [log_entry], self.log
+                        )
+                    else:
+                        log_entry.status = "failed"
+                        db_session.commit()
                     self.log.warning(
                         "Marking action as failed for {} account, older than grace period".format(  # noqa: G001
                             sync_state
@@ -479,6 +495,9 @@ class SyncbackService(InterruptibleThread):
                         account_id=account_id,
                         action_log_id=log_entry.id,
                         action=log_entry.action,
+                        # For a `change_labels` action, the record is the
+                        # message of the rebuild.
+                        record_id=log_entry.record_id,
                     )
                     statsd_client.incr(f"syncback.{sync_state}_failed.total")
                     statsd_client.incr(

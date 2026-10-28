@@ -51,6 +51,7 @@ from inbox.sendmail.base import create_message_from_json
 from inbox.sendmail.base import update_draft as sendmail_update_draft
 from inbox.transactions.actions import (
     ACTION_MAX_NR_OF_RETRIES,
+    INVALID_ACCOUNT_GRACE_PERIOD,
     SyncbackService,
     SyncbackWorker,
 )
@@ -2650,6 +2651,177 @@ def test_failed_other_task_does_not_rebuild_message_metadata(
     batch_task = service._batch_log_entries(db.session, [action_log_entry])
 
     execute_until_failed(batch_task)
+
+    db.session.commit()
+    assert action_log_entry.status == "failed"
+    rebuild_message_metadata.assert_not_called()
+
+
+def pass_grace_period(db, account, action_log_entry, sync_state: str) -> None:
+    """
+    Set the sync state of `account` to `sync_state`, and make
+    `action_log_entry` older than `INVALID_ACCOUNT_GRACE_PERIOD`.
+    """
+    account.sync_state = sync_state
+    action_log_entry.created_at = datetime.utcnow() - timedelta(
+        seconds=INVALID_ACCOUNT_GRACE_PERIOD + 60
+    )
+    db.session.commit()
+
+
+@pytest.mark.parametrize("sync_state", ["invalid", "stopped"])
+def test_change_labels_action_past_grace_period_rebuilds_categories(
+    db, default_account, archived_message, monkeypatch, sync_state
+) -> None:
+    mock_log = mock.Mock()
+    monkeypatch.setattr("inbox.mailsync.backends.imap.common.log", mock_log)
+    action_log_entry = pending_label_change(db, archived_message)
+    pass_grace_period(db, default_account, action_log_entry, sync_state)
+    transaction_count = count_message_transactions(db, archived_message)
+    service = make_syncback_service()
+
+    service._batch_log_entries(db.session, [action_log_entry])
+
+    db.session.commit()
+    assert action_log_entry.status == "failed"
+    # The IMAP rows still have the inbox label.
+    assert category_names(archived_message) == {"all", "inbox"}
+    assert (
+        count_message_transactions(db, archived_message)
+        == transaction_count + 1
+    )
+    mock_log.warning.assert_any_call(
+        "Rebuilt message categories after a change_labels action",
+        account_id=default_account.id,
+        message_id=archived_message.id,
+        action_status="failed",
+        added_category_names=["inbox"],
+        removed_category_names=[],
+    )
+
+
+def test_change_labels_action_past_grace_period_commits_failure_with_rebuild(
+    db, default_account, archived_message, monkeypatch
+) -> None:
+    action_log_entry = pending_label_change(db, archived_message)
+    pass_grace_period(db, default_account, action_log_entry, "invalid")
+    committed_statuses = record_committed_status_in_rebuild(
+        monkeypatch, default_account.id, action_log_entry.id
+    )
+    service = make_syncback_service()
+
+    service._batch_log_entries(db.session, [action_log_entry])
+
+    db.session.commit()
+    # Other sessions did not see the failure during the rebuild. Thus, the
+    # failure and the rebuild commit together.
+    assert committed_statuses == ["pending"]
+    assert action_log_entry.status == "failed"
+
+
+def test_change_labels_action_past_grace_period_logs_message_id(
+    db, default_account, archived_message, monkeypatch
+) -> None:
+    syncback_logger = mock.MagicMock()
+    monkeypatch.setattr("inbox.transactions.actions.logger", syncback_logger)
+    action_log_entry = pending_label_change(db, archived_message)
+    pass_grace_period(db, default_account, action_log_entry, "invalid")
+    service = make_syncback_service()
+
+    service._batch_log_entries(db.session, [action_log_entry])
+
+    db.session.commit()
+    syncback_logger.new.return_value.warning.assert_any_call(
+        "Marking action as failed for invalid account, older than grace period",
+        account_id=default_account.id,
+        action_log_id=action_log_entry.id,
+        action="change_labels",
+        record_id=archived_message.id,
+    )
+
+
+def test_change_labels_actions_past_grace_period_log_message_rebuild_error(
+    db, default_account, archived_message, monkeypatch
+) -> None:
+    rebuild_message_metadata = mock.Mock(side_effect=ValueError())
+    monkeypatch.setattr(
+        "inbox.transactions.actions.rebuild_message_metadata_from_imap_rows",
+        rebuild_message_metadata,
+    )
+    syncback_logger = mock.MagicMock()
+    monkeypatch.setattr("inbox.transactions.actions.logger", syncback_logger)
+    other_message = add_fake_message(
+        db.session, default_account.namespace.id, archived_message.thread
+    )
+    action_log_entries = [
+        pending_label_change(db, archived_message),
+        schedule_and_fetch_action(
+            db,
+            default_account,
+            "change_labels",
+            other_message,
+            removed_labels=["\\Inbox"],
+            added_labels=[],
+        ),
+    ]
+    for action_log_entry in action_log_entries:
+        pass_grace_period(db, default_account, action_log_entry, "invalid")
+    service = make_syncback_service()
+
+    # The rollback after the first error does not stop the second action.
+    service._batch_log_entries(db.session, action_log_entries)
+
+    db.session.commit()
+    assert [
+        action_log_entry.status for action_log_entry in action_log_entries
+    ] == ["failed", "failed"]
+    assert rebuild_message_metadata.call_count == 2
+    assert category_names(archived_message) == {"all"}
+    for message_id in (archived_message.id, other_message.id):
+        syncback_logger.new.return_value.exception.assert_any_call(
+            "Could not rebuild message metadata",
+            account_id=default_account.id,
+            message_ids=[message_id],
+            action_status="failed",
+        )
+
+
+def test_change_labels_action_past_grace_period_rebuilds_on_early_return(
+    db, default_account, archived_message
+) -> None:
+    failed_action = pending_label_change(db, archived_message)
+    pass_grace_period(db, default_account, failed_action, "invalid")
+    running_action = schedule_mark_as_read(
+        db, default_account, archived_message
+    )
+    service = make_syncback_service()
+    # A worker runs this action. Thus, the batch stops at this action.
+    service.running_action_ids.add(running_action.id)
+
+    batch_task = service._batch_log_entries(
+        db.session, [failed_action, running_action]
+    )
+
+    db.session.commit()
+    assert batch_task is None
+    assert failed_action.status == "failed"
+    # The IMAP rows still have the inbox label.
+    assert category_names(archived_message) == {"all", "inbox"}
+
+
+def test_other_action_past_grace_period_does_not_rebuild_message_metadata(
+    db, default_account, message, monkeypatch
+) -> None:
+    rebuild_message_metadata = mock.Mock()
+    monkeypatch.setattr(
+        "inbox.transactions.actions.rebuild_message_metadata_from_imap_rows",
+        rebuild_message_metadata,
+    )
+    action_log_entry = schedule_mark_as_read(db, default_account, message)
+    pass_grace_period(db, default_account, action_log_entry, "invalid")
+    service = make_syncback_service()
+
+    service._batch_log_entries(db.session, [action_log_entry])
 
     db.session.commit()
     assert action_log_entry.status == "failed"

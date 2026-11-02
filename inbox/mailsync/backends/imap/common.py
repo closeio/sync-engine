@@ -525,17 +525,23 @@ def rebuild_message_metadata_from_imap_rows(
     account_id: int,
     message_ids: set[int],
     *,
-    fetched_flags: Mapping[tuple[int, int], GmailFlags],
+    fetched_flags: Mapping[tuple[int, int], GmailFlags] | None,
+    action_status: Literal["successful", "failed"],
 ) -> None:
     """
     Rebuild the categories of the messages from their IMAP label rows, and
-    their read and starred state from the flags of their IMAP rows. The
-    function does not commit.
+    their read and starred state from the flags of their IMAP rows. Skip a
+    message without IMAP rows. The function does not commit.
 
     `fetched_flags` has the flags and the labels of each UID, by folder ID
     and UID. Skip a message if one of its UIDs has no data in
     `fetched_flags`, or IMAP rows that differ from this data. Log the
-    categories of that UID, and whether it has data in `fetched_flags`.
+    categories of that UID, and whether it has data in `fetched_flags`. If
+    `fetched_flags` is `None`, rebuild only the categories, from the IMAP
+    rows as they are.
+
+    `action_status` is the status of the `change_labels` action that caused
+    the rebuild. It goes into the log lines of the rebuild.
 
     Keep the read state of a message while a `mark_unread` action for it is
     pending, and its starred state while a `mark_starred` action for it is
@@ -562,41 +568,55 @@ def rebuild_message_metadata_from_imap_rows(
         )
         .all()
     )
-    pending_flag_actions = _pending_flag_actions(
-        session, account.namespace.id, message_ids
+    # Without fetched data, the rebuild keeps both flags. Thus, it does not
+    # need the pending flag actions.
+    pending_flag_actions: dict[int, set[str]] = (
+        _pending_flag_actions(session, account.namespace.id, message_ids)
+        if fetched_flags is not None
+        else {}
     )
     for message in messages:
-        # The comparison and the rebuild read the same loaded rows. Thus, a
-        # change to the rows after the comparison does not reach the rebuild.
-        changed_imapuid = _find_uid_with_changed_data(message, fetched_flags)
-        if changed_imapuid is not None:
-            log.warning(
-                "Skipped message rebuild with changed IMAP rows",
-                account_id=account_id,
-                message_id=message.id,
-                folder_id=changed_imapuid.folder_id,
-                msg_uid=changed_imapuid.msg_uid,
-                # Tell a UID without fetched data from a UID whose IMAP rows
-                # differ from its fetched data.
-                has_fetched_data=(
-                    (changed_imapuid.folder_id, changed_imapuid.msg_uid)
-                    in fetched_flags
-                ),
-                imap_category_names=_category_log_names(
-                    changed_imapuid.categories
-                ),
-            )
+        # A message can exist before mail sync saves its IMAP rows, for
+        # example a message that the API sent. Such a message has no state
+        # to rebuild from.
+        if not message.imapuids:
             continue
+        if fetched_flags is not None:
+            # The comparison and the rebuild read the same loaded rows. Thus,
+            # a change to the rows after the comparison does not reach the
+            # rebuild.
+            changed_imapuid = _find_uid_with_changed_data(
+                message, fetched_flags
+            )
+            if changed_imapuid is not None:
+                log.warning(
+                    "Skipped message rebuild with changed IMAP rows",
+                    account_id=account_id,
+                    message_id=message.id,
+                    folder_id=changed_imapuid.folder_id,
+                    msg_uid=changed_imapuid.msg_uid,
+                    # Tell a UID without fetched data from a UID whose IMAP
+                    # rows differ from its fetched data.
+                    has_fetched_data=(
+                        (changed_imapuid.folder_id, changed_imapuid.msg_uid)
+                        in fetched_flags
+                    ),
+                    imap_category_names=_category_log_names(
+                        changed_imapuid.categories
+                    ),
+                )
+                continue
         old_categories = set(message.categories)
         old_is_read = message.is_read
         old_is_starred = message.is_starred
         update_message_metadata(session, account, message, message.is_draft)
         # The API can change a flag in the message before its action changes
-        # the flag in Gmail.
+        # the flag in Gmail. Without fetched data, the IMAP rows can also miss
+        # a flag change that a successful action made in Gmail.
         message_flag_actions = pending_flag_actions.get(message.id, set())
-        if "mark_unread" in message_flag_actions:
+        if fetched_flags is None or "mark_unread" in message_flag_actions:
             message.is_read = old_is_read
-        if "mark_starred" in message_flag_actions:
+        if fetched_flags is None or "mark_starred" in message_flag_actions:
             message.is_starred = old_is_starred
         new_categories = set(message.categories)
         if new_categories != old_categories:
@@ -604,6 +624,7 @@ def rebuild_message_metadata_from_imap_rows(
                 "Rebuilt message categories after a change_labels action",
                 account_id=account_id,
                 message_id=message.id,
+                action_status=action_status,
                 added_category_names=_category_log_names(
                     new_categories - old_categories
                 ),
@@ -619,6 +640,7 @@ def rebuild_message_metadata_from_imap_rows(
                 "Rebuilt message flags after a change_labels action",
                 account_id=account_id,
                 message_id=message.id,
+                action_status=action_status,
                 is_read=message.is_read,
                 is_starred=message.is_starred,
             )

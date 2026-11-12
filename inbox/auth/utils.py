@@ -4,6 +4,7 @@ from imapclient import IMAPClient  # type: ignore[import-untyped]
 
 from inbox.exceptions import SSLNotSupportedError
 from inbox.logging import get_logger
+from inbox.util.public_mail_socket import PublicIMAPClient
 
 log = get_logger()
 
@@ -102,7 +103,7 @@ def create_imap_connection(  # type: ignore[no-untyped-def]  # noqa: ANN201
 
     # TODO: certificate pinning for well known sites
     context = create_default_context()
-    conn = IMAPClient(
+    conn = PublicIMAPClient(
         host,
         port=port,
         use_uid=True,

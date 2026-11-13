@@ -576,11 +576,11 @@ wheels = [
 
 [[package]]
 name = "iniconfig"
-version = "2.0.0"
+version = "2.3.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d7/4b/cbd8e699e64a6f16ca3a8220661b5f83792b3017d0f79807cb8708d33913/iniconfig-2.0.0.tar.gz", hash = "sha256:2d91e135bf72d31a410b17c16da610a82cb55f6b0477d1a902134b24a455b8b3", size = 4646, upload-time = "2023-01-07T11:08:11.254Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/01/e1/2069291243c926a2ff1cd706c7f3eeb9b62144bf60f77c9fb9ff2fb26bd3/iniconfig-2.3.1.tar.gz", hash = "sha256:67f4b9c50da0dedf52af349e7749a80a9057a5031199791b906c3bb3ae878960", size = 21209, upload-time = "2026-10-06T22:48:38.076Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ef/a6/62565a6e1cf69e10f5727360368e451d4b7f58beeac6173dc9db836a5b46/iniconfig-2.0.0-py3-none-any.whl", hash = "sha256:b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374", size = 5892, upload-time = "2023-01-07T11:08:09.864Z" },
+    { url = "https://files.pythonhosted.org/packages/56/43/4ca9e49d27a1fcf6bece6f6aec0ea46bb9112489b93d4b688fb415457bdb/iniconfig-2.3.1-py3-none-any.whl", hash = "sha256:9121e2c1fdb355232495be3194c8dfe87ccc2d5dee45947b78e68f499790d7a7", size = 7552, upload-time = "2026-10-06T22:48:36.959Z" },
 ]
 
 [[package]]
@@ -1377,7 +1377,7 @@ dev = [
     { name = "coverage", specifier = "==7.16.1" },
     { name = "freezegun", specifier = "==1.5.1" },
     { name = "hypothesis", specifier = "==6.168.0" },
-    { name = "iniconfig", specifier = "==2.0.0" },
+    { name = "iniconfig", specifier = "==2.3.1" },
     { name = "mockredispy", specifier = "==2.9.3" },
     { name = "mypy", specifier = "==1.13.0" },
     { name = "packaging", specifier = "==26.3" },
@@ -1406,7 +1406,7 @@ test = [
     { name = "coverage", specifier = "==7.16.1" },
     { name = "freezegun", specifier = "==1.5.1" },
     { name = "hypothesis", specifier = "==6.168.0" },
-    { name = "iniconfig", specifier = "==2.0.0" },
+    { name = "iniconfig", specifier = "==2.3.1" },
     { name = "mockredispy", specifier = "==2.9.3" },
     { name = "packaging", specifier = "==26.3" },
     { name = "pluggy", specifier = "==1.6.0" },

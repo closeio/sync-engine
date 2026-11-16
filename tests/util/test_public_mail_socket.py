@@ -6,6 +6,7 @@ from unittest import mock
 import pytest
 from imapclient import SocketTimeout
 
+from inbox.config import config
 from inbox.util.public_mail_socket import (
     PublicIMAPClient,
     connect_public_mail_host,
@@ -112,6 +113,20 @@ def test_connect_public_mail_host_blocks_a_host_that_is_not_all_public(
         "Name or service not known",
     )
     assert mock_create_connection.mock_calls == []
+
+
+def test_connect_public_mail_host_connects_to_a_private_ip_when_allowed(
+    mock_resolve_hostname_ip_addresses, mock_create_connection, monkeypatch
+) -> None:
+    monkeypatch.setitem(config, "ALLOW_PRIVATE_MAIL_HOSTS", True)
+    mock_resolve_hostname_ip_addresses.return_value = ["10.0.0.5"]
+
+    sock = connect_public_mail_host("dovecot", 143, 30)
+
+    assert sock is mock_create_connection.return_value
+    assert mock_create_connection.mock_calls == [
+        mock.call(("10.0.0.5", 143), 30)
+    ]
 
 
 def test_connect_public_mail_host_blocks_a_private_ip_literal(

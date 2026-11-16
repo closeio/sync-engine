@@ -10,6 +10,7 @@ from imapclient.tls import (  # type: ignore[import-untyped]
     wrap_socket,
 )
 
+from inbox.config import config
 from inbox.logging import get_logger
 
 log = get_logger()
@@ -65,9 +66,16 @@ def connect_public_mail_host(
     The account stores the error as its sync error, and closeio uses it to
     pick the message that the member sees. A distinct error would tell a
     member which internal names exist.
+
+    The `ALLOW_PRIVATE_MAIL_HOSTS` config value turns off the IP check, so
+    that local development can use a local mail server. Production must
+    keep it off.
     """
     ips = resolve_hostname_ip_addresses(host)
-    if not ips or any(is_private_or_special_use_ip(ip) for ip in ips):
+    if not ips or (
+        not config.get("ALLOW_PRIVATE_MAIL_HOSTS", False)
+        and any(is_private_or_special_use_ip(ip) for ip in ips)
+    ):
         log.warning("Blocked a private mail host", host=host, ips=ips)
         raise socket.gaierror(socket.EAI_NONAME, "Name or service not known")
     for ip in ips[:-1]:

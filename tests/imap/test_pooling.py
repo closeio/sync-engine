@@ -47,7 +47,7 @@ def test_connections_have_socket_timeout(
     db, generic_account, get_connection_pool, monkeypatch
 ) -> None:
     imap_client_class = mock.Mock()
-    monkeypatch.setattr("inbox.auth.utils.IMAPClient", imap_client_class)
+    monkeypatch.setattr("inbox.auth.utils.PublicIMAPClient", imap_client_class)
     # Start with no pools, so that the test does not get a pool of another
     # test.
     monkeypatch.setattr("inbox.crispin._pool_map", {})

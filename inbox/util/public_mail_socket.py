@@ -63,9 +63,9 @@ def connect_public_mail_host(
     Connect to a mail host only if every IP it resolves to is public.
 
     A blocked host raises the same error as a hostname that does not exist.
-    The account stores the error as its sync error, and closeio uses it to
-    pick the message that the member sees. A distinct error would tell a
-    member which internal names exist.
+    The account stores the error as its sync error, so a blocked host and a
+    missing host look the same. A distinct error would tell a user which
+    internal names exist.
 
     The `ALLOW_PRIVATE_MAIL_HOSTS` config value turns off the IP check, so
     that local development can use a local mail server. Production must

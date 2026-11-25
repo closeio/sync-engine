@@ -93,3 +93,6 @@ setup/
 
 # pip cache
 .cache
+
+# Temporary spot to store scripts, logs, etc
+scratch/
